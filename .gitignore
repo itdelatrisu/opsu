@@ -1,0 +1,14 @@
+/.osu_tmp/
+/screenshot/
+/songs/
+/.opsu.log
+/.opsu.cfg
+
+# Eclipse
+/.settings/
+/bin/
+/.classpath
+/.project
+.metadata
+
+Thumbs.db
