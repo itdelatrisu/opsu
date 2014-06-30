@@ -168,12 +168,12 @@ public class GameScore {
 	/**
 	 * Beatmap HPDrainRate value. (0:easy ~ 10:hard)
 	 */
-	private byte drainRate = 5;
+	private float drainRate = 5f;
 
 	/**
 	 * Beatmap OverallDifficulty value. (0:easy ~ 10:hard)
 	 */
-	private byte difficulty = 5;
+	private float difficulty = 5f;
 
 	/**
 	 * Scorebar-related images.
@@ -367,14 +367,14 @@ public class GameScore {
 	/**
 	 * Sets or returns the health drain rate.
 	 */
-	public void setDrainRate(byte drainRate) { this.drainRate = drainRate; }
-	public byte getDrainRate() { return drainRate; }
+	public void setDrainRate(float drainRate) { this.drainRate = drainRate; }
+	public float getDrainRate() { return drainRate; }
 
 	/**
 	 * Sets or returns the difficulty.
 	 */
-	public void setDifficulty(byte difficulty) { this.difficulty = difficulty; }
-	public byte getDifficulty() { return difficulty; }
+	public void setDifficulty(float difficulty) { this.difficulty = difficulty; }
+	public float getDifficulty() { return difficulty; }
 
 	/**
 	 * Draws a number with defaultSymbols.

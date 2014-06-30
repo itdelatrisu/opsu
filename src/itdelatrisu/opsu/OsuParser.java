@@ -254,16 +254,16 @@ public class OsuParser {
 						tokens = tokenize(line);
 						switch (tokens[0]) {
 						case "HPDrainRate":
-							osu.HPDrainRate = Byte.parseByte(tokens[1]);
+							osu.HPDrainRate = Float.parseFloat(tokens[1]);
 							break;
 						case "CircleSize":
-							osu.circleSize = Byte.parseByte(tokens[1]);
+							osu.circleSize = Float.parseFloat(tokens[1]);
 							break;
 						case "OverallDifficulty":
-							osu.overallDifficulty = Byte.parseByte(tokens[1]);
+							osu.overallDifficulty = Float.parseFloat(tokens[1]);
 							break;
 						case "ApproachRate":
-							osu.approachRate = Byte.parseByte(tokens[1]);
+							osu.approachRate = Float.parseFloat(tokens[1]);
 							break;
 						case "SliderMultiplier":
 							osu.sliderMultiplier = Float.parseFloat(tokens[1]);
@@ -273,7 +273,7 @@ public class OsuParser {
 							break;
 						}
 					}
-					if (osu.approachRate == -1)  // not in old format
+					if (osu.approachRate == -1f)  // not in old format
 						osu.approachRate = osu.overallDifficulty;
 					break;
 				case "[Events]":

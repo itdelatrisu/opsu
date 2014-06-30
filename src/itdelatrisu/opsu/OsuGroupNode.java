@@ -171,7 +171,7 @@ public class OsuGroupNode implements Comparable<OsuGroupNode> {
 				(osu.hitObjectCircle + osu.hitObjectSlider + osu.hitObjectSpinner));
 		info[3] = String.format("Circles: %d  Sliders: %d  Spinners: %d",
 				osu.hitObjectCircle, osu.hitObjectSlider, osu.hitObjectSpinner);
-		info[4] = String.format("CS:%d HP:%d AR:%d OD:%d",
+		info[4] = String.format("CS:%.1f HP:%.1f AR:%.1f OD:%.1f",
 				osu.circleSize, osu.HPDrainRate, osu.approachRate, osu.overallDifficulty);
 		return info;
 	}

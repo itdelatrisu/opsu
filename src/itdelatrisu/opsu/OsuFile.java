@@ -68,10 +68,10 @@ public class OsuFile implements Comparable<OsuFile> {
 	public int beatmapSetID = 0;                // beatmap set ID
 
 	/* [Difficulty] */
-	public byte HPDrainRate = 5;                // HP drain (0:easy ~ 10:hard)
-	public byte circleSize = 4;                 // size of circles
-	public byte overallDifficulty = 5;          // affects timing window, spinners, and approach speed (0:easy ~ 10:hard)
-	public byte approachRate = -1;              // how long circles stay on the screen (0:long ~ 10:short) **not in old format**
+	public float HPDrainRate = 5f;              // HP drain (0:easy ~ 10:hard)
+	public float circleSize = 4f;               // size of circles
+	public float overallDifficulty = 5f;        // affects timing window, spinners, and approach speed (0:easy ~ 10:hard)
+	public float approachRate = -1f;            // how long circles stay on the screen (0:long ~ 10:short) **not in old format**
 	public float sliderMultiplier = 1f;         // slider movement speed multiplier
 	public float sliderTickRate = 1f;           // rate at which slider ticks are placed (x per beat)
 
@@ -138,7 +138,7 @@ public class OsuFile implements Comparable<OsuFile> {
 	 */
 	@Override	
 	public int compareTo(OsuFile that) {
-		int cmp = Byte.compare(this.overallDifficulty, that.overallDifficulty);
+		int cmp = Float.compare(this.overallDifficulty, that.overallDifficulty);
 		if (cmp == 0)
 			cmp = Integer.compare(
 					this.hitObjectCircle + this.hitObjectSlider + this.hitObjectSpinner,

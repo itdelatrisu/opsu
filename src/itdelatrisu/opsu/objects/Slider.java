@@ -253,8 +253,8 @@ public class Slider {
 	 * @param osu the associated OsuFile object
 	 * @throws SlickException
 	 */
-	public static void init(GameContainer container, byte circleSize, OsuFile osu) throws SlickException {
-		int diameter = 96 - (circleSize * 8);
+	public static void init(GameContainer container, float circleSize, OsuFile osu) throws SlickException {
+		int diameter = (int) (96 - (circleSize * 8));
 		diameter = diameter * container.getWidth() / 640;  // convert from Osupixels (640x480)
 
 		sliderBall = new Animation();

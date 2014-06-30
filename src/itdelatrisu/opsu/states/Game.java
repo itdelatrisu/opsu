@@ -695,15 +695,15 @@ public class Game extends BasicGameState {
 	private void setMapModifiers() {
 		try {
 			// map-based properties, so re-initialize each game
-			byte circleSize = osu.circleSize;
-			byte approachRate = osu.approachRate;
-			byte overallDifficulty = osu.overallDifficulty;
-			byte HPDrainRate = osu.HPDrainRate;
+			float circleSize = osu.circleSize;
+			float approachRate = osu.approachRate;
+			float overallDifficulty = osu.overallDifficulty;
+			float HPDrainRate = osu.HPDrainRate;
 			if (Options.isModActive(Options.MOD_HARD_ROCK)) {  // hard rock modifiers
-				circleSize = (byte) Math.max(circleSize - 1, 0);
-				approachRate = (byte) Math.min(approachRate + 3, 10);
-				overallDifficulty = (byte) Math.min(overallDifficulty + 3, 10);
-				HPDrainRate = (byte) Math.min(HPDrainRate + 3, 10);
+				circleSize = Math.max(circleSize - 1, 0);
+				approachRate = Math.min(approachRate + 3, 10);
+				overallDifficulty = Math.min(overallDifficulty + 3, 10);
+				HPDrainRate = Math.min(HPDrainRate + 3, 10);
 			}
 
 			Circle.init(container, circleSize);
@@ -711,16 +711,16 @@ public class Game extends BasicGameState {
 
 			// approachRate (hit object approach time)
 			if (approachRate < 5)
-				approachTime = 1800 - (approachRate * 120);
+				approachTime = (int) (1800 - (approachRate * 120));
 			else
-				approachTime = 1200 - ((approachRate - 5) * 150);
+				approachTime = (int) (1200 - ((approachRate - 5) * 150));
 
 			// overallDifficulty (hit result time offsets)
 			hitResultOffset = new int[GameScore.HIT_MAX];
-			hitResultOffset[GameScore.HIT_300]  = 78 - (overallDifficulty * 6);
-			hitResultOffset[GameScore.HIT_100]  = 138 - (overallDifficulty * 8);
-			hitResultOffset[GameScore.HIT_50]   = 198 - (overallDifficulty * 10);
-			hitResultOffset[GameScore.HIT_MISS] = 500 - (overallDifficulty * 10);
+			hitResultOffset[GameScore.HIT_300]  = (int) (78 - (overallDifficulty * 6));
+			hitResultOffset[GameScore.HIT_100]  = (int) (138 - (overallDifficulty * 8));
+			hitResultOffset[GameScore.HIT_50]   = (int) (198 - (overallDifficulty * 10));
+			hitResultOffset[GameScore.HIT_MISS] = (int) (500 - (overallDifficulty * 10));
 
 			// HPDrainRate (health change), overallDifficulty (scoring)
 			score.setDrainRate(HPDrainRate);

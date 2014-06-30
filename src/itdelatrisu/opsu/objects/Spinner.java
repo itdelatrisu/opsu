@@ -109,8 +109,8 @@ public class Spinner {
 		this.score = score;
 
 		// calculate rotations needed
-		int spinsPerMinute = 100 + (score.getDifficulty() * 15);
-		rotationsNeeded = (float) spinsPerMinute * (hitObject.endTime - hitObject.time) / 60000f;
+		float spinsPerMinute = 100 + (score.getDifficulty() * 15);
+		rotationsNeeded = spinsPerMinute * (hitObject.endTime - hitObject.time) / 60000f;
 	}
 
 	/**

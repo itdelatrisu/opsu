@@ -72,8 +72,8 @@ public class Circle {
 	 * @param circleSize the map's circleSize value
 	 * @throws SlickException
 	 */
-	public static void init(GameContainer container, byte circleSize) throws SlickException {
-		int diameter = 96 - (circleSize * 8);
+	public static void init(GameContainer container, float circleSize) throws SlickException {
+		int diameter = (int) (96 - (circleSize * 8));
 		diameter = diameter * container.getWidth() / 640;  // convert from Osupixels (640x480)
 		hitCircle = new Image("hitcircle.png").getScaledCopy(diameter, diameter);
 		hitCircleOverlay = new Image("hitcircleoverlay.png").getScaledCopy(diameter, diameter);
