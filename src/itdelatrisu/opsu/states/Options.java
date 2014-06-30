@@ -226,6 +226,11 @@ public class Options extends BasicGameState {
 	private static int screenshotFormatIndex = 0;
 
 	/**
+	 * Port binding.
+	 */
+	private static int port = 0;
+
+	/**
 	 * Back button (shared by other states).
 	 */
 	private static GUIMenuButton backButton;
@@ -674,6 +679,19 @@ public class Options extends BasicGameState {
 	public static boolean isComboBurstEnabled() { return showComboBursts; }
 
 	/**
+	 * Returns the port number to bind to.
+	 * @return the port
+	 */
+	public static int getPort() {
+		if (port == 0) {
+			// choose a random port
+			port = 49250;
+			optionsChanged = true;  // force file creation
+		}
+		return port;
+	}
+
+	/**
 	 * Returns the current beatmap directory.
 	 * If invalid, this will attempt to search for the directory,
 	 * and if nothing found, will create one.
@@ -761,6 +779,11 @@ public class Options extends BasicGameState {
 				case "ComboBurst":
 					showComboBursts = Boolean.parseBoolean(value);
 					break;
+				case "Port":
+					i = Integer.parseInt(value);
+					if (i > 0 && i <= 65535)
+						port = i;
+					break;
 				}
 			}
 		} catch (IOException e) {
@@ -813,6 +836,8 @@ public class Options extends BasicGameState {
 			writer.write(String.format("HitLighting = %b", showHitLighting));
 			writer.newLine();
 			writer.write(String.format("ComboBurst = %b", showComboBursts));
+			writer.newLine();
+			writer.write(String.format("Port = %d", port));
 			writer.newLine();
 			writer.close();
 		} catch (IOException e) {

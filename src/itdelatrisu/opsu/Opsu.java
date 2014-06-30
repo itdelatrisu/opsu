@@ -29,7 +29,9 @@ import itdelatrisu.opsu.states.SongMenu;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.PrintStream;
+import java.net.ServerSocket;
 
 import org.newdawn.slick.AppGameContainer;
 import org.newdawn.slick.Color;
@@ -66,6 +68,11 @@ public class Opsu extends StateBasedGame {
 		STATE_GAMEPAUSEMENU = 6,
 		STATE_GAMERANKING   = 7;
 
+	/**
+	 * Used to restrict the program to a single instance.
+	 */
+	private static ServerSocket SERVER_SOCKET;
+
 	public Opsu(String name) {
 		super(name);
 	}
@@ -82,12 +89,6 @@ public class Opsu extends StateBasedGame {
 	}
 
 	public static void main(String[] args) {
-		// set path for lwjgl natives - NOT NEEDED if using JarSplice
-//		System.setProperty("org.lwjgl.librarypath", new File("native").getAbsolutePath());
-
-		// set the resource path
-		ResourceLoader.addResourceLocation(new FileSystemLocation(new File("./res/")));
-
 		// log all errors to a file
 		Log.setVerbose(false);
 		try {
@@ -102,13 +103,29 @@ public class Opsu extends StateBasedGame {
 			}
 		});
 
+		// parse configuration file
+		Options.parseOptions();
+
+		// only allow a single instance
+		try {
+			SERVER_SOCKET = new ServerSocket(Options.getPort());
+		} catch (IOException e) {
+			Log.error(String.format("Another program is already running on port %d.", Options.getPort()), e);
+			System.exit(1);
+		}
+
+		// set path for lwjgl natives - NOT NEEDED if using JarSplice
+//		System.setProperty("org.lwjgl.librarypath", new File("native").getAbsolutePath());
+
+		// set the resource path
+		ResourceLoader.addResourceLocation(new FileSystemLocation(new File("./res/")));
+
 		// start the game
 		Opsu osuGame = new Opsu("opsu!");
 		try {
 			AppGameContainer app = new AppGameContainer(osuGame);
 
 			// basic game settings
-			Options.parseOptions();
 			int[] containerSize = Options.getContainerSize();
 			app.setDisplayMode(containerSize[0], containerSize[1], false);
 			String[] icons = { "icon16.png", "icon32.png" };
@@ -147,6 +164,18 @@ public class Opsu extends StateBasedGame {
 
 		Options.saveOptions();
 		((AppGameContainer) this.getContainer()).destroy();
+		closeSocket();
 		return true;
+	}
+
+	/**
+	 * Closes the server socket.
+	 */
+	public static void closeSocket() {
+		try {
+			SERVER_SOCKET.close();
+		} catch (IOException e) {
+			Log.error("Failed to close server socket.", e);
+		}
 	}
 }
