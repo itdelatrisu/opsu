@@ -22,6 +22,7 @@ import itdelatrisu.opsu.GUIMenuButton;
 import itdelatrisu.opsu.MusicController;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.SoundController;
+import itdelatrisu.opsu.Utils;
 
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
@@ -117,13 +118,14 @@ public class GamePauseMenu extends BasicGameState {
 		else
 			g.setBackground(Color.black);
 
-		Options.drawFPS();
-
 		// draw buttons
 		if (Game.getRestart() != Game.RESTART_LOSE)
 			continueButton.draw();
 		retryButton.draw();
 		backButton.draw();
+
+		Utils.drawFPS();
+		Utils.drawCursor();
 	}
 
 	@Override
@@ -149,7 +151,7 @@ public class GamePauseMenu extends BasicGameState {
 				unPause(Game.RESTART_FALSE);
 			break;
 		case Input.KEY_F12:
-			Options.takeScreenShot();
+			Utils.takeScreenShot();
 			break;
 		}
 	}

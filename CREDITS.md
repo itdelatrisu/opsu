@@ -17,6 +17,7 @@ The images included in opsu! belong to their respective authors.
 * pictuga - "osu! web"
 * sherrie__fay
 * kouyang
+* teinecthel
 
 Projects
 --------

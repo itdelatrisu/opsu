@@ -26,6 +26,7 @@ import itdelatrisu.opsu.OsuFile;
 import itdelatrisu.opsu.OsuHitObject;
 import itdelatrisu.opsu.OsuTimingPoint;
 import itdelatrisu.opsu.SoundController;
+import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.objects.Circle;
 import itdelatrisu.opsu.objects.Slider;
 import itdelatrisu.opsu.objects.Spinner;
@@ -264,8 +265,6 @@ public class Game extends BasicGameState {
 		if (!osu.drawBG(width, height, 0.7f))
 			g.setBackground(Color.black);
 
-		Options.drawFPS();
-
 		int trackPosition = MusicController.getPosition();
 		if (pauseTime > -1)  // returning from pause screen
 			trackPosition = pauseTime;
@@ -313,6 +312,9 @@ public class Game extends BasicGameState {
 						warningArrowL.draw(width * 0.75f, height * 0.75f);
 					}
 				}
+
+				Utils.drawFPS();
+				Utils.drawCursor();
 				return;
 			}
 		}
@@ -413,7 +415,7 @@ public class Game extends BasicGameState {
 		// returning from pause screen
 		if (pauseTime > -1 && pausedMouseX > -1 && pausedMouseY > -1) {
 			// darken the screen
-			g.setColor(Options.COLOR_BLACK_ALPHA);
+			g.setColor(Utils.COLOR_BLACK_ALPHA);
 			g.fillRect(0, 0, width, height);
 
 			// draw glowing hit select circle and pulse effect
@@ -425,6 +427,9 @@ public class Game extends BasicGameState {
 			cursorCirclePulse.setAlpha(1f - pausePulse);
 			cursorCirclePulse.drawCentered(pausedMouseX, pausedMouseY);
 		}
+
+		Utils.drawFPS();
+		Utils.drawCursor();
 	}
 
 	@Override
@@ -589,7 +594,7 @@ public class Game extends BasicGameState {
 				mousePressed(Input.MOUSE_RIGHT_BUTTON, input.getMouseX(), input.getMouseY());
 			break;
 		case Input.KEY_F12:
-			Options.takeScreenShot();
+			Utils.takeScreenShot();
 			break;
 		}
 	}
@@ -646,6 +651,9 @@ public class Game extends BasicGameState {
 			throws SlickException {
 		if (osu == null || osu.objects == null)
 			throw new RuntimeException("Running game with no OsuFile loaded.");
+
+		// grab the mouse
+		container.setMouseGrabbed(true);
 
 		// restart the game
 		if (restart != RESTART_FALSE) {
@@ -718,6 +726,12 @@ public class Game extends BasicGameState {
 			leadInTime = osu.audioLeadIn + approachTime;
 			restart = RESTART_FALSE;
 		}
+	}
+
+	@Override
+	public void leave(GameContainer container, StateBasedGame game)
+			throws SlickException {
+		container.setMouseGrabbed(false);
 	}
 
 	/**

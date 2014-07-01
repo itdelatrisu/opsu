@@ -22,6 +22,7 @@ import itdelatrisu.opsu.GameScore;
 import itdelatrisu.opsu.MusicController;
 import itdelatrisu.opsu.OsuHitObject;
 import itdelatrisu.opsu.SoundController;
+import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.states.Game;
 import itdelatrisu.opsu.states.Options;
 
@@ -127,7 +128,7 @@ public class Spinner {
 		//spinnerOsuImage.drawCentered(width / 2, height / 4);
 
 		// darken screen
-		g.setColor(Options.COLOR_BLACK_ALPHA);
+		g.setColor(Utils.COLOR_BLACK_ALPHA);
 		g.fillRect(0, 0, width, height);
 
 		if (timeDiff > 0)

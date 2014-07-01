@@ -22,6 +22,7 @@ import itdelatrisu.opsu.GameScore;
 import itdelatrisu.opsu.MusicController;
 import itdelatrisu.opsu.OsuFile;
 import itdelatrisu.opsu.OsuHitObject;
+import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.states.Game;
 import itdelatrisu.opsu.states.Options;
 
@@ -240,9 +241,9 @@ public class Slider {
 
 			// draw overlay and hit circle
 			for (int i = curveX.length - 1; i >= 0; i--)
-				drawCentered(hitCircleOverlay, curveX[i], curveY[i], Color.white);
+				Utils.drawCentered(hitCircleOverlay, curveX[i], curveY[i], Color.white);
 			for (int i = curveX.length - 1; i >= 0; i--)
-				drawCentered(hitCircle, curveX[i], curveY[i], color);
+				Utils.drawCentered(hitCircle, curveX[i], curveY[i], color);
 		}
 	}
 
@@ -312,12 +313,12 @@ public class Slider {
 
 		// end circle
 		int lastIndex = hitObject.sliderX.length - 1;
-		drawCentered(hitCircleOverlay, hitObject.sliderX[lastIndex], hitObject.sliderY[lastIndex], Color.white);
-		drawCentered(hitCircle, hitObject.sliderX[lastIndex], hitObject.sliderY[lastIndex], color);
+		Utils.drawCentered(hitCircleOverlay, hitObject.sliderX[lastIndex], hitObject.sliderY[lastIndex], Color.white);
+		Utils.drawCentered(hitCircle, hitObject.sliderX[lastIndex], hitObject.sliderY[lastIndex], color);
 
 		// start circle
-		drawCentered(hitCircleOverlay, hitObject.x, hitObject.y, Color.white);
-		drawCentered(hitCircle, hitObject.x, hitObject.y, color);
+		Utils.drawCentered(hitCircleOverlay, hitObject.x, hitObject.y, Color.white);
+		Utils.drawCentered(hitCircle, hitObject.x, hitObject.y, color);
 		if (sliderClicked)
 			;  // don't draw current combo number if already clicked
 		else
@@ -335,31 +336,18 @@ public class Slider {
 		if (timeDiff >= 0) {
 			// approach circle
 			float approachScale = 1 + (timeDiff * 2f / game.getApproachTime());
-			drawCentered(Circle.getApproachCircle().getScaledCopy(approachScale), hitObject.x, hitObject.y, color);
+			Utils.drawCentered(Circle.getApproachCircle().getScaledCopy(approachScale),
+					hitObject.x, hitObject.y, color);
 		} else {
 			float[] c = bezier.pointAt(getT(trackPosition, false));
 
 			// slider ball
-			drawCentered(sliderBall, c[0], c[1]);
+			Utils.drawCentered(sliderBall, c[0], c[1]);
 
 			// follow circle
 			if (followCircleActive)
 				sliderFollowCircle.drawCentered(c[0], c[1]);
 		}
-	}
-
-	/**
-	 * Draws an image based on its center with a color filter.
-	 */
-	private void drawCentered(Image img, float x, float y, Color color) {
-		img.draw(x - (img.getWidth() / 2f), y - (img.getHeight() / 2f), color);
-	}
-
-	/**
-	 * Draws an animation based on its center with a color filter.
-	 */
-	private static void drawCentered(Animation anim, float x, float y) {
-		anim.draw(x - (anim.getWidth() / 2f), y - (anim.getHeight() / 2f));
 	}
 
 	/**

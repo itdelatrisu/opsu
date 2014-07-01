@@ -20,9 +20,8 @@ package itdelatrisu.opsu.states;
 
 import itdelatrisu.opsu.GUIMenuButton;
 import itdelatrisu.opsu.Opsu;
-import itdelatrisu.opsu.SoundController;
+import itdelatrisu.opsu.Utils;
 
-import java.awt.Font;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -39,8 +38,6 @@ import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
-import org.newdawn.slick.TrueTypeFont;
-import org.newdawn.slick.imageout.ImageOut;
 import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.state.transition.EmptyTransition;
@@ -84,41 +81,6 @@ public class Options extends BasicGameState {
 	 * File for storing user options.
 	 */
 	private static final String OPTIONS_FILE = ".opsu.cfg";
-
-	/**
-	 * Whether or not any changes were made to options.
-	 * If false, the options file will not be modified.
-	 */
-	private static boolean optionsChanged = false;
-
-	/**
-	 * Game colors.
-	 */
-	public static final Color
-		COLOR_BLACK_ALPHA     = new Color(0, 0, 0, 0.5f),
-		COLOR_BLUE_DIVIDER    = new Color(49, 94, 237),
-		COLOR_BLUE_BACKGROUND = new Color(74, 130, 255),
-		COLOR_BLUE_BUTTON     = new Color(50, 189, 237),
-		COLOR_ORANGE_BUTTON   = new Color(230, 151, 87),
-		COLOR_GREEN_OBJECT    = new Color(26, 207, 26),
-		COLOR_BLUE_OBJECT     = new Color(46, 136, 248),
-		COLOR_RED_OBJECT      = new Color(243, 48, 77),
-		COLOR_ORANGE_OBJECT   = new Color(255, 200, 32);
-
-	/**
-	 * The default map colors, used when a map does not provide custom colors.
-	 */
-	public static final Color[] DEFAULT_COMBO = {
-		COLOR_GREEN_OBJECT, COLOR_BLUE_OBJECT,
-		COLOR_RED_OBJECT, COLOR_ORANGE_OBJECT
-	};
-
-	/**
-	 * Game fonts.
-	 */
-	public static TrueTypeFont
-		FONT_DEFAULT, FONT_BOLD,
-		FONT_XLARGE, FONT_LARGE, FONT_MEDIUM, FONT_SMALL;
 
 	/**
 	 * Game mods.
@@ -235,12 +197,12 @@ public class Options extends BasicGameState {
 	/**
 	 * Port binding.
 	 */
-	private static int port = 0;
+	private static int port = 49250;
 
 	/**
-	 * Back button (shared by other states).
+	 * Whether or not to use the new cursor type.
 	 */
-	private static GUIMenuButton backButton;
+	private static boolean newCursor = true;
 
 	/**
 	 * Game option coordinate modifiers (for drawing).
@@ -248,8 +210,8 @@ public class Options extends BasicGameState {
 	private int textY, offsetY;
 
 	// game-related variables
-	private static GameContainer container;
-	private static StateBasedGame game;
+	private GameContainer container;
+	private StateBasedGame game;
 	private Input input;
 	private int state;
 	private boolean init = false;
@@ -261,42 +223,17 @@ public class Options extends BasicGameState {
 	@Override
 	public void init(GameContainer container, StateBasedGame game)
 			throws SlickException {
-		Options.container = container;
-		Options.game = game;
+		this.container = container;
+		this.game = game;
 		this.input = container.getInput();
 
-		// game settings
-		container.setTargetFrameRate(targetFPS[targetFPSindex]);
-		container.setMouseCursor("cursor.png", 16, 16);
-		container.setMusicVolume(getMusicVolume());
-		container.setShowFPS(false);
-		container.getInput().enableKeyRepeat();
-		container.setAlwaysRender(true);
-
-		// create fonts
-		float fontBase;
-		if (container.getHeight() <= 600)
-			fontBase = 9f;
-		else if (container.getHeight() < 800)
-			fontBase = 10f;
-		else if (container.getHeight() <= 900)
-			fontBase = 12f;
-		else
-			fontBase = 14f;
-
-		Font font    = new Font("Lucida Sans Unicode", Font.PLAIN, (int) (fontBase * 4 / 3));
-		FONT_DEFAULT = new TrueTypeFont(font, false);
-		FONT_BOLD    = new TrueTypeFont(font.deriveFont(Font.BOLD), false);
-		FONT_XLARGE  = new TrueTypeFont(font.deriveFont(fontBase * 4), false);
-		FONT_LARGE   = new TrueTypeFont(font.deriveFont(fontBase * 2), false);
-		FONT_MEDIUM  = new TrueTypeFont(font.deriveFont(fontBase * 3 / 2), false);
-		FONT_SMALL   = new TrueTypeFont(font.deriveFont(fontBase), false);
+		Utils.init(container, game);
 
 		int width = container.getWidth();
 		int height = container.getHeight();
 
 		// game option coordinate modifiers
-		textY = 10 + (FONT_XLARGE.getLineHeight() * 3 / 2);
+		textY = 10 + (Utils.FONT_XLARGE.getLineHeight() * 3 / 2);
 		offsetY = (int) (((height * 0.8f) - textY) / OPTIONS_MAX);
 
 		// game mods
@@ -330,14 +267,6 @@ public class Options extends BasicGameState {
 		for (int i = 0; i < modButtons.length; i++)
 			modButtons[i].getImage().setAlpha(0.5f);
 
-		// back button
-		Image back = new Image("menu-back.png");
-		float scale = (height * 0.1f) / back.getHeight();
-		back = back.getScaledCopy(scale);
-		backButton = new GUIMenuButton(back,
-				back.getWidth() / 2f,
-				height - (back.getHeight() / 2f));
-
 		game.enterState(Opsu.STATE_MAINMENU, new EmptyTransition(), new FadeInTransition(Color.black));
 	}
 
@@ -347,25 +276,25 @@ public class Options extends BasicGameState {
 		if (!init)
 			return;
 
-		g.setBackground(COLOR_BLACK_ALPHA);
+		g.setBackground(Utils.COLOR_BLACK_ALPHA);
 		g.setColor(Color.white);
 
 		int width = container.getWidth();
 		int height = container.getHeight();
 
 		// title
-		FONT_XLARGE.drawString(
-				(width / 2) - (FONT_XLARGE.getWidth("GAME OPTIONS") / 2),
+		Utils.FONT_XLARGE.drawString(
+				(width / 2) - (Utils.FONT_XLARGE.getWidth("GAME OPTIONS") / 2),
 				10, "GAME OPTIONS"
 		);
-		FONT_DEFAULT.drawString(
-				(width / 2) - (FONT_DEFAULT.getWidth("Click or drag an option to change it.") / 2),
-				10 + FONT_XLARGE.getHeight(), "Click or drag an option to change it."
+		Utils.FONT_DEFAULT.drawString(
+				(width / 2) - (Utils.FONT_DEFAULT.getWidth("Click or drag an option to change it.") / 2),
+				10 + Utils.FONT_XLARGE.getHeight(), "Click or drag an option to change it."
 		);
 
 		// game options
 		g.setLineWidth(1f);
-		g.setFont(FONT_LARGE);
+		g.setFont(Utils.FONT_LARGE);
 		this.drawOption(g, OPTIONS_SCREEN_RESOLUTION, "Screen Resolution",
 				String.format("%dx%d", resolutions[resolutionIndex][0], resolutions[resolutionIndex][1]),
 				"Restart to apply resolution changes."
@@ -375,7 +304,7 @@ public class Options extends BasicGameState {
 //				"Restart to apply changes."
 //		);
 		this.drawOption(g, OPTIONS_TARGET_FPS, "Frame Limiter",
-				String.format("%dfps", targetFPS[targetFPSindex]),
+				String.format("%dfps", getTargetFPS()),
 				"Higher values may cause high CPU usage."
 		);
 		this.drawOption(g, OPTIONS_MUSIC_VOLUME, "Music Volume",
@@ -408,13 +337,14 @@ public class Options extends BasicGameState {
 		);
 
 		// game mods
-		FONT_LARGE.drawString(width * 0.02f, height * 0.8f, "Game Mods:", Color.white);
+		Utils.FONT_LARGE.drawString(width * 0.02f, height * 0.8f, "Game Mods:", Color.white);
 		for (int i = 0; i < modButtons.length; i++)
 			modButtons[i].draw();
 
-		backButton.draw();
+		Utils.getBackButton().draw();
 
-		drawFPS();
+		Utils.drawFPS();
+		Utils.drawCursor();
 	}
 
 	@Override
@@ -433,7 +363,7 @@ public class Options extends BasicGameState {
 			return;
 
 		// back
-		if (backButton.contains(x, y)) {
+		if (Utils.getBackButton().contains(x, y)) {
 			game.enterState(Opsu.STATE_SONGMENU, new EmptyTransition(), new FadeInTransition(Color.black));
 			return;
 		}
@@ -472,7 +402,7 @@ public class Options extends BasicGameState {
 //		}
 		if (isOptionClicked(OPTIONS_TARGET_FPS, y)) {
 			targetFPSindex = (targetFPSindex + 1) % targetFPS.length;
-			container.setTargetFrameRate(targetFPS[targetFPSindex]);
+			container.setTargetFrameRate(getTargetFPS());
 			return;
 		}
 		if (isOptionClicked(OPTIONS_SCREENSHOT_FORMAT, y)) {
@@ -545,7 +475,7 @@ public class Options extends BasicGameState {
 			game.enterState(Opsu.STATE_SONGMENU, new EmptyTransition(), new FadeInTransition(Color.black));
 			break;
 		case Input.KEY_F12:
-			Options.takeScreenShot();
+			Utils.takeScreenShot();
 			break;
 		}
 	}
@@ -560,14 +490,14 @@ public class Options extends BasicGameState {
 	 */
 	private void drawOption(Graphics g, int pos, String label, String value, String notes) {
 		int width = container.getWidth();
-		int textHeight = FONT_LARGE.getHeight();
+		int textHeight = Utils.FONT_LARGE.getHeight();
 		float y = textY + (pos * offsetY);
 
 		g.drawString(label, width / 50, y);
 		g.drawString(value, width / 2, y);
 		g.drawLine(0, y + textHeight, width, y + textHeight);
 		if (notes != null)
-			FONT_SMALL.drawString(width / 50, y + textHeight, notes);
+			Utils.FONT_SMALL.drawString(width / 50, y + textHeight, notes);
 	}
 
 	/**
@@ -577,12 +507,8 @@ public class Options extends BasicGameState {
 	 * @return true if clicked
 	 */
 	private boolean isOptionClicked(int pos, int y) {
-		if (y > textY + (offsetY * pos) - FONT_LARGE.getHeight() &&
-			y < textY + (offsetY * pos) + FONT_LARGE.getHeight()) {
-			optionsChanged = true;
-			return true;
-		}
-		return false;
+		return (y > textY + (offsetY * pos) - Utils.FONT_LARGE.getHeight() &&
+				y < textY + (offsetY * pos) + Utils.FONT_LARGE.getHeight());
 	}
 
 	/**
@@ -610,9 +536,10 @@ public class Options extends BasicGameState {
 	public static Image getModImage(int mod) { return modButtons[mod].getImage(); }
 
 	/**
-	 * Returns the 'back' GUIMenuButton.
+	 * Returns the target frame rate.
+	 * @return the target FPS
 	 */
-	public static GUIMenuButton getBackButton() { return backButton; }
+	public static int getTargetFPS() { return targetFPS[targetFPSindex]; }
 
 	/**
 	 * Returns the default music volume.
@@ -633,53 +560,10 @@ public class Options extends BasicGameState {
 	public static int getMusicOffset() { return musicOffset; }
 
 	/**
-	 * Draws the FPS at the bottom-right corner of the game container.
-	 * If the option is not activated, this will do nothing.
+	 * Returns the screenshot file format.
+	 * @return the file extension ("png", "jpg", "bmp")
 	 */
-	public static void drawFPS() {
-		if (showFPS) {
-			String fps = String.format("FPS: %d", container.getFPS());
-			FONT_DEFAULT.drawString(
-					container.getWidth() - 15 - FONT_DEFAULT.getWidth(fps),
-					container.getHeight() - 15 - FONT_DEFAULT.getHeight(fps),
-					fps, Color.white
-			);
-		}
-	}
-
-	/**
-	 * Takes a screenshot.
-	 * @return true if successful
-	 */
-	public static boolean takeScreenShot() {
-		// TODO: should this be threaded?
-		try {
-			// create the screenshot directory
-			if (!SCREENSHOT_DIR.isDirectory()) {
-				if (!SCREENSHOT_DIR.mkdir())
-					return false;
-			}
-
-			// create file name
-			SimpleDateFormat date = new SimpleDateFormat("yyyyMMdd_HHmmss");
-			String file = date.format(new Date());
-
-			SoundController.playSound(SoundController.SOUND_SHUTTER);
-
-			// copy the screen
-			Image screen = new Image(container.getWidth(), container.getHeight());
-			container.getGraphics().copyArea(screen, 0, 0);
-			ImageOut.write(screen, String.format("%s%sscreenshot_%s.%s",
-					SCREENSHOT_DIR.getName(), File.separator,
-					file, screenshotFormat[screenshotFormatIndex]), false
-			);
-			screen.destroy();
-		} catch (SlickException e) {
-			Log.warn("Failed to take a screenshot.", e);
-			return false;
-		}
-		return true;
-	}
+	public static String getScreenshotFormat() { return screenshotFormat[screenshotFormatIndex]; }
 
 	/**
 	 * Returns the screen resolution.
@@ -692,6 +576,12 @@ public class Options extends BasicGameState {
 //	 * @return true if enabled
 //	 */
 //	public static boolean isFullscreen() { return fullscreen; }
+
+	/**
+	 * Returns whether or not the FPS counter display is enabled.
+	 * @return true if enabled
+	 */
+	public static boolean isFPSCounterEnabled() { return showFPS; }
 
 	/**
 	 * Returns whether or not hit lighting effects are enabled.
@@ -709,14 +599,13 @@ public class Options extends BasicGameState {
 	 * Returns the port number to bind to.
 	 * @return the port
 	 */
-	public static int getPort() {
-		if (port == 0) {
-			// choose a random port
-			port = 49250;
-			optionsChanged = true;  // force file creation
-		}
-		return port;
-	}
+	public static int getPort() { return port; }
+
+	/**
+	 * Returns whether or not the new cursor type is enabled.
+	 * @return true if enabled
+	 */
+	public static boolean isNewCursorEnabled() { return newCursor; }
 
 	/**
 	 * Returns the current beatmap directory.
@@ -730,14 +619,13 @@ public class Options extends BasicGameState {
 		// search for directory
 		for (int i = 0; i < BEATMAP_DIRS.length; i++) {
 			beatmapDir = new File(BEATMAP_DIRS[i]);
-			if (beatmapDir.isDirectory()) {
-				optionsChanged = true;  // force config file creation
+			if (beatmapDir.isDirectory())
 				return beatmapDir;
-			}
 		}
 		beatmapDir.mkdir();  // none found, create new directory
 		return beatmapDir;
 	}
+
 
 	/**
 	 * Reads user options from the options file, if it exists.
@@ -746,9 +634,7 @@ public class Options extends BasicGameState {
 		// if no config file, use default settings
 		File file = new File(OPTIONS_FILE);
 		if (!file.isFile()) {
-			optionsChanged = true;  // force file creation
 			saveOptions();
-			optionsChanged = false;
 			return;
 		}
 
@@ -816,6 +702,9 @@ public class Options extends BasicGameState {
 					if (i > 0 && i <= 65535)
 						port = i;
 					break;
+				case "NewCursor":  // custom
+					newCursor = Boolean.parseBoolean(value);
+					break;
 				}
 			}
 		} catch (IOException e) {
@@ -830,10 +719,6 @@ public class Options extends BasicGameState {
 	 * (Over)writes user options to a file.
 	 */
 	public static void saveOptions() {
-		// only overwrite when needed
-		if (!optionsChanged)
-			return;
-
 		try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(
 				new FileOutputStream(OPTIONS_FILE), "utf-8"))) {
 			// header
@@ -872,6 +757,8 @@ public class Options extends BasicGameState {
 			writer.write(String.format("ComboBurst = %b", showComboBursts));
 			writer.newLine();
 			writer.write(String.format("Port = %d", port));
+			writer.newLine();
+			writer.write(String.format("NewCursor = %b", newCursor));  // custom
 			writer.newLine();
 			writer.close();
 		} catch (IOException e) {

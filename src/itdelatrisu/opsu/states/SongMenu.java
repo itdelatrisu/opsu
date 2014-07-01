@@ -26,6 +26,7 @@ import itdelatrisu.opsu.OsuGroupList;
 import itdelatrisu.opsu.OsuGroupNode;
 import itdelatrisu.opsu.OsuParser;
 import itdelatrisu.opsu.SoundController;
+import itdelatrisu.opsu.Utils;
 
 import org.lwjgl.opengl.Display;
 import org.newdawn.slick.Color;
@@ -170,13 +171,13 @@ public class SongMenu extends BasicGameState {
 		searchResultString = "Type to search!";
 
 		searchIcon = new Image("search.png");
-		float iconScale = Options.FONT_BOLD.getLineHeight() * 2f / searchIcon.getHeight();
+		float iconScale = Utils.FONT_BOLD.getLineHeight() * 2f / searchIcon.getHeight();
 		searchIcon = searchIcon.getScaledCopy(iconScale);
 
 		search = new TextField(
-				container, Options.FONT_DEFAULT,
+				container, Utils.FONT_DEFAULT,
 				(int) tabX + searchIcon.getWidth(), (int) ((height * 0.15f) - (tab.getHeight() * 5 / 2f)),
-				(int) (buttonWidth / 2), Options.FONT_DEFAULT.getHeight()
+				(int) (buttonWidth / 2), Utils.FONT_DEFAULT.getHeight()
 		);
 		search.setBackgroundColor(Color.transparent);
 		search.setBorderColor(Color.transparent);
@@ -205,9 +206,9 @@ public class SongMenu extends BasicGameState {
 
 		// header setup
 		float lowerBound = height * 0.15f;
-		g.setColor(Options.COLOR_BLACK_ALPHA);
+		g.setColor(Utils.COLOR_BLACK_ALPHA);
 		g.fillRect(0, 0, width, lowerBound);
-		g.setColor(Options.COLOR_BLUE_DIVIDER);
+		g.setColor(Utils.COLOR_BLUE_DIVIDER);
 		g.setLineWidth(2f);
 		g.drawLine(0, lowerBound, width, lowerBound);
 		g.resetLineWidth();
@@ -220,17 +221,17 @@ public class SongMenu extends BasicGameState {
 
 			String[] info = focusNode.getInfo();
 			g.setColor(Color.white);
-			Options.FONT_LARGE.drawString(
+			Utils.FONT_LARGE.drawString(
 					musicNoteWidth + 5, -3, info[0]);
-			float y1 = -3 + Options.FONT_LARGE.getHeight() * 0.75f;
-			Options.FONT_DEFAULT.drawString(
+			float y1 = -3 + Utils.FONT_LARGE.getHeight() * 0.75f;
+			Utils.FONT_DEFAULT.drawString(
 					musicNoteWidth + 5, y1, info[1]);
-			Options.FONT_BOLD.drawString(
+			Utils.FONT_BOLD.drawString(
 					5, Math.max(y1 + 4, musicNoteHeight - 3), info[2]);
-			Options.FONT_DEFAULT.drawString(
-					5, musicNoteHeight + Options.FONT_BOLD.getLineHeight() - 9, info[3]);
-			Options.FONT_SMALL.drawString(
-					5, musicNoteHeight + Options.FONT_BOLD.getLineHeight() + Options.FONT_DEFAULT.getLineHeight() - 13, info[4]);
+			Utils.FONT_DEFAULT.drawString(
+					5, musicNoteHeight + Utils.FONT_BOLD.getLineHeight() - 9, info[3]);
+			Utils.FONT_SMALL.drawString(
+					5, musicNoteHeight + Utils.FONT_BOLD.getLineHeight() + Utils.FONT_DEFAULT.getLineHeight() - 13, info[4]);
 		}
 
 		// song buttons
@@ -248,17 +249,17 @@ public class SongMenu extends BasicGameState {
 		for (int i = sortTabs.length - 1; i >= 0; i--) {
 			sortTabs[i].getImage().setAlpha((i == currentSort) ? 1.0f : 0.7f);
 			sortTabs[i].draw();
-			float tabTextX = sortTabs[i].getX() - (Options.FONT_MEDIUM.getWidth(OsuGroupList.SORT_NAMES[i]) / 2);
-			Options.FONT_MEDIUM.drawString(tabTextX, tabTextY, OsuGroupList.SORT_NAMES[i], Color.white);
+			float tabTextX = sortTabs[i].getX() - (Utils.FONT_MEDIUM.getWidth(OsuGroupList.SORT_NAMES[i]) / 2);
+			Utils.FONT_MEDIUM.drawString(tabTextX, tabTextY, OsuGroupList.SORT_NAMES[i], Color.white);
 		}
 
 		// search
-		Options.FONT_BOLD.drawString(
-				search.getX(), search.getY() - Options.FONT_BOLD.getLineHeight(),
+		Utils.FONT_BOLD.drawString(
+				search.getX(), search.getY() - Utils.FONT_BOLD.getLineHeight(),
 				searchResultString, Color.white
 		);
 		searchIcon.draw(search.getX() - searchIcon.getWidth(),
-						search.getY() - Options.FONT_DEFAULT.getLineHeight());
+						search.getY() - Utils.FONT_DEFAULT.getLineHeight());
 		g.setColor(Color.white);
 		search.render(container, g);
 
@@ -266,16 +267,17 @@ public class SongMenu extends BasicGameState {
 		if (focusNode != null) {
 			float scrollStartY = height * 0.16f;
 			float scrollEndY = height * 0.82f;
-			g.setColor(Options.COLOR_BLACK_ALPHA);
+			g.setColor(Utils.COLOR_BLACK_ALPHA);
 			g.fillRoundRect(width - 10, scrollStartY, 5, scrollEndY, 4);
 			g.setColor(Color.white);
 			g.fillRoundRect(width - 10, scrollStartY + (scrollEndY * startNode.index / Opsu.groups.size()), 5, 20, 4);
 		}
 
 		// back button
-		Options.getBackButton().draw();
+		Utils.getBackButton().draw();
 
-		Options.drawFPS();
+		Utils.drawFPS();
+		Utils.drawCursor();
 	}
 
 	@Override
@@ -343,7 +345,7 @@ public class SongMenu extends BasicGameState {
 			return;
 
 		// back
-		if (Options.getBackButton().contains(x, y)) {
+		if (Utils.getBackButton().contains(x, y)) {
 			SoundController.playSound(SoundController.SOUND_MENUBACK);
 			game.enterState(Opsu.STATE_MAINMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 			return;
@@ -436,7 +438,7 @@ public class SongMenu extends BasicGameState {
 			setFocus(Opsu.groups.getRandomNode(), -1, true);
 			break;
 		case Input.KEY_F12:
-			Options.takeScreenShot();
+			Utils.takeScreenShot();
 			break;
 		case Input.KEY_ENTER:
 			if (focusNode != null)

@@ -18,15 +18,12 @@
 
 package itdelatrisu.opsu;
 
-import itdelatrisu.opsu.states.Options;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
 
@@ -104,8 +101,6 @@ public class OsuParser {
 
 		try (BufferedReader in = new BufferedReader(new FileReader(file))) {
 
-			// copy the default combo colors
-			osu.combo = Arrays.copyOf(Options.DEFAULT_COMBO, Options.DEFAULT_COMBO.length);
 			// initialize timing point list
 			osu.timingPoints = new ArrayList<OsuTimingPoint>();
 
@@ -403,7 +398,7 @@ public class OsuParser {
 
 		// if no custom colors, use the default color scheme
 		if (osu.combo == null)
-			osu.combo = Options.DEFAULT_COMBO;
+			osu.combo = Utils.DEFAULT_COMBO;
 
 		// add tags
 		if (!tags.isEmpty()) {

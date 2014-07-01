@@ -509,7 +509,7 @@ public class GameScore {
 
 		// header & "Ranking" text
 		float rankingHeight = (rankingImage.getHeight() * 0.75f) + 3;
-		g.setColor(Options.COLOR_BLACK_ALPHA);
+		g.setColor(Utils.COLOR_BLACK_ALPHA);
 		g.fillRect(0, 0, width, rankingHeight);
 		rankingImage.draw((width * 0.97f) - rankingImage.getWidth(), 0);
 

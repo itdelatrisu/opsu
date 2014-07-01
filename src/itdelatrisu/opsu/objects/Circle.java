@@ -21,6 +21,7 @@ package itdelatrisu.opsu.objects;
 import itdelatrisu.opsu.GameScore;
 import itdelatrisu.opsu.MusicController;
 import itdelatrisu.opsu.OsuHitObject;
+import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.states.Game;
 import itdelatrisu.opsu.states.Options;
 
@@ -120,19 +121,12 @@ public class Circle {
 
 		if (timeDiff >= 0) {
 			float approachScale = 1 + (timeDiff * 2f / game.getApproachTime());
-			drawCentered(approachCircle.getScaledCopy(approachScale), hitObject.x, hitObject.y, color);
-			drawCentered(hitCircleOverlay, hitObject.x, hitObject.y, Color.white);
-			drawCentered(hitCircle, hitObject.x, hitObject.y, color);
+			Utils.drawCentered(approachCircle.getScaledCopy(approachScale), hitObject.x, hitObject.y, color);
+			Utils.drawCentered(hitCircleOverlay, hitObject.x, hitObject.y, Color.white);
+			Utils.drawCentered(hitCircle, hitObject.x, hitObject.y, color);
 			score.drawSymbolNumber(hitObject.comboNumber, hitObject.x, hitObject.y,
 					hitCircle.getWidth() * 0.40f / score.getDefaultSymbolImage(0).getHeight());
 		}
-	}
-
-	/**
-	 * Draws an image based on its center with a color filter.
-	 */
-	private void drawCentered(Image img, float x, float y, Color color) {
-		img.draw(x - (img.getWidth() / 2f), y - (img.getHeight() / 2f), color);
 	}
 
 	/**

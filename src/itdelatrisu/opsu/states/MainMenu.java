@@ -23,6 +23,7 @@ import itdelatrisu.opsu.MusicController;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.OsuGroupNode;
 import itdelatrisu.opsu.SoundController;
+import itdelatrisu.opsu.Utils;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -153,8 +154,8 @@ public class MainMenu extends BasicGameState {
 		if (backgroundImage != null)
 			backgroundImage.draw();
 		else
-			g.setBackground(Options.COLOR_BLUE_BACKGROUND);
-		g.setFont(Options.FONT_MEDIUM);
+			g.setBackground(Utils.COLOR_BLUE_BACKGROUND);
+		g.setFont(Utils.FONT_MEDIUM);
 
 		int width = container.getWidth();
 		int height = container.getHeight();
@@ -173,7 +174,7 @@ public class MainMenu extends BasicGameState {
 			musicPlay.draw();
 		musicNext.draw();
 		musicPrevious.draw();
-		g.setColor(Options.COLOR_BLACK_ALPHA);
+		g.setColor(Utils.COLOR_BLACK_ALPHA);
 		g.fillRoundRect(width - 168, 54, 148, 5, 4);
 		g.setColor(Color.white);
 		if (!MusicController.isConverting())
@@ -181,7 +182,7 @@ public class MainMenu extends BasicGameState {
 				148f * MusicController.getPosition() / MusicController.getTrackLength(), 5, 4);
 
 		// draw text
-		int lineHeight = Options.FONT_MEDIUM.getLineHeight();
+		int lineHeight = Utils.FONT_MEDIUM.getLineHeight();
 		g.drawString(String.format("Loaded %d songs and %d beatmaps.",
 				Opsu.groups.size(), Opsu.groups.getMapCount()), 25, 25);
 		if (MusicController.isConverting())
@@ -203,7 +204,8 @@ public class MainMenu extends BasicGameState {
 				new SimpleDateFormat("h:mm a").format(new Date())),
 				25, height - 25 - lineHeight);
 
-		Options.drawFPS();
+		Utils.drawFPS();
+		Utils.drawCursor();
 	}
 
 	@Override
@@ -317,7 +319,7 @@ public class MainMenu extends BasicGameState {
 				game.enterState(Opsu.STATE_MAINMENUEXIT);
 			break;
 		case Input.KEY_F12:
-			Options.takeScreenShot();
+			Utils.takeScreenShot();
 			break;
 		}
 		

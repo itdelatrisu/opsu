@@ -24,6 +24,7 @@ import itdelatrisu.opsu.MusicController;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.OsuFile;
 import itdelatrisu.opsu.SoundController;
+import itdelatrisu.opsu.Utils;
 
 import org.lwjgl.opengl.Display;
 import org.newdawn.slick.Color;
@@ -100,7 +101,7 @@ public class GameRanking extends BasicGameState {
 
 		// background
 		if (!osu.drawBG(width, height, 0.7f))
-			g.setBackground(Options.COLOR_BLACK_ALPHA);
+			g.setBackground(Utils.COLOR_BLACK_ALPHA);
 
 		// ranking screen elements
 		score.drawRankingElements(g, width, height);
@@ -118,17 +119,18 @@ public class GameRanking extends BasicGameState {
 
 		// header text
 		g.setColor(Color.white);
-		Options.FONT_LARGE.drawString(10, 0,
+		Utils.FONT_LARGE.drawString(10, 0,
 				String.format("%s - %s [%s]", osu.artist, osu.title, osu.version));
-		Options.FONT_MEDIUM.drawString(10, Options.FONT_LARGE.getLineHeight() - 6,
+		Utils.FONT_MEDIUM.drawString(10, Utils.FONT_LARGE.getLineHeight() - 6,
 				String.format("Beatmap by %s", osu.creator));
 
 		// buttons
 		retryButton.draw();
 		exitButton.draw();
-		Options.getBackButton().draw();
+		Utils.getBackButton().draw();
 
-		Options.drawFPS();
+		Utils.drawFPS();
+		Utils.drawCursor();
 	}
 
 	@Override
@@ -150,7 +152,7 @@ public class GameRanking extends BasicGameState {
 			game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 			break;
 		case Input.KEY_F12:
-			Options.takeScreenShot();
+			Utils.takeScreenShot();
 			break;
 		}
 	}
@@ -170,7 +172,7 @@ public class GameRanking extends BasicGameState {
 		} else if (exitButton.contains(x, y)) {
 			SoundController.playSound(SoundController.SOUND_MENUBACK);
 			game.enterState(Opsu.STATE_MAINMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
-		} else if (Options.getBackButton().contains(x, y)) {
+		} else if (Utils.getBackButton().contains(x, y)) {
 			MusicController.pause();
 			MusicController.playAt(Game.getOsuFile().previewTime, true);
 			SoundController.playSound(SoundController.SOUND_MENUBACK);

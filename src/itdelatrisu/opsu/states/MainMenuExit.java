@@ -20,6 +20,7 @@ package itdelatrisu.opsu.states;
 
 import itdelatrisu.opsu.GUIMenuButton;
 import itdelatrisu.opsu.Opsu;
+import itdelatrisu.opsu.Utils;
 
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
@@ -90,22 +91,23 @@ public class MainMenuExit extends BasicGameState {
 
 		// draw text
 		float c = container.getWidth() * 0.02f;
-		Options.FONT_LARGE.drawString(c, c, "Are you sure you want to exit opsu!?");
+		Utils.FONT_LARGE.drawString(c, c, "Are you sure you want to exit opsu!?");
 
 		// draw buttons
 		yesButton.draw(Color.green);
 		noButton.draw(Color.red);
-		g.setFont(Options.FONT_XLARGE);
+		g.setFont(Utils.FONT_XLARGE);
 		g.drawString("1. Yes",
-				yesButton.getX() - (Options.FONT_XLARGE.getWidth("1. Yes") / 2f),
-				yesButton.getY() - (Options.FONT_XLARGE.getHeight() / 2f)
+				yesButton.getX() - (Utils.FONT_XLARGE.getWidth("1. Yes") / 2f),
+				yesButton.getY() - (Utils.FONT_XLARGE.getHeight() / 2f)
 		);
 		g.drawString("2. No",
-				noButton.getX() - (Options.FONT_XLARGE.getWidth("2. No") / 2f),
-				noButton.getY() - (Options.FONT_XLARGE.getHeight() / 2f)
+				noButton.getX() - (Utils.FONT_XLARGE.getWidth("2. No") / 2f),
+				noButton.getY() - (Utils.FONT_XLARGE.getHeight() / 2f)
 		);
 
-		Options.drawFPS();
+		Utils.drawFPS();
+		Utils.drawCursor();
 	}
 
 	@Override
@@ -150,7 +152,7 @@ public class MainMenuExit extends BasicGameState {
 			game.enterState(Opsu.STATE_MAINMENU, new EmptyTransition(), new FadeInTransition(Color.black));
 			break;
 		case Input.KEY_F12:
-			Options.takeScreenShot();
+			Utils.takeScreenShot();
 			break;
 		}
 	}
