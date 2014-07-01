@@ -25,6 +25,7 @@ import itdelatrisu.opsu.OsuFile;
 import itdelatrisu.opsu.OsuGroupList;
 import itdelatrisu.opsu.OsuGroupNode;
 import itdelatrisu.opsu.OsuParser;
+import itdelatrisu.opsu.SoundController;
 
 import org.lwjgl.opengl.Display;
 import org.newdawn.slick.Color;
@@ -343,6 +344,7 @@ public class SongMenu extends BasicGameState {
 
 		// back
 		if (Options.getBackButton().contains(x, y)) {
+			SoundController.playSound(SoundController.SOUND_MENUBACK);
 			game.enterState(Opsu.STATE_MAINMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 			return;
 		}
@@ -422,8 +424,10 @@ public class SongMenu extends BasicGameState {
 			if (!search.getText().isEmpty()) {
 				search.setText("");
 				searchTimer = SEARCH_DELAY;
-			} else
+			} else {
+				SoundController.playSound(SoundController.SOUND_MENUBACK);
 				game.enterState(Opsu.STATE_MAINMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
+			}
 			break;
 		case Input.KEY_F1:
 			game.enterState(Opsu.STATE_OPTIONS, new EmptyTransition(), new FadeInTransition(Color.black));
@@ -592,8 +596,10 @@ public class SongMenu extends BasicGameState {
 		if (MusicController.isConverting())
 			return;
 
+		SoundController.playSound(SoundController.SOUND_MENUHIT);
 		Display.setTitle(String.format("%s - %s", game.getTitle(), osu.toString()));
 		OsuParser.parseHitObjects(osu);
+		SoundController.setSampleSet(osu.sampleSet);
 		Game.setOsuFile(osu);
 		Game.setRestart(Game.RESTART_NEW);
 		game.enterState(Opsu.STATE_GAME, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));

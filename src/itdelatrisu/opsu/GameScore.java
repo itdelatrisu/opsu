@@ -718,28 +718,40 @@ public class GameScore {
 	}
 
 	/**
+	 * Resets the combo streak to zero.
+	 */
+	private void resetComboStreak() {
+		if (combo >= 20)
+			SoundController.playSound(SoundController.SOUND_COMBOBREAK);
+		combo = 0;
+		if (Options.isModActive(Options.MOD_SUDDEN_DEATH))
+			health = 0f;
+	}
+
+	/**
 	 * Handles a slider tick result.
 	 * @param time the tick start time
 	 * @param result the hit result (HIT_* constants)
 	 * @param x the x coordinate
 	 * @param y the y coordinate
+	 * @param hitSound the object's hit sound
 	 */
-	public void sliderTickResult(int time, int result, float x, float y) {
+	public void sliderTickResult(int time, int result, float x, float y, byte hitSound) {
 		int hitValue = 0;
 		switch (result) {
 		case HIT_SLIDER30:
 			hitValue = 30;
 			incrementComboStreak();
 			changeHealth(1f);
+			SoundController.playHitSound(hitSound);
 			break;
 		case HIT_SLIDER10:
 			hitValue = 10;
 			incrementComboStreak();
+			SoundController.playHitSound(SoundController.HIT_SLIDERTICK);
 			break;
 		case HIT_MISS:
-			combo = 0;
-			if (Options.isModActive(Options.MOD_SUDDEN_DEATH))
-				health = 0f;
+			resetComboStreak();
 			break;
 		default:
 			return;
@@ -760,8 +772,10 @@ public class GameScore {
 	 * @param y the y coordinate
 	 * @param color the combo color
 	 * @param end true if this is the last hit object in the combo
+	 * @param hitSound the object's hit sound
 	 */
-	public void hitResult(int time, int result, float x, float y, Color color, boolean end) {
+	public void hitResult(int time, int result, float x, float y, Color color,
+			boolean end, byte hitSound) {
 		int hitValue = 0;
 		switch (result) {
 		case HIT_300:
@@ -784,15 +798,15 @@ public class GameScore {
 			hitValue = 0;
 			changeHealth(-10f);
 			comboEnd |= 2;
-			combo = 0;
-			if (Options.isModActive(Options.MOD_SUDDEN_DEATH))
-				health = 0f;
+			resetComboStreak();
 			objectCount++;
 			break;
 		default:
 			return;
 		}
 		if (hitValue > 0) {
+			SoundController.playHitSound(hitSound);
+
 			// game mod score multipliers
 			float modMultiplier = 1f;
 			if (Options.isModActive(Options.MOD_NO_FAIL))

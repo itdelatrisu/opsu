@@ -143,6 +143,9 @@ public class Opsu extends StateBasedGame {
 			}
 			Options.TMP_DIR.deleteOnExit();
 
+			// load sounds
+			SoundController.init();
+
 			app.start();
 		} catch (SlickException e) {
 			Log.error("Error while creating game container.", e);

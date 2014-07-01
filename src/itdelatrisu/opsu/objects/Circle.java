@@ -172,7 +172,9 @@ public class Circle {
 		if (distance < circleRadius) {
 			int result = hitResult(hitObject.time);
 			if (result > -1) {
-				score.hitResult(hitObject.time, result, hitObject.x, hitObject.y, color, comboEnd);
+				score.hitResult(hitObject.time, result, hitObject.x, hitObject.y,
+						color, comboEnd, hitObject.hitSound
+				);
 				return true;
 			}
 		}
@@ -192,11 +194,11 @@ public class Circle {
 		if (overlap || trackPosition > hitObject.time + hitResultOffset[GameScore.HIT_50]) {
 			if (isAutoMod)  // "auto" mod: catch any missed notes due to lag
 				score.hitResult(hitObject.time, GameScore.HIT_300,
-						hitObject.x, hitObject.y, color, comboEnd);
+						hitObject.x, hitObject.y, color, comboEnd, hitObject.hitSound);
 			
 			else  // no more points can be scored, so send a miss
 				score.hitResult(hitObject.time, GameScore.HIT_MISS,
-						hitObject.x, hitObject.y, null, comboEnd);
+						hitObject.x, hitObject.y, null, comboEnd, hitObject.hitSound);
 			return true;
 		}
 
@@ -204,7 +206,7 @@ public class Circle {
 		else if (isAutoMod) {
 			if (Math.abs(trackPosition - hitObject.time) < hitResultOffset[GameScore.HIT_300]) {
 				score.hitResult(hitObject.time, GameScore.HIT_300,
-						hitObject.x, hitObject.y, color, comboEnd);
+						hitObject.x, hitObject.y, color, comboEnd, hitObject.hitSound);
 				return true;
 			}
 		}

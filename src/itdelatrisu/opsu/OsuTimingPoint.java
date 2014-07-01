@@ -26,8 +26,8 @@ public class OsuTimingPoint {
 	public float beatLength;       // (non-inherited) ms per beat
 	public int velocity = 0;       // (inherited) slider multiplier = -100 / value
 	public int meter;              // beats per measure
-	public byte sampleType;        // sound samples (0:none, 1:normal, 2:soft)
-	public byte sampleTypeCustom;  // custom samples (0:default, 1:custom1, 2:custom2
+	public byte sampleType;        // sound samples (0:none, 1:normal, 2:soft, 3:drum)
+	public byte sampleTypeCustom;  // custom samples (0:default, 1:custom1, 2:custom2)
 	public int sampleVolume;       // volume of samples (0~100)
 	public boolean inherited;      // is this timing point inherited?
 	public boolean kiai;           // is Kiai Mode active?

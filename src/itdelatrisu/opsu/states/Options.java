@@ -20,6 +20,7 @@ package itdelatrisu.opsu.states;
 
 import itdelatrisu.opsu.GUIMenuButton;
 import itdelatrisu.opsu.Opsu;
+import itdelatrisu.opsu.SoundController;
 
 import java.awt.Font;
 import java.io.BufferedReader;
@@ -148,12 +149,13 @@ public class Options extends BasicGameState {
 //		OPTIONS_FULLSCREEN           = ,
 		OPTIONS_TARGET_FPS           = 1,
 		OPTIONS_MUSIC_VOLUME         = 2,
-		OPTIONS_MUSIC_OFFSET         = 3,
-		OPTIONS_SCREENSHOT_FORMAT    = 4,
-		OPTIONS_DISPLAY_FPS          = 5,
-		OPTIONS_HIT_LIGHTING         = 6,
-		OPTIONS_COMBO_BURSTS         = 7,
-		OPTIONS_MAX                  = 8;  // not an option
+		OPTIONS_EFFECT_VOLUME        = 3,
+		OPTIONS_MUSIC_OFFSET         = 4,
+		OPTIONS_SCREENSHOT_FORMAT    = 5,
+		OPTIONS_DISPLAY_FPS          = 6,
+		OPTIONS_HIT_LIGHTING         = 7,
+		OPTIONS_COMBO_BURSTS         = 8,
+		OPTIONS_MAX                  = 9;  // not an option
 
 	/**
 	 * Screen resolutions.
@@ -208,7 +210,12 @@ public class Options extends BasicGameState {
 	/**
 	 * Default music volume.
 	 */
-	private static int musicVolume = 20;
+	private static int musicVolume = 30;
+
+	/**
+	 * Default sound effect volume.
+	 */
+	private static int effectVolume = 20;
 
 	/**
 	 * Offset time, in milliseconds, for music position-related elements.
@@ -258,8 +265,8 @@ public class Options extends BasicGameState {
 		Options.game = game;
 		this.input = container.getInput();
 
-		// game settings;
-		container.setTargetFrameRate(60);
+		// game settings
+		container.setTargetFrameRate(targetFPS[targetFPSindex]);
 		container.setMouseCursor("cursor.png", 16, 16);
 		container.setMusicVolume(getMusicVolume());
 		container.setShowFPS(false);
@@ -374,6 +381,10 @@ public class Options extends BasicGameState {
 		this.drawOption(g, OPTIONS_MUSIC_VOLUME, "Music Volume",
 				String.format("%d%%", musicVolume),
 				"Global music volume."
+		);
+		this.drawOption(g, OPTIONS_EFFECT_VOLUME, "Effect Volume",
+				String.format("%d%%", effectVolume),
+				"Sound effect volume."
 		);
 		this.drawOption(g, OPTIONS_MUSIC_OFFSET, "Music Offset",
 				String.format("%dms", musicOffset),
@@ -509,6 +520,14 @@ public class Options extends BasicGameState {
 			container.setMusicVolume(getMusicVolume());
 			return;
 		}
+		if (isOptionClicked(OPTIONS_EFFECT_VOLUME, oldy)) {
+			effectVolume += diff;
+			if (effectVolume < 0)
+				effectVolume = 0;
+			else if (effectVolume > 100)
+				effectVolume = 100;
+			return;
+		}
 		if (isOptionClicked(OPTIONS_MUSIC_OFFSET, oldy)) {
 			musicOffset += diff;
 			if (musicOffset < -500)
@@ -602,6 +621,12 @@ public class Options extends BasicGameState {
 	public static float getMusicVolume() { return musicVolume / 100f; }
 
 	/**
+	 * Returns the default sound effect volume.
+	 * @return the sound volume [0, 1]
+	 */
+	public static float getEffectVolume() { return effectVolume / 100f; }
+
+	/**
 	 * Returns the music offset time.
 	 * @return the offset (in milliseconds)
 	 */
@@ -638,6 +663,8 @@ public class Options extends BasicGameState {
 			// create file name
 			SimpleDateFormat date = new SimpleDateFormat("yyyyMMdd_HHmmss");
 			String file = date.format(new Date());
+
+			SoundController.playSound(SoundController.SOUND_SHUTTER);
 
 			// copy the screen
 			Image screen = new Image(container.getWidth(), container.getHeight());
@@ -760,6 +787,11 @@ public class Options extends BasicGameState {
 					if (i >= 0 && i <= 100)
 						musicVolume = i;
 					break;
+				case "VolumeEffect":
+					i = Integer.parseInt(value);
+					if (i >= 0 && i <= 100)
+						effectVolume = i;
+					break;
 				case "Offset":
 					i = Integer.parseInt(value);
 					if (i >= -500 && i <= 500)
@@ -826,6 +858,8 @@ public class Options extends BasicGameState {
 			writer.write(String.format("FrameSync = %d", targetFPSindex));
 			writer.newLine();
 			writer.write(String.format("VolumeMusic = %d", musicVolume));
+			writer.newLine();
+			writer.write(String.format("VolumeEffect = %d", effectVolume));
 			writer.newLine();
 			writer.write(String.format("Offset = %d", musicOffset));
 			writer.newLine();

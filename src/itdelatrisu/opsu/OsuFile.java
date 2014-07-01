@@ -40,7 +40,7 @@ public class OsuFile implements Comparable<OsuFile> {
 //	public String audioHash = "";               // audio hash (deprecated)
 	public int previewTime = -1;                // start position of music preview (in ms)
 	public byte countdown = 0;                  // countdown type (0:disabled, 1:normal, 2:half, 3:double)
-	public String sampleSet = "";               // ? ("Normal", "Soft")
+	public String sampleSet = "";               // sound samples ("None", "Normal", "Soft")
 	public float stackLeniency = 0.7f;          // how often closely placed hit objects will be stacked together
 	public byte mode = 0;                       // game mode (0:osu!, 1:taiko, 2:catch the beat, 3:osu!mania)
 	public boolean letterboxInBreaks = false;   // whether the letterbox (top/bottom black bars) appears during breaks

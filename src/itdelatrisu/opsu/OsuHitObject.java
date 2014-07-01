@@ -38,7 +38,6 @@ public class OsuHitObject {
 		SOUND_NORMAL        = 0,
 		SOUND_WHISTLE       = 2,
 		SOUND_FINISH        = 4,
-		SOUND_WHISTLEFINISH = 6,
 		SOUND_CLAP          = 8;
 
 	/**

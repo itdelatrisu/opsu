@@ -25,6 +25,7 @@ import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.OsuFile;
 import itdelatrisu.opsu.OsuHitObject;
 import itdelatrisu.opsu.OsuTimingPoint;
+import itdelatrisu.opsu.SoundController;
 import itdelatrisu.opsu.objects.Circle;
 import itdelatrisu.opsu.objects.Slider;
 import itdelatrisu.opsu.objects.Spinner;
@@ -135,6 +136,11 @@ public class Game extends BasicGameState {
 	private int breakTime = 0;
 
 	/**
+	 * Whether the break sound has been played.
+	 */
+	private boolean breakSound;
+
+	/**
 	 * Skip button (displayed at song start, when necessary).
 	 */
 	private GUIMenuButton skipButton;
@@ -163,6 +169,13 @@ public class Game extends BasicGameState {
 		countdown1,             // "2" text
 		countdown2,             // "1" text
 		countdownGo;            // "GO!" text
+
+	/**
+	 * Whether the countdown sound has been played.
+	 */
+	private boolean
+		countdownReadySound, countdown3Sound, countdown1Sound,
+		countdown2Sound, countdownGoSound;
 
 	/**
 	 * Glowing hit circle outline which must be clicked when returning from pause menu.
@@ -276,10 +289,19 @@ public class Game extends BasicGameState {
 					trackPosition - breakTime > 2000 &&
 					trackPosition - breakTime < 5000) {
 					// show break start
-					if (score.getHealth() >= 50)
+					if (score.getHealth() >= 50) {
 						breakStartPass.drawCentered(width / 2f, height / 2f);
-					else
+						if (!breakSound) {
+							SoundController.playSound(SoundController.SOUND_SECTIONPASS);
+							breakSound = true;
+						}
+					} else {
 						breakStartFail.drawCentered(width / 2f, height / 2f);
+						if (!breakSound) {
+							SoundController.playSound(SoundController.SOUND_SECTIONFAIL);
+							breakSound = true;
+						}
+					}
 				} else if (breakLength >= 4000) {
 					// show break end (flash twice for 500ms)
 					int endTimeDiff = endTime - trackPosition;
@@ -326,18 +348,41 @@ public class Game extends BasicGameState {
 		if (osu.countdown > 0) {  // TODO: implement half/double rate settings
 			int timeDiff = osu.objects[0].time - trackPosition;
 			if (timeDiff >= 500 && timeDiff < 3000) {
-				if (timeDiff >= 1500)
+				if (timeDiff >= 1500) {
 					countdownReady.drawCentered(width / 2, height / 2);
-
-				if (timeDiff < 2000)
+					if (!countdownReadySound) {
+						SoundController.playSound(SoundController.SOUND_READY);
+						countdownReadySound = true;
+					}
+				}
+				if (timeDiff < 2000) {
 					countdown3.draw(0, 0);
-				if (timeDiff < 1500)
+					if (!countdown3Sound) {
+						SoundController.playSound(SoundController.SOUND_COUNT3);
+						countdown3Sound = true;
+					}
+				}
+				if (timeDiff < 1500) {
 					countdown2.draw(width - countdown2.getWidth(), 0);
-				if (timeDiff < 1000)
+					if (!countdown2Sound) {
+						SoundController.playSound(SoundController.SOUND_COUNT2);
+						countdown2Sound = true;
+					}
+				}
+				if (timeDiff < 1000) {
 					countdown1.drawCentered(width / 2, height / 2);
+					if (!countdown1Sound) {
+						SoundController.playSound(SoundController.SOUND_COUNT1);
+						countdown1Sound = true;
+					}
+				}
 			} else if (timeDiff >= -500 && timeDiff < 500) {
 				countdownGo.setAlpha((timeDiff < 0) ? 1 - (timeDiff / -1000f) : 1);
 				countdownGo.drawCentered(width / 2, height / 2);
+				if (!countdownGoSound) {
+					SoundController.playSound(SoundController.SOUND_GO);
+					countdownGoSound = true;
+				}
 			}
 		}
 
@@ -432,6 +477,8 @@ public class Game extends BasicGameState {
 					beatLengthBase = beatLength = timingPoint.beatLength;
 				else
 					beatLength = beatLengthBase * (timingPoint.velocity / -100f);
+				SoundController.setSampleSet(timingPoint.sampleType);
+				SoundController.setSampleVolume(timingPoint.sampleVolume);
 				timingPointIndex++;
 			}
 		}
@@ -456,6 +503,7 @@ public class Game extends BasicGameState {
 			} else if (trackPosition >= breakValue) {
 				// start a break
 				breakTime = breakValue;
+				breakSound = false;
 				breakIndex++;
 				return;
 			}
@@ -638,22 +686,33 @@ public class Game extends BasicGameState {
 				}
 			}
 
-			// reset indexes
+			// reset data
 			MusicController.setPosition(0);
 			MusicController.pause();
 			score.clear();
 			objectIndex = 0;
 			breakIndex = 0;
 			breakTime = 0;
+			breakSound = false;
 			timingPointIndex = 0;
 			pauseTime = -1;
 			pausedMouseX = -1;
 			pausedMouseY = -1;
+			countdownReadySound = false;
+			countdown3Sound = false;
+			countdown1Sound = false;
+			countdown2Sound = false;
+			countdownGoSound = false;
 
 			// load the first timingPoint
-			if (!osu.timingPoints.isEmpty() && osu.timingPoints.get(0).velocity >= 0) {
-				beatLengthBase = beatLength = osu.timingPoints.get(0).beatLength;
-				timingPointIndex++;
+			if (!osu.timingPoints.isEmpty()) {
+				OsuTimingPoint timingPoint = osu.timingPoints.get(0);
+				if (timingPoint.velocity >= 0) {
+					beatLengthBase = beatLength = timingPoint.beatLength;
+					SoundController.setSampleSet(timingPoint.sampleType);
+					SoundController.setSampleVolume(timingPoint.sampleVolume);
+					timingPointIndex++;
+				}
 			}
 
 			leadInTime = osu.audioLeadIn + approachTime;
@@ -675,6 +734,7 @@ public class Game extends BasicGameState {
 				MusicController.resume();
 			}
 			MusicController.setPosition(osu.objects[0].time - skipOffsetTime);
+			SoundController.playSound(SoundController.SOUND_MENUHIT);
 			return true;
 		}
 		return false;

@@ -22,6 +22,7 @@ import itdelatrisu.opsu.GUIMenuButton;
 import itdelatrisu.opsu.MusicController;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.OsuGroupNode;
+import itdelatrisu.opsu.SoundController;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -287,17 +288,22 @@ public class MainMenu extends BasicGameState {
 				logoTimer = 0;
 				playButton.getImage().setAlpha(0f);
 				exitButton.getImage().setAlpha(0f);
+				SoundController.playSound(SoundController.SOUND_MENUHIT);
 			}
 		}
 
 		// other button actions (if visible)
 		else if (logoClicked) {
-			if (logo.contains(x, y))
+			if (logo.contains(x, y)) {
+				SoundController.playSound(SoundController.SOUND_MENUHIT);
 				logoTimer = MOVE_DELAY;
-			else if (playButton.contains(x, y))
+			} else if (playButton.contains(x, y)) {
+				SoundController.playSound(SoundController.SOUND_MENUHIT);
 				game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
-			else if (exitButton.contains(x, y))
+			} else if (exitButton.contains(x, y)) {
+				SoundController.playSound(SoundController.SOUND_MENUHIT);
 				game.enterState(Opsu.STATE_MAINMENUEXIT);
+			}
 		}
 	}
 

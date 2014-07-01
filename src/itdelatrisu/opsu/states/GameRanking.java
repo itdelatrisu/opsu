@@ -23,6 +23,7 @@ import itdelatrisu.opsu.GameScore;
 import itdelatrisu.opsu.MusicController;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.OsuFile;
+import itdelatrisu.opsu.SoundController;
 
 import org.lwjgl.opengl.Display;
 import org.newdawn.slick.Color;
@@ -143,7 +144,9 @@ public class GameRanking extends BasicGameState {
 	public void keyPressed(int key, char c) {
 		switch (key) {
 		case Input.KEY_ESCAPE:
+			MusicController.pause();
 			MusicController.playAt(Game.getOsuFile().previewTime, true);
+			SoundController.playSound(SoundController.SOUND_MENUBACK);
 			game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 			break;
 		case Input.KEY_F12:
@@ -162,12 +165,15 @@ public class GameRanking extends BasicGameState {
 			OsuFile osu = Game.getOsuFile();
 			Display.setTitle(String.format("%s - %s", game.getTitle(), osu.toString()));
 			Game.setRestart(Game.RESTART_MANUAL);
+			SoundController.playSound(SoundController.SOUND_MENUHIT);
 			game.enterState(Opsu.STATE_GAME, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
-		} else if (exitButton.contains(x, y))
+		} else if (exitButton.contains(x, y)) {
+			SoundController.playSound(SoundController.SOUND_MENUBACK);
 			game.enterState(Opsu.STATE_MAINMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
-		else if (Options.getBackButton().contains(x, y)) {
-			MusicController.stop();
+		} else if (Options.getBackButton().contains(x, y)) {
+			MusicController.pause();
 			MusicController.playAt(Game.getOsuFile().previewTime, true);
+			SoundController.playSound(SoundController.SOUND_MENUBACK);
 			game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 		}
 	}
@@ -176,5 +182,6 @@ public class GameRanking extends BasicGameState {
 	public void enter(GameContainer container, StateBasedGame game)
 			throws SlickException {
 		Display.setTitle(game.getTitle());
+		SoundController.playSound(SoundController.SOUND_APPLAUSE);
 	}
 }

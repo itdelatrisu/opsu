@@ -21,6 +21,7 @@ package itdelatrisu.opsu.objects;
 import itdelatrisu.opsu.GameScore;
 import itdelatrisu.opsu.MusicController;
 import itdelatrisu.opsu.OsuHitObject;
+import itdelatrisu.opsu.SoundController;
 import itdelatrisu.opsu.states.Game;
 import itdelatrisu.opsu.states.Options;
 
@@ -163,16 +164,19 @@ public class Spinner {
 		int result;
 		float ratio = rotations / rotationsNeeded;
 		if (ratio >= 1.0f ||
-			Options.isModActive(Options.MOD_AUTO) || Options.isModActive(Options.MOD_SPUN_OUT))
+			Options.isModActive(Options.MOD_AUTO) ||
+			Options.isModActive(Options.MOD_SPUN_OUT)) {
 			result = GameScore.HIT_300;
-		else if (ratio >= 0.8f)
+			SoundController.playSound(SoundController.SOUND_SPINNEROSU);
+		} else if (ratio >= 0.8f)
 			result = GameScore.HIT_100;
 		else if (ratio >= 0.5f)
 			result = GameScore.HIT_50;
 		else
 			result = GameScore.HIT_MISS;
 
-		score.hitResult(hitObject.endTime, result, width / 2, height / 2, Color.transparent, true);
+		score.hitResult(hitObject.endTime, result, width / 2, height / 2,
+				Color.transparent, true, (byte) -1);
 		return result;
 	}
 
@@ -240,10 +244,13 @@ public class Spinner {
 
 		// added one whole rotation...
 		if (Math.floor(newRotations) > rotations) {
-			if (newRotations > rotationsNeeded)  // extra rotations
+			if (newRotations > rotationsNeeded) {  // extra rotations
 				score.changeScore(1000);
-			else
+				SoundController.playSound(SoundController.SOUND_SPINNERBONUS);
+			} else {
 				score.changeScore(100);
+				SoundController.playSound(SoundController.SOUND_SPINNERSPIN);
+			}
 		}
 
 		rotations = newRotations;

@@ -21,6 +21,7 @@ package itdelatrisu.opsu.states;
 import itdelatrisu.opsu.GUIMenuButton;
 import itdelatrisu.opsu.MusicController;
 import itdelatrisu.opsu.Opsu;
+import itdelatrisu.opsu.SoundController;
 
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
@@ -142,6 +143,7 @@ public class GamePauseMenu extends BasicGameState {
 			if (Game.getRestart() == Game.RESTART_LOSE) {
 				MusicController.stop();
 				MusicController.playAt(Game.getOsuFile().previewTime, true);
+				SoundController.playSound(SoundController.SOUND_MENUBACK);
 				game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 			} else
 				unPause(Game.RESTART_FALSE);
@@ -171,6 +173,7 @@ public class GamePauseMenu extends BasicGameState {
 		} else if (backButton.contains(x, y)) {
 			MusicController.pause();  // lose state
 			MusicController.playAt(Game.getOsuFile().previewTime, true);
+			SoundController.playSound(SoundController.SOUND_MENUBACK);
 			game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 		}
 	}
@@ -179,9 +182,10 @@ public class GamePauseMenu extends BasicGameState {
 	public void enter(GameContainer container, StateBasedGame game)
 			throws SlickException {
 		pauseStartTime = System.currentTimeMillis();
-		if (Game.getRestart() == Game.RESTART_LOSE)
+		if (Game.getRestart() == Game.RESTART_LOSE) {
 			MusicController.fadeOut(FADEOUT_TIME);
-		else
+			SoundController.playSound(SoundController.SOUND_FAIL);
+		} else
 			MusicController.pause();
 	}
 
@@ -189,6 +193,10 @@ public class GamePauseMenu extends BasicGameState {
 	 * Unpause and return to the Game state.
 	 */
 	private void unPause(byte restart) {
+		if (restart == Game.RESTART_MANUAL)
+			SoundController.playSound(SoundController.SOUND_MENUHIT);
+		else
+			SoundController.playSound(SoundController.SOUND_MENUBACK);
 		Game.setRestart(restart);
 		game.enterState(Opsu.STATE_GAME);
 	}

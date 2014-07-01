@@ -384,10 +384,11 @@ public class Slider {
 
 		if (currentRepeats % 2 == 0)  // last circle
 			score.hitResult(hitObject.time + (int) sliderTimeTotal, result,
-					hitObject.sliderX[lastIndex], hitObject.sliderY[lastIndex], color, comboEnd);
+					hitObject.sliderX[lastIndex], hitObject.sliderY[lastIndex],
+					color, comboEnd, hitObject.hitSound);
 		else  // first circle
 			score.hitResult(hitObject.time + (int) sliderTimeTotal, result,
-					hitObject.x, hitObject.y, color, comboEnd);
+					hitObject.x, hitObject.y, color, comboEnd, hitObject.hitSound);
 
 		return result;
 	}
@@ -420,7 +421,8 @@ public class Slider {
 
 			if (result > -1) {
 				sliderClicked = true;
-				score.sliderTickResult(hitObject.time, result, hitObject.x, hitObject.y);
+				score.sliderTickResult(hitObject.time, result,
+						hitObject.x, hitObject.y, hitObject.hitSound);
 				return true;
 			}
 		}
@@ -465,9 +467,11 @@ public class Slider {
 				sliderClicked = true;
 				if (isAutoMod) {  // "auto" mod: catch any missed notes due to lag
 					ticksHit++;
-					score.sliderTickResult(hitObject.time, GameScore.HIT_SLIDER30, hitObject.x, hitObject.y);
+					score.sliderTickResult(hitObject.time, GameScore.HIT_SLIDER30,
+							hitObject.x, hitObject.y, hitObject.hitSound);
 				} else
-					score.sliderTickResult(hitObject.time, GameScore.HIT_MISS, hitObject.x, hitObject.y);
+					score.sliderTickResult(hitObject.time, GameScore.HIT_MISS,
+							hitObject.x, hitObject.y, hitObject.hitSound);
 			}
 
 			// "auto" mod: send a perfect hit result
@@ -475,7 +479,8 @@ public class Slider {
 				if (Math.abs(trackPosition - hitObject.time) < hitResultOffset[GameScore.HIT_300]) {
 					ticksHit++;
 					sliderClicked = true;
-					score.sliderTickResult(hitObject.time, GameScore.HIT_SLIDER30, hitObject.x, hitObject.y);
+					score.sliderTickResult(hitObject.time, GameScore.HIT_SLIDER30,
+							hitObject.x, hitObject.y, hitObject.hitSound);
 				}
 			}
 		}
@@ -540,24 +545,26 @@ public class Slider {
 				ticksHit++;
 				if (currentRepeats % 2 > 0)  // last circle
 					score.sliderTickResult(trackPosition, GameScore.HIT_SLIDER30,
-							hitObject.sliderX[lastIndex], hitObject.sliderY[lastIndex]);
+							hitObject.sliderX[lastIndex], hitObject.sliderY[lastIndex],
+							hitObject.hitSound);
 				else  // first circle
 					score.sliderTickResult(trackPosition, GameScore.HIT_SLIDER30,
-							c[0], c[1]);
+							c[0], c[1], hitObject.hitSound);
 			}
 
 			// held during new tick
 			if (isNewTick) {
 				ticksHit++;
-				score.sliderTickResult(trackPosition, GameScore.HIT_SLIDER10, c[0], c[1]);
+				score.sliderTickResult(trackPosition, GameScore.HIT_SLIDER10,
+						c[0], c[1], (byte) -1);
 			}
 		} else {
 			followCircleActive = false;
 
 			if (isNewRepeat)
-				score.sliderTickResult(trackPosition, GameScore.HIT_MISS, 0, 0);
+				score.sliderTickResult(trackPosition, GameScore.HIT_MISS, 0, 0, hitObject.hitSound);
 			if (isNewTick)
-				score.sliderTickResult(trackPosition, GameScore.HIT_MISS, 0, 0);
+				score.sliderTickResult(trackPosition, GameScore.HIT_MISS, 0, 0, (byte) -1);
 		}
 
 		return false;
