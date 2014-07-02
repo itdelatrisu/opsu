@@ -120,7 +120,8 @@ public class OsuParser {
 							continue;
 						if (line.charAt(0) == '[')
 							break;
-						tokens = tokenize(line);
+						if ((tokens = tokenize(line)) == null)
+							continue;
 						switch (tokens[0]) {
 						case "AudioFilename":
 							osu.audioFilename = new File(file.getParent() + File.separator + tokens[1]);
@@ -172,7 +173,8 @@ public class OsuParser {
 						if (line.charAt(0) == '[')
 							break;
 						/* Not implemented. */
-//						tokens = tokenize(line);
+//						if ((tokens = tokenize(line)) == null)
+//							continue;
 //						switch (tokens[0]) {
 //						case "Bookmarks":
 //							String[] bookmarks = tokens[1].split(",");
@@ -204,7 +206,8 @@ public class OsuParser {
 							continue;
 						if (line.charAt(0) == '[')
 							break;
-						tokens = tokenize(line);
+						if ((tokens = tokenize(line)) == null)
+							continue;
 						switch (tokens[0]) {
 						case "Title":
 							osu.title = tokens[1];
@@ -246,7 +249,8 @@ public class OsuParser {
 							continue;
 						if (line.charAt(0) == '[')
 							break;
-						tokens = tokenize(line);
+						if ((tokens = tokenize(line)) == null)
+							continue;
 						switch (tokens[0]) {
 						case "HPDrainRate":
 							osu.HPDrainRate = Float.parseFloat(tokens[1]);
@@ -346,7 +350,8 @@ public class OsuParser {
 							continue;
 						if (line.charAt(0) == '[')
 							break;
-						tokens = tokenize(line);
+						if ((tokens = tokenize(line)) == null)
+							continue;
 						switch (tokens[0]) {
 						case "Combo1":
 						case "Combo2":
@@ -464,6 +469,8 @@ public class OsuParser {
 						break;
 					// create a new OsuHitObject for each line
 					tokens = line.split(",");
+					if (tokens.length < 5)
+						continue;
 					float scaledX = Integer.parseInt(tokens[0]) * xMultiplier + xOffset;
 					float scaledY = Integer.parseInt(tokens[1]) * yMultiplier + yOffset;
 					int type = Integer.parseInt(tokens[3]);
@@ -525,16 +532,18 @@ public class OsuParser {
 
 	/**
 	 * Splits line into two strings: tag, value.
+	 * If no ':' character is present, null will be returned.
 	 */
 	private static String[] tokenize(String line) {
-		String[] tokens = new String[2];
-		try {
-			int index = line.indexOf(':');
-			tokens[0] = line.substring(0, index).trim();
-			tokens[1] = line.substring(index + 1).trim();
-		} catch (java.lang.StringIndexOutOfBoundsException e) {
-			Log.error(String.format("Failed to tokenize line: '%s'.", line), e);
+		int index = line.indexOf(':');
+		if (index == -1) {
+			Log.debug(String.format("Failed to tokenize line: '%s'.", line));
+			return null;
 		}
+
+		String[] tokens = new String[2];
+		tokens[0] = line.substring(0, index).trim();
+		tokens[1] = line.substring(index + 1).trim();
 		return tokens;
 	}
 
@@ -543,6 +552,6 @@ public class OsuParser {
 	 */
 	public static String getExtension(String file) {
 		int i = file.lastIndexOf('.');
-		return (i > -1) ? file.substring(i + 1).toLowerCase() : "";
+		return (i != -1) ? file.substring(i + 1).toLowerCase() : "";
 	}
 }

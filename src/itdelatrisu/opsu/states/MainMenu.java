@@ -218,7 +218,7 @@ public class MainMenu extends BasicGameState {
 		Utils.drawFPS();
 		Utils.drawCursor();
 	}
-	
+
 	@Override
 	public void update(GameContainer container, StateBasedGame game, int delta)
 			throws SlickException {
