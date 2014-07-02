@@ -165,7 +165,7 @@ public class Opsu extends StateBasedGame {
 		if (id == STATE_GAME || id == STATE_GAMEPAUSEMENU || id == STATE_GAMERANKING) {
 			// start playing track at preview position
 			MusicController.pause();
-			MusicController.playAt(Game.getOsuFile().previewTime, true);
+			MusicController.playAt(MusicController.getOsuFile().previewTime, true);
 			this.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 			return false;
 		}

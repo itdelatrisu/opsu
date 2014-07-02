@@ -18,7 +18,6 @@
 
 package itdelatrisu.opsu;
 
-import itdelatrisu.opsu.states.Game;
 import itdelatrisu.opsu.states.Options;
 
 import java.util.HashMap;
@@ -449,7 +448,7 @@ public class GameScore {
 		float circleDiameter = getScoreSymbolImage('0').getHeight() * 0.75f;
 		g.drawOval(circleX, circleY, circleDiameter, circleDiameter);
 
-		int firstObjectTime = Game.getOsuFile().objects[0].time;
+		int firstObjectTime = MusicController.getOsuFile().objects[0].time;
 		int trackPosition = MusicController.getPosition();
 		if (trackPosition > firstObjectTime) {
 			g.fillArc(circleX, circleY, circleDiameter, circleDiameter,

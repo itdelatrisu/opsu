@@ -144,7 +144,7 @@ public class GamePauseMenu extends BasicGameState {
 			// 'esc' will normally unpause, but will return to song menu if health is zero
 			if (Game.getRestart() == Game.RESTART_LOSE) {
 				MusicController.stop();
-				MusicController.playAt(Game.getOsuFile().previewTime, true);
+				MusicController.playAt(MusicController.getOsuFile().previewTime, true);
 				SoundController.playSound(SoundController.SOUND_MENUBACK);
 				game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 			} else
@@ -174,7 +174,7 @@ public class GamePauseMenu extends BasicGameState {
 			unPause(Game.RESTART_MANUAL);
 		} else if (backButton.contains(x, y)) {
 			MusicController.pause();  // lose state
-			MusicController.playAt(Game.getOsuFile().previewTime, true);
+			MusicController.playAt(MusicController.getOsuFile().previewTime, true);
 			SoundController.playSound(SoundController.SOUND_MENUBACK);
 			game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 		}

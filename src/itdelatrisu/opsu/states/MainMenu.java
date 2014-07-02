@@ -21,6 +21,7 @@ package itdelatrisu.opsu.states;
 import itdelatrisu.opsu.GUIMenuButton;
 import itdelatrisu.opsu.MusicController;
 import itdelatrisu.opsu.Opsu;
+import itdelatrisu.opsu.OsuFile;
 import itdelatrisu.opsu.OsuGroupNode;
 import itdelatrisu.opsu.SoundController;
 import itdelatrisu.opsu.Utils;
@@ -94,6 +95,11 @@ public class MainMenu extends BasicGameState {
 	 */
 	private Image backgroundImage;
 
+	/**
+	 * Alpha level for fade-in effect for dynamic backgrounds.
+	 */
+	private float dynamicBackgroundAlpha = 0f;
+
 	// game-related variables
 	private StateBasedGame game;
 	private int state;
@@ -151,14 +157,18 @@ public class MainMenu extends BasicGameState {
 	@Override
 	public void render(GameContainer container, StateBasedGame game, Graphics g)
 			throws SlickException {
-		if (backgroundImage != null)
+		int width = container.getWidth();
+		int height = container.getHeight();
+		
+		// draw background
+		OsuFile osu = MusicController.getOsuFile();
+		if (Options.isDynamicBackgroundEnabled() &&
+			osu != null && osu.drawBG(width, height, dynamicBackgroundAlpha))
+				;
+		else if (backgroundImage != null)
 			backgroundImage.draw();
 		else
 			g.setBackground(Utils.COLOR_BLUE_BACKGROUND);
-		g.setFont(Utils.FONT_MEDIUM);
-
-		int width = container.getWidth();
-		int height = container.getHeight();
 
 		// draw buttons
 		if (logoTimer > 0) {
@@ -182,6 +192,7 @@ public class MainMenu extends BasicGameState {
 				148f * MusicController.getPosition() / MusicController.getTrackLength(), 5, 4);
 
 		// draw text
+		g.setFont(Utils.FONT_MEDIUM);
 		int lineHeight = Utils.FONT_MEDIUM.getLineHeight();
 		g.drawString(String.format("Loaded %d songs and %d beatmaps.",
 				Opsu.groups.size(), Opsu.groups.getMapCount()), 25, 25);
@@ -207,10 +218,18 @@ public class MainMenu extends BasicGameState {
 		Utils.drawFPS();
 		Utils.drawCursor();
 	}
-
+	
 	@Override
 	public void update(GameContainer container, StateBasedGame game, int delta)
 			throws SlickException {
+		// dynamic backgrounds
+		if (Options.isDynamicBackgroundEnabled() && dynamicBackgroundAlpha < 0.9f) {
+			dynamicBackgroundAlpha += delta / 1000f;
+			if (dynamicBackgroundAlpha > 0.9f)
+				dynamicBackgroundAlpha = 0.9f;
+		}
+
+		// buttons
 		if (logoClicked) {
 			if (logoTimer == 0) {  // shifting to left
 				if (logo.getX() > container.getWidth() / 3.3f)
@@ -275,10 +294,12 @@ public class MainMenu extends BasicGameState {
 			OsuGroupNode node = menu.setFocus(Opsu.groups.getRandomNode(), -1, true);
 			if (node != null)
 				previous.add(node.index);
+			dynamicBackgroundAlpha = 0f;
 		} else if (musicPrevious.contains(x, y)) {
 			if (!previous.isEmpty()) {
 				SongMenu menu = (SongMenu) game.getState(Opsu.STATE_SONGMENU);
 				menu.setFocus(Opsu.groups.getBaseNode(previous.pop()), -1, true);
+				dynamicBackgroundAlpha = 0f;
 			} else
 				MusicController.setPosition(0);
 		}

@@ -97,7 +97,7 @@ public class GameRanking extends BasicGameState {
 		int width = container.getWidth();
 		int height = container.getHeight();
 
-		OsuFile osu = Game.getOsuFile();
+		OsuFile osu = MusicController.getOsuFile();
 
 		// background
 		if (!osu.drawBG(width, height, 0.7f))
@@ -147,7 +147,7 @@ public class GameRanking extends BasicGameState {
 		switch (key) {
 		case Input.KEY_ESCAPE:
 			MusicController.pause();
-			MusicController.playAt(Game.getOsuFile().previewTime, true);
+			MusicController.playAt(MusicController.getOsuFile().previewTime, true);
 			SoundController.playSound(SoundController.SOUND_MENUBACK);
 			game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 			break;
@@ -164,7 +164,7 @@ public class GameRanking extends BasicGameState {
 			return;
 
 		if (retryButton.contains(x, y)) {
-			OsuFile osu = Game.getOsuFile();
+			OsuFile osu = MusicController.getOsuFile();
 			Display.setTitle(String.format("%s - %s", game.getTitle(), osu.toString()));
 			Game.setRestart(Game.RESTART_MANUAL);
 			SoundController.playSound(SoundController.SOUND_MENUHIT);
@@ -174,7 +174,7 @@ public class GameRanking extends BasicGameState {
 			game.enterState(Opsu.STATE_MAINMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 		} else if (Utils.getBackButton().contains(x, y)) {
 			MusicController.pause();
-			MusicController.playAt(Game.getOsuFile().previewTime, true);
+			MusicController.playAt(MusicController.getOsuFile().previewTime, true);
 			SoundController.playSound(SoundController.SOUND_MENUBACK);
 			game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 		}

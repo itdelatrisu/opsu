@@ -649,6 +649,9 @@ public class Game extends BasicGameState {
 	@Override
 	public void enter(GameContainer container, StateBasedGame game)
 			throws SlickException {
+		if (restart == RESTART_NEW)
+			osu = MusicController.getOsuFile();
+
 		if (osu == null || osu.objects == null)
 			throw new RuntimeException("Running game with no OsuFile loaded.");
 
@@ -809,12 +812,6 @@ public class Game extends BasicGameState {
 	 */
 	public static void setRestart(byte restart) { Game.restart = restart; }
 	public static byte getRestart() { return Game.restart; }
-
-	/**
-	 * Sets or returns the associated OsuFile.
-	 */
-	public static void setOsuFile(OsuFile osu) { Game.osu = osu; }
-	public static OsuFile getOsuFile() { return osu; }
 
 	/**
 	 * Returns the associated GameScore object.

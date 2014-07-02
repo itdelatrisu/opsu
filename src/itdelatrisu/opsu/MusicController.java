@@ -163,6 +163,11 @@ public class MusicController {
 	}
 
 	/**
+	 * Returns the OsuFile associated with the current track.
+	 */
+	public static OsuFile getOsuFile() { return lastOsu; }
+
+	/**
 	 * Returns the name of the current track.
 	 */
 	public static String getTrackName() {

@@ -210,6 +210,11 @@ public class Options extends BasicGameState {
 	private static boolean newCursor = true;
 
 	/**
+	 * Whether or not dynamic backgrounds are enabled.
+	 */
+	private static boolean dynamicBackground = true;
+
+	/**
 	 * Game option coordinate modifiers (for drawing).
 	 */
 	private int textY, offsetY;
@@ -613,6 +618,12 @@ public class Options extends BasicGameState {
 	public static boolean isNewCursorEnabled() { return newCursor; }
 
 	/**
+	 * Returns whether or not the main menu background should be the current track image.
+	 * @return true if enabled
+	 */
+	public static boolean isDynamicBackgroundEnabled() { return dynamicBackground; }
+
+	/**
 	 * Returns the current beatmap directory.
 	 * If invalid, this will attempt to search for the directory,
 	 * and if nothing found, will create one.
@@ -718,13 +729,18 @@ public class Options extends BasicGameState {
 				case "ComboBurst":
 					showComboBursts = Boolean.parseBoolean(value);
 					break;
+
+				// custom entries
 				case "Port":
 					i = Integer.parseInt(value);
 					if (i > 0 && i <= 65535)
 						port = i;
 					break;
-				case "NewCursor":  // custom
+				case "NewCursor":
 					newCursor = Boolean.parseBoolean(value);
+					break;
+				case "DynamicBackground":
+					dynamicBackground = Boolean.parseBoolean(value);
 					break;
 				}
 			}
@@ -777,9 +793,13 @@ public class Options extends BasicGameState {
 			writer.newLine();
 			writer.write(String.format("ComboBurst = %b", showComboBursts));
 			writer.newLine();
+
+			// custom entries
 			writer.write(String.format("Port = %d", port));
 			writer.newLine();
-			writer.write(String.format("NewCursor = %b", newCursor));  // custom
+			writer.write(String.format("NewCursor = %b", newCursor));
+			writer.newLine();
+			writer.write(String.format("DynamicBackground = %b", dynamicBackground));
 			writer.newLine();
 			writer.close();
 		} catch (IOException e) {
