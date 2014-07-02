@@ -131,21 +131,30 @@ public class Utils {
 			Log.error("Failed to set the cursor.", e);
 		}
 
-		// load cursor images
+		// load cursor images (TODO: cleanup)
+		boolean skinCursor = new File(Options.getSkinDir(), "cursor.png").isFile();
 		if (Options.isNewCursorEnabled()) {
 			// load new cursor type
-			try {
+			// if skin cursor exists but middle part does not, don't load default middle
+			if (skinCursor && !new File(Options.getSkinDir(), "cursormiddle.png").isFile())
+				;
+			else {
 				cursorMiddle = new Image("cursormiddle.png");
 				cursor = new Image("cursor.png");
 				cursorTrail = new Image("cursortrail.png");
-			} catch (Exception e) {
-				// optional
 			}
 		}
 		if (cursorMiddle == null) {
 			// load old cursor type
-			cursor = new Image("cursor2.png");
-			cursorTrail = new Image("cursortrail2.png");
+			// default is stored as *2.png, but load skin cursor if it exists
+			if (skinCursor)
+				cursor = new Image("cursor.png");
+			else
+				cursor = new Image("cursor2.png");
+			if (new File(Options.getSkinDir(), "cursortrail.png").isFile())
+				cursorTrail = new Image("cursortrail.png");
+			else
+				cursorTrail = new Image("cursortrail2.png");
 		}
 
 		// create fonts

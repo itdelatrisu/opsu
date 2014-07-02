@@ -652,8 +652,8 @@ public class Game extends BasicGameState {
 		if (osu == null || osu.objects == null)
 			throw new RuntimeException("Running game with no OsuFile loaded.");
 
-		// grab the mouse
-		container.setMouseGrabbed(true);
+		// grab the mouse (not working for touchscreen)
+//		container.setMouseGrabbed(true);
 
 		// restart the game
 		if (restart != RESTART_FALSE) {
@@ -728,11 +728,11 @@ public class Game extends BasicGameState {
 		}
 	}
 
-	@Override
-	public void leave(GameContainer container, StateBasedGame game)
-			throws SlickException {
-		container.setMouseGrabbed(false);
-	}
+//	@Override
+//	public void leave(GameContainer container, StateBasedGame game)
+//			throws SlickException {
+//		container.setMouseGrabbed(false);
+//	}
 
 	/**
 	 * Skips the beginning of a track.

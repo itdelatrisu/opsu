@@ -51,17 +51,22 @@ public class Options extends BasicGameState {
 	/**
 	 * Temporary folder for file conversions, auto-deleted upon successful exit.
 	 */
-	public static final File TMP_DIR = new File(".osu_tmp/");
+	public static final File TMP_DIR = new File(".opsu_tmp/");
 
 	/**
 	 * Directory for screenshots (created when needed).
 	 */
-	public static final File SCREENSHOT_DIR = new File("screenshot/");
-
+	public static final File SCREENSHOT_DIR = new File("Screenshots/");
+	
 	/**
 	 * File for logging errors.
 	 */
 	public static final File LOG_FILE = new File(".opsu.log");
+
+	/**
+	 * File for storing user options.
+	 */
+	private static final File OPTIONS_FILE = new File(".opsu.cfg");
 
 	/**
 	 * Beatmap directories (where to search for files).
@@ -69,7 +74,7 @@ public class Options extends BasicGameState {
 	private static final String[] BEATMAP_DIRS = {
 		"C:/Program Files (x86)/osu!/Songs/",
 		"C:/Program Files/osu!/Songs/",
-		"songs/"
+		"Songs/"
 	};
 
 	/**
@@ -78,9 +83,9 @@ public class Options extends BasicGameState {
 	private static File beatmapDir;
 
 	/**
-	 * File for storing user options.
+	 * The current skin directory (for user skins).
 	 */
-	private static final String OPTIONS_FILE = ".opsu.cfg";
+	private static File skinDir;
 
 	/**
 	 * Game mods.
@@ -611,6 +616,7 @@ public class Options extends BasicGameState {
 	 * Returns the current beatmap directory.
 	 * If invalid, this will attempt to search for the directory,
 	 * and if nothing found, will create one.
+	 * @return the beatmap directory
 	 */
 	public static File getBeatmapDir() {
 		if (beatmapDir != null && beatmapDir.isDirectory())
@@ -626,19 +632,31 @@ public class Options extends BasicGameState {
 		return beatmapDir;
 	}
 
+	/**
+	 * Returns the current skin directory.
+	 * If invalid, this will create a "Skins" folder in the root directory.
+	 * @return the skin directory
+	 */
+	public static File getSkinDir() {
+		if (skinDir != null && skinDir.isDirectory())
+			return skinDir;
+
+		skinDir = new File("Skins/");
+		skinDir.mkdir();
+		return skinDir;
+	}
 
 	/**
 	 * Reads user options from the options file, if it exists.
 	 */
 	public static void parseOptions() {
 		// if no config file, use default settings
-		File file = new File(OPTIONS_FILE);
-		if (!file.isFile()) {
+		if (!OPTIONS_FILE.isFile()) {
 			saveOptions();
 			return;
 		}
 
-		try (BufferedReader in = new BufferedReader(new FileReader(file))) {
+		try (BufferedReader in = new BufferedReader(new FileReader(OPTIONS_FILE))) {
 			String line;
 			String name, value;
 			int i;
@@ -654,6 +672,9 @@ public class Options extends BasicGameState {
 				switch (name) {
 				case "BeatmapDirectory":
 					beatmapDir = new File(value);
+					break;
+				case "Skin":
+					skinDir = new File(value);
 					break;
 				case "ScreenResolution":
 					i = Integer.parseInt(value);
@@ -708,7 +729,7 @@ public class Options extends BasicGameState {
 				}
 			}
 		} catch (IOException e) {
-			Log.error(String.format("Failed to read file '%s'.", OPTIONS_FILE), e);
+			Log.error(String.format("Failed to read file '%s'.", OPTIONS_FILE.getAbsolutePath()), e);
 		} catch (NumberFormatException e) {
 			Log.warn("Format error in options file.", e);
 			return;
@@ -732,10 +753,10 @@ public class Options extends BasicGameState {
 			writer.newLine();
 
 			// options
-			if (beatmapDir != null) {
-				writer.write(String.format("BeatmapDirectory = %s", beatmapDir.getAbsolutePath()));
-				writer.newLine();
-			}
+			writer.write(String.format("BeatmapDirectory = %s", getBeatmapDir().getAbsolutePath()));
+			writer.newLine();
+			writer.write(String.format("Skin = %s", getSkinDir().getAbsolutePath()));
+			writer.newLine();
 			writer.write(String.format("ScreenResolution = %d", resolutionIndex));
 			writer.newLine();
 //			writer.write(String.format("Fullscreen = %b", fullscreen));
@@ -762,7 +783,7 @@ public class Options extends BasicGameState {
 			writer.newLine();
 			writer.close();
 		} catch (IOException e) {
-			Log.error(String.format("Failed to write to file '%s'.", OPTIONS_FILE), e);
+			Log.error(String.format("Failed to write to file '%s'.", OPTIONS_FILE.getAbsolutePath()), e);
 		}
 	}
 }
