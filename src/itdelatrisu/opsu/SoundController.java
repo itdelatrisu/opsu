@@ -228,7 +228,7 @@ public class SoundController {
 			// set volume
 			FloatControl gainControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
 			float dB = (float) (Math.log(volume) / Math.log(10.0) * 20.0);
-			gainControl.setValue(dB * sampleVolumeMultiplier);
+			gainControl.setValue(dB);
 
 			// play clip
 			clip.setFramePosition(0);
@@ -255,7 +255,7 @@ public class SoundController {
 		if (sampleSetIndex < 0 || hitSound < 0)
 			return;
 
-		float volume = Options.getEffectVolume();
+		float volume = Options.getHitSoundVolume() * sampleVolumeMultiplier;
 		if (volume == 0f)
 			return;
 
@@ -280,6 +280,7 @@ public class SoundController {
 		if (sampleSetIndex < 0 || sound < 0 || sound > HIT_MAX)
 			return;
 
-		playClip(hitSounds[sampleSetIndex][sound], Options.getEffectVolume());
+		playClip(hitSounds[sampleSetIndex][sound],
+				Options.getHitSoundVolume() * sampleVolumeMultiplier);
 	}
 }

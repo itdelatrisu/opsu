@@ -759,7 +759,10 @@ public class GameScore {
 
 		if (hitValue > 0) {
 			score += hitValue;
-			hitResultList.add(new OsuHitObjectResult(time, result, x, y, null));
+			if (!Options.isPerfectHitBurstEnabled())
+				;  // hide perfect hit results
+			else
+				hitResultList.add(new OsuHitObjectResult(time, result, x, y, null));
 		}
 	}
 
@@ -776,8 +779,10 @@ public class GameScore {
 	public void hitResult(int time, int result, float x, float y, Color color,
 			boolean end, byte hitSound) {
 		int hitValue = 0;
+		boolean perfectHit = false;
 		switch (result) {
 		case HIT_300:
+			perfectHit = true;
 			hitValue = 300;
 			changeHealth(5f);
 			objectCount++;
@@ -852,6 +857,9 @@ public class GameScore {
 			comboEnd = 0;
 		}
 
-		hitResultList.add(new OsuHitObjectResult(time, result, x, y, color));
+		if (perfectHit && !Options.isPerfectHitBurstEnabled())
+			;  // hide perfect hit results
+		else
+			hitResultList.add(new OsuHitObjectResult(time, result, x, y, color));
 	}
 }

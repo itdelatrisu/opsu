@@ -20,6 +20,7 @@ package itdelatrisu.opsu.states;
 
 import itdelatrisu.opsu.GUIMenuButton;
 import itdelatrisu.opsu.Opsu;
+import itdelatrisu.opsu.SoundController;
 import itdelatrisu.opsu.Utils;
 
 import java.io.BufferedReader;
@@ -109,20 +110,94 @@ public class Options extends BasicGameState {
 	private static GUIMenuButton[] modButtons;
 
 	/**
-	 * Game option constants.
+	 * Game options.
+	 */
+	private enum GameOption {
+		NULL,
+		SCREEN_RESOLUTION,
+//		FULLSCREEN,
+		TARGET_FPS,
+		MUSIC_VOLUME,
+		EFFECT_VOLUME,
+		HITSOUND_VOLUME,
+		MUSIC_OFFSET,
+		SCREENSHOT_FORMAT,
+		SHOW_FPS,
+		SHOW_HIT_LIGHTING,
+		SHOW_COMBO_BURSTS,
+		NEW_CURSOR,
+		DYNAMIC_BACKGROUND,
+		SHOW_PERFECT_HIT,
+		BACKGROUND_DIM;
+	};
+
+	/**
+	 * Option tab constants.
 	 */
 	private static final int
-		OPTIONS_SCREEN_RESOLUTION    = 0,
-//		OPTIONS_FULLSCREEN           = ,
-		OPTIONS_TARGET_FPS           = 1,
-		OPTIONS_MUSIC_VOLUME         = 2,
-		OPTIONS_EFFECT_VOLUME        = 3,
-		OPTIONS_MUSIC_OFFSET         = 4,
-		OPTIONS_SCREENSHOT_FORMAT    = 5,
-		OPTIONS_DISPLAY_FPS          = 6,
-		OPTIONS_HIT_LIGHTING         = 7,
-		OPTIONS_COMBO_BURSTS         = 8,
-		OPTIONS_MAX                  = 9;  // not an option
+		TAB_DISPLAY  = 0,
+		TAB_MUSIC    = 1,
+		TAB_GAMEPLAY = 2,
+		TAB_MAX      = 3;  // not a tab
+
+	/**
+	 * Option tab names.
+	 */
+	private static final String[] TAB_NAMES = {
+		"Display",
+		"Music",
+		"Gameplay"
+	};
+
+	/**
+	 * Option tab buttons.
+	 */
+	private GUIMenuButton[] optionTabs = new GUIMenuButton[TAB_MAX];
+
+	/**
+	 * Current tab.
+	 */
+	private static int currentTab;
+
+	/**
+	 * Display options.
+	 */
+	private static final GameOption[] displayOptions = {
+		GameOption.SCREEN_RESOLUTION,
+//		GameOption.FULLSCREEN,
+		GameOption.TARGET_FPS,
+		GameOption.SHOW_FPS,
+		GameOption.SCREENSHOT_FORMAT,
+		GameOption.NEW_CURSOR,
+		GameOption.DYNAMIC_BACKGROUND
+	};
+
+	/**
+	 * Music options.
+	 */
+	private static final GameOption[] musicOptions = {
+		GameOption.MUSIC_VOLUME,
+		GameOption.EFFECT_VOLUME,
+		GameOption.HITSOUND_VOLUME,
+		GameOption.MUSIC_OFFSET
+	};
+
+	/**
+	 * Gameplay options.
+	 */
+	private static final GameOption[] gameplayOptions = {
+		GameOption.BACKGROUND_DIM,
+		GameOption.SHOW_HIT_LIGHTING,
+		GameOption.SHOW_COMBO_BURSTS,
+		GameOption.SHOW_PERFECT_HIT
+	};
+
+	/**
+	 * Max number of options displayed on one screen.
+	 */
+	private static int maxOptionsScreen = Math.max(
+			Math.max(displayOptions.length, musicOptions.length),
+			gameplayOptions.length);
 
 	/**
 	 * Screen resolutions.
@@ -185,6 +260,11 @@ public class Options extends BasicGameState {
 	private static int effectVolume = 20;
 
 	/**
+	 * Default hit sound volume.
+	 */
+	private static int hitSoundVolume = 20;
+
+	/**
 	 * Offset time, in milliseconds, for music position-related elements.
 	 */
 	private static int musicOffset = -150;
@@ -215,6 +295,16 @@ public class Options extends BasicGameState {
 	private static boolean dynamicBackground = true;
 
 	/**
+	 * Whether or not to display perfect hit results.
+	 */
+	private static boolean showPerfectHit = true;
+
+	/**
+	 * Percentage to dim background images during gameplay.
+	 */
+	private static int backgroundDim = 30;
+
+	/**
 	 * Game option coordinate modifiers (for drawing).
 	 */
 	private int textY, offsetY;
@@ -223,6 +313,7 @@ public class Options extends BasicGameState {
 	private GameContainer container;
 	private StateBasedGame game;
 	private Input input;
+	private Graphics g;
 	private int state;
 	private boolean init = false;
 
@@ -236,6 +327,7 @@ public class Options extends BasicGameState {
 		this.container = container;
 		this.game = game;
 		this.input = container.getInput();
+		this.g = container.getGraphics();
 
 		Utils.init(container, game);
 
@@ -243,8 +335,16 @@ public class Options extends BasicGameState {
 		int height = container.getHeight();
 
 		// game option coordinate modifiers
-		textY = 10 + (Utils.FONT_XLARGE.getLineHeight() * 3 / 2);
-		offsetY = (int) (((height * 0.8f) - textY) / OPTIONS_MAX);
+		textY = 20 + (Utils.FONT_XLARGE.getLineHeight() * 3 / 2);
+		offsetY = (int) (((height * 0.8f) - textY) / maxOptionsScreen);
+
+		// option tabs
+		Image tab = Utils.getTabImage();
+		float tabX = (width / 50) + (tab.getWidth() / 2f);
+		float tabY = 15 + Utils.FONT_XLARGE.getHeight() + (tab.getHeight() / 2f);
+		float tabOffset = tab.getWidth() * 0.85f;
+		for (int i = 0; i < optionTabs.length; i++)
+			optionTabs[i] = new GUIMenuButton(tab, tabX + (i * tabOffset), tabY);
 
 		// game mods
 		modsActive = new boolean[MOD_MAX];
@@ -305,49 +405,38 @@ public class Options extends BasicGameState {
 		// game options
 		g.setLineWidth(1f);
 		g.setFont(Utils.FONT_LARGE);
-		this.drawOption(g, OPTIONS_SCREEN_RESOLUTION, "Screen Resolution",
-				String.format("%dx%d", resolutions[resolutionIndex][0], resolutions[resolutionIndex][1]),
-				"Restart to apply resolution changes."
-		);
-//		this.drawOption(g, OPTIONS_FULLSCREEN, "Fullscreen Mode",
-//				fullscreen ? "Yes" : "No",
-//				"Restart to apply changes."
-//		);
-		this.drawOption(g, OPTIONS_TARGET_FPS, "Frame Limiter",
-				String.format("%dfps", getTargetFPS()),
-				"Higher values may cause high CPU usage."
-		);
-		this.drawOption(g, OPTIONS_MUSIC_VOLUME, "Music Volume",
-				String.format("%d%%", musicVolume),
-				"Global music volume."
-		);
-		this.drawOption(g, OPTIONS_EFFECT_VOLUME, "Effect Volume",
-				String.format("%d%%", effectVolume),
-				"Sound effect volume."
-		);
-		this.drawOption(g, OPTIONS_MUSIC_OFFSET, "Music Offset",
-				String.format("%dms", musicOffset),
-				"Adjust this value if hit objects are out of sync."
-		);
-		this.drawOption(g, OPTIONS_SCREENSHOT_FORMAT, "Screenshot Format",
-				screenshotFormat[screenshotFormatIndex].toUpperCase(),
-				"Press F12 to take a screenshot."
-		);
-		this.drawOption(g, OPTIONS_DISPLAY_FPS, "Show FPS Counter",
-				showFPS ? "Yes" : "No",
-				null
-		);
-		this.drawOption(g, OPTIONS_HIT_LIGHTING, "Show Hit Lighting",
-				showHitLighting ? "Yes" : "No",
-				null
-		);
-		this.drawOption(g, OPTIONS_COMBO_BURSTS, "Show Combo Bursts",
-				showComboBursts ? "Yes" : "No",
-				null
-		);
+		switch (currentTab) {
+		case TAB_DISPLAY:
+			for (int i = 0; i < displayOptions.length; i++)
+				drawOption(displayOptions[i], i);
+			break;
+		case TAB_MUSIC:
+			for (int i = 0; i < musicOptions.length; i++)
+				drawOption(musicOptions[i], i);
+			break;
+		case TAB_GAMEPLAY:
+			for (int i = 0; i < gameplayOptions.length; i++)
+				drawOption(gameplayOptions[i], i);
+			break;
+		}
+
+		// option tabs
+		g.setColor(Color.white);
+		Image tab = optionTabs[0].getImage();
+		float tabTextY = optionTabs[0].getY() - (tab.getHeight() / 2f);
+		for (int i = optionTabs.length - 1; i >= 0; i--) {
+			tab.setAlpha((i == currentTab) ? 1.0f : 0.7f);
+			optionTabs[i].draw();
+			float tabTextX = optionTabs[i].getX() - (Utils.FONT_MEDIUM.getWidth(TAB_NAMES[i]) / 2);
+			Utils.FONT_MEDIUM.drawString(tabTextX, tabTextY, TAB_NAMES[i], Color.white);
+		}
+		g.setLineWidth(2f);
+		float lineY = optionTabs[0].getY() + (tab.getHeight() / 2f);
+		g.drawLine(0, lineY, width, lineY);
+		g.resetLineWidth();
 
 		// game mods
-		Utils.FONT_LARGE.drawString(width * 0.02f, height * 0.8f, "Game Mods:", Color.white);
+		Utils.FONT_LARGE.drawString(width / 30, height * 0.8f, "Game Mods:", Color.white);
 		for (int i = 0; i < modButtons.length; i++)
 			modButtons[i].draw();
 
@@ -374,13 +463,26 @@ public class Options extends BasicGameState {
 
 		// back
 		if (Utils.getBackButton().contains(x, y)) {
+			SoundController.playSound(SoundController.SOUND_MENUBACK);
 			game.enterState(Opsu.STATE_SONGMENU, new EmptyTransition(), new FadeInTransition(Color.black));
 			return;
+		}
+
+		// option tabs
+		for (int i = 0; i < optionTabs.length; i++) {
+			if (optionTabs[i].contains(x, y)) {
+				if (i != currentTab) {
+					currentTab = i;
+					SoundController.playSound(SoundController.SOUND_MENUCLICK);
+				}
+				return;
+			}
 		}
 
 		// game mods
 		for (int i = 0; i < modButtons.length; i++) {
 			if (modButtons[i].contains(x, y)) {
+				boolean prev = modsActive[i];
 				toggleMod(i);
 
 				// mutually exclusive mods
@@ -397,39 +499,52 @@ public class Options extends BasicGameState {
 				} else if (modsActive[MOD_SUDDEN_DEATH] && modsActive[MOD_NO_FAIL])
 					toggleMod((i == MOD_SUDDEN_DEATH) ? MOD_NO_FAIL : MOD_SUDDEN_DEATH);
 
+				if (modsActive[i] != prev)
+					SoundController.playSound(SoundController.SOUND_MENUCLICK);
 				return;
 			}
 		}
 
 		// options (click only)
-		if (isOptionClicked(OPTIONS_SCREEN_RESOLUTION, y)) {
+		switch (getClickedOption(y)) {
+		case SCREEN_RESOLUTION:
 			resolutionIndex = (resolutionIndex + 1) % resolutions.length;
-			return;
-		}
-//		if (isOptionClicked(OPTIONS_FULLSCREEN, y)) {
+			break;
+//		case FULLSCREEN:
 //			fullscreen = !fullscreen;
-//			return;
-//		}
-		if (isOptionClicked(OPTIONS_TARGET_FPS, y)) {
+//			break;
+		case TARGET_FPS:
 			targetFPSindex = (targetFPSindex + 1) % targetFPS.length;
 			container.setTargetFrameRate(getTargetFPS());
-			return;
-		}
-		if (isOptionClicked(OPTIONS_SCREENSHOT_FORMAT, y)) {
+			break;
+		case SCREENSHOT_FORMAT:
 			screenshotFormatIndex = (screenshotFormatIndex + 1) % screenshotFormat.length;
-			return;
-		}
-		if (isOptionClicked(OPTIONS_DISPLAY_FPS, y)) {
+			break;
+		case SHOW_FPS:
 			showFPS = !showFPS;
-			return;
-		}
-		if (isOptionClicked(OPTIONS_HIT_LIGHTING, y)) {
+			break;
+		case SHOW_HIT_LIGHTING:
 			showHitLighting = !showHitLighting;
-			return;
-		}
-		if (isOptionClicked(OPTIONS_COMBO_BURSTS, y)) {
+			break;
+		case SHOW_COMBO_BURSTS:
 			showComboBursts = !showComboBursts;
-			return;
+			break;
+		case NEW_CURSOR:
+			newCursor = !newCursor;
+			try {
+				Utils.loadCursor();
+			} catch (SlickException e) {
+				Log.error("Failed to load cursor.", e);
+			}
+			break;
+		case DYNAMIC_BACKGROUND:
+			dynamicBackground = !dynamicBackground;
+			break;
+		case SHOW_PERFECT_HIT:
+			showPerfectHit = !showPerfectHit;
+			break;
+		default:
+			break;
 		}
 	}
 
@@ -451,30 +566,45 @@ public class Options extends BasicGameState {
 		diff = ((diff > 0) ? 1 : -1) * multiplier;
 
 		// options (drag only)
-		if (isOptionClicked(OPTIONS_MUSIC_VOLUME, oldy)) {
+		switch (getClickedOption(oldy)) {
+		case MUSIC_VOLUME:
 			musicVolume += diff;
 			if (musicVolume < 0)
 				musicVolume = 0;
 			else if (musicVolume > 100)
 				musicVolume = 100;
 			container.setMusicVolume(getMusicVolume());
-			return;
-		}
-		if (isOptionClicked(OPTIONS_EFFECT_VOLUME, oldy)) {
+			break;
+		case EFFECT_VOLUME:
 			effectVolume += diff;
 			if (effectVolume < 0)
 				effectVolume = 0;
 			else if (effectVolume > 100)
 				effectVolume = 100;
-			return;
-		}
-		if (isOptionClicked(OPTIONS_MUSIC_OFFSET, oldy)) {
+			break;
+		case HITSOUND_VOLUME:
+			hitSoundVolume += diff;
+			if (hitSoundVolume < 0)
+				hitSoundVolume = 0;
+			else if (hitSoundVolume > 100)
+				hitSoundVolume = 100;
+			break;
+		case MUSIC_OFFSET:
 			musicOffset += diff;
 			if (musicOffset < -500)
 				musicOffset = -500;
 			else if (musicOffset > 500)
 				musicOffset = 500;
-			return;
+			break;
+		case BACKGROUND_DIM:
+			backgroundDim += diff;
+			if (backgroundDim < 0)
+				backgroundDim = 0;
+			else if (backgroundDim > 100)
+				backgroundDim = 100;
+			break;
+		default:
+			break;
 		}
 	}
 
@@ -482,43 +612,179 @@ public class Options extends BasicGameState {
 	public void keyPressed(int key, char c) {
 		switch (key) {
 		case Input.KEY_ESCAPE:
+			SoundController.playSound(SoundController.SOUND_MENUBACK);
 			game.enterState(Opsu.STATE_SONGMENU, new EmptyTransition(), new FadeInTransition(Color.black));
 			break;
 		case Input.KEY_F12:
 			Utils.takeScreenShot();
+			break;
+		case Input.KEY_TAB:
+			int i = 1;
+			if (input.isKeyDown(Input.KEY_LSHIFT) || input.isKeyDown(Input.KEY_RSHIFT))
+				i = TAB_MAX - 1;
+			currentTab = (currentTab + i) % TAB_MAX;
+			SoundController.playSound(SoundController.SOUND_MENUCLICK);
+			break;
+		}
+	}
+
+	@Override
+	public void enter(GameContainer container, StateBasedGame game)
+			throws SlickException {
+		currentTab = TAB_DISPLAY;
+	}
+
+	/**
+	 * Draws a game option.
+	 * @param option the option (OPTION_* constant)
+	 * @param pos the position to draw at
+	 */
+	private void drawOption(GameOption option, int pos) {
+		switch (option) {
+		case SCREEN_RESOLUTION:
+			drawOption(pos, "Screen Resolution",
+					String.format("%dx%d", resolutions[resolutionIndex][0], resolutions[resolutionIndex][1]),
+					"Restart to apply resolution changes."
+			);
+			break;
+//		case FULLSCREEN:
+//			drawOption(pos, "Fullscreen Mode",
+//					fullscreen ? "Yes" : "No",
+//					"Restart to apply changes."
+//			);
+//			break;
+		case TARGET_FPS:
+			drawOption(pos, "Frame Limiter",
+					String.format("%dfps", getTargetFPS()),
+					"Higher values may cause high CPU usage."
+			);
+			break;
+		case SCREENSHOT_FORMAT:
+			drawOption(pos, "Screenshot Format",
+					screenshotFormat[screenshotFormatIndex].toUpperCase(),
+					"Press F12 to take a screenshot."
+			);
+			break;
+		case SHOW_FPS:
+			drawOption(pos, "Show FPS Counter",
+					showFPS ? "Yes" : "No",
+					"Show an FPS counter in the bottom-right hand corner."
+			);
+			break;
+		case NEW_CURSOR:
+			drawOption(pos, "Enable New Cursor",
+					newCursor ? "Yes" : "No",
+					"Use the new cursor style (may cause higher CPU usage)."
+			);
+			break;
+		case DYNAMIC_BACKGROUND:
+			drawOption(pos, "Enable Dynamic Backgrounds",
+					dynamicBackground ? "Yes" : "No",
+					"The song background will be used as the main menu background."
+			);
+			break;
+		case MUSIC_VOLUME:
+			drawOption(pos, "Music Volume",
+					String.format("%d%%", musicVolume),
+					"Global music volume."
+			);
+			break;
+		case EFFECT_VOLUME:
+			drawOption(pos, "Effect Volume",
+					String.format("%d%%", effectVolume),
+					"Volume of menu and game sounds."
+			);
+			break;
+		case HITSOUND_VOLUME:
+			drawOption(pos, "Hit Sound Volume",
+					String.format("%d%%", hitSoundVolume),
+					"Volume of hit sounds."
+			);
+			break;
+		case MUSIC_OFFSET:
+			drawOption(pos, "Music Offset",
+					String.format("%dms", musicOffset),
+					"Adjust this value if hit objects are out of sync."
+			);
+			break;
+		case BACKGROUND_DIM:
+			drawOption(pos, "Background Dim",
+					String.format("%d%%", backgroundDim),
+					"Percentage to dim the background image during gameplay."
+			);
+			break;
+		case SHOW_HIT_LIGHTING:
+			drawOption(pos, "Show Hit Lighting",
+					showHitLighting ? "Yes" : "No",
+					"Adds an effect behind hit explosions."
+			);
+			break;
+		case SHOW_COMBO_BURSTS:
+			drawOption(pos, "Show Combo Bursts",
+					showComboBursts ? "Yes" : "No",
+					"A character image is displayed at combo milestones."
+			);
+			break;
+		case SHOW_PERFECT_HIT:
+			drawOption(pos, "Show Perfect Hits",
+					showPerfectHit ? "Yes" : "No",
+					"Whether to show perfect hit result bursts (300s, slider ticks)."
+			);
+			break;
+		default:
 			break;
 		}
 	}
 
 	/**
 	 * Draws a game option.
-	 * @param g the graphics context
-	 * @param pos the element position (OPTIONS_* constants)
+	 * @param pos the element position
 	 * @param label the option name
 	 * @param value the option value
 	 * @param notes additional notes (optional)
 	 */
-	private void drawOption(Graphics g, int pos, String label, String value, String notes) {
+	private void drawOption(int pos, String label, String value, String notes) {
 		int width = container.getWidth();
 		int textHeight = Utils.FONT_LARGE.getHeight();
 		float y = textY + (pos * offsetY);
 
-		g.drawString(label, width / 50, y);
+		g.setColor(Color.white);
+		g.drawString(label, width / 30, y);
 		g.drawString(value, width / 2, y);
-		g.drawLine(0, y + textHeight, width, y + textHeight);
 		if (notes != null)
-			Utils.FONT_SMALL.drawString(width / 50, y + textHeight, notes);
+			Utils.FONT_SMALL.drawString(width / 30, y + textHeight, notes);
+		g.setColor(Utils.COLOR_WHITE_ALPHA);
+		g.drawLine(0, y + textHeight, width, y + textHeight);
 	}
 
 	/**
-	 * Returns whether or not an option was clicked.
-	 * @param pos the element position (OPTIONS_* constants)
-	 * @param y the y coordinate of the click
-	 * @return true if clicked
+	 * Returns the option clicked.
+	 * If no option clicked, -1 will be returned.
+	 * @param y the y coordinate
+	 * @return the option (OPTION_* constant)
 	 */
-	private boolean isOptionClicked(int pos, int y) {
-		return (y > textY + (offsetY * pos) - Utils.FONT_LARGE.getHeight() &&
-				y < textY + (offsetY * pos) + Utils.FONT_LARGE.getHeight());
+	private GameOption getClickedOption(int y) {
+		GameOption option = GameOption.NULL;
+
+		if (y < textY || y > textY + (offsetY * maxOptionsScreen))
+			return option;
+
+		int index = (y - textY + Utils.FONT_LARGE.getHeight()) / offsetY;
+		switch (currentTab) {
+		case TAB_DISPLAY:
+			if (index < displayOptions.length)
+				option = displayOptions[index];
+			break;
+		case TAB_MUSIC:
+			if (index < musicOptions.length)
+				option = musicOptions[index];
+			break;
+		case TAB_GAMEPLAY:
+			if (index < gameplayOptions.length)
+				option = gameplayOptions[index];
+			break;
+		}
+		return option;
 	}
 
 	/**
@@ -562,6 +828,12 @@ public class Options extends BasicGameState {
 	 * @return the sound volume [0, 1]
 	 */
 	public static float getEffectVolume() { return effectVolume / 100f; }
+
+	/**
+	 * Returns the default sound effect volume.
+	 * @return the sound volume [0, 1]
+	 */
+	public static float getHitSoundVolume() { return hitSoundVolume / 100f; }
 
 	/**
 	 * Returns the music offset time.
@@ -622,6 +894,18 @@ public class Options extends BasicGameState {
 	 * @return true if enabled
 	 */
 	public static boolean isDynamicBackgroundEnabled() { return dynamicBackground; }
+
+	/**
+	 * Returns whether or not to show perfect hit result bursts.
+	 * @return true if enabled
+	 */
+	public static boolean isPerfectHitBurstEnabled() { return showPerfectHit; }
+
+	/**
+	 * Returns the background dim level.
+	 * @return the alpha level [0, 1]
+	 */
+	public static float getBackgroundDim() { return (100 - backgroundDim) / 100f; }
 
 	/**
 	 * Returns the current beatmap directory.
@@ -687,6 +971,11 @@ public class Options extends BasicGameState {
 				case "Skin":
 					skinDir = new File(value);
 					break;
+				case "Port":
+					i = Integer.parseInt(value);
+					if (i > 0 && i <= 65535)
+						port = i;
+					break;
 				case "ScreenResolution":
 					i = Integer.parseInt(value);
 					if (i >= 0 && i < resolutions.length)
@@ -700,6 +989,20 @@ public class Options extends BasicGameState {
 					if (i >= 0 && i <= targetFPS.length)
 						targetFPSindex = i;
 					break;
+				case "ScreenshotFormat":
+					i = Integer.parseInt(value);
+					if (i >= 0 && i < screenshotFormat.length)
+						screenshotFormatIndex = i;
+					break;
+				case "FpsCounter":
+					showFPS = Boolean.parseBoolean(value);
+					break;
+				case "NewCursor":
+					newCursor = Boolean.parseBoolean(value);
+					break;
+				case "DynamicBackground":
+					dynamicBackground = Boolean.parseBoolean(value);
+					break;
 				case "VolumeMusic":
 					i = Integer.parseInt(value);
 					if (i >= 0 && i <= 100)
@@ -710,18 +1013,20 @@ public class Options extends BasicGameState {
 					if (i >= 0 && i <= 100)
 						effectVolume = i;
 					break;
+				case "VolumeHitSound":
+					i = Integer.parseInt(value);
+					if (i >= 0 && i <= 100)
+						hitSoundVolume = i;
+					break;
 				case "Offset":
 					i = Integer.parseInt(value);
 					if (i >= -500 && i <= 500)
 						musicOffset = i;
 					break;
-				case "ScreenshotFormat":
+				case "DimLevel":
 					i = Integer.parseInt(value);
-					if (i >= 0 && i < screenshotFormat.length)
-						screenshotFormatIndex = i;
-					break;
-				case "FpsCounter":
-					showFPS = Boolean.parseBoolean(value);
+					if (i >= 0 && i <= 100)
+						backgroundDim = i;
 					break;
 				case "HitLighting":
 					showHitLighting = Boolean.parseBoolean(value);
@@ -729,18 +1034,8 @@ public class Options extends BasicGameState {
 				case "ComboBurst":
 					showComboBursts = Boolean.parseBoolean(value);
 					break;
-
-				// custom entries
-				case "Port":
-					i = Integer.parseInt(value);
-					if (i > 0 && i <= 65535)
-						port = i;
-					break;
-				case "NewCursor":
-					newCursor = Boolean.parseBoolean(value);
-					break;
-				case "DynamicBackground":
-					dynamicBackground = Boolean.parseBoolean(value);
+				case "PerfectHit":
+					showPerfectHit = Boolean.parseBoolean(value);
 					break;
 				}
 			}
@@ -773,33 +1068,37 @@ public class Options extends BasicGameState {
 			writer.newLine();
 			writer.write(String.format("Skin = %s", getSkinDir().getAbsolutePath()));
 			writer.newLine();
+			writer.write(String.format("Port = %d", port));
+			writer.newLine();
 			writer.write(String.format("ScreenResolution = %d", resolutionIndex));
 			writer.newLine();
 //			writer.write(String.format("Fullscreen = %b", fullscreen));
 //			writer.newLine();
 			writer.write(String.format("FrameSync = %d", targetFPSindex));
 			writer.newLine();
+			writer.write(String.format("FpsCounter = %b", showFPS));
+			writer.newLine();
+			writer.write(String.format("ScreenshotFormat = %d", screenshotFormatIndex));
+			writer.newLine();
+			writer.write(String.format("NewCursor = %b", newCursor));
+			writer.newLine();
+			writer.write(String.format("DynamicBackground = %b", dynamicBackground));
+			writer.newLine();
 			writer.write(String.format("VolumeMusic = %d", musicVolume));
 			writer.newLine();
 			writer.write(String.format("VolumeEffect = %d", effectVolume));
 			writer.newLine();
+			writer.write(String.format("VolumeHitSound = %d", hitSoundVolume));
+			writer.newLine();
 			writer.write(String.format("Offset = %d", musicOffset));
 			writer.newLine();
-			writer.write(String.format("ScreenshotFormat = %d", screenshotFormatIndex));
-			writer.newLine();
-			writer.write(String.format("FpsCounter = %b", showFPS));
+			writer.write(String.format("DimLevel = %d", backgroundDim));
 			writer.newLine();
 			writer.write(String.format("HitLighting = %b", showHitLighting));
 			writer.newLine();
 			writer.write(String.format("ComboBurst = %b", showComboBursts));
 			writer.newLine();
-
-			// custom entries
-			writer.write(String.format("Port = %d", port));
-			writer.newLine();
-			writer.write(String.format("NewCursor = %b", newCursor));
-			writer.newLine();
-			writer.write(String.format("DynamicBackground = %b", dynamicBackground));
+			writer.write(String.format("PerfectHit = %b", showPerfectHit));
 			writer.newLine();
 			writer.close();
 		} catch (IOException e) {

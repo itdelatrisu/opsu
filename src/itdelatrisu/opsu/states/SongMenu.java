@@ -156,10 +156,7 @@ public class SongMenu extends BasicGameState {
 
 		// sorting tabs
 		sortTabs = new GUIMenuButton[OsuGroupList.SORT_MAX];
-		Image tab = new Image("selection-tab.png");
-		float tabScale = (height * 0.033f) / tab.getHeight();
-		tab = tab.getScaledCopy(tabScale);
-
+		Image tab = Utils.getTabImage();
 		float tabX = buttonX + (tab.getWidth() / 2f);
 		float tabY = (height * 0.15f) - (tab.getHeight() / 2f) - 2f;
 		float tabOffset = (width - buttonX) / sortTabs.length;
@@ -353,6 +350,7 @@ public class SongMenu extends BasicGameState {
 
 		// options
 		if (optionsButton.contains(x, y)) {
+			SoundController.playSound(SoundController.SOUND_MENUHIT);
 			game.enterState(Opsu.STATE_OPTIONS, new EmptyTransition(), new FadeInTransition(Color.black));
 			return;
 		}
@@ -362,13 +360,16 @@ public class SongMenu extends BasicGameState {
 
 		// sorting buttons
 		for (byte i = 0; i < sortTabs.length; i++) {
-			if (sortTabs[i].contains(x, y) && i != currentSort) {
-				currentSort = i;
-				OsuGroupNode oldFocusBase = Opsu.groups.getBaseNode(focusNode.index);
-				int oldFocusFileIndex = focusNode.osuFileIndex;
-				focusNode = null;
-				Opsu.groups.init(i);
-				setFocus(oldFocusBase, oldFocusFileIndex + 1, true);
+			if (sortTabs[i].contains(x, y)) {
+				if (i != currentSort) {
+					currentSort = i;
+					OsuGroupNode oldFocusBase = Opsu.groups.getBaseNode(focusNode.index);
+					int oldFocusFileIndex = focusNode.osuFileIndex;
+					focusNode = null;
+					Opsu.groups.init(i);
+					setFocus(oldFocusBase, oldFocusFileIndex + 1, true);
+				}
+				return;
 			}
 		}
 

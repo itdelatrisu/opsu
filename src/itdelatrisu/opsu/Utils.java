@@ -50,6 +50,7 @@ public class Utils {
 	 */
 	public static final Color
 		COLOR_BLACK_ALPHA     = new Color(0, 0, 0, 0.5f),
+		COLOR_WHITE_ALPHA     = new Color(255, 255, 255, 0.5f),
 		COLOR_BLUE_DIVIDER    = new Color(49, 94, 237),
 		COLOR_BLUE_BACKGROUND = new Color(74, 130, 255),
 		COLOR_BLUE_BUTTON     = new Color(50, 189, 237),
@@ -78,6 +79,11 @@ public class Utils {
 	 * Back button (shared by other states).
 	 */
 	private static GUIMenuButton backButton;
+
+	/**
+	 * Tab image (shared by other states).
+	 */
+	private static Image tab;
 
 	/**
 	 * Cursor image and trail.
@@ -131,7 +137,88 @@ public class Utils {
 			Log.error("Failed to set the cursor.", e);
 		}
 
-		// load cursor images (TODO: cleanup)
+		loadCursor();
+
+		// create fonts
+		int height = container.getHeight();
+		float fontBase;
+		if (height <= 600)
+			fontBase = 9f;
+		else if (height < 800)
+			fontBase = 10f;
+		else if (height <= 900)
+			fontBase = 12f;
+		else
+			fontBase = 14f;
+
+		Font font    = new Font("Lucida Sans Unicode", Font.PLAIN, (int) (fontBase * 4 / 3));
+		FONT_DEFAULT = new TrueTypeFont(font, false);
+		FONT_BOLD    = new TrueTypeFont(font.deriveFont(Font.BOLD), false);
+		FONT_XLARGE  = new TrueTypeFont(font.deriveFont(fontBase * 4), false);
+		FONT_LARGE   = new TrueTypeFont(font.deriveFont(fontBase * 2), false);
+		FONT_MEDIUM  = new TrueTypeFont(font.deriveFont(fontBase * 3 / 2), false);
+		FONT_SMALL   = new TrueTypeFont(font.deriveFont(fontBase), false);
+
+		// tab image
+		tab = new Image("selection-tab.png");
+		float tabScale = (height * 0.033f) / tab.getHeight();
+		tab = tab.getScaledCopy(tabScale);
+
+		// back button
+		Image back = new Image("menu-back.png");
+		float scale = (height * 0.1f) / back.getHeight();
+		back = back.getScaledCopy(scale);
+		backButton = new GUIMenuButton(back,
+				back.getWidth() / 2f,
+				height - (back.getHeight() / 2f));
+	}
+
+	/**
+	 * Returns the 'selection-tab' image.
+	 */
+	public static Image getTabImage() { return tab; }
+
+	/**
+	 * Returns the 'menu-back' GUIMenuButton.
+	 */
+	public static GUIMenuButton getBackButton() { return backButton; }
+
+	/**
+	 * Draws an image based on its center with a color filter.
+	 * @param img the image to draw
+	 * @param x the center x coordinate
+	 * @param y the center y coordinate
+	 * @param color the color filter to apply
+	 */
+	public static void drawCentered(Image img, float x, float y, Color color) {
+		img.draw(x - (img.getWidth() / 2f), y - (img.getHeight() / 2f), color);
+	}
+
+	/**
+	 * Draws an animation based on its center.
+	 * @param anim the animation to draw
+	 * @param x the center x coordinate
+	 * @param y the center y coordinate
+	 */
+	public static void drawCentered(Animation anim, float x, float y) {
+		anim.draw(x - (anim.getWidth() / 2f), y - (anim.getHeight() / 2f));
+	}
+
+	/**
+	 * Loads the cursor images.
+	 * @throws SlickException 
+	 */
+	public static void loadCursor() throws SlickException {
+		// destroy old cursors, if they exist
+		if (cursor != null)
+			cursor.destroy();
+		if (cursorTrail != null)
+			cursorTrail.destroy();
+		if (cursorMiddle != null)
+			cursorMiddle.destroy();
+		cursor = cursorTrail = cursorMiddle = null;
+
+		// TODO: cleanup
 		boolean skinCursor = new File(Options.getSkinDir(), "cursor.png").isFile();
 		if (Options.isNewCursorEnabled()) {
 			// load new cursor type
@@ -156,60 +243,6 @@ public class Utils {
 			else
 				cursorTrail = new Image("cursortrail2.png");
 		}
-
-		// create fonts
-		int height = container.getHeight();
-		float fontBase;
-		if (height <= 600)
-			fontBase = 9f;
-		else if (height < 800)
-			fontBase = 10f;
-		else if (height <= 900)
-			fontBase = 12f;
-		else
-			fontBase = 14f;
-
-		Font font    = new Font("Lucida Sans Unicode", Font.PLAIN, (int) (fontBase * 4 / 3));
-		FONT_DEFAULT = new TrueTypeFont(font, false);
-		FONT_BOLD    = new TrueTypeFont(font.deriveFont(Font.BOLD), false);
-		FONT_XLARGE  = new TrueTypeFont(font.deriveFont(fontBase * 4), false);
-		FONT_LARGE   = new TrueTypeFont(font.deriveFont(fontBase * 2), false);
-		FONT_MEDIUM  = new TrueTypeFont(font.deriveFont(fontBase * 3 / 2), false);
-		FONT_SMALL   = new TrueTypeFont(font.deriveFont(fontBase), false);
-
-		// back button
-		Image back = new Image("menu-back.png");
-		float scale = (height * 0.1f) / back.getHeight();
-		back = back.getScaledCopy(scale);
-		backButton = new GUIMenuButton(back,
-				back.getWidth() / 2f,
-				height - (back.getHeight() / 2f));
-	}
-
-	/**
-	 * Returns the 'back' GUIMenuButton.
-	 */
-	public static GUIMenuButton getBackButton() { return backButton; }
-
-	/**
-	 * Draws an image based on its center with a color filter.
-	 * @param img the image to draw
-	 * @param x the center x coordinate
-	 * @param y the center y coordinate
-	 * @param color the color filter to apply
-	 */
-	public static void drawCentered(Image img, float x, float y, Color color) {
-		img.draw(x - (img.getWidth() / 2f), y - (img.getHeight() / 2f), color);
-	}
-
-	/**
-	 * Draws an animation based on its center.
-	 * @param anim the animation to draw
-	 * @param x the center x coordinate
-	 * @param y the center y coordinate
-	 */
-	public static void drawCentered(Animation anim, float x, float y) {
-		anim.draw(x - (anim.getWidth() / 2f), y - (anim.getHeight() / 2f));
 	}
 
 	/**

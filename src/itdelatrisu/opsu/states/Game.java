@@ -262,8 +262,8 @@ public class Game extends BasicGameState {
 		int height = container.getHeight();
 
 		// background
-		if (!osu.drawBG(width, height, 0.7f))
-			g.setBackground(Color.black);
+		g.setBackground(Color.black);
+		osu.drawBG(width, height, Options.getBackgroundDim());
 
 		int trackPosition = MusicController.getPosition();
 		if (pauseTime > -1)  // returning from pause screen
