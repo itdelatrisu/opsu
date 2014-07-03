@@ -128,7 +128,8 @@ public class Options extends BasicGameState {
 		NEW_CURSOR,
 		DYNAMIC_BACKGROUND,
 		SHOW_PERFECT_HIT,
-		BACKGROUND_DIM;
+		BACKGROUND_DIM,
+		FORCE_DEFAULT_PLAYFIELD;
 	};
 
 	/**
@@ -187,6 +188,7 @@ public class Options extends BasicGameState {
 	 */
 	private static final GameOption[] gameplayOptions = {
 		GameOption.BACKGROUND_DIM,
+		GameOption.FORCE_DEFAULT_PLAYFIELD,
 		GameOption.SHOW_HIT_LIGHTING,
 		GameOption.SHOW_COMBO_BURSTS,
 		GameOption.SHOW_PERFECT_HIT
@@ -303,6 +305,11 @@ public class Options extends BasicGameState {
 	 * Percentage to dim background images during gameplay.
 	 */
 	private static int backgroundDim = 30;
+
+	/**
+	 * Whether or not to always display the default playfield background.
+	 */
+	private static boolean forceDefaultPlayfield = false;
 
 	/**
 	 * Game option coordinate modifiers (for drawing).
@@ -535,6 +542,9 @@ public class Options extends BasicGameState {
 		case SHOW_PERFECT_HIT:
 			showPerfectHit = !showPerfectHit;
 			break;
+		case FORCE_DEFAULT_PLAYFIELD:
+			forceDefaultPlayfield = !forceDefaultPlayfield;
+			break;
 		default:
 			break;
 		}
@@ -705,6 +715,12 @@ public class Options extends BasicGameState {
 					"Percentage to dim the background image during gameplay."
 			);
 			break;
+		case FORCE_DEFAULT_PLAYFIELD:
+			drawOption(pos, "Force Default Playfield",
+					forceDefaultPlayfield ? "Yes" : "No",
+					"Override the song background with the default playfield background."
+			);
+			break;
 		case SHOW_HIT_LIGHTING:
 			drawOption(pos, "Show Hit Lighting",
 					showHitLighting ? "Yes" : "No",
@@ -733,7 +749,7 @@ public class Options extends BasicGameState {
 	 * @param pos the element position
 	 * @param label the option name
 	 * @param value the option value
-	 * @param notes additional notes (optional)
+	 * @param notes additional notes
 	 */
 	private void drawOption(int pos, String label, String value, String notes) {
 		int width = container.getWidth();
@@ -743,8 +759,7 @@ public class Options extends BasicGameState {
 		g.setColor(Color.white);
 		g.drawString(label, width / 30, y);
 		g.drawString(value, width / 2, y);
-		if (notes != null)
-			Utils.FONT_SMALL.drawString(width / 30, y + textHeight, notes);
+		Utils.FONT_SMALL.drawString(width / 30, y + textHeight, notes);
 		g.setColor(Utils.COLOR_WHITE_ALPHA);
 		g.drawLine(0, y + textHeight, width, y + textHeight);
 	}
@@ -900,6 +915,12 @@ public class Options extends BasicGameState {
 	public static float getBackgroundDim() { return (100 - backgroundDim) / 100f; }
 
 	/**
+	 * Returns whether or not to override the song background with the default playfield background.
+	 * @return true if forced
+	 */
+	public static boolean isDefaultPlayfieldForced() { return forceDefaultPlayfield; }
+
+	/**
 	 * Returns the current beatmap directory.
 	 * If invalid, this will attempt to search for the directory,
 	 * and if nothing found, will create one.
@@ -1020,6 +1041,9 @@ public class Options extends BasicGameState {
 					if (i >= 0 && i <= 100)
 						backgroundDim = i;
 					break;
+				case "ForceDefaultPlayfield":
+					forceDefaultPlayfield = Boolean.parseBoolean(value);
+					break;
 				case "HitLighting":
 					showHitLighting = Boolean.parseBoolean(value);
 					break;
@@ -1085,6 +1109,8 @@ public class Options extends BasicGameState {
 			writer.write(String.format("Offset = %d", musicOffset));
 			writer.newLine();
 			writer.write(String.format("DimLevel = %d", backgroundDim));
+			writer.newLine();
+			writer.write(String.format("ForceDefaultPlayfield = %b", forceDefaultPlayfield));
 			writer.newLine();
 			writer.write(String.format("HitLighting = %b", showHitLighting));
 			writer.newLine();

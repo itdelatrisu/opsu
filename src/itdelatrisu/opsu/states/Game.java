@@ -198,6 +198,17 @@ public class Game extends BasicGameState {
 	 */
 	private float pausePulse;
 
+	/**
+	 * Default playfield background (optional).
+	 * Overridden by song background unless "ForceDefaultPlayfield" option enabled.
+	 */
+	private Image playfield;
+
+	/**
+	 * Image displayed during unranked plays.
+	 */
+	private Image unrankedImage;
+
 	// game-related variables
 	private GameContainer container;
 	private StateBasedGame game;
@@ -251,6 +262,16 @@ public class Game extends BasicGameState {
 		// hit circle select
 		hitCircleSelect = new Image("hitcircleselect.png");
 
+		// "unranked" image
+		unrankedImage = new Image("play-unranked.png");
+
+		// playfield background
+		try {
+			playfield = new Image("playfield.png").getScaledCopy(width, height);
+		} catch (Exception e) {
+			// optional
+		}
+
 		// create the associated GameScore object
 		score = new GameScore(width, height);
 	}
@@ -263,7 +284,14 @@ public class Game extends BasicGameState {
 
 		// background
 		g.setBackground(Color.black);
-		osu.drawBG(width, height, Options.getBackgroundDim());
+		float dimLevel = Options.getBackgroundDim();
+		if (Options.isDefaultPlayfieldForced() && playfield != null) {
+			playfield.setAlpha(dimLevel);
+			playfield.draw();
+		} else if (!osu.drawBG(width, height, dimLevel) && playfield != null) {
+			playfield.setAlpha(dimLevel);
+			playfield.draw();
+		}
 
 		int trackPosition = MusicController.getPosition();
 		if (pauseTime > -1)  // returning from pause screen
@@ -313,6 +341,8 @@ public class Game extends BasicGameState {
 					}
 				}
 
+				if (Options.isModActive(Options.MOD_AUTO))
+					unrankedImage.drawCentered(width / 2, height * 0.077f);
 				Utils.drawFPS();
 				Utils.drawCursor();
 				return;
@@ -410,6 +440,9 @@ public class Game extends BasicGameState {
 
 		// draw OsuHitObjectResult objects
 		score.drawHitResults(trackPosition);
+
+		if (Options.isModActive(Options.MOD_AUTO))
+			unrankedImage.drawCentered(width / 2, height * 0.077f);
 
 		// returning from pause screen
 		if (pauseTime > -1 && pausedMouseX > -1 && pausedMouseY > -1) {

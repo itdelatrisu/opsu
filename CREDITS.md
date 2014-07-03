@@ -14,6 +14,7 @@ The images included in opsu! belong to their respective authors.
 * Garygoh884 - "Skylanders 1.3b"
 * Misaki Louize - "Yukino II"
 * Alic1a - "AL's IA -Blue-"
+* Xiaounlimited - "Nexus Ivory"
 * pictuga - "osu! web"
 * sherrie__fay
 * kouyang
