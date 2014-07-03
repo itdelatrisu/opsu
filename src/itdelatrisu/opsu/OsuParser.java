@@ -393,7 +393,7 @@ public class OsuParser {
 					}
 					break;
 				default:
-					line = in.readLine().trim();
+					line = in.readLine();
 					break;
 				}
 			}
