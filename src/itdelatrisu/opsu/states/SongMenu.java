@@ -363,6 +363,7 @@ public class SongMenu extends BasicGameState {
 			if (sortTabs[i].contains(x, y)) {
 				if (i != currentSort) {
 					currentSort = i;
+					SoundController.playSound(SoundController.SOUND_MENUCLICK);
 					OsuGroupNode oldFocusBase = Opsu.groups.getBaseNode(focusNode.index);
 					int oldFocusFileIndex = focusNode.osuFileIndex;
 					focusNode = null;
@@ -395,7 +396,7 @@ public class SongMenu extends BasicGameState {
 
 					} else if (node.osuFileIndex == focusNode.osuFileIndex) {
 						// if already focused, load the beatmap
-						startGame(focusNode.osuFiles.get(focusNode.osuFileIndex));
+						startGame();
 
 					} else {
 						// focus the node
@@ -443,7 +444,7 @@ public class SongMenu extends BasicGameState {
 			break;
 		case Input.KEY_ENTER:
 			if (focusNode != null)
-				startGame(focusNode.osuFiles.get(focusNode.osuFileIndex));
+				startGame();
 			break;
 		case Input.KEY_DOWN:
 			changeIndex(1);
@@ -595,11 +596,12 @@ public class SongMenu extends BasicGameState {
 	 * Starts the game.
 	 * @param osu the OsuFile to send to the game
 	 */
-	private void startGame(OsuFile osu) {
+	private void startGame() {
 		if (MusicController.isConverting())
 			return;
 
 		SoundController.playSound(SoundController.SOUND_MENUHIT);
+		OsuFile osu = MusicController.getOsuFile();
 		Display.setTitle(String.format("%s - %s", game.getTitle(), osu.toString()));
 		OsuParser.parseHitObjects(osu);
 		SoundController.setSampleSet(osu.sampleSet);

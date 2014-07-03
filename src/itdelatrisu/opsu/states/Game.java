@@ -322,23 +322,22 @@ public class Game extends BasicGameState {
 		// game elements
 		score.drawGameElements(g, mapLength, false, objectIndex == 0);
 
-		// first object...
-		if (objectIndex == 0) {
-			// skip beginning
-			if (osu.objects[objectIndex].time - skipOffsetTime > 5000 &&
-				trackPosition < osu.objects[objectIndex].time - skipOffsetTime)
-				skipButton.draw();
-			
-			// mod icons
-			if (trackPosition < osu.objects[objectIndex].time) {
-				for (int i = Options.MOD_MAX - 1; i >= 0; i--) {
-					if (Options.isModActive(i)) {
-						Image modImage = Options.getModImage(i);
-						modImage.draw(
-								(width * 0.85f) + ((i - (Options.MOD_MAX / 2)) * modImage.getWidth() / 3f),
-								height / 10f
-						);
-					}
+		// skip beginning
+		if (objectIndex == 0 &&
+			osu.objects[0].time - skipOffsetTime > 5000 &&
+			trackPosition < osu.objects[0].time - skipOffsetTime)
+			skipButton.draw();
+
+		// mod icons
+		if ((objectIndex == 0 && trackPosition < osu.objects[0].time) ||
+			Options.isModActive(Options.MOD_AUTO)) {
+			for (int i = Options.MOD_MAX - 1; i >= 0; i--) {
+				if (Options.isModActive(i)) {
+					Image modImage = Options.getModImage(i);
+					modImage.draw(
+							(width * 0.85f) + ((i - (Options.MOD_MAX / 2)) * modImage.getWidth() / 3f),
+							height / 10f
+					);
 				}
 			}
 		}
@@ -570,7 +569,9 @@ public class Game extends BasicGameState {
 		case Input.KEY_ESCAPE:
 			// pause game
 			int trackPosition = MusicController.getPosition();
-			if (pauseTime < 0 && breakTime <= 0 && trackPosition >= osu.objects[0].time) {
+			if (pauseTime < 0 && breakTime <= 0 &&
+				trackPosition >= osu.objects[0].time &&
+				!Options.isModActive(Options.MOD_AUTO)) {
 				pausedMouseX = input.getMouseX();
 				pausedMouseY = input.getMouseY();
 				pausePulse = 0f;

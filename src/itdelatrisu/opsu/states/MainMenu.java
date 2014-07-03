@@ -111,6 +111,8 @@ public class MainMenu extends BasicGameState {
 	@Override
 	public void init(GameContainer container, StateBasedGame game)
 			throws SlickException {
+		Utils.init(container, game);
+
 		this.game = game;
 
 		osuStartTime = System.currentTimeMillis();

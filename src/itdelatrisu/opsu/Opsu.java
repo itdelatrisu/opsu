@@ -61,13 +61,13 @@ public class Opsu extends StateBasedGame {
 	 * Game states.
 	 */
 	public static final int
-		STATE_OPTIONS       = 1,
-		STATE_MAINMENU      = 2,
-		STATE_MAINMENUEXIT  = 3,
-		STATE_SONGMENU      = 4,
-		STATE_GAME          = 5,
-		STATE_GAMEPAUSEMENU = 6,
-		STATE_GAMERANKING   = 7;
+		STATE_MAINMENU      = 1,
+		STATE_MAINMENUEXIT  = 2,
+		STATE_SONGMENU      = 3,
+		STATE_GAME          = 4,
+		STATE_GAMEPAUSEMENU = 5,
+		STATE_GAMERANKING   = 6,
+		STATE_OPTIONS       = 7;
 
 	/**
 	 * Used to restrict the program to a single instance.
@@ -80,13 +80,13 @@ public class Opsu extends StateBasedGame {
 
 	@Override
 	public void initStatesList(GameContainer container) throws SlickException {
-		addState(new Options(STATE_OPTIONS));
 		addState(new MainMenu(STATE_MAINMENU));
 		addState(new MainMenuExit(STATE_MAINMENUEXIT));
 		addState(new SongMenu(STATE_SONGMENU));
 		addState(new Game(STATE_GAME));
 		addState(new GamePauseMenu(STATE_GAMEPAUSEMENU));
 		addState(new GameRanking(STATE_GAMERANKING));
+		addState(new Options(STATE_OPTIONS));
 	}
 
 	public static void main(String[] args) {

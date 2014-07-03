@@ -68,9 +68,9 @@ public class MusicController {
 	 */
 	@SuppressWarnings("deprecation")
 	public static void play(final OsuFile osu, final boolean loop) {
-		if (lastOsu == null || !osu.audioFilename.equals(lastOsu.audioFilename)) {
-			lastOsu = osu;
-
+		boolean play = (lastOsu == null || !osu.audioFilename.equals(lastOsu.audioFilename));
+		lastOsu = osu;
+		if (play) {
 			// TODO: properly interrupt instead of using deprecated conversion.stop();
 			// interrupt the conversion
 			if (isConverting())

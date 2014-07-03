@@ -315,7 +315,6 @@ public class Options extends BasicGameState {
 	private Input input;
 	private Graphics g;
 	private int state;
-	private boolean init = false;
 
 	public Options(int state) {
 		this.state = state;
@@ -328,8 +327,6 @@ public class Options extends BasicGameState {
 		this.game = game;
 		this.input = container.getInput();
 		this.g = container.getGraphics();
-
-		Utils.init(container, game);
 
 		int width = container.getWidth();
 		int height = container.getHeight();
@@ -376,16 +373,11 @@ public class Options extends BasicGameState {
 		);
 		for (int i = 0; i < modButtons.length; i++)
 			modButtons[i].getImage().setAlpha(0.5f);
-
-		game.enterState(Opsu.STATE_MAINMENU, new EmptyTransition(), new FadeInTransition(Color.black));
 	}
 
 	@Override
 	public void render(GameContainer container, StateBasedGame game, Graphics g)
 			throws SlickException {
-		if (!init)
-			return;
-
 		g.setBackground(Utils.COLOR_BLACK_ALPHA);
 		g.setColor(Color.white);
 
@@ -449,7 +441,7 @@ public class Options extends BasicGameState {
 	@Override
 	public void update(GameContainer container, StateBasedGame game, int delta)
 			throws SlickException {
-		init = true;
+		// empty
 	}
 
 	@Override

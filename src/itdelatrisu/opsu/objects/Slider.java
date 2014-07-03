@@ -152,11 +152,16 @@ public class Slider {
 		private float[] curveX, curveY;
 
 		/**
+		 * The angles of the first and last control points.
+		 */
+		private float startAngle, endAngle;
+
+		/**
 		 * Constructor.
 		 */
-		public Bezier(float length) {
+		public Bezier() {
 			this.order = hitObject.sliderX.length + 1;
-			this.step = 5 / length;
+			this.step = 5 / hitObject.pixelLength;
 
 			// calculate curve points for drawing
 			int N = (int) (1 / step);
@@ -168,6 +173,16 @@ public class Slider {
 				curveX[i] = c[0];
 				curveY[i] = c[1];
 			}
+
+			// calculate angles (if needed)
+			if (hitObject.repeat > 1) {
+				float[] c1 = pointAt(0f);
+				float[] c2 = pointAt(0.01f);
+				startAngle = (float) (Math.atan2(c2[1] - c1[1], c2[0] - c1[0]) * 180 / Math.PI);
+				c1 = pointAt(1f);
+				c2 = pointAt(0.99f);
+				endAngle = (float) (Math.atan2(c2[1] - c1[1], c2[0] - c1[0]) * 180 / Math.PI);
+			}
 		}
 
 		/**
@@ -176,21 +191,31 @@ public class Slider {
 		private float getX(int i) {
 			return (i == 0) ? hitObject.x : hitObject.sliderX[i - 1];
 		}
-	
+
 		/**
 		 * Returns the y coordinate of the control point at index i.
 		 */
 		private float getY(int i) {
 			return (i == 0) ? hitObject.y : hitObject.sliderY[i - 1];
 		}
-	
+
+		/**
+		 * Returns the angle of the first control point.
+		 */
+		private float getStartAngle() { return startAngle; }
+		
+		/**
+		 * Returns the angle of the last control point.
+		 */
+		private float getEndAngle() { return endAngle; }
+
 		/**
 		 * Calculates the factorial of a number.
 		 */
 		private long factorial(int n) {
 			return (n <= 1 || n > 20) ? 1 : n * factorial(n - 1);
 		}
-	
+
 		/**
 		 * Calculates the Bernstein polynomial.
 		 * @param i the index
@@ -201,7 +226,7 @@ public class Slider {
 			return factorial(n) / (factorial(i) * factorial(n-i)) *
 					Math.pow(t, i) * Math.pow(1-t, n-i);
 		}
-	
+
 		/**
 		 * Returns the point on the Bezier curve at a value t.
 		 * For curves of order greater than 4, points will be generated along
@@ -284,7 +309,7 @@ public class Slider {
 		this.color = color;
 		this.comboEnd = comboEnd;
 
-		this.bezier = new Bezier(hitObject.pixelLength);
+		this.bezier = new Bezier();
 
 		// calculate slider time and ticks upon first update call
 	}
@@ -327,10 +352,13 @@ public class Slider {
 
 		// repeats
 		if (hitObject.repeat - 1 > currentRepeats) {
-			if (currentRepeats % 2 == 0)  // last circle
+			if (currentRepeats % 2 == 0) {  // last circle
+				reverseArrow.setRotation(bezier.getEndAngle());
 				reverseArrow.drawCentered(hitObject.sliderX[lastIndex], hitObject.sliderY[lastIndex]);
-			else  // first circle
+			} else {  // first circle
+				reverseArrow.setRotation(bezier.getStartAngle());
 				reverseArrow.drawCentered(hitObject.x, hitObject.y);
+			}
 		}
 
 		if (timeDiff >= 0) {
