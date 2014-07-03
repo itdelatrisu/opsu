@@ -498,6 +498,8 @@ public class Game extends BasicGameState {
 			return;
 		}
 
+		score.updateScoreDisplay(delta);
+
 		// map complete!
 		if (objectIndex >= osu.objects.length) {
 			game.enterState(Opsu.STATE_GAMERANKING, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
@@ -558,6 +560,8 @@ public class Game extends BasicGameState {
 			game.enterState(Opsu.STATE_GAMEPAUSEMENU);
 		}
 
+		score.updateComboBurst(delta);
+
 		// drain health
 		score.changeHealth(delta / -200f);
 		if (!score.isAlive()) {
@@ -565,8 +569,6 @@ public class Game extends BasicGameState {
 			restart = RESTART_LOSE;
 			game.enterState(Opsu.STATE_GAMEPAUSEMENU);
 		}
-
-		score.updateComboBurst(delta);
 
 		// update objects (loop in unlikely event of any skipped indexes)
 		while (objectIndex < osu.objects.length && trackPosition > osu.objects[objectIndex].time) {

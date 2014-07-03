@@ -160,6 +160,11 @@ public class GameScore {
 	private long score;
 
 	/**
+	 * Displayed game score (for animation, slightly behind score).
+	 */
+	private long scoreDisplay;
+
+	/**
 	 * Current health bar percentage.
 	 */
 	private float health;
@@ -249,6 +254,7 @@ public class GameScore {
 	 */
 	public void clear() {
 		score = 0;
+		scoreDisplay = 0;
 		health = 100f;
 		hitResultCount = new int[HIT_MAX];
 		hitResultList = new LinkedList<OsuHitObjectResult>();
@@ -432,7 +438,7 @@ public class GameScore {
 	 */
 	public void drawGameElements(Graphics g, int mapLength, boolean breakPeriod, boolean firstObject) {
 		// score
-		drawSymbolString(String.format("%08d", score),
+		drawSymbolString(String.format("%08d", scoreDisplay),
 				width - 2, 0, 1.0f, true);
 
 		// score percentage
@@ -671,7 +677,20 @@ public class GameScore {
 	}
 
 	/**
+	 * Updates the score display based on a delta value.
+	 * @param delta the delta interval since the last call
+	 */
+	public void updateScoreDisplay(int delta) {
+		if (scoreDisplay < score) {
+			scoreDisplay += (score - scoreDisplay) * delta / 50 + 1;
+			if (scoreDisplay > score)
+				scoreDisplay = score;
+		}
+	}
+
+	/**
 	 * Updates combo burst data based on a delta value.
+	 * @param delta the delta interval since the last call
 	 */
 	public void updateComboBurst(int delta) {
 		if (comboBurstIndex > -1 && Options.isComboBurstEnabled()) {
