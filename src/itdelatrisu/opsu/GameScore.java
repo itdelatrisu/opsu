@@ -20,6 +20,7 @@ package itdelatrisu.opsu;
 
 import itdelatrisu.opsu.states.Options;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -28,7 +29,6 @@ import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.SlickException;
-import org.newdawn.slick.util.Log;
 
 /**
  * Holds score data and renders all score-related elements.
@@ -180,26 +180,6 @@ public class GameScore {
 	private float difficulty = 5f;
 
 	/**
-	 * Scorebar-related images.
-	 */
-	private Image
-		bgImage,             // background (always rendered)
-		colourImage,         // health bar (cropped)
-		kiImage,             // end image (50~100% health)
-		kiDangerImage,       // end image (25~50% health)
-		kiDanger2Image;      // end image (0~25% health)
-
-	/**
-	 * Ranking screen images.
-	 */
-	private Image 
-		rankingPanel,         // panel to display text in
-		perfectImage,         // display if full combo
-		rankingImage,         // styled text "Ranking"
-		comboImage,           // styled text "Combo"
-		accuracyImage;        // styled text "Accuracy"
-
-	/**
 	 * Default text symbol images.
 	 */
 	private Image[] defaultSymbols;
@@ -233,20 +213,7 @@ public class GameScore {
 		this.width = width;
 		this.height = height;
 
-		hitResults = new Image[HIT_MAX];
-		defaultSymbols = new Image[10];
-		scoreSymbols = new HashMap<Character, Image>(14);
-		gradesLarge = new Image[GRADE_MAX];
-		gradesSmall = new Image[GRADE_MAX];
-		comboBurstImages = new Image[4];
-
 		clear();
-
-		try {
-			initializeImages();
-		} catch (Exception e) {
-			Log.error("Failed to initialize images.", e);
-		}
 	}
 
 	/**
@@ -267,100 +234,150 @@ public class GameScore {
 	}
 
 	/**
-	 * Initialize all images tied to this object.
+	 * Loads all game score images.
 	 * @throws SlickException
 	 */
-	private void initializeImages() throws SlickException {
-		// scorebar
-		setScorebarImage(
-				new Image("scorebar-bg.png"),
-				new Image("scorebar-colour.png"),
-				new Image("scorebar-ki.png"),
-				new Image("scorebar-kidanger.png"),
-				new Image("scorebar-kidanger2.png")
-		);
-
-		// text symbol images
-		for (int i = 0; i <= 9; i++) {
-			defaultSymbols[i] = new Image(String.format("default-%d.png", i));
-			scoreSymbols.put(Character.forDigit(i, 10), new Image(String.format("score-%d.png", i)));
-		}
-		scoreSymbols.put(',', new Image("score-comma.png"));
-		scoreSymbols.put('.', new Image("score-dot.png"));
-		scoreSymbols.put('%', new Image("score-percent.png"));
-		scoreSymbols.put('x', new Image("score-x.png"));
-
-		// hit result images
-		hitResults[HIT_MISS]     = new Image("hit0.png");
-		hitResults[HIT_50]       = new Image("hit50.png");
-		hitResults[HIT_100]      = new Image("hit100.png");
-		hitResults[HIT_300]      = new Image("hit300.png");
-		hitResults[HIT_100K]     = new Image("hit100k.png");
-		hitResults[HIT_300K]     = new Image("hit300k.png");
-		hitResults[HIT_300G]     = new Image("hit300g.png");
-		hitResults[HIT_SLIDER10] = new Image("sliderpoint10.png");
-		hitResults[HIT_SLIDER30] = new Image("sliderpoint30.png");
+	public void loadImages() throws SlickException {
+		File dir = MusicController.getOsuFile().getFile().getParentFile();
 
 		// combo burst images
-		for (int i = 0; i <= 3; i++)
-			comboBurstImages[i] = new Image(String.format("comboburst-%d.png", i));
+		if (comboBurstImages != null) {
+			for (int i = 0; i < comboBurstImages.length; i++) {
+				if (!comboBurstImages[i].isDestroyed())
+					comboBurstImages[i].destroy();
+			}
+		}
+		LinkedList<Image> comboBurst = new LinkedList<Image>();
+		String comboFormat = "comboburst-%d.png";
+		int comboIndex = 0;
+		File comboFile = new File(dir, "comboburst.png");
+		File comboFileN = new File(dir, String.format(comboFormat, comboIndex));
+		if (comboFileN.isFile()) {  // beatmap provides images
+			do {
+				comboBurst.add(new Image(comboFileN.getAbsolutePath()));
+				comboFileN = new File(dir, String.format(comboFormat, ++comboIndex));
+			} while (comboFileN.isFile());
+		} else if (comboFile.isFile())  // beatmap provides single image
+			comboBurst.add(new Image(comboFile.getAbsolutePath()));
+		else {  // load default images
+			while (true) {
+				try {
+					Image comboImage = new Image(String.format(comboFormat, comboIndex++));
+					comboBurst.add(comboImage);
+				} catch (Exception e) {
+					break;
+				}
+			}
+		}
+		comboBurstImages = comboBurst.toArray(new Image[comboBurst.size()]);
 
 		// lighting image
-		try {
-			lighting  = new Image("lighting.png");
-			lighting1 = new Image("lighting1.png");
-		} catch (Exception e) {
-			// optional
+		if (lighting != null && !lighting.isDestroyed()) {
+			lighting.destroy();
+			lighting = null;
 		}
+		if (lighting1 != null && !lighting1.isDestroyed()) {
+			lighting1.destroy();
+			lighting1 = null;
+		}
+		File lightingFile = new File(dir, "lighting.png");
+		File lighting1File = new File(dir, "lighting1.png");
+		if (lightingFile.isFile()) {  // beatmap provides images
+			try {
+				lighting  = new Image(lightingFile.getAbsolutePath());
+				lighting1 = new Image(lighting1File.getAbsolutePath());
+			} catch (Exception e) {
+				// optional
+			}
+		} else {  // load default image
+			try {
+				lighting  = new Image("lighting.png");
+				lighting1 = new Image("lighting1.png");
+			} catch (Exception e) {
+				// optional
+			}
+		}
+
+		// scorebar
+		Image bg = GameImage.SCOREBAR_BG.getImage();
+		Image colour = GameImage.SCOREBAR_COLOUR.getImage();
+		int bgWidth = width / 2;
+		GameImage.SCOREBAR_BG.setImage(bg.getScaledCopy(bgWidth, bg.getHeight()));
+		GameImage.SCOREBAR_COLOUR.setImage(colour.getScaledCopy(bgWidth, colour.getHeight()));
+
+		// default symbol images
+		defaultSymbols = new Image[10];
+		defaultSymbols[0] = GameImage.DEFAULT_0.getImage();
+		defaultSymbols[1] = GameImage.DEFAULT_1.getImage();
+		defaultSymbols[2] = GameImage.DEFAULT_2.getImage();
+		defaultSymbols[3] = GameImage.DEFAULT_3.getImage();
+		defaultSymbols[4] = GameImage.DEFAULT_4.getImage();
+		defaultSymbols[5] = GameImage.DEFAULT_5.getImage();
+		defaultSymbols[6] = GameImage.DEFAULT_6.getImage();
+		defaultSymbols[7] = GameImage.DEFAULT_7.getImage();
+		defaultSymbols[8] = GameImage.DEFAULT_8.getImage();
+		defaultSymbols[9] = GameImage.DEFAULT_9.getImage();
+
+		// score symbol images
+		scoreSymbols = new HashMap<Character, Image>(14);
+		scoreSymbols.put('0', GameImage.SCORE_0.getImage());
+		scoreSymbols.put('1', GameImage.SCORE_1.getImage());
+		scoreSymbols.put('2', GameImage.SCORE_2.getImage());
+		scoreSymbols.put('3', GameImage.SCORE_3.getImage());
+		scoreSymbols.put('4', GameImage.SCORE_4.getImage());
+		scoreSymbols.put('5', GameImage.SCORE_5.getImage());
+		scoreSymbols.put('6', GameImage.SCORE_6.getImage());
+		scoreSymbols.put('7', GameImage.SCORE_7.getImage());
+		scoreSymbols.put('8', GameImage.SCORE_8.getImage());
+		scoreSymbols.put('9', GameImage.SCORE_9.getImage());
+		scoreSymbols.put(',', GameImage.SCORE_COMMA.getImage());
+		scoreSymbols.put('.', GameImage.SCORE_DOT.getImage());
+		scoreSymbols.put('%', GameImage.SCORE_PERCENT.getImage());
+		scoreSymbols.put('x', GameImage.SCORE_X.getImage());
+
+		// hit result images
+		hitResults = new Image[HIT_MAX];
+		hitResults[HIT_MISS]     = GameImage.HIT_MISS.getImage();
+		hitResults[HIT_50]       = GameImage.HIT_50.getImage();
+		hitResults[HIT_100]      = GameImage.HIT_100.getImage();
+		hitResults[HIT_300]      = GameImage.HIT_300.getImage();
+		hitResults[HIT_100K]     = GameImage.HIT_100K.getImage();
+		hitResults[HIT_300K]     = GameImage.HIT_300K.getImage();
+		hitResults[HIT_300G]     = GameImage.HIT_300G.getImage();
+		hitResults[HIT_SLIDER10] = GameImage.HIT_SLIDER10.getImage();
+		hitResults[HIT_SLIDER30] = GameImage.HIT_SLIDER30.getImage();
 
 		// letter grade images
-		String[] grades = { "X", "XH", "S", "SH", "A", "B", "C", "D" };
-		for (int i = 0; i < grades.length; i++) {
-			gradesLarge[i] = new Image(String.format("ranking-%s.png", grades[i]));
-			gradesSmall[i] = new Image(String.format("ranking-%s-small.png", grades[i]));
-		}
+		gradesLarge = new Image[GRADE_MAX];
+		gradesSmall = new Image[GRADE_MAX];
+		gradesLarge[GRADE_SS] = GameImage.RANKING_SS.getImage();
+		gradesSmall[GRADE_SS] = GameImage.RANKING_SS_SMALL.getImage();
+		gradesLarge[GRADE_SSH] = GameImage.RANKING_SSH.getImage();
+		gradesSmall[GRADE_SSH] = GameImage.RANKING_SSH_SMALL.getImage();
+		gradesLarge[GRADE_S] = GameImage.RANKING_S.getImage();
+		gradesSmall[GRADE_S] = GameImage.RANKING_S_SMALL.getImage();
+		gradesLarge[GRADE_SH] = GameImage.RANKING_SH.getImage();
+		gradesSmall[GRADE_SH] = GameImage.RANKING_SH_SMALL.getImage();
+		gradesLarge[GRADE_A] = GameImage.RANKING_A.getImage();
+		gradesSmall[GRADE_A] = GameImage.RANKING_A_SMALL.getImage();
+		gradesLarge[GRADE_B] = GameImage.RANKING_B.getImage();
+		gradesSmall[GRADE_B] = GameImage.RANKING_B_SMALL.getImage();
+		gradesLarge[GRADE_C] = GameImage.RANKING_C.getImage();
+		gradesSmall[GRADE_C] = GameImage.RANKING_C_SMALL.getImage();
+		gradesLarge[GRADE_D] = GameImage.RANKING_D.getImage();
+		gradesSmall[GRADE_D] = GameImage.RANKING_D_SMALL.getImage();
 
 		// ranking screen elements
-		setRankingImage(
-			new Image("ranking-panel.png"),
-			new Image("ranking-perfect.png"),
-			new Image("ranking-title.png"),
-			new Image("ranking-maxcombo.png"),
-			new Image("ranking-accuracy.png")
-		);
-	}
-
-	/**
-	 * Sets a background, health bar, and end image.
-	 * @param bgImage background image
-	 * @param colourImage health bar image
-	 * @param kiImage end image
-	 */
-	public void setScorebarImage(Image bg, Image colour,
-			Image ki, Image kiDanger, Image kiDanger2) {
-		int bgWidth = width / 2;
-		this.bgImage        = bg.getScaledCopy(bgWidth, bg.getHeight());
-		this.colourImage    = colour.getScaledCopy(bgWidth, colour.getHeight());
-		this.kiImage        = ki;
-		this.kiDangerImage  = kiDanger;
-		this.kiDanger2Image = kiDanger2;
-	}
-
-	/**
-	 * Sets a ranking panel, full combo, and ranking/combo/accuracy text image.
-	 * @param rankingPanel ranking panel image
-	 * @param perfectImage full combo image
-	 * @param rankingImage styled text "Ranking"
-	 * @param comboImage styled text "Combo"
-	 * @param accuracyImage styled text "Accuracy"
-	 */
-	public void setRankingImage(Image rankingPanel, Image perfectImage,
-			Image rankingImage, Image comboImage, Image accuracyImage) {
-		this.rankingPanel = rankingPanel.getScaledCopy((height * 0.63f) / rankingPanel.getHeight());
-		this.perfectImage = perfectImage.getScaledCopy((height * 0.16f) / perfectImage.getHeight());
-		this.rankingImage = rankingImage.getScaledCopy((height * 0.15f) / rankingImage.getHeight());
-		this.comboImage = comboImage.getScaledCopy((height * 0.05f) / comboImage.getHeight());
-		this.accuracyImage = accuracyImage.getScaledCopy((height * 0.05f) / accuracyImage.getHeight());
+		Image rankingPanel = GameImage.RANKING_PANEL.getImage();
+		Image rankingPerfect = GameImage.RANKING_PERFECT.getImage();
+		Image rankingTitle = GameImage.RANKING_TITLE.getImage();
+		Image rankingMaxCombo = GameImage.RANKING_MAXCOMBO.getImage();
+		Image rankingAccuracy = GameImage.RANKING_ACCURACY.getImage();
+		GameImage.RANKING_PANEL.setImage(rankingPanel.getScaledCopy((height * 0.63f) / rankingPanel.getHeight()));
+		GameImage.RANKING_PERFECT.setImage(rankingPerfect.getScaledCopy((height * 0.16f) / rankingPerfect.getHeight()));
+		GameImage.RANKING_TITLE.setImage(rankingTitle.getScaledCopy((height * 0.15f) / rankingTitle.getHeight()));
+		GameImage.RANKING_MAXCOMBO.setImage(rankingMaxCombo.getScaledCopy((height * 0.05f) / rankingMaxCombo.getHeight()));
+		GameImage.RANKING_ACCURACY.setImage(rankingAccuracy.getScaledCopy((height * 0.05f) / rankingAccuracy.getHeight()));
 	}
 
 	/**
@@ -469,15 +486,19 @@ public class GameScore {
 				if (firstObjectTime >= 1500 && trackPosition < firstObjectTime - 500)
 					healthRatio = (float) trackPosition / (firstObjectTime - 500);
 			}
-			bgImage.draw(0, 0);
-			Image colourCropped = colourImage.getSubImage(0, 0, (int) (colourImage.getWidth() * healthRatio), colourImage.getHeight());
-			colourCropped.draw(0, bgImage.getHeight() / 4f);
+			GameImage.SCOREBAR_BG.getImage().draw(0, 0);
+			Image colour = GameImage.SCOREBAR_COLOUR.getImage();
+			Image colourCropped = colour.getSubImage(0, 0, (int) (colour.getWidth() * healthRatio), colour.getHeight());
+			colourCropped.draw(0, GameImage.SCOREBAR_BG.getImage().getHeight() / 4f);
 			if (health >= 50f)
-				kiImage.drawCentered(colourCropped.getWidth(), kiImage.getHeight() / 2f);
+				GameImage.SCOREBAR_KI.getImage().drawCentered(
+						colourCropped.getWidth(), GameImage.SCOREBAR_KI.getImage().getHeight() / 2f);
 			else if (health >= 25f)
-				kiDangerImage.drawCentered(colourCropped.getWidth(), kiDangerImage.getHeight() / 2f);
+				GameImage.SCOREBAR_KI_DANGER.getImage().drawCentered(
+						colourCropped.getWidth(), GameImage.SCOREBAR_KI_DANGER.getImage().getHeight() / 2f);
 			else
-				kiDanger2Image.drawCentered(colourCropped.getWidth(), kiDanger2Image.getHeight() / 2f);
+				GameImage.SCOREBAR_KI_DANGER2.getImage().drawCentered(
+						colourCropped.getWidth(), GameImage.SCOREBAR_KI_DANGER2.getImage().getHeight() / 2f);
 
 			// combo burst
 			if (comboBurstIndex != -1 && comboBurstAlpha > 0f) {
@@ -513,12 +534,14 @@ public class GameScore {
 		grade.draw(width - grade.getWidth(), height * 0.09f);
 
 		// header & "Ranking" text
-		float rankingHeight = (rankingImage.getHeight() * 0.75f) + 3;
+		Image rankingTitle = GameImage.RANKING_TITLE.getImage();
+		float rankingHeight = (rankingTitle.getHeight() * 0.75f) + 3;
 		g.setColor(Utils.COLOR_BLACK_ALPHA);
 		g.fillRect(0, 0, width, rankingHeight);
-		rankingImage.draw((width * 0.97f) - rankingImage.getWidth(), 0);
+		rankingTitle.draw((width * 0.97f) - rankingTitle.getWidth(), 0);
 
 		// ranking panel
+		Image rankingPanel = GameImage.RANKING_PANEL.getImage();
 		int rankingPanelWidth  = rankingPanel.getWidth();
 		int rankingPanelHeight = rankingPanel.getHeight();
 		rankingPanel.draw(0, rankingHeight - (rankingHeight / 10f));
@@ -557,19 +580,25 @@ public class GameScore {
 		}
 
 		// combo and accuracy
+		Image rankingMaxCombo = GameImage.RANKING_MAXCOMBO.getImage();
+		Image rankingAccuracy = GameImage.RANKING_ACCURACY.getImage();
 		float textY = rankingHeight + (rankingPanelHeight * 0.87f) - (rankingHeight / 10f);
-		float numbersX = comboImage.getWidth() * .07f;
-		float numbersY = textY + comboImage.getHeight() * 0.7f;
-		comboImage.draw(width * 0.01f, textY);
-		accuracyImage.draw(rankingPanelWidth / 2f, textY);
+		float numbersX = rankingMaxCombo.getWidth() * .07f;
+		float numbersY = textY + rankingMaxCombo.getHeight() * 0.7f;
+		rankingMaxCombo.draw(width * 0.01f, textY);
+		rankingAccuracy.draw(rankingPanelWidth / 2f, textY);
 		drawSymbolString(String.format("%dx", comboMax),
 				(int) (width * 0.01f + numbersX), (int) numbersY, symbolTextScale, false);
 		drawSymbolString(String.format("%02.2f%%", getScorePercent()),
 				(int) (rankingPanelWidth / 2f + numbersX), (int) numbersY, symbolTextScale, false);
 
 		// full combo
-		if (combo == fullObjectCount)
-			perfectImage.draw(width * 0.08f, (height * 0.99f) - perfectImage.getHeight());
+		if (combo == fullObjectCount) {
+			GameImage.RANKING_PERFECT.getImage().draw(
+					width * 0.08f,
+					(height * 0.99f) - GameImage.RANKING_PERFECT.getImage().getHeight()
+			);
+		}
 	}
 
 	/**

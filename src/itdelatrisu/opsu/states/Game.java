@@ -19,6 +19,7 @@
 package itdelatrisu.opsu.states;
 
 import itdelatrisu.opsu.GUIMenuButton;
+import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.GameScore;
 import itdelatrisu.opsu.MusicController;
 import itdelatrisu.opsu.Opsu;
@@ -31,6 +32,7 @@ import itdelatrisu.opsu.objects.Circle;
 import itdelatrisu.opsu.objects.Slider;
 import itdelatrisu.opsu.objects.Spinner;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Stack;
 
@@ -122,16 +124,6 @@ public class Game extends BasicGameState {
 	private int breakIndex;
 
 	/**
-	 * Warning arrows, pointing right and left.
-	 */
-	private Image warningArrowR, warningArrowL;
-
-	/**
-	 * Section pass and fail images (displayed at start of break, when necessary).
-	 */
-	private Image breakStartPass, breakStartFail;
-
-	/**
 	 * Break start time (0 if not in break).
 	 */
 	private int breakTime = 0;
@@ -162,26 +154,11 @@ public class Game extends BasicGameState {
 	private float beatLengthBase, beatLength;
 
 	/**
-	 * Countdown-related images.
-	 */
-	private Image
-		countdownReady,         // "READY?" text
-		countdown3,             // "3" text
-		countdown1,             // "2" text
-		countdown2,             // "1" text
-		countdownGo;            // "GO!" text
-
-	/**
 	 * Whether the countdown sound has been played.
 	 */
 	private boolean
 		countdownReadySound, countdown3Sound, countdown1Sound,
 		countdown2Sound, countdownGoSound;
-
-	/**
-	 * Glowing hit circle outline which must be clicked when returning from pause menu.
-	 */
-	private Image hitCircleSelect;
 
 	/**
 	 * Mouse coordinates before game paused.
@@ -204,11 +181,6 @@ public class Game extends BasicGameState {
 	 */
 	private Image playfield;
 
-	/**
-	 * Image displayed during unranked plays.
-	 */
-	private Image unrankedImage;
-
 	// game-related variables
 	private GameContainer container;
 	private StateBasedGame game;
@@ -229,41 +201,8 @@ public class Game extends BasicGameState {
 		int width = container.getWidth();
 		int height = container.getHeight();
 
-		// spinners have fixed properties, and only need to be initialized once
-		Spinner.init(container);
-
-		// breaks
-		breakStartPass = new Image("section-pass.png");
-		breakStartFail = new Image("section-fail.png");
-		warningArrowR  = new Image("play-warningarrow.png");
-		warningArrowL  = warningArrowR.getFlippedCopy(true, false);
-
-		// skip button
-		Image skip = new Image("play-skip.png");
-		float skipScale = (height * 0.1f) / skip.getHeight();
-		skip = skip.getScaledCopy(skipScale);
-		skipButton = new GUIMenuButton(skip,
-				width - (skip.getWidth() / 2f),
-				height - (skip.getHeight() / 2f));
-
-		// countdown
-		float countdownHeight = height / 3f;
-		countdownReady = new Image("ready.png");
-		countdownReady = countdownReady.getScaledCopy(countdownHeight / countdownReady.getHeight());
-		countdown3 = new Image("count3.png");
-		countdown3 = countdown3.getScaledCopy(countdownHeight / countdown3.getHeight());
-		countdown2 = new Image("count2.png");
-		countdown2 = countdown2.getScaledCopy(countdownHeight / countdown2.getHeight());
-		countdown1 = new Image("count1.png");
-		countdown1 = countdown1.getScaledCopy(countdownHeight / countdown1.getHeight());
-		countdownGo = new Image("go.png");
-		countdownGo = countdownGo.getScaledCopy(countdownHeight / countdownGo.getHeight());
-
-		// hit circle select
-		hitCircleSelect = new Image("hitcircleselect.png");
-
-		// "unranked" image
-		unrankedImage = new Image("play-unranked.png");
+		// create the associated GameScore object
+		score = new GameScore(width, height);
 
 		// playfield background
 		try {
@@ -271,9 +210,6 @@ public class Game extends BasicGameState {
 		} catch (Exception e) {
 			// optional
 		}
-
-		// create the associated GameScore object
-		score = new GameScore(width, height);
 	}
 
 	@Override
@@ -317,13 +253,13 @@ public class Game extends BasicGameState {
 					trackPosition - breakTime < 5000) {
 					// show break start
 					if (score.getHealth() >= 50) {
-						breakStartPass.drawCentered(width / 2f, height / 2f);
+						GameImage.SECTION_PASS.getImage().drawCentered(width / 2f, height / 2f);
 						if (!breakSound) {
 							SoundController.playSound(SoundController.SOUND_SECTIONPASS);
 							breakSound = true;
 						}
 					} else {
-						breakStartFail.drawCentered(width / 2f, height / 2f);
+						GameImage.SECTION_FAIL.getImage().drawCentered(width / 2f, height / 2f);
 						if (!breakSound) {
 							SoundController.playSound(SoundController.SOUND_SECTIONFAIL);
 							breakSound = true;
@@ -334,15 +270,18 @@ public class Game extends BasicGameState {
 					int endTimeDiff = endTime - trackPosition;
 					if ((endTimeDiff > 1500 && endTimeDiff < 2000) ||
 						(endTimeDiff > 500 && endTimeDiff < 1000)) {
-						warningArrowR.draw(width * 0.15f, height * 0.15f);
-						warningArrowR.draw(width * 0.15f, height * 0.75f);
-						warningArrowL.draw(width * 0.75f, height * 0.15f);
-						warningArrowL.draw(width * 0.75f, height * 0.75f);
+						Image arrow = GameImage.WARNINGARROW.getImage();
+						arrow.setRotation(0);
+						arrow.draw(width * 0.15f, height * 0.15f);
+						arrow.draw(width * 0.15f, height * 0.75f);
+						arrow.setRotation(180);
+						arrow.draw(width * 0.75f, height * 0.15f);
+						arrow.draw(width * 0.75f, height * 0.75f);
 					}
 				}
 
 				if (Options.isModActive(Options.MOD_AUTO))
-					unrankedImage.drawCentered(width / 2, height * 0.077f);
+					GameImage.UNRANKED.getImage().drawCentered(width / 2, height * 0.077f);
 				Utils.drawFPS();
 				Utils.drawCursor();
 				return;
@@ -380,36 +319,37 @@ public class Game extends BasicGameState {
 			int timeDiff = osu.objects[0].time - trackPosition;
 			if (timeDiff >= 500 && timeDiff < 3000) {
 				if (timeDiff >= 1500) {
-					countdownReady.drawCentered(width / 2, height / 2);
+					GameImage.COUNTDOWN_READY.getImage().drawCentered(width / 2, height / 2);
 					if (!countdownReadySound) {
 						SoundController.playSound(SoundController.SOUND_READY);
 						countdownReadySound = true;
 					}
 				}
 				if (timeDiff < 2000) {
-					countdown3.draw(0, 0);
+					GameImage.COUNTDOWN_3.getImage().draw(0, 0);
 					if (!countdown3Sound) {
 						SoundController.playSound(SoundController.SOUND_COUNT3);
 						countdown3Sound = true;
 					}
 				}
 				if (timeDiff < 1500) {
-					countdown2.draw(width - countdown2.getWidth(), 0);
+					GameImage.COUNTDOWN_2.getImage().draw(width - GameImage.COUNTDOWN_2.getImage().getWidth(), 0);
 					if (!countdown2Sound) {
 						SoundController.playSound(SoundController.SOUND_COUNT2);
 						countdown2Sound = true;
 					}
 				}
 				if (timeDiff < 1000) {
-					countdown1.drawCentered(width / 2, height / 2);
+					GameImage.COUNTDOWN_1.getImage().drawCentered(width / 2, height / 2);
 					if (!countdown1Sound) {
 						SoundController.playSound(SoundController.SOUND_COUNT1);
 						countdown1Sound = true;
 					}
 				}
 			} else if (timeDiff >= -500 && timeDiff < 500) {
-				countdownGo.setAlpha((timeDiff < 0) ? 1 - (timeDiff / -1000f) : 1);
-				countdownGo.drawCentered(width / 2, height / 2);
+				Image go = GameImage.COUNTDOWN_GO.getImage();
+				go.setAlpha((timeDiff < 0) ? 1 - (timeDiff / -1000f) : 1);
+				go.drawCentered(width / 2, height / 2);
 				if (!countdownGoSound) {
 					SoundController.playSound(SoundController.SOUND_GO);
 					countdownGoSound = true;
@@ -442,7 +382,7 @@ public class Game extends BasicGameState {
 		score.drawHitResults(trackPosition);
 
 		if (Options.isModActive(Options.MOD_AUTO))
-			unrankedImage.drawCentered(width / 2, height * 0.077f);
+			GameImage.UNRANKED.getImage().drawCentered(width / 2, height * 0.077f);
 
 		// returning from pause screen
 		if (pauseTime > -1 && pausedMouseX > -1 && pausedMouseY > -1) {
@@ -451,8 +391,8 @@ public class Game extends BasicGameState {
 			g.fillRect(0, 0, width, height);
 
 			// draw glowing hit select circle and pulse effect
-			int circleRadius = Circle.getHitCircle().getWidth();
-			Image cursorCircle = hitCircleSelect.getScaledCopy(circleRadius, circleRadius);
+			int circleRadius = GameImage.HITCIRCLE.getImage().getWidth();
+			Image cursorCircle = GameImage.HITCIRCLE_SELECT.getImage().getScaledCopy(circleRadius, circleRadius);
 			cursorCircle.setAlpha(1.0f);
 			cursorCircle.drawCentered(pausedMouseX, pausedMouseY);
 			Image cursorCirclePulse = cursorCircle.getScaledCopy(1f + pausePulse);
@@ -643,7 +583,7 @@ public class Game extends BasicGameState {
 		// returning from pause screen
 		if (pauseTime > -1) {
 			double distance = Math.hypot(pausedMouseX - x, pausedMouseY - y);
-			int circleRadius = Circle.getHitCircle().getWidth() / 2;
+			int circleRadius = GameImage.HITCIRCLE.getImage().getWidth() / 2;
 			if (distance < circleRadius) {
 				// unpause the game
 				pauseTime = -1;
@@ -698,6 +638,7 @@ public class Game extends BasicGameState {
 		if (restart != RESTART_FALSE) {
 			// new game
 			if (restart == RESTART_NEW) {
+				loadImages();
 				setMapModifiers();
 				
 				// calculate map length (TODO: end on slider?)
@@ -803,6 +744,49 @@ public class Game extends BasicGameState {
 	}
 
 	/**
+	 * Loads all game images.
+	 * @throws SlickException
+	 */
+	private void loadImages() throws SlickException {
+		int width = container.getWidth();
+		int height = container.getHeight();
+
+		// set images
+		File parent = osu.getFile().getParentFile();
+		for (GameImage o : GameImage.values())
+			o.setImage(parent);
+
+		// skip button
+		Image skip = GameImage.SKIP.getImage();
+		float skipScale = (height * 0.1f) / skip.getHeight();
+		skip = skip.getScaledCopy(skipScale);
+		skipButton = new GUIMenuButton(skip,
+				width - (skip.getWidth() / 2f),
+				height - (skip.getHeight() / 2f));
+
+		// countdown
+		Image countdownReady = GameImage.COUNTDOWN_READY.getImage();
+		Image countdown3 = GameImage.COUNTDOWN_3.getImage();
+		Image countdown2 = GameImage.COUNTDOWN_2.getImage();
+		Image countdown1 = GameImage.COUNTDOWN_1.getImage();
+		Image countdownGo = GameImage.COUNTDOWN_GO.getImage();
+		float countdownHeight = height / 3f;
+		GameImage.COUNTDOWN_READY.setImage(
+				countdownReady.getScaledCopy(countdownHeight / countdownReady.getHeight()));
+		GameImage.COUNTDOWN_3.setImage(
+				countdown3.getScaledCopy(countdownHeight / countdown3.getHeight()));
+		GameImage.COUNTDOWN_2.setImage(
+				countdown2.getScaledCopy(countdownHeight / countdown2.getHeight()));
+		GameImage.COUNTDOWN_1.setImage(
+				countdown1.getScaledCopy(countdownHeight / countdown1.getHeight()));
+		GameImage.COUNTDOWN_GO.setImage(
+				countdownGo.getScaledCopy(countdownHeight / countdownGo.getHeight()));
+
+		((GamePauseMenu) game.getState(Opsu.STATE_GAMEPAUSEMENU)).loadImages();
+		score.loadImages();
+	}
+
+	/**
 	 * Set map modifiers.
 	 */
 	private void setMapModifiers() {
@@ -821,6 +805,7 @@ public class Game extends BasicGameState {
 
 			Circle.init(container, circleSize);
 			Slider.init(container, circleSize, osu);
+			Spinner.init(container);
 
 			// approachRate (hit object approach time)
 			if (approachRate < 5)

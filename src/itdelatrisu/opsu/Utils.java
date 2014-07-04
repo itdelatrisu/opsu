@@ -104,7 +104,6 @@ public class Utils {
 
 	// game-related variables
 	private static GameContainer container;
-//	private static StateBasedGame game;
 	private static Input input;
 
 	// This class should not be instantiated.
@@ -119,7 +118,6 @@ public class Utils {
 	public static void init(GameContainer container, StateBasedGame game)
 			throws SlickException {
 		Utils.container = container;
-//		Utils.game = game;
 		Utils.input = container.getInput();
 
 		// game settings

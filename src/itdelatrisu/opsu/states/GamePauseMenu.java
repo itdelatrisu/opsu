@@ -19,6 +19,7 @@
 package itdelatrisu.opsu.states;
 
 import itdelatrisu.opsu.GUIMenuButton;
+import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.MusicController;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.SoundController;
@@ -27,7 +28,6 @@ import itdelatrisu.opsu.Utils;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
-import org.newdawn.slick.Image;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.BasicGameState;
@@ -36,7 +36,7 @@ import org.newdawn.slick.state.transition.FadeInTransition;
 import org.newdawn.slick.state.transition.FadeOutTransition;
 
 /**
- * "Game Paused" state.
+ * "Game Pause/Fail" state.
  * <ul>
  * <li>[Continue] - unpause game (return to game state)
  * <li>[Retry]    - restart game (return to game state)
@@ -59,18 +59,9 @@ public class GamePauseMenu extends BasicGameState {
 	 */
 	private GUIMenuButton continueButton, retryButton, backButton;
 
-	/**
-	 * Background image for pause menu (optional).
-	 */
-	private Image backgroundImage;
-
-	/**
-	 * Background image for fail menu (optional).
-	 */
-	private Image failImage;
-
 	// game-related variables
 	private StateBasedGame game;
+	private GameContainer container;
 	private int state;
 
 	public GamePauseMenu(int state) {
@@ -80,43 +71,18 @@ public class GamePauseMenu extends BasicGameState {
 	@Override
 	public void init(GameContainer container, StateBasedGame game)
 			throws SlickException {
+		this.container = container;
 		this.game = game;
-
-		int width = container.getWidth();
-		int height = container.getHeight();
-
-		// initialize buttons
-		continueButton = new GUIMenuButton(new Image("pause-continue.png"), width / 2f, height * 0.25f);
-		retryButton = new GUIMenuButton(new Image("pause-retry.png"), width / 2f, height * 0.5f);
-		backButton = new GUIMenuButton(new Image("pause-back.png"), width / 2f, height * 0.75f);
-
-		// pause background image
-		try {
-			backgroundImage = new Image("pause-overlay.png").getScaledCopy(width, height);
-			backgroundImage.setAlpha(0.7f);
-		} catch (Exception e) {
-			// optional
-		}
-
-		// fail image
-		try {
-			failImage = new Image("fail-background.png").getScaledCopy(width, height);
-			failImage.setAlpha(0.7f);
-		} catch (Exception e) {
-			// optional
-		}
 	}
 
 	@Override
 	public void render(GameContainer container, StateBasedGame game, Graphics g)
 			throws SlickException {
 		// background
-		if (backgroundImage != null && Game.getRestart() != Game.RESTART_LOSE)
-			backgroundImage.draw();
-		else if (failImage != null && Game.getRestart() == Game.RESTART_LOSE)
-			failImage.draw();
+		if (Game.getRestart() != Game.RESTART_LOSE)
+			GameImage.PAUSE_OVERLAY.getImage().draw();
 		else
-			g.setBackground(Color.black);
+			GameImage.FAIL_BACKGROUND.getImage().draw();
 
 		// draw buttons
 		if (Game.getRestart() != Game.RESTART_LOSE)
@@ -201,5 +167,26 @@ public class GamePauseMenu extends BasicGameState {
 			SoundController.playSound(SoundController.SOUND_MENUBACK);
 		Game.setRestart(restart);
 		game.enterState(Opsu.STATE_GAME);
+	}
+
+	/**
+	 * Loads all game pause/fail menu images.
+	 */
+	public void loadImages() {
+		int width = container.getWidth();
+		int height = container.getHeight();
+
+		// initialize buttons
+		continueButton = new GUIMenuButton(GameImage.PAUSE_CONTINUE.getImage(), width / 2f, height * 0.25f);
+		retryButton = new GUIMenuButton(GameImage.PAUSE_RETRY.getImage(), width / 2f, height * 0.5f);
+		backButton = new GUIMenuButton(GameImage.PAUSE_BACK.getImage(), width / 2f, height * 0.75f);
+
+		// pause background image
+		GameImage.PAUSE_OVERLAY.setImage(GameImage.PAUSE_OVERLAY.getImage().getScaledCopy(width, height));
+		GameImage.PAUSE_OVERLAY.getImage().setAlpha(0.7f);
+
+		// fail image
+		GameImage.FAIL_BACKGROUND.setImage(GameImage.FAIL_BACKGROUND.getImage().getScaledCopy(width, height));
+		GameImage.FAIL_BACKGROUND.getImage().setAlpha(0.7f);
 	}
 }

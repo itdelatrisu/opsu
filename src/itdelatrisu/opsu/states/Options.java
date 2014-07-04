@@ -129,7 +129,8 @@ public class Options extends BasicGameState {
 		DYNAMIC_BACKGROUND,
 		SHOW_PERFECT_HIT,
 		BACKGROUND_DIM,
-		FORCE_DEFAULT_PLAYFIELD;
+		FORCE_DEFAULT_PLAYFIELD,
+		IGNORE_BEATMAP_SKINS;
 	};
 
 	/**
@@ -189,6 +190,7 @@ public class Options extends BasicGameState {
 	private static final GameOption[] gameplayOptions = {
 		GameOption.BACKGROUND_DIM,
 		GameOption.FORCE_DEFAULT_PLAYFIELD,
+		GameOption.IGNORE_BEATMAP_SKINS,
 		GameOption.SHOW_HIT_LIGHTING,
 		GameOption.SHOW_COMBO_BURSTS,
 		GameOption.SHOW_PERFECT_HIT
@@ -310,6 +312,11 @@ public class Options extends BasicGameState {
 	 * Whether or not to always display the default playfield background.
 	 */
 	private static boolean forceDefaultPlayfield = false;
+
+	/**
+	 * Whether or not to ignore resources in the beatmap folders.
+	 */
+	private static boolean ignoreBeatmapSkins = false;
 
 	/**
 	 * Game option coordinate modifiers (for drawing).
@@ -545,6 +552,9 @@ public class Options extends BasicGameState {
 		case FORCE_DEFAULT_PLAYFIELD:
 			forceDefaultPlayfield = !forceDefaultPlayfield;
 			break;
+		case IGNORE_BEATMAP_SKINS:
+			ignoreBeatmapSkins = !ignoreBeatmapSkins;
+			break;
 		default:
 			break;
 		}
@@ -719,6 +729,12 @@ public class Options extends BasicGameState {
 			drawOption(pos, "Force Default Playfield",
 					forceDefaultPlayfield ? "Yes" : "No",
 					"Override the song background with the default playfield background."
+			);
+			break;
+		case IGNORE_BEATMAP_SKINS:
+			drawOption(pos, "Ignore All Beatmap Skins",
+					ignoreBeatmapSkins ? "Yes" : "No",
+					"Never use skin element overrides provided by beatmaps."
 			);
 			break;
 		case SHOW_HIT_LIGHTING:
@@ -921,6 +937,12 @@ public class Options extends BasicGameState {
 	public static boolean isDefaultPlayfieldForced() { return forceDefaultPlayfield; }
 
 	/**
+	 * Returns whether or not beatmap skins are ignored.
+	 * @return true if ignored
+	 */
+	public static boolean isBeatmapSkinIgnored() { return ignoreBeatmapSkins; }
+
+	/**
 	 * Returns the current beatmap directory.
 	 * If invalid, this will attempt to search for the directory,
 	 * and if nothing found, will create one.
@@ -1044,6 +1066,9 @@ public class Options extends BasicGameState {
 				case "ForceDefaultPlayfield":
 					forceDefaultPlayfield = Boolean.parseBoolean(value);
 					break;
+				case "IgnoreBeatmapSkins":
+					ignoreBeatmapSkins = Boolean.parseBoolean(value);
+					break;
 				case "HitLighting":
 					showHitLighting = Boolean.parseBoolean(value);
 					break;
@@ -1111,6 +1136,8 @@ public class Options extends BasicGameState {
 			writer.write(String.format("DimLevel = %d", backgroundDim));
 			writer.newLine();
 			writer.write(String.format("ForceDefaultPlayfield = %b", forceDefaultPlayfield));
+			writer.newLine();
+			writer.write(String.format("IgnoreBeatmapSkins = %b", ignoreBeatmapSkins));
 			writer.newLine();
 			writer.write(String.format("HitLighting = %b", showHitLighting));
 			writer.newLine();

@@ -18,6 +18,7 @@
 
 package itdelatrisu.opsu.objects;
 
+import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.GameScore;
 import itdelatrisu.opsu.MusicController;
 import itdelatrisu.opsu.OsuHitObject;
@@ -36,17 +37,6 @@ import org.newdawn.slick.SlickException;
  * Data type representing a spinner object.
  */
 public class Spinner {
-	/**
-	 * Images related to spinners.
-	 */
-	private static Image
-		spinnerCircle,          // spinner
-		spinnerApproachCircle,  // spinner approach circle (for end time)
-		spinnerMetre,           // spinner meter (subimage based on completion ratio)
-//		spinnerOsuImage,        // spinner "OSU!" text (complete)
-		spinnerSpinImage,       // spinner "SPIN!" text (start)
-		spinnerClearImage;      // spinner "CLEAR" text (passed)
-
 	/**
 	 * Container dimensions.
 	 */
@@ -91,12 +81,10 @@ public class Spinner {
 		width  = container.getWidth();
 		height = container.getHeight();
 
-		spinnerCircle = new Image("spinner-circle.png").getScaledCopy(height * 9 / 10, height * 9 / 10);
-		spinnerApproachCircle = new Image("spinner-approachcircle.png").getScaledCopy(spinnerCircle.getWidth(), spinnerCircle.getHeight());
-		spinnerMetre = new Image("spinner-metre.png").getScaledCopy(width, height);
-		spinnerSpinImage = new Image("spinner-spin.png");
-		spinnerClearImage = new Image("spinner-clear.png");
-//		spinnerOsuImage = new Image("spinner-osu.png");
+		Image spinnerCircle = GameImage.SPINNER_CIRCLE.getImage();
+		GameImage.SPINNER_CIRCLE.setImage(spinnerCircle.getScaledCopy(height * 9 / 10, height * 9 / 10));
+		GameImage.SPINNER_APPROACHCIRCLE.setImage(GameImage.SPINNER_APPROACHCIRCLE.getImage().getScaledCopy(spinnerCircle.getWidth(), spinnerCircle.getHeight()));
+		GameImage.SPINNER_METRE.setImage(GameImage.SPINNER_METRE.getImage().getScaledCopy(width, height));
 	}
 
 	/**
@@ -135,6 +123,7 @@ public class Spinner {
 			return;
 
 		// spinner meter (subimage)
+		Image spinnerMetre = GameImage.SPINNER_METRE.getImage();
 		int spinnerMetreY = (spinnerComplete) ? 0 : (int) (spinnerMetre.getHeight() * (1 - (rotations / rotationsNeeded)));
 		Image spinnerMetreSub = spinnerMetre.getSubImage(
 				0, spinnerMetreY,
@@ -143,12 +132,12 @@ public class Spinner {
 		spinnerMetreSub.draw(0, height - spinnerMetreSub.getHeight());
 
 		// main spinner elements
-		spinnerCircle.drawCentered(width / 2, height / 2);
-		spinnerApproachCircle.getScaledCopy(1 - ((float) timeDiff / (hitObject.time - hitObject.endTime))).drawCentered(width / 2, height / 2);
-		spinnerSpinImage.drawCentered(width / 2, height * 3 / 4);
+		GameImage.SPINNER_CIRCLE.getImage().drawCentered(width / 2, height / 2);
+		GameImage.SPINNER_APPROACHCIRCLE.getImage().getScaledCopy(1 - ((float) timeDiff / (hitObject.time - hitObject.endTime))).drawCentered(width / 2, height / 2);
+		GameImage.SPINNER_SPIN.getImage().drawCentered(width / 2, height * 3 / 4);
 
 		if (spinnerComplete) {
-			spinnerClearImage.drawCentered(width / 2, height / 4);
+			GameImage.SPINNER_CLEAR.getImage().drawCentered(width / 2, height / 4);
 			int extraRotations = (int) (rotations - rotationsNeeded);
 			if (extraRotations > 0)
 				score.drawSymbolNumber(extraRotations * 1000, width / 2, height * 2 / 3, 1.0f);

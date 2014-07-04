@@ -17,10 +17,9 @@ opsu! also requires beatmaps to run, which are available for download on the
 [osu!Mirror](https://osu.yas-online.net/) or [Bloodcat](http://bloodcat.com/osu/).
 
 If osu! is already installed, this application will attempt to load songs
-directly from the osu! program folder.  Otherwise, run this application from
-one directory above the root song directory, or place songs in the generated
-`songs` folder. This path can be changed at any time by editing the
-`BeatmapDirectory` value in the generated configuration file.
+directly from the osu! program folder.  Otherwise, place songs in the generated
+`Songs` folder or set the `BeatmapDirectory` value in the generated
+configuration file to the path of the root song directory.
 
 ### First Run
 The `Music Offset` value will likely need to be adjusted when playing for the

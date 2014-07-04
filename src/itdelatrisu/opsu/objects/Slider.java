@@ -18,6 +18,7 @@
 
 package itdelatrisu.opsu.objects;
 
+import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.GameScore;
 import itdelatrisu.opsu.MusicController;
 import itdelatrisu.opsu.OsuFile;
@@ -25,6 +26,8 @@ import itdelatrisu.opsu.OsuHitObject;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.states.Game;
 import itdelatrisu.opsu.states.Options;
+
+import java.io.File;
 
 import org.newdawn.slick.Animation;
 import org.newdawn.slick.Color;
@@ -36,14 +39,6 @@ import org.newdawn.slick.SlickException;
  * Data type representing a slider object.
  */
 public class Slider {
-	/**
-	 * Images related to sliders.
-	 */
-	private static Image
-		sliderFollowCircle,  // slider follow circle
-		reverseArrow,        // reverse arrow (for repeats)
-		sliderTick;          // slider tick
-
 	/**
 	 * Slider ball animation.
 	 */
@@ -261,8 +256,8 @@ public class Slider {
 		 * Draws the full Bezier curve to the graphics context.
 		 */
 		public void draw() {
-			Image hitCircle = Circle.getHitCircle();
-			Image hitCircleOverlay = Circle.getHitCircleOverlay();
+			Image hitCircle = GameImage.HITCIRCLE.getImage();
+			Image hitCircleOverlay = GameImage.HITCIRCLE_OVERLAY.getImage();
 
 			// draw overlay and hit circle
 			for (int i = curveX.length - 1; i >= 0; i--)
@@ -283,12 +278,38 @@ public class Slider {
 		int diameter = (int) (96 - (circleSize * 8));
 		diameter = diameter * container.getWidth() / 640;  // convert from Osupixels (640x480)
 
+		// slider ball
+		if (sliderBall != null) {
+			for (int i = 0; i < sliderBall.getFrameCount(); i++) {
+				Image img = sliderBall.getImage(i);
+				if (!img.isDestroyed())
+					img.destroy();
+			}
+		}
 		sliderBall = new Animation();
-		for (int i = 0; i <= 9; i++)
-			sliderBall.addFrame(new Image(String.format("sliderb%d.png", i)).getScaledCopy(diameter * 118 / 128, diameter * 118 / 128), 60);
-		sliderFollowCircle = new Image("sliderfollowcircle.png").getScaledCopy(diameter * 259 / 128, diameter * 259 / 128);
-		reverseArrow = new Image("reversearrow.png").getScaledCopy(diameter, diameter);
-		sliderTick = new Image("sliderscorepoint.png").getScaledCopy(diameter / 4, diameter / 4);
+		String sliderFormat = "sliderb%d.png";
+		int sliderIndex = 0;
+		File dir = MusicController.getOsuFile().getFile().getParentFile();
+		File slider = new File(dir, String.format(sliderFormat, sliderIndex));
+		if (slider.isFile()) {
+			do {
+				sliderBall.addFrame(new Image(slider.getAbsolutePath()).getScaledCopy(diameter * 118 / 128, diameter * 118 / 128), 60);
+				slider = new File(dir, String.format(sliderFormat, ++sliderIndex));
+			} while (slider.isFile());
+		} else {
+			while (true) {
+				try {
+					Image sliderFrame = new Image(String.format(sliderFormat, sliderIndex++));
+					sliderBall.addFrame(sliderFrame.getScaledCopy(diameter * 118 / 128, diameter * 118 / 128), 60);
+				} catch (Exception e) {
+					break;
+				}
+			}
+		}
+
+		GameImage.SLIDER_FOLLOWCIRCLE.setImage(GameImage.SLIDER_FOLLOWCIRCLE.getImage().getScaledCopy(diameter * 259 / 128, diameter * 259 / 128));
+		GameImage.REVERSEARROW.setImage(GameImage.REVERSEARROW.getImage().getScaledCopy(diameter, diameter));
+		GameImage.SLIDER_TICK.setImage(GameImage.SLIDER_TICK.getImage().getScaledCopy(diameter / 4, diameter / 4));
 
 		sliderMultiplier = osu.sliderMultiplier;
 		sliderTickRate = osu.sliderTickRate;
@@ -310,8 +331,6 @@ public class Slider {
 		this.comboEnd = comboEnd;
 
 		this.bezier = new Bezier();
-
-		// calculate slider time and ticks upon first update call
 	}
 
 	/**
@@ -322,8 +341,8 @@ public class Slider {
 	public void draw(int trackPosition, boolean currentObject) {
 		int timeDiff = hitObject.time - trackPosition;
 
-		Image hitCircleOverlay = Circle.getHitCircleOverlay();
-		Image hitCircle = Circle.getHitCircle();
+		Image hitCircleOverlay = GameImage.HITCIRCLE_OVERLAY.getImage();
+		Image hitCircle = GameImage.HITCIRCLE.getImage();
 
 		// bezier
 		bezier.draw();
@@ -332,7 +351,7 @@ public class Slider {
 		if (currentObject && ticksT != null) {
 			for (int i = 0; i < ticksT.length; i++) {
 				float[] c = bezier.pointAt(ticksT[i]);
-				sliderTick.drawCentered(c[0], c[1]);
+				GameImage.SLIDER_TICK.getImage().drawCentered(c[0], c[1]);
 			}
 		}
 
@@ -352,19 +371,20 @@ public class Slider {
 
 		// repeats
 		if (hitObject.repeat - 1 > currentRepeats) {
+			Image arrow = GameImage.REVERSEARROW.getImage();
 			if (currentRepeats % 2 == 0) {  // last circle
-				reverseArrow.setRotation(bezier.getEndAngle());
-				reverseArrow.drawCentered(hitObject.sliderX[lastIndex], hitObject.sliderY[lastIndex]);
+				arrow.setRotation(bezier.getEndAngle());
+				arrow.drawCentered(hitObject.sliderX[lastIndex], hitObject.sliderY[lastIndex]);
 			} else {  // first circle
-				reverseArrow.setRotation(bezier.getStartAngle());
-				reverseArrow.drawCentered(hitObject.x, hitObject.y);
+				arrow.setRotation(bezier.getStartAngle());
+				arrow.drawCentered(hitObject.x, hitObject.y);
 			}
 		}
 
 		if (timeDiff >= 0) {
 			// approach circle
 			float approachScale = 1 + (timeDiff * 2f / game.getApproachTime());
-			Utils.drawCentered(Circle.getApproachCircle().getScaledCopy(approachScale),
+			Utils.drawCentered(GameImage.APPROACHCIRCLE.getImage().getScaledCopy(approachScale),
 					hitObject.x, hitObject.y, color);
 		} else {
 			float[] c = bezier.pointAt(getT(trackPosition, false));
@@ -374,7 +394,7 @@ public class Slider {
 
 			// follow circle
 			if (followCircleActive)
-				sliderFollowCircle.drawCentered(c[0], c[1]);
+				GameImage.SLIDER_FOLLOWCIRCLE.getImage().drawCentered(c[0], c[1]);
 		}
 	}
 
@@ -421,7 +441,7 @@ public class Slider {
 			return false;
 
 		double distance = Math.hypot(hitObject.x - x, hitObject.y - y);
-		int circleRadius = Circle.getHitCircle().getWidth() / 2;
+		int circleRadius = GameImage.HITCIRCLE.getImage().getWidth() / 2;
 		if (distance < circleRadius) {
 			int trackPosition = MusicController.getPosition();
 			int timeDiff = Math.abs(trackPosition - hitObject.time);
@@ -513,7 +533,7 @@ public class Slider {
 			// check if cursor pressed and within end circle
 			else if (game.isInputKeyPressed()) {
 				double distance = Math.hypot(hitObject.sliderX[lastIndex] - mouseX, hitObject.sliderY[lastIndex] - mouseY);
-				int followCircleRadius = sliderFollowCircle.getWidth() / 2;
+				int followCircleRadius = GameImage.SLIDER_FOLLOWCIRCLE.getImage().getWidth() / 2;
 				if (distance < followCircleRadius)
 					ticksHit++;
 			}
@@ -550,7 +570,7 @@ public class Slider {
 		// holding slider...
 		float[] c = bezier.pointAt(getT(trackPosition, false));
 		double distance = Math.hypot(c[0] - mouseX, c[1] - mouseY);
-		int followCircleRadius = sliderFollowCircle.getWidth() / 2;
+		int followCircleRadius = GameImage.SLIDER_FOLLOWCIRCLE.getImage().getWidth() / 2;
 		if ((game.isInputKeyPressed() && distance < followCircleRadius) || isAutoMod) {
 			// mouse pressed and within follow circle
 			followCircleActive = true;

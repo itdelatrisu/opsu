@@ -18,6 +18,7 @@
 
 package itdelatrisu.opsu.objects;
 
+import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.GameScore;
 import itdelatrisu.opsu.MusicController;
 import itdelatrisu.opsu.OsuHitObject;
@@ -27,21 +28,12 @@ import itdelatrisu.opsu.states.Options;
 
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
-import org.newdawn.slick.Image;
 import org.newdawn.slick.SlickException;
 
 /**
  * Data type representing a circle object.
  */
 public class Circle {
-	/**
-	 * Images related to hit circles.
-	 */
-	private static Image
-		hitCircle,           // hit circle
-		hitCircleOverlay,    // hit circle overlay
-		approachCircle;      // approach circle
-
 	/**
 	 * The associated OsuHitObject.
 	 */
@@ -76,25 +68,10 @@ public class Circle {
 	public static void init(GameContainer container, float circleSize) throws SlickException {
 		int diameter = (int) (96 - (circleSize * 8));
 		diameter = diameter * container.getWidth() / 640;  // convert from Osupixels (640x480)
-		hitCircle = new Image("hitcircle.png").getScaledCopy(diameter, diameter);
-		hitCircleOverlay = new Image("hitcircleoverlay.png").getScaledCopy(diameter, diameter);
-		approachCircle = new Image("approachcircle.png").getScaledCopy(diameter, diameter);
+		GameImage.HITCIRCLE.setImage(GameImage.HITCIRCLE.getImage().getScaledCopy(diameter, diameter));
+		GameImage.HITCIRCLE_OVERLAY.setImage(GameImage.HITCIRCLE_OVERLAY.getImage().getScaledCopy(diameter, diameter));
+		GameImage.APPROACHCIRCLE.setImage(GameImage.APPROACHCIRCLE.getImage().getScaledCopy(diameter, diameter));
 	}
-
-	/**
-	 * Returns the hit circle image.
-	 */
-	public static Image getHitCircle() { return hitCircle; }
-
-	/**
-	 * Returns the hit circle overlay image.
-	 */
-	public static Image getHitCircleOverlay() { return hitCircleOverlay; }
-
-	/**
-	 * Returns the approach circle image.
-	 */
-	public static Image getApproachCircle() { return approachCircle; }
 
 	/**
 	 * Constructor.
@@ -121,11 +98,12 @@ public class Circle {
 
 		if (timeDiff >= 0) {
 			float approachScale = 1 + (timeDiff * 2f / game.getApproachTime());
-			Utils.drawCentered(approachCircle.getScaledCopy(approachScale), hitObject.x, hitObject.y, color);
-			Utils.drawCentered(hitCircleOverlay, hitObject.x, hitObject.y, Color.white);
-			Utils.drawCentered(hitCircle, hitObject.x, hitObject.y, color);
+			Utils.drawCentered(GameImage.APPROACHCIRCLE.getImage().getScaledCopy(approachScale),
+					hitObject.x, hitObject.y, color);
+			Utils.drawCentered(GameImage.HITCIRCLE_OVERLAY.getImage(), hitObject.x, hitObject.y, Color.white);
+			Utils.drawCentered(GameImage.HITCIRCLE.getImage(), hitObject.x, hitObject.y, color);
 			score.drawSymbolNumber(hitObject.comboNumber, hitObject.x, hitObject.y,
-					hitCircle.getWidth() * 0.40f / score.getDefaultSymbolImage(0).getHeight());
+					GameImage.HITCIRCLE.getImage().getWidth() * 0.40f / score.getDefaultSymbolImage(0).getHeight());
 		}
 	}
 
@@ -162,7 +140,7 @@ public class Circle {
 	 */
 	public boolean mousePressed(int x, int y) {
 		double distance = Math.hypot(hitObject.x - x, hitObject.y - y);
-		int circleRadius = hitCircle.getWidth() / 2;
+		int circleRadius = GameImage.HITCIRCLE.getImage().getWidth() / 2;
 		if (distance < circleRadius) {
 			int result = hitResult(hitObject.time);
 			if (result > -1) {
