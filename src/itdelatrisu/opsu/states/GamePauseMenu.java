@@ -182,11 +182,17 @@ public class GamePauseMenu extends BasicGameState {
 		backButton = new GUIMenuButton(GameImage.PAUSE_BACK.getImage(), width / 2f, height * 0.75f);
 
 		// pause background image
-		GameImage.PAUSE_OVERLAY.setImage(GameImage.PAUSE_OVERLAY.getImage().getScaledCopy(width, height));
-		GameImage.PAUSE_OVERLAY.getImage().setAlpha(0.7f);
+		if (!GameImage.PAUSE_OVERLAY.isScaled()) {
+			GameImage.PAUSE_OVERLAY.setImage(GameImage.PAUSE_OVERLAY.getImage().getScaledCopy(width, height));
+			GameImage.PAUSE_OVERLAY.getImage().setAlpha(0.7f);
+			GameImage.PAUSE_OVERLAY.setScaled();
+		}
 
 		// fail image
-		GameImage.FAIL_BACKGROUND.setImage(GameImage.FAIL_BACKGROUND.getImage().getScaledCopy(width, height));
-		GameImage.FAIL_BACKGROUND.getImage().setAlpha(0.7f);
+		if (!GameImage.FAIL_BACKGROUND.isScaled()) {
+			GameImage.FAIL_BACKGROUND.setImage(GameImage.FAIL_BACKGROUND.getImage().getScaledCopy(width, height));
+			GameImage.FAIL_BACKGROUND.getImage().setAlpha(0.7f);
+			GameImage.FAIL_BACKGROUND.setScaled();
+		}
 	}
 }

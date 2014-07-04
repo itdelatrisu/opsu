@@ -754,34 +754,53 @@ public class Game extends BasicGameState {
 		// set images
 		File parent = osu.getFile().getParentFile();
 		for (GameImage o : GameImage.values())
-			o.setImage(parent);
+			o.setSkinImage(parent);
 
 		// skip button
 		Image skip = GameImage.SKIP.getImage();
-		float skipScale = (height * 0.1f) / skip.getHeight();
-		skip = skip.getScaledCopy(skipScale);
+		if (!GameImage.SKIP.isScaled()) {
+			float skipScale = (height * 0.1f) / skip.getHeight();
+			skip = skip.getScaledCopy(skipScale);
+			GameImage.SKIP.setScaled();
+		}
 		skipButton = new GUIMenuButton(skip,
 				width - (skip.getWidth() / 2f),
 				height - (skip.getHeight() / 2f));
 
 		// countdown
-		Image countdownReady = GameImage.COUNTDOWN_READY.getImage();
-		Image countdown3 = GameImage.COUNTDOWN_3.getImage();
-		Image countdown2 = GameImage.COUNTDOWN_2.getImage();
-		Image countdown1 = GameImage.COUNTDOWN_1.getImage();
-		Image countdownGo = GameImage.COUNTDOWN_GO.getImage();
 		float countdownHeight = height / 3f;
-		GameImage.COUNTDOWN_READY.setImage(
-				countdownReady.getScaledCopy(countdownHeight / countdownReady.getHeight()));
-		GameImage.COUNTDOWN_3.setImage(
-				countdown3.getScaledCopy(countdownHeight / countdown3.getHeight()));
-		GameImage.COUNTDOWN_2.setImage(
-				countdown2.getScaledCopy(countdownHeight / countdown2.getHeight()));
-		GameImage.COUNTDOWN_1.setImage(
-				countdown1.getScaledCopy(countdownHeight / countdown1.getHeight()));
-		GameImage.COUNTDOWN_GO.setImage(
-				countdownGo.getScaledCopy(countdownHeight / countdownGo.getHeight()));
+		if (!GameImage.COUNTDOWN_READY.isScaled()) {
+			Image countdownReady = GameImage.COUNTDOWN_READY.getImage();
+			GameImage.COUNTDOWN_READY.setImage(
+					countdownReady.getScaledCopy(countdownHeight / countdownReady.getHeight()));
+			GameImage.COUNTDOWN_READY.setScaled();
+		}
+		if (!GameImage.COUNTDOWN_3.isScaled()) {
+			Image countdown3 = GameImage.COUNTDOWN_3.getImage();
+			GameImage.COUNTDOWN_3.setImage(
+					countdown3.getScaledCopy(countdownHeight / countdown3.getHeight()));
+			GameImage.COUNTDOWN_3.setScaled();
+		}
+		if (!GameImage.COUNTDOWN_2.isScaled()) {
+			Image countdown2 = GameImage.COUNTDOWN_2.getImage();
+			GameImage.COUNTDOWN_2.setImage(
+					countdown2.getScaledCopy(countdownHeight / countdown2.getHeight()));
+			GameImage.COUNTDOWN_2.setScaled();
+		}
+		if (!GameImage.COUNTDOWN_1.isScaled()) {
+			Image countdown1 = GameImage.COUNTDOWN_1.getImage();
+			GameImage.COUNTDOWN_1.setImage(
+					countdown1.getScaledCopy(countdownHeight / countdown1.getHeight()));
+			GameImage.COUNTDOWN_1.setScaled();
+		}
+		if (!GameImage.COUNTDOWN_GO.isScaled()) {
+			Image countdownGo = GameImage.COUNTDOWN_GO.getImage();
+			GameImage.COUNTDOWN_GO.setImage(
+					countdownGo.getScaledCopy(countdownHeight / countdownGo.getHeight()));
+			GameImage.COUNTDOWN_GO.setScaled();
+		}
 
+		// load other images...
 		((GamePauseMenu) game.getState(Opsu.STATE_GAMEPAUSEMENU)).loadImages();
 		score.loadImages();
 	}

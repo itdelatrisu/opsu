@@ -127,14 +127,14 @@ public class Utils {
 		container.getInput().enableKeyRepeat();
 		container.setAlwaysRender(true);
 
-		// hide the cursor
+		// set the cursor
 		try {
+			// hide the native cursor
 			Cursor emptyCursor = new Cursor(1, 1, 0, 0, 1, BufferUtils.createIntBuffer(1), null);
 			container.setMouseCursor(emptyCursor, 0, 0);
 		} catch (LWJGLException e) {
 			Log.error("Failed to set the cursor.", e);
 		}
-
 		loadCursor();
 
 		// create fonts
@@ -156,6 +156,10 @@ public class Utils {
 		FONT_LARGE   = new TrueTypeFont(font.deriveFont(fontBase * 2), false);
 		FONT_MEDIUM  = new TrueTypeFont(font.deriveFont(fontBase * 3 / 2), false);
 		FONT_SMALL   = new TrueTypeFont(font.deriveFont(fontBase), false);
+
+		// set default game images
+		for (GameImage o : GameImage.values())
+			o.setDefaultImage();
 
 		// tab image
 		tab = new Image("selection-tab.png");

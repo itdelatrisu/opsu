@@ -134,9 +134,19 @@ public enum GameImage {
 	private String filename;
 
 	/**
-	 * The associated image.
+	 * The default image.
 	 */
-	private Image img;
+	private Image defaultImage;
+
+	/**
+	 * The beatmap skin image (optional, temporary).
+	 */
+	private Image skinImage;
+
+	/**
+	 * Whether or not the default image has been scaled.
+	 */
+	private boolean scaled;
 
 	/**
 	 * Constructor.
@@ -146,33 +156,67 @@ public enum GameImage {
 	}
 
 	/**
-	 * Returns the associated image.
+	 * Returns the image associated with this resource.
+	 * The skin image takes priority over the default image.
 	 */
-	public Image getImage() { return img; }
+	public Image getImage() {
+		return (skinImage != null) ? skinImage : defaultImage;
+	}
 
 	/**
-	 * Sets an image.
+	 * Sets the image associated with this resource to another image.
+	 * The skin image takes priority over the default image.
 	 */
-	public void setImage(Image img) { this.img = img; }
+	public void setImage(Image img) {
+		if (skinImage != null)
+			this.skinImage = img;
+		else
+			this.defaultImage = img;
+	}
 
 	/**
-	 * Sets an image.
-	 * Scans the path for the image first, then uses the default image.
+	 * Sets the default image for this resource.
 	 */
-	public void setImage(File dir) {
+	public void setDefaultImage() {
+		try {
+			if (defaultImage != null && !defaultImage.isDestroyed())
+				defaultImage.destroy();
+
+			defaultImage = new Image(filename);
+			scaled = false;
+		} catch (SlickException e) {
+			Log.error(String.format("Failed to set default image '%s'.", filename), e);
+		}
+	}
+
+	/**
+	 * Sets the associated skin image.
+	 * If the path does not contain the image, the default image is used.
+	 */
+	public void setSkinImage(File dir) {
 		try {
 			// destroy the existing image, if any
-			if (img != null && !img.isDestroyed())
-				img.destroy();
+			if (skinImage != null && !skinImage.isDestroyed())
+				skinImage.destroy();
 
 			// set a new image
 			File file = new File(dir, filename);
 			if (file.isFile() && !Options.isBeatmapSkinIgnored())
-				img = new Image(file.getAbsolutePath());
+				skinImage = new Image(file.getAbsolutePath());
 			else
-				img = new Image(filename);
+				skinImage = null;
 		} catch (SlickException e) {
-			Log.error(String.format("Failed to set image '%s'.", filename), e);
+			Log.error(String.format("Failed to set skin image '%s'.", filename), e);
 		}
 	}
+
+	/**
+	 * Returns whether or not the image has been scaled.
+	 */
+	public boolean isScaled() {	return (skinImage != null) ? false : scaled; }
+
+	/**
+	 * Sets the scaled status of the image.
+	 */
+	public void setScaled() { if (skinImage == null) this.scaled = true; }
 }
