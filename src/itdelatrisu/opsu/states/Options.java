@@ -130,7 +130,11 @@ public class Options extends BasicGameState {
 		SHOW_PERFECT_HIT,
 		BACKGROUND_DIM,
 		FORCE_DEFAULT_PLAYFIELD,
-		IGNORE_BEATMAP_SKINS;
+		IGNORE_BEATMAP_SKINS,
+		FIXED_CS,
+		FIXED_HP,
+		FIXED_AR,
+		FIXED_OD;
 	};
 
 	/**
@@ -140,7 +144,8 @@ public class Options extends BasicGameState {
 		TAB_DISPLAY  = 0,
 		TAB_MUSIC    = 1,
 		TAB_GAMEPLAY = 2,
-		TAB_MAX      = 3;  // not a tab
+		TAB_CUSTOM   = 3,
+		TAB_MAX      = 4;  // not a tab
 
 	/**
 	 * Option tab names.
@@ -148,7 +153,8 @@ public class Options extends BasicGameState {
 	private static final String[] TAB_NAMES = {
 		"Display",
 		"Music",
-		"Gameplay"
+		"Gameplay",
+		"Custom"
 	};
 
 	/**
@@ -197,11 +203,21 @@ public class Options extends BasicGameState {
 	};
 
 	/**
+	 * Custom options.
+	 */
+	private static final GameOption[] customOptions = {
+		GameOption.FIXED_CS,
+		GameOption.FIXED_HP,
+		GameOption.FIXED_AR,
+		GameOption.FIXED_OD
+	};
+
+	/**
 	 * Max number of options displayed on one screen.
 	 */
 	private static int maxOptionsScreen = Math.max(
 			Math.max(displayOptions.length, musicOptions.length),
-			gameplayOptions.length);
+			Math.max(gameplayOptions.length, customOptions.length));
 
 	/**
 	 * Screen resolutions.
@@ -319,6 +335,13 @@ public class Options extends BasicGameState {
 	private static boolean ignoreBeatmapSkins = false;
 
 	/**
+	 * Fixed difficulty overrides.
+	 */
+	private static float
+		fixedCS = 0f, fixedHP = 0f,
+		fixedAR = 0f, fixedOD = 0f;
+
+	/**
 	 * Game option coordinate modifiers (for drawing).
 	 */
 	private int textY, offsetY;
@@ -351,9 +374,11 @@ public class Options extends BasicGameState {
 
 		// option tabs
 		Image tab = Utils.getTabImage();
+		int subtextWidth = Utils.FONT_DEFAULT.getWidth("Click or drag an option to change it.");
 		float tabX = (width / 50) + (tab.getWidth() / 2f);
 		float tabY = 15 + Utils.FONT_XLARGE.getHeight() + (tab.getHeight() / 2f);
-		float tabOffset = tab.getWidth() * 0.85f;
+		float tabOffset = (float) Math.min(tab.getWidth(), 
+				((width - subtextWidth - tab.getWidth()) / 2) / TAB_MAX);
 		for (int i = 0; i < optionTabs.length; i++)
 			optionTabs[i] = new GUIMenuButton(tab, tabX + (i * tabOffset), tabY);
 
@@ -423,6 +448,10 @@ public class Options extends BasicGameState {
 		case TAB_GAMEPLAY:
 			for (int i = 0; i < gameplayOptions.length; i++)
 				drawOption(gameplayOptions[i], i);
+			break;
+		case TAB_CUSTOM:
+			for (int i = 0; i < customOptions.length; i++)
+				drawOption(customOptions[i], i);
 			break;
 		}
 
@@ -580,44 +609,70 @@ public class Options extends BasicGameState {
 		// options (drag only)
 		switch (getClickedOption(oldy)) {
 		case MUSIC_VOLUME:
-			musicVolume += diff;
-			if (musicVolume < 0)
-				musicVolume = 0;
-			else if (musicVolume > 100)
-				musicVolume = 100;
+			musicVolume = getBoundedValue(musicVolume, diff, 0, 100);
 			container.setMusicVolume(getMusicVolume());
 			break;
 		case EFFECT_VOLUME:
-			effectVolume += diff;
-			if (effectVolume < 0)
-				effectVolume = 0;
-			else if (effectVolume > 100)
-				effectVolume = 100;
+			effectVolume = getBoundedValue(effectVolume, diff, 0, 100);
 			break;
 		case HITSOUND_VOLUME:
-			hitSoundVolume += diff;
-			if (hitSoundVolume < 0)
-				hitSoundVolume = 0;
-			else if (hitSoundVolume > 100)
-				hitSoundVolume = 100;
+			hitSoundVolume = getBoundedValue(hitSoundVolume, diff, 0, 100);
 			break;
 		case MUSIC_OFFSET:
-			musicOffset += diff;
-			if (musicOffset < -500)
-				musicOffset = -500;
-			else if (musicOffset > 500)
-				musicOffset = 500;
+			musicOffset = getBoundedValue(musicOffset, diff, -500, 500);
 			break;
 		case BACKGROUND_DIM:
-			backgroundDim += diff;
-			if (backgroundDim < 0)
-				backgroundDim = 0;
-			else if (backgroundDim > 100)
-				backgroundDim = 100;
+			backgroundDim = getBoundedValue(backgroundDim, diff, 0, 100);
+			break;
+		case FIXED_CS:
+			fixedCS = getBoundedValue(fixedCS, diff / 10f, 0f, 10f);
+			break;
+		case FIXED_HP:
+			fixedHP = getBoundedValue(fixedHP, diff / 10f, 0f, 10f);
+			break;
+		case FIXED_AR:
+			fixedAR = getBoundedValue(fixedAR, diff / 10f, 0f, 10f);
+			break;
+		case FIXED_OD:
+			fixedOD = getBoundedValue(fixedOD, diff / 10f, 0f, 10f);
 			break;
 		default:
 			break;
 		}
+	}
+
+	/**
+	 * Returns a bounded value for when an option is dragged.
+	 * @param var the initial value
+	 * @param diff the value change
+	 * @param min the minimum value
+	 * @param max the maximum value
+	 * @return the bounded value
+	 */
+	private int getBoundedValue(int var, int diff, int min, int max) {
+		int val = var + diff;
+		if (val < min)
+			val = min;
+		else if (val > max)
+			val = max;
+		return val;
+	}
+
+	/**
+	 * Returns a bounded value for when an option is dragged.
+	 * @param var the initial value
+	 * @param diff the value change
+	 * @param min the minimum value
+	 * @param max the maximum value
+	 * @return the bounded value
+	 */
+	private float getBoundedValue(float var, float diff, float min, float max) {
+		float val = var + diff;
+		if (val < min)
+			val = min;
+		else if (val > max)
+			val = max;
+		return val;
 	}
 
 	@Override
@@ -755,6 +810,30 @@ public class Options extends BasicGameState {
 					"Whether to show perfect hit result bursts (300s, slider ticks)."
 			);
 			break;
+		case FIXED_CS:
+			drawOption(pos, "Fixed Circle Size (CS)",
+					(fixedCS == 0f) ? "Disabled" : String.format("%.1f", fixedCS),
+					"Determines the size of circles and sliders."
+			);
+			break;
+		case FIXED_HP:
+			drawOption(pos, "Fixed HP Drain Rate (HP)",
+					(fixedHP == 0f) ? "Disabled" : String.format("%.1f", fixedHP),
+					"Determines the rate at which health decreases."
+			);
+			break;
+		case FIXED_AR:
+			drawOption(pos, "Fixed Approach Rate (AR)",
+					(fixedAR == 0f) ? "Disabled" : String.format("%.1f", fixedAR),
+					"Determines how long hit circles stay on the screen."
+			);
+			break;
+		case FIXED_OD:
+			drawOption(pos, "Fixed Overall Difficulty (OD)",
+					(fixedOD == 0f) ? "Disabled" : String.format("%.1f", fixedOD),
+					"Determines the time window for hit results."
+			);
+			break;
 		default:
 			break;
 		}
@@ -806,6 +885,9 @@ public class Options extends BasicGameState {
 			if (index < gameplayOptions.length)
 				option = gameplayOptions[index];
 			break;
+		case TAB_CUSTOM:
+			if (index < customOptions.length)
+				option = customOptions[index];
 		}
 		return option;
 	}
@@ -943,6 +1025,30 @@ public class Options extends BasicGameState {
 	public static boolean isBeatmapSkinIgnored() { return ignoreBeatmapSkins; }
 
 	/**
+	 * Returns the fixed circle size override, if any.
+	 * @return the CS value (0, 10], 0 if disabled
+	 */
+	public static float getFixedCS() { return fixedCS; }
+
+	/**
+	 * Returns the fixed HP drain rate override, if any.
+	 * @return the HP value (0, 10], 0 if disabled
+	 */
+	public static float getFixedHP() { return fixedHP; }
+
+	/**
+	 * Returns the fixed approach rate override, if any.
+	 * @return the AR value (0, 10], 0 if disabled
+	 */
+	public static float getFixedAR() { return fixedAR; }
+
+	/**
+	 * Returns the fixed overall difficulty override, if any.
+	 * @return the OD value (0, 10], 0 if disabled
+	 */
+	public static float getFixedOD() { return fixedOD; }
+
+	/**
 	 * Returns the current beatmap directory.
 	 * If invalid, this will attempt to search for the directory,
 	 * and if nothing found, will create one.
@@ -1078,6 +1184,18 @@ public class Options extends BasicGameState {
 				case "PerfectHit":
 					showPerfectHit = Boolean.parseBoolean(value);
 					break;
+				case "FixedCS":
+					fixedCS = Float.parseFloat(value);
+					break;
+				case "FixedHP":
+					fixedHP = Float.parseFloat(value);
+					break;
+				case "FixedAR":
+					fixedAR = Float.parseFloat(value);
+					break;
+				case "FixedOD":
+					fixedOD = Float.parseFloat(value);
+					break;
 				}
 			}
 		} catch (IOException e) {
@@ -1144,6 +1262,14 @@ public class Options extends BasicGameState {
 			writer.write(String.format("ComboBurst = %b", showComboBursts));
 			writer.newLine();
 			writer.write(String.format("PerfectHit = %b", showPerfectHit));
+			writer.newLine();
+			writer.write(String.format("FixedCS = %.1f", fixedCS));
+			writer.newLine();
+			writer.write(String.format("FixedHP = %.1f", fixedHP));
+			writer.newLine();
+			writer.write(String.format("FixedAR = %.1f", fixedAR));
+			writer.newLine();
+			writer.write(String.format("FixedOD = %.1f", fixedOD));
 			writer.newLine();
 			writer.close();
 		} catch (IOException e) {

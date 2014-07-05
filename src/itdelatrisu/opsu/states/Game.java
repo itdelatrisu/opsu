@@ -810,18 +810,31 @@ public class Game extends BasicGameState {
 	 */
 	private void setMapModifiers() {
 		try {
-			// map-based properties, so re-initialize each game
+			// map-based properties, re-initialized each game
 			float circleSize = osu.circleSize;
 			float approachRate = osu.approachRate;
 			float overallDifficulty = osu.overallDifficulty;
 			float HPDrainRate = osu.HPDrainRate;
-			if (Options.isModActive(Options.MOD_HARD_ROCK)) {  // hard rock modifiers
-				circleSize = Math.max(circleSize - 1, 0);
-				approachRate = Math.min(approachRate + 3, 10);
-				overallDifficulty = Math.min(overallDifficulty + 3, 10);
-				HPDrainRate = Math.min(HPDrainRate + 3, 10);
+
+			// fixed difficulty overrides
+			if (Options.getFixedCS() > 0f)
+				circleSize = Options.getFixedCS();
+			if (Options.getFixedAR() > 0f)
+				approachRate = Options.getFixedAR();
+			if (Options.getFixedOD() > 0f)
+				overallDifficulty = Options.getFixedOD();
+			if (Options.getFixedHP() > 0f)
+				HPDrainRate = Options.getFixedHP();
+
+			// hard rock modifiers
+			if (Options.isModActive(Options.MOD_HARD_ROCK)) {
+				circleSize = Math.min(circleSize * 1.4f, 10);
+				approachRate = Math.min(approachRate * 1.4f, 10);
+				overallDifficulty = Math.min(overallDifficulty * 1.4f, 10);
+				HPDrainRate = Math.min(HPDrainRate * 1.4f, 10);
 			}
 
+			// initialize objects
 			Circle.init(container, circleSize);
 			Slider.init(container, circleSize, osu);
 			Spinner.init(container);

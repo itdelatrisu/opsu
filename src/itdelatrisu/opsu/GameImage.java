@@ -213,7 +213,7 @@ public enum GameImage {
 	/**
 	 * Returns whether or not the image has been scaled.
 	 */
-	public boolean isScaled() {	return (skinImage != null) ? false : scaled; }
+	public boolean isScaled() { return (skinImage != null) ? false : scaled; }
 
 	/**
 	 * Sets the scaled status of the image.
