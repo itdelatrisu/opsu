@@ -341,6 +341,21 @@ public class MainMenu extends BasicGameState {
 			else
 				game.enterState(Opsu.STATE_MAINMENUEXIT);
 			break;
+		case Input.KEY_Q:
+			game.enterState(Opsu.STATE_MAINMENUEXIT);
+			break;
+		case Input.KEY_P:
+			if (!logoClicked) {
+				logoClicked = true;
+				logoTimer = 0;
+				playButton.getImage().setAlpha(0f);
+				exitButton.getImage().setAlpha(0f);
+				SoundController.playSound(SoundController.SOUND_MENUHIT);
+			} else {
+				SoundController.playSound(SoundController.SOUND_MENUHIT);
+				game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
+			}
+			break;
 		case Input.KEY_F12:
 			Utils.takeScreenShot();
 			break;

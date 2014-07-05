@@ -281,7 +281,6 @@ public class SongMenu extends BasicGameState {
 	public void update(GameContainer container, StateBasedGame game, int delta)
 			throws SlickException {
 		// search
-		search.setFocus(true);
 		searchTimer += delta;
 		if (searchTimer >= SEARCH_DELAY) {
 			searchTimer = 0;
@@ -524,6 +523,13 @@ public class SongMenu extends BasicGameState {
 	public void enter(GameContainer container, StateBasedGame game)
 			throws SlickException {
 		Display.setTitle(game.getTitle());
+		search.setFocus(true);
+	}
+
+	@Override
+	public void leave(GameContainer container, StateBasedGame game)
+			throws SlickException {
+		search.setFocus(false);
 	}
 
 	/**

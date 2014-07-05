@@ -559,6 +559,17 @@ public class Game extends BasicGameState {
 			// skip
 			skipIntro();
 			break;
+		case Input.KEY_R:
+			if (input.isKeyDown(Input.KEY_RCONTROL) || input.isKeyDown(Input.KEY_LCONTROL)) {
+				try {
+					restart = RESTART_MANUAL;
+					enter(container, game);
+					skipIntro();
+				} catch (SlickException e) {
+					Log.error("Failed to restart game.", e);
+				}
+			}
+			break;
 		case Input.KEY_Z:
 			// left-click
 			if (!Keyboard.isRepeatEvent())
