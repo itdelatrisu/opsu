@@ -15,6 +15,7 @@
         <pathelement location="lib/lwjgl-2.9.1/classes"/>
         <pathelement location="lib/jorbis-0.0.17/classes"/>
         <pathelement location="lib/jlayer1.0.1/classes"/>
+        <pathelement location="lib/zip4j/classes"/>
     </path>
     <target name="init">
         <mkdir dir="bin"/>

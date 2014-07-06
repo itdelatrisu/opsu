@@ -31,6 +31,7 @@ import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
+import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
@@ -53,6 +54,7 @@ public class Splash extends BasicGameState {
 
 	// game-related variables
 	private int state;
+	private GameContainer container;
 	private boolean init = false;
 
 	public Splash(int state) {
@@ -62,6 +64,8 @@ public class Splash extends BasicGameState {
 	@Override
 	public void init(GameContainer container, StateBasedGame game)
 			throws SlickException {
+		this.container = container;
+
 		logo = new Image("logo.png");
 		logo = logo.getScaledCopy((container.getHeight() / 1.2f) / logo.getHeight());
 		logo.setAlpha(0f);
@@ -149,4 +153,13 @@ public class Splash extends BasicGameState {
 
 	@Override
 	public int getID() { return state; }
+
+	@Override
+	public void keyPressed(int key, char c) {
+		if (key == Input.KEY_ESCAPE) {
+			Options.saveOptions();
+			Opsu.closeSocket();
+			container.exit();
+		}
+	}
 }
