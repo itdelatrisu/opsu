@@ -25,6 +25,7 @@ import itdelatrisu.opsu.states.MainMenu;
 import itdelatrisu.opsu.states.MainMenuExit;
 import itdelatrisu.opsu.states.Options;
 import itdelatrisu.opsu.states.SongMenu;
+import itdelatrisu.opsu.states.Splash;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -61,6 +62,7 @@ public class Opsu extends StateBasedGame {
 	 * Game states.
 	 */
 	public static final int
+		STATE_SPLASH        = 0,
 		STATE_MAINMENU      = 1,
 		STATE_MAINMENUEXIT  = 2,
 		STATE_SONGMENU      = 3,
@@ -80,6 +82,7 @@ public class Opsu extends StateBasedGame {
 
 	@Override
 	public void initStatesList(GameContainer container) throws SlickException {
+		addState(new Splash(STATE_SPLASH));
 		addState(new MainMenu(STATE_MAINMENU));
 		addState(new MainMenuExit(STATE_MAINMENUEXIT));
 		addState(new SongMenu(STATE_SONGMENU));
@@ -125,31 +128,23 @@ public class Opsu extends StateBasedGame {
 		ResourceLoader.addResourceLocation(new FileSystemLocation(new File(".")));
 		ResourceLoader.addResourceLocation(new FileSystemLocation(new File("./res/")));
 
+		// clear the cache
+		if (!Options.TMP_DIR.mkdir()) {
+			for (File tmp : Options.TMP_DIR.listFiles())
+				tmp.delete();
+		}
+		Options.TMP_DIR.deleteOnExit();
+
 		// start the game
-		Opsu osuGame = new Opsu("opsu!");
+		Opsu opsu = new Opsu("opsu!");
 		try {
-			AppGameContainer app = new AppGameContainer(osuGame);
+			AppGameContainer app = new AppGameContainer(opsu);
 
 			// basic game settings
 			int[] containerSize = Options.getContainerSize();
 			app.setDisplayMode(containerSize[0], containerSize[1], false);
 			String[] icons = { "icon16.png", "icon32.png" };
 			app.setIcons(icons);
-
-			// parse song directory
-			OsuParser.parseAllFiles(Options.getBeatmapDir(),
-					app.getWidth(), app.getHeight()
-			);
-
-			// clear the cache
-			if (!Options.TMP_DIR.mkdir()) {
-				for (File tmp : Options.TMP_DIR.listFiles())
-					tmp.delete();
-			}
-			Options.TMP_DIR.deleteOnExit();
-
-			// load sounds
-			SoundController.init();
 
 			app.start();
 		} catch (SlickException e) {

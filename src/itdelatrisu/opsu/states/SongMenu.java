@@ -85,7 +85,7 @@ public class SongMenu extends BasicGameState {
 	/**
 	 * The current sort order (SORT_* constant).
 	 */
-	private byte currentSort;
+	private byte currentSort = OsuGroupList.SORT_TITLE;
 
 	/**
 	 * The options button (to enter the "Game Options" menu).
@@ -134,11 +134,6 @@ public class SongMenu extends BasicGameState {
 		this.container = container;
 		this.game = game;
 		this.input = container.getInput();
-
-		// initialize song list
-		currentSort = OsuGroupList.SORT_TITLE;
-		Opsu.groups.init(currentSort);
-		setFocus(Opsu.groups.getRandomNode(), -1, true);
 
 		int width = container.getWidth();
 		int height = container.getHeight();
@@ -414,7 +409,7 @@ public class SongMenu extends BasicGameState {
 						startNode = Opsu.groups.getBaseNode(startNode.index);
 				}
 				setFocus(node, -1, false);
-				
+
 				break;
 			}
 		}

@@ -96,9 +96,9 @@ public class MainMenu extends BasicGameState {
 	private Image backgroundImage;
 
 	/**
-	 * Alpha level for fade-in effect for dynamic backgrounds.
+	 * Background alpha level (for fade-in effect).
 	 */
-	private float dynamicBackgroundAlpha = 0f;
+	private float bgAlpha = 0f;
 
 	// game-related variables
 	private StateBasedGame game;
@@ -111,8 +111,6 @@ public class MainMenu extends BasicGameState {
 	@Override
 	public void init(GameContainer container, StateBasedGame game)
 			throws SlickException {
-		Utils.init(container, game);
-
 		this.game = game;
 
 		osuStartTime = System.currentTimeMillis();
@@ -165,11 +163,12 @@ public class MainMenu extends BasicGameState {
 		// draw background
 		OsuFile osu = MusicController.getOsuFile();
 		if (Options.isDynamicBackgroundEnabled() &&
-			osu != null && osu.drawBG(width, height, dynamicBackgroundAlpha))
+			osu != null && osu.drawBG(width, height, bgAlpha))
 				;
-		else if (backgroundImage != null)
+		else if (backgroundImage != null) {
+			backgroundImage.setAlpha(bgAlpha);
 			backgroundImage.draw();
-		else
+		} else
 			g.setBackground(Utils.COLOR_BLUE_BACKGROUND);
 
 		// draw buttons
@@ -224,11 +223,11 @@ public class MainMenu extends BasicGameState {
 	@Override
 	public void update(GameContainer container, StateBasedGame game, int delta)
 			throws SlickException {
-		// dynamic backgrounds
-		if (Options.isDynamicBackgroundEnabled() && dynamicBackgroundAlpha < 0.9f) {
-			dynamicBackgroundAlpha += delta / 1000f;
-			if (dynamicBackgroundAlpha > 0.9f)
-				dynamicBackgroundAlpha = 0.9f;
+		// fade in background
+		if (bgAlpha < 0.9f) {
+			bgAlpha += delta / 1000f;
+			if (bgAlpha > 0.9f)
+				bgAlpha = 0.9f;
 		}
 
 		// buttons
@@ -296,12 +295,14 @@ public class MainMenu extends BasicGameState {
 			OsuGroupNode node = menu.setFocus(Opsu.groups.getRandomNode(), -1, true);
 			if (node != null)
 				previous.add(node.index);
-			dynamicBackgroundAlpha = 0f;
+			if (Options.isDynamicBackgroundEnabled())
+				bgAlpha = 0f;
 		} else if (musicPrevious.contains(x, y)) {
 			if (!previous.isEmpty()) {
 				SongMenu menu = (SongMenu) game.getState(Opsu.STATE_SONGMENU);
 				menu.setFocus(Opsu.groups.getBaseNode(previous.pop()), -1, true);
-				dynamicBackgroundAlpha = 0f;
+				if (Options.isDynamicBackgroundEnabled())
+					bgAlpha = 0f;
 			} else
 				MusicController.setPosition(0);
 		}

@@ -521,7 +521,6 @@ public class Slider {
 			}
 		}
 
-
 		// end of slider
 		if (overlap || trackPosition > hitObject.time + sliderTimeTotal) {
 			tickIntervals++;
@@ -537,7 +536,7 @@ public class Slider {
 				if (distance < followCircleRadius)
 					ticksHit++;
 			}
-			
+
 			// calculate and send slider result
 			hitResult();
 			return true;

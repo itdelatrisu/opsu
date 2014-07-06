@@ -35,6 +35,21 @@ import org.newdawn.slick.util.Log;
  */
 public class OsuParser {
 	/**
+	 * The current file being parsed.
+	 */
+	private static File currentFile;
+
+	/**
+	 * The current directory number while parsing.
+	 */
+	private static int currentDirectoryIndex = -1;
+
+	/**
+	 * The total number of directories to parse.
+	 */
+	private static int totalDirectories = -1;
+
+	/**
 	 * The x and y multipliers for hit object coordinates.
 	 */
 	private static float xMultiplier, yMultiplier;
@@ -62,7 +77,13 @@ public class OsuParser {
 		xOffset = width / 5;
 		yOffset = height / 5;
 
-		for (File folder : root.listFiles()) {
+		// progress tracking
+		File[] folders = root.listFiles();
+		currentDirectoryIndex = 0;
+		totalDirectories = folders.length;
+
+		for (File folder : folders) {
+			currentDirectoryIndex++;
 			if (!folder.isDirectory())
 				continue;
 			File[] files = folder.listFiles(new FilenameFilter() {
@@ -77,6 +98,8 @@ public class OsuParser {
 			// create a new group entry
 			ArrayList<OsuFile> osuFiles = new ArrayList<OsuFile>();
 			for (File file : files) {
+				currentFile = file;
+
 				// Parse hit objects only when needed to save time/memory.
 				// Change boolean to 'true' to parse them immediately.
 				parseFile(file, osuFiles, false);
@@ -86,6 +109,10 @@ public class OsuParser {
 				Opsu.groups.addSongGroup(osuFiles);
 			}
 		}
+
+		currentFile = null;
+		currentDirectoryIndex = -1;
+		totalDirectories = -1;
 	}
 
 	/**
@@ -553,5 +580,23 @@ public class OsuParser {
 	public static String getExtension(String file) {
 		int i = file.lastIndexOf('.');
 		return (i != -1) ? file.substring(i + 1).toLowerCase() : "";
+	}
+
+	/**
+	 * Returns the name of the current file being parsed, or null if none.
+	 */
+	public static String getCurrentFileName() {
+		return (currentFile != null) ? currentFile.getName() : null;
+	}
+
+	/**
+	 * Returns the progress of file parsing, or -1 if not parsing.
+	 * @return the completion percent [0, 100] or -1
+	 */
+	public static int getParserProgress() {
+		if (currentDirectoryIndex == -1 || totalDirectories == -1)
+			return -1;
+
+		return currentDirectoryIndex * 100 / totalDirectories;
 	}
 }

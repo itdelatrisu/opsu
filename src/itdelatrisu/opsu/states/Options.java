@@ -134,7 +134,8 @@ public class Options extends BasicGameState {
 		FIXED_CS,
 		FIXED_HP,
 		FIXED_AR,
-		FIXED_OD;
+		FIXED_OD,
+		LOAD_VERBOSE;
 	};
 
 	/**
@@ -177,7 +178,8 @@ public class Options extends BasicGameState {
 		GameOption.SHOW_FPS,
 		GameOption.SCREENSHOT_FORMAT,
 		GameOption.NEW_CURSOR,
-		GameOption.DYNAMIC_BACKGROUND
+		GameOption.DYNAMIC_BACKGROUND,
+		GameOption.LOAD_VERBOSE
 	};
 
 	/**
@@ -340,6 +342,11 @@ public class Options extends BasicGameState {
 	private static float
 		fixedCS = 0f, fixedHP = 0f,
 		fixedAR = 0f, fixedOD = 0f;
+
+	/**
+	 * Whether or not to render loading text in the splash screen.
+	 */
+	private static boolean loadVerbose = true;
 
 	/**
 	 * Game option coordinate modifiers (for drawing).
@@ -584,6 +591,9 @@ public class Options extends BasicGameState {
 		case IGNORE_BEATMAP_SKINS:
 			ignoreBeatmapSkins = !ignoreBeatmapSkins;
 			break;
+		case LOAD_VERBOSE:
+			loadVerbose = !loadVerbose;
+			break;
 		default:
 			break;
 		}
@@ -748,6 +758,12 @@ public class Options extends BasicGameState {
 			drawOption(pos, "Enable Dynamic Backgrounds",
 					dynamicBackground ? "Yes" : "No",
 					"The song background will be used as the main menu background."
+			);
+			break;
+		case LOAD_VERBOSE:
+			drawOption(pos, "Display Loading Text",
+					loadVerbose ? "Yes" : "No",
+					"Display loading progress in the splash screen."
 			);
 			break;
 		case MUSIC_VOLUME:
@@ -1049,6 +1065,12 @@ public class Options extends BasicGameState {
 	public static float getFixedOD() { return fixedOD; }
 
 	/**
+	 * Returns whether or not to render loading text in the splash screen.
+	 * @return true if enabled
+	 */
+	public static boolean isLoadVerbose() { return loadVerbose; }
+
+	/**
 	 * Returns the current beatmap directory.
 	 * If invalid, this will attempt to search for the directory,
 	 * and if nothing found, will create one.
@@ -1143,6 +1165,9 @@ public class Options extends BasicGameState {
 					break;
 				case "DynamicBackground":
 					dynamicBackground = Boolean.parseBoolean(value);
+					break;
+				case "LoadVerbose":
+					loadVerbose = Boolean.parseBoolean(value);
 					break;
 				case "VolumeMusic":
 					i = Integer.parseInt(value);
@@ -1242,6 +1267,8 @@ public class Options extends BasicGameState {
 			writer.write(String.format("NewCursor = %b", newCursor));
 			writer.newLine();
 			writer.write(String.format("DynamicBackground = %b", dynamicBackground));
+			writer.newLine();
+			writer.write(String.format("LoadVerbose = %b", loadVerbose));
 			writer.newLine();
 			writer.write(String.format("VolumeMusic = %d", musicVolume));
 			writer.newLine();
