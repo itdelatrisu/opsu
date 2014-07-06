@@ -1,0 +1,11 @@
+net.lingala.zip4j.core
+net.lingala.zip4j.crypto
+net.lingala.zip4j.crypto.PBKDF2
+net.lingala.zip4j.crypto.engine
+net.lingala.zip4j.exception
+net.lingala.zip4j.io
+net.lingala.zip4j.model
+net.lingala.zip4j.progress
+net.lingala.zip4j.unzip
+net.lingala.zip4j.util
+net.lingala.zip4j.zip

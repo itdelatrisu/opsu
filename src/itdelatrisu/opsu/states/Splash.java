@@ -21,8 +21,11 @@ package itdelatrisu.opsu.states;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.OsuGroupList;
 import itdelatrisu.opsu.OsuParser;
+import itdelatrisu.opsu.OszUnpacker;
 import itdelatrisu.opsu.SoundController;
 import itdelatrisu.opsu.Utils;
+
+import java.io.File;
 
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
@@ -32,6 +35,11 @@ import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
 
+/**
+ * "Splash Screen" state.
+ * <p>
+ * Loads game resources and enters "Main Menu" state.
+ */
 public class Splash extends BasicGameState {
 	/**
 	 * Logo image.
@@ -45,6 +53,7 @@ public class Splash extends BasicGameState {
 
 	// game-related variables
 	private int state;
+	private boolean init = false;
 
 	public Splash(int state) {
 		this.state = state;
@@ -53,34 +62,12 @@ public class Splash extends BasicGameState {
 	@Override
 	public void init(GameContainer container, StateBasedGame game)
 			throws SlickException {
-		final int width = container.getWidth();
-		final int height = container.getHeight();
-
 		logo = new Image("logo.png");
-		logo = logo.getScaledCopy((height / 1.2f) / logo.getHeight());
+		logo = logo.getScaledCopy((container.getHeight() / 1.2f) / logo.getHeight());
 		logo.setAlpha(0f);
 
 		// load Utils class first (needed in other 'init' methods)
 		Utils.init(container, game);
-
-		// load other resources in a new thread
-		final SongMenu menu = (SongMenu) game.getState(Opsu.STATE_SONGMENU);
-		new Thread() {
-			@Override
-			public void run() {
-				// parse song directory
-				OsuParser.parseAllFiles(Options.getBeatmapDir(), width, height);
-
-				// initialize song list
-				Opsu.groups.init(OsuGroupList.SORT_TITLE);
-				menu.setFocus(Opsu.groups.getRandomNode(), -1, true);
-
-				// load sounds
-				SoundController.init();
-
-				finished = true;
-			}
-		}.start();
 	}
 
 	@Override
@@ -93,23 +80,63 @@ public class Splash extends BasicGameState {
 
 		logo.drawCentered(width / 2, height / 2);
 
-		// progress tracking
-		String currentFile = OsuParser.getCurrentFileName();
-		if (currentFile != null && Options.isLoadVerbose()) {
+		// display progress
+		if (Options.isLoadVerbose()) {
 			g.setColor(Color.white);
 			g.setFont(Utils.FONT_MEDIUM);
 			int lineHeight = Utils.FONT_MEDIUM.getLineHeight();
-			g.drawString(
-					String.format("Loading... (%s%%)", OsuParser.getParserProgress()),
-					25, height - 25 - (lineHeight * 2)
-			);
-			g.drawString(currentFile, 25, height - 25 - lineHeight);
+
+			String unpackedFile = OszUnpacker.getCurrentFileName();
+			String parsedFile = OsuParser.getCurrentFileName();
+			if (unpackedFile != null) {
+				g.drawString(
+						String.format("Unpacking... (%d%%)", OszUnpacker.getUnpackerProgress()),
+						25, height - 25 - (lineHeight * 2)
+				);
+				g.drawString(unpackedFile, 25, height - 25 - lineHeight);
+			} else if (parsedFile != null) {
+				g.drawString(
+						String.format("Loading... (%d%%)", OsuParser.getParserProgress()),
+						25, height - 25 - (lineHeight * 2)
+				);
+				g.drawString(parsedFile, 25, height - 25 - lineHeight);
+			}
 		}
 	}
 
 	@Override
 	public void update(GameContainer container, StateBasedGame game, int delta)
 			throws SlickException {
+		if (!init) {
+			init = true;
+
+			// load other resources in a new thread
+			final int width = container.getWidth();
+			final int height = container.getHeight();
+			final SongMenu menu = (SongMenu) game.getState(Opsu.STATE_SONGMENU);
+			new Thread() {
+				@Override
+				public void run() {
+					File beatmapDir = Options.getBeatmapDir();
+
+					// unpack all OSZ archives
+					OszUnpacker.unpackAllFiles(Options.getOSZDir(), beatmapDir);
+
+					// parse song directory
+					OsuParser.parseAllFiles(beatmapDir, width, height);
+
+					// initialize song list
+					Opsu.groups.init(OsuGroupList.SORT_TITLE);
+					menu.setFocus(Opsu.groups.getRandomNode(), -1, true);
+
+					// load sounds
+					SoundController.init();
+
+					finished = true;
+				}
+			}.start();
+		}
+
 		// fade in logo
 		float alpha = logo.getAlpha();
 		if (alpha < 1f)

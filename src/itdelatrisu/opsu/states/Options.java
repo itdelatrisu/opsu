@@ -79,9 +79,14 @@ public class Options extends BasicGameState {
 	};
 
 	/**
-	 * The current beatmap directory.
+	 * The beatmap directory.
 	 */
 	private static File beatmapDir;
+
+	/**
+	 * The OSZ archive directory.
+	 */
+	private static File oszDir;
 
 	/**
 	 * The current skin directory (for user skins).
@@ -1071,7 +1076,7 @@ public class Options extends BasicGameState {
 	public static boolean isLoadVerbose() { return loadVerbose; }
 
 	/**
-	 * Returns the current beatmap directory.
+	 * Returns the beatmap directory.
 	 * If invalid, this will attempt to search for the directory,
 	 * and if nothing found, will create one.
 	 * @return the beatmap directory
@@ -1088,6 +1093,19 @@ public class Options extends BasicGameState {
 		}
 		beatmapDir.mkdir();  // none found, create new directory
 		return beatmapDir;
+	}
+
+	/**
+	 * Returns the OSZ archive directory.
+	 * If invalid, this will return the root directory.
+	 * @return the OSZ archive directory
+	 */
+	public static File getOSZDir() {
+		if (oszDir != null && oszDir.isDirectory())
+			return oszDir;
+
+		oszDir = new File("").getAbsoluteFile();
+		return oszDir;
 	}
 
 	/**
@@ -1130,6 +1148,9 @@ public class Options extends BasicGameState {
 				switch (name) {
 				case "BeatmapDirectory":
 					beatmapDir = new File(value);
+					break;
+				case "OSZDirectory":
+					oszDir = new File(value);
 					break;
 				case "Skin":
 					skinDir = new File(value);
@@ -1249,6 +1270,8 @@ public class Options extends BasicGameState {
 
 			// options
 			writer.write(String.format("BeatmapDirectory = %s", getBeatmapDir().getAbsolutePath()));
+			writer.newLine();
+			writer.write(String.format("OSZDirectory = %s", getOSZDir().getAbsolutePath()));
 			writer.newLine();
 			writer.write(String.format("Skin = %s", getSkinDir().getAbsolutePath()));
 			writer.newLine();

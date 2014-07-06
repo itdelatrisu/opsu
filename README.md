@@ -21,6 +21,10 @@ directly from the osu! program folder.  Otherwise, place songs in the generated
 `Songs` folder or set the `BeatmapDirectory` value in the generated
 configuration file to the path of the root song directory.
 
+Note that beatmaps are typically delivered as OSZ files.  These can be extracted
+with any ZIP tool, and opsu! will automatically extract them into the songs
+folder if placed in the root directory.
+
 ### First Run
 The `Music Offset` value will likely need to be adjusted when playing for the
 first time, or whenever hit objects are out of sync with the music.  This and
