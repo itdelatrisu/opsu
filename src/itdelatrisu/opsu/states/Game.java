@@ -407,6 +407,8 @@ public class Game extends BasicGameState {
 	@Override
 	public void update(GameContainer container, StateBasedGame game, int delta)
 			throws SlickException {
+		Utils.updateCursor(delta);
+
 		if (isLeadIn()) {  // stop updating during song lead-in
 			leadInTime -= delta;
 			if (!isLeadIn())

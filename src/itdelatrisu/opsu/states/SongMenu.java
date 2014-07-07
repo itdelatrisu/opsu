@@ -275,6 +275,8 @@ public class SongMenu extends BasicGameState {
 	@Override
 	public void update(GameContainer container, StateBasedGame game, int delta)
 			throws SlickException {
+		Utils.updateCursor(delta);
+
 		// search
 		searchTimer += delta;
 		if (searchTimer >= SEARCH_DELAY) {

@@ -18,6 +18,7 @@
 
 package itdelatrisu.opsu;
 
+import itdelatrisu.opsu.states.Game;
 import itdelatrisu.opsu.states.Options;
 
 import java.awt.Font;
@@ -104,6 +105,7 @@ public class Utils {
 
 	// game-related variables
 	private static GameContainer container;
+	private static StateBasedGame game;
 	private static Input input;
 
 	// This class should not be instantiated.
@@ -118,6 +120,7 @@ public class Utils {
 	public static void init(GameContainer container, StateBasedGame game)
 			throws SlickException {
 		Utils.container = container;
+		Utils.game = game;
 		Utils.input = container.getInput();
 
 		// game settings
@@ -245,6 +248,13 @@ public class Utils {
 			else
 				cursorTrail = new Image("cursortrail2.png");
 		}
+
+		// scale the cursor
+		float scale = 1 + ((container.getHeight() - 600) / 1000f);
+		cursor = cursor.getScaledCopy(scale);
+		cursorTrail = cursorTrail.getScaledCopy(scale);
+		if (cursorMiddle != null)
+			cursorMiddle = cursorMiddle.getScaledCopy(scale);
 	}
 
 	/**
@@ -304,10 +314,24 @@ public class Utils {
 		}
 		cursorTrail.drawCentered(x, y);
 
+		// increase the cursor size if pressed
+		float scale = 1f;
+		if (game.getCurrentStateID() == Opsu.STATE_GAME &&
+			((Game) game.getState(Opsu.STATE_GAME)).isInputKeyPressed())
+				scale = 1.25f;
+		else if (input.isMouseButtonDown(Input.MOUSE_LEFT_BUTTON) ||
+			input.isMouseButtonDown(Input.MOUSE_RIGHT_BUTTON))
+			scale = 1.25f;
+
 		// draw the other components
-		cursor.drawCentered(x, y);
-		if (cursorMiddle != null)
-			cursorMiddle.drawCentered(x, y);
+		Image cursorScaled = cursor.getScaledCopy(scale);
+		cursorScaled.setRotation(cursor.getRotation());
+		cursorScaled.drawCentered(x, y);
+		if (cursorMiddle != null) {
+			Image cursorMiddleScaled = cursorMiddle.getScaledCopy(scale);
+			cursorMiddleScaled.setRotation(cursorMiddle.getRotation());
+			cursorMiddleScaled.drawCentered(x, y);
+		}
 	}
 
 	/**
@@ -359,6 +383,18 @@ public class Utils {
 				}
 			}
 		}
+	}
+
+	/**
+	 * Rotates the cursor by a degree determined by a delta interval.
+	 * If the old style cursor is being used, this will do nothing.
+	 * @param delta the delta interval since the last call
+	 */
+	public static void updateCursor(int delta) {
+		if (cursorMiddle == null)
+			return;
+
+		cursor.rotate(delta / 40f);
 	}
 
 	/**

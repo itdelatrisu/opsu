@@ -223,6 +223,8 @@ public class MainMenu extends BasicGameState {
 	@Override
 	public void update(GameContainer container, StateBasedGame game, int delta)
 			throws SlickException {
+		Utils.updateCursor(delta);
+
 		// fade in background
 		if (bgAlpha < 0.9f) {
 			bgAlpha += delta / 1000f;

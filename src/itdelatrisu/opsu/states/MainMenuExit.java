@@ -51,6 +51,7 @@ public class MainMenuExit extends BasicGameState {
 	 */
 	private float centerOffset;
 
+	// game-related variables
 	private GameContainer container;
 	private StateBasedGame game;
 	private int state;
@@ -113,6 +114,8 @@ public class MainMenuExit extends BasicGameState {
 	@Override
 	public void update(GameContainer container, StateBasedGame game, int delta)
 			throws SlickException {
+		Utils.updateCursor(delta);
+
 		// move buttons to center
 		float yesX = yesButton.getX(), noX = noButton.getX();
 		float center = container.getWidth() / 2f;
