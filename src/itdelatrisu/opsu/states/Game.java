@@ -760,6 +760,7 @@ public class Game extends BasicGameState {
 		if (!GameImage.SKIP.isScaled()) {
 			float skipScale = (height * 0.1f) / skip.getHeight();
 			skip = skip.getScaledCopy(skipScale);
+			GameImage.SKIP.setImage(skip);
 			GameImage.SKIP.setScaled();
 		}
 		skipButton = new GUIMenuButton(skip,

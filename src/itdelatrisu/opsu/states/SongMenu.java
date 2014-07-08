@@ -71,6 +71,16 @@ public class SongMenu extends BasicGameState {
 	private OsuGroupNode focusNode;
 
 	/**
+	 * The base node of the previous focus node.
+	 */
+	private OsuGroupNode oldFocusNode = null;
+
+	/**
+	 * The file index of the previous focus node.
+	 */
+	private int oldFileIndex = -1;
+
+	/**
 	 * Button coordinate values.
 	 */
 	private float
@@ -277,13 +287,12 @@ public class SongMenu extends BasicGameState {
 		Utils.updateCursor(delta);
 
 		// search
+		search.setFocus(true);
 		searchTimer += delta;
 		if (searchTimer >= SEARCH_DELAY) {
 			searchTimer = 0;
 
 			// store the start/focus nodes
-			OsuGroupNode oldFocusNode = null;
-			int oldFileIndex = -1;
 			if (focusNode != null) {
 				oldFocusNode = Opsu.groups.getBaseNode(focusNode.index);
 				oldFileIndex = focusNode.osuFileIndex;
@@ -308,6 +317,8 @@ public class SongMenu extends BasicGameState {
 						searchResultString = String.format("%d matches found!", Opsu.groups.size());
 						setFocus(Opsu.groups.getRandomNode(), -1, true);
 					}
+					oldFocusNode = null;
+					oldFileIndex = -1;
 				} else if (!search.getText().isEmpty())
 					searchResultString = "No matches found. Hit 'esc' to reset.";
 			}
@@ -387,6 +398,7 @@ public class SongMenu extends BasicGameState {
 							startNode = Opsu.groups.getBaseNode(max);
 
 						// if group button clicked, undo expansion
+						SoundController.playSound(SoundController.SOUND_MENUCLICK);
 						Opsu.groups.expand(node.index);
 
 					} else if (node.osuFileIndex == focusNode.osuFileIndex) {
@@ -395,6 +407,7 @@ public class SongMenu extends BasicGameState {
 
 					} else {
 						// focus the node
+						SoundController.playSound(SoundController.SOUND_MENUCLICK);
 						setFocus(node, 0, false);
 					}
 					break;
@@ -409,6 +422,7 @@ public class SongMenu extends BasicGameState {
 					else
 						startNode = Opsu.groups.getBaseNode(startNode.index);
 				}
+				SoundController.playSound(SoundController.SOUND_MENUCLICK);
 				setFocus(node, -1, false);
 
 				break;
@@ -452,6 +466,7 @@ public class SongMenu extends BasicGameState {
 				break;
 			OsuGroupNode next = focusNode.next;
 			if (next != null) {
+				SoundController.playSound(SoundController.SOUND_MENUCLICK);
 				setFocus(next, (next.index == focusNode.index) ? 0 : 1, false);
 				changeIndex(1);
 			}
@@ -461,6 +476,7 @@ public class SongMenu extends BasicGameState {
 				break;
 			OsuGroupNode prev = focusNode.prev;
 			if (prev != null) {
+				SoundController.playSound(SoundController.SOUND_MENUCLICK);
 				if (prev.index == focusNode.index && prev.osuFileIndex < 0) {
 					// skip the group node
 					prev = prev.prev;
@@ -519,7 +535,6 @@ public class SongMenu extends BasicGameState {
 	public void enter(GameContainer container, StateBasedGame game)
 			throws SlickException {
 		Display.setTitle(game.getTitle());
-		search.setFocus(true);
 	}
 
 	@Override
