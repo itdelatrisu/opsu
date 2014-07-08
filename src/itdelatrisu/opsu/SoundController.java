@@ -144,6 +144,16 @@ public class SoundController {
 	 */
 	private static float sampleVolumeMultiplier = 1f;
 
+	/**
+	 * The name of the current sound file being loaded.
+	 */
+	private static String currentFileName;
+
+	/**
+	 * The number of the current sound file being loaded.
+	 */
+	private static int currentFileIndex = -1;
+
 	// This class should not be instantiated.
 	private SoundController() {}
 
@@ -170,22 +180,30 @@ public class SoundController {
 		}
 		return null;
 	}
-	
+
 	/**
 	 * Loads all sound files.
 	 */
 	public static void init() {
 		// TODO: support MP3 sounds?
+		currentFileIndex = 0;
 
 		// menu and game sounds
-		for (int i = 0; i < SOUND_MAX; i++)
-			sounds[i] = loadClip(String.format("%s.wav", soundNames[i]));
+		for (int i = 0; i < SOUND_MAX; i++, currentFileIndex++) {
+			currentFileName = String.format("%s.wav", soundNames[i]);
+			sounds[i] = loadClip(currentFileName);
+		}
 
 		// hit sounds
 		for (int i = 0; i < sampleSets.length; i++) {
-			for (int j = 0; j < HIT_MAX; j++)
-				hitSounds[i][j] = loadClip(String.format("%s-%s.wav", sampleSets[i], hitSoundNames[j]));
+			for (int j = 0; j < HIT_MAX; j++, currentFileIndex++) {
+				currentFileName = String.format("%s-%s.wav", sampleSets[i], hitSoundNames[j]);
+				hitSounds[i][j] = loadClip(currentFileName);
+			}
 		}
+
+		currentFileName = null;
+		currentFileIndex = -1;
 	}
 
 	/**
@@ -296,5 +314,23 @@ public class SoundController {
 
 		playClip(hitSounds[sampleSetIndex][sound],
 				Options.getHitSoundVolume() * sampleVolumeMultiplier);
+	}
+
+	/**
+	 * Returns the name of the current file being loaded, or null if none.
+	 */
+	public static String getCurrentFileName() {
+		return (currentFileName != null) ? currentFileName : null;
+	}
+
+	/**
+	 * Returns the progress of sound loading, or -1 if not loading.
+	 * @return the completion percent [0, 100] or -1
+	 */
+	public static int getLoadingProgress() {
+		if (currentFileIndex == -1)
+			return -1;
+
+		return currentFileIndex * 100 / (SOUND_MAX + (sampleSets.length * HIT_MAX));
 	}
 }

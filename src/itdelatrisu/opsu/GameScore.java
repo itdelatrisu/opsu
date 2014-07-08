@@ -510,7 +510,6 @@ public class GameScore {
 				if (Options.isModActive(i)) {
 					Image modImage = Options.getModImage(i);
 					modImage.draw(
-//							(width * 0.85f) + ((i - (Options.MOD_MAX / 2)) * modImage.getWidth() / 3f),
 							modX - (modCount * (modWidth / 2f)),
 							symbolHeight + circleDiameter + 10
 					);

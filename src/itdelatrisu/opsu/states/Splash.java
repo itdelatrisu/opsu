@@ -78,32 +78,28 @@ public class Splash extends BasicGameState {
 	public void render(GameContainer container, StateBasedGame game, Graphics g)
 			throws SlickException {
 		g.setBackground(Color.black);
-
-		int width = container.getWidth();
-		int height = container.getHeight();
-
-		logo.drawCentered(width / 2, height / 2);
+		logo.drawCentered(container.getWidth() / 2, container.getHeight() / 2);
 
 		// display progress
 		if (Options.isLoadVerbose()) {
-			g.setColor(Color.white);
-			g.setFont(Utils.FONT_MEDIUM);
-			int lineHeight = Utils.FONT_MEDIUM.getLineHeight();
-
 			String unpackedFile = OszUnpacker.getCurrentFileName();
 			String parsedFile = OsuParser.getCurrentFileName();
+			String soundFile = SoundController.getCurrentFileName();
 			if (unpackedFile != null) {
-				g.drawString(
-						String.format("Unpacking... (%d%%)", OszUnpacker.getUnpackerProgress()),
-						25, height - 25 - (lineHeight * 2)
+				drawLoadProgress(
+						String.format("Unpacking new beatmaps... (%d%%)", OszUnpacker.getUnpackerProgress()),
+						unpackedFile
 				);
-				g.drawString(unpackedFile, 25, height - 25 - lineHeight);
 			} else if (parsedFile != null) {
-				g.drawString(
-						String.format("Loading... (%d%%)", OsuParser.getParserProgress()),
-						25, height - 25 - (lineHeight * 2)
+				drawLoadProgress(
+						String.format("Loading beatmaps... (%d%%)", OsuParser.getParserProgress()),
+						parsedFile
 				);
-				g.drawString(parsedFile, 25, height - 25 - lineHeight);
+			} else if (soundFile != null) {
+				drawLoadProgress(
+						String.format("Loading sounds... (%d%%)", SoundController.getLoadingProgress()),
+						soundFile
+				);
 			}
 		}
 	}
@@ -161,5 +157,17 @@ public class Splash extends BasicGameState {
 			Opsu.closeSocket();
 			container.exit();
 		}
+	}
+
+	/**
+	 * Draws loading progress.
+	 * @param progress the progress text
+	 * @param file the file being loaded
+	 */
+	private void drawLoadProgress(String progress, String file) {
+		int lineY = container.getHeight() - 25;
+		int lineOffsetY = Utils.FONT_MEDIUM.getLineHeight();
+		Utils.FONT_MEDIUM.drawString(25, lineY - (lineOffsetY * 2), progress, Color.white);
+		Utils.FONT_MEDIUM.drawString(25, lineY - lineOffsetY, file, Color.white);
 	}
 }
