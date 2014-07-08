@@ -297,20 +297,6 @@ public class Game extends BasicGameState {
 			trackPosition < osu.objects[0].time - skipOffsetTime)
 			skipButton.draw();
 
-		// mod icons
-		if ((objectIndex == 0 && trackPosition < osu.objects[0].time) ||
-			Options.isModActive(Options.MOD_AUTO)) {
-			for (int i = Options.MOD_MAX - 1; i >= 0; i--) {
-				if (Options.isModActive(i)) {
-					Image modImage = Options.getModImage(i);
-					modImage.draw(
-							(width * 0.85f) + ((i - (Options.MOD_MAX / 2)) * modImage.getWidth() / 3f),
-							height / 10f
-					);
-				}
-			}
-		}
-
 		if (isLeadIn())
 			trackPosition = leadInTime * -1;  // render approach circles during song lead-in
 

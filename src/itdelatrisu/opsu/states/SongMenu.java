@@ -181,7 +181,8 @@ public class SongMenu extends BasicGameState {
 		Image optionsIcon = new Image("options.png").getScaledCopy(iconScale);
 		optionsButton = new GUIMenuButton(optionsIcon, search.getX() - (optionsIcon.getWidth() * 1.5f), search.getY());
 
-		musicNote = new Image("music-note.png");
+		int musicNoteDim = (int) (Utils.FONT_LARGE.getHeight() * 0.75f + Utils.FONT_DEFAULT.getHeight());
+		musicNote = new Image("music-note.png").getScaledCopy(musicNoteDim, musicNoteDim);
 	}
 
 	@Override
@@ -213,17 +214,15 @@ public class SongMenu extends BasicGameState {
 
 			String[] info = focusNode.getInfo();
 			g.setColor(Color.white);
-			Utils.FONT_LARGE.drawString(
-					musicNoteWidth + 5, -3, info[0]);
-			float y1 = -3 + Utils.FONT_LARGE.getHeight() * 0.75f;
+			Utils.FONT_LARGE.drawString(musicNoteWidth + 5, -3, info[0]);
 			Utils.FONT_DEFAULT.drawString(
-					musicNoteWidth + 5, y1, info[1]);
-			Utils.FONT_BOLD.drawString(
-					5, Math.max(y1 + 4, musicNoteHeight - 3), info[2]);
-			Utils.FONT_DEFAULT.drawString(
-					5, musicNoteHeight + Utils.FONT_BOLD.getLineHeight() - 9, info[3]);
-			Utils.FONT_SMALL.drawString(
-					5, musicNoteHeight + Utils.FONT_BOLD.getLineHeight() + Utils.FONT_DEFAULT.getLineHeight() - 13, info[4]);
+					musicNoteWidth + 5, -3 + Utils.FONT_LARGE.getHeight() * 0.75f, info[1]);
+			int headerY = musicNoteHeight - 3;
+			Utils.FONT_BOLD.drawString(5, headerY, info[2]);
+			headerY += Utils.FONT_BOLD.getLineHeight() - 6;
+			Utils.FONT_DEFAULT.drawString(5, headerY, info[3]);
+			headerY += Utils.FONT_DEFAULT.getLineHeight() - 4;
+			Utils.FONT_SMALL.drawString(5, headerY, info[4]);
 		}
 
 		// song buttons

@@ -468,7 +468,9 @@ public class GameScore {
 	}
 
 	/**
-	 * Draws game elements: scorebar, score, score percentage, combo count, and combo burst.
+	 * Draws game elements:
+	 *   scorebar, score, score percentage, map progress circle,
+	 *   mod icons, combo count, combo burst, and grade.
 	 * @param g the graphics context
 	 * @param mapLength the length of the beatmap (in ms)
 	 * @param breakPeriod if true, will not draw scorebar and combo elements, and will draw grade
@@ -480,24 +482,41 @@ public class GameScore {
 				width - 2, 0, 1.0f, true);
 
 		// score percentage
+		int symbolHeight = getScoreSymbolImage('0').getHeight();
 		String scorePercentage = String.format("%02.2f%%", getScorePercent());
-		drawSymbolString(scorePercentage, width - 2, getScoreSymbolImage('0').getHeight(), 0.75f, true);
+		drawSymbolString(scorePercentage, width - 2, symbolHeight, 0.75f, true);
 
 		// map progress circle
 		g.setAntiAlias(true);
 		g.setLineWidth(2f);
 		g.setColor(Color.white);
 		int circleX = width - (getScoreSymbolImage('0').getWidth() * scorePercentage.length());
-		int circleY = getScoreSymbolImage('0').getHeight();
-		float circleDiameter = getScoreSymbolImage('0').getHeight() * 0.75f;
-		g.drawOval(circleX, circleY, circleDiameter, circleDiameter);
+		float circleDiameter = symbolHeight * 0.75f;
+		g.drawOval(circleX, symbolHeight, circleDiameter, circleDiameter);
 
 		int firstObjectTime = MusicController.getOsuFile().objects[0].time;
 		int trackPosition = MusicController.getPosition();
 		if (trackPosition > firstObjectTime) {
-			g.fillArc(circleX, circleY, circleDiameter, circleDiameter,
+			g.fillArc(circleX, symbolHeight, circleDiameter, circleDiameter,
 					-90, -90 + (int) (360f * (trackPosition - firstObjectTime) / mapLength)
 			);
+		}
+
+		// mod icons
+		if ((firstObject && trackPosition < firstObjectTime) || Options.isModActive(Options.MOD_AUTO)) {
+			int modWidth = Options.getModImage(0).getWidth();
+			float modX = (width * 0.98f) - modWidth;
+			for (int i = Options.MOD_MAX - 1, modCount = 0; i >= 0; i--) {
+				if (Options.isModActive(i)) {
+					Image modImage = Options.getModImage(i);
+					modImage.draw(
+//							(width * 0.85f) + ((i - (Options.MOD_MAX / 2)) * modImage.getWidth() / 3f),
+							modX - (modCount * (modWidth / 2f)),
+							symbolHeight + circleDiameter + 10
+					);
+					modCount++;
+				}
+			}
 		}
 
 		if (!breakPeriod) {
@@ -511,15 +530,14 @@ public class GameScore {
 			Image colour = GameImage.SCOREBAR_COLOUR.getImage();
 			Image colourCropped = colour.getSubImage(0, 0, (int) (colour.getWidth() * healthRatio), colour.getHeight());
 			colourCropped.draw(0, GameImage.SCOREBAR_BG.getImage().getHeight() / 4f);
+			Image ki = null;
 			if (health >= 50f)
-				GameImage.SCOREBAR_KI.getImage().drawCentered(
-						colourCropped.getWidth(), GameImage.SCOREBAR_KI.getImage().getHeight() / 2f);
+				ki = GameImage.SCOREBAR_KI.getImage();
 			else if (health >= 25f)
-				GameImage.SCOREBAR_KI_DANGER.getImage().drawCentered(
-						colourCropped.getWidth(), GameImage.SCOREBAR_KI_DANGER.getImage().getHeight() / 2f);
+				ki = GameImage.SCOREBAR_KI_DANGER.getImage();
 			else
-				GameImage.SCOREBAR_KI_DANGER2.getImage().drawCentered(
-						colourCropped.getWidth(), GameImage.SCOREBAR_KI_DANGER2.getImage().getHeight() / 2f);
+				ki = GameImage.SCOREBAR_KI_DANGER2.getImage();
+			ki.drawCentered(colourCropped.getWidth(), ki.getHeight() / 2f);
 
 			// combo burst
 			if (comboBurstIndex != -1 && comboBurstAlpha > 0f) {
@@ -530,13 +548,13 @@ public class GameScore {
 
 			// combo count
 			if (combo > 0)  // 0 isn't a combo
-				drawSymbolString(String.format("%dx", combo), 10, height - 10 - getScoreSymbolImage('0').getHeight(), 1.0f, false);
+				drawSymbolString(String.format("%dx", combo), 10, height - 10 - symbolHeight, 1.0f, false);
 		} else {
 			// grade
 			Image grade = gradesSmall[getGrade()];
-			float gradeScale = circleY * 0.75f / grade.getHeight();
+			float gradeScale = symbolHeight * 0.75f / grade.getHeight();
 			gradesSmall[getGrade()].getScaledCopy(gradeScale).draw(
-					circleX - grade.getWidth(), circleY
+					circleX - grade.getWidth(), symbolHeight
 			);
 		}
 	}
