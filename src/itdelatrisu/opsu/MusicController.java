@@ -246,7 +246,7 @@ public class MusicController {
 
 	 /**
 	 * Gets the length of the track, in milliseconds.
-	 * Returns 0f if no file is loaded or an MP3 is currently being converted.
+	 * Returns 0 if no file is loaded or an MP3 is currently being converted.
 	 * @author bdk (http://slick.ninjacave.com/forum/viewtopic.php?t=2699)
 	 */
 	public static int getTrackLength() {
@@ -265,7 +265,8 @@ public class MusicController {
 			length.setAccessible(true);
 			duration = (float) (length.get(audio));
 		} catch (Exception e) {
-			Log.error("Could not get track length.", e);
+			Log.debug("Could not get track length.");
+			return 0;
 		}
 		return (int) (duration * 1000);
 	}
