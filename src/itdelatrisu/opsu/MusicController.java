@@ -227,8 +227,8 @@ public class MusicController {
 	}
 
 	/**
-	 * Returns the position in the current track.
-	 * If no track is playing, 0f will be returned.
+	 * Returns the position in the current track, in ms.
+	 * If no track is playing, 0 will be returned.
 	 */
 	public static int getPosition() {
 		if (isPlaying())

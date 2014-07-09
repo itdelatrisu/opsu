@@ -160,22 +160,24 @@ public class Slider {
 
 			// calculate curve points for drawing
 			int N = (int) (1 / step);
-			this.curveX = new float[N];
-			this.curveY = new float[N];
+			this.curveX = new float[N + 1];
+			this.curveY = new float[N + 1];
 			float t = 0f;
 			for (int i = 0; i < N; i++, t += step) {
 				float[] c = pointAt(t);
 				curveX[i] = c[0];
 				curveY[i] = c[1];
 			}
+			curveX[N] = getX(order - 1);
+			curveY[N] = getY(order - 1);
 
 			// calculate angles (if needed)
 			if (hitObject.repeat > 1) {
 				float[] c1 = pointAt(0f);
-				float[] c2 = pointAt(0.01f);
+				float[] c2 = pointAt(step);
 				startAngle = (float) (Math.atan2(c2[1] - c1[1], c2[0] - c1[0]) * 180 / Math.PI);
 				c1 = pointAt(1f);
-				c2 = pointAt(0.99f);
+				c2 = pointAt(1f - step);
 				endAngle = (float) (Math.atan2(c2[1] - c1[1], c2[0] - c1[0]) * 180 / Math.PI);
 			}
 		}

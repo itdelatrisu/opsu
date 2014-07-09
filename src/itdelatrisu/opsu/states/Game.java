@@ -181,6 +181,11 @@ public class Game extends BasicGameState {
 	 */
 	private Image playfield;
 
+	/**
+	 * Whether a checkpoint has been loaded during this game.
+	 */
+	private boolean checkpointLoaded = false;
+
 	// game-related variables
 	private GameContainer container;
 	private StateBasedGame game;
@@ -232,6 +237,16 @@ public class Game extends BasicGameState {
 		int trackPosition = MusicController.getPosition();
 		if (pauseTime > -1)  // returning from pause screen
 			trackPosition = pauseTime;
+
+		// checkpoint
+		if (checkpointLoaded) {
+			String checkpointText = "~ Playing from checkpoint. ~";
+			Utils.FONT_MEDIUM.drawString(
+					(container.getWidth() - Utils.FONT_MEDIUM.getWidth(checkpointText)) / 2,
+					container.getHeight() - 15 - Utils.FONT_MEDIUM.getLineHeight(),
+					checkpointText, Color.white
+			);
+		}
 
 		// break periods
 		if (osu.breaks != null && breakIndex < osu.breaks.size()) {
@@ -430,7 +445,9 @@ public class Game extends BasicGameState {
 
 		// map complete!
 		if (objectIndex >= osu.objects.length) {
-			game.enterState(Opsu.STATE_GAMERANKING, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
+			// if checkpoint used, don't show the ranking screen
+			int state = (checkpointLoaded) ? Opsu.STATE_SONGMENU : Opsu.STATE_GAMERANKING;
+			game.enterState(state, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 			return;
 		}
 
@@ -544,10 +561,11 @@ public class Game extends BasicGameState {
 			game.enterState(Opsu.STATE_GAMEPAUSEMENU, new EmptyTransition(), new FadeInTransition(Color.black));
 			break;
 		case Input.KEY_SPACE:
-			// skip
+			// skip intro
 			skipIntro();
 			break;
 		case Input.KEY_R:
+			// restart
 			if (input.isKeyDown(Input.KEY_RCONTROL) || input.isKeyDown(Input.KEY_LCONTROL)) {
 				try {
 					restart = RESTART_MANUAL;
@@ -555,6 +573,44 @@ public class Game extends BasicGameState {
 					skipIntro();
 				} catch (SlickException e) {
 					Log.error("Failed to restart game.", e);
+				}
+			}
+			break;
+		case Input.KEY_S:
+			// save checkpoint
+			if (input.isKeyDown(Input.KEY_RCONTROL) || input.isKeyDown(Input.KEY_LCONTROL)) {
+				if (isLeadIn())
+					break;
+
+				int position = (pauseTime > -1) ? pauseTime : MusicController.getPosition();
+				if (Options.setCheckpoint(position / 1000))
+					SoundController.playSound(SoundController.SOUND_MENUCLICK);
+			}
+			break;
+		case Input.KEY_L:
+			// load checkpoint
+			if (input.isKeyDown(Input.KEY_RCONTROL) || input.isKeyDown(Input.KEY_LCONTROL)) {
+				int checkpoint = Options.getCheckpoint();
+				if (checkpoint == 0 || checkpoint > MusicController.getTrackLength())
+					break;  // invalid checkpoint
+				try {
+					restart = RESTART_MANUAL;
+					enter(container, game);
+					checkpointLoaded = true;
+					if (isLeadIn()) {
+						leadInTime = 0;
+						MusicController.resume();
+					}
+					SoundController.playSound(SoundController.SOUND_MENUHIT);
+
+					// skip to checkpoint
+					MusicController.setPosition(checkpoint);
+					while (objectIndex < osu.objects.length &&
+							osu.objects[objectIndex++].time <= MusicController.getPosition())
+						;
+					objectIndex--;
+				} catch (SlickException e) {
+					Log.error("Failed to load checkpoint.", e);
 				}
 			}
 			break;
@@ -690,6 +746,7 @@ public class Game extends BasicGameState {
 			countdown1Sound = false;
 			countdown2Sound = false;
 			countdownGoSound = false;
+			checkpointLoaded = false;
 
 			// load the first timingPoint
 			if (!osu.timingPoints.isEmpty()) {

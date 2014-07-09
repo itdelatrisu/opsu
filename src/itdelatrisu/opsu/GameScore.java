@@ -550,11 +550,14 @@ public class GameScore {
 				drawSymbolString(String.format("%dx", combo), 10, height - 10 - symbolHeight, 1.0f, false);
 		} else {
 			// grade
-			Image grade = gradesSmall[getGrade()];
-			float gradeScale = symbolHeight * 0.75f / grade.getHeight();
-			gradesSmall[getGrade()].getScaledCopy(gradeScale).draw(
-					circleX - grade.getWidth(), symbolHeight
-			);
+			int grade = getGrade();
+			if (grade != -1) {
+				Image gradeImage = gradesSmall[grade];
+				float gradeScale = symbolHeight * 0.75f / gradeImage.getHeight();
+				gradeImage.getScaledCopy(gradeScale).draw(
+						circleX - gradeImage.getWidth(), symbolHeight
+				);
+			}
 		}
 	}
 
@@ -566,10 +569,13 @@ public class GameScore {
 	 */
 	public void drawRankingElements(Graphics g, int width, int height) {
 		// grade
-		Image grade = gradesLarge[getGrade()];
-		float gradeScale = (height * 0.5f) / grade.getHeight();
-		grade = grade.getScaledCopy(gradeScale);
-		grade.draw(width - grade.getWidth(), height * 0.09f);
+		int grade = getGrade();
+		if (grade != -1) {
+			Image gradeImage = gradesLarge[grade];
+			float gradeScale = (height * 0.5f) / gradeImage.getHeight();
+			gradeImage = gradeImage.getScaledCopy(gradeScale);
+			gradeImage.draw(width - gradeImage.getWidth(), height * 0.09f);
+		}
 
 		// header & "Ranking" text
 		Image rankingTitle = GameImage.RANKING_TITLE.getImage();
@@ -719,10 +725,11 @@ public class GameScore {
 
 	/**
 	 * Returns (current) letter grade.
+	 * If no objects have been processed, -1 will be returned.
 	 */
 	private int getGrade() {
 		if (objectCount < 1)  // avoid division by zero
-			return GRADE_D;
+			return -1;
 
 		// TODO: silvers
 		float percent = getScorePercent();

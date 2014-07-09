@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
@@ -140,7 +141,8 @@ public class Options extends BasicGameState {
 		FIXED_HP,
 		FIXED_AR,
 		FIXED_OD,
-		LOAD_VERBOSE;
+		LOAD_VERBOSE,
+		CHECKPOINT;
 	};
 
 	/**
@@ -216,7 +218,8 @@ public class Options extends BasicGameState {
 		GameOption.FIXED_CS,
 		GameOption.FIXED_HP,
 		GameOption.FIXED_AR,
-		GameOption.FIXED_OD
+		GameOption.FIXED_OD,
+		GameOption.CHECKPOINT
 	};
 
 	/**
@@ -352,6 +355,11 @@ public class Options extends BasicGameState {
 	 * Whether or not to render loading text in the splash screen.
 	 */
 	private static boolean loadVerbose = true;
+
+	/**
+	 * Track checkpoint time, in seconds.
+	 */
+	private static int checkpoint = 0;
 
 	/**
 	 * Game option coordinate modifiers (for drawing).
@@ -651,6 +659,9 @@ public class Options extends BasicGameState {
 		case FIXED_OD:
 			fixedOD = getBoundedValue(fixedOD, diff / 10f, 0f, 10f);
 			break;
+		case CHECKPOINT:
+			checkpoint = getBoundedValue(checkpoint, diff * multiplier, 0, 3599);
+			break;
 		default:
 			break;
 		}
@@ -853,6 +864,14 @@ public class Options extends BasicGameState {
 			drawOption(pos, "Fixed Overall Difficulty (OD)",
 					(fixedOD == 0f) ? "Disabled" : String.format("%.1f", fixedOD),
 					"Determines the time window for hit results."
+			);
+			break;
+		case CHECKPOINT:
+			drawOption(pos, "Track Checkpoint",
+					(checkpoint == 0) ? "Disabled" : String.format("%02d:%02d",
+							TimeUnit.SECONDS.toMinutes(checkpoint),
+						    checkpoint - TimeUnit.MINUTES.toSeconds(TimeUnit.SECONDS.toMinutes(checkpoint))),
+					"Press CTRL+L while playing to load a checkpoint, and CTRL+S to set one."
 			);
 			break;
 		default:
@@ -1076,6 +1095,25 @@ public class Options extends BasicGameState {
 	public static boolean isLoadVerbose() { return loadVerbose; }
 
 	/**
+	 * Returns the track checkpoint time.
+	 * @return the checkpoint time (in ms)
+	 */
+	public static int getCheckpoint() { return checkpoint * 1000; }
+
+	/**
+	 * Sets the track checkpoint time, if within bounds.
+	 * @param time the track position (in ms)
+	 * @return true if within bounds
+	 */
+	public static boolean setCheckpoint(int time) {
+		if (time >= 0 && time < 3600) {
+			checkpoint = time;
+			return true;
+		}
+		return false;
+	}
+
+	/**
 	 * Returns the beatmap directory.
 	 * If invalid, this will attempt to search for the directory,
 	 * and if nothing found, will create one.
@@ -1242,6 +1280,9 @@ public class Options extends BasicGameState {
 				case "FixedOD":
 					fixedOD = Float.parseFloat(value);
 					break;
+				case "Checkpoint":
+					setCheckpoint(Integer.parseInt(value));
+					break;
 				}
 			}
 		} catch (IOException e) {
@@ -1320,6 +1361,8 @@ public class Options extends BasicGameState {
 			writer.write(String.format("FixedAR = %.1f", fixedAR));
 			writer.newLine();
 			writer.write(String.format("FixedOD = %.1f", fixedOD));
+			writer.newLine();
+			writer.write(String.format("Checkpoint = %d", checkpoint));
 			writer.newLine();
 			writer.close();
 		} catch (IOException e) {
