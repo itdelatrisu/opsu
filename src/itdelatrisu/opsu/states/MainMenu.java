@@ -209,9 +209,9 @@ public class MainMenu extends BasicGameState {
 		long time = System.currentTimeMillis() - osuStartTime;
 		g.drawString(String.format("opsu! has been running for %d minutes, %d seconds.",
 				TimeUnit.MILLISECONDS.toMinutes(time),
-			    TimeUnit.MILLISECONDS.toSeconds(time) - 
-			    TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(time))),
-			    25, height - 25 - (lineHeight * 2));
+				TimeUnit.MILLISECONDS.toSeconds(time) - 
+				TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(time))),
+				25, height - 25 - (lineHeight * 2));
 		g.drawString(String.format("The current time is %s.",
 				new SimpleDateFormat("h:mm a").format(new Date())),
 				25, height - 25 - lineHeight);

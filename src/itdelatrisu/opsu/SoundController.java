@@ -231,11 +231,11 @@ public class SoundController {
 	
 	/**
 	 * Sets the sample volume (modifies the global sample volume).
-	 * @param volume the sample volume [0, 100]
+	 * @param volume the sample volume [0, 1]
 	 */
-	public static void setSampleVolume(int volume) {
-		if (volume >= 0 && volume <= 100)
-			sampleVolumeMultiplier = volume / 100f;
+	public static void setSampleVolume(float volume) {
+		if (volume >= 0f && volume <= 1f)
+			sampleVolumeMultiplier = volume;
 	}
 
 	/**

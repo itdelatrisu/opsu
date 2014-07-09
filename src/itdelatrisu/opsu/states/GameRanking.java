@@ -50,7 +50,7 @@ public class GameRanking extends BasicGameState {
 	/**
 	 * Associated GameScore object.
 	 */
-	private static GameScore score;
+	private GameScore score;
 
 	/**
 	 * "Retry" and "Exit" buttons.

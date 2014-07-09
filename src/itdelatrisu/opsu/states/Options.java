@@ -118,7 +118,7 @@ public class Options extends BasicGameState {
 	/**
 	 * Game options.
 	 */
-	private enum GameOption {
+	private static enum GameOption {
 		NULL,
 		SCREEN_RESOLUTION,
 //		FULLSCREEN,
@@ -168,7 +168,7 @@ public class Options extends BasicGameState {
 	/**
 	 * Option tab buttons.
 	 */
-	private GUIMenuButton[] optionTabs = new GUIMenuButton[TAB_MAX];
+	private static GUIMenuButton[] optionTabs = new GUIMenuButton[TAB_MAX];
 
 	/**
 	 * Current tab.
@@ -870,7 +870,7 @@ public class Options extends BasicGameState {
 			drawOption(pos, "Track Checkpoint",
 					(checkpoint == 0) ? "Disabled" : String.format("%02d:%02d",
 							TimeUnit.SECONDS.toMinutes(checkpoint),
-						    checkpoint - TimeUnit.MINUTES.toSeconds(TimeUnit.SECONDS.toMinutes(checkpoint))),
+							checkpoint - TimeUnit.MINUTES.toSeconds(TimeUnit.SECONDS.toMinutes(checkpoint))),
 					"Press CTRL+L while playing to load a checkpoint, and CTRL+S to set one."
 			);
 			break;
@@ -975,8 +975,8 @@ public class Options extends BasicGameState {
 	public static float getEffectVolume() { return effectVolume / 100f; }
 
 	/**
-	 * Returns the default sound effect volume.
-	 * @return the sound volume [0, 1]
+	 * Returns the default hit sound volume.
+	 * @return the hit sound volume [0, 1]
 	 */
 	public static float getHitSoundVolume() { return hitSoundVolume / 100f; }
 

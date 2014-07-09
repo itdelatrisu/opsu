@@ -336,35 +336,20 @@ public class OsuParser {
 							continue;
 						if (line.charAt(0) == '[')
 							break;
-						tokens = line.split(",");
 
-						OsuTimingPoint timingPoint = new OsuTimingPoint();
-						try {  // newer file versions have many new fields
-							timingPoint.time = (int) Float.parseFloat(tokens[0]);  //rare float
-							timingPoint.meter = Integer.parseInt(tokens[2]);
-							timingPoint.sampleType = Byte.parseByte(tokens[3]);
-							timingPoint.sampleTypeCustom = Byte.parseByte(tokens[4]);
-							timingPoint.sampleVolume = Integer.parseInt(tokens[5]);
-							timingPoint.inherited = (Integer.parseInt(tokens[6]) == 1);
-							timingPoint.kiai = (Integer.parseInt(tokens[7]) == 1);
-						} catch (ArrayIndexOutOfBoundsException e) {
-							// TODO: better support for old formats
-//							Log.error(String.format("Error while parsing TimingPoints, line: '%s'.", line), e);
-						}
+						// parse timing point
+						OsuTimingPoint timingPoint = new OsuTimingPoint(line);
 
-						// tokens[1] is either beatLength (positive) or velocity (negative)
-						float beatLength = Float.parseFloat(tokens[1]);
-						if (beatLength > 0) {
-							timingPoint.beatLength = beatLength;
-							int bpm = Math.round(60000 / beatLength);
+						// calculate BPM
+						if (!timingPoint.isInherited()) {
+							int bpm = Math.round(60000 / timingPoint.getBeatLength());
 							if (osu.bpmMin == 0)
 								osu.bpmMin = osu.bpmMax = bpm;
 							else if (bpm < osu.bpmMin)
 								osu.bpmMin = bpm;
 							else if (bpm > osu.bpmMax)
 								osu.bpmMax = bpm;
-						} else
-							timingPoint.velocity = (int) beatLength;
+						}
 
 						osu.timingPoints.add(timingPoint);
 					}

@@ -71,7 +71,7 @@ public class Game extends BasicGameState {
 	/**
 	 * The associated OsuFile object.
 	 */
-	private static OsuFile osu;
+	private OsuFile osu;
 
 	/**
 	 * The associated GameScore object (holds all score data).
@@ -101,7 +101,7 @@ public class Game extends BasicGameState {
 	/**
 	 * Delay time, in milliseconds, before song starts.
 	 */
-	private static int leadInTime;
+	private int leadInTime;
 
 	/**
 	 * Hit object approach time, in milliseconds.
@@ -141,7 +141,7 @@ public class Game extends BasicGameState {
 	/**
 	 * Minimum time before start of song, in milliseconds, to process skip-related actions.
 	 */
-	private final int skipOffsetTime = 2000;
+	private static final int SKIP_OFFSET = 2000;
 
 	/**
 	 * Current timing point index in timingPoints ArrayList.
@@ -308,8 +308,8 @@ public class Game extends BasicGameState {
 
 		// skip beginning
 		if (objectIndex == 0 &&
-			osu.objects[0].time - skipOffsetTime > 5000 &&
-			trackPosition < osu.objects[0].time - skipOffsetTime)
+			osu.objects[0].time - SKIP_OFFSET > 5000 &&
+			trackPosition < osu.objects[0].time - SKIP_OFFSET)
 			skipButton.draw();
 
 		if (isLeadIn())
@@ -456,13 +456,13 @@ public class Game extends BasicGameState {
 		// timing points
 		if (timingPointIndex < osu.timingPoints.size()) {
 			OsuTimingPoint timingPoint = osu.timingPoints.get(timingPointIndex);
-			if (trackPosition >= timingPoint.time) {
-				if (timingPoint.velocity >= 0)
-					beatLengthBase = beatLength = timingPoint.beatLength;
+			if (trackPosition >= timingPoint.getTime()) {
+				if (!timingPoint.isInherited())
+					beatLengthBase = beatLength = timingPoint.getBeatLength();
 				else
-					beatLength = beatLengthBase * (timingPoint.velocity / -100f);
-				SoundController.setSampleSet(timingPoint.sampleType);
-				SoundController.setSampleVolume(timingPoint.sampleVolume);
+					beatLength = beatLengthBase * timingPoint.getSliderMultiplier();
+				SoundController.setSampleSet(timingPoint.getSampleType());
+				SoundController.setSampleVolume(timingPoint.getSampleVolume());
 				timingPointIndex++;
 			}
 		}
@@ -644,7 +644,7 @@ public class Game extends BasicGameState {
 				pauseTime = -1;
 				pausedMouseX = -1;
 				pausedMouseY = -1;
-				if (!Game.isLeadIn())
+				if (!isLeadIn())
 					MusicController.resume();
 			}
 			return;
@@ -751,10 +751,10 @@ public class Game extends BasicGameState {
 			// load the first timingPoint
 			if (!osu.timingPoints.isEmpty()) {
 				OsuTimingPoint timingPoint = osu.timingPoints.get(0);
-				if (timingPoint.velocity >= 0) {
-					beatLengthBase = beatLength = timingPoint.beatLength;
-					SoundController.setSampleSet(timingPoint.sampleType);
-					SoundController.setSampleVolume(timingPoint.sampleVolume);
+				if (!timingPoint.isInherited()) {
+					beatLengthBase = beatLength = timingPoint.getBeatLength();
+					SoundController.setSampleSet(timingPoint.getSampleType());
+					SoundController.setSampleVolume(timingPoint.getSampleVolume());
 					timingPointIndex++;
 				}
 			}
@@ -777,13 +777,13 @@ public class Game extends BasicGameState {
 	private boolean skipIntro() {
 		int trackPosition = MusicController.getPosition();
 		if (objectIndex == 0 &&
-			osu.objects[0].time - skipOffsetTime > 4000 &&
-			trackPosition < osu.objects[0].time - skipOffsetTime) {
+			osu.objects[0].time - SKIP_OFFSET > 4000 &&
+			trackPosition < osu.objects[0].time - SKIP_OFFSET) {
 			if (isLeadIn()) {
 				leadInTime = 0;
 				MusicController.resume();
 			}
-			MusicController.setPosition(osu.objects[0].time - skipOffsetTime);
+			MusicController.setPosition(osu.objects[0].time - SKIP_OFFSET);
 			SoundController.playSound(SoundController.SOUND_MENUHIT);
 			return true;
 		}
@@ -931,7 +931,7 @@ public class Game extends BasicGameState {
 	/**
 	 * Returns whether or not the track is in the lead-in time state.
 	 */
-	public static boolean isLeadIn() { return leadInTime > 0; }
+	public boolean isLeadIn() { return leadInTime > 0; }
 
 	/**
 	 * Returns the object approach time, in milliseconds.
