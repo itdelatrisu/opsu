@@ -134,7 +134,10 @@ public class OsuGroupList {
 	 * Returns a random base node.
 	 */
 	public OsuGroupNode getRandomNode() {
-		return getBaseNode((int) (Math.random() * size()));
+		OsuGroupNode node = getBaseNode((int) (Math.random() * size()));
+		if (node.index == expandedIndex)  // don't choose an expanded group node
+			node = node.next;
+		return node;
 	}
 
 	/**
@@ -153,31 +156,44 @@ public class OsuGroupList {
 		}
 		return startNode;
 	}
-	
+
 	/**
 	 * Returns the index of the expanded node (or -1 if nothing is expanded).
 	 */
 	public int getExpandedIndex() { return expandedIndex; }
 
 	/**
-	 * Expands the node at an index by inserting a new node for each OsuFile in that node.
+	 * Expands the node at an index by inserting a new node for each OsuFile
+	 * in that node and hiding the group node.
+	 * @return the first of the newly-inserted nodes
 	 */
-	public void expand(int index) {
+	public OsuGroupNode expand(int index) {
 		// undo the previous expansion
-		if (unexpand() == index)
-			return;  // don't re-expand the same node
+		unexpand();
 
 		OsuGroupNode node = getBaseNode(index);
 		if (node == null)
-			return;
+			return null;
 
+		OsuGroupNode firstInserted = null;
+
+		// create new nodes
 		ArrayList<OsuFile> osuFiles = node.osuFiles;
+		OsuGroupNode prevNode = node.prev;
 		OsuGroupNode nextNode = node.next;
 		for (int i = 0; i < node.osuFiles.size(); i++) {
 			OsuGroupNode newNode = new OsuGroupNode(osuFiles);
 			newNode.index = index;
 			newNode.osuFileIndex = i;
 			newNode.prev = node;
+
+			// unlink the group node
+			if (i == 0) {
+				firstInserted = newNode;
+				newNode.prev = prevNode;
+				if (prevNode != null)
+					prevNode.next = newNode;
+			}
 
 			node.next = newNode;
 			node = node.next;
@@ -188,26 +204,31 @@ public class OsuGroupList {
 		}
 
 		expandedIndex = index;
+		return firstInserted;
 	}
 
 	/**
 	 * Undoes the current expansion, if any.
-	 * @return the index of the previously expanded node, or -1 if no expansions
 	 */
-	private int unexpand() {
+	private void unexpand() {
 		if (expandedIndex < 0 || expandedIndex >= size())
-			return -1;
+			return;
 
-		// reset [base].next and [base+1].prev
-		OsuGroupNode eCur  = getBaseNode(expandedIndex);
-		OsuGroupNode eNext = getBaseNode(expandedIndex + 1);
+		// recreate surrounding links
+		OsuGroupNode
+			ePrev = getBaseNode(expandedIndex - 1),
+			eCur  = getBaseNode(expandedIndex),
+			eNext = getBaseNode(expandedIndex + 1);
+		if (ePrev != null)
+			ePrev.next = eCur;
+		eCur.prev = ePrev;
+		eCur.index = expandedIndex;
 		eCur.next = eNext;
 		if (eNext != null)
 			eNext.prev = eCur;
 
-		int oldIndex = expandedIndex;
 		expandedIndex = -1;
-		return oldIndex;
+		return;
 	}
 
 	/**

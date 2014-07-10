@@ -120,27 +120,27 @@ public class OsuGroupNode implements Comparable<OsuGroupNode> {
 		Color textColor = Color.lightGray;
 
 		if (expanded) {  // expanded
+			xOffset = bg.getWidth() / 10f;
 			if (focus) {
-				xOffset = bg.getWidth() * -0.05f;
-				bg.draw(x + xOffset, y, Color.white);
+				bg.draw(x - xOffset, y, Color.white);
 				textColor = Color.white;
-			} else {
-				xOffset = bg.getWidth() * 0.05f;
-				bg.draw(x + xOffset, y, Utils.COLOR_BLUE_BUTTON);
-			}
+			} else
+				bg.draw(x - xOffset, y, Utils.COLOR_BLUE_BUTTON);
 			osu = osuFiles.get(osuFileIndex);
 		} else {
 			bg.draw(x, y, Utils.COLOR_ORANGE_BUTTON);
 			osu = osuFiles.get(0);
 		}
-		
-		float cx = x + (bg.getWidth() * 0.05f) + xOffset;
+
+		float cx = x + (bg.getWidth() * 0.05f) - xOffset;
 		float cy = y + (bg.getHeight() * 0.2f) - 3;
 
 		Utils.FONT_MEDIUM.drawString(cx, cy, osu.title, textColor);
-		Utils.FONT_DEFAULT.drawString(cx, cy + Utils.FONT_MEDIUM.getLineHeight() - 4, String.format("%s // %s", osu.artist, osu.creator), textColor);
-		if (expanded)
-			Utils.FONT_BOLD.drawString(cx, cy + Utils.FONT_MEDIUM.getLineHeight() + Utils.FONT_DEFAULT.getLineHeight() - 8, osu.version, textColor);
+		Utils.FONT_DEFAULT.drawString(cx, cy + Utils.FONT_MEDIUM.getLineHeight() - 4,
+				String.format("%s // %s", osu.artist, osu.creator), textColor);
+		if (expanded || osuFiles.size() == 1)
+			Utils.FONT_BOLD.drawString(cx, cy + Utils.FONT_MEDIUM.getLineHeight() + Utils.FONT_DEFAULT.getLineHeight() - 8,
+					osu.version, textColor);
 	}
 
 	/**

@@ -310,7 +310,7 @@ public class SongMenu extends BasicGameState {
 					if (search.getText().isEmpty()) {  // cleared search
 						// use previous start/focus if possible
 						if (oldFocusNode != null)
-							setFocus(oldFocusNode, oldFileIndex + 1, true);
+							setFocus(oldFocusNode, oldFileIndex, true);
 						else
 							setFocus(Opsu.groups.getRandomNode(), -1, true);
 					} else {
@@ -374,34 +374,24 @@ public class SongMenu extends BasicGameState {
 					int oldFocusFileIndex = focusNode.osuFileIndex;
 					focusNode = null;
 					Opsu.groups.init(i);
-					setFocus(oldFocusBase, oldFocusFileIndex + 1, true);
+					setFocus(oldFocusBase, oldFocusFileIndex, true);
 				}
 				return;
 			}
 		}
 
-		for (int i = 0; i < MAX_BUTTONS; i++) {
-			if ((x > buttonX && x < buttonX + buttonWidth) &&
-				(y > buttonY + (i*buttonOffset) && y < buttonY + (i*buttonOffset) + buttonHeight)) {
-				OsuGroupNode node = Opsu.groups.getNode(startNode, i);
-				if (node == null)  // out of bounds
-					break;
-
-				int expandedIndex = Opsu.groups.getExpandedIndex();
+		// song buttons
+		int expandedIndex = Opsu.groups.getExpandedIndex();
+		OsuGroupNode node = startNode;
+		for (int i = 0; i < MAX_BUTTONS && node != null; i++, node = node.next) {
+			// is button at this index clicked?
+			float cx = (node.index == expandedIndex) ? buttonX * 0.9f : buttonX;
+			if ((x > cx && x < cx + buttonWidth) &&
+				(y > buttonY + (i * buttonOffset) && y < buttonY + (i * buttonOffset) + buttonHeight)) {
 
 				// clicked node is already expanded
 				if (node.index == expandedIndex) {
-					if (node.osuFileIndex == -1) {
-						// check bounds
-						int max = Math.max(Opsu.groups.size() - MAX_BUTTONS, 0);
-						if (startNode.index > max)
-							startNode = Opsu.groups.getBaseNode(max);
-
-						// if group button clicked, undo expansion
-						SoundController.playSound(SoundController.SOUND_MENUCLICK);
-						Opsu.groups.expand(node.index);
-
-					} else if (node.osuFileIndex == focusNode.osuFileIndex) {
+					if (node.osuFileIndex == focusNode.osuFileIndex) {
 						// if already focused, load the beatmap
 						startGame();
 
@@ -413,19 +403,12 @@ public class SongMenu extends BasicGameState {
 					break;
 				}
 
-				// if current start node is expanded,
-				// set it to the base node before undoing the expansion
-				if (startNode.index == expandedIndex) {
-					int max = Math.max(Opsu.groups.size() - MAX_BUTTONS, 0);
-					if (startNode.index > max)  // check bounds
-						startNode = Opsu.groups.getBaseNode(max);
-					else
-						startNode = Opsu.groups.getBaseNode(startNode.index);
+				// clicked node is a new group
+				else {
+					SoundController.playSound(SoundController.SOUND_MENUCLICK);
+					setFocus(node, -1, false);
+					break;
 				}
-				SoundController.playSound(SoundController.SOUND_MENUCLICK);
-				setFocus(node, -1, false);
-
-				break;
 			}
 		}
 	}
@@ -467,8 +450,7 @@ public class SongMenu extends BasicGameState {
 			OsuGroupNode next = focusNode.next;
 			if (next != null) {
 				SoundController.playSound(SoundController.SOUND_MENUCLICK);
-				setFocus(next, (next.index == focusNode.index) ? 0 : 1, false);
-				changeIndex(1);
+				setFocus(next, 0, false);
 			}
 			break;
 		case Input.KEY_LEFT:
@@ -477,21 +459,7 @@ public class SongMenu extends BasicGameState {
 			OsuGroupNode prev = focusNode.prev;
 			if (prev != null) {
 				SoundController.playSound(SoundController.SOUND_MENUCLICK);
-				if (prev.index == focusNode.index && prev.osuFileIndex < 0) {
-					// skip the group node
-					prev = prev.prev;
-					if (prev == null)  // this is the first node
-						break;
-					setFocus(prev, prev.osuFiles.size(), true);
-
-					// move the start node forward if off the screen
-					int size = prev.osuFiles.size();
-					while (size-- >= MAX_BUTTONS)
-						startNode = startNode.next;
-				} else {
-					setFocus(prev, 0, false);
-					changeIndex(-1);
-				}
+				setFocus(prev, (prev.index == focusNode.index) ? 0 : prev.osuFiles.size() - 1, false);
 			}
 			break;
 		case Input.KEY_NEXT:
@@ -576,35 +544,59 @@ public class SongMenu extends BasicGameState {
 	 * Sets a new focus node.
 	 * @param node the base node; it will be expanded if it isn't already
 	 * @param pos the OsuFile element to focus; if out of bounds, it will be randomly chosen
-	 * @param flag if true, startNode will be set to the song group node
+	 * @param flag if true, startNode will be set to the first node in the group
 	 * @return the old focus node
 	 */
 	public OsuGroupNode setFocus(OsuGroupNode node, int pos, boolean flag) {
 		if (node == null)
 			return null;
-		
+
 		OsuGroupNode oldFocus = focusNode;
 
 		// expand node before focusing it
-		if (node.index != Opsu.groups.getExpandedIndex())
-			Opsu.groups.expand(node.index);
+		int expandedIndex = Opsu.groups.getExpandedIndex();
+		if (node.index != expandedIndex) {
+			node = Opsu.groups.expand(node.index);
+
+			// if start node was previously expanded, move it
+			if (startNode != null && startNode.index == expandedIndex)
+				startNode = node;
+		}
 
 		// check pos bounds
 		int length = node.osuFiles.size();
-		if (pos < 0 || pos > length)  // set a random pos
-			pos = (int) (Math.random() * length) + 1;
+		if (pos < 0 || pos > length - 1)  // set a random pos
+			pos = (int) (Math.random() * length);
 
-		if (flag)
+		// change the focus node
+		if (flag || (startNode.index == 0 && startNode.prev == null))
 			startNode = node;
 		focusNode = Opsu.groups.getNode(node, pos);
 		MusicController.play(focusNode.osuFiles.get(focusNode.osuFileIndex), true);
 
 		// check startNode bounds
-		if (focusNode.index - startNode.index == MAX_BUTTONS - 1)
+		while (startNode.index >= Opsu.groups.size() + length - MAX_BUTTONS && startNode.prev != null)
+			startNode = startNode.prev;
+
+		// make sure focusNode is on the screen (TODO: cleanup...)
+		int val = focusNode.index + focusNode.osuFileIndex - (startNode.index + MAX_BUTTONS) + 1;
+		if (val > 0)  // below screen
+			changeIndex(val);
+		else {  // above screen
+			if (focusNode.index == startNode.index) {
+				val = focusNode.index + focusNode.osuFileIndex - (startNode.index + startNode.osuFileIndex);
+				if (val < 0)
+					changeIndex(val);
+			} else if (startNode.index > focusNode.index) {
+				val = focusNode.index - focusNode.osuFiles.size() + focusNode.osuFileIndex - startNode.index + 1;
+				if (val < 0)
+					changeIndex(val);
+			}
+		}
+
+		// if start node is expanded and on group node, move it
+		if (startNode.index == focusNode.index && startNode.osuFileIndex == -1)
 			changeIndex(1);
-		while (startNode.index >= Opsu.groups.size() + length + 1 - MAX_BUTTONS &&
-				startNode.prev != null)
-			changeIndex(-1);
 
 		return oldFocus;
 	}
