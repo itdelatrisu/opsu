@@ -569,7 +569,7 @@ public class SongMenu extends BasicGameState {
 			pos = (int) (Math.random() * length);
 
 		// change the focus node
-		if (flag || (startNode.index == 0 && startNode.prev == null))
+		if (flag || (startNode.index == 0 && startNode.osuFileIndex == -1 && startNode.prev == null))
 			startNode = node;
 		focusNode = Opsu.groups.getNode(node, pos);
 		MusicController.play(focusNode.osuFiles.get(focusNode.osuFileIndex), true);

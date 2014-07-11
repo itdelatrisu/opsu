@@ -185,6 +185,9 @@ public class SoundController {
 	 * Loads all sound files.
 	 */
 	public static void init() {
+		if (Options.isSoundDisabled())
+			return;
+
 		// TODO: support MP3 sounds?
 		currentFileIndex = 0;
 

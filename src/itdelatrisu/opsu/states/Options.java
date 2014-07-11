@@ -143,7 +143,8 @@ public class Options extends BasicGameState {
 		FIXED_AR,
 		FIXED_OD,
 		LOAD_VERBOSE,
-		CHECKPOINT;
+		CHECKPOINT,
+		DISABLE_SOUNDS;
 	};
 
 	/**
@@ -197,7 +198,8 @@ public class Options extends BasicGameState {
 		GameOption.MUSIC_VOLUME,
 		GameOption.EFFECT_VOLUME,
 		GameOption.HITSOUND_VOLUME,
-		GameOption.MUSIC_OFFSET
+		GameOption.MUSIC_OFFSET,
+		GameOption.DISABLE_SOUNDS
 	};
 
 	/**
@@ -365,6 +367,15 @@ public class Options extends BasicGameState {
 	 * Track checkpoint time, in seconds.
 	 */
 	private static int checkpoint = 0;
+
+	/**
+	 * Whether or not to disable all sounds.
+	 * This will prevent SoundController from loading sound files.
+	 * <p>
+	 * By default, sound is disabled on Linux due to possible driver issues.
+	 */
+	private static boolean disableSound =
+			(System.getProperty("os.name").toLowerCase().indexOf("linux") > -1);
 
 	/**
 	 * Game option coordinate modifiers (for drawing).
@@ -616,6 +627,9 @@ public class Options extends BasicGameState {
 		case LOAD_VERBOSE:
 			loadVerbose = !loadVerbose;
 			break;
+		case DISABLE_SOUNDS:
+			disableSound = !disableSound;
+			break;
 		default:
 			break;
 		}
@@ -813,6 +827,12 @@ public class Options extends BasicGameState {
 			drawOption(pos, "Music Offset",
 					String.format("%dms", musicOffset),
 					"Adjust this value if hit objects are out of sync."
+			);
+			break;
+		case DISABLE_SOUNDS:
+			drawOption(pos, "Disable All Sound Effects",
+					disableSound ? "Yes" : "No",
+					"May resolve Linux sound driver issues.  Requires a restart."
 			);
 			break;
 		case BACKGROUND_DIM:
@@ -1126,6 +1146,12 @@ public class Options extends BasicGameState {
 	public static int getCheckpoint() { return checkpoint * 1000; }
 
 	/**
+	 * Returns whether or not all sound effects are disabled.
+	 * @return true if disabled
+	 */
+	public static boolean isSoundDisabled() { return disableSound; }
+
+	/**
 	 * Sets the track checkpoint time, if within bounds.
 	 * @param time the track position (in ms)
 	 * @return true if within bounds
@@ -1273,6 +1299,9 @@ public class Options extends BasicGameState {
 					if (i >= -500 && i <= 500)
 						musicOffset = i;
 					break;
+				case "DisableSound":
+					disableSound = Boolean.parseBoolean(value);
+					break;
 				case "DimLevel":
 					i = Integer.parseInt(value);
 					if (i >= 0 && i <= 100)
@@ -1366,6 +1395,8 @@ public class Options extends BasicGameState {
 			writer.write(String.format("VolumeHitSound = %d", hitSoundVolume));
 			writer.newLine();
 			writer.write(String.format("Offset = %d", musicOffset));
+			writer.newLine();
+			writer.write(String.format("DisableSound = %b", disableSound));
 			writer.newLine();
 			writer.write(String.format("DimLevel = %d", backgroundDim));
 			writer.newLine();
