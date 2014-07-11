@@ -34,6 +34,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
+import org.newdawn.slick.AppGameContainer;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
@@ -240,8 +241,12 @@ public class Options extends BasicGameState {
 		{ 1280, 960 },
 		{ 1366, 768 },
 		{ 1440, 900 },
+		{ 1600, 900 },
 		{ 1680, 1050 },
-		{ 1920, 1080 }
+		{ 1920, 1080 },
+		{ 1920, 1200 },
+		{ 2560, 1440 },
+		{ 2560, 1600 }
 	};
 
 	/**
@@ -563,7 +568,11 @@ public class Options extends BasicGameState {
 		// options (click only)
 		switch (getClickedOption(y)) {
 		case SCREEN_RESOLUTION:
-			resolutionIndex = (resolutionIndex + 1) % resolutions.length;
+			do {
+				resolutionIndex = (resolutionIndex + 1) % resolutions.length;
+			} while (resolutionIndex != 0 &&
+					(container.getScreenWidth() < resolutions[resolutionIndex][0] ||
+					 container.getScreenHeight() < resolutions[resolutionIndex][1]));
 			break;
 //		case FULLSCREEN:
 //			fullscreen = !fullscreen;
@@ -993,10 +1002,26 @@ public class Options extends BasicGameState {
 	public static String getScreenshotFormat() { return screenshotFormat[screenshotFormatIndex]; }
 
 	/**
-	 * Returns the screen resolution.
-	 * @return an array containing the resolution [width, height]
+	 * Sets the container size and makes the window borderless if the container
+	 * size is identical to the screen resolution.
+	 * <p>
+	 * If the configured resolution is larger than the screen size, the smallest
+	 * available resolution will be used.
+	 * @param app the game container
+	 * @throws SlickException failure to set display mode
 	 */
-	public static int[] getContainerSize() { return resolutions[resolutionIndex]; }
+	public static void setDisplayMode(AppGameContainer app) throws SlickException {
+		int screenWidth = app.getScreenWidth();
+		int screenHeight = app.getScreenHeight();
+		if (screenWidth < resolutions[resolutionIndex][0] || screenHeight < resolutions[resolutionIndex][1])
+			resolutionIndex = 0;
+
+		int containerWidth = resolutions[resolutionIndex][0];
+		int containerHeight = resolutions[resolutionIndex][1];
+		app.setDisplayMode(containerWidth, containerHeight, false);
+		if (screenWidth == containerWidth && screenHeight == containerHeight)
+			System.setProperty("org.lwjgl.opengl.Window.undecorated", "true");
+	}
 
 //	/**
 //	 * Returns whether or not fullscreen mode is enabled.

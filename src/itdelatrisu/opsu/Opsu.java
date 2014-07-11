@@ -142,8 +142,7 @@ public class Opsu extends StateBasedGame {
 			AppGameContainer app = new AppGameContainer(opsu);
 
 			// basic game settings
-			int[] containerSize = Options.getContainerSize();
-			app.setDisplayMode(containerSize[0], containerSize[1], false);
+			Options.setDisplayMode(app);
 			String[] icons = { "icon16.png", "icon32.png" };
 			app.setIcons(icons);
 
