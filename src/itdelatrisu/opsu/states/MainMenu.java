@@ -322,10 +322,7 @@ public class MainMenu extends BasicGameState {
 
 		// other button actions (if visible)
 		else if (logoClicked) {
-			if (logo.contains(x, y)) {
-				SoundController.playSound(SoundController.SOUND_MENUHIT);
-				logoTimer = MOVE_DELAY;
-			} else if (playButton.contains(x, y)) {
+			if (logo.contains(x, y) || playButton.contains(x, y)) {
 				SoundController.playSound(SoundController.SOUND_MENUHIT);
 				game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 			} else if (exitButton.contains(x, y)) {
