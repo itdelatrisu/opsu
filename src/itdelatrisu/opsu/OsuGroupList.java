@@ -135,7 +135,7 @@ public class OsuGroupList {
 	 */
 	public OsuGroupNode getRandomNode() {
 		OsuGroupNode node = getBaseNode((int) (Math.random() * size()));
-		if (node.index == expandedIndex)  // don't choose an expanded group node
+		if (node != null && node.index == expandedIndex)  // don't choose an expanded group node
 			node = node.next;
 		return node;
 	}

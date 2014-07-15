@@ -606,7 +606,7 @@ public class SongMenu extends BasicGameState {
 	 * @param osu the OsuFile to send to the game
 	 */
 	private void startGame() {
-		if (MusicController.isConverting())
+		if (MusicController.isTrackLoading())
 			return;
 
 		SoundController.playSound(SoundController.SOUND_MENUHIT);

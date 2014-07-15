@@ -188,7 +188,7 @@ public class MainMenu extends BasicGameState {
 		g.setColor(Utils.COLOR_BLACK_ALPHA);
 		g.fillRoundRect(width - 168, 54, 148, 5, 4);
 		g.setColor(Color.white);
-		if (!MusicController.isConverting())
+		if (!MusicController.isTrackLoading())
 			g.fillRoundRect(width - 168, 54,
 				148f * MusicController.getPosition() / MusicController.getTrackLength(), 5, 4);
 
@@ -197,7 +197,7 @@ public class MainMenu extends BasicGameState {
 		int lineHeight = Utils.FONT_MEDIUM.getLineHeight();
 		g.drawString(String.format("Loaded %d songs and %d beatmaps.",
 				Opsu.groups.size(), Opsu.groups.getMapCount()), 25, 25);
-		if (MusicController.isConverting())
+		if (MusicController.isTrackLoading())
 			g.drawString("Track loading...", 25, 25 + lineHeight);
 		else if (MusicController.trackExists()) {
 			g.drawString((MusicController.isPlaying()) ? "Now Playing:" : "Paused:", 25, 25 + lineHeight);
@@ -290,7 +290,7 @@ public class MainMenu extends BasicGameState {
 		if (musicPlay.contains(x, y)) {
 			if (MusicController.isPlaying())
 				MusicController.pause();
-			else if (!MusicController.isConverting())
+			else if (!MusicController.isTrackLoading())
 				MusicController.resume();
 		} else if (musicNext.contains(x, y)) {
 			SongMenu menu = (SongMenu) game.getState(Opsu.STATE_SONGMENU);

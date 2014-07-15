@@ -56,9 +56,9 @@ public class MusicController {
 	private static File wavFile;
 
 	/**
-	 * Thread for MP3 conversions.
+	 * Thread for loading tracks.
 	 */
-	private static Thread conversion;
+	private static Thread trackLoader;
 
 	// This class should not be instantiated.
 	private MusicController() {}
@@ -71,11 +71,11 @@ public class MusicController {
 		boolean play = (lastOsu == null || !osu.audioFilename.equals(lastOsu.audioFilename));
 		lastOsu = osu;
 		if (play) {
-			// TODO: properly interrupt instead of using deprecated conversion.stop();
-			// interrupt the conversion
-			if (isConverting())
-//				conversion.interrupt();
-				conversion.stop();
+			// TODO: properly interrupt instead of using deprecated Thread.stop();
+			// interrupt the conversion/track loading
+			if (isTrackLoading())
+//				trackLoader.interrupt();
+				trackLoader.stop();
 
 			if (wavFile != null)
 				wavFile.delete();
@@ -85,11 +85,16 @@ public class MusicController {
 
 			switch (OsuParser.getExtension(osu.audioFilename.getName())) {
 			case "ogg":
-				loadTrack(osu.audioFilename, osu.previewTime, loop);
+				trackLoader = new Thread() {
+					@Override
+					public void run() {
+						loadTrack(osu.audioFilename, osu.previewTime, loop);
+					}
+				};
+				trackLoader.start();
 				break;
 			case "mp3":
-				// convert MP3 to WAV in a new conversion
-				conversion = new Thread() {
+				trackLoader = new Thread() {
 					@Override
 					public void run() {
 						convertMp3(osu.audioFilename);
@@ -97,7 +102,7 @@ public class MusicController {
 							loadTrack(wavFile, osu.previewTime, loop);
 					}
 				};
-				conversion.start();
+				trackLoader.start();
 				break;
 			default:
 				break;
@@ -149,10 +154,10 @@ public class MusicController {
 	}
 
 	/**
-	 * Returns true if a conversion is running.
+	 * Returns true if a track is being loaded.
 	 */
-	public static boolean isConverting() {
-		return (conversion != null && conversion.isAlive());
+	public static boolean isTrackLoading() {
+		return (trackLoader != null && trackLoader.isAlive());
 	}
 
 	/**
@@ -246,11 +251,11 @@ public class MusicController {
 
 	 /**
 	 * Gets the length of the track, in milliseconds.
-	 * Returns 0 if no file is loaded or an MP3 is currently being converted.
+	 * Returns 0 if no file is loaded or a track is currently being loaded.
 	 * @author bdk (http://slick.ninjacave.com/forum/viewtopic.php?t=2699)
 	 */
 	public static int getTrackLength() {
-		if (!trackExists() || isConverting())
+		if (!trackExists() || isTrackLoading())
 			return 0;
 
 		float duration = 0f;
@@ -273,10 +278,10 @@ public class MusicController {
 
 	/**
 	 * Gets the length of the track as a formatted string (M:SS).
-	 * Returns "--" if an MP3 is currently being converted.
+	 * Returns "--" if a track is currently being loaded.
 	 */
 	public static String getTrackLengthString() {
-		if (isConverting())
+		if (isTrackLoading())
 			return "...";
 
 		int duration = getTrackLength();

@@ -23,7 +23,7 @@ configuration file to the path of the root song directory.
 
 Note that beatmaps are typically delivered as OSZ files.  These can be extracted
 with any ZIP tool, and opsu! will automatically extract them into the songs
-folder if placed in the root directory.
+folder if placed in the `SongPacks` directory.
 
 ### First Run
 The `Music Offset` value will likely need to be adjusted when playing for the

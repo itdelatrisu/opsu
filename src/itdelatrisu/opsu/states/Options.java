@@ -1193,7 +1193,8 @@ public class Options extends BasicGameState {
 		if (oszDir != null && oszDir.isDirectory())
 			return oszDir;
 
-		oszDir = new File("").getAbsoluteFile();
+		oszDir = new File("SongPacks/");
+		oszDir.mkdir();
 		return oszDir;
 	}
 
