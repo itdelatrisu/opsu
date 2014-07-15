@@ -69,7 +69,7 @@ public class MainMenuExit extends BasicGameState {
 		int width = container.getWidth();
 		int height = container.getHeight();
 
-		centerOffset = width / 8f;
+		centerOffset = width / 18f;
 
 		// initialize buttons
 		Image button = new Image("button-middle.png");
@@ -77,10 +77,10 @@ public class MainMenuExit extends BasicGameState {
 		Image buttonR = new Image("button-right.png");
 		button = button.getScaledCopy(width / 2, button.getHeight());
 		yesButton = new GUIMenuButton(button, buttonL, buttonR,
-				width / 2f - centerOffset, height * 0.2f
+				width / 2f + centerOffset, height * 0.2f
 		);
 		noButton = new GUIMenuButton(button, buttonL, buttonR,
-				width / 2f + centerOffset, height * 0.2f + (button.getHeight() * 1.25f)
+				width / 2f - centerOffset, height * 0.2f + (button.getHeight() * 1.25f)
 		);
 	}
 
@@ -120,9 +120,9 @@ public class MainMenuExit extends BasicGameState {
 		float yesX = yesButton.getX(), noX = noButton.getX();
 		float center = container.getWidth() / 2f;
 		if (yesX < center)
-			yesButton.setX(Math.min(yesX + (delta / 2f), center));
+			yesButton.setX(Math.min(yesX + (delta / 6f), center));
 		if (noX > center)
-			noButton.setX(Math.max(noX - (delta / 2f), center));
+			noButton.setX(Math.max(noX - (delta / 6f), center));
 	}
 
 	@Override

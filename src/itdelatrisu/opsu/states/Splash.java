@@ -81,26 +81,24 @@ public class Splash extends BasicGameState {
 		logo.drawCentered(container.getWidth() / 2, container.getHeight() / 2);
 
 		// display progress
-		if (Options.isLoadVerbose()) {
-			String unpackedFile = OszUnpacker.getCurrentFileName();
-			String parsedFile = OsuParser.getCurrentFileName();
-			String soundFile = SoundController.getCurrentFileName();
-			if (unpackedFile != null) {
-				drawLoadProgress(
-						String.format("Unpacking new beatmaps... (%d%%)", OszUnpacker.getUnpackerProgress()),
-						unpackedFile
-				);
-			} else if (parsedFile != null) {
-				drawLoadProgress(
-						String.format("Loading beatmaps... (%d%%)", OsuParser.getParserProgress()),
-						parsedFile
-				);
-			} else if (soundFile != null) {
-				drawLoadProgress(
-						String.format("Loading sounds... (%d%%)", SoundController.getLoadingProgress()),
-						soundFile
-				);
-			}
+		String unpackedFile = OszUnpacker.getCurrentFileName();
+		String parsedFile = OsuParser.getCurrentFileName();
+		String soundFile = SoundController.getCurrentFileName();
+		if (unpackedFile != null) {
+			drawLoadProgress(
+					g, OszUnpacker.getUnpackerProgress(),
+					"Unpacking new beatmaps...", unpackedFile
+			);
+		} else if (parsedFile != null) {
+			drawLoadProgress(
+					g, OsuParser.getParserProgress(),
+					"Loading beatmaps...", parsedFile
+			);
+		} else if (soundFile != null) {
+			drawLoadProgress(
+					g, SoundController.getLoadingProgress(),
+					"Loading sounds...", soundFile
+			);
 		}
 	}
 
@@ -161,13 +159,23 @@ public class Splash extends BasicGameState {
 
 	/**
 	 * Draws loading progress.
-	 * @param progress the progress text
+	 * @param g the graphics context
+	 * @param progress the completion percentage
+	 * @param text the progress text
 	 * @param file the file being loaded
 	 */
-	private void drawLoadProgress(String progress, String file) {
+	private void drawLoadProgress(Graphics g, int progress, String text, String file) {
+		g.setColor(Color.white);
+		g.setFont(Utils.FONT_MEDIUM);
 		int lineY = container.getHeight() - 25;
 		int lineOffsetY = Utils.FONT_MEDIUM.getLineHeight();
-		Utils.FONT_MEDIUM.drawString(25, lineY - (lineOffsetY * 2), progress, Color.white);
-		Utils.FONT_MEDIUM.drawString(25, lineY - lineOffsetY, file, Color.white);
+
+		if (Options.isLoadVerbose()) {
+			g.drawString(String.format("%s (%d%%)", text, progress), 25, lineY - (lineOffsetY * 2));
+			g.drawString(file, 25, lineY - lineOffsetY);
+		} else {
+			g.drawString(text, 25, lineY - (lineOffsetY * 2));
+			g.fillRect(25, lineY - (lineOffsetY / 2f), (container.getWidth() - 50) * progress / 100f, lineOffsetY / 4f);
+		}
 	}
 }

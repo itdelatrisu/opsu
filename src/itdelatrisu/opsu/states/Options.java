@@ -359,9 +359,9 @@ public class Options extends BasicGameState {
 		fixedAR = 0f, fixedOD = 0f;
 
 	/**
-	 * Whether or not to render loading text in the splash screen.
+	 * Whether or not to display the files being loaded in the splash screen.
 	 */
-	private static boolean loadVerbose = true;
+	private static boolean loadVerbose = false;
 
 	/**
 	 * Track checkpoint time, in seconds.
@@ -800,9 +800,9 @@ public class Options extends BasicGameState {
 			);
 			break;
 		case LOAD_VERBOSE:
-			drawOption(pos, "Display Loading Text",
+			drawOption(pos, "Show Detailed Loading Progress",
 					loadVerbose ? "Yes" : "No",
-					"Display loading progress in the splash screen."
+					"Display more specific loading information in the splash screen."
 			);
 			break;
 		case MUSIC_VOLUME:

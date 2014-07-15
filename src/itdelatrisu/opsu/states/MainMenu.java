@@ -262,7 +262,7 @@ public class MainMenu extends BasicGameState {
 
 			// move back to original location
 			if (logo.getX() < container.getWidth() / 2) {
-				logo.setX(logo.getX() + (delta / 2f));
+				logo.setX(logo.getX() + (delta / 3f));
 				if (logo.getX() > container.getWidth() / 2)
 					logo.setX(container.getWidth() / 2);
 			}
