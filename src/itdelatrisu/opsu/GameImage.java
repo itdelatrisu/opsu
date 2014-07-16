@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with opsu!.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package itdelatrisu.opsu;
 
 import itdelatrisu.opsu.states.Options;
@@ -150,6 +151,7 @@ public enum GameImage {
 
 	/**
 	 * Constructor.
+	 * @param filename the image file name
 	 */
 	GameImage(String filename) {
 		this.filename = filename;

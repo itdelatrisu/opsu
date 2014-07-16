@@ -19,12 +19,12 @@
 package itdelatrisu.opsu.objects;
 
 import itdelatrisu.opsu.GameImage;
+import itdelatrisu.opsu.GameMod;
 import itdelatrisu.opsu.GameScore;
 import itdelatrisu.opsu.MusicController;
 import itdelatrisu.opsu.OsuHitObject;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.states.Game;
-import itdelatrisu.opsu.states.Options;
 
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
@@ -161,7 +161,7 @@ public class Circle {
 	public boolean update(boolean overlap) {
 		int trackPosition = MusicController.getPosition();
 		int[] hitResultOffset = game.getHitResultOffsets();
-		boolean isAutoMod = Options.isModActive(Options.MOD_AUTO);
+		boolean isAutoMod = GameMod.AUTO.isActive();
 
 		if (overlap || trackPosition > hitObject.time + hitResultOffset[GameScore.HIT_50]) {
 			if (isAutoMod)  // "auto" mod: catch any missed notes due to lag

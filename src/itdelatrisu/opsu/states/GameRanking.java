@@ -19,6 +19,7 @@
 package itdelatrisu.opsu.states;
 
 import itdelatrisu.opsu.GUIMenuButton;
+import itdelatrisu.opsu.GameMod;
 import itdelatrisu.opsu.GameScore;
 import itdelatrisu.opsu.MusicController;
 import itdelatrisu.opsu.Opsu;
@@ -107,11 +108,11 @@ public class GameRanking extends BasicGameState {
 		score.drawRankingElements(g, width, height);
 
 		// game mods
-		for (int i = Options.MOD_MAX - 1; i >= 0; i--) {
-			if (Options.isModActive(i)) {
-				Image modImage = Options.getModImage(i);
+		for (GameMod mod : GameMod.valuesReversed()) {
+			if (mod.isActive()) {
+				Image modImage = mod.getImage();
 				modImage.draw(
-						(width * 0.75f) + ((i - (Options.MOD_MAX / 2)) * modImage.getWidth() / 3f),
+						(width * 0.75f) + ((mod.getID() - (GameMod.size() / 2)) * modImage.getWidth() / 3f),
 						height / 2f
 				);
 			}

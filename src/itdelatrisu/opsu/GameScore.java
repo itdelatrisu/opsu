@@ -503,13 +503,13 @@ public class GameScore {
 		}
 
 		// mod icons
-		if ((firstObject && trackPosition < firstObjectTime) || Options.isModActive(Options.MOD_AUTO)) {
-			int modWidth = Options.getModImage(0).getWidth();
+		if ((firstObject && trackPosition < firstObjectTime) || GameMod.AUTO.isActive()) {
+			int modWidth = GameMod.AUTO.getImage().getWidth();
 			float modX = (width * 0.98f) - modWidth;
-			for (int i = Options.MOD_MAX - 1, modCount = 0; i >= 0; i--) {
-				if (Options.isModActive(i)) {
-					Image modImage = Options.getModImage(i);
-					modImage.draw(
+			int modCount = 0;
+			for (GameMod mod : GameMod.valuesReversed()) {
+				if (mod.isActive()) {
+					mod.getImage().draw(
 							modX - (modCount * (modWidth / 2f)),
 							symbolHeight + circleDiameter + 10
 					);
@@ -702,9 +702,7 @@ public class GameScore {
 	 * If "No Fail" or "Auto" mods are active, this will always return true.
 	 */
 	public boolean isAlive() {
-		return (health > 0f ||
-				Options.isModActive(Options.MOD_NO_FAIL) ||
-				Options.isModActive(Options.MOD_AUTO));
+		return (health > 0f || GameMod.NO_FAIL.isActive() || GameMod.AUTO.isActive());
 	}
 
 	/**
@@ -816,7 +814,7 @@ public class GameScore {
 		if (combo >= 20)
 			SoundController.playSound(SoundController.SOUND_COMBOBREAK);
 		combo = 0;
-		if (Options.isModActive(Options.MOD_SUDDEN_DEATH))
+		if (GameMod.SUDDEN_DEATH.isActive())
 			health = 0f;
 	}
 
@@ -906,11 +904,11 @@ public class GameScore {
 
 			// game mod score multipliers
 			float modMultiplier = 1f;
-			if (Options.isModActive(Options.MOD_NO_FAIL))
+			if (GameMod.NO_FAIL.isActive())
 				modMultiplier *= 0.5f;
-			if (Options.isModActive(Options.MOD_HARD_ROCK))
+			if (GameMod.HARD_ROCK.isActive())
 				modMultiplier *= 1.06f;
-			if (Options.isModActive(Options.MOD_SPUN_OUT))
+			if (GameMod.SPUN_OUT.isActive())
 				modMultiplier *= 0.9f;
 			// not implemented:
 			// EASY (0.5x), HALF_TIME (0.3x),

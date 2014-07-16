@@ -19,13 +19,13 @@
 package itdelatrisu.opsu.objects;
 
 import itdelatrisu.opsu.GameImage;
+import itdelatrisu.opsu.GameMod;
 import itdelatrisu.opsu.GameScore;
 import itdelatrisu.opsu.MusicController;
 import itdelatrisu.opsu.OsuHitObject;
 import itdelatrisu.opsu.SoundController;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.states.Game;
-import itdelatrisu.opsu.states.Options;
 
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
@@ -154,8 +154,7 @@ public class Spinner {
 		int result;
 		float ratio = rotations / rotationsNeeded;
 		if (ratio >= 1.0f ||
-			Options.isModActive(Options.MOD_AUTO) ||
-			Options.isModActive(Options.MOD_SPUN_OUT)) {
+			GameMod.AUTO.isActive() || GameMod.SPUN_OUT.isActive()) {
 			result = GameScore.HIT_300;
 			SoundController.playSound(SoundController.SOUND_SPINNEROSU);
 		} else if (ratio >= 0.8f)
@@ -190,12 +189,12 @@ public class Spinner {
 		}
 
 		// spin automatically (TODO: correct rotation angles)
-		if (Options.isModActive(Options.MOD_AUTO)) {
+		if (GameMod.AUTO.isActive()) {
 			// "auto" mod (fast)
 			score.changeHealth(delta / 200f);  // maintain health (TODO)
 			rotate(delta / 20f);
 			return false;
-		} else if (Options.isModActive(Options.MOD_SPUN_OUT)) {
+		} else if (GameMod.SPUN_OUT.isActive()) {
 			// "spun out" mod (slow)
 			score.changeHealth(delta / 200f);  // maintain health (TODO)
 			rotate(delta / 32f);

@@ -19,13 +19,13 @@
 package itdelatrisu.opsu.objects;
 
 import itdelatrisu.opsu.GameImage;
+import itdelatrisu.opsu.GameMod;
 import itdelatrisu.opsu.GameScore;
 import itdelatrisu.opsu.MusicController;
 import itdelatrisu.opsu.OsuFile;
 import itdelatrisu.opsu.OsuHitObject;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.states.Game;
-import itdelatrisu.opsu.states.Options;
 
 import java.io.File;
 
@@ -497,7 +497,7 @@ public class Slider {
 		int trackPosition = MusicController.getPosition();
 		int[] hitResultOffset = game.getHitResultOffsets();	
 		int lastIndex = hitObject.sliderX.length - 1;
-		boolean isAutoMod = Options.isModActive(Options.MOD_AUTO);
+		boolean isAutoMod = GameMod.AUTO.isActive();
 
 		if (!sliderClicked) {
 			// start circle time passed

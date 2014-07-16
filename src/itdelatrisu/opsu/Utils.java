@@ -130,6 +130,9 @@ public class Utils {
 		container.getInput().enableKeyRepeat();
 		container.setAlwaysRender(true);
 
+		int width = container.getWidth();
+		int height = container.getHeight();
+
 		// set the cursor
 		try {
 			// hide the native cursor
@@ -141,7 +144,6 @@ public class Utils {
 		loadCursor();
 
 		// create fonts
-		int height = container.getHeight();
 		float fontBase;
 		if (height <= 600)
 			fontBase = 9f;
@@ -161,8 +163,12 @@ public class Utils {
 		FONT_SMALL   = new TrueTypeFont(font.deriveFont(fontBase), false);
 
 		// set default game images
-		for (GameImage o : GameImage.values())
-			o.setDefaultImage();
+		for (GameImage img : GameImage.values())
+			img.setDefaultImage();
+
+		// initialize game mods
+		for (GameMod mod : GameMod.values())
+			mod.init(width, height);
 
 		// tab image
 		tab = new Image("selection-tab.png");

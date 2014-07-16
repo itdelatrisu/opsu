@@ -19,6 +19,7 @@
 package itdelatrisu.opsu.states;
 
 import itdelatrisu.opsu.GUIMenuButton;
+import itdelatrisu.opsu.GameMod;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.SoundController;
 import itdelatrisu.opsu.Utils;
@@ -94,27 +95,6 @@ public class Options extends BasicGameState {
 	 * The current skin directory (for user skins).
 	 */
 	private static File skinDir;
-
-	/**
-	 * Game mods.
-	 */
-	public static final int
-		MOD_NO_FAIL       = 0,
-		MOD_HARD_ROCK     = 1,
-		MOD_SUDDEN_DEATH  = 2,
-		MOD_SPUN_OUT      = 3,
-		MOD_AUTO          = 4,
-		MOD_MAX           = 5;  // not a mod
-
-	/**
-	 * Whether a mod is active (indexed by MOD_* constants).
-	 */
-	private static boolean[] modsActive;
-
-	/**
-	 * Mod buttons.
-	 */
-	private static GUIMenuButton[] modButtons;
 
 	/**
 	 * Game options.
@@ -417,37 +397,6 @@ public class Options extends BasicGameState {
 				((width - subtextWidth - tab.getWidth()) / 2) / TAB_MAX);
 		for (int i = 0; i < optionTabs.length; i++)
 			optionTabs[i] = new GUIMenuButton(tab, tabX + (i * tabOffset), tabY);
-
-		// game mods
-		modsActive = new boolean[MOD_MAX];
-		modButtons = new GUIMenuButton[MOD_MAX];
-		Image noFailImage = new Image("selection-mod-nofail.png");
-		float modScale = (height * 0.12f) / noFailImage.getHeight();
-		noFailImage = noFailImage.getScaledCopy(modScale);
-		float modButtonOffsetX = noFailImage.getWidth() * 1.5f;
-		float modButtonX = (width / 2f) - (modButtonOffsetX * modButtons.length / 2.75f);
-		float modButtonY = (height * 0.8f) + (noFailImage.getHeight() / 2);
-		modButtons[MOD_NO_FAIL] = new GUIMenuButton(
-				noFailImage, modButtonX, modButtonY
-		);
-		modButtons[MOD_HARD_ROCK] = new GUIMenuButton(
-				new Image("selection-mod-hardrock.png").getScaledCopy(modScale),
-				modButtonX + modButtonOffsetX, modButtonY
-		);
-		modButtons[MOD_SUDDEN_DEATH] = new GUIMenuButton(
-				new Image("selection-mod-suddendeath.png").getScaledCopy(modScale),
-				modButtonX + (modButtonOffsetX * 2), modButtonY
-		);
-		modButtons[MOD_SPUN_OUT] = new GUIMenuButton(
-				new Image("selection-mod-spunout.png").getScaledCopy(modScale),
-				modButtonX + (modButtonOffsetX * 3), modButtonY
-		);
-		modButtons[MOD_AUTO] = new GUIMenuButton(
-				new Image("selection-mod-autoplay.png").getScaledCopy(modScale),
-				modButtonX + (modButtonOffsetX * 4), modButtonY
-		);
-		for (int i = 0; i < modButtons.length; i++)
-			modButtons[i].getImage().setAlpha(0.5f);
 	}
 
 	@Override
@@ -508,8 +457,8 @@ public class Options extends BasicGameState {
 
 		// game mods
 		Utils.FONT_LARGE.drawString(width / 30, height * 0.8f, "Game Mods:", Color.white);
-		for (int i = 0; i < modButtons.length; i++)
-			modButtons[i].draw();
+		for (GameMod mod : GameMod.values())
+			mod.draw();
 
 		Utils.getBackButton().draw();
 
@@ -551,26 +500,11 @@ public class Options extends BasicGameState {
 		}
 
 		// game mods
-		for (int i = 0; i < modButtons.length; i++) {
-			if (modButtons[i].contains(x, y)) {
-				boolean prev = modsActive[i];
-				toggleMod(i);
-
-				// mutually exclusive mods
-				if (modsActive[MOD_AUTO]) {
-					if (i == MOD_AUTO) {
-						if (modsActive[MOD_SPUN_OUT])
-							toggleMod(MOD_SPUN_OUT);
-						if (modsActive[MOD_SUDDEN_DEATH])
-							toggleMod(MOD_SUDDEN_DEATH);
-					} else if (i == MOD_SPUN_OUT || i == MOD_SUDDEN_DEATH) {
-						if (modsActive[i])
-							toggleMod(i);
-					}
-				} else if (modsActive[MOD_SUDDEN_DEATH] && modsActive[MOD_NO_FAIL])
-					toggleMod((i == MOD_SUDDEN_DEATH) ? MOD_NO_FAIL : MOD_SUDDEN_DEATH);
-
-				if (modsActive[i] != prev)
+		for (GameMod mod : GameMod.values()) {
+			if (mod.contains(x, y)) {
+				boolean prevState = mod.isActive();
+				mod.toggle(true);
+				if (mod.isActive() != prevState)
 					SoundController.playSound(SoundController.SOUND_MENUCLICK);
 				return;
 			}
@@ -960,30 +894,6 @@ public class Options extends BasicGameState {
 		}
 		return option;
 	}
-
-	/**
-	 * Toggles the active status of a game mod.
-	 * Note that this does not perform checks for mutual exclusivity.
-	 * @param mod the game mod (MOD_* constants)
-	 */
-	private static void toggleMod(int mod) {
-		modButtons[mod].getImage().setAlpha(modsActive[mod] ? 0.5f : 1.0f);
-		modsActive[mod] = !modsActive[mod];
-	}
-
-	/**
-	 * Returns whether or not a game mod is active.
-	 * @param mod the game mod (MOD_* constants)
-	 * @return true if the mod is active
-	 */
-	public static boolean isModActive(int mod) { return modsActive[mod]; }
-
-	/**
-	 * Returns the image associated with a game mod.
-	 * @param mod the game mod (MOD_* constants)
-	 * @return the associated image
-	 */
-	public static Image getModImage(int mod) { return modButtons[mod].getImage(); }
 
 	/**
 	 * Returns the target frame rate.

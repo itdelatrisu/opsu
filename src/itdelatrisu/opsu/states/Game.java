@@ -20,6 +20,7 @@ package itdelatrisu.opsu.states;
 
 import itdelatrisu.opsu.GUIMenuButton;
 import itdelatrisu.opsu.GameImage;
+import itdelatrisu.opsu.GameMod;
 import itdelatrisu.opsu.GameScore;
 import itdelatrisu.opsu.MusicController;
 import itdelatrisu.opsu.Opsu;
@@ -295,7 +296,7 @@ public class Game extends BasicGameState {
 					}
 				}
 
-				if (Options.isModActive(Options.MOD_AUTO))
+				if (GameMod.AUTO.isActive())
 					GameImage.UNRANKED.getImage().drawCentered(width / 2, height * 0.077f);
 				Utils.drawFPS();
 				Utils.drawCursor();
@@ -382,7 +383,7 @@ public class Game extends BasicGameState {
 		// draw OsuHitObjectResult objects
 		score.drawHitResults(trackPosition);
 
-		if (Options.isModActive(Options.MOD_AUTO))
+		if (GameMod.AUTO.isActive())
 			GameImage.UNRANKED.getImage().drawCentered(width / 2, height * 0.077f);
 
 		// returning from pause screen
@@ -494,7 +495,7 @@ public class Game extends BasicGameState {
 		}
 
 		// pause game if focus lost
-		if (!container.hasFocus() && !Options.isModActive(Options.MOD_AUTO)) {
+		if (!container.hasFocus() && !GameMod.AUTO.isActive()) {
 			if (pauseTime < 0) {
 				pausedMouseX = input.getMouseX();
 				pausedMouseY = input.getMouseY();
@@ -551,7 +552,7 @@ public class Game extends BasicGameState {
 			int trackPosition = MusicController.getPosition();
 			if (pauseTime < 0 && breakTime <= 0 &&
 				trackPosition >= osu.objects[0].time &&
-				!Options.isModActive(Options.MOD_AUTO)) {
+				!GameMod.AUTO.isActive()) {
 				pausedMouseX = input.getMouseX();
 				pausedMouseY = input.getMouseY();
 				pausePulse = 0f;
@@ -662,7 +663,7 @@ public class Game extends BasicGameState {
 		}
 
 		// "auto" mod: ignore user actions
-		if (Options.isModActive(Options.MOD_AUTO))
+		if (GameMod.AUTO.isActive())
 			return;
 
 		// circles
@@ -883,8 +884,8 @@ public class Game extends BasicGameState {
 			if (Options.getFixedHP() > 0f)
 				HPDrainRate = Options.getFixedHP();
 
-			// hard rock modifiers
-			if (Options.isModActive(Options.MOD_HARD_ROCK)) {
+			// "Hard Rock" modifiers
+			if (GameMod.HARD_ROCK.isActive()) {
 				circleSize = Math.min(circleSize * 1.4f, 10);
 				approachRate = Math.min(approachRate * 1.4f, 10);
 				overallDifficulty = Math.min(overallDifficulty * 1.4f, 10);
