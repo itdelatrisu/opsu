@@ -575,7 +575,7 @@ public class Slider {
 		if ((game.isInputKeyPressed() && distance < followCircleRadius) || isAutoMod) {
 			// mouse pressed and within follow circle
 			followCircleActive = true;
-			score.changeHealth(delta / 200f);
+			score.changeHealth(delta * GameScore.HP_DRAIN_MULTIPLIER);
 
 			// held during new repeat
 			if (isNewRepeat) {

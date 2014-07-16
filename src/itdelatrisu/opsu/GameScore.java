@@ -49,6 +49,11 @@ public class GameScore {
 		GRADE_MAX = 8;   // not a grade
 
 	/**
+	 * Delta multiplier for steady HP drain.
+	 */
+	public static final float HP_DRAIN_MULTIPLIER = 1 / 200f;
+
+	/**
 	 * Hit result types.
 	 */
 	public static final int
@@ -437,6 +442,7 @@ public class GameScore {
 			n /= 10;
 		}
 	}
+
 	/**
 	 * Draws a string of scoreSymbols.
 	 * @param str the string to draw
@@ -478,7 +484,7 @@ public class GameScore {
 	 */
 	public void drawGameElements(Graphics g, int mapLength, boolean breakPeriod, boolean firstObject) {
 		// score
-		drawSymbolString(String.format("%08d", scoreDisplay),
+		drawSymbolString((scoreDisplay < 100000000) ? String.format("%08d", scoreDisplay) : Long.toString(scoreDisplay),
 				width - 2, 0, 1.0f, true);
 
 		// score percentage
@@ -594,7 +600,7 @@ public class GameScore {
 		float rankResultScale = (height * 0.03f) / hitResults[HIT_300].getHeight();
 
 		// score
-		drawSymbolString((score / 100000000 == 0) ? String.format("%08d", score) : Long.toString(score),
+		drawSymbolString((score < 100000000) ? String.format("%08d", score) : Long.toString(score),
 				(int) (width * 0.18f), height / 6, symbolTextScale, false);
 
 		// result counts
@@ -688,7 +694,7 @@ public class GameScore {
 		health += percent;
 		if (health > 100f)
 			health = 100f;
-		if (health < 0f)
+		else if (health < 0f)
 			health = 0f;
 	}
 
@@ -904,6 +910,8 @@ public class GameScore {
 
 			// game mod score multipliers
 			float modMultiplier = 1f;
+			if (GameMod.EASY.isActive())
+				modMultiplier *= 0.5f;
 			if (GameMod.NO_FAIL.isActive())
 				modMultiplier *= 0.5f;
 			if (GameMod.HARD_ROCK.isActive())
@@ -911,8 +919,7 @@ public class GameScore {
 			if (GameMod.SPUN_OUT.isActive())
 				modMultiplier *= 0.9f;
 			// not implemented:
-			// EASY (0.5x), HALF_TIME (0.3x),
-			// DOUBLE_TIME (1.12x), HIDDEN (1.06x), FLASHLIGHT (1.12x)
+			// HALF_TIME (0.3x), DOUBLE_TIME (1.12x), HIDDEN (1.06x), FLASHLIGHT (1.12x)
 
 			/**
 			 * [SCORE FORMULA]

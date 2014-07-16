@@ -191,12 +191,12 @@ public class Spinner {
 		// spin automatically (TODO: correct rotation angles)
 		if (GameMod.AUTO.isActive()) {
 			// "auto" mod (fast)
-			score.changeHealth(delta / 200f);  // maintain health (TODO)
+			score.changeHealth(delta * GameScore.HP_DRAIN_MULTIPLIER);
 			rotate(delta / 20f);
 			return false;
 		} else if (GameMod.SPUN_OUT.isActive()) {
 			// "spun out" mod (slow)
-			score.changeHealth(delta / 200f);  // maintain health (TODO)
+			score.changeHealth(delta * GameScore.HP_DRAIN_MULTIPLIER);
 			rotate(delta / 32f);
 			return false;
 		}
@@ -215,7 +215,7 @@ public class Spinner {
 		if (lastAngle >= 0f) {  // skip initial clicks
 			float angleDiff = Math.abs(lastAngle - angle);
 			if (angleDiff < Math.PI / 2) {  // skip huge angle changes...
-				score.changeHealth(delta / 200f);  // maintain health (TODO)
+				score.changeHealth(delta * GameScore.HP_DRAIN_MULTIPLIER);
 				rotate(angleDiff);
 			}
 		}

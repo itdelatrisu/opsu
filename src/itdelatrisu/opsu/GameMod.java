@@ -29,11 +29,12 @@ import org.newdawn.slick.util.Log;
  * Game mods.
  */
 public enum GameMod {
-	NO_FAIL       (0, "selection-mod-nofail.png"),
-	HARD_ROCK     (1, "selection-mod-hardrock.png"),
-	SUDDEN_DEATH  (2, "selection-mod-suddendeath.png"),
-	SPUN_OUT      (3, "selection-mod-spunout.png"),
-	AUTO          (4, "selection-mod-autoplay.png");
+	EASY          (0, "selection-mod-easy.png"),
+	NO_FAIL       (1, "selection-mod-nofail.png"),
+	HARD_ROCK     (2, "selection-mod-hardrock.png"),
+	SUDDEN_DEATH  (3, "selection-mod-suddendeath.png"),
+	SPUN_OUT      (4, "selection-mod-spunout.png"),
+	AUTO          (5, "selection-mod-autoplay.png");
 
 	/**
 	 * The ID of the mod (used for positioning).
@@ -130,11 +131,18 @@ public enum GameMod {
 					if (active)
 						toggle(false);
 				}
-			} else if (SUDDEN_DEATH.isActive() && NO_FAIL.isActive()) {
+			}
+			if (SUDDEN_DEATH.isActive() && NO_FAIL.isActive()) {
 				if (this == SUDDEN_DEATH)
 					NO_FAIL.toggle(false);
 				else
 					SUDDEN_DEATH.toggle(false);
+			}
+			if (EASY.isActive() && HARD_ROCK.isActive()) {
+				if (this == EASY)
+					HARD_ROCK.toggle(false);
+				else
+					EASY.toggle(false);
 			}
 		}
 	}

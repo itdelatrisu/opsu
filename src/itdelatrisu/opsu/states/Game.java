@@ -187,6 +187,16 @@ public class Game extends BasicGameState {
 	 */
 	private boolean checkpointLoaded = false;
 
+	/**
+	 * Number of deaths, used if "Easy" mod is enabled.
+	 */
+	private byte deaths = 0;
+
+	/**
+	 * Track position at death, used if "Easy" mod is enabled.
+	 */
+	private int deathTime = -1;
+
 	// game-related variables
 	private GameContainer container;
 	private StateBasedGame game;
@@ -238,6 +248,8 @@ public class Game extends BasicGameState {
 		int trackPosition = MusicController.getPosition();
 		if (pauseTime > -1)  // returning from pause screen
 			trackPosition = pauseTime;
+		else if (deathTime > -1)  // "Easy" mod: health bar increasing
+			trackPosition = deathTime;
 
 		// checkpoint
 		if (checkpointLoaded) {
@@ -442,6 +454,16 @@ public class Game extends BasicGameState {
 			return;
 		}
 
+		// "Easy" mod: multiple "lives"
+		if (GameMod.EASY.isActive() && deathTime > -1) {
+			if (score.getHealth() < 99f)
+				score.changeHealth(delta / 10f);
+			else {
+				MusicController.resume();
+				deathTime = -1;
+			}
+		}
+
 		score.updateScoreDisplay(delta);
 
 		// map complete!
@@ -509,8 +531,18 @@ public class Game extends BasicGameState {
 		score.updateComboBurst(delta);
 
 		// drain health
-		score.changeHealth(delta / -200f);
+		score.changeHealth(delta * -1 * GameScore.HP_DRAIN_MULTIPLIER);
 		if (!score.isAlive()) {
+			// "Easy" mod
+			if (GameMod.EASY.isActive()) {
+				deaths++;
+				if (deaths < 3) {
+					deathTime = trackPosition;
+					MusicController.pause();
+					return;
+				}
+			}
+
 			// game over, force a restart
 			restart = RESTART_LOSE;
 			game.enterState(Opsu.STATE_GAMEPAUSEMENU);
@@ -748,6 +780,8 @@ public class Game extends BasicGameState {
 			countdown2Sound = false;
 			countdownGoSound = false;
 			checkpointLoaded = false;
+			deaths = 0;
+			deathTime = -1;
 
 			// load the first timingPoint
 			if (!osu.timingPoints.isEmpty()) {
@@ -890,6 +924,14 @@ public class Game extends BasicGameState {
 				approachRate = Math.min(approachRate * 1.4f, 10);
 				overallDifficulty = Math.min(overallDifficulty * 1.4f, 10);
 				HPDrainRate = Math.min(HPDrainRate * 1.4f, 10);
+			}
+
+			// "Easy" modifiers
+			else if (GameMod.EASY.isActive()) {
+				circleSize /= 2f;
+				approachRate /= 2f;
+				overallDifficulty /= 2f;
+				HPDrainRate /= 2f;
 			}
 
 			// initialize objects
