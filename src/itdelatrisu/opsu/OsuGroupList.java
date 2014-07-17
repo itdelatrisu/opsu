@@ -20,8 +20,7 @@ package itdelatrisu.opsu;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.Iterator;
 
 /**
  * Indexed, expanding, doubly-linked list data type for song groups.
@@ -55,12 +54,6 @@ public class OsuGroupList {
 	private int mapCount = 0;
 
 	/**
-	 * Song tags.
-	 * Each tag value is a HashSet which points song group ArrayLists.
-	 */
-	private HashMap<String, HashSet<ArrayList<OsuFile>>> tags;
-
-	/**
 	 * Current list of nodes.
 	 * (For searches; otherwise, a pointer to parsedNodes.)
 	 */
@@ -83,7 +76,6 @@ public class OsuGroupList {
 	public OsuGroupList() {
 		parsedNodes = new ArrayList<OsuGroupNode>();
 		nodes = parsedNodes;
-		tags = new HashMap<String, HashSet<ArrayList<OsuFile>>>();
 	}
 
 	/**
@@ -104,21 +96,6 @@ public class OsuGroupList {
 	 * Returns the total number of parsed maps (i.e. OsuFile objects).
 	 */
 	public int getMapCount() { return mapCount; }
-
-	/**
-	 * Adds a tag.
-	 * @param tag the tag string (key)
-	 * @param osuFiles the song group associated with the tag (value)
-	 */
-	public void addTag(String tag, ArrayList<OsuFile> osuFiles) {
-		tag = tag.toLowerCase();
-		HashSet<ArrayList<OsuFile>> tagSet = tags.get(tag);
-		if (tagSet == null) {
-			tagSet = new HashSet<ArrayList<OsuFile>>();
-			tags.put(tag, tagSet);
-		}
-		tagSet.add(osuFiles);
-	}
 
 	/**
 	 * Returns the OsuGroupNode at an index, disregarding expansions.
@@ -272,7 +249,7 @@ public class OsuGroupList {
 
 	/**
 	 * Creates a new list of song groups in which each group contains a match to a search query. 
-	 * @param query the search query (tag terms separated by spaces)
+	 * @param query the search query (terms separated by spaces)
 	 * @return false if query is the same as the previous one, true otherwise
 	 */
 	public boolean search(String query) {
@@ -284,48 +261,30 @@ public class OsuGroupList {
 		if (lastQuery != null && query.equals(lastQuery))
 			return false;
 		lastQuery = query;
+		String[] terms = query.split("\\s+");
 
 		// if empty query, reset to original list
-		if (query.isEmpty()) {
+		if (query.isEmpty() || terms.length < 1) {
 			nodes = parsedNodes;
 			return true;
 		}
 
-		// tag search: check if each word is contained in global tag structure
-		HashSet<ArrayList<OsuFile>> taggedGroups = new HashSet<ArrayList<OsuFile>>();
-		String[] terms = query.split("\\s+");
-		for (String term : terms) {
-			if (tags.containsKey(term))
-				taggedGroups.addAll(tags.get(term));  // add all matches
-		}
-
-		// traverse parsedNodes, comparing each element with the query
+		// build list from first search term
 		nodes = new ArrayList<OsuGroupNode>();
 		for (OsuGroupNode node : parsedNodes) {
-			// search: tags
-			if (taggedGroups.contains(node.osuFiles)) {
+			if (node.matches(terms[0])) {
 				nodes.add(node);
 				continue;
 			}
+		}
 
-			OsuFile osu = node.osuFiles.get(0);
-
-			// search: title, artist, creator, source, version (first OsuFile)
-			if (osu.title.toLowerCase().contains(query) ||
-				osu.artist.toLowerCase().contains(query) ||
-				osu.creator.toLowerCase().contains(query) ||
-				osu.source.toLowerCase().contains(query) ||
-				osu.version.toLowerCase().contains(query)) {
-				nodes.add(node);
-				continue;
-			}
-
-			// search: versions (all OsuFiles)
-			for (int i = 1; i < node.osuFiles.size(); i++) {
-				if (node.osuFiles.get(i).version.toLowerCase().contains(query)) {
-					nodes.add(node);
-					break;
-				}
+		// remove nodes from list if they don't match all remaining terms
+		for (int i = 1; i < terms.length; i++) {
+			Iterator<OsuGroupNode> iter = nodes.iterator();
+			while (iter.hasNext()) {
+				OsuGroupNode node = iter.next();
+				if (!node.matches(terms[i]))
+					iter.remove();
 			}
 		}
 

@@ -124,7 +124,6 @@ public class OsuParser {
 	 */
 	private static OsuFile parseFile(File file, ArrayList<OsuFile> osuFiles, boolean parseObjects) {
 		OsuFile osu = new OsuFile(file);
-		String tags = ""; // parse at end, only if valid OsuFile
 
 		try (BufferedReader in = new BufferedReader(new FileReader(file))) {
 
@@ -258,7 +257,7 @@ public class OsuParser {
 							osu.source = tokens[1];
 							break;
 						case "Tags":
-							tags = tokens[1];
+							osu.tags = tokens[1].toLowerCase();
 							break;
 						case "BeatmapID":
 							osu.beatmapID = Integer.parseInt(tokens[1]);
@@ -416,12 +415,6 @@ public class OsuParser {
 		// if no custom colors, use the default color scheme
 		if (osu.combo == null)
 			osu.combo = Utils.DEFAULT_COMBO;
-
-		// add tags
-		if (!tags.isEmpty()) {
-			for (String tag : tags.split(" "))
-				Opsu.groups.addTag(tag, osuFiles);
-		}
 
 		// parse hit objects now?
 		if (parseObjects)

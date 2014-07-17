@@ -186,4 +186,32 @@ public class OsuGroupNode implements Comparable<OsuGroupNode> {
 		else
 			return osuFiles.get(osuFileIndex).toString();
 	}
+
+	/**
+	 * Checks whether the node matches a given search query.
+	 * @param query the search term
+	 * @return true if title, artist, creator, source, version, or tag matches query
+	 */
+	public boolean matches(String query) {
+		OsuFile osu = osuFiles.get(0);
+
+		// search: title, artist, creator, source, version, tags (first OsuFile)
+		if (osu.title.toLowerCase().contains(query) ||
+			osu.artist.toLowerCase().contains(query) ||
+			osu.creator.toLowerCase().contains(query) ||
+			osu.source.toLowerCase().contains(query) ||
+			osu.version.toLowerCase().contains(query) ||
+			osu.tags.contains(query))
+			return true;
+
+		// search: version, tags (remaining OsuFiles)
+		for (int i = 1; i < osuFiles.size(); i++) {
+			osu = osuFiles.get(i);
+			if (osu.version.toLowerCase().contains(query) ||
+				osu.tags.contains(query))
+				return true;
+		}
+
+		return false;
+	}
 }

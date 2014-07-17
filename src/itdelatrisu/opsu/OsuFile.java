@@ -63,7 +63,7 @@ public class OsuFile implements Comparable<OsuFile> {
 	public String creator = "";                 // beatmap creator
 	public String version = "";                 // beatmap difficulty
 	public String source = "";                  // song source
-//	public String[] tags;                       // song tags, for searching -> different structure
+	public String tags = "";                    // song tags, for searching
 	public int beatmapID = 0;                   // beatmap ID
 	public int beatmapSetID = 0;                // beatmap set ID
 
