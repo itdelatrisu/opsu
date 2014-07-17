@@ -19,8 +19,12 @@
 package itdelatrisu.opsu;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Indexed, expanding, doubly-linked list data type for song groups.
@@ -42,6 +46,13 @@ public class OsuGroupList {
 	public static final String[] SORT_NAMES = {
 		"Title", "Artist", "Creator", "BPM"
 	};
+
+	/**
+	 * Search pattern for conditional expressions.
+	 */
+	private static final Pattern SEARCH_CONDITION_PATTERN = Pattern.compile(
+		"(ar|cs|od|hp|bpm|length)(=|==|>|>=|<|<=)((\\d*\\.)?\\d+)"
+	);
 
 	/**
 	 * List containing all parsed nodes.
@@ -261,30 +272,82 @@ public class OsuGroupList {
 		if (lastQuery != null && query.equals(lastQuery))
 			return false;
 		lastQuery = query;
-		String[] terms = query.split("\\s+");
+		LinkedList<String> terms = new LinkedList<String>(Arrays.asList(query.split("\\s+")));
 
 		// if empty query, reset to original list
-		if (query.isEmpty() || terms.length < 1) {
+		if (query.isEmpty() || terms.isEmpty()) {
 			nodes = parsedNodes;
 			return true;
 		}
 
-		// build list from first search term
-		nodes = new ArrayList<OsuGroupNode>();
-		for (OsuGroupNode node : parsedNodes) {
-			if (node.matches(terms[0])) {
-				nodes.add(node);
-				continue;
+		// find and remove any conditional search terms
+		LinkedList<String> condType     = new LinkedList<String>();
+		LinkedList<String> condOperator = new LinkedList<String>();
+		LinkedList<Float>  condValue    = new LinkedList<Float>();
+
+		Iterator<String> termIter = terms.iterator();
+		while (termIter.hasNext()) {
+			String term = termIter.next();
+			Matcher m = SEARCH_CONDITION_PATTERN.matcher(term);
+			if (m.find()) {
+				condType.add(m.group(1));
+				condOperator.add(m.group(2));
+				condValue.add(Float.parseFloat(m.group(3)));
+				termIter.remove();
 			}
 		}
 
-		// remove nodes from list if they don't match all remaining terms
-		for (int i = 1; i < terms.length; i++) {
-			Iterator<OsuGroupNode> iter = nodes.iterator();
-			while (iter.hasNext()) {
-				OsuGroupNode node = iter.next();
-				if (!node.matches(terms[i]))
-					iter.remove();
+		// build an initial list from first search term
+		nodes = new ArrayList<OsuGroupNode>();
+		if (terms.isEmpty()) {
+			// conditional term
+			String type = condType.remove();
+			String operator = condOperator.remove();
+			float value = condValue.remove();
+			for (OsuGroupNode node : parsedNodes) {
+				if (node.matches(type, operator, value))
+					nodes.add(node);
+			}
+		} else {
+			// normal term
+			String term = terms.remove();
+			for (OsuGroupNode node : parsedNodes) {
+				if (node.matches(term))
+					nodes.add(node);
+			}
+		}
+
+		// iterate through remaining normal search terms
+		while (!terms.isEmpty()) {
+			if (nodes.isEmpty())
+				return true;
+
+			String term = terms.remove();
+
+			// remove nodes from list if they don't match all terms
+			Iterator<OsuGroupNode> nodeIter = nodes.iterator();
+			while (nodeIter.hasNext()) {
+				OsuGroupNode node = nodeIter.next();
+				if (!node.matches(term))
+					nodeIter.remove();
+			}
+		}
+
+		// iterate through remaining conditional terms
+		while (!condType.isEmpty()) {
+			if (nodes.isEmpty())
+				return true;
+
+			String type = condType.remove();
+			String operator = condOperator.remove();
+			float value = condValue.remove();
+
+			// remove nodes from list if they don't match all terms
+			Iterator<OsuGroupNode> nodeIter = nodes.iterator();
+			while (nodeIter.hasNext()) {
+				OsuGroupNode node = nodeIter.next();
+				if (!node.matches(type, operator, value))
+					nodeIter.remove();
 			}
 		}
 

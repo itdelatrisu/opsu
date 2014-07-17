@@ -58,7 +58,7 @@ public class SongMenu extends BasicGameState {
 	/**
 	 * Delay time, in milliseconds, between each search.
 	 */
-	private static final int SEARCH_DELAY = 300;
+	private static final int SEARCH_DELAY = 500;
 
 	/**
 	 * Current start node (topmost menu entry).
@@ -314,7 +314,9 @@ public class SongMenu extends BasicGameState {
 						else
 							setFocus(Opsu.groups.getRandomNode(), -1, true);
 					} else {
-						searchResultString = String.format("%d matches found!", Opsu.groups.size());
+						int size = Opsu.groups.size();
+						searchResultString = String.format("%d match%s found!",
+								size, (size == 1) ? "" : "es");
 						setFocus(Opsu.groups.getRandomNode(), -1, true);
 					}
 					oldFocusNode = null;

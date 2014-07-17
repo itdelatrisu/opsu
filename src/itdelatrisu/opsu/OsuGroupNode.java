@@ -214,4 +214,44 @@ public class OsuGroupNode implements Comparable<OsuGroupNode> {
 
 		return false;
 	}
+
+	/**
+	 * Checks whether the node matches a given condition.
+	 * @param type the condition type (ar, cs, od, hp, bpm, length)
+	 * @param operator the operator (=/==, >, >=, <, <=)
+	 * @param value the value
+	 * @return true if the condition is met
+	 */
+	public boolean matches(String type, String operator, float value) {
+		for (OsuFile osu : osuFiles) {
+			// get value
+			float osuValue;
+			switch (type) {
+				case "ar": osuValue = osu.approachRate; break;
+				case "cs": osuValue = osu.circleSize; break;
+				case "od": osuValue = osu.overallDifficulty; break;
+				case "hp": osuValue = osu.HPDrainRate; break;
+				case "bpm": osuValue = osu.bpmMax; break;
+//				case "length": /* not implemented */ break;
+				default: return false;
+			}
+
+			// get operator
+			boolean met;
+			switch (operator) {
+				case "=":
+				case "==": met = (osuValue == value); break;
+				case ">":  met = (osuValue > value);  break;
+				case ">=": met = (osuValue >= value); break;
+				case "<":  met = (osuValue < value);  break;
+				case "<=": met = (osuValue <= value); break;
+				default: return false;
+			}
+
+			if (met)
+				return true;
+		}
+
+		return false;
+	}
 }
