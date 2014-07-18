@@ -190,7 +190,7 @@ public class MainMenu extends BasicGameState {
 		g.setColor(Color.white);
 		if (!MusicController.isTrackLoading())
 			g.fillRoundRect(width - 168, 54,
-				148f * MusicController.getPosition() / MusicController.getTrackLength(), 5, 4);
+				148f * MusicController.getPosition() / osu.endTime, 5, 4);
 
 		// draw text
 		g.setFont(Utils.FONT_MEDIUM);

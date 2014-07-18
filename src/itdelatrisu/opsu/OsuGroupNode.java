@@ -20,6 +20,7 @@ package itdelatrisu.opsu;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.concurrent.TimeUnit;
 
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Image;
@@ -101,6 +102,26 @@ public class OsuGroupNode implements Comparable<OsuGroupNode> {
 	}
 
 	/**
+	 * Compares two OsuGroupNode objects by length.
+	 * Uses the longest beatmap in each set for comparison.
+	 */
+	public static class LengthOrder implements Comparator<OsuGroupNode> {
+		@Override
+		public int compare(OsuGroupNode v, OsuGroupNode w) {
+			int vMax = 0, wMax = 0;
+			for (OsuFile osu : v.osuFiles) {
+				if (osu.endTime > vMax)
+					vMax = osu.endTime;
+			}
+			for (OsuFile osu : w.osuFiles) {
+				if (osu.endTime > wMax)
+					wMax = osu.endTime;
+			}
+			return Integer.compare(vMax, wMax);
+		}
+	}
+
+	/**
 	 * Sets a button background image.
 	 */
 	public static void setBackground(Image background) {
@@ -162,8 +183,10 @@ public class OsuGroupNode implements Comparable<OsuGroupNode> {
 		info[0] = osu.toString();
 		info[1] = String.format("Mapped by %s",
 				osu.creator);
-		info[2] = String.format("Length: %s  BPM: %s  Objects: %d",
-				MusicController.getTrackLengthString(),
+		info[2] = String.format("Length: %d:%02d  BPM: %s  Objects: %d",
+				TimeUnit.MILLISECONDS.toMinutes(osu.endTime),
+				TimeUnit.MILLISECONDS.toSeconds(osu.endTime) - 
+				TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(osu.endTime)),
 				(osu.bpmMax <= 0) ? "--" :
 				 ((osu.bpmMin == osu.bpmMax) ? osu.bpmMin : String.format("%d-%d", osu.bpmMin, osu.bpmMax)),
 				(osu.hitObjectCircle + osu.hitObjectSlider + osu.hitObjectSpinner));
@@ -232,7 +255,7 @@ public class OsuGroupNode implements Comparable<OsuGroupNode> {
 				case "od": osuValue = osu.overallDifficulty; break;
 				case "hp": osuValue = osu.HPDrainRate; break;
 				case "bpm": osuValue = osu.bpmMax; break;
-//				case "length": /* not implemented */ break;
+				case "length": osuValue = osu.endTime / 1000; break;
 				default: return false;
 			}
 

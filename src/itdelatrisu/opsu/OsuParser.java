@@ -131,7 +131,7 @@ public class OsuParser {
 			osu.timingPoints = new ArrayList<OsuTimingPoint>();
 
 			String line = in.readLine();
-			String tokens[];
+			String tokens[] = null;
 			while (line != null) {
 				line = line.trim();
 				if (!isValidLine(line)) {
@@ -386,6 +386,7 @@ public class OsuParser {
 						osu.combo = colors.toArray(new Color[colors.size()]);
 					break;
 				case "[HitObjects]":
+					int type = -1;
 					while ((line = in.readLine()) != null) {
 						line = line.trim();
 						if (!isValidLine(line))
@@ -394,7 +395,7 @@ public class OsuParser {
 							break;
 						/* Only type counts parsed at this time. */
 						tokens = line.split(",");
-						int type = Integer.parseInt(tokens[3]);
+						type = Integer.parseInt(tokens[3]);
 						if ((type & OsuHitObject.TYPE_CIRCLE) > 0)
 							osu.hitObjectCircle++;
 						else if ((type & OsuHitObject.TYPE_SLIDER) > 0)
@@ -402,6 +403,16 @@ public class OsuParser {
 						else //if ((type & OsuHitObject.TYPE_SPINNER) > 0)
 							osu.hitObjectSpinner++;
 					}
+
+					// map length = last object end time (TODO: end on slider?)
+					if ((type & OsuHitObject.TYPE_SPINNER) > 0) {
+						// some 'endTime' fields contain a ':' character (?)
+						int index = tokens[5].indexOf(':');
+						if (index != -1)
+							tokens[5] = tokens[5].substring(0, index);
+						osu.endTime = Integer.parseInt(tokens[5]);
+					} else
+						osu.endTime = Integer.parseInt(tokens[2]);
 					break;
 				default:
 					line = in.readLine();

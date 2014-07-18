@@ -59,7 +59,8 @@ public class Utils {
 		COLOR_GREEN_OBJECT    = new Color(26, 207, 26),
 		COLOR_BLUE_OBJECT     = new Color(46, 136, 248),
 		COLOR_RED_OBJECT      = new Color(243, 48, 77),
-		COLOR_ORANGE_OBJECT   = new Color(255, 200, 32);
+		COLOR_ORANGE_OBJECT   = new Color(255, 200, 32),
+		COLOR_YELLOW_ALPHA    = new Color(255, 255, 0, 0.4f);
 
 	/**
 	 * The default map colors, used when a map does not provide custom colors.

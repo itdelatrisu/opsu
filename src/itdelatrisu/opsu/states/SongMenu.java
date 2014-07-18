@@ -29,12 +29,14 @@ import itdelatrisu.opsu.SoundController;
 import itdelatrisu.opsu.Utils;
 
 import org.lwjgl.opengl.Display;
+import org.newdawn.slick.Animation;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
+import org.newdawn.slick.SpriteSheet;
 import org.newdawn.slick.gui.TextField;
 import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
@@ -128,6 +130,11 @@ public class SongMenu extends BasicGameState {
 	 */
 	private Image musicNote;
 
+	/**
+	 * Loader animation.
+	 */
+	private Animation loader;
+
 	// game-related variables
 	private GameContainer container;
 	private StateBasedGame game;
@@ -164,7 +171,7 @@ public class SongMenu extends BasicGameState {
 		Image tab = Utils.getTabImage();
 		float tabX = buttonX + (tab.getWidth() / 2f);
 		float tabY = (height * 0.15f) - (tab.getHeight() / 2f) - 2f;
-		float tabOffset = (width - buttonX) / sortTabs.length;
+		float tabOffset = (width - buttonX - tab.getWidth()) / (sortTabs.length - 1);
 		for (int i = 0; i < sortTabs.length; i++)
 			sortTabs[i] = new GUIMenuButton(tab, tabX + (i * tabOffset), tabY);
 
@@ -178,7 +185,7 @@ public class SongMenu extends BasicGameState {
 
 		search = new TextField(
 				container, Utils.FONT_DEFAULT,
-				(int) tabX + searchIcon.getWidth(), (int) ((height * 0.15f) - (tab.getHeight() * 5 / 2f)),
+				(int) tabX + searchIcon.getWidth(), (int) ((height * 0.15f) - (tab.getHeight() * 2.5f)),
 				(int) (buttonWidth / 2), Utils.FONT_DEFAULT.getHeight()
 		);
 		search.setBackgroundColor(Color.transparent);
@@ -191,8 +198,16 @@ public class SongMenu extends BasicGameState {
 		Image optionsIcon = new Image("options.png").getScaledCopy(iconScale);
 		optionsButton = new GUIMenuButton(optionsIcon, search.getX() - (optionsIcon.getWidth() * 1.5f), search.getY());
 
+		// music note
 		int musicNoteDim = (int) (Utils.FONT_LARGE.getHeight() * 0.75f + Utils.FONT_DEFAULT.getHeight());
 		musicNote = new Image("music-note.png").getScaledCopy(musicNoteDim, musicNoteDim);
+
+		// loader
+		SpriteSheet spr = new SpriteSheet(
+				new Image("loader.png").getScaledCopy(musicNoteDim / 48f),
+				musicNoteDim, musicNoteDim
+		);
+		loader = new Animation(spr, 50);
 	}
 
 	@Override
@@ -218,16 +233,19 @@ public class SongMenu extends BasicGameState {
 
 		// header
 		if (focusNode != null) {
-			musicNote.draw();
-			int musicNoteWidth = musicNote.getWidth();
-			int musicNoteHeight = musicNote.getHeight();
+			if (MusicController.isTrackLoading())
+				loader.draw();
+			else
+				musicNote.draw();
+			int iconWidth = musicNote.getWidth();
+			int iconHeight = musicNote.getHeight();
 
 			String[] info = focusNode.getInfo();
 			g.setColor(Color.white);
-			Utils.FONT_LARGE.drawString(musicNoteWidth + 5, -3, info[0]);
+			Utils.FONT_LARGE.drawString(iconWidth + 5, -3, info[0]);
 			Utils.FONT_DEFAULT.drawString(
-					musicNoteWidth + 5, -3 + Utils.FONT_LARGE.getHeight() * 0.75f, info[1]);
-			int headerY = musicNoteHeight - 3;
+					iconWidth + 5, -3 + Utils.FONT_LARGE.getHeight() * 0.75f, info[1]);
+			int headerY = iconHeight - 3;
 			Utils.FONT_BOLD.drawString(5, headerY, info[2]);
 			headerY += Utils.FONT_BOLD.getLineHeight() - 6;
 			Utils.FONT_DEFAULT.drawString(5, headerY, info[3]);

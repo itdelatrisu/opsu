@@ -115,11 +115,6 @@ public class Game extends BasicGameState {
 	private int[] hitResultOffset;
 
 	/**
-	 * Time, in milliseconds, between the first and last hit object.
-	 */
-	private int mapLength;
-
-	/**
 	 * Current break index in breaks ArrayList.
 	 */
 	private int breakIndex;
@@ -274,7 +269,7 @@ public class Game extends BasicGameState {
 					g.fillRect(0, height * 0.875f, width, height * 0.125f);
 				}
 
-				score.drawGameElements(g, mapLength, true, objectIndex == 0);
+				score.drawGameElements(g, true, objectIndex == 0);
 
 				if (breakLength >= 8000 &&
 					trackPosition - breakTime > 2000 &&
@@ -317,7 +312,7 @@ public class Game extends BasicGameState {
 		}
 
 		// game elements
-		score.drawGameElements(g, mapLength, false, objectIndex == 0);
+		score.drawGameElements(g, false, objectIndex == 0);
 
 		// skip beginning
 		if (objectIndex == 0 &&
@@ -624,7 +619,7 @@ public class Game extends BasicGameState {
 			// load checkpoint
 			if (input.isKeyDown(Input.KEY_RCONTROL) || input.isKeyDown(Input.KEY_LCONTROL)) {
 				int checkpoint = Options.getCheckpoint();
-				if (checkpoint == 0 || checkpoint > MusicController.getTrackLength())
+				if (checkpoint == 0 || checkpoint > osu.endTime)
 					break;  // invalid checkpoint
 				try {
 					restart = RESTART_MANUAL;
@@ -728,15 +723,6 @@ public class Game extends BasicGameState {
 			if (restart == RESTART_NEW) {
 				loadImages();
 				setMapModifiers();
-				
-				// calculate map length (TODO: end on slider?)
-				OsuHitObject lastObject = osu.objects[osu.objects.length - 1];
-				int endTime;
-				if ((lastObject.type & OsuHitObject.TYPE_SPINNER) > 0)
-					endTime = lastObject.endTime;
-				else
-					endTime = lastObject.time;
-				mapLength = endTime - osu.objects[0].time;
 			}
 
 			// initialize object maps

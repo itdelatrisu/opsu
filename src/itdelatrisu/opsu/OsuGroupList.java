@@ -38,13 +38,14 @@ public class OsuGroupList {
 		SORT_ARTIST  = 1,
 		SORT_CREATOR = 2,
 		SORT_BPM     = 3,
-		SORT_MAX     = 4;    // not a sort
+		SORT_LENGTH  = 4,
+		SORT_MAX     = 5;    // not a sort
 
 	/**
 	 * Sorting order names (indexed by SORT_* constants).
 	 */
 	public static final String[] SORT_NAMES = {
-		"Title", "Artist", "Creator", "BPM"
+		"Title", "Artist", "Creator", "BPM", "Length"
 	};
 
 	/**
@@ -239,6 +240,9 @@ public class OsuGroupList {
 			break;
 		case SORT_BPM:
 			Collections.sort(nodes, new OsuGroupNode.BPMOrder());
+			break;
+		case SORT_LENGTH:
+			Collections.sort(nodes, new OsuGroupNode.LengthOrder());
 			break;
 		}
 		expandedIndex = -1;

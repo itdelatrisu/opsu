@@ -96,6 +96,7 @@ public class OsuFile implements Comparable<OsuFile> {
 	public int hitObjectCircle = 0;             // number of circles
 	public int hitObjectSlider = 0;             // number of sliders
 	public int hitObjectSpinner = 0;            // number of spinners
+	public int endTime = -1;                    // last object end time (in ms)
 
 	/**
 	 * Constructor.

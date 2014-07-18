@@ -478,11 +478,10 @@ public class GameScore {
 	 *   scorebar, score, score percentage, map progress circle,
 	 *   mod icons, combo count, combo burst, and grade.
 	 * @param g the graphics context
-	 * @param mapLength the length of the beatmap (in ms)
 	 * @param breakPeriod if true, will not draw scorebar and combo elements, and will draw grade
 	 * @param firstObject true if the first hit object's start time has not yet passed
 	 */
-	public void drawGameElements(Graphics g, int mapLength, boolean breakPeriod, boolean firstObject) {
+	public void drawGameElements(Graphics g, boolean breakPeriod, boolean firstObject) {
 		// score
 		drawSymbolString((scoreDisplay < 100000000) ? String.format("%08d", scoreDisplay) : Long.toString(scoreDisplay),
 				width - 2, 0, 1.0f, true);
@@ -500,11 +499,19 @@ public class GameScore {
 		float circleDiameter = symbolHeight * 0.75f;
 		g.drawOval(circleX, symbolHeight, circleDiameter, circleDiameter);
 
-		int firstObjectTime = MusicController.getOsuFile().objects[0].time;
+		OsuFile osu = MusicController.getOsuFile();
+		int firstObjectTime = osu.objects[0].time;
 		int trackPosition = MusicController.getPosition();
 		if (trackPosition > firstObjectTime) {
+			// map progress (white)
 			g.fillArc(circleX, symbolHeight, circleDiameter, circleDiameter,
-					-90, -90 + (int) (360f * (trackPosition - firstObjectTime) / mapLength)
+					-90, -90 + (int) (360f * (trackPosition - firstObjectTime) / (osu.endTime - firstObjectTime))
+			);
+		} else {
+			// lead-in time (yellow)
+			g.setColor(Utils.COLOR_YELLOW_ALPHA);
+			g.fillArc(circleX, symbolHeight, circleDiameter, circleDiameter,
+					-90 + (int) (360f * trackPosition / firstObjectTime), -90
 			);
 		}
 

@@ -120,9 +120,9 @@ public class MainMenuExit extends BasicGameState {
 		float yesX = yesButton.getX(), noX = noButton.getX();
 		float center = container.getWidth() / 2f;
 		if (yesX < center)
-			yesButton.setX(Math.min(yesX + (delta / 6f), center));
+			yesButton.setX(Math.min(yesX + (delta / 5f), center));
 		if (noX > center)
-			noButton.setX(Math.max(noX - (delta / 6f), center));
+			noButton.setX(Math.max(noX - (delta / 5f), center));
 	}
 
 	@Override

@@ -23,7 +23,6 @@ import itdelatrisu.opsu.states.Options;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.nio.IntBuffer;
-import java.util.concurrent.TimeUnit;
 
 import javazoom.jl.converter.Converter;
 
@@ -247,48 +246,6 @@ public class MusicController {
 	 */
 	public static boolean setPosition(int position) {
 		return (trackExists() && player.setPosition(position / 1000f));
-	}
-
-	 /**
-	 * Gets the length of the track, in milliseconds.
-	 * Returns 0 if no file is loaded or a track is currently being loaded.
-	 * @author bdk (http://slick.ninjacave.com/forum/viewtopic.php?t=2699)
-	 */
-	public static int getTrackLength() {
-		if (!trackExists() || isTrackLoading())
-			return 0;
-
-		float duration = 0f;
-		try {
-			// get Music object's (private) Audio object reference
-			Field sound = player.getClass().getDeclaredField("sound");
-			sound.setAccessible(true);
-			Audio audio = (Audio) (sound.get(player));
-
-			// access Audio object's (private)'length' field
-			Field length = audio.getClass().getDeclaredField("length");
-			length.setAccessible(true);
-			duration = (float) (length.get(audio));
-		} catch (Exception e) {
-			Log.debug("Could not get track length.");
-			return 0;
-		}
-		return (int) (duration * 1000);
-	}
-
-	/**
-	 * Gets the length of the track as a formatted string (M:SS).
-	 * Returns "--" if a track is currently being loaded.
-	 */
-	public static String getTrackLengthString() {
-		if (isTrackLoading())
-			return "...";
-
-		int duration = getTrackLength();
-		return String.format("%d:%02d",
-			TimeUnit.MILLISECONDS.toMinutes(duration),
-		    TimeUnit.MILLISECONDS.toSeconds(duration) - 
-		    TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(duration)));
 	}
 
 	/**
