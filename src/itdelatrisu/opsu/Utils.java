@@ -18,7 +18,6 @@
 
 package itdelatrisu.opsu;
 
-import itdelatrisu.opsu.states.Game;
 import itdelatrisu.opsu.states.Options;
 
 import java.awt.Font;
@@ -322,12 +321,10 @@ public class Utils {
 		cursorTrail.drawCentered(x, y);
 
 		// increase the cursor size if pressed
+		int state = game.getCurrentStateID();
 		float scale = 1f;
-		if (game.getCurrentStateID() == Opsu.STATE_GAME &&
-			((Game) game.getState(Opsu.STATE_GAME)).isInputKeyPressed())
-				scale = 1.25f;
-		else if (input.isMouseButtonDown(Input.MOUSE_LEFT_BUTTON) ||
-			input.isMouseButtonDown(Input.MOUSE_RIGHT_BUTTON))
+		if (((state == Opsu.STATE_GAME || state == Opsu.STATE_GAMEPAUSEMENU) && isGameKeyPressed()) ||
+			(input.isMouseButtonDown(Input.MOUSE_LEFT_BUTTON) || input.isMouseButtonDown(Input.MOUSE_RIGHT_BUTTON)))
 			scale = 1.25f;
 
 		// draw the other components
@@ -402,6 +399,17 @@ public class Utils {
 			return;
 
 		cursor.rotate(delta / 40f);
+	}
+
+	/**
+	 * Returns true if a game input key is pressed (mouse/keyboard left/right).
+	 * @return true if pressed
+	 */
+	public static boolean isGameKeyPressed() {
+		return (input.isMouseButtonDown(Input.MOUSE_LEFT_BUTTON) ||
+				input.isMouseButtonDown(Input.MOUSE_RIGHT_BUTTON) ||
+				input.isKeyDown(Options.getGameKeyLeft()) ||
+				input.isKeyDown(Options.getGameKeyRight()));
 	}
 
 	/**

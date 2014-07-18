@@ -48,11 +48,6 @@ public class Spinner {
 	private OsuHitObject hitObject;
 
 	/**
-	 * The associated Game object.
-	 */
-	private Game game;
-
-	/**
 	 * The associated GameScore object.
 	 */
 	private GameScore score;
@@ -95,7 +90,6 @@ public class Spinner {
 	 */
 	public Spinner(OsuHitObject hitObject, Game game, GameScore score) {
 		this.hitObject = hitObject;
-		this.game = game;
 		this.score = score;
 
 		// calculate rotations needed
@@ -202,7 +196,7 @@ public class Spinner {
 		}
 
 		// not spinning: nothing to do
-		if (!game.isInputKeyPressed()) {
+		if (!Utils.isGameKeyPressed()) {
 			lastAngle = -1f;
 			return false;
 		}

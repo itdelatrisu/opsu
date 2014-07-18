@@ -35,6 +35,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
+import org.lwjgl.input.Keyboard;
 import org.newdawn.slick.AppGameContainer;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
@@ -124,7 +125,9 @@ public class Options extends BasicGameState {
 		FIXED_OD,
 		LOAD_VERBOSE,
 		CHECKPOINT,
-		DISABLE_SOUNDS;
+		DISABLE_SOUNDS,
+		KEY_LEFT,
+		KEY_RIGHT;
 	};
 
 	/**
@@ -186,6 +189,8 @@ public class Options extends BasicGameState {
 	 * Gameplay options.
 	 */
 	private static final GameOption[] gameplayOptions = {
+		GameOption.KEY_LEFT,
+		GameOption.KEY_RIGHT,
 		GameOption.BACKGROUND_DIM,
 		GameOption.FORCE_DEFAULT_PLAYFIELD,
 		GameOption.IGNORE_BEATMAP_SKINS,
@@ -355,7 +360,19 @@ public class Options extends BasicGameState {
 	 * By default, sound is disabled on Linux due to possible driver issues.
 	 */
 	private static boolean disableSound =
-			(System.getProperty("os.name").toLowerCase().indexOf("linux") > -1);
+		(System.getProperty("os.name").toLowerCase().indexOf("linux") > -1);
+
+	/**
+	 * Left and right game keys.
+	 */
+	private static int
+		keyLeft  = Keyboard.KEY_NONE,
+		keyRight = Keyboard.KEY_NONE;
+
+	/**
+	 * Key entry states.
+	 */
+	private boolean keyEntryLeft = false, keyEntryRight = false;
 
 	/**
 	 * Game option coordinate modifiers (for drawing).
@@ -462,6 +479,17 @@ public class Options extends BasicGameState {
 
 		Utils.getBackButton().draw();
 
+		// key entry state
+		if (keyEntryLeft || keyEntryRight) {
+			g.setColor(Utils.COLOR_BLACK_ALPHA);
+			g.fillRect(0, 0, width, height);
+			g.setColor(Color.white);
+			Utils.FONT_LARGE.drawString(
+					(width / 2) - (Utils.FONT_LARGE.getWidth("Please enter a letter or digit.") / 2),
+					(height / 2) - Utils.FONT_LARGE.getHeight(), "Please enter a letter or digit."
+			);
+		}
+
 		Utils.drawFPS();
 		Utils.drawCursor();
 	}
@@ -477,6 +505,12 @@ public class Options extends BasicGameState {
 
 	@Override
 	public void mousePressed(int button, int x, int y) {
+		// key entry state
+		if (keyEntryLeft || keyEntryRight) {
+			keyEntryLeft = keyEntryRight = false;
+			return;
+		}
+
 		// check mouse button 
 		if (button == Input.MOUSE_MIDDLE_BUTTON)
 			return;
@@ -564,6 +598,14 @@ public class Options extends BasicGameState {
 		case DISABLE_SOUNDS:
 			disableSound = !disableSound;
 			break;
+		case KEY_LEFT:
+			keyEntryLeft = true;
+			keyEntryRight = false;
+			break;
+		case KEY_RIGHT:
+			keyEntryLeft = false;
+			keyEntryRight = true;
+			break;
 		default:
 			break;
 		}
@@ -571,6 +613,10 @@ public class Options extends BasicGameState {
 
 	@Override
 	public void mouseDragged(int oldx, int oldy, int newx, int newy) {
+		// key entry state
+		if (keyEntryLeft || keyEntryRight)
+			return;
+
 		// check mouse button (right click scrolls faster)
 		int multiplier;
 		if (input.isMouseButtonDown(Input.MOUSE_RIGHT_BUTTON))
@@ -660,6 +706,18 @@ public class Options extends BasicGameState {
 
 	@Override
 	public void keyPressed(int key, char c) {
+		// key entry state
+		if (keyEntryLeft || keyEntryRight) {
+			if (Character.isLetterOrDigit(c)) {
+				if (keyEntryLeft && keyRight != key)
+					keyLeft = key;
+				else if (keyEntryRight && keyLeft != key)
+					keyRight = key;
+			}
+			keyEntryLeft = keyEntryRight = false;
+			return;
+		}
+
 		switch (key) {
 		case Input.KEY_ESCAPE:
 			SoundController.playSound(SoundController.SOUND_MENUBACK);
@@ -767,6 +825,18 @@ public class Options extends BasicGameState {
 			drawOption(pos, "Disable All Sound Effects",
 					disableSound ? "Yes" : "No",
 					"May resolve Linux sound driver issues.  Requires a restart."
+			);
+			break;
+		case KEY_LEFT:
+			drawOption(pos, "Left Game Key",
+					Keyboard.getKeyName(getGameKeyLeft()),
+					"Select this option to input a key."
+			);
+			break;
+		case KEY_RIGHT:
+			drawOption(pos, "Right Game Key",
+					Keyboard.getKeyName(getGameKeyRight()),
+					"Select this option to input a key."
 			);
 			break;
 		case BACKGROUND_DIM:
@@ -1075,6 +1145,26 @@ public class Options extends BasicGameState {
 	}
 
 	/**
+	 * Returns the left game key.
+	 * @return the left key code
+	 */
+	public static int getGameKeyLeft() {
+		if (keyLeft == Keyboard.KEY_NONE)
+			keyLeft = Input.KEY_Z;
+		return keyLeft;
+	}
+
+	/**
+	 * Returns the right game key.
+	 * @return the right key code
+	 */
+	public static int getGameKeyRight() {
+		if (keyRight == Keyboard.KEY_NONE)
+			keyRight = Input.KEY_X;
+		return keyRight;
+	}
+
+	/**
 	 * Returns the beatmap directory.
 	 * If invalid, this will attempt to search for the directory,
 	 * and if nothing found, will create one.
@@ -1213,6 +1303,22 @@ public class Options extends BasicGameState {
 				case "DisableSound":
 					disableSound = Boolean.parseBoolean(value);
 					break;
+				case "keyOsuLeft":
+					if ((value.length() == 1 && Character.isLetterOrDigit(value.charAt(0))) ||
+						(value.length() == 7 && value.startsWith("NUMPAD"))) {
+						i = Keyboard.getKeyIndex(value);
+						if (keyRight != i)
+							keyLeft = i;
+					}
+					break;
+				case "keyOsuRight":
+					if ((value.length() == 1 && Character.isLetterOrDigit(value.charAt(0))) ||
+						(value.length() == 7 && value.startsWith("NUMPAD"))) {
+						i = Keyboard.getKeyIndex(value);
+						if (keyLeft != i)
+							keyRight = i;
+					}
+					break;
 				case "DimLevel":
 					i = Integer.parseInt(value);
 					if (i >= 0 && i <= 100)
@@ -1308,6 +1414,10 @@ public class Options extends BasicGameState {
 			writer.write(String.format("Offset = %d", musicOffset));
 			writer.newLine();
 			writer.write(String.format("DisableSound = %b", disableSound));
+			writer.newLine();
+			writer.write(String.format("keyOsuLeft = %s", Keyboard.getKeyName(keyLeft)));
+			writer.newLine();
+			writer.write(String.format("keyOsuRight = %s", Keyboard.getKeyName(keyRight)));
 			writer.newLine();
 			writer.write(String.format("DimLevel = %d", backgroundDim));
 			writer.newLine();

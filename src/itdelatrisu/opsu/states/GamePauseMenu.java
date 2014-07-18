@@ -25,6 +25,7 @@ import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.SoundController;
 import itdelatrisu.opsu.Utils;
 
+import org.lwjgl.input.Keyboard;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
@@ -60,8 +61,9 @@ public class GamePauseMenu extends BasicGameState {
 	private GUIMenuButton continueButton, retryButton, backButton;
 
 	// game-related variables
-	private StateBasedGame game;
 	private GameContainer container;
+	private StateBasedGame game;
+	private Input input;
 	private int state;
 
 	public GamePauseMenu(int state) {
@@ -73,6 +75,7 @@ public class GamePauseMenu extends BasicGameState {
 			throws SlickException {
 		this.container = container;
 		this.game = game;
+		input = container.getInput();
 	}
 
 	@Override
@@ -105,6 +108,14 @@ public class GamePauseMenu extends BasicGameState {
 
 	@Override
 	public void keyPressed(int key, char c) {
+		// game keys
+		if (!Keyboard.isRepeatEvent()) {
+			if (key == Options.getGameKeyLeft())
+				mousePressed(Input.MOUSE_LEFT_BUTTON, input.getMouseX(), input.getMouseY());
+			else if (key == Options.getGameKeyRight())
+				mousePressed(Input.MOUSE_RIGHT_BUTTON, input.getMouseX(), input.getMouseY());
+		}
+
 		switch (key) {
 		case Input.KEY_ESCAPE:
 			// 'esc' will normally unpause, but will return to song menu if health is zero
@@ -124,8 +135,7 @@ public class GamePauseMenu extends BasicGameState {
 
 	@Override
 	public void mousePressed(int button, int x, int y) {
-		// check mouse button 
-		if (button != Input.MOUSE_LEFT_BUTTON)
+		if (button == Input.MOUSE_MIDDLE_BUTTON)
 			return;
 
 		boolean loseState = (Game.getRestart() == Game.RESTART_LOSE);

@@ -573,6 +573,14 @@ public class Game extends BasicGameState {
 
 	@Override
 	public void keyPressed(int key, char c) {
+		// game keys
+		if (!Keyboard.isRepeatEvent()) {
+			if (key == Options.getGameKeyLeft())
+				mousePressed(Input.MOUSE_LEFT_BUTTON, input.getMouseX(), input.getMouseY());
+			else if (key == Options.getGameKeyRight())
+				mousePressed(Input.MOUSE_RIGHT_BUTTON, input.getMouseX(), input.getMouseY());
+		}
+
 		switch (key) {
 		case Input.KEY_ESCAPE:
 			// pause game
@@ -641,16 +649,6 @@ public class Game extends BasicGameState {
 					Log.error("Failed to load checkpoint.", e);
 				}
 			}
-			break;
-		case Input.KEY_Z:
-			// left-click
-			if (!Keyboard.isRepeatEvent())
-				mousePressed(Input.MOUSE_LEFT_BUTTON, input.getMouseX(), input.getMouseY());
-			break;
-		case Input.KEY_X:
-			// right-click
-			if (!Keyboard.isRepeatEvent())
-				mousePressed(Input.MOUSE_RIGHT_BUTTON, input.getMouseX(), input.getMouseY());
 			break;
 		case Input.KEY_F12:
 			Utils.takeScreenShot();
@@ -809,15 +807,6 @@ public class Game extends BasicGameState {
 			return true;
 		}
 		return false;
-	}
-
-	/**
-	 * Returns true if an input key is pressed (mouse left/right, keyboard Z/X).
-	 */
-	public boolean isInputKeyPressed() {
-		return (input.isMouseButtonDown(Input.MOUSE_LEFT_BUTTON) ||
-				input.isMouseButtonDown(Input.MOUSE_RIGHT_BUTTON) ||
-				input.isKeyDown(Input.KEY_Z) || input.isKeyDown(Input.KEY_X));
 	}
 
 	/**
