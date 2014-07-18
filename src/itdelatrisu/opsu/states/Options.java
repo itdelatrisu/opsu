@@ -57,11 +57,6 @@ public class Options extends BasicGameState {
 	 * Temporary folder for file conversions, auto-deleted upon successful exit.
 	 */
 	public static final File TMP_DIR = new File(".opsu_tmp/");
-
-	/**
-	 * Directory for screenshots (created when needed).
-	 */
-	public static final File SCREENSHOT_DIR = new File("Screenshots/");
 	
 	/**
 	 * File for logging errors.
@@ -91,6 +86,11 @@ public class Options extends BasicGameState {
 	 * The OSZ archive directory.
 	 */
 	private static File oszDir;
+
+	/**
+	 * The screenshot directory (created when needed).
+	 */
+	private static File screenshotDir;
 
 	/**
 	 * The current skin directory (for user skins).
@@ -1186,7 +1186,7 @@ public class Options extends BasicGameState {
 
 	/**
 	 * Returns the OSZ archive directory.
-	 * If invalid, this will return the root directory.
+	 * If invalid, this will create and return a "SongPacks" directory.
 	 * @return the OSZ archive directory
 	 */
 	public static File getOSZDir() {
@@ -1196,6 +1196,19 @@ public class Options extends BasicGameState {
 		oszDir = new File("SongPacks/");
 		oszDir.mkdir();
 		return oszDir;
+	}
+
+	/**
+	 * Returns the screenshot directory.
+	 * If invalid, this will return a "Screenshot" directory.
+	 * @return the screenshot directory
+	 */
+	public static File getScreenshotDir() {
+		if (screenshotDir != null && screenshotDir.isDirectory())
+			return screenshotDir;
+
+		screenshotDir = new File("Screenshots/");
+		return screenshotDir;
 	}
 
 	/**
@@ -1241,6 +1254,9 @@ public class Options extends BasicGameState {
 					break;
 				case "OSZDirectory":
 					oszDir = new File(value);
+					break;
+				case "ScreenshotDirectory":
+					screenshotDir = new File(value);
 					break;
 				case "Skin":
 					skinDir = new File(value);
@@ -1384,6 +1400,8 @@ public class Options extends BasicGameState {
 			writer.write(String.format("BeatmapDirectory = %s", getBeatmapDir().getAbsolutePath()));
 			writer.newLine();
 			writer.write(String.format("OSZDirectory = %s", getOSZDir().getAbsolutePath()));
+			writer.newLine();
+			writer.write(String.format("ScreenshotDirectory = %s", getScreenshotDir().getAbsolutePath()));
 			writer.newLine();
 			writer.write(String.format("Skin = %s", getSkinDir().getAbsolutePath()));
 			writer.newLine();

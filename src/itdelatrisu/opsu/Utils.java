@@ -436,24 +436,23 @@ public class Utils {
 		// TODO: should this be threaded?
 		try {
 			// create the screenshot directory
-			if (!Options.SCREENSHOT_DIR.isDirectory()) {
-				if (!Options.SCREENSHOT_DIR.mkdir())
+			File dir = Options.getScreenshotDir();
+			if (!dir.isDirectory()) {
+				if (!dir.mkdir())
 					return false;
 			}
 
 			// create file name
 			SimpleDateFormat date = new SimpleDateFormat("yyyyMMdd_HHmmss");
-			String file = date.format(new Date());
+			File file = new File(dir, String.format("screenshot_%s.%s",
+					date.format(new Date()), Options.getScreenshotFormat()));
 
 			SoundController.playSound(SoundController.SOUND_SHUTTER);
 
 			// copy the screen
 			Image screen = new Image(container.getWidth(), container.getHeight());
 			container.getGraphics().copyArea(screen, 0, 0);
-			ImageOut.write(screen, String.format("%s%sscreenshot_%s.%s",
-					Options.SCREENSHOT_DIR.getName(), File.separator,
-					file, Options.getScreenshotFormat()), false
-			);
+			ImageOut.write(screen, file.getAbsolutePath(), false);
 			screen.destroy();
 		} catch (SlickException e) {
 			Log.warn("Failed to take a screenshot.", e);
