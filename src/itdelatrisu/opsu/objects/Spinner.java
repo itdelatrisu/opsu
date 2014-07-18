@@ -78,7 +78,8 @@ public class Spinner {
 
 		Image spinnerCircle = GameImage.SPINNER_CIRCLE.getImage();
 		GameImage.SPINNER_CIRCLE.setImage(spinnerCircle.getScaledCopy(height * 9 / 10, height * 9 / 10));
-		GameImage.SPINNER_APPROACHCIRCLE.setImage(GameImage.SPINNER_APPROACHCIRCLE.getImage().getScaledCopy(spinnerCircle.getWidth(), spinnerCircle.getHeight()));
+		GameImage.SPINNER_APPROACHCIRCLE.setImage(GameImage.SPINNER_APPROACHCIRCLE.getImage().getScaledCopy(
+				spinnerCircle.getWidth(), spinnerCircle.getHeight()));
 		GameImage.SPINNER_METRE.setImage(GameImage.SPINNER_METRE.getImage().getScaledCopy(width, height));
 	}
 
@@ -94,7 +95,7 @@ public class Spinner {
 
 		// calculate rotations needed
 		float spinsPerMinute = 100 + (score.getDifficulty() * 15);
-		rotationsNeeded = spinsPerMinute * (hitObject.endTime - hitObject.time) / 60000f;
+		rotationsNeeded = spinsPerMinute * (hitObject.getEndTime() - hitObject.getTime()) / 60000f;
 	}
 
 	/**
@@ -103,7 +104,7 @@ public class Spinner {
 	 * @param g the graphics context
 	 */
 	public void draw(int trackPosition, Graphics g) {
-		int timeDiff = hitObject.time - trackPosition;
+		int timeDiff = hitObject.getTime() - trackPosition;
 		boolean spinnerComplete = (rotations >= rotationsNeeded);
 
 		// TODO: draw "OSU!" image after spinner ends
@@ -126,8 +127,9 @@ public class Spinner {
 		spinnerMetreSub.draw(0, height - spinnerMetreSub.getHeight());
 
 		// main spinner elements
+		float approachScale = 1 - ((float) timeDiff / (hitObject.getTime() - hitObject.getEndTime()));
 		GameImage.SPINNER_CIRCLE.getImage().drawCentered(width / 2, height / 2);
-		GameImage.SPINNER_APPROACHCIRCLE.getImage().getScaledCopy(1 - ((float) timeDiff / (hitObject.time - hitObject.endTime))).drawCentered(width / 2, height / 2);
+		GameImage.SPINNER_APPROACHCIRCLE.getImage().getScaledCopy(approachScale).drawCentered(width / 2, height / 2);
 		GameImage.SPINNER_SPIN.getImage().drawCentered(width / 2, height * 3 / 4);
 
 		if (spinnerComplete) {
@@ -158,7 +160,7 @@ public class Spinner {
 		else
 			result = GameScore.HIT_MISS;
 
-		score.hitResult(hitObject.endTime, result, width / 2, height / 2,
+		score.hitResult(hitObject.getEndTime(), result, width / 2, height / 2,
 				Color.transparent, true, (byte) -1);
 		return result;
 	}
@@ -177,7 +179,7 @@ public class Spinner {
 			return true;
 
 		// end of spinner
-		if (trackPosition > hitObject.endTime) {
+		if (trackPosition > hitObject.getEndTime()) {
 			hitResult();
 			return true;
 		}

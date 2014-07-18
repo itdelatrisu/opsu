@@ -93,16 +93,16 @@ public class Circle {
 	 * Draws the circle to the graphics context.
 	 * @param trackPosition the current track position
 	 */
-	public void draw(int trackPosition) { 
-		int timeDiff = hitObject.time - trackPosition;
+	public void draw(int trackPosition) {
+		int timeDiff = hitObject.getTime() - trackPosition;
 
 		if (timeDiff >= 0) {
+			float x = hitObject.getX(), y = hitObject.getY();
 			float approachScale = 1 + (timeDiff * 2f / game.getApproachTime());
-			Utils.drawCentered(GameImage.APPROACHCIRCLE.getImage().getScaledCopy(approachScale),
-					hitObject.x, hitObject.y, color);
-			Utils.drawCentered(GameImage.HITCIRCLE_OVERLAY.getImage(), hitObject.x, hitObject.y, Color.white);
-			Utils.drawCentered(GameImage.HITCIRCLE.getImage(), hitObject.x, hitObject.y, color);
-			score.drawSymbolNumber(hitObject.comboNumber, hitObject.x, hitObject.y,
+			Utils.drawCentered(GameImage.APPROACHCIRCLE.getImage().getScaledCopy(approachScale), x, y, color);
+			Utils.drawCentered(GameImage.HITCIRCLE_OVERLAY.getImage(), x, y, Color.white);
+			Utils.drawCentered(GameImage.HITCIRCLE.getImage(), x, y, color);
+			score.drawSymbolNumber(hitObject.getComboNumber(), x, y,
 					GameImage.HITCIRCLE.getImage().getWidth() * 0.40f / score.getDefaultSymbolImage(0).getHeight());
 		}
 	}
@@ -139,13 +139,15 @@ public class Circle {
 	 * @return true if a hit result was processed
 	 */
 	public boolean mousePressed(int x, int y) {
-		double distance = Math.hypot(hitObject.x - x, hitObject.y - y);
+		double distance = Math.hypot(hitObject.getX() - x, hitObject.getY() - y);
 		int circleRadius = GameImage.HITCIRCLE.getImage().getWidth() / 2;
 		if (distance < circleRadius) {
-			int result = hitResult(hitObject.time);
+			int result = hitResult(hitObject.getTime());
 			if (result > -1) {
-				score.hitResult(hitObject.time, result, hitObject.x, hitObject.y,
-						color, comboEnd, hitObject.hitSound
+				score.hitResult(
+						hitObject.getTime(), result,
+						hitObject.getX(), hitObject.getY(),
+						color, comboEnd, hitObject.getHitSoundType()
 				);
 				return true;
 			}
@@ -159,26 +161,27 @@ public class Circle {
 	 * @return true if a hit result (miss) was processed
 	 */
 	public boolean update(boolean overlap) {
+		int time = hitObject.getTime();
+		float x = hitObject.getX(), y = hitObject.getY();
+		byte hitSound = hitObject.getHitSoundType();
+
 		int trackPosition = MusicController.getPosition();
 		int[] hitResultOffset = game.getHitResultOffsets();
 		boolean isAutoMod = GameMod.AUTO.isActive();
 
-		if (overlap || trackPosition > hitObject.time + hitResultOffset[GameScore.HIT_50]) {
+		if (overlap || trackPosition > time + hitResultOffset[GameScore.HIT_50]) {
 			if (isAutoMod)  // "auto" mod: catch any missed notes due to lag
-				score.hitResult(hitObject.time, GameScore.HIT_300,
-						hitObject.x, hitObject.y, color, comboEnd, hitObject.hitSound);
+				score.hitResult(time, GameScore.HIT_300, x, y, color, comboEnd, hitSound);
 			
 			else  // no more points can be scored, so send a miss
-				score.hitResult(hitObject.time, GameScore.HIT_MISS,
-						hitObject.x, hitObject.y, null, comboEnd, hitObject.hitSound);
+				score.hitResult(time, GameScore.HIT_MISS, x, y, null, comboEnd, hitSound);
 			return true;
 		}
 
 		// "auto" mod: send a perfect hit result
 		else if (isAutoMod) {
-			if (Math.abs(trackPosition - hitObject.time) < hitResultOffset[GameScore.HIT_300]) {
-				score.hitResult(hitObject.time, GameScore.HIT_300,
-						hitObject.x, hitObject.y, color, comboEnd, hitObject.hitSound);
+			if (Math.abs(trackPosition - time) < hitResultOffset[GameScore.HIT_300]) {
+				score.hitResult(time, GameScore.HIT_300, x, y, color, comboEnd, hitSound);
 				return true;
 			}
 		}

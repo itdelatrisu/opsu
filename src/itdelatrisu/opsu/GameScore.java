@@ -500,7 +500,7 @@ public class GameScore {
 		g.drawOval(circleX, symbolHeight, circleDiameter, circleDiameter);
 
 		OsuFile osu = MusicController.getOsuFile();
-		int firstObjectTime = osu.objects[0].time;
+		int firstObjectTime = osu.objects[0].getTime();
 		int trackPosition = MusicController.getPosition();
 		if (trackPosition > firstObjectTime) {
 			// map progress (white)

@@ -316,8 +316,8 @@ public class Game extends BasicGameState {
 
 		// skip beginning
 		if (objectIndex == 0 &&
-			osu.objects[0].time - SKIP_OFFSET > 5000 &&
-			trackPosition < osu.objects[0].time - SKIP_OFFSET)
+			osu.objects[0].getTime() - SKIP_OFFSET > 5000 &&
+			trackPosition < osu.objects[0].getTime() - SKIP_OFFSET)
 			skipButton.draw();
 
 		if (isLeadIn())
@@ -325,7 +325,7 @@ public class Game extends BasicGameState {
 
 		// countdown
 		if (osu.countdown > 0) {  // TODO: implement half/double rate settings
-			int timeDiff = osu.objects[0].time - trackPosition;
+			int timeDiff = osu.objects[0].getTime() - trackPosition;
 			if (timeDiff >= 500 && timeDiff < 3000) {
 				if (timeDiff >= 1500) {
 					GameImage.COUNTDOWN_READY.getImage().drawCentered(width / 2, height / 2);
@@ -368,18 +368,18 @@ public class Game extends BasicGameState {
 
 		// draw hit objects in reverse order, or else overlapping objects are unreadable
 		Stack<Integer> stack = new Stack<Integer>();
-		for (int i = objectIndex; i < osu.objects.length && osu.objects[i].time < trackPosition + approachTime; i++)
+		for (int i = objectIndex; i < osu.objects.length && osu.objects[i].getTime() < trackPosition + approachTime; i++)
 			stack.add(i);
 
 		while (!stack.isEmpty()) {
 			int i = stack.pop();
 			OsuHitObject hitObject = osu.objects[i];
 
-			if ((hitObject.type & OsuHitObject.TYPE_CIRCLE) > 0)
+			if (hitObject.isCircle())
 				circles.get(i).draw(trackPosition);
-			else if ((hitObject.type & OsuHitObject.TYPE_SLIDER) > 0)
+			else if (hitObject.isSlider())
 				sliders.get(i).draw(trackPosition, stack.isEmpty());
-			else if ((hitObject.type & OsuHitObject.TYPE_SPINNER) > 0) {
+			else if (hitObject.isSpinner()) {
 				if (stack.isEmpty())  // only draw spinner at objectIndex
 					spinners.get(i).draw(trackPosition, g);
 				else
@@ -487,7 +487,7 @@ public class Game extends BasicGameState {
 
 		// song beginning
 		if (objectIndex == 0) {
-			if (trackPosition < osu.objects[0].time)
+			if (trackPosition < osu.objects[0].getTime())
 				return;  // nothing to do here
 		}
 
@@ -544,20 +544,20 @@ public class Game extends BasicGameState {
 		}
 
 		// update objects (loop in unlikely event of any skipped indexes)
-		while (objectIndex < osu.objects.length && trackPosition > osu.objects[objectIndex].time) {
+		while (objectIndex < osu.objects.length && trackPosition > osu.objects[objectIndex].getTime()) {
 			OsuHitObject hitObject = osu.objects[objectIndex];
 
 			// check if we've already passed the next object's start time
 			boolean overlap = (objectIndex + 1 < osu.objects.length &&
-					trackPosition > osu.objects[objectIndex + 1].time - hitResultOffset[GameScore.HIT_300]);
+					trackPosition > osu.objects[objectIndex + 1].getTime() - hitResultOffset[GameScore.HIT_300]);
 
 			// check completion status of the hit object
 			boolean done = false;
-			if ((hitObject.type & OsuHitObject.TYPE_CIRCLE) > 0)
+			if (hitObject.isCircle())
 				done = circles.get(objectIndex).update(overlap);
-			else if ((hitObject.type & OsuHitObject.TYPE_SLIDER) > 0)
+			else if (hitObject.isSlider())
 				done = sliders.get(objectIndex).update(overlap, delta, input.getMouseX(), input.getMouseY());
-			else if ((hitObject.type & OsuHitObject.TYPE_SPINNER) > 0)
+			else if (hitObject.isSpinner())
 				done = spinners.get(objectIndex).update(overlap, delta, input.getMouseX(), input.getMouseY());
 
 			// increment object index?
@@ -586,7 +586,7 @@ public class Game extends BasicGameState {
 			// pause game
 			int trackPosition = MusicController.getPosition();
 			if (pauseTime < 0 && breakTime <= 0 &&
-				trackPosition >= osu.objects[0].time &&
+				trackPosition >= osu.objects[0].getTime() &&
 				!GameMod.AUTO.isActive()) {
 				pausedMouseX = input.getMouseX();
 				pausedMouseY = input.getMouseY();
@@ -642,7 +642,7 @@ public class Game extends BasicGameState {
 					// skip to checkpoint
 					MusicController.setPosition(checkpoint);
 					while (objectIndex < osu.objects.length &&
-							osu.objects[objectIndex++].time <= MusicController.getPosition())
+							osu.objects[objectIndex++].getTime() <= MusicController.getPosition())
 						;
 					objectIndex--;
 				} catch (SlickException e) {
@@ -692,14 +692,14 @@ public class Game extends BasicGameState {
 			return;
 
 		// circles
-		if ((hitObject.type & OsuHitObject.TYPE_CIRCLE) > 0) {
+		if (hitObject.isCircle()) {
 			boolean hit = circles.get(objectIndex).mousePressed(x, y);
 			if (hit)
 				objectIndex++;
 		}
 
 		// sliders
-		else if ((hitObject.type & OsuHitObject.TYPE_SLIDER) > 0)
+		else if (hitObject.isSlider())
 			sliders.get(objectIndex).mousePressed(x, y);
 	}
 
@@ -733,15 +733,15 @@ public class Game extends BasicGameState {
 
 				// is this the last note in the combo?
 				boolean comboEnd = false;
-				if (i + 1 < osu.objects.length &&
-					(osu.objects[i + 1].type & OsuHitObject.TYPE_NEWCOMBO) > 0)
+				if (i + 1 < osu.objects.length && osu.objects[i + 1].isNewCombo())
 					comboEnd = true;
 
-				if ((hitObject.type & OsuHitObject.TYPE_CIRCLE) > 0) {
-					circles.put(i, new Circle(hitObject, this, score, osu.combo[hitObject.comboIndex], comboEnd));
-				} else if ((hitObject.type & OsuHitObject.TYPE_SLIDER) > 0) {
-					sliders.put(i, new Slider(hitObject, this, score, osu.combo[hitObject.comboIndex], comboEnd));
-				} else if ((hitObject.type & OsuHitObject.TYPE_SPINNER) > 0) {
+				Color color = osu.combo[hitObject.getComboIndex()];
+				if (hitObject.isCircle()) {
+					circles.put(i, new Circle(hitObject, this, score, color, comboEnd));
+				} else if (hitObject.isSlider()) {
+					sliders.put(i, new Slider(hitObject, this, score, color, comboEnd));
+				} else if (hitObject.isSpinner()) {
 					spinners.put(i, new Spinner(hitObject, this, score));
 				}
 			}
@@ -794,15 +794,16 @@ public class Game extends BasicGameState {
 	 * @return true if skipped, false otherwise
 	 */
 	private boolean skipIntro() {
+		int firstObjectTime = osu.objects[0].getTime();
 		int trackPosition = MusicController.getPosition();
 		if (objectIndex == 0 &&
-			osu.objects[0].time - SKIP_OFFSET > 4000 &&
-			trackPosition < osu.objects[0].time - SKIP_OFFSET) {
+			firstObjectTime - SKIP_OFFSET > 4000 &&
+			trackPosition < firstObjectTime - SKIP_OFFSET) {
 			if (isLeadIn()) {
 				leadInTime = 0;
 				MusicController.resume();
 			}
-			MusicController.setPosition(osu.objects[0].time - SKIP_OFFSET);
+			MusicController.setPosition(firstObjectTime - SKIP_OFFSET);
 			SoundController.playSound(SoundController.SOUND_MENUHIT);
 			return true;
 		}
@@ -883,16 +884,6 @@ public class Game extends BasicGameState {
 			float overallDifficulty = osu.overallDifficulty;
 			float HPDrainRate = osu.HPDrainRate;
 
-			// fixed difficulty overrides
-			if (Options.getFixedCS() > 0f)
-				circleSize = Options.getFixedCS();
-			if (Options.getFixedAR() > 0f)
-				approachRate = Options.getFixedAR();
-			if (Options.getFixedOD() > 0f)
-				overallDifficulty = Options.getFixedOD();
-			if (Options.getFixedHP() > 0f)
-				HPDrainRate = Options.getFixedHP();
-
 			// "Hard Rock" modifiers
 			if (GameMod.HARD_ROCK.isActive()) {
 				circleSize = Math.min(circleSize * 1.4f, 10);
@@ -908,6 +899,16 @@ public class Game extends BasicGameState {
 				overallDifficulty /= 2f;
 				HPDrainRate /= 2f;
 			}
+
+			// fixed difficulty overrides
+			if (Options.getFixedCS() > 0f)
+				circleSize = Options.getFixedCS();
+			if (Options.getFixedAR() > 0f)
+				approachRate = Options.getFixedAR();
+			if (Options.getFixedOD() > 0f)
+				overallDifficulty = Options.getFixedOD();
+			if (Options.getFixedHP() > 0f)
+				HPDrainRate = Options.getFixedHP();
 
 			// initialize objects
 			Circle.init(container, circleSize);

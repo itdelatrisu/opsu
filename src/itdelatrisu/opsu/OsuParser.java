@@ -49,18 +49,6 @@ public class OsuParser {
 	 */
 	private static int totalDirectories = -1;
 
-	/**
-	 * The x and y multipliers for hit object coordinates.
-	 */
-	private static float xMultiplier, yMultiplier;
-
-	/**
-	 * The x and y offsets for hit object coordinates.
-	 */
-	private static int
-		xOffset,   // offset right of border
-		yOffset;   // offset below health bar
-
 	// This class should not be instantiated.
 	private OsuParser() {}
 
@@ -71,11 +59,8 @@ public class OsuParser {
 	 * @param height the container height
 	 */
 	public static void parseAllFiles(File root, int width, int height) {
-		// set coordinate modifiers
-		xMultiplier = (width * 0.6f) / OsuHitObject.MAX_X;
-		yMultiplier = (height * 0.6f) / OsuHitObject.MAX_Y;
-		xOffset = width / 5;
-		yOffset = height / 5;
+		// initialize hit objects
+		OsuHitObject.init(width, height);
 
 		// progress tracking
 		File[] folders = root.listFiles();
@@ -438,23 +423,7 @@ public class OsuParser {
 
 	/**
 	 * Parses all hit objects in an OSU file.
-	 *
-	 * Object formats:
-	 * - Circles  [1]:
-	 *   x,y,time,type,hitSound,addition
-	 *   256,148,9466,1,2,0:0:0:0:
-	 *
-	 * - Sliders  [2]:
-	 *   x,y,time,type,hitSound,sliderType|curveX:curveY|...,repeat,pixelLength,edgeHitsound,edgeAddition,addition
-	 *   300,68,4591,2,0,B|372:100|332:172|420:192,2,180,2|2|2,0:0|0:0|0:0,0:0:0:0:
-	 *
-	 * - Spinners [8]:
-	 *   x,y,time,type,hitSound,endTime,addition
-	 *   256,192,654,12,0,4029,0:0:0:0:
-	 *
-	 * Notes:
-	 * - 'addition' is optional, and defaults to "0:0:0:0:".
-	 * - Field descriptions are located in OsuHitObject.java.
+	 * @param osu the OsuFile to parse
 	 */
 	public static void parseHitObjects(OsuFile osu) {
 		if (osu.objects != null)  // already parsed
@@ -467,72 +436,47 @@ public class OsuParser {
 			String line = in.readLine();
 			while (line != null) {
 				line = line.trim();
-				if (!line.equals("[HitObjects]")) {
+				if (!line.equals("[HitObjects]"))
 					line = in.readLine();
+				else
+					break;
+			}
+			if (line == null) {
+				Log.warn(String.format("No hit objects found in OsuFile '%s'.", osu.toString()));
+				return;
+			}
+
+			// combo info
+			int comboIndex = 0;   // color index
+			int comboNumber = 1;  // combo number
+
+			int objectIndex = 0;
+			while ((line = in.readLine()) != null && objectIndex < osu.objects.length) {
+				line = line.trim();
+				if (!isValidLine(line))
 					continue;
+				if (line.charAt(0) == '[')
+					break;
+
+				// lines must have at minimum 5 parameters
+				int tokenCount = line.length() - line.replace(",", "").length();
+				if (tokenCount < 4)
+					continue;
+
+				// create a new OsuHitObject for each line
+				OsuHitObject hitObject = new OsuHitObject(line);
+
+				// set combo info
+				// - new combo: get next combo index, reset combo number
+				// - else:      maintain combo index, increase combo number
+				if (hitObject.isNewCombo()) {
+					comboIndex = (comboIndex + 1) % osu.combo.length;
+					comboNumber = 1;
 				}
+				hitObject.setComboIndex(comboIndex);
+				hitObject.setComboNumber(comboNumber++);
 
-				int i = 0;            // object index
-				int comboIndex = 0;   // color index
-				int comboNumber = 1;  // combo number
-				String tokens[], sliderTokens[], sliderXY[];
-
-				while ((line = in.readLine()) != null && i < osu.objects.length) {
-					line = line.trim();
-					if (!isValidLine(line))
-						continue;
-					if (line.charAt(0) == '[')
-						break;
-					// create a new OsuHitObject for each line
-					tokens = line.split(",");
-					if (tokens.length < 5)
-						continue;
-					float scaledX = Integer.parseInt(tokens[0]) * xMultiplier + xOffset;
-					float scaledY = Integer.parseInt(tokens[1]) * yMultiplier + yOffset;
-					int type = Integer.parseInt(tokens[3]);
-					osu.objects[i] = new OsuHitObject(
-							scaledX, scaledY, Integer.parseInt(tokens[2]),
-							type, Byte.parseByte(tokens[4])
-					);
-					if ((type & OsuHitObject.TYPE_CIRCLE) > 0) {
-						/* 'addition' not implemented. */
-					} else if ((type & OsuHitObject.TYPE_SLIDER) > 0) {
-						// slider curve type and coordinates
-						sliderTokens = tokens[5].split("\\|");
-						osu.objects[i].sliderType = sliderTokens[0].charAt(0);
-						osu.objects[i].sliderX = new float[sliderTokens.length-1];
-						osu.objects[i].sliderY = new float[sliderTokens.length-1];
-						for (int j = 1; j < sliderTokens.length; j++) {
-							sliderXY = sliderTokens[j].split(":");
-							osu.objects[i].sliderX[j-1] = Integer.parseInt(sliderXY[0]) * xMultiplier + xOffset;
-							osu.objects[i].sliderY[j-1] = Integer.parseInt(sliderXY[1]) * yMultiplier + yOffset;
-						}
-
-						osu.objects[i].repeat = Integer.parseInt(tokens[6]);
-						osu.objects[i].pixelLength = Float.parseFloat(tokens[7]);
-						/* edge fields and 'addition' not implemented. */
-					} else { //if ((type & OsuHitObject.TYPE_SPINNER) > 0) {
-						// some 'endTime' fields contain a ':' character (?)
-						int index = tokens[5].indexOf(':');
-						if (index != -1)
-							tokens[5] = tokens[5].substring(0, index);
-						osu.objects[i].endTime = Integer.parseInt(tokens[5]);
-						/* 'addition' not implemented. */
-					}
-
-					// set combo info
-					// - new combo: get next combo index, reset combo number
-					// - else:      maintain combo index, increase combo number
-					if ((osu.objects[i].type & OsuHitObject.TYPE_NEWCOMBO) > 0) {
-						comboIndex = (comboIndex + 1) % osu.combo.length;
-						comboNumber = 1;
-					}
-					osu.objects[i].comboIndex = comboIndex;
-					osu.objects[i].comboNumber = comboNumber++;
-
-					i++;
-				}
-				break;
+				osu.objects[objectIndex++] = hitObject;
 			}
 		} catch (IOException e) {
 			Log.error(String.format("Failed to read file '%s'.", osu.getFile().getAbsolutePath()), e);
