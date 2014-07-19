@@ -162,14 +162,6 @@ public class Utils {
 		FONT_MEDIUM  = new TrueTypeFont(font.deriveFont(fontBase * 3 / 2), false);
 		FONT_SMALL   = new TrueTypeFont(font.deriveFont(fontBase), false);
 
-		// set default game images
-		for (GameImage img : GameImage.values())
-			img.setDefaultImage();
-
-		// initialize game mods
-		for (GameMod mod : GameMod.values())
-			mod.init(width, height);
-
 		// tab image
 		tab = new Image("selection-tab.png");
 		float tabScale = (height * 0.033f) / tab.getHeight();
@@ -182,6 +174,18 @@ public class Utils {
 		backButton = new GUIMenuButton(back,
 				back.getWidth() / 2f,
 				height - (back.getHeight() / 2f));
+
+		// set default game images
+		for (GameImage img : GameImage.values())
+			img.setDefaultImage();
+
+		// initialize game mods
+		for (GameMod mod : GameMod.values())
+			mod.init(width, height);
+
+		// initialize sorts
+		for (SongSort sort : SongSort.values())
+			sort.init(tab, width, height);
 	}
 
 	/**

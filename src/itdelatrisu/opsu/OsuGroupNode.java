@@ -19,7 +19,6 @@
 package itdelatrisu.opsu;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.concurrent.TimeUnit;
 
 import org.newdawn.slick.Color;
@@ -28,7 +27,7 @@ import org.newdawn.slick.Image;
 /**
  * Node in an OsuGroupList representing a group of OsuFile objects.
  */
-public class OsuGroupNode implements Comparable<OsuGroupNode> {
+public class OsuGroupNode {
 	/**
 	 * Menu background image.
 	 */
@@ -64,69 +63,9 @@ public class OsuGroupNode implements Comparable<OsuGroupNode> {
 	}
 
 	/**
-	 * Compares two OsuGroupNode objects by title.
-	 */
-	@Override
-	public int compareTo(OsuGroupNode that) {
-		return this.osuFiles.get(0).title.compareToIgnoreCase(that.osuFiles.get(0).title);
-	}
-
-	/**
-	 * Compares two OsuGroupNode objects by artist.
-	 */
-	public static class ArtistOrder implements Comparator<OsuGroupNode> {
-		@Override
-		public int compare(OsuGroupNode v, OsuGroupNode w) {
-			return v.osuFiles.get(0).artist.compareToIgnoreCase(w.osuFiles.get(0).artist);
-		}
-	}
-
-	/**
-	 * Compares two OsuGroupNode objects by creator.
-	 */
-	public static class CreatorOrder implements Comparator<OsuGroupNode> {
-		@Override
-		public int compare(OsuGroupNode v, OsuGroupNode w) {
-			return v.osuFiles.get(0).creator.compareToIgnoreCase(w.osuFiles.get(0).creator);
-		}
-	}
-
-	/**
-	 * Compares two OsuGroupNode objects by BPM.
-	 */
-	public static class BPMOrder implements Comparator<OsuGroupNode> {
-		@Override
-		public int compare(OsuGroupNode v, OsuGroupNode w) {
-			return Integer.compare(v.osuFiles.get(0).bpmMax, w.osuFiles.get(0).bpmMax);
-		}
-	}
-
-	/**
-	 * Compares two OsuGroupNode objects by length.
-	 * Uses the longest beatmap in each set for comparison.
-	 */
-	public static class LengthOrder implements Comparator<OsuGroupNode> {
-		@Override
-		public int compare(OsuGroupNode v, OsuGroupNode w) {
-			int vMax = 0, wMax = 0;
-			for (OsuFile osu : v.osuFiles) {
-				if (osu.endTime > vMax)
-					vMax = osu.endTime;
-			}
-			for (OsuFile osu : w.osuFiles) {
-				if (osu.endTime > wMax)
-					wMax = osu.endTime;
-			}
-			return Integer.compare(vMax, wMax);
-		}
-	}
-
-	/**
 	 * Sets a button background image.
 	 */
-	public static void setBackground(Image background) {
-		bg = background;
-	}
+	public static void setBackground(Image background) { bg = background; }
 
 	/**
 	 * Draws the button.

@@ -19,7 +19,6 @@
 package itdelatrisu.opsu.states;
 
 import itdelatrisu.opsu.Opsu;
-import itdelatrisu.opsu.OsuGroupList;
 import itdelatrisu.opsu.OsuParser;
 import itdelatrisu.opsu.OszUnpacker;
 import itdelatrisu.opsu.SoundController;
@@ -124,7 +123,7 @@ public class Splash extends BasicGameState {
 					OsuParser.parseAllFiles(beatmapDir, width, height);
 
 					// initialize song list
-					Opsu.groups.init(OsuGroupList.SORT_TITLE);
+					Opsu.groups.init();
 					menu.setFocus(Opsu.groups.getRandomNode(), -1, true);
 
 					// load sounds

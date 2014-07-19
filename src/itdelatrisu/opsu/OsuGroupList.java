@@ -31,24 +31,6 @@ import java.util.regex.Pattern;
  */
 public class OsuGroupList {
 	/**
-	 * Sorting orders.
-	 */
-	public static final byte
-		SORT_TITLE   = 0,
-		SORT_ARTIST  = 1,
-		SORT_CREATOR = 2,
-		SORT_BPM     = 3,
-		SORT_LENGTH  = 4,
-		SORT_MAX     = 5;    // not a sort
-
-	/**
-	 * Sorting order names (indexed by SORT_* constants).
-	 */
-	public static final String[] SORT_NAMES = {
-		"Title", "Artist", "Creator", "BPM", "Length"
-	};
-
-	/**
 	 * Search pattern for conditional expressions.
 	 */
 	private static final Pattern SEARCH_CONDITION_PATTERN = Pattern.compile(
@@ -221,30 +203,14 @@ public class OsuGroupList {
 	}
 
 	/**
-	 * Initializes the links in the list, given a sorting order (SORT_* constants).
+	 * Initializes the links in the list.
 	 */
-	public void init(byte order) {
+	public void init() {
 		if (size() < 1)
 			return;
 
 		// sort the list
-		switch (order) {
-		case SORT_TITLE:
-			Collections.sort(nodes);
-			break;
-		case SORT_ARTIST:
-			Collections.sort(nodes, new OsuGroupNode.ArtistOrder());
-			break;
-		case SORT_CREATOR:
-			Collections.sort(nodes, new OsuGroupNode.CreatorOrder());
-			break;
-		case SORT_BPM:
-			Collections.sort(nodes, new OsuGroupNode.BPMOrder());
-			break;
-		case SORT_LENGTH:
-			Collections.sort(nodes, new OsuGroupNode.LengthOrder());
-			break;
-		}
+		Collections.sort(nodes, SongSort.getSort().getComparator());
 		expandedIndex = -1;
 
 		// create links

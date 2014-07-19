@@ -59,13 +59,13 @@ public enum GameMod {
 	/**
 	 * Total number of mods.
 	 */
-	private static final int size = GameMod.values().length;
+	private static final int SIZE = GameMod.values().length;
 
 	/**
 	 * Returns the total number of game mods.
 	 * @return the number of mods
 	 */
-	public static int size() { return size; }
+	public static int size() { return SIZE; }
 
 	/**
 	 * Returns an array of GameMod objects in reverse order.
@@ -101,7 +101,7 @@ public enum GameMod {
 	
 			// find coordinates
 			float offsetX = img.getWidth() * 1.5f;
-			float x = (width / 2f) - (offsetX * size / 2.75f);
+			float x = (width / 2f) - (offsetX * SIZE / 2.75f);
 			float y = (height * 0.8f) + (img.getHeight() / 2);
 
 			// create button

@@ -22,9 +22,9 @@ import itdelatrisu.opsu.GUIMenuButton;
 import itdelatrisu.opsu.MusicController;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.OsuFile;
-import itdelatrisu.opsu.OsuGroupList;
 import itdelatrisu.opsu.OsuGroupNode;
 import itdelatrisu.opsu.OsuParser;
+import itdelatrisu.opsu.SongSort;
 import itdelatrisu.opsu.SoundController;
 import itdelatrisu.opsu.Utils;
 
@@ -88,16 +88,6 @@ public class SongMenu extends BasicGameState {
 	private float
 		buttonX, buttonY, buttonOffset,
 		buttonWidth, buttonHeight;
-
-	/**
-	 * Sorting tab buttons (indexed by SORT_* constants).
-	 */
-	private GUIMenuButton[] sortTabs;
-
-	/**
-	 * The current sort order (SORT_* constant).
-	 */
-	private byte currentSort = OsuGroupList.SORT_TITLE;
 
 	/**
 	 * The options button (to enter the "Game Options" menu).
@@ -166,15 +156,6 @@ public class SongMenu extends BasicGameState {
 		buttonHeight = menuBackground.getHeight();
 		buttonOffset = (height * 0.8f) / MAX_BUTTONS;
 
-		// sorting tabs
-		sortTabs = new GUIMenuButton[OsuGroupList.SORT_MAX];
-		Image tab = Utils.getTabImage();
-		float tabX = buttonX + (tab.getWidth() / 2f);
-		float tabY = (height * 0.15f) - (tab.getHeight() / 2f) - 2f;
-		float tabOffset = (width - buttonX - tab.getWidth()) / (sortTabs.length - 1);
-		for (int i = 0; i < sortTabs.length; i++)
-			sortTabs[i] = new GUIMenuButton(tab, tabX + (i * tabOffset), tabY);
-
 		// search
 		searchTimer = 0;
 		searchResultString = "Type to search!";
@@ -183,9 +164,11 @@ public class SongMenu extends BasicGameState {
 		float iconScale = Utils.FONT_BOLD.getLineHeight() * 2f / searchIcon.getHeight();
 		searchIcon = searchIcon.getScaledCopy(iconScale);
 
+		Image tab = Utils.getTabImage();
 		search = new TextField(
 				container, Utils.FONT_DEFAULT,
-				(int) tabX + searchIcon.getWidth(), (int) ((height * 0.15f) - (tab.getHeight() * 2.5f)),
+				(int) buttonX + (tab.getWidth() / 2) + searchIcon.getWidth(),
+				(int) ((height * 0.15f) - (tab.getHeight() * 2.5f)),
 				(int) (buttonWidth / 2), Utils.FONT_DEFAULT.getHeight()
 		);
 		search.setBackgroundColor(Color.transparent);
@@ -264,13 +247,7 @@ public class SongMenu extends BasicGameState {
 		optionsButton.draw();
 
 		// sorting tabs
-		float tabTextY = sortTabs[0].getY() - (sortTabs[0].getImage().getHeight() / 2f);
-		for (int i = sortTabs.length - 1; i >= 0; i--) {
-			sortTabs[i].getImage().setAlpha((i == currentSort) ? 1.0f : 0.7f);
-			sortTabs[i].draw();
-			float tabTextX = sortTabs[i].getX() - (Utils.FONT_MEDIUM.getWidth(OsuGroupList.SORT_NAMES[i]) / 2);
-			Utils.FONT_MEDIUM.drawString(tabTextX, tabTextY, OsuGroupList.SORT_NAMES[i], Color.white);
-		}
+		SongSort.drawAll();
 
 		// search
 		Utils.FONT_BOLD.drawString(
@@ -324,7 +301,7 @@ public class SongMenu extends BasicGameState {
 				// search produced new list: re-initialize it
 				startNode = focusNode = null;
 				if (Opsu.groups.size() > 0) {
-					Opsu.groups.init(currentSort);
+					Opsu.groups.init();
 					if (search.getText().isEmpty()) {  // cleared search
 						// use previous start/focus if possible
 						if (oldFocusNode != null)
@@ -385,15 +362,15 @@ public class SongMenu extends BasicGameState {
 			return;
 
 		// sorting buttons
-		for (byte i = 0; i < sortTabs.length; i++) {
-			if (sortTabs[i].contains(x, y)) {
-				if (i != currentSort) {
-					currentSort = i;
+		for (SongSort sort : SongSort.values()) {
+			if (sort.contains(x, y)) {
+				if (sort != SongSort.getSort()) {
+					SongSort.setSort(sort);
 					SoundController.playSound(SoundController.SOUND_MENUCLICK);
 					OsuGroupNode oldFocusBase = Opsu.groups.getBaseNode(focusNode.index);
 					int oldFocusFileIndex = focusNode.osuFileIndex;
 					focusNode = null;
-					Opsu.groups.init(i);
+					Opsu.groups.init();
 					setFocus(oldFocusBase, oldFocusFileIndex, true);
 				}
 				return;
