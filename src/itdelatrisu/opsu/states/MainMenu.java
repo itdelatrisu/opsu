@@ -188,7 +188,7 @@ public class MainMenu extends BasicGameState {
 		g.setColor(Utils.COLOR_BLACK_ALPHA);
 		g.fillRoundRect(width - 168, 54, 148, 5, 4);
 		g.setColor(Color.white);
-		if (!MusicController.isTrackLoading())
+		if (!MusicController.isTrackLoading() && osu != null)
 			g.fillRoundRect(width - 168, 54,
 				148f * MusicController.getPosition() / osu.endTime, 5, 4);
 

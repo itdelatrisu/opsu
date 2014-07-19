@@ -1433,9 +1433,9 @@ public class Options extends BasicGameState {
 			writer.newLine();
 			writer.write(String.format("DisableSound = %b", disableSound));
 			writer.newLine();
-			writer.write(String.format("keyOsuLeft = %s", Keyboard.getKeyName(keyLeft)));
+			writer.write(String.format("keyOsuLeft = %s", Keyboard.getKeyName(getGameKeyLeft())));
 			writer.newLine();
-			writer.write(String.format("keyOsuRight = %s", Keyboard.getKeyName(keyRight)));
+			writer.write(String.format("keyOsuRight = %s", Keyboard.getKeyName(getGameKeyRight())));
 			writer.newLine();
 			writer.write(String.format("DimLevel = %d", backgroundDim));
 			writer.newLine();
