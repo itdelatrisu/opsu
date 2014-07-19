@@ -148,7 +148,12 @@ public class Opsu extends StateBasedGame {
 
 			app.start();
 		} catch (SlickException e) {
-			Log.error("Error while creating game container.", e);
+			// JARs will not run properly inside directories containing '!'
+			// http://bugs.java.com/view_bug.do?bug_id=4523159
+			if (new File("").getAbsolutePath().contains("!"))
+				Log.error("Cannot run JAR from path containing '!'.");
+			else
+				Log.error("Error while creating game container.", e);
 		}
 	}
 
