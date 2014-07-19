@@ -539,7 +539,8 @@ public class Slider {
 
 			// check if cursor pressed and within end circle
 			else if (Utils.isGameKeyPressed()) {
-				double distance = Math.hypot(hitObject.getSliderX()[lastIndex] - mouseX, hitObject.getSliderY()[lastIndex] - mouseY);
+				float[] c = bezier.pointAt(getT(trackPosition, false));
+				double distance = Math.hypot(c[0] - mouseX, c[1] - mouseY);
 				int followCircleRadius = GameImage.SLIDER_FOLLOWCIRCLE.getImage().getWidth() / 2;
 				if (distance < followCircleRadius)
 					ticksHit++;
@@ -604,7 +605,7 @@ public class Slider {
 			followCircleActive = false;
 
 			if (isNewRepeat)
-				score.sliderTickResult(trackPosition, GameScore.HIT_MISS, 0, 0, hitSound);
+				score.sliderTickResult(trackPosition, GameScore.HIT_MISS, 0, 0, (byte) -1);
 			if (isNewTick)
 				score.sliderTickResult(trackPosition, GameScore.HIT_MISS, 0, 0, (byte) -1);
 		}
