@@ -371,7 +371,7 @@ public class OsuParser {
 						osu.combo = colors.toArray(new Color[colors.size()]);
 					break;
 				case "[HitObjects]":
-					int type = -1;
+					int type = 0;
 					while ((line = in.readLine()) != null) {
 						line = line.trim();
 						if (!isValidLine(line))
@@ -396,7 +396,7 @@ public class OsuParser {
 						if (index != -1)
 							tokens[5] = tokens[5].substring(0, index);
 						osu.endTime = Integer.parseInt(tokens[5]);
-					} else
+					} else if (type != 0)
 						osu.endTime = Integer.parseInt(tokens[2]);
 					break;
 				default:

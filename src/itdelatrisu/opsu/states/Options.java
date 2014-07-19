@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 import org.lwjgl.input.Keyboard;
@@ -1449,13 +1450,13 @@ public class Options extends BasicGameState {
 			writer.newLine();
 			writer.write(String.format("PerfectHit = %b", showPerfectHit));
 			writer.newLine();
-			writer.write(String.format("FixedCS = %.1f", fixedCS));
+			writer.write(String.format(Locale.US, "FixedCS = %.1f", fixedCS));
 			writer.newLine();
-			writer.write(String.format("FixedHP = %.1f", fixedHP));
+			writer.write(String.format(Locale.US, "FixedHP = %.1f", fixedHP));
 			writer.newLine();
-			writer.write(String.format("FixedAR = %.1f", fixedAR));
+			writer.write(String.format(Locale.US, "FixedAR = %.1f", fixedAR));
 			writer.newLine();
-			writer.write(String.format("FixedOD = %.1f", fixedOD));
+			writer.write(String.format(Locale.US, "FixedOD = %.1f", fixedOD));
 			writer.newLine();
 			writer.write(String.format("Checkpoint = %d", checkpoint));
 			writer.newLine();
