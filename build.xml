@@ -3,19 +3,19 @@
               Any modifications will be overwritten.
               To include a user specific buildfile here, simply create one in the same
               directory with the processing instruction <?eclipse.ant.import?>
-              as the first entry and export the buildfile again. --><project basedir="." default="build" name="opsu!">
+              as the first entry and export the buildfile again. --><project basedir="." default="build" name="opsu">
     <property environment="env"/>
-    <property name="ECLIPSE_HOME" value="../../../../../Program Files/Eclipse"/>
+    <property name="ECLIPSE_HOME" value="../../Programs/eclipse/"/>
     <property name="debuglevel" value="source,lines,vars"/>
     <property name="target" value="1.7"/>
     <property name="source" value="1.7"/>
-    <path id="opsu!.classpath">
+    <path id="opsu.classpath">
         <pathelement location="bin"/>
-        <pathelement location="lib/slick/classes"/>
-        <pathelement location="lib/lwjgl-2.9.1/classes"/>
-        <pathelement location="lib/jorbis-0.0.17/classes"/>
-        <pathelement location="lib/jlayer1.0.1/classes"/>
-        <pathelement location="lib/zip4j/classes"/>
+        <pathelement location="lib/jl-1.0.1.jar"/>
+        <pathelement location="lib/jorbis-0.0.17-2.jar"/>
+        <pathelement location="lib/lwjgl-2.9.1.jar"/>
+        <pathelement location="lib/slick.jar"/>
+        <pathelement location="lib/zip4j-1.3.2.jar"/>
     </path>
     <target name="init">
         <mkdir dir="bin"/>
@@ -43,7 +43,7 @@
         <javac debug="true" debuglevel="${debuglevel}" destdir="bin" includeantruntime="false" source="${source}" target="${target}">
             <src path="src"/>
             <src path="res"/>
-            <classpath refid="opsu!.classpath"/>
+            <classpath refid="opsu.classpath"/>
         </javac>
     </target>
     <target description="Build all projects which reference this project. Useful to propagate changes." name="build-refprojects"/>
@@ -60,9 +60,9 @@
         <property name="build.compiler" value="org.eclipse.jdt.core.JDTCompilerAdapter"/>
         <antcall target="build"/>
     </target>
-    <target name="Opsu (1)">
+    <target name="Opsu">
         <java classname="itdelatrisu.opsu.Opsu" failonerror="true" fork="yes">
-            <classpath refid="opsu!.classpath"/>
+            <classpath refid="opsu.classpath"/>
         </java>
     </target>
 </project>

@@ -9,8 +9,6 @@
 # Eclipse
 /.settings/
 /bin/
-/.classpath
-/.project
 .metadata
 
 Thumbs.db

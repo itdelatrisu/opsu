@@ -150,7 +150,7 @@ public class Opsu extends StateBasedGame {
 		} catch (SlickException e) {
 			// JARs will not run properly inside directories containing '!'
 			// http://bugs.java.com/view_bug.do?bug_id=4523159
-			if (new File("").getAbsolutePath().contains("!"))
+			if (new File("").getAbsolutePath().indexOf('!') != -1)
 				Log.error("Cannot run JAR from path containing '!'.");
 			else
 				Log.error("Error while creating game container.", e);

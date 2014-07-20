@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" output="bin" path="src"/>
+	<classpathentry kind="src" output="bin" path="res"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="lib/jl-1.0.1.jar" sourcepath="lib/src/jl-1.0.1-sources.zip">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:platform:/resource/opsu/lib/docs/jl-1.0.1-docs.zip!/javadoc"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="lib/jorbis-0.0.17-2.jar" sourcepath="lib/src/jorbis-0.0.17-2-sources.jar"/>
+	<classpathentry kind="lib" path="lib/lwjgl-2.9.1.jar" sourcepath="lib/src/lwjgl-2.9.1-sources.zip">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:platform:/resource/opsu/lib/docs/lwjgl-2.9.1-docs.zip!/javadoc"/>
+			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="opsu/native"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="lib/slick.jar" sourcepath="lib/src/slick-sources.zip">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:platform:/resource/opsu/lib/docs/slick-docs.zip!/javadoc"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="lib/zip4j-1.3.2.jar" sourcepath="lib/src/zip4j-1.3.2-sources.zip">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:platform:/resource/opsu/lib/docs/zip4j-1.3.2-docs.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
