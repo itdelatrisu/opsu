@@ -755,6 +755,7 @@ public class Game extends BasicGameState {
 			breakTime = 0;
 			breakSound = false;
 			timingPointIndex = 0;
+			beatLengthBase = beatLength = 1;
 			pauseTime = -1;
 			pausedMouseX = -1;
 			pausedMouseY = -1;

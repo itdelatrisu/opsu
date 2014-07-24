@@ -133,46 +133,51 @@ public class OsuParser {
 							break;
 						if ((tokens = tokenize(line)) == null)
 							continue;
-						switch (tokens[0]) {
-						case "AudioFilename":
-							osu.audioFilename = new File(file.getParent() + File.separator + tokens[1]);
-							break;
-						case "AudioLeadIn":
-							osu.audioLeadIn = Integer.parseInt(tokens[1]);
-							break;
-//						case "AudioHash":  // deprecated
-//							osu.audioHash = tokens[1];
-//							break;
-						case "PreviewTime":
-							osu.previewTime = Integer.parseInt(tokens[1]);
-							break;
-						case "Countdown":
-							osu.countdown = Byte.parseByte(tokens[1]);
-							break;
-						case "SampleSet":
-							osu.sampleSet = tokens[1];
-							break;
-						case "StackLeniency":
-							osu.stackLeniency = Float.parseFloat(tokens[1]);
-							break;
-						case "Mode":
-							osu.mode = Byte.parseByte(tokens[1]);
+						try {
+							switch (tokens[0]) {
+							case "AudioFilename":
+								osu.audioFilename = new File(file.getParent() + File.separator + tokens[1]);
+								break;
+							case "AudioLeadIn":
+								osu.audioLeadIn = Integer.parseInt(tokens[1]);
+								break;
+//							case "AudioHash":  // deprecated
+//								osu.audioHash = tokens[1];
+//								break;
+							case "PreviewTime":
+								osu.previewTime = Integer.parseInt(tokens[1]);
+								break;
+							case "Countdown":
+								osu.countdown = Byte.parseByte(tokens[1]);
+								break;
+							case "SampleSet":
+								osu.sampleSet = tokens[1];
+								break;
+							case "StackLeniency":
+								osu.stackLeniency = Float.parseFloat(tokens[1]);
+								break;
+							case "Mode":
+								osu.mode = Byte.parseByte(tokens[1]);
 
-							/* Non-Opsu! standard files not implemented (obviously). */
-							if (osu.mode != 0)
-								return null;
+								/* Non-Opsu! standard files not implemented (obviously). */
+								if (osu.mode != 0)
+									return null;
 
-							break;
-						case "LetterboxInBreaks":
-							osu.letterboxInBreaks = (Integer.parseInt(tokens[1]) == 1);
-							break;
-						case "WidescreenStoryboard":
-							osu.widescreenStoryboard = (Integer.parseInt(tokens[1]) == 1);
-							break;
-						case "EpilepsyWarning":
-							osu.epilepsyWarning = (Integer.parseInt(tokens[1]) == 1);
-						default:
-							break;
+								break;
+							case "LetterboxInBreaks":
+								osu.letterboxInBreaks = (Integer.parseInt(tokens[1]) == 1);
+								break;
+							case "WidescreenStoryboard":
+								osu.widescreenStoryboard = (Integer.parseInt(tokens[1]) == 1);
+								break;
+							case "EpilepsyWarning":
+								osu.epilepsyWarning = (Integer.parseInt(tokens[1]) == 1);
+							default:
+								break;
+							}
+						} catch (Exception e) {
+							Log.warn(String.format("Failed to read line '%s' for file '%s'.",
+									line, file.getAbsolutePath()), e);
 						}
 					}
 					break;
@@ -186,27 +191,32 @@ public class OsuParser {
 						/* Not implemented. */
 //						if ((tokens = tokenize(line)) == null)
 //							continue;
-//						switch (tokens[0]) {
-//						case "Bookmarks":
-//							String[] bookmarks = tokens[1].split(",");
-//							osu.bookmarks = new int[bookmarks.length];
-//							for (int i = 0; i < bookmarks.length; i++)
-//								osu.bookmarks[i] = Integer.parseInt(bookmarks[i]);
-//							break;
-//						case "DistanceSpacing":
-//							osu.distanceSpacing = Float.parseFloat(tokens[1]);
-//							break;
-//						case "BeatDivisor":
-//							osu.beatDivisor = Byte.parseByte(tokens[1]);
-//							break;
-//						case "GridSize":
-//							osu.gridSize = Integer.parseInt(tokens[1]);
-//							break;
-//						case "TimelineZoom":
-//							osu.timelineZoom = Integer.parseInt(tokens[1]);
-//							break;
-//						default:
-//							break;
+//						try {
+//							switch (tokens[0]) {
+//							case "Bookmarks":
+//								String[] bookmarks = tokens[1].split(",");
+//								osu.bookmarks = new int[bookmarks.length];
+//								for (int i = 0; i < bookmarks.length; i++)
+//									osu.bookmarks[i] = Integer.parseInt(bookmarks[i]);
+//								break;
+//							case "DistanceSpacing":
+//								osu.distanceSpacing = Float.parseFloat(tokens[1]);
+//								break;
+//							case "BeatDivisor":
+//								osu.beatDivisor = Byte.parseByte(tokens[1]);
+//								break;
+//							case "GridSize":
+//								osu.gridSize = Integer.parseInt(tokens[1]);
+//								break;
+//							case "TimelineZoom":
+//								osu.timelineZoom = Integer.parseInt(tokens[1]);
+//								break;
+//							default:
+//								break;
+//							}
+//						} catch (Exception e) {
+//							Log.warn(String.format("Failed to read editor line '%s' for file '%s'.",
+//									line, file.getAbsolutePath()), e);
 //						}
 					}
 					break;
@@ -219,37 +229,42 @@ public class OsuParser {
 							break;
 						if ((tokens = tokenize(line)) == null)
 							continue;
-						switch (tokens[0]) {
-						case "Title":
-							osu.title = tokens[1];
-							break;
-						case "TitleUnicode":
-							osu.titleUnicode = tokens[1];
-							break;
-						case "Artist":
-							osu.artist = tokens[1];
-							break;
-						case "ArtistUnicode":
-							osu.artistUnicode = tokens[1];
-							break;
-						case "Creator":
-							osu.creator = tokens[1];
-							break;
-						case "Version":
-							osu.version = tokens[1];
-							break;
-						case "Source":
-							osu.source = tokens[1];
-							break;
-						case "Tags":
-							osu.tags = tokens[1].toLowerCase();
-							break;
-						case "BeatmapID":
-							osu.beatmapID = Integer.parseInt(tokens[1]);
-							break;
-						case "BeatmapSetID":
-							osu.beatmapSetID = Integer.parseInt(tokens[1]);
-							break;
+						try {
+							switch (tokens[0]) {
+							case "Title":
+								osu.title = tokens[1];
+								break;
+							case "TitleUnicode":
+								osu.titleUnicode = tokens[1];
+								break;
+							case "Artist":
+								osu.artist = tokens[1];
+								break;
+							case "ArtistUnicode":
+								osu.artistUnicode = tokens[1];
+								break;
+							case "Creator":
+								osu.creator = tokens[1];
+								break;
+							case "Version":
+								osu.version = tokens[1];
+								break;
+							case "Source":
+								osu.source = tokens[1];
+								break;
+							case "Tags":
+								osu.tags = tokens[1].toLowerCase();
+								break;
+							case "BeatmapID":
+								osu.beatmapID = Integer.parseInt(tokens[1]);
+								break;
+							case "BeatmapSetID":
+								osu.beatmapSetID = Integer.parseInt(tokens[1]);
+								break;
+							}
+						} catch (Exception e) {
+							Log.warn(String.format("Failed to read metadata '%s' for file '%s'.",
+									line, file.getAbsolutePath()), e);
 						}
 					}
 					break;
@@ -262,25 +277,30 @@ public class OsuParser {
 							break;
 						if ((tokens = tokenize(line)) == null)
 							continue;
-						switch (tokens[0]) {
-						case "HPDrainRate":
-							osu.HPDrainRate = Float.parseFloat(tokens[1]);
-							break;
-						case "CircleSize":
-							osu.circleSize = Float.parseFloat(tokens[1]);
-							break;
-						case "OverallDifficulty":
-							osu.overallDifficulty = Float.parseFloat(tokens[1]);
-							break;
-						case "ApproachRate":
-							osu.approachRate = Float.parseFloat(tokens[1]);
-							break;
-						case "SliderMultiplier":
-							osu.sliderMultiplier = Float.parseFloat(tokens[1]);
-							break;
-						case "SliderTickRate":
-							osu.sliderTickRate = Float.parseFloat(tokens[1]);
-							break;
+						try {
+							switch (tokens[0]) {
+							case "HPDrainRate":
+								osu.HPDrainRate = Float.parseFloat(tokens[1]);
+								break;
+							case "CircleSize":
+								osu.circleSize = Float.parseFloat(tokens[1]);
+								break;
+							case "OverallDifficulty":
+								osu.overallDifficulty = Float.parseFloat(tokens[1]);
+								break;
+							case "ApproachRate":
+								osu.approachRate = Float.parseFloat(tokens[1]);
+								break;
+							case "SliderMultiplier":
+								osu.sliderMultiplier = Float.parseFloat(tokens[1]);
+								break;
+							case "SliderTickRate":
+								osu.sliderTickRate = Float.parseFloat(tokens[1]);
+								break;
+							}
+						} catch (Exception e) {
+							Log.warn(String.format("Failed to read difficulty '%s' for file '%s'.",
+									line, file.getAbsolutePath()), e);
 						}
 					}
 					if (osu.approachRate == -1f)  // not in old format
@@ -302,10 +322,15 @@ public class OsuParser {
 								osu.bg = file.getParent() + File.separator + tokens[2];
 							break;
 						case "2":  // break periods
-							if (osu.breaks == null)  // optional, create if needed
-								osu.breaks = new ArrayList<Integer>();
-							osu.breaks.add(Integer.parseInt(tokens[1]));
-							osu.breaks.add(Integer.parseInt(tokens[2]));
+							try {
+								if (osu.breaks == null)  // optional, create if needed
+									osu.breaks = new ArrayList<Integer>();
+								osu.breaks.add(Integer.parseInt(tokens[1]));
+								osu.breaks.add(Integer.parseInt(tokens[2]));
+							} catch (Exception e) {
+								Log.warn(String.format("Failed to read break period '%s' for file '%s'.",
+										line, file.getAbsolutePath()), e);
+							}
 							break;
 						default:
 							/* Not implemented. */
@@ -321,21 +346,26 @@ public class OsuParser {
 						if (line.charAt(0) == '[')
 							break;
 
-						// parse timing point
-						OsuTimingPoint timingPoint = new OsuTimingPoint(line);
+						try {
+							// parse timing point
+							OsuTimingPoint timingPoint = new OsuTimingPoint(line);
 
-						// calculate BPM
-						if (!timingPoint.isInherited()) {
-							int bpm = Math.round(60000 / timingPoint.getBeatLength());
-							if (osu.bpmMin == 0)
-								osu.bpmMin = osu.bpmMax = bpm;
-							else if (bpm < osu.bpmMin)
-								osu.bpmMin = bpm;
-							else if (bpm > osu.bpmMax)
-								osu.bpmMax = bpm;
+							// calculate BPM
+							if (!timingPoint.isInherited()) {
+								int bpm = Math.round(60000 / timingPoint.getBeatLength());
+								if (osu.bpmMin == 0)
+									osu.bpmMin = osu.bpmMax = bpm;
+								else if (bpm < osu.bpmMin)
+									osu.bpmMin = bpm;
+								else if (bpm > osu.bpmMax)
+									osu.bpmMax = bpm;
+							}
+
+							osu.timingPoints.add(timingPoint);
+						} catch (Exception e) {
+							Log.warn(String.format("Failed to read timing point '%s' for file '%s'.",
+									line, file.getAbsolutePath()), e);
 						}
-
-						osu.timingPoints.add(timingPoint);
 					}
 					break;
 				case "[Colours]":
@@ -348,23 +378,28 @@ public class OsuParser {
 							break;
 						if ((tokens = tokenize(line)) == null)
 							continue;
-						switch (tokens[0]) {
-						case "Combo1":
-						case "Combo2":
-						case "Combo3":
-						case "Combo4":
-						case "Combo5":
-						case "Combo6":
-						case "Combo7":
-						case "Combo8":
-							String[] rgb = tokens[1].split(",");
-							colors.add(new Color(
-								Integer.parseInt(rgb[0]),
-								Integer.parseInt(rgb[1]),
-								Integer.parseInt(rgb[2])
-							));
-						default:
-							break;
+						try {
+							switch (tokens[0]) {
+							case "Combo1":
+							case "Combo2":
+							case "Combo3":
+							case "Combo4":
+							case "Combo5":
+							case "Combo6":
+							case "Combo7":
+							case "Combo8":
+								String[] rgb = tokens[1].split(",");
+								colors.add(new Color(
+									Integer.parseInt(rgb[0]),
+									Integer.parseInt(rgb[1]),
+									Integer.parseInt(rgb[2])
+								));
+							default:
+								break;
+							}
+						} catch (Exception e) {
+							Log.warn(String.format("Failed to read color '%s' for file '%s'.",
+									line, file.getAbsolutePath()), e);
 						}
 					}
 					if (!colors.isEmpty())
@@ -380,24 +415,34 @@ public class OsuParser {
 							break;
 						/* Only type counts parsed at this time. */
 						tokens = line.split(",");
-						type = Integer.parseInt(tokens[3]);
-						if ((type & OsuHitObject.TYPE_CIRCLE) > 0)
-							osu.hitObjectCircle++;
-						else if ((type & OsuHitObject.TYPE_SLIDER) > 0)
-							osu.hitObjectSlider++;
-						else //if ((type & OsuHitObject.TYPE_SPINNER) > 0)
-							osu.hitObjectSpinner++;
+						try {
+							type = Integer.parseInt(tokens[3]);
+							if ((type & OsuHitObject.TYPE_CIRCLE) > 0)
+								osu.hitObjectCircle++;
+							else if ((type & OsuHitObject.TYPE_SLIDER) > 0)
+								osu.hitObjectSlider++;
+							else //if ((type & OsuHitObject.TYPE_SPINNER) > 0)
+								osu.hitObjectSpinner++;
+						} catch (Exception e) {
+							Log.warn(String.format("Failed to read hit object '%s' for file '%s'.",
+									line, file.getAbsolutePath()), e);
+						}
 					}
 
-					// map length = last object end time (TODO: end on slider?)
-					if ((type & OsuHitObject.TYPE_SPINNER) > 0) {
-						// some 'endTime' fields contain a ':' character (?)
-						int index = tokens[5].indexOf(':');
-						if (index != -1)
-							tokens[5] = tokens[5].substring(0, index);
-						osu.endTime = Integer.parseInt(tokens[5]);
-					} else if (type != 0)
-						osu.endTime = Integer.parseInt(tokens[2]);
+					try {
+						// map length = last object end time (TODO: end on slider?)
+						if ((type & OsuHitObject.TYPE_SPINNER) > 0) {
+							// some 'endTime' fields contain a ':' character (?)
+							int index = tokens[5].indexOf(':');
+							if (index != -1)
+								tokens[5] = tokens[5].substring(0, index);
+							osu.endTime = Integer.parseInt(tokens[5]);
+						} else if (type != 0)
+							osu.endTime = Integer.parseInt(tokens[2]);
+					} catch (Exception e) {
+						Log.warn(String.format("Failed to read hit object end time '%s' for file '%s'.",
+								line, file.getAbsolutePath()), e);
+					}
 					break;
 				default:
 					line = in.readLine();
@@ -463,20 +508,25 @@ public class OsuParser {
 				if (tokenCount < 4)
 					continue;
 
-				// create a new OsuHitObject for each line
-				OsuHitObject hitObject = new OsuHitObject(line);
+				try {
+					// create a new OsuHitObject for each line
+					OsuHitObject hitObject = new OsuHitObject(line);
 
-				// set combo info
-				// - new combo: get next combo index, reset combo number
-				// - else:      maintain combo index, increase combo number
-				if (hitObject.isNewCombo()) {
-					comboIndex = (comboIndex + 1) % osu.combo.length;
-					comboNumber = 1;
+					// set combo info
+					// - new combo: get next combo index, reset combo number
+					// - else:      maintain combo index, increase combo number
+					if (hitObject.isNewCombo()) {
+						comboIndex = (comboIndex + 1) % osu.combo.length;
+						comboNumber = 1;
+					}
+					hitObject.setComboIndex(comboIndex);
+					hitObject.setComboNumber(comboNumber++);
+
+					osu.objects[objectIndex++] = hitObject;
+				} catch (Exception e) {
+					Log.warn(String.format("Failed to read hit object '%s' for OsuFile '%s'.",
+							line, osu.toString()), e);
 				}
-				hitObject.setComboIndex(comboIndex);
-				hitObject.setComboNumber(comboNumber++);
-
-				osu.objects[objectIndex++] = hitObject;
 			}
 		} catch (IOException e) {
 			Log.error(String.format("Failed to read file '%s'.", osu.getFile().getAbsolutePath()), e);
