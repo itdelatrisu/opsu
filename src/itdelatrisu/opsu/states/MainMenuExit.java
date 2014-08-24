@@ -100,11 +100,11 @@ public class MainMenuExit extends BasicGameState {
 		g.setFont(Utils.FONT_XLARGE);
 		g.drawString("1. Yes",
 				yesButton.getX() - (Utils.FONT_XLARGE.getWidth("1. Yes") / 2f),
-				yesButton.getY() - (Utils.FONT_XLARGE.getHeight() / 2f)
+				yesButton.getY() - (Utils.FONT_XLARGE.getLineHeight() / 2f)
 		);
 		g.drawString("2. No",
 				noButton.getX() - (Utils.FONT_XLARGE.getWidth("2. No") / 2f),
-				noButton.getY() - (Utils.FONT_XLARGE.getHeight() / 2f)
+				noButton.getY() - (Utils.FONT_XLARGE.getLineHeight() / 2f)
 		);
 
 		Utils.drawFPS();

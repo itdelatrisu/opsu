@@ -410,7 +410,7 @@ public class Options extends BasicGameState {
 		Image tab = Utils.getTabImage();
 		int subtextWidth = Utils.FONT_DEFAULT.getWidth("Click or drag an option to change it.");
 		float tabX = (width / 50) + (tab.getWidth() / 2f);
-		float tabY = 15 + Utils.FONT_XLARGE.getHeight() + (tab.getHeight() / 2f);
+		float tabY = 15 + Utils.FONT_XLARGE.getLineHeight() + (tab.getHeight() / 2f);
 		float tabOffset = (float) Math.min(tab.getWidth(), 
 				((width - subtextWidth - tab.getWidth()) / 2) / TAB_MAX);
 		for (int i = 0; i < optionTabs.length; i++)
@@ -433,7 +433,7 @@ public class Options extends BasicGameState {
 		);
 		Utils.FONT_DEFAULT.drawString(
 				(width / 2) - (Utils.FONT_DEFAULT.getWidth("Click or drag an option to change it.") / 2),
-				10 + Utils.FONT_XLARGE.getHeight(), "Click or drag an option to change it."
+				10 + Utils.FONT_XLARGE.getLineHeight(), "Click or drag an option to change it."
 		);
 
 		// game options
@@ -487,7 +487,7 @@ public class Options extends BasicGameState {
 			g.setColor(Color.white);
 			Utils.FONT_LARGE.drawString(
 					(width / 2) - (Utils.FONT_LARGE.getWidth("Please enter a letter or digit.") / 2),
-					(height / 2) - Utils.FONT_LARGE.getHeight(), "Please enter a letter or digit."
+					(height / 2) - Utils.FONT_LARGE.getLineHeight(), "Please enter a letter or digit."
 			);
 		}
 
@@ -922,7 +922,7 @@ public class Options extends BasicGameState {
 	 */
 	private void drawOption(int pos, String label, String value, String notes) {
 		int width = container.getWidth();
-		int textHeight = Utils.FONT_LARGE.getHeight();
+		int textHeight = Utils.FONT_LARGE.getLineHeight();
 		float y = textY + (pos * offsetY);
 
 		g.setColor(Color.white);
@@ -945,7 +945,7 @@ public class Options extends BasicGameState {
 		if (y < textY || y > textY + (offsetY * maxOptionsScreen))
 			return option;
 
-		int index = (y - textY + Utils.FONT_LARGE.getHeight()) / offsetY;
+		int index = (y - textY + Utils.FONT_LARGE.getLineHeight()) / offsetY;
 		switch (currentTab) {
 		case TAB_DISPLAY:
 			if (index < displayOptions.length)

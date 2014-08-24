@@ -169,7 +169,7 @@ public class SongMenu extends BasicGameState {
 				container, Utils.FONT_DEFAULT,
 				(int) buttonX + (tab.getWidth() / 2) + searchIcon.getWidth(),
 				(int) ((height * 0.15f) - (tab.getHeight() * 2.5f)),
-				(int) (buttonWidth / 2), Utils.FONT_DEFAULT.getHeight()
+				(int) (buttonWidth / 2), Utils.FONT_DEFAULT.getLineHeight()
 		);
 		search.setBackgroundColor(Color.transparent);
 		search.setBorderColor(Color.transparent);
@@ -182,7 +182,7 @@ public class SongMenu extends BasicGameState {
 		optionsButton = new GUIMenuButton(optionsIcon, search.getX() - (optionsIcon.getWidth() * 1.5f), search.getY());
 
 		// music note
-		int musicNoteDim = (int) (Utils.FONT_LARGE.getHeight() * 0.75f + Utils.FONT_DEFAULT.getHeight());
+		int musicNoteDim = (int) (Utils.FONT_LARGE.getLineHeight() * 0.75f + Utils.FONT_DEFAULT.getLineHeight());
 		musicNote = new Image("music-note.png").getScaledCopy(musicNoteDim, musicNoteDim);
 
 		// loader
@@ -227,7 +227,7 @@ public class SongMenu extends BasicGameState {
 			g.setColor(Color.white);
 			Utils.FONT_LARGE.drawString(iconWidth + 5, -3, info[0]);
 			Utils.FONT_DEFAULT.drawString(
-					iconWidth + 5, -3 + Utils.FONT_LARGE.getHeight() * 0.75f, info[1]);
+					iconWidth + 5, -3 + Utils.FONT_LARGE.getLineHeight() * 0.75f, info[1]);
 			int headerY = iconHeight - 3;
 			Utils.FONT_BOLD.drawString(5, headerY, info[2]);
 			headerY += Utils.FONT_BOLD.getLineHeight() - 6;

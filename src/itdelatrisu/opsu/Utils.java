@@ -36,7 +36,8 @@ import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
-import org.newdawn.slick.TrueTypeFont;
+import org.newdawn.slick.UnicodeFont;
+import org.newdawn.slick.font.effects.ColorEffect;
 import org.newdawn.slick.imageout.ImageOut;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.util.Log;
@@ -72,7 +73,7 @@ public class Utils {
 	/**
 	 * Game fonts.
 	 */
-	public static TrueTypeFont
+	public static UnicodeFont
 		FONT_DEFAULT, FONT_BOLD,
 		FONT_XLARGE, FONT_LARGE, FONT_MEDIUM, FONT_SMALL;
 
@@ -117,6 +118,7 @@ public class Utils {
 	 * @param game the game object
 	 * @throws SlickException
 	 */
+	@SuppressWarnings("unchecked")
 	public static void init(GameContainer container, StateBasedGame game)
 			throws SlickException {
 		Utils.container = container;
@@ -155,12 +157,31 @@ public class Utils {
 			fontBase = 14f;
 
 		Font font    = new Font("Lucida Sans Unicode", Font.PLAIN, (int) (fontBase * 4 / 3));
-		FONT_DEFAULT = new TrueTypeFont(font, false);
-		FONT_BOLD    = new TrueTypeFont(font.deriveFont(Font.BOLD), false);
-		FONT_XLARGE  = new TrueTypeFont(font.deriveFont(fontBase * 4), false);
-		FONT_LARGE   = new TrueTypeFont(font.deriveFont(fontBase * 2), false);
-		FONT_MEDIUM  = new TrueTypeFont(font.deriveFont(fontBase * 3 / 2), false);
-		FONT_SMALL   = new TrueTypeFont(font.deriveFont(fontBase), false);
+		FONT_DEFAULT = new UnicodeFont(font);
+		FONT_BOLD    = new UnicodeFont(font.deriveFont(Font.BOLD));
+		FONT_XLARGE  = new UnicodeFont(font.deriveFont(fontBase * 4));
+		FONT_LARGE   = new UnicodeFont(font.deriveFont(fontBase * 2));
+		FONT_MEDIUM  = new UnicodeFont(font.deriveFont(fontBase * 3 / 2));
+		FONT_SMALL   = new UnicodeFont(font.deriveFont(fontBase));
+		FONT_DEFAULT.addAsciiGlyphs();
+		FONT_BOLD.addAsciiGlyphs();
+		FONT_XLARGE.addAsciiGlyphs();
+		FONT_LARGE.addAsciiGlyphs();
+		FONT_MEDIUM.addAsciiGlyphs();
+		FONT_SMALL.addAsciiGlyphs();
+		ColorEffect colorEffect = new ColorEffect();
+		FONT_DEFAULT.getEffects().add(colorEffect);
+		FONT_BOLD.getEffects().add(colorEffect);
+		FONT_XLARGE.getEffects().add(colorEffect);
+		FONT_LARGE.getEffects().add(colorEffect);
+		FONT_MEDIUM.getEffects().add(colorEffect);
+		FONT_SMALL.getEffects().add(colorEffect);
+		FONT_DEFAULT.loadGlyphs();
+		FONT_BOLD.loadGlyphs();
+		FONT_XLARGE.loadGlyphs();
+		FONT_LARGE.loadGlyphs();
+		FONT_MEDIUM.loadGlyphs();
+		FONT_SMALL.loadGlyphs();
 
 		// tab image
 		tab = new Image("selection-tab.png");
