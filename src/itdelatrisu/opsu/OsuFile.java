@@ -18,6 +18,8 @@
 
 package itdelatrisu.opsu;
 
+import itdelatrisu.opsu.states.Options;
+
 import java.io.File;
 import java.util.ArrayList;
 
@@ -108,8 +110,27 @@ public class OsuFile implements Comparable<OsuFile> {
 
 	/**
 	 * Returns the associated file object.
+	 * @return the File object
 	 */
 	public File getFile() { return file; }
+
+	/**
+	 * Returns the song title.
+	 * If configured, the Unicode string will be returned instead.
+	 * @return the song title
+	 */
+	public String getTitle() {
+		return (Options.useUnicodeMetadata() && !titleUnicode.isEmpty()) ? titleUnicode : title;
+	}
+
+	/**
+	 * Returns the song artist.
+	 * If configured, the Unicode string will be returned instead.
+	 * @return the song artist
+	 */
+	public String getArtist() {
+		return (Options.useUnicodeMetadata() && !artistUnicode.isEmpty()) ? artistUnicode : artist;
+	}
 
 	/**
 	 * Draws the background associated with the OsuFile.
@@ -154,6 +175,6 @@ public class OsuFile implements Comparable<OsuFile> {
 	 */
 	@Override
 	public String toString() {
-		return String.format("%s - %s [%s]", artist, title, version);
+		return String.format("%s - %s [%s]", getArtist(), getTitle(), version);
 	}
 }

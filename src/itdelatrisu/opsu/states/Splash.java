@@ -110,7 +110,6 @@ public class Splash extends BasicGameState {
 			// load other resources in a new thread
 			final int width = container.getWidth();
 			final int height = container.getHeight();
-			final SongMenu menu = (SongMenu) game.getState(Opsu.STATE_SONGMENU);
 			new Thread() {
 				@Override
 				public void run() {
@@ -121,10 +120,6 @@ public class Splash extends BasicGameState {
 
 					// parse song directory
 					OsuParser.parseAllFiles(beatmapDir, width, height);
-
-					// initialize song list
-					Opsu.groups.init();
-					menu.setFocus(Opsu.groups.getRandomNode(), -1, true);
 
 					// load sounds
 					SoundController.init();
@@ -140,8 +135,13 @@ public class Splash extends BasicGameState {
 			logo.setAlpha(alpha + (delta / 400f));
 
 		// change states when loading complete
-		if (finished && alpha >= 1f)
+		if (finished && alpha >= 1f) {
+			// initialize song list
+			Opsu.groups.init();
+			((SongMenu) game.getState(Opsu.STATE_SONGMENU)).setFocus(Opsu.groups.getRandomNode(), -1, true);
+
 			game.enterState(Opsu.STATE_MAINMENU);
+		}
 	}
 
 	@Override

@@ -21,9 +21,12 @@ package itdelatrisu.opsu;
 import itdelatrisu.opsu.states.Options;
 
 import java.awt.Font;
+import java.awt.GraphicsEnvironment;
 import java.io.File;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 
@@ -104,6 +107,11 @@ public class Utils {
 		cursorX = new LinkedList<Integer>(),
 		cursorY = new LinkedList<Integer>();
 
+	/**
+	 * Set of all Unicode strings already loaded.
+	 */
+	private static HashSet<String> loadedGlyphs = new HashSet<String>();
+
 	// game-related variables
 	private static GameContainer container;
 	private static StateBasedGame game;
@@ -148,15 +156,23 @@ public class Utils {
 		// create fonts
 		float fontBase;
 		if (height <= 600)
-			fontBase = 9f;
-		else if (height < 800)
 			fontBase = 10f;
+		else if (height < 800)
+			fontBase = 11f;
 		else if (height <= 900)
-			fontBase = 12f;
+			fontBase = 13f;
 		else
-			fontBase = 14f;
+			fontBase = 15f;
 
-		Font font    = new Font("Lucida Sans Unicode", Font.PLAIN, (int) (fontBase * 4 / 3));
+		// TODO: cross-platform multilingual support
+		String fontName = "";
+		String[] fontNames = GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
+		if (Arrays.asList(fontNames).contains("Arial Unicode MS"))
+			fontName = "Arial Unicode MS";
+		else
+			fontName = "Lucida Sans Console";
+
+		Font font    = new Font(fontName, Font.PLAIN, (int) (fontBase * 4 / 3));
 		FONT_DEFAULT = new UnicodeFont(font);
 		FONT_BOLD    = new UnicodeFont(font.deriveFont(Font.BOLD));
 		FONT_XLARGE  = new UnicodeFont(font.deriveFont(fontBase * 4));
@@ -484,5 +500,36 @@ public class Utils {
 			return false;
 		}
 		return true;
+	}
+
+	/**
+	 * Adds and loads glyphs for an OsuFile's Unicode title and artist strings.
+	 * @param osu the OsuFile
+	 */
+	public static void loadGlyphs(OsuFile osu) {
+		boolean glyphsAdded = false;
+		if (!osu.titleUnicode.isEmpty() && !loadedGlyphs.contains(osu.titleUnicode)) {
+			Utils.FONT_LARGE.addGlyphs(osu.titleUnicode);
+			Utils.FONT_MEDIUM.addGlyphs(osu.titleUnicode);
+			Utils.FONT_DEFAULT.addGlyphs(osu.titleUnicode);
+			loadedGlyphs.add(osu.titleUnicode);
+			glyphsAdded = true;
+		}
+		if (!osu.artistUnicode.isEmpty() && !loadedGlyphs.contains(osu.artistUnicode)) {
+			Utils.FONT_LARGE.addGlyphs(osu.artistUnicode);
+			Utils.FONT_MEDIUM.addGlyphs(osu.artistUnicode);
+			Utils.FONT_DEFAULT.addGlyphs(osu.artistUnicode);
+			loadedGlyphs.add(osu.artistUnicode);
+			glyphsAdded = true;
+		}
+		if (glyphsAdded && Options.useUnicodeMetadata()) {
+			try {
+				Utils.FONT_LARGE.loadGlyphs();
+				Utils.FONT_MEDIUM.loadGlyphs();
+				Utils.FONT_DEFAULT.loadGlyphs();
+			} catch (SlickException e) {
+				Log.warn("Failed to load glyphs.", e);
+			}
+		}
 	}
 }

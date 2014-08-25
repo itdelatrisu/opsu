@@ -128,7 +128,8 @@ public class Options extends BasicGameState {
 		CHECKPOINT,
 		DISABLE_SOUNDS,
 		KEY_LEFT,
-		KEY_RIGHT;
+		KEY_RIGHT,
+		SHOW_UNICODE;
 	};
 
 	/**
@@ -169,6 +170,7 @@ public class Options extends BasicGameState {
 //		GameOption.FULLSCREEN,
 		GameOption.TARGET_FPS,
 		GameOption.SHOW_FPS,
+		GameOption.SHOW_UNICODE,
 		GameOption.SCREENSHOT_FORMAT,
 		GameOption.NEW_CURSOR,
 		GameOption.DYNAMIC_BACKGROUND,
@@ -362,6 +364,11 @@ public class Options extends BasicGameState {
 	 */
 	private static boolean disableSound =
 		(System.getProperty("os.name").toLowerCase().indexOf("linux") > -1);
+
+	/**
+	 * Whether or not to display non-English metadata.
+	 */
+	private static boolean showUnicode = false;
 
 	/**
 	 * Left and right game keys.
@@ -607,6 +614,18 @@ public class Options extends BasicGameState {
 			keyEntryLeft = false;
 			keyEntryRight = true;
 			break;
+		case SHOW_UNICODE:
+			showUnicode = !showUnicode;
+			if (showUnicode) {
+				try {
+					Utils.FONT_LARGE.loadGlyphs();
+					Utils.FONT_MEDIUM.loadGlyphs();
+					Utils.FONT_DEFAULT.loadGlyphs();
+				} catch (SlickException e) {
+					Log.warn("Failed to load glyphs.", e);
+				}
+			}
+			break;
 		default:
 			break;
 		}
@@ -778,6 +797,12 @@ public class Options extends BasicGameState {
 			drawOption(pos, "Show FPS Counter",
 					showFPS ? "Yes" : "No",
 					"Show an FPS counter in the bottom-right hand corner."
+			);
+			break;
+		case SHOW_UNICODE:
+			drawOption(pos, "Prefer Non-English Metadata",
+					showUnicode ? "Yes" : "No",
+					"Where available, song titles will be shown in their native language."
 			);
 			break;
 		case NEW_CURSOR:
@@ -1133,6 +1158,12 @@ public class Options extends BasicGameState {
 	public static boolean isSoundDisabled() { return disableSound; }
 
 	/**
+	 * Returns whether or not to use non-English metadata where available.
+	 * @return true if Unicode preferred
+	 */
+	public static boolean useUnicodeMetadata() { return showUnicode; }
+
+	/**
 	 * Sets the track checkpoint time, if within bounds.
 	 * @param time the track position (in ms)
 	 * @return true if within bounds
@@ -1288,6 +1319,9 @@ public class Options extends BasicGameState {
 				case "FpsCounter":
 					showFPS = Boolean.parseBoolean(value);
 					break;
+				case "ShowUnicode":
+					showUnicode = Boolean.parseBoolean(value);
+					break;
 				case "NewCursor":
 					newCursor = Boolean.parseBoolean(value);
 					break;
@@ -1415,6 +1449,8 @@ public class Options extends BasicGameState {
 			writer.write(String.format("FrameSync = %d", targetFPSindex));
 			writer.newLine();
 			writer.write(String.format("FpsCounter = %b", showFPS));
+			writer.newLine();
+			writer.write(String.format("ShowUnicode = %b", showUnicode));
 			writer.newLine();
 			writer.write(String.format("ScreenshotFormat = %d", screenshotFormatIndex));
 			writer.newLine();

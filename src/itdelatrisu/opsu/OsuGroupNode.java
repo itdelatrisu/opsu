@@ -95,9 +95,9 @@ public class OsuGroupNode {
 		float cx = x + (bg.getWidth() * 0.05f) - xOffset;
 		float cy = y + (bg.getHeight() * 0.2f) - 3;
 
-		Utils.FONT_MEDIUM.drawString(cx, cy, osu.title, textColor);
+		Utils.FONT_MEDIUM.drawString(cx, cy, osu.getTitle(), textColor);
 		Utils.FONT_DEFAULT.drawString(cx, cy + Utils.FONT_MEDIUM.getLineHeight() - 4,
-				String.format("%s // %s", osu.artist, osu.creator), textColor);
+				String.format("%s // %s", osu.getArtist(), osu.creator), textColor);
 		if (expanded || osuFiles.size() == 1)
 			Utils.FONT_BOLD.drawString(cx, cy + Utils.FONT_MEDIUM.getLineHeight() + Utils.FONT_DEFAULT.getLineHeight() - 8,
 					osu.version, textColor);
@@ -144,7 +144,7 @@ public class OsuGroupNode {
 	@Override
 	public String toString() {
 		if (osuFileIndex == -1)
-			return String.format("%s - %s", osuFiles.get(0).artist, osuFiles.get(0).title);
+			return String.format("%s - %s", osuFiles.get(0).getArtist(), osuFiles.get(0).getTitle());
 		else
 			return osuFiles.get(osuFileIndex).toString();
 	}

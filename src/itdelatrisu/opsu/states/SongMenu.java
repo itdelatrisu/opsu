@@ -240,6 +240,7 @@ public class SongMenu extends BasicGameState {
 		OsuGroupNode node = startNode;
 		for (int i = 0; i < MAX_BUTTONS && node != null; i++) {
 			node.draw(buttonX, buttonY + (i*buttonOffset), (node == focusNode));
+			Utils.loadGlyphs(node.osuFiles.get(0));
 			node = node.next;
 		}
 
@@ -569,7 +570,9 @@ public class SongMenu extends BasicGameState {
 		if (flag || (startNode.index == 0 && startNode.osuFileIndex == -1 && startNode.prev == null))
 			startNode = node;
 		focusNode = Opsu.groups.getNode(node, pos);
-		MusicController.play(focusNode.osuFiles.get(focusNode.osuFileIndex), true);
+		OsuFile osu = focusNode.osuFiles.get(focusNode.osuFileIndex);
+		MusicController.play(osu, true);
+		Utils.loadGlyphs(osu);
 
 		// check startNode bounds
 		while (startNode.index >= Opsu.groups.size() + length - MAX_BUTTONS && startNode.prev != null)

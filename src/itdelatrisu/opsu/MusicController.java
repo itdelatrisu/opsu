@@ -177,7 +177,7 @@ public class MusicController {
 	public static String getTrackName() {
 		if (!trackExists() || lastOsu == null)
 			return null;
-		return lastOsu.title;
+		return lastOsu.getTitle();
 	}
 
 	/**
@@ -186,7 +186,7 @@ public class MusicController {
 	public static String getArtistName() {
 		if (!trackExists() || lastOsu == null)
 			return null;
-		return lastOsu.artist;
+		return lastOsu.getArtist();
 	}
 
 	/**

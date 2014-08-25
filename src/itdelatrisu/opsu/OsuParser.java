@@ -20,9 +20,11 @@ package itdelatrisu.opsu;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -110,7 +112,7 @@ public class OsuParser {
 	private static OsuFile parseFile(File file, ArrayList<OsuFile> osuFiles, boolean parseObjects) {
 		OsuFile osu = new OsuFile(file);
 
-		try (BufferedReader in = new BufferedReader(new FileReader(file))) {
+		try (BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF-8"))) {
 
 			// initialize timing point list
 			osu.timingPoints = new ArrayList<OsuTimingPoint>();
