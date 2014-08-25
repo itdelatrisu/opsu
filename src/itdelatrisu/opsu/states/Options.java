@@ -79,6 +79,11 @@ public class Options extends BasicGameState {
 	};
 
 	/**
+	 * Font file name.
+	 */
+	public static final String FONT_NAME = "kochi-gothic.ttf";
+
+	/**
 	 * The beatmap directory.
 	 */
 	private static File beatmapDir;

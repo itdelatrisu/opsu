@@ -21,10 +21,8 @@ package itdelatrisu.opsu;
 import itdelatrisu.opsu.states.Options;
 
 import java.awt.Font;
-import java.awt.GraphicsEnvironment;
 import java.io.File;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -44,6 +42,7 @@ import org.newdawn.slick.font.effects.ColorEffect;
 import org.newdawn.slick.imageout.ImageOut;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.util.Log;
+import org.newdawn.slick.util.ResourceLoader;
 
 /**
  * Contains miscellaneous utilities.
@@ -126,7 +125,6 @@ public class Utils {
 	 * @param game the game object
 	 * @throws SlickException
 	 */
-	@SuppressWarnings("unchecked")
 	public static void init(GameContainer container, StateBasedGame game)
 			throws SlickException {
 		Utils.container = container;
@@ -164,40 +162,25 @@ public class Utils {
 		else
 			fontBase = 15f;
 
-		// TODO: cross-platform multilingual support
-		String fontName = "";
-		String[] fontNames = GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
-		if (Arrays.asList(fontNames).contains("Arial Unicode MS"))
-			fontName = "Arial Unicode MS";
-		else
-			fontName = "Lucida Sans Console";
-
-		Font font    = new Font(fontName, Font.PLAIN, (int) (fontBase * 4 / 3));
-		FONT_DEFAULT = new UnicodeFont(font);
-		FONT_BOLD    = new UnicodeFont(font.deriveFont(Font.BOLD));
-		FONT_XLARGE  = new UnicodeFont(font.deriveFont(fontBase * 4));
-		FONT_LARGE   = new UnicodeFont(font.deriveFont(fontBase * 2));
-		FONT_MEDIUM  = new UnicodeFont(font.deriveFont(fontBase * 3 / 2));
-		FONT_SMALL   = new UnicodeFont(font.deriveFont(fontBase));
-		FONT_DEFAULT.addAsciiGlyphs();
-		FONT_BOLD.addAsciiGlyphs();
-		FONT_XLARGE.addAsciiGlyphs();
-		FONT_LARGE.addAsciiGlyphs();
-		FONT_MEDIUM.addAsciiGlyphs();
-		FONT_SMALL.addAsciiGlyphs();
-		ColorEffect colorEffect = new ColorEffect();
-		FONT_DEFAULT.getEffects().add(colorEffect);
-		FONT_BOLD.getEffects().add(colorEffect);
-		FONT_XLARGE.getEffects().add(colorEffect);
-		FONT_LARGE.getEffects().add(colorEffect);
-		FONT_MEDIUM.getEffects().add(colorEffect);
-		FONT_SMALL.getEffects().add(colorEffect);
-		FONT_DEFAULT.loadGlyphs();
-		FONT_BOLD.loadGlyphs();
-		FONT_XLARGE.loadGlyphs();
-		FONT_LARGE.loadGlyphs();
-		FONT_MEDIUM.loadGlyphs();
-		FONT_SMALL.loadGlyphs();
+		try {
+			Font javaFont = Font.createFont(Font.TRUETYPE_FONT, ResourceLoader.getResourceAsStream(Options.FONT_NAME));
+			Font font    = javaFont.deriveFont(Font.PLAIN, (int) (fontBase * 4 / 3));
+			FONT_DEFAULT = new UnicodeFont(font);
+			FONT_BOLD    = new UnicodeFont(font.deriveFont(Font.BOLD));
+			FONT_XLARGE  = new UnicodeFont(font.deriveFont(fontBase * 4));
+			FONT_LARGE   = new UnicodeFont(font.deriveFont(fontBase * 2));
+			FONT_MEDIUM  = new UnicodeFont(font.deriveFont(fontBase * 3 / 2));
+			FONT_SMALL   = new UnicodeFont(font.deriveFont(fontBase));
+			ColorEffect colorEffect = new ColorEffect();
+			loadFont(FONT_DEFAULT, 2, colorEffect);
+			loadFont(FONT_BOLD, 2, colorEffect);
+			loadFont(FONT_XLARGE, 4, colorEffect);
+			loadFont(FONT_LARGE, 4, colorEffect);
+			loadFont(FONT_MEDIUM, 3, colorEffect);
+			loadFont(FONT_SMALL, 1, colorEffect);
+		} catch (Exception e) {
+			Log.error("Failed to load fonts.", e);
+		}
 
 		// tab image
 		tab = new Image("selection-tab.png");
@@ -500,6 +483,23 @@ public class Utils {
 			return false;
 		}
 		return true;
+	}
+
+	/**
+	 * Loads a Unicode font.
+	 * @param font the font to load
+	 * @param padding the top and bottom padding
+	 * @param colorEffect the ColorEffect
+	 * @throws SlickException
+	 */
+	@SuppressWarnings("unchecked")
+	private static void loadFont(UnicodeFont font, int padding,
+			ColorEffect colorEffect) throws SlickException {
+		font.setPaddingTop(padding);
+		font.setPaddingBottom(padding);
+		font.addAsciiGlyphs();
+		font.getEffects().add(colorEffect);
+		font.loadGlyphs();
 	}
 
 	/**
