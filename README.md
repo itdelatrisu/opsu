@@ -31,9 +31,13 @@ first time, or whenever hit objects are out of sync with the music.  This and
 other game options can be accessed by clicking the wrench icon in the song menu.
 
 ## Building
-The LWJGL native libraries must be linked and distributed with this application.
-[JarSplice](http://ninjacave.com/jarsplice) is included in the tools directory
-to merge the files into a single executable fat jar for distribution.
+opsu! is distributed as a Maven project.
+
+* To run the project, execute the Maven goal `compile exec:exec`.
+* To create a single executable JAR file, execute the Maven goal
+`package shade:shade`.  Note that the LWJGL native libraries must be linked and
+distributed with this application; [JarSplice](http://ninjacave.com/jarsplice)
+is included in the tools directory to merge the files into a fat jar.
 
 ## Credits
 This software was created by Jeffrey Han 
