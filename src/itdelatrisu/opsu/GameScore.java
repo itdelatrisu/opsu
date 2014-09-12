@@ -240,11 +240,10 @@ public class GameScore {
 
 	/**
 	 * Loads all game score images.
+	 * @param dir images directory
 	 * @throws SlickException
 	 */
-	public void loadImages() throws SlickException {
-		File dir = MusicController.getOsuFile().getFile().getParentFile();
-
+	public void loadImages(File dir) throws SlickException {
 		// combo burst images
 		if (comboBurstImages != null) {
 			for (int i = 0; i < comboBurstImages.length; i++) {

@@ -71,8 +71,6 @@ public class GameRanking extends BasicGameState {
 			throws SlickException {
 		this.game = game;
 
-		score = Game.getGameScore();
-
 		int width = container.getWidth();
 		int height = container.getHeight();
 
@@ -105,7 +103,7 @@ public class GameRanking extends BasicGameState {
 			g.setBackground(Utils.COLOR_BLACK_ALPHA);
 
 		// ranking screen elements
-		score.drawRankingElements(g, width, height);
+		getScore().drawRankingElements(g, width, height);
 
 		// game mods
 		for (GameMod mod : GameMod.valuesReversed()) {
@@ -167,7 +165,7 @@ public class GameRanking extends BasicGameState {
 		if (retryButton.contains(x, y)) {
 			OsuFile osu = MusicController.getOsuFile();
 			Display.setTitle(String.format("%s - %s", game.getTitle(), osu.toString()));
-			Game.setRestart(Game.RESTART_MANUAL);
+			((Game) game.getState(Opsu.STATE_GAME)).setRestart(Game.RESTART_MANUAL);
 			SoundController.playSound(SoundController.SOUND_MENUHIT);
 			game.enterState(Opsu.STATE_GAME, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 		} else if (exitButton.contains(x, y)) {
@@ -186,5 +184,13 @@ public class GameRanking extends BasicGameState {
 			throws SlickException {
 		Display.setTitle(game.getTitle());
 		SoundController.playSound(SoundController.SOUND_APPLAUSE);
+	}
+
+	public GameScore getScore() {
+		return score;
+	}
+
+	public void setScore(GameScore score) {
+		this.score = score;
 	}
 }

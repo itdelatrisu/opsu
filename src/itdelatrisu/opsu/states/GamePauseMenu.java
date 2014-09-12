@@ -65,6 +65,7 @@ public class GamePauseMenu extends BasicGameState {
 	private StateBasedGame game;
 	private Input input;
 	private int state;
+	private Game gameState;
 
 	public GamePauseMenu(int state) {
 		this.state = state;
@@ -76,19 +77,20 @@ public class GamePauseMenu extends BasicGameState {
 		this.container = container;
 		this.game = game;
 		input = container.getInput();
+		gameState = (Game) game.getState(Opsu.STATE_GAME);
 	}
 
 	@Override
 	public void render(GameContainer container, StateBasedGame game, Graphics g)
 			throws SlickException {
 		// background
-		if (Game.getRestart() != Game.RESTART_LOSE)
+		if (gameState.getRestart() != Game.RESTART_LOSE)
 			GameImage.PAUSE_OVERLAY.getImage().draw();
 		else
 			GameImage.FAIL_BACKGROUND.getImage().draw();
 
 		// draw buttons
-		if (Game.getRestart() != Game.RESTART_LOSE)
+		if (gameState.getRestart() != Game.RESTART_LOSE)
 			continueButton.draw();
 		retryButton.draw();
 		backButton.draw();
@@ -119,7 +121,7 @@ public class GamePauseMenu extends BasicGameState {
 		switch (key) {
 		case Input.KEY_ESCAPE:
 			// 'esc' will normally unpause, but will return to song menu if health is zero
-			if (Game.getRestart() == Game.RESTART_LOSE) {
+			if (gameState.getRestart() == Game.RESTART_LOSE) {
 				MusicController.stop();
 				MusicController.playAt(MusicController.getOsuFile().previewTime, true);
 				SoundController.playSound(SoundController.SOUND_MENUBACK);
@@ -138,7 +140,7 @@ public class GamePauseMenu extends BasicGameState {
 		if (button == Input.MOUSE_MIDDLE_BUTTON)
 			return;
 
-		boolean loseState = (Game.getRestart() == Game.RESTART_LOSE);
+		boolean loseState = (gameState.getRestart() == Game.RESTART_LOSE);
 
 		// if music faded out (i.e. health is zero), don't process any actions before FADEOUT_TIME
 		if (loseState && System.currentTimeMillis() - pauseStartTime < FADEOUT_TIME)
@@ -160,7 +162,7 @@ public class GamePauseMenu extends BasicGameState {
 	public void enter(GameContainer container, StateBasedGame game)
 			throws SlickException {
 		pauseStartTime = System.currentTimeMillis();
-		if (Game.getRestart() == Game.RESTART_LOSE) {
+		if (gameState.getRestart() == Game.RESTART_LOSE) {
 			MusicController.fadeOut(FADEOUT_TIME);
 			SoundController.playSound(SoundController.SOUND_FAIL);
 		} else
@@ -175,7 +177,7 @@ public class GamePauseMenu extends BasicGameState {
 			SoundController.playSound(SoundController.SOUND_MENUHIT);
 		else
 			SoundController.playSound(SoundController.SOUND_MENUBACK);
-		Game.setRestart(restart);
+		gameState.setRestart(restart);
 		game.enterState(Opsu.STATE_GAME);
 	}
 

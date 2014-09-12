@@ -67,7 +67,7 @@ public class Game extends BasicGameState {
 	/**
 	 * Current restart state.
 	 */
-	private static byte restart;
+	private byte restart;
 
 	/**
 	 * The associated OsuFile object.
@@ -77,7 +77,7 @@ public class Game extends BasicGameState {
 	/**
 	 * The associated GameScore object (holds all score data).
 	 */
-	private static GameScore score;
+	private GameScore score;
 
 	/**
 	 * Current hit object index in OsuHitObject[] array.
@@ -465,6 +465,7 @@ public class Game extends BasicGameState {
 		if (objectIndex >= osu.objects.length) {
 			// if checkpoint used, don't show the ranking screen
 			int state = (checkpointLoaded) ? Opsu.STATE_SONGMENU : Opsu.STATE_GAMERANKING;
+			((GameRanking) game.getState(Opsu.STATE_GAMERANKING)).setScore(getGameScore());
 			game.enterState(state, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 			return;
 		}
@@ -871,7 +872,7 @@ public class Game extends BasicGameState {
 
 		// load other images...
 		((GamePauseMenu) game.getState(Opsu.STATE_GAMEPAUSEMENU)).loadImages();
-		score.loadImages();
+		score.loadImages(osu.getFile().getParentFile());
 	}
 
 	/**
@@ -940,13 +941,13 @@ public class Game extends BasicGameState {
 	/**
 	 * Sets/returns whether entering the state will restart it.
 	 */
-	public static void setRestart(byte restart) { Game.restart = restart; }
-	public static byte getRestart() { return Game.restart; }
+	public void setRestart(byte restart) { this.restart = restart; }
+	public byte getRestart() { return restart; }
 
 	/**
 	 * Returns the associated GameScore object.
 	 */
-	public static GameScore getGameScore() { return score; }
+	public GameScore getGameScore() { return score; }
 
 	/**
 	 * Returns whether or not the track is in the lead-in time state.
