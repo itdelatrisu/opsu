@@ -24,6 +24,7 @@ import itdelatrisu.opsu.GameMod;
 import itdelatrisu.opsu.GameScore;
 import itdelatrisu.opsu.MusicController;
 import itdelatrisu.opsu.Opsu;
+import itdelatrisu.opsu.OpsuOptions;
 import itdelatrisu.opsu.OsuFile;
 import itdelatrisu.opsu.OsuHitObject;
 import itdelatrisu.opsu.OsuTimingPoint;
@@ -44,7 +45,6 @@ import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
-import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.state.transition.EmptyTransition;
 import org.newdawn.slick.state.transition.FadeInTransition;
@@ -54,7 +54,7 @@ import org.newdawn.slick.util.Log;
 /**
  * "Game" state.
  */
-public class Game extends BasicGameState {
+public class Game extends Utils {
 	/**
 	 * Game restart states.
 	 */
@@ -192,22 +192,14 @@ public class Game extends BasicGameState {
 	 */
 	private int deathTime = -1;
 
-	// game-related variables
-	private GameContainer container;
-	private StateBasedGame game;
-	private Input input;
-	private int state;
-
-	public Game(int state) {
-		this.state = state;
+	public Game(int state, OpsuOptions options) {
+		super(state, options);
 	}
 
 	@Override
 	public void init(GameContainer container, StateBasedGame game)
 			throws SlickException {
-		this.container = container;
-		this.game = game;
-		input = container.getInput();
+		super.init(container, game);
 
 		int width = container.getWidth();
 		int height = container.getHeight();
@@ -221,6 +213,8 @@ public class Game extends BasicGameState {
 		} catch (Exception e) {
 			// optional
 		}
+		
+		score.setOptions(this.options);
 	}
 
 	@Override
@@ -231,8 +225,8 @@ public class Game extends BasicGameState {
 
 		// background
 		g.setBackground(Color.black);
-		float dimLevel = Options.getBackgroundDim();
-		if (Options.isDefaultPlayfieldForced() && playfield != null) {
+		float dimLevel = options.getBackgroundDim();
+		if (options.isDefaultPlayfieldForced() && playfield != null) {
 			playfield.setAlpha(dimLevel);
 			playfield.draw();
 		} else if (!osu.drawBG(width, height, dimLevel) && playfield != null) {
@@ -305,8 +299,8 @@ public class Game extends BasicGameState {
 
 				if (GameMod.AUTO.isActive())
 					GameImage.UNRANKED.getImage().drawCentered(width / 2, height * 0.077f);
-				Utils.drawFPS();
-				Utils.drawCursor();
+				drawFPS();
+				drawCursor();
 				return;
 			}
 		}
@@ -409,8 +403,8 @@ public class Game extends BasicGameState {
 			cursorCirclePulse.drawCentered(pausedMouseX, pausedMouseY);
 		}
 
-		Utils.drawFPS();
-		Utils.drawCursor();
+		drawFPS();
+		drawCursor();
 	}
 
 	@Override
@@ -557,9 +551,9 @@ public class Game extends BasicGameState {
 			if (hitObject.isCircle())
 				done = circles.get(objectIndex).update(overlap);
 			else if (hitObject.isSlider())
-				done = sliders.get(objectIndex).update(overlap, delta, input.getMouseX(), input.getMouseY());
+				done = sliders.get(objectIndex).update(overlap, delta, input.getMouseX(), input.getMouseY(), this);
 			else if (hitObject.isSpinner())
-				done = spinners.get(objectIndex).update(overlap, delta, input.getMouseX(), input.getMouseY());
+				done = spinners.get(objectIndex).update(overlap, delta, input.getMouseX(), input.getMouseY(), this);
 
 			// increment object index?
 			if (done)
@@ -570,15 +564,12 @@ public class Game extends BasicGameState {
 	}
 
 	@Override
-	public int getID() { return state; }
-
-	@Override
 	public void keyPressed(int key, char c) {
 		// game keys
 		if (!Keyboard.isRepeatEvent()) {
-			if (key == Options.getGameKeyLeft())
+			if (key == options.getGameKeyLeft())
 				mousePressed(Input.MOUSE_LEFT_BUTTON, input.getMouseX(), input.getMouseY());
-			else if (key == Options.getGameKeyRight())
+			else if (key == options.getGameKeyRight())
 				mousePressed(Input.MOUSE_RIGHT_BUTTON, input.getMouseX(), input.getMouseY());
 		}
 
@@ -620,14 +611,14 @@ public class Game extends BasicGameState {
 					break;
 
 				int position = (pauseTime > -1) ? pauseTime : MusicController.getPosition();
-				if (Options.setCheckpoint(position / 1000))
+				if (options.setCheckpoint(position / 1000))
 					SoundController.playSound(SoundController.SOUND_MENUCLICK);
 			}
 			break;
 		case Input.KEY_L:
 			// load checkpoint
 			if (input.isKeyDown(Input.KEY_RCONTROL) || input.isKeyDown(Input.KEY_LCONTROL)) {
-				int checkpoint = Options.getCheckpoint();
+				int checkpoint = options.getCheckpoint();
 				if (checkpoint == 0 || checkpoint > osu.endTime)
 					break;  // invalid checkpoint
 				try {
@@ -652,7 +643,7 @@ public class Game extends BasicGameState {
 			}
 			break;
 		case Input.KEY_F12:
-			Utils.takeScreenShot();
+			takeScreenShot();
 			break;
 		}
 	}
@@ -823,7 +814,7 @@ public class Game extends BasicGameState {
 		// set images
 		File parent = osu.getFile().getParentFile();
 		for (GameImage o : GameImage.values())
-			o.setSkinImage(parent);
+			o.setSkinImage(parent, options);
 
 		// skip button
 		Image skip = GameImage.SKIP.getImage();
@@ -903,14 +894,14 @@ public class Game extends BasicGameState {
 			}
 
 			// fixed difficulty overrides
-			if (Options.getFixedCS() > 0f)
-				circleSize = Options.getFixedCS();
-			if (Options.getFixedAR() > 0f)
-				approachRate = Options.getFixedAR();
-			if (Options.getFixedOD() > 0f)
-				overallDifficulty = Options.getFixedOD();
-			if (Options.getFixedHP() > 0f)
-				HPDrainRate = Options.getFixedHP();
+			if (options.getFixedCS() > 0f)
+				circleSize = options.getFixedCS();
+			if (options.getFixedAR() > 0f)
+				approachRate = options.getFixedAR();
+			if (options.getFixedOD() > 0f)
+				overallDifficulty = options.getFixedOD();
+			if (options.getFixedHP() > 0f)
+				HPDrainRate = options.getFixedHP();
 
 			// initialize objects
 			Circle.init(container, circleSize);

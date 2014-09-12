@@ -18,8 +18,6 @@
 
 package itdelatrisu.opsu;
 
-import itdelatrisu.opsu.states.Options;
-
 import java.io.File;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -208,6 +206,8 @@ public class GameScore {
 	 * Container dimensions.
 	 */
 	private int width, height;
+	
+	private OpsuOptions options;
 
 	/**
 	 * Constructor.
@@ -673,7 +673,7 @@ public class GameScore {
 				hitResults[hitResult.result].drawCentered(hitResult.x, hitResult.y);
 
 				// hit lighting
-				if (Options.isHitLightingEnabled() && lighting != null &&
+				if (options.isHitLightingEnabled() && lighting != null &&
 					hitResult.result != HIT_MISS && hitResult.result != HIT_SLIDER30 && hitResult.result != HIT_SLIDER10) {
 					float scale = 1f + ((trackPosition - hitResult.time) / (float) fadeDelay);
 					Image scaledLighting  = lighting.getScaledCopy(scale);
@@ -777,7 +777,7 @@ public class GameScore {
 	 * @param delta the delta interval since the last call
 	 */
 	public void updateComboBurst(int delta) {
-		if (comboBurstIndex > -1 && Options.isComboBurstEnabled()) {
+		if (comboBurstIndex > -1 && options.isComboBurstEnabled()) {
 			int leftX  = 0;
 			int rightX = width - comboBurstImages[comboBurstIndex].getWidth();
 			if (comboBurstX < leftX) {
@@ -805,7 +805,7 @@ public class GameScore {
 			comboMax = combo;
 	
 		// combo bursts (at 30, 60, 100+50x)
-		if (Options.isComboBurstEnabled() &&
+		if (options.isComboBurstEnabled() &&
 			(combo == 30 || combo == 60 || (combo >= 100 && combo % 50 == 0))) {
 			if (combo == 30)
 				comboBurstIndex = 0;
@@ -862,7 +862,7 @@ public class GameScore {
 
 		if (hitValue > 0) {
 			score += hitValue;
-			if (!Options.isPerfectHitBurstEnabled())
+			if (!options.isPerfectHitBurstEnabled())
 				;  // hide perfect hit results
 			else
 				hitResultList.add(new OsuHitObjectResult(time, result, x, y, null));
@@ -961,9 +961,13 @@ public class GameScore {
 			comboEnd = 0;
 		}
 
-		if (perfectHit && !Options.isPerfectHitBurstEnabled())
+		if (perfectHit && !options.isPerfectHitBurstEnabled())
 			;  // hide perfect hit results
 		else
 			hitResultList.add(new OsuHitObjectResult(time, result, x, y, color));
+	}
+	
+	public void setOptions(OpsuOptions options) {
+		this.options = options;
 	}
 }

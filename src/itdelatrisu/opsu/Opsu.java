@@ -71,6 +71,8 @@ public class Opsu extends StateBasedGame {
 		STATE_GAMERANKING   = 6,
 		STATE_OPTIONS       = 7;
 
+	OpsuOptions options = new OpsuOptions();
+	
 	/**
 	 * Used to restrict the program to a single instance.
 	 */
@@ -82,21 +84,21 @@ public class Opsu extends StateBasedGame {
 
 	@Override
 	public void initStatesList(GameContainer container) throws SlickException {
-		addState(new Splash(STATE_SPLASH));
-		addState(new MainMenu(STATE_MAINMENU));
-		addState(new MainMenuExit(STATE_MAINMENUEXIT));
-		addState(new SongMenu(STATE_SONGMENU));
-		addState(new Game(STATE_GAME));
-		addState(new GamePauseMenu(STATE_GAMEPAUSEMENU));
-		addState(new GameRanking(STATE_GAMERANKING));
-		addState(new Options(STATE_OPTIONS));
+		addState(new Splash(STATE_SPLASH, options));
+		addState(new MainMenu(STATE_MAINMENU, options));
+		addState(new MainMenuExit(STATE_MAINMENUEXIT, options));
+		addState(new SongMenu(STATE_SONGMENU, options));
+		addState(new Game(STATE_GAME, options));
+		addState(new GamePauseMenu(STATE_GAMEPAUSEMENU, options));
+		addState(new GameRanking(STATE_GAMERANKING, options));
+		addState(new Options(STATE_OPTIONS, options));
 	}
 
 	public static void main(String[] args) {
 		// log all errors to a file
 		Log.setVerbose(false);
 		try {
-			DefaultLogSystem.out = new PrintStream(new FileOutputStream(Options.LOG_FILE, true));
+			DefaultLogSystem.out = new PrintStream(new FileOutputStream(OpsuOptions.LOG_FILE, true));
 		} catch (FileNotFoundException e) {
 			Log.error(e);
 		}
@@ -108,14 +110,17 @@ public class Opsu extends StateBasedGame {
 			}
 		});
 
+		Opsu opsu = new Opsu("opsu!");
 		// parse configuration file
-		Options.parseOptions();
+		opsu.options.parseOptions();
+		MusicController.setOptions(opsu.options);
+		SoundController.setOptions(opsu.options);
 
 		// only allow a single instance
 		try {
-			SERVER_SOCKET = new ServerSocket(Options.getPort());
+			SERVER_SOCKET = new ServerSocket(opsu.options.port);
 		} catch (IOException e) {
-			Log.error(String.format("Another program is already running on port %d.", Options.getPort()), e);
+			Log.error(String.format("Another program is already running on port %d.", opsu.options.port), e);
 			System.exit(1);
 		}
 
@@ -124,25 +129,24 @@ public class Opsu extends StateBasedGame {
 
 		// set the resource paths
 		ResourceLoader.removeAllResourceLocations();
-		ResourceLoader.addResourceLocation(new FileSystemLocation(Options.getSkinDir()));
+		ResourceLoader.addResourceLocation(new FileSystemLocation(opsu.options.getSkinDir()));
 		ResourceLoader.addResourceLocation(new ClasspathLocation());
 		ResourceLoader.addResourceLocation(new FileSystemLocation(new File(".")));
 		ResourceLoader.addResourceLocation(new FileSystemLocation(new File("./res/")));
 
 		// clear the cache
-		if (!Options.TMP_DIR.mkdir()) {
-			for (File tmp : Options.TMP_DIR.listFiles())
+		if (!OpsuOptions.TMP_DIR.mkdir()) {
+			for (File tmp : OpsuOptions.TMP_DIR.listFiles())
 				tmp.delete();
 		}
-		Options.TMP_DIR.deleteOnExit();
+		OpsuOptions.TMP_DIR.deleteOnExit();
 
 		// start the game
-		Opsu opsu = new Opsu("opsu!");
 		try {
 			AppGameContainer app = new AppGameContainer(opsu);
 
 			// basic game settings
-			Options.setDisplayMode(app);
+			opsu.options.setDisplayMode(app);
 			String[] icons = { "icon16.png", "icon32.png" };
 			app.setIcons(icons);
 
@@ -170,7 +174,7 @@ public class Opsu extends StateBasedGame {
 			return false;
 		}
 
-		Options.saveOptions();
+		options.saveOptions();
 		((AppGameContainer) this.getContainer()).destroy();
 		closeSocket();
 		return true;

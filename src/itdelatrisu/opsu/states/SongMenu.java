@@ -21,6 +21,7 @@ package itdelatrisu.opsu.states;
 import itdelatrisu.opsu.GUIMenuButton;
 import itdelatrisu.opsu.MusicController;
 import itdelatrisu.opsu.Opsu;
+import itdelatrisu.opsu.OpsuOptions;
 import itdelatrisu.opsu.OsuFile;
 import itdelatrisu.opsu.OsuGroupNode;
 import itdelatrisu.opsu.OsuParser;
@@ -38,7 +39,6 @@ import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.SpriteSheet;
 import org.newdawn.slick.gui.TextField;
-import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.state.transition.EmptyTransition;
 import org.newdawn.slick.state.transition.FadeInTransition;
@@ -51,7 +51,7 @@ import org.newdawn.slick.state.transition.FadeOutTransition;
  * <li>[Back] - return to main menu
  * </ul>
  */
-public class SongMenu extends BasicGameState {
+public class SongMenu extends Utils {
 	/**
 	 * The number of buttons to be shown on each screen.
 	 */
@@ -125,22 +125,14 @@ public class SongMenu extends BasicGameState {
 	 */
 	private Animation loader;
 
-	// game-related variables
-	private GameContainer container;
-	private StateBasedGame game;
-	private Input input;
-	private int state;
-
-	public SongMenu(int state) {
-		this.state = state;
+	public SongMenu(int id, OpsuOptions options) {
+		super(id, options);
 	}
 
 	@Override
 	public void init(GameContainer container, StateBasedGame game)
 			throws SlickException {
-		this.container = container;
-		this.game = game;
-		this.input = container.getInput();
+		super.init(container, game);
 
 		int width = container.getWidth();
 		int height = container.getHeight();
@@ -240,7 +232,7 @@ public class SongMenu extends BasicGameState {
 		OsuGroupNode node = startNode;
 		for (int i = 0; i < MAX_BUTTONS && node != null; i++) {
 			node.draw(buttonX, buttonY + (i*buttonOffset), (node == focusNode));
-			Utils.loadGlyphs(node.osuFiles.get(0));
+			Utils.loadGlyphs(node.osuFiles.get(0), options);
 			node = node.next;
 		}
 
@@ -273,8 +265,8 @@ public class SongMenu extends BasicGameState {
 		// back button
 		Utils.getBackButton().draw();
 
-		Utils.drawFPS();
-		Utils.drawCursor();
+		drawFPS();
+		drawCursor();
 	}
 
 	@Override
@@ -335,9 +327,6 @@ public class SongMenu extends BasicGameState {
 				buttonY = targetY;
 		}
 	}
-
-	@Override
-	public int getID() { return state; }
 
 	@Override
 	public void mousePressed(int button, int x, int y) {
@@ -430,7 +419,7 @@ public class SongMenu extends BasicGameState {
 			setFocus(Opsu.groups.getRandomNode(), -1, true);
 			break;
 		case Input.KEY_F12:
-			Utils.takeScreenShot();
+			takeScreenShot();
 			break;
 		case Input.KEY_ENTER:
 			if (focusNode != null)
@@ -572,7 +561,7 @@ public class SongMenu extends BasicGameState {
 		focusNode = Opsu.groups.getNode(node, pos);
 		OsuFile osu = focusNode.osuFiles.get(focusNode.osuFileIndex);
 		MusicController.play(osu, true);
-		Utils.loadGlyphs(osu);
+		Utils.loadGlyphs(osu, options);
 
 		// check startNode bounds
 		while (startNode.index >= Opsu.groups.size() + length - MAX_BUTTONS && startNode.prev != null)

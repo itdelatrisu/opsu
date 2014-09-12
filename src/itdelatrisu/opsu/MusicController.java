@@ -126,7 +126,7 @@ public class MusicController {
 	 */
 	public static void playAt(final int position, final boolean loop) {
 		if (trackExists()) {
-			SoundStore.get().setMusicVolume(Options.getMusicVolume());
+			SoundStore.get().setMusicVolume(options.getMusicVolume());
 			player.setPosition(position / 1000f);
 			if (loop)
 				player.loop();
@@ -140,7 +140,7 @@ public class MusicController {
 	 */
 	private static File convertMp3(File file) {
         try {
-			wavFile = File.createTempFile(".osu", ".wav", Options.TMP_DIR);
+			wavFile = File.createTempFile(".osu", ".wav", OpsuOptions.TMP_DIR);
 			wavFile.deleteOnExit();
 
 			Converter converter = new Converter();
@@ -236,7 +236,7 @@ public class MusicController {
 	 */
 	public static int getPosition() {
 		if (isPlaying())
-			return Math.max((int) (player.getPosition() * 1000 + Options.getMusicOffset()), 0);
+			return Math.max((int) (player.getPosition() * 1000 + options.getMusicOffset()), 0);
 		else
 			return 0;
 	}
@@ -310,5 +310,10 @@ public class MusicController {
 		} catch (Exception e) {
 			Log.error("Failed to destroy OpenAL.", e);
 		}
+	}
+	
+	static OpsuOptions options;
+	public static void setOptions(OpsuOptions options) {
+		MusicController.options = options;
 	}
 }

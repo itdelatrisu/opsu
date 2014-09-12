@@ -60,7 +60,7 @@ public class OsuParser {
 	 * @param width the container width
 	 * @param height the container height
 	 */
-	public static void parseAllFiles(File root, int width, int height) {
+	public static void parseAllFiles(File root, int width, int height, OpsuOptions options) {
 		// initialize hit objects
 		OsuHitObject.init(width, height);
 
@@ -89,7 +89,7 @@ public class OsuParser {
 
 				// Parse hit objects only when needed to save time/memory.
 				// Change boolean to 'true' to parse them immediately.
-				parseFile(file, osuFiles, false);
+				parseFile(file, osuFiles, false, options);
 			}
 			if (!osuFiles.isEmpty()) {  // add entry if non-empty
 				Collections.sort(osuFiles);
@@ -109,8 +109,8 @@ public class OsuParser {
 	 * @param parseObjects if true, hit objects will be fully parsed now
 	 * @return the new OsuFile object
 	 */
-	private static OsuFile parseFile(File file, ArrayList<OsuFile> osuFiles, boolean parseObjects) {
-		OsuFile osu = new OsuFile(file);
+	private static OsuFile parseFile(File file, ArrayList<OsuFile> osuFiles, boolean parseObjects, OpsuOptions options) {
+		OsuFile osu = new OsuFile(file, options);
 
 		try (BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF-8"))) {
 

@@ -171,9 +171,10 @@ public class Spinner {
 	 * @param delta the delta interval since the last call
 	 * @param mouseX the x coordinate of the mouse
 	 * @param mouseY the y coordinate of the mouse
+	 * @param state 
 	 * @return true if spinner ended
 	 */
-	public boolean update(boolean overlap, int delta, int mouseX, int mouseY) {
+	public boolean update(boolean overlap, int delta, int mouseX, int mouseY, Utils state) {
 		int trackPosition = MusicController.getPosition();
 		if (overlap)
 			return true;
@@ -198,7 +199,7 @@ public class Spinner {
 		}
 
 		// not spinning: nothing to do
-		if (!Utils.isGameKeyPressed()) {
+		if (!state.isGameKeyPressed()) {
 			lastAngle = -1f;
 			return false;
 		}

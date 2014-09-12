@@ -185,7 +185,7 @@ public class SoundController {
 	 * Loads all sound files.
 	 */
 	public static void init() {
-		if (Options.isSoundDisabled())
+		if (options.isSoundDisabled())
 			return;
 
 		// TODO: support MP3 sounds?
@@ -279,7 +279,7 @@ public class SoundController {
 		if (sound < 0 || sound >= SOUND_MAX)
 			return;
 
-		playClip(sounds[sound], Options.getEffectVolume());
+		playClip(sounds[sound], options.getEffectVolume());
 	}
 
 	/**
@@ -290,7 +290,7 @@ public class SoundController {
 		if (sampleSetIndex < 0 || hitSound < 0)
 			return;
 
-		float volume = Options.getHitSoundVolume() * sampleVolumeMultiplier;
+		float volume = options.getHitSoundVolume() * sampleVolumeMultiplier;
 		if (volume == 0f)
 			return;
 
@@ -316,7 +316,7 @@ public class SoundController {
 			return;
 
 		playClip(hitSounds[sampleSetIndex][sound],
-				Options.getHitSoundVolume() * sampleVolumeMultiplier);
+				options.getHitSoundVolume() * sampleVolumeMultiplier);
 	}
 
 	/**
@@ -335,5 +335,10 @@ public class SoundController {
 			return -1;
 
 		return currentFileIndex * 100 / (SOUND_MAX + (sampleSets.length * HIT_MAX));
+	}
+	
+	static OpsuOptions options;
+	public static void setOptions(OpsuOptions options) {
+		SoundController.options = options;
 	}
 }

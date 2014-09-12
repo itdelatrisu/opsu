@@ -18,8 +18,6 @@
 
 package itdelatrisu.opsu;
 
-import itdelatrisu.opsu.states.Options;
-
 import java.awt.Font;
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -40,6 +38,7 @@ import org.newdawn.slick.SlickException;
 import org.newdawn.slick.UnicodeFont;
 import org.newdawn.slick.font.effects.ColorEffect;
 import org.newdawn.slick.imageout.ImageOut;
+import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.util.Log;
 import org.newdawn.slick.util.ResourceLoader;
@@ -47,7 +46,7 @@ import org.newdawn.slick.util.ResourceLoader;
 /**
  * Contains miscellaneous utilities.
  */
-public class Utils {
+public abstract class Utils extends BasicGameState {
 	/**
 	 * Game colors.
 	 */
@@ -112,12 +111,22 @@ public class Utils {
 	private static HashSet<String> loadedGlyphs = new HashSet<String>();
 
 	// game-related variables
-	private static GameContainer container;
-	private static StateBasedGame game;
-	private static Input input;
+	protected GameContainer container;
+	protected StateBasedGame game;
+	protected Input input;
+	private final int id;
+	protected final OpsuOptions options;
 
-	// This class should not be instantiated.
-	private Utils() {}
+	protected Utils(int id, OpsuOptions options) {
+		super();
+		this.id = id;
+		this.options = options;
+	}
+
+	@Override
+	public final int getID() {
+		return id;
+	}
 
 	/**
 	 * Initializes game settings and class data.
@@ -125,15 +134,19 @@ public class Utils {
 	 * @param game the game object
 	 * @throws SlickException
 	 */
-	public static void init(GameContainer container, StateBasedGame game)
+	@Override
+	public void init(GameContainer container, StateBasedGame game)
 			throws SlickException {
-		Utils.container = container;
-		Utils.game = game;
-		Utils.input = container.getInput();
+		this.container = container;
+		this.game = game;
+		this.input = container.getInput();
 
+	}
+	
+	public static void initializeContainer(GameContainer container, OpsuOptions options) throws SlickException {
 		// game settings
-		container.setTargetFrameRate(Options.getTargetFPS());
-		container.setMusicVolume(Options.getMusicVolume());
+		container.setTargetFrameRate(options.getTargetFPS());
+		container.setMusicVolume(options.getMusicVolume());
 		container.setShowFPS(false);
 		container.getInput().enableKeyRepeat();
 		container.setAlwaysRender(true);
@@ -149,7 +162,7 @@ public class Utils {
 		} catch (LWJGLException e) {
 			Log.error("Failed to set the cursor.", e);
 		}
-		loadCursor();
+		loadCursor(container, options);
 
 		// create fonts
 		float fontBase;
@@ -163,7 +176,7 @@ public class Utils {
 			fontBase = 15f;
 
 		try {
-			Font javaFont = Font.createFont(Font.TRUETYPE_FONT, ResourceLoader.getResourceAsStream(Options.FONT_NAME));
+			Font javaFont = Font.createFont(Font.TRUETYPE_FONT, ResourceLoader.getResourceAsStream(OpsuOptions.FONT_NAME));
 			Font font    = javaFont.deriveFont(Font.PLAIN, (int) (fontBase * 4 / 3));
 			FONT_DEFAULT = new UnicodeFont(font);
 			FONT_BOLD    = new UnicodeFont(font.deriveFont(Font.BOLD));
@@ -243,7 +256,7 @@ public class Utils {
 	 * Loads the cursor images.
 	 * @throws SlickException 
 	 */
-	public static void loadCursor() throws SlickException {
+	public static void loadCursor(GameContainer container, OpsuOptions options) throws SlickException {
 		// destroy old cursors, if they exist
 		if (cursor != null)
 			cursor.destroy();
@@ -254,11 +267,11 @@ public class Utils {
 		cursor = cursorTrail = cursorMiddle = null;
 
 		// TODO: cleanup
-		boolean skinCursor = new File(Options.getSkinDir(), "cursor.png").isFile();
-		if (Options.isNewCursorEnabled()) {
+		boolean skinCursor = new File(options.getSkinDir(), "cursor.png").isFile();
+		if (options.newCursor) {
 			// load new cursor type
 			// if skin cursor exists but middle part does not, don't load default middle
-			if (skinCursor && !new File(Options.getSkinDir(), "cursormiddle.png").isFile())
+			if (skinCursor && !new File(options.getSkinDir(), "cursormiddle.png").isFile())
 				;
 			else {
 				cursorMiddle = new Image("cursormiddle.png");
@@ -273,7 +286,7 @@ public class Utils {
 				cursor = new Image("cursor.png");
 			else
 				cursor = new Image("cursor2.png");
-			if (new File(Options.getSkinDir(), "cursortrail.png").isFile())
+			if (new File(options.getSkinDir(), "cursortrail.png").isFile())
 				cursorTrail = new Image("cursortrail.png");
 			else
 				cursorTrail = new Image("cursortrail2.png");
@@ -290,14 +303,14 @@ public class Utils {
 	/**
 	 * Draws the cursor.
 	 */
-	public static void drawCursor() {
+	public void drawCursor() {
 		// TODO: use an image buffer
 
 		int x = input.getMouseX();
 		int y = input.getMouseY();
 
 		int removeCount = 0;
-		int FPSmod = (Options.getTargetFPS() / 60);
+		int FPSmod = (options.getTargetFPS() / 60);
 
 		// if middle exists, add all points between cursor movements
 		if (cursorMiddle != null) {
@@ -429,19 +442,19 @@ public class Utils {
 	 * Returns true if a game input key is pressed (mouse/keyboard left/right).
 	 * @return true if pressed
 	 */
-	public static boolean isGameKeyPressed() {
+	public boolean isGameKeyPressed() {
 		return (input.isMouseButtonDown(Input.MOUSE_LEFT_BUTTON) ||
 				input.isMouseButtonDown(Input.MOUSE_RIGHT_BUTTON) ||
-				input.isKeyDown(Options.getGameKeyLeft()) ||
-				input.isKeyDown(Options.getGameKeyRight()));
+				input.isKeyDown(options.getGameKeyLeft()) ||
+				input.isKeyDown(options.getGameKeyRight()));
 	}
 
 	/**
 	 * Draws the FPS at the bottom-right corner of the game container.
 	 * If the option is not activated, this will do nothing.
 	 */
-	public static void drawFPS() {
-		if (!Options.isFPSCounterEnabled())
+	public void drawFPS() {
+		if (!options.isFPSCounterEnabled())
 			return;
 
 		String fps = String.format("FPS: %d", container.getFPS());
@@ -456,11 +469,11 @@ public class Utils {
 	 * Takes a screenshot.
 	 * @return true if successful
 	 */
-	public static boolean takeScreenShot() {
+	public boolean takeScreenShot() {
 		// TODO: should this be threaded?
 		try {
 			// create the screenshot directory
-			File dir = Options.getScreenshotDir();
+			File dir = options.getScreenshotDir();
 			if (!dir.isDirectory()) {
 				if (!dir.mkdir())
 					return false;
@@ -469,7 +482,7 @@ public class Utils {
 			// create file name
 			SimpleDateFormat date = new SimpleDateFormat("yyyyMMdd_HHmmss");
 			File file = new File(dir, String.format("screenshot_%s.%s",
-					date.format(new Date()), Options.getScreenshotFormat()));
+					date.format(new Date()), options.getScreenshotFormat()));
 
 			SoundController.playSound(SoundController.SOUND_SHUTTER);
 
@@ -506,7 +519,7 @@ public class Utils {
 	 * Adds and loads glyphs for an OsuFile's Unicode title and artist strings.
 	 * @param osu the OsuFile
 	 */
-	public static void loadGlyphs(OsuFile osu) {
+	public static void loadGlyphs(OsuFile osu, OpsuOptions options) {
 		boolean glyphsAdded = false;
 		if (!osu.titleUnicode.isEmpty() && !loadedGlyphs.contains(osu.titleUnicode)) {
 			Utils.FONT_LARGE.addGlyphs(osu.titleUnicode);
@@ -522,7 +535,7 @@ public class Utils {
 			loadedGlyphs.add(osu.artistUnicode);
 			glyphsAdded = true;
 		}
-		if (glyphsAdded && Options.useUnicodeMetadata()) {
+		if (glyphsAdded && options.useUnicodeMetadata()) {
 			try {
 				Utils.FONT_LARGE.loadGlyphs();
 				Utils.FONT_MEDIUM.loadGlyphs();

@@ -22,6 +22,7 @@ import itdelatrisu.opsu.GUIMenuButton;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.MusicController;
 import itdelatrisu.opsu.Opsu;
+import itdelatrisu.opsu.OpsuOptions;
 import itdelatrisu.opsu.SoundController;
 import itdelatrisu.opsu.Utils;
 
@@ -31,7 +32,6 @@ import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
-import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.state.transition.FadeInTransition;
 import org.newdawn.slick.state.transition.FadeOutTransition;
@@ -44,7 +44,7 @@ import org.newdawn.slick.state.transition.FadeOutTransition;
  * <li>[Back]     - return to song menu state
  * </ul>
  */
-public class GamePauseMenu extends BasicGameState {
+public class GamePauseMenu extends Utils {
 	/**
 	 * Music fade-out time, in milliseconds.
 	 */
@@ -60,23 +60,16 @@ public class GamePauseMenu extends BasicGameState {
 	 */
 	private GUIMenuButton continueButton, retryButton, backButton;
 
-	// game-related variables
-	private GameContainer container;
-	private StateBasedGame game;
-	private Input input;
-	private int state;
 	private Game gameState;
-
-	public GamePauseMenu(int state) {
-		this.state = state;
+	public GamePauseMenu(int state, OpsuOptions options) {
+		super(state, options);
 	}
 
 	@Override
 	public void init(GameContainer container, StateBasedGame game)
 			throws SlickException {
-		this.container = container;
-		this.game = game;
-		input = container.getInput();
+		super.init(container, game);
+
 		gameState = (Game) game.getState(Opsu.STATE_GAME);
 	}
 
@@ -95,8 +88,8 @@ public class GamePauseMenu extends BasicGameState {
 		retryButton.draw();
 		backButton.draw();
 
-		Utils.drawFPS();
-		Utils.drawCursor();
+		drawFPS();
+		drawCursor();
 	}
 
 	@Override
@@ -106,15 +99,12 @@ public class GamePauseMenu extends BasicGameState {
 	}
 
 	@Override
-	public int getID() { return state; }
-
-	@Override
 	public void keyPressed(int key, char c) {
 		// game keys
 		if (!Keyboard.isRepeatEvent()) {
-			if (key == Options.getGameKeyLeft())
+			if (key == options.getGameKeyLeft())
 				mousePressed(Input.MOUSE_LEFT_BUTTON, input.getMouseX(), input.getMouseY());
-			else if (key == Options.getGameKeyRight())
+			else if (key == options.getGameKeyRight())
 				mousePressed(Input.MOUSE_RIGHT_BUTTON, input.getMouseX(), input.getMouseY());
 		}
 
@@ -130,7 +120,7 @@ public class GamePauseMenu extends BasicGameState {
 				unPause(Game.RESTART_FALSE);
 			break;
 		case Input.KEY_F12:
-			Utils.takeScreenShot();
+			takeScreenShot();
 			break;
 		}
 	}

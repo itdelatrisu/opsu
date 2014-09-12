@@ -23,6 +23,7 @@ import itdelatrisu.opsu.GameMod;
 import itdelatrisu.opsu.GameScore;
 import itdelatrisu.opsu.MusicController;
 import itdelatrisu.opsu.Opsu;
+import itdelatrisu.opsu.OpsuOptions;
 import itdelatrisu.opsu.OsuFile;
 import itdelatrisu.opsu.SoundController;
 import itdelatrisu.opsu.Utils;
@@ -34,7 +35,6 @@ import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
-import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.state.transition.FadeInTransition;
 import org.newdawn.slick.state.transition.FadeOutTransition;
@@ -47,7 +47,7 @@ import org.newdawn.slick.state.transition.FadeOutTransition;
  * <li>[Back]     - return to song menu state
  * </ul>
  */
-public class GameRanking extends BasicGameState {
+public class GameRanking extends Utils {
 	/**
 	 * Associated GameScore object.
 	 */
@@ -58,18 +58,14 @@ public class GameRanking extends BasicGameState {
 	 */
 	private GUIMenuButton retryButton, exitButton;
 
-	// game-related variables
-	private StateBasedGame game;
-	private int state;
-
-	public GameRanking(int state) {
-		this.state = state;
+	public GameRanking(int id, OpsuOptions options) {
+		super(id, options);
 	}
 
 	@Override
 	public void init(GameContainer container, StateBasedGame game)
 			throws SlickException {
-		this.game = game;
+		super.init(container, game);
 
 		int width = container.getWidth();
 		int height = container.getHeight();
@@ -128,8 +124,8 @@ public class GameRanking extends BasicGameState {
 		exitButton.draw();
 		Utils.getBackButton().draw();
 
-		Utils.drawFPS();
-		Utils.drawCursor();
+		drawFPS();
+		drawCursor();
 	}
 
 	@Override
@@ -137,9 +133,6 @@ public class GameRanking extends BasicGameState {
 			throws SlickException {
 		Utils.updateCursor(delta);
 	}
-
-	@Override
-	public int getID() { return state; }
 
 	@Override
 	public void keyPressed(int key, char c) {
@@ -151,7 +144,7 @@ public class GameRanking extends BasicGameState {
 			game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 			break;
 		case Input.KEY_F12:
-			Utils.takeScreenShot();
+			takeScreenShot();
 			break;
 		}
 	}

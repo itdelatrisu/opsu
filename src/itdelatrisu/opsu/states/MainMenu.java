@@ -21,6 +21,7 @@ package itdelatrisu.opsu.states;
 import itdelatrisu.opsu.GUIMenuButton;
 import itdelatrisu.opsu.MusicController;
 import itdelatrisu.opsu.Opsu;
+import itdelatrisu.opsu.OpsuOptions;
 import itdelatrisu.opsu.OsuFile;
 import itdelatrisu.opsu.OsuGroupNode;
 import itdelatrisu.opsu.SoundController;
@@ -37,7 +38,6 @@ import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
-import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.state.transition.FadeInTransition;
 import org.newdawn.slick.state.transition.FadeOutTransition;
@@ -49,7 +49,7 @@ import org.newdawn.slick.state.transition.FadeOutTransition;
  * <li>[Exit]    - move to confirm exit menu
  * </ul>
  */
-public class MainMenu extends BasicGameState {
+public class MainMenu extends Utils {
 	/**
 	 * Idle time, in milliseconds, before returning the logo to its original position.
 	 */
@@ -88,7 +88,7 @@ public class MainMenu extends BasicGameState {
 	/**
 	 * Indexes of previous songs.
 	 */
-	private static Stack<Integer> previous;
+	private Stack<Integer> previous;
 
 	/**
 	 * Main menu background image (optional).
@@ -100,18 +100,14 @@ public class MainMenu extends BasicGameState {
 	 */
 	private float bgAlpha = 0f;
 
-	// game-related variables
-	private StateBasedGame game;
-	private int state;
-
-	public MainMenu(int state) {
-		this.state = state;
+	public MainMenu(int state, OpsuOptions options) {
+		super(state, options);
 	}
 
 	@Override
 	public void init(GameContainer container, StateBasedGame game)
 			throws SlickException {
-		this.game = game;
+		super.init(container, game);
 
 		osuStartTime = System.currentTimeMillis();
 		previous = new Stack<Integer>();
@@ -162,7 +158,7 @@ public class MainMenu extends BasicGameState {
 		
 		// draw background
 		OsuFile osu = MusicController.getOsuFile();
-		if (Options.isDynamicBackgroundEnabled() &&
+		if (options.isDynamicBackgroundEnabled() &&
 			osu != null && osu.drawBG(width, height, bgAlpha))
 				;
 		else if (backgroundImage != null) {
@@ -216,8 +212,8 @@ public class MainMenu extends BasicGameState {
 				new SimpleDateFormat("h:mm a").format(new Date())),
 				25, height - 25 - lineHeight);
 
-		Utils.drawFPS();
-		Utils.drawCursor();
+		drawFPS();
+		drawCursor();
 	}
 
 	@Override
@@ -270,9 +266,6 @@ public class MainMenu extends BasicGameState {
 	}
 
 	@Override
-	public int getID() { return state; }
-
-	@Override
 	public void enter(GameContainer container, StateBasedGame game)
 			throws SlickException {
 		logoClicked = false;
@@ -297,13 +290,13 @@ public class MainMenu extends BasicGameState {
 			OsuGroupNode node = menu.setFocus(Opsu.groups.getRandomNode(), -1, true);
 			if (node != null)
 				previous.add(node.index);
-			if (Options.isDynamicBackgroundEnabled())
+			if (options.isDynamicBackgroundEnabled())
 				bgAlpha = 0f;
 		} else if (musicPrevious.contains(x, y)) {
 			if (!previous.isEmpty()) {
 				SongMenu menu = (SongMenu) game.getState(Opsu.STATE_SONGMENU);
 				menu.setFocus(Opsu.groups.getBaseNode(previous.pop()), -1, true);
-				if (Options.isDynamicBackgroundEnabled())
+				if (options.isDynamicBackgroundEnabled())
 					bgAlpha = 0f;
 			} else
 				MusicController.setPosition(0);
@@ -357,7 +350,7 @@ public class MainMenu extends BasicGameState {
 			}
 			break;
 		case Input.KEY_F12:
-			Utils.takeScreenShot();
+			takeScreenShot();
 			break;
 		}
 		

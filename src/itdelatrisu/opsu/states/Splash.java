@@ -19,6 +19,7 @@
 package itdelatrisu.opsu.states;
 
 import itdelatrisu.opsu.Opsu;
+import itdelatrisu.opsu.OpsuOptions;
 import itdelatrisu.opsu.OsuParser;
 import itdelatrisu.opsu.OszUnpacker;
 import itdelatrisu.opsu.SoundController;
@@ -32,7 +33,6 @@ import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
-import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
 
 /**
@@ -40,7 +40,7 @@ import org.newdawn.slick.state.StateBasedGame;
  * <p>
  * Loads game resources and enters "Main Menu" state.
  */
-public class Splash extends BasicGameState {
+public class Splash extends Utils {
 	/**
 	 * Logo image.
 	 */
@@ -51,26 +51,22 @@ public class Splash extends BasicGameState {
 	 */
 	private boolean finished = false;
 
-	// game-related variables
-	private int state;
-	private GameContainer container;
 	private boolean init = false;
-
-	public Splash(int state) {
-		this.state = state;
+	public Splash(int state, OpsuOptions options) {
+		super(state, options);
 	}
 
 	@Override
 	public void init(GameContainer container, StateBasedGame game)
 			throws SlickException {
-		this.container = container;
+		super.init(container, game);
 
 		logo = new Image("logo.png");
 		logo = logo.getScaledCopy((container.getHeight() / 1.2f) / logo.getHeight());
 		logo.setAlpha(0f);
 
 		// load Utils class first (needed in other 'init' methods)
-		Utils.init(container, game);
+		Utils.initializeContainer(container, options);
 	}
 
 	@Override
@@ -113,13 +109,13 @@ public class Splash extends BasicGameState {
 			new Thread() {
 				@Override
 				public void run() {
-					File beatmapDir = Options.getBeatmapDir();
+					File beatmapDir = options.getBeatmapDir();
 
 					// unpack all OSZ archives
-					OszUnpacker.unpackAllFiles(Options.getOSZDir(), beatmapDir);
+					OszUnpacker.unpackAllFiles(options.getOSZDir(), beatmapDir);
 
 					// parse song directory
-					OsuParser.parseAllFiles(beatmapDir, width, height);
+					OsuParser.parseAllFiles(beatmapDir, width, height, options);
 
 					// load sounds
 					SoundController.init();
@@ -145,12 +141,9 @@ public class Splash extends BasicGameState {
 	}
 
 	@Override
-	public int getID() { return state; }
-
-	@Override
 	public void keyPressed(int key, char c) {
 		if (key == Input.KEY_ESCAPE) {
-			Options.saveOptions();
+			options.saveOptions();
 			Opsu.closeSocket();
 			container.exit();
 		}
@@ -169,7 +162,7 @@ public class Splash extends BasicGameState {
 		int lineY = container.getHeight() - 25;
 		int lineOffsetY = Utils.FONT_MEDIUM.getLineHeight();
 
-		if (Options.isLoadVerbose()) {
+		if (options.isLoadVerbose()) {
 			g.drawString(String.format("%s (%d%%)", text, progress), 25, lineY - (lineOffsetY * 2));
 			g.drawString(file, 25, lineY - lineOffsetY);
 		} else {

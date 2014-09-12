@@ -20,6 +20,7 @@ package itdelatrisu.opsu.states;
 
 import itdelatrisu.opsu.GUIMenuButton;
 import itdelatrisu.opsu.Opsu;
+import itdelatrisu.opsu.OpsuOptions;
 import itdelatrisu.opsu.Utils;
 
 import org.newdawn.slick.Color;
@@ -28,7 +29,6 @@ import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
-import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.state.transition.EmptyTransition;
 import org.newdawn.slick.state.transition.FadeInTransition;
@@ -40,7 +40,7 @@ import org.newdawn.slick.state.transition.FadeInTransition;
  * <li>[No]  - return to main menu
  * </ul>
  */
-public class MainMenuExit extends BasicGameState {
+public class MainMenuExit extends Utils {
 	/**
 	 * "Yes" and "No" buttons.
 	 */
@@ -51,20 +51,14 @@ public class MainMenuExit extends BasicGameState {
 	 */
 	private float centerOffset;
 
-	// game-related variables
-	private GameContainer container;
-	private StateBasedGame game;
-	private int state;
-
-	public MainMenuExit(int state) {
-		this.state = state;
+	public MainMenuExit(int state, OpsuOptions options) {
+		super(state, options);
 	}
 
 	@Override
 	public void init(GameContainer container, StateBasedGame game)
 			throws SlickException {
-		this.container = container;
-		this.game = game;
+		super.init(container, game);
 
 		int width = container.getWidth();
 		int height = container.getHeight();
@@ -107,8 +101,8 @@ public class MainMenuExit extends BasicGameState {
 				noButton.getY() - (Utils.FONT_XLARGE.getLineHeight() / 2f)
 		);
 
-		Utils.drawFPS();
-		Utils.drawCursor();
+		drawFPS();
+		drawCursor();
 	}
 
 	@Override
@@ -126,16 +120,13 @@ public class MainMenuExit extends BasicGameState {
 	}
 
 	@Override
-	public int getID() { return state; }
-
-	@Override
 	public void mousePressed(int button, int x, int y) {
 		// check mouse button 
 		if (button != Input.MOUSE_LEFT_BUTTON)
 			return;
 
 		if (yesButton.contains(x, y)) {
-			Options.saveOptions();
+			options.saveOptions();
 			Opsu.closeSocket();
 			container.exit();
 		} else if (noButton.contains(x, y))
@@ -146,7 +137,7 @@ public class MainMenuExit extends BasicGameState {
 	public void keyPressed(int key, char c) {
 		switch (key) {
 		case Input.KEY_1:
-			Options.saveOptions();
+			options.saveOptions();
 			Opsu.closeSocket();
 			container.exit();
 			break;
@@ -155,7 +146,7 @@ public class MainMenuExit extends BasicGameState {
 			game.enterState(Opsu.STATE_MAINMENU, new EmptyTransition(), new FadeInTransition(Color.black));
 			break;
 		case Input.KEY_F12:
-			Utils.takeScreenShot();
+			takeScreenShot();
 			break;
 		}
 	}
