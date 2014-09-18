@@ -1,5 +1,6 @@
 package itdelatrisu.opsu;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -156,16 +157,19 @@ public class Resources {
 			
 			for(String extension : resource.getExtensions()) {
 				String filename = resource.getName() + extension;
-				InputStream stream = openResource(filename, origin);
-				if(stream != null) {
-					@SuppressWarnings("unchecked")
-					T data = (T) loadResource(resource, stream, filename);
-					if(data != null) {
-						LoadedResource<T> loadedResource = new LoadedResource<>();
-						loadedResource.data = data;
-						loadedResource.origin = origin;
-						return loadedResource;
+				try(InputStream stream = openResource(filename, origin)) {
+					if(stream != null) {
+						@SuppressWarnings("unchecked")
+						T data = (T) loadResource(resource, stream, filename);
+						if(data != null) {
+							LoadedResource<T> loadedResource = new LoadedResource<>();
+							loadedResource.data = data;
+							loadedResource.origin = origin;
+							return loadedResource;
+						}
 					}
+				} catch (IOException e) {
+					throw new RuntimeException(e);
 				}
 			}
 		}
@@ -189,7 +193,8 @@ public class Resources {
 			if(currentBeatmapDir == null)
 				return null;
 			try {
-				return new FileInputStream(new File(currentBeatmapDir, resource));
+				File file = new File(currentBeatmapDir, resource);
+				return new FileInputStream(file);
 			} catch (FileNotFoundException e) {
 				return null;
 			}
@@ -216,7 +221,7 @@ public class Resources {
 		}
 		if(resource instanceof SoundResource) {
 			@SuppressWarnings("unchecked")
-			T clip = (T) loadClip(inputStream, filename);
+			T clip = (T) loadClip(new BufferedInputStream(inputStream), filename);
 			return clip;
 
 		}
@@ -237,7 +242,7 @@ public class Resources {
 		return image;
 	}
 
-	public static Clip loadClip(InputStream inputStream, String filename) {
+	public static Clip loadClip(BufferedInputStream inputStream, String filename) {
 		try {
 			AudioInputStream audioIn = AudioSystem.getAudioInputStream(inputStream);
 

@@ -167,31 +167,6 @@ public class SoundController {
 	private float sampleVolumeMultiplier = 1f;
 
 	/**
-	 * Loads and returns a Clip from a resource.
-	 * @param ref the resource name
-	 * @return the loaded and opened clip
-	 */
-	@CheckForNull
-	static Clip loadClip(String ref) {
-		try {
-			URL url = ResourceLoader.getResource(ref);
-			AudioInputStream audioIn = AudioSystem.getAudioInputStream(url);
-
-			// GNU/Linux workaround
-//			Clip clip = AudioSystem.getClip();
-			AudioFormat format = audioIn.getFormat();
-			DataLine.Info info = new DataLine.Info(Clip.class, format);
-			Clip clip = (Clip) AudioSystem.getLine(info);
-
-			clip.open(audioIn);
-			return clip;
-		} catch (UnsupportedAudioFileException | IOException | LineUnavailableException e) {
-			Log.error(String.format("Failed to load file '%s'.", ref), e);
-		}
-		return null;
-	}
-
-	/**
 	 * Sets the sample set to use when playing hit sounds.
 	 * @param sampleSet the sample set ("None", "Normal", "Soft", "Drum")
 	 */
