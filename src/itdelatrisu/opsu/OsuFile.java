@@ -18,7 +18,7 @@
 
 package itdelatrisu.opsu;
 
-import itdelatrisu.opsu.states.Options;
+import itdelatrisu.opsu.states.Options.OpsuOptions;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -100,12 +100,15 @@ public class OsuFile implements Comparable<OsuFile> {
 	public int hitObjectSpinner = 0;            // number of spinners
 	public int endTime = -1;                    // last object end time (in ms)
 
+	private final OpsuOptions options;
+	
 	/**
 	 * Constructor.
 	 * @param file the file associated with this OsuFile
 	 */
-	public OsuFile(File file) {
+	public OsuFile(File file, OpsuOptions options) {
 		this.file = file;
+		this.options = options;
 	}
 
 	/**
@@ -120,7 +123,7 @@ public class OsuFile implements Comparable<OsuFile> {
 	 * @return the song title
 	 */
 	public String getTitle() {
-		return (Options.useUnicodeMetadata() && !titleUnicode.isEmpty()) ? titleUnicode : title;
+		return (options.useUnicodeMetadata() && !titleUnicode.isEmpty()) ? titleUnicode : title;
 	}
 
 	/**
@@ -129,7 +132,7 @@ public class OsuFile implements Comparable<OsuFile> {
 	 * @return the song artist
 	 */
 	public String getArtist() {
-		return (Options.useUnicodeMetadata() && !artistUnicode.isEmpty()) ? artistUnicode : artist;
+		return (options.useUnicodeMetadata() && !artistUnicode.isEmpty()) ? artistUnicode : artist;
 	}
 
 	/**

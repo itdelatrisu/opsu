@@ -20,7 +20,11 @@ package itdelatrisu.opsu.states;
 
 import itdelatrisu.opsu.GUIMenuButton;
 import itdelatrisu.opsu.Opsu;
+import itdelatrisu.opsu.Resources;
+import itdelatrisu.opsu.SoundController;
 import itdelatrisu.opsu.Utils;
+import itdelatrisu.opsu.states.Options.OpsuOptions;
+import static itdelatrisu.opsu.OpsuImages.*;
 
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
@@ -28,7 +32,6 @@ import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
-import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.state.transition.EmptyTransition;
 import org.newdawn.slick.state.transition.FadeInTransition;
@@ -40,7 +43,7 @@ import org.newdawn.slick.state.transition.FadeInTransition;
  * <li>[No]  - return to main menu
  * </ul>
  */
-public class MainMenuExit extends BasicGameState {
+public class MainMenuExit extends Utils {
 	/**
 	 * "Yes" and "No" buttons.
 	 */
@@ -51,20 +54,14 @@ public class MainMenuExit extends BasicGameState {
 	 */
 	private float centerOffset;
 
-	// game-related variables
-	private GameContainer container;
-	private StateBasedGame game;
-	private int state;
-
-	public MainMenuExit(int state) {
-		this.state = state;
+	public MainMenuExit(int state, OpsuOptions options, SoundController soundController, Resources resources) {
+		super(state, options, soundController, resources);
 	}
 
 	@Override
 	public void init(GameContainer container, StateBasedGame game)
 			throws SlickException {
-		this.container = container;
-		this.game = game;
+		super.init(container, game);
 
 		int width = container.getWidth();
 		int height = container.getHeight();
@@ -72,10 +69,9 @@ public class MainMenuExit extends BasicGameState {
 		centerOffset = width / 18f;
 
 		// initialize buttons
-		Image button = new Image("button-middle.png");
-		Image buttonL = new Image("button-left.png");
-		Image buttonR = new Image("button-right.png");
-		button = button.getScaledCopy(width / 2, button.getHeight());
+		Image button = getResource(EXIT_BUTTON_CENTER);
+		Image buttonL = getResource(EXIT_BUTTON_LEFT);
+		Image buttonR = getResource(EXIT_BUTTON_RIGHT);
 		yesButton = new GUIMenuButton(button, buttonL, buttonR,
 				width / 2f + centerOffset, height * 0.2f
 		);
@@ -107,8 +103,8 @@ public class MainMenuExit extends BasicGameState {
 				noButton.getY() - (Utils.FONT_XLARGE.getLineHeight() / 2f)
 		);
 
-		Utils.drawFPS();
-		Utils.drawCursor();
+		drawFPS();
+		drawCursor();
 	}
 
 	@Override
@@ -126,16 +122,13 @@ public class MainMenuExit extends BasicGameState {
 	}
 
 	@Override
-	public int getID() { return state; }
-
-	@Override
 	public void mousePressed(int button, int x, int y) {
 		// check mouse button 
 		if (button != Input.MOUSE_LEFT_BUTTON)
 			return;
 
 		if (yesButton.contains(x, y)) {
-			Options.saveOptions();
+			options.saveOptions();
 			Opsu.closeSocket();
 			container.exit();
 		} else if (noButton.contains(x, y))
@@ -146,7 +139,7 @@ public class MainMenuExit extends BasicGameState {
 	public void keyPressed(int key, char c) {
 		switch (key) {
 		case Input.KEY_1:
-			Options.saveOptions();
+			options.saveOptions();
 			Opsu.closeSocket();
 			container.exit();
 			break;
@@ -155,7 +148,7 @@ public class MainMenuExit extends BasicGameState {
 			game.enterState(Opsu.STATE_MAINMENU, new EmptyTransition(), new FadeInTransition(Color.black));
 			break;
 		case Input.KEY_F12:
-			Utils.takeScreenShot();
+			takeScreenShot();
 			break;
 		}
 	}

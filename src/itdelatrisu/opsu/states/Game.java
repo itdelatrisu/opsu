@@ -27,13 +27,14 @@ import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.OsuFile;
 import itdelatrisu.opsu.OsuHitObject;
 import itdelatrisu.opsu.OsuTimingPoint;
+import itdelatrisu.opsu.Resources;
 import itdelatrisu.opsu.SoundController;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.objects.Circle;
 import itdelatrisu.opsu.objects.Slider;
 import itdelatrisu.opsu.objects.Spinner;
+import itdelatrisu.opsu.states.Options.OpsuOptions;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.Stack;
 
@@ -44,17 +45,18 @@ import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
-import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.state.transition.EmptyTransition;
 import org.newdawn.slick.state.transition.FadeInTransition;
 import org.newdawn.slick.state.transition.FadeOutTransition;
 import org.newdawn.slick.util.Log;
 
+import static itdelatrisu.opsu.SoundController.BasicSounds.*;
+
 /**
  * "Game" state.
  */
-public class Game extends BasicGameState {
+public class Game extends Utils {
 	/**
 	 * Game restart states.
 	 */
@@ -67,7 +69,7 @@ public class Game extends BasicGameState {
 	/**
 	 * Current restart state.
 	 */
-	private static byte restart;
+	private byte restart;
 
 	/**
 	 * The associated OsuFile object.
@@ -77,7 +79,7 @@ public class Game extends BasicGameState {
 	/**
 	 * The associated GameScore object (holds all score data).
 	 */
-	private static GameScore score;
+	private GameScore score;
 
 	/**
 	 * Current hit object index in OsuHitObject[] array.
@@ -192,28 +194,20 @@ public class Game extends BasicGameState {
 	 */
 	private int deathTime = -1;
 
-	// game-related variables
-	private GameContainer container;
-	private StateBasedGame game;
-	private Input input;
-	private int state;
-
-	public Game(int state) {
-		this.state = state;
+	public Game(int state, OpsuOptions options, SoundController soundController, Resources resources) {
+		super(state, options, soundController, resources);
 	}
 
 	@Override
 	public void init(GameContainer container, StateBasedGame game)
 			throws SlickException {
-		this.container = container;
-		this.game = game;
-		input = container.getInput();
+		super.init(container, game);
 
 		int width = container.getWidth();
 		int height = container.getHeight();
 
 		// create the associated GameScore object
-		score = new GameScore(width, height);
+		score = new GameScore(width, height, soundController);
 
 		// playfield background
 		try {
@@ -221,6 +215,8 @@ public class Game extends BasicGameState {
 		} catch (Exception e) {
 			// optional
 		}
+		
+		score.setOptions(this.options);
 	}
 
 	@Override
@@ -231,8 +227,8 @@ public class Game extends BasicGameState {
 
 		// background
 		g.setBackground(Color.black);
-		float dimLevel = Options.getBackgroundDim();
-		if (Options.isDefaultPlayfieldForced() && playfield != null) {
+		float dimLevel = options.getBackgroundDim();
+		if (options.isDefaultPlayfieldForced() && playfield != null) {
 			playfield.setAlpha(dimLevel);
 			playfield.draw();
 		} else if (!osu.drawBG(width, height, dimLevel) && playfield != null) {
@@ -278,13 +274,13 @@ public class Game extends BasicGameState {
 					if (score.getHealth() >= 50) {
 						GameImage.SECTION_PASS.getImage().drawCentered(width / 2f, height / 2f);
 						if (!breakSound) {
-							SoundController.playSound(SoundController.SOUND_SECTIONPASS);
+							soundController.playSound(SOUND_SECTIONPASS);
 							breakSound = true;
 						}
 					} else {
 						GameImage.SECTION_FAIL.getImage().drawCentered(width / 2f, height / 2f);
 						if (!breakSound) {
-							SoundController.playSound(SoundController.SOUND_SECTIONFAIL);
+							soundController.playSound(SOUND_SECTIONFAIL);
 							breakSound = true;
 						}
 					}
@@ -305,8 +301,8 @@ public class Game extends BasicGameState {
 
 				if (GameMod.AUTO.isActive())
 					GameImage.UNRANKED.getImage().drawCentered(width / 2, height * 0.077f);
-				Utils.drawFPS();
-				Utils.drawCursor();
+				drawFPS();
+				drawCursor();
 				return;
 			}
 		}
@@ -330,28 +326,28 @@ public class Game extends BasicGameState {
 				if (timeDiff >= 1500) {
 					GameImage.COUNTDOWN_READY.getImage().drawCentered(width / 2, height / 2);
 					if (!countdownReadySound) {
-						SoundController.playSound(SoundController.SOUND_READY);
+						soundController.playSound(SOUND_READY);
 						countdownReadySound = true;
 					}
 				}
 				if (timeDiff < 2000) {
 					GameImage.COUNTDOWN_3.getImage().draw(0, 0);
 					if (!countdown3Sound) {
-						SoundController.playSound(SoundController.SOUND_COUNT3);
+						soundController.playSound(SOUND_COUNT3);
 						countdown3Sound = true;
 					}
 				}
 				if (timeDiff < 1500) {
 					GameImage.COUNTDOWN_2.getImage().draw(width - GameImage.COUNTDOWN_2.getImage().getWidth(), 0);
 					if (!countdown2Sound) {
-						SoundController.playSound(SoundController.SOUND_COUNT2);
+						soundController.playSound(SOUND_COUNT2);
 						countdown2Sound = true;
 					}
 				}
 				if (timeDiff < 1000) {
 					GameImage.COUNTDOWN_1.getImage().drawCentered(width / 2, height / 2);
 					if (!countdown1Sound) {
-						SoundController.playSound(SoundController.SOUND_COUNT1);
+						soundController.playSound(SOUND_COUNT1);
 						countdown1Sound = true;
 					}
 				}
@@ -360,7 +356,7 @@ public class Game extends BasicGameState {
 				go.setAlpha((timeDiff < 0) ? 1 - (timeDiff / -1000f) : 1);
 				go.drawCentered(width / 2, height / 2);
 				if (!countdownGoSound) {
-					SoundController.playSound(SoundController.SOUND_GO);
+					soundController.playSound(SOUND_GO);
 					countdownGoSound = true;
 				}
 			}
@@ -409,8 +405,8 @@ public class Game extends BasicGameState {
 			cursorCirclePulse.drawCentered(pausedMouseX, pausedMouseY);
 		}
 
-		Utils.drawFPS();
-		Utils.drawCursor();
+		drawFPS();
+		drawCursor();
 	}
 
 	@Override
@@ -464,7 +460,14 @@ public class Game extends BasicGameState {
 		// map complete!
 		if (objectIndex >= osu.objects.length) {
 			// if checkpoint used, don't show the ranking screen
-			int state = (checkpointLoaded) ? Opsu.STATE_SONGMENU : Opsu.STATE_GAMERANKING;
+			final int state;
+			if(checkpointLoaded) {
+				state = Opsu.STATE_SONGMENU;
+				resources.setCurrentBeatmapDir(null);
+			} else {
+				state = Opsu.STATE_GAMERANKING;
+			}
+			((GameRanking) game.getState(Opsu.STATE_GAMERANKING)).setScore(getGameScore());
 			game.enterState(state, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 			return;
 		}
@@ -479,8 +482,8 @@ public class Game extends BasicGameState {
 					beatLengthBase = beatLength = timingPoint.getBeatLength();
 				else
 					beatLength = beatLengthBase * timingPoint.getSliderMultiplier();
-				SoundController.setSampleSet(timingPoint.getSampleType());
-				SoundController.setSampleVolume(timingPoint.getSampleVolume());
+				soundController.setSampleSet(timingPoint.getSampleType());
+				soundController.setSampleVolume(timingPoint.getSampleVolume());
 				timingPointIndex++;
 			}
 		}
@@ -556,9 +559,9 @@ public class Game extends BasicGameState {
 			if (hitObject.isCircle())
 				done = circles.get(objectIndex).update(overlap);
 			else if (hitObject.isSlider())
-				done = sliders.get(objectIndex).update(overlap, delta, input.getMouseX(), input.getMouseY());
+				done = sliders.get(objectIndex).update(overlap, delta, input.getMouseX(), input.getMouseY(), this);
 			else if (hitObject.isSpinner())
-				done = spinners.get(objectIndex).update(overlap, delta, input.getMouseX(), input.getMouseY());
+				done = spinners.get(objectIndex).update(overlap, delta, input.getMouseX(), input.getMouseY(), this);
 
 			// increment object index?
 			if (done)
@@ -569,15 +572,12 @@ public class Game extends BasicGameState {
 	}
 
 	@Override
-	public int getID() { return state; }
-
-	@Override
 	public void keyPressed(int key, char c) {
 		// game keys
 		if (!Keyboard.isRepeatEvent()) {
-			if (key == Options.getGameKeyLeft())
+			if (key == options.getGameKeyLeft())
 				mousePressed(Input.MOUSE_LEFT_BUTTON, input.getMouseX(), input.getMouseY());
-			else if (key == Options.getGameKeyRight())
+			else if (key == options.getGameKeyRight())
 				mousePressed(Input.MOUSE_RIGHT_BUTTON, input.getMouseX(), input.getMouseY());
 		}
 
@@ -619,14 +619,14 @@ public class Game extends BasicGameState {
 					break;
 
 				int position = (pauseTime > -1) ? pauseTime : MusicController.getPosition();
-				if (Options.setCheckpoint(position / 1000))
-					SoundController.playSound(SoundController.SOUND_MENUCLICK);
+				if (options.setCheckpoint(position / 1000))
+					soundController.playSound(SOUND_MENUCLICK);
 			}
 			break;
 		case Input.KEY_L:
 			// load checkpoint
 			if (input.isKeyDown(Input.KEY_RCONTROL) || input.isKeyDown(Input.KEY_LCONTROL)) {
-				int checkpoint = Options.getCheckpoint();
+				int checkpoint = options.getCheckpoint();
 				if (checkpoint == 0 || checkpoint > osu.endTime)
 					break;  // invalid checkpoint
 				try {
@@ -637,7 +637,7 @@ public class Game extends BasicGameState {
 						leadInTime = 0;
 						MusicController.resume();
 					}
-					SoundController.playSound(SoundController.SOUND_MENUHIT);
+					soundController.playSound(SOUND_MENUHIT);
 
 					// skip to checkpoint
 					MusicController.setPosition(checkpoint);
@@ -651,7 +651,7 @@ public class Game extends BasicGameState {
 			}
 			break;
 		case Input.KEY_F12:
-			Utils.takeScreenShot();
+			takeScreenShot();
 			break;
 		}
 	}
@@ -719,6 +719,8 @@ public class Game extends BasicGameState {
 		if (restart != RESTART_FALSE) {
 			// new game
 			if (restart == RESTART_NEW) {
+				resources.setCurrentBeatmapDir(osu.getFile().getParentFile());
+				
 				loadImages();
 				setMapModifiers();
 			}
@@ -742,7 +744,7 @@ public class Game extends BasicGameState {
 				} else if (hitObject.isSlider()) {
 					sliders.put(i, new Slider(hitObject, this, score, color, comboEnd));
 				} else if (hitObject.isSpinner()) {
-					spinners.put(i, new Spinner(hitObject, this, score));
+					spinners.put(i, new Spinner(hitObject, this, score, soundController));
 				}
 			}
 
@@ -773,8 +775,8 @@ public class Game extends BasicGameState {
 				OsuTimingPoint timingPoint = osu.timingPoints.get(0);
 				if (!timingPoint.isInherited()) {
 					beatLengthBase = beatLength = timingPoint.getBeatLength();
-					SoundController.setSampleSet(timingPoint.getSampleType());
-					SoundController.setSampleVolume(timingPoint.getSampleVolume());
+					soundController.setSampleSet(timingPoint.getSampleType());
+					soundController.setSampleVolume(timingPoint.getSampleVolume());
 					timingPointIndex++;
 				}
 			}
@@ -805,7 +807,7 @@ public class Game extends BasicGameState {
 				MusicController.resume();
 			}
 			MusicController.setPosition(firstObjectTime - SKIP_OFFSET);
-			SoundController.playSound(SoundController.SOUND_MENUHIT);
+			soundController.playSound(SOUND_MENUHIT);
 			return true;
 		}
 		return false;
@@ -818,11 +820,6 @@ public class Game extends BasicGameState {
 	private void loadImages() throws SlickException {
 		int width = container.getWidth();
 		int height = container.getHeight();
-
-		// set images
-		File parent = osu.getFile().getParentFile();
-		for (GameImage o : GameImage.values())
-			o.setSkinImage(parent);
 
 		// skip button
 		Image skip = GameImage.SKIP.getImage();
@@ -871,7 +868,7 @@ public class Game extends BasicGameState {
 
 		// load other images...
 		((GamePauseMenu) game.getState(Opsu.STATE_GAMEPAUSEMENU)).loadImages();
-		score.loadImages();
+		score.loadImages(osu.getFile().getParentFile());
 	}
 
 	/**
@@ -902,14 +899,14 @@ public class Game extends BasicGameState {
 			}
 
 			// fixed difficulty overrides
-			if (Options.getFixedCS() > 0f)
-				circleSize = Options.getFixedCS();
-			if (Options.getFixedAR() > 0f)
-				approachRate = Options.getFixedAR();
-			if (Options.getFixedOD() > 0f)
-				overallDifficulty = Options.getFixedOD();
-			if (Options.getFixedHP() > 0f)
-				HPDrainRate = Options.getFixedHP();
+			if (options.getFixedCS() > 0f)
+				circleSize = options.getFixedCS();
+			if (options.getFixedAR() > 0f)
+				approachRate = options.getFixedAR();
+			if (options.getFixedOD() > 0f)
+				overallDifficulty = options.getFixedOD();
+			if (options.getFixedHP() > 0f)
+				HPDrainRate = options.getFixedHP();
 
 			// initialize objects
 			Circle.init(container, circleSize);
@@ -940,13 +937,13 @@ public class Game extends BasicGameState {
 	/**
 	 * Sets/returns whether entering the state will restart it.
 	 */
-	public static void setRestart(byte restart) { Game.restart = restart; }
-	public static byte getRestart() { return Game.restart; }
+	public void setRestart(byte restart) { this.restart = restart; }
+	public byte getRestart() { return restart; }
 
 	/**
 	 * Returns the associated GameScore object.
 	 */
-	public static GameScore getGameScore() { return score; }
+	public GameScore getGameScore() { return score; }
 
 	/**
 	 * Returns whether or not the track is in the lead-in time state.

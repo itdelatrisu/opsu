@@ -18,7 +18,7 @@
 
 package itdelatrisu.opsu;
 
-import itdelatrisu.opsu.states.Options;
+import itdelatrisu.opsu.states.Options.OpsuOptions;
 
 import java.io.File;
 
@@ -194,8 +194,9 @@ public enum GameImage {
 	/**
 	 * Sets the associated skin image.
 	 * If the path does not contain the image, the default image is used.
+	 * @param options
 	 */
-	public void setSkinImage(File dir) {
+	public void setSkinImage(File dir, OpsuOptions options) {
 		try {
 			// destroy the existing image, if any
 			if (skinImage != null && !skinImage.isDestroyed())
@@ -203,7 +204,7 @@ public enum GameImage {
 
 			// set a new image
 			File file = new File(dir, filename);
-			if (file.isFile() && !Options.isBeatmapSkinIgnored())
+			if (file.isFile() && !options.isBeatmapSkinIgnored())
 				skinImage = new Image(file.getAbsolutePath());
 			else
 				skinImage = null;

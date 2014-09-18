@@ -21,8 +21,11 @@ package itdelatrisu.opsu.states;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.OsuParser;
 import itdelatrisu.opsu.OszUnpacker;
+import itdelatrisu.opsu.Resources;
 import itdelatrisu.opsu.SoundController;
 import itdelatrisu.opsu.Utils;
+import itdelatrisu.opsu.states.Options.OpsuOptions;
+import static itdelatrisu.opsu.OpsuImages.*;
 
 import java.io.File;
 
@@ -32,7 +35,6 @@ import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
-import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
 
 /**
@@ -40,49 +42,39 @@ import org.newdawn.slick.state.StateBasedGame;
  * <p>
  * Loads game resources and enters "Main Menu" state.
  */
-public class Splash extends BasicGameState {
-	/**
-	 * Logo image.
-	 */
-	private Image logo;
-
+public class Splash extends Utils {
 	/**
 	 * Whether or not loading has completed.
 	 */
 	private boolean finished = false;
 
-	// game-related variables
-	private int state;
-	private GameContainer container;
 	private boolean init = false;
-
-	public Splash(int state) {
-		this.state = state;
+	public Splash(int state, OpsuOptions options, SoundController soundController, Resources resources) {
+		super(state, options, soundController, resources);
 	}
 
 	@Override
 	public void init(GameContainer container, StateBasedGame game)
 			throws SlickException {
-		this.container = container;
-
-		logo = new Image("logo.png");
-		logo = logo.getScaledCopy((container.getHeight() / 1.2f) / logo.getHeight());
-		logo.setAlpha(0f);
+		super.init(container, game);
+		
+		resources.setWindowDimensions(container.getWidth(), container.getHeight());
 
 		// load Utils class first (needed in other 'init' methods)
-		Utils.init(container, game);
+		Utils.initializeContainer(container, options, resources);
+		
+		getResource(LOGO).setAlpha(0f);
 	}
 
 	@Override
 	public void render(GameContainer container, StateBasedGame game, Graphics g)
 			throws SlickException {
 		g.setBackground(Color.black);
-		logo.drawCentered(container.getWidth() / 2, container.getHeight() / 2);
+		getResource(LOGO).drawCentered(container.getWidth() / 2, container.getHeight() / 2);
 
 		// display progress
 		String unpackedFile = OszUnpacker.getCurrentFileName();
 		String parsedFile = OsuParser.getCurrentFileName();
-		String soundFile = SoundController.getCurrentFileName();
 		if (unpackedFile != null) {
 			drawLoadProgress(
 					g, OszUnpacker.getUnpackerProgress(),
@@ -93,12 +85,9 @@ public class Splash extends BasicGameState {
 					g, OsuParser.getParserProgress(),
 					"Loading beatmaps...", parsedFile
 			);
-		} else if (soundFile != null) {
-			drawLoadProgress(
-					g, SoundController.getLoadingProgress(),
-					"Loading sounds...", soundFile
-			);
 		}
+		
+		// TODO load exactly those sounds needed for the main menu
 	}
 
 	@Override
@@ -113,22 +102,20 @@ public class Splash extends BasicGameState {
 			new Thread() {
 				@Override
 				public void run() {
-					File beatmapDir = Options.getBeatmapDir();
+					File beatmapDir = options.getBeatmapDir();
 
 					// unpack all OSZ archives
-					OszUnpacker.unpackAllFiles(Options.getOSZDir(), beatmapDir);
+					OszUnpacker.unpackAllFiles(options.getOSZDir(), beatmapDir);
 
 					// parse song directory
-					OsuParser.parseAllFiles(beatmapDir, width, height);
-
-					// load sounds
-					SoundController.init();
+					OsuParser.parseAllFiles(beatmapDir, width, height, options);
 
 					finished = true;
 				}
 			}.start();
 		}
 
+		Image logo = getResource(LOGO);
 		// fade in logo
 		float alpha = logo.getAlpha();
 		if (alpha < 1f)
@@ -145,12 +132,9 @@ public class Splash extends BasicGameState {
 	}
 
 	@Override
-	public int getID() { return state; }
-
-	@Override
 	public void keyPressed(int key, char c) {
 		if (key == Input.KEY_ESCAPE) {
-			Options.saveOptions();
+			options.saveOptions();
 			Opsu.closeSocket();
 			container.exit();
 		}
@@ -169,7 +153,7 @@ public class Splash extends BasicGameState {
 		int lineY = container.getHeight() - 25;
 		int lineOffsetY = Utils.FONT_MEDIUM.getLineHeight();
 
-		if (Options.isLoadVerbose()) {
+		if (options.isLoadVerbose()) {
 			g.drawString(String.format("%s (%d%%)", text, progress), 25, lineY - (lineOffsetY * 2));
 			g.drawString(file, 25, lineY - lineOffsetY);
 		} else {

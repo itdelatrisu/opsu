@@ -18,7 +18,7 @@
 
 package itdelatrisu.opsu;
 
-import itdelatrisu.opsu.states.Options;
+import itdelatrisu.opsu.states.Options.OpsuOptions;
 
 import java.io.File;
 import java.util.HashMap;
@@ -29,6 +29,7 @@ import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.SlickException;
+import static itdelatrisu.opsu.SoundController.BasicSounds.*;
 
 /**
  * Holds score data and renders all score-related elements.
@@ -208,15 +209,20 @@ public class GameScore {
 	 * Container dimensions.
 	 */
 	private int width, height;
+	
+	private OpsuOptions options;
+
+	private SoundController soundController;
 
 	/**
 	 * Constructor.
 	 * @param width container width
 	 * @param height container height
 	 */
-	public GameScore(int width, int height) {
+	public GameScore(int width, int height, SoundController soundController) {
 		this.width = width;
 		this.height = height;
+		this.soundController = soundController;
 
 		clear();
 	}
@@ -240,11 +246,10 @@ public class GameScore {
 
 	/**
 	 * Loads all game score images.
+	 * @param dir images directory
 	 * @throws SlickException
 	 */
-	public void loadImages() throws SlickException {
-		File dir = MusicController.getOsuFile().getFile().getParentFile();
-
+	public void loadImages(File dir) throws SlickException {
 		// combo burst images
 		if (comboBurstImages != null) {
 			for (int i = 0; i < comboBurstImages.length; i++) {
@@ -674,7 +679,7 @@ public class GameScore {
 				hitResults[hitResult.result].drawCentered(hitResult.x, hitResult.y);
 
 				// hit lighting
-				if (Options.isHitLightingEnabled() && lighting != null &&
+				if (options.isHitLightingEnabled() && lighting != null &&
 					hitResult.result != HIT_MISS && hitResult.result != HIT_SLIDER30 && hitResult.result != HIT_SLIDER10) {
 					float scale = 1f + ((trackPosition - hitResult.time) / (float) fadeDelay);
 					Image scaledLighting  = lighting.getScaledCopy(scale);
@@ -778,7 +783,7 @@ public class GameScore {
 	 * @param delta the delta interval since the last call
 	 */
 	public void updateComboBurst(int delta) {
-		if (comboBurstIndex > -1 && Options.isComboBurstEnabled()) {
+		if (comboBurstIndex > -1 && options.isComboBurstEnabled()) {
 			int leftX  = 0;
 			int rightX = width - comboBurstImages[comboBurstIndex].getWidth();
 			if (comboBurstX < leftX) {
@@ -806,7 +811,7 @@ public class GameScore {
 			comboMax = combo;
 	
 		// combo bursts (at 30, 60, 100+50x)
-		if (Options.isComboBurstEnabled() &&
+		if (options.isComboBurstEnabled() &&
 			(combo == 30 || combo == 60 || (combo >= 100 && combo % 50 == 0))) {
 			if (combo == 30)
 				comboBurstIndex = 0;
@@ -825,7 +830,7 @@ public class GameScore {
 	 */
 	private void resetComboStreak() {
 		if (combo >= 20)
-			SoundController.playSound(SoundController.SOUND_COMBOBREAK);
+			soundController.playSound(SOUND_COMBOBREAK);
 		combo = 0;
 		if (GameMod.SUDDEN_DEATH.isActive())
 			health = 0f;
@@ -846,12 +851,12 @@ public class GameScore {
 			hitValue = 30;
 			incrementComboStreak();
 			changeHealth(1f);
-			SoundController.playHitSound(hitSound);
+			soundController.playHitSound(hitSound);
 			break;
 		case HIT_SLIDER10:
 			hitValue = 10;
 			incrementComboStreak();
-			SoundController.playHitSound(SoundController.HIT_SLIDERTICK);
+			soundController.playHitSound(SoundController.HitSounds.HIT_SLIDERTICK);
 			break;
 		case HIT_MISS:
 			resetComboStreak();
@@ -863,7 +868,7 @@ public class GameScore {
 
 		if (hitValue > 0) {
 			score += hitValue;
-			if (!Options.isPerfectHitBurstEnabled())
+			if (!options.isPerfectHitBurstEnabled())
 				;  // hide perfect hit results
 			else
 				hitResultList.add(new OsuHitObjectResult(time, result, x, y, null));
@@ -913,7 +918,7 @@ public class GameScore {
 			return;
 		}
 		if (hitValue > 0) {
-			SoundController.playHitSound(hitSound);
+			soundController.playHitSound(hitSound);
 
 			// game mod score multipliers
 			float modMultiplier = 1f;
@@ -962,9 +967,13 @@ public class GameScore {
 			comboEnd = 0;
 		}
 
-		if (perfectHit && !Options.isPerfectHitBurstEnabled())
+		if (perfectHit && !options.isPerfectHitBurstEnabled())
 			;  // hide perfect hit results
 		else
 			hitResultList.add(new OsuHitObjectResult(time, result, x, y, color));
+	}
+	
+	public void setOptions(OpsuOptions options) {
+		this.options = options;
 	}
 }

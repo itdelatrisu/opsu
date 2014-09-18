@@ -22,8 +22,10 @@ import itdelatrisu.opsu.GUIMenuButton;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.MusicController;
 import itdelatrisu.opsu.Opsu;
+import itdelatrisu.opsu.Resources;
 import itdelatrisu.opsu.SoundController;
 import itdelatrisu.opsu.Utils;
+import itdelatrisu.opsu.states.Options.OpsuOptions;
 
 import org.lwjgl.input.Keyboard;
 import org.newdawn.slick.Color;
@@ -31,10 +33,11 @@ import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
-import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.state.transition.FadeInTransition;
 import org.newdawn.slick.state.transition.FadeOutTransition;
+
+import static itdelatrisu.opsu.SoundController.BasicSounds.*;
 
 /**
  * "Game Pause/Fail" state.
@@ -44,7 +47,7 @@ import org.newdawn.slick.state.transition.FadeOutTransition;
  * <li>[Back]     - return to song menu state
  * </ul>
  */
-public class GamePauseMenu extends BasicGameState {
+public class GamePauseMenu extends Utils {
 	/**
 	 * Music fade-out time, in milliseconds.
 	 */
@@ -60,41 +63,36 @@ public class GamePauseMenu extends BasicGameState {
 	 */
 	private GUIMenuButton continueButton, retryButton, backButton;
 
-	// game-related variables
-	private GameContainer container;
-	private StateBasedGame game;
-	private Input input;
-	private int state;
-
-	public GamePauseMenu(int state) {
-		this.state = state;
+	private Game gameState;
+	public GamePauseMenu(int state, OpsuOptions options, SoundController soundController, Resources resources) {
+		super(state, options, soundController, resources);
 	}
 
 	@Override
 	public void init(GameContainer container, StateBasedGame game)
 			throws SlickException {
-		this.container = container;
-		this.game = game;
-		input = container.getInput();
+		super.init(container, game);
+
+		gameState = (Game) game.getState(Opsu.STATE_GAME);
 	}
 
 	@Override
 	public void render(GameContainer container, StateBasedGame game, Graphics g)
 			throws SlickException {
 		// background
-		if (Game.getRestart() != Game.RESTART_LOSE)
+		if (gameState.getRestart() != Game.RESTART_LOSE)
 			GameImage.PAUSE_OVERLAY.getImage().draw();
 		else
 			GameImage.FAIL_BACKGROUND.getImage().draw();
 
 		// draw buttons
-		if (Game.getRestart() != Game.RESTART_LOSE)
+		if (gameState.getRestart() != Game.RESTART_LOSE)
 			continueButton.draw();
 		retryButton.draw();
 		backButton.draw();
 
-		Utils.drawFPS();
-		Utils.drawCursor();
+		drawFPS();
+		drawCursor();
 	}
 
 	@Override
@@ -104,31 +102,28 @@ public class GamePauseMenu extends BasicGameState {
 	}
 
 	@Override
-	public int getID() { return state; }
-
-	@Override
 	public void keyPressed(int key, char c) {
 		// game keys
 		if (!Keyboard.isRepeatEvent()) {
-			if (key == Options.getGameKeyLeft())
+			if (key == options.getGameKeyLeft())
 				mousePressed(Input.MOUSE_LEFT_BUTTON, input.getMouseX(), input.getMouseY());
-			else if (key == Options.getGameKeyRight())
+			else if (key == options.getGameKeyRight())
 				mousePressed(Input.MOUSE_RIGHT_BUTTON, input.getMouseX(), input.getMouseY());
 		}
 
 		switch (key) {
 		case Input.KEY_ESCAPE:
 			// 'esc' will normally unpause, but will return to song menu if health is zero
-			if (Game.getRestart() == Game.RESTART_LOSE) {
+			if (gameState.getRestart() == Game.RESTART_LOSE) {
 				MusicController.stop();
 				MusicController.playAt(MusicController.getOsuFile().previewTime, true);
-				SoundController.playSound(SoundController.SOUND_MENUBACK);
+				soundController.playSound(SOUND_MENUBACK);
 				game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 			} else
 				unPause(Game.RESTART_FALSE);
 			break;
 		case Input.KEY_F12:
-			Utils.takeScreenShot();
+			takeScreenShot();
 			break;
 		}
 	}
@@ -138,7 +133,7 @@ public class GamePauseMenu extends BasicGameState {
 		if (button == Input.MOUSE_MIDDLE_BUTTON)
 			return;
 
-		boolean loseState = (Game.getRestart() == Game.RESTART_LOSE);
+		boolean loseState = (gameState.getRestart() == Game.RESTART_LOSE);
 
 		// if music faded out (i.e. health is zero), don't process any actions before FADEOUT_TIME
 		if (loseState && System.currentTimeMillis() - pauseStartTime < FADEOUT_TIME)
@@ -151,7 +146,7 @@ public class GamePauseMenu extends BasicGameState {
 		} else if (backButton.contains(x, y)) {
 			MusicController.pause();  // lose state
 			MusicController.playAt(MusicController.getOsuFile().previewTime, true);
-			SoundController.playSound(SoundController.SOUND_MENUBACK);
+			soundController.playSound(SOUND_MENUBACK);
 			game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 		}
 	}
@@ -160,9 +155,9 @@ public class GamePauseMenu extends BasicGameState {
 	public void enter(GameContainer container, StateBasedGame game)
 			throws SlickException {
 		pauseStartTime = System.currentTimeMillis();
-		if (Game.getRestart() == Game.RESTART_LOSE) {
+		if (gameState.getRestart() == Game.RESTART_LOSE) {
 			MusicController.fadeOut(FADEOUT_TIME);
-			SoundController.playSound(SoundController.SOUND_FAIL);
+			soundController.playSound(SOUND_FAIL);
 		} else
 			MusicController.pause();
 	}
@@ -172,10 +167,10 @@ public class GamePauseMenu extends BasicGameState {
 	 */
 	private void unPause(byte restart) {
 		if (restart == Game.RESTART_MANUAL)
-			SoundController.playSound(SoundController.SOUND_MENUHIT);
+			soundController.playSound(SOUND_MENUHIT);
 		else
-			SoundController.playSound(SoundController.SOUND_MENUBACK);
-		Game.setRestart(restart);
+			soundController.playSound(SOUND_MENUBACK);
+		gameState.setRestart(restart);
 		game.enterState(Opsu.STATE_GAME);
 	}
 

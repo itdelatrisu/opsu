@@ -474,9 +474,10 @@ public class Slider {
 	 * @param delta the delta interval since the last call
 	 * @param mouseX the x coordinate of the mouse
 	 * @param mouseY the y coordinate of the mouse
+	 * @param state
 	 * @return true if slider ended
 	 */
-	public boolean update(boolean overlap, int delta, int mouseX, int mouseY) {
+	public boolean update(boolean overlap, int delta, int mouseX, int mouseY, Utils state) {
 		int repeatCount = hitObject.getRepeatCount();
 
 		// slider time and tick calculations
@@ -538,7 +539,7 @@ public class Slider {
 				ticksHit++;
 
 			// check if cursor pressed and within end circle
-			else if (Utils.isGameKeyPressed()) {
+			else if (state.isGameKeyPressed()) {
 				float[] c = bezier.pointAt(getT(trackPosition, false));
 				double distance = Math.hypot(c[0] - mouseX, c[1] - mouseY);
 				int followCircleRadius = GameImage.SLIDER_FOLLOWCIRCLE.getImage().getWidth() / 2;
@@ -579,7 +580,7 @@ public class Slider {
 		float[] c = bezier.pointAt(getT(trackPosition, false));
 		double distance = Math.hypot(c[0] - mouseX, c[1] - mouseY);
 		int followCircleRadius = GameImage.SLIDER_FOLLOWCIRCLE.getImage().getWidth() / 2;
-		if ((Utils.isGameKeyPressed() && distance < followCircleRadius) || isAutoMod) {
+		if ((state.isGameKeyPressed() && distance < followCircleRadius) || isAutoMod) {
 			// mouse pressed and within follow circle
 			followCircleActive = true;
 			score.changeHealth(delta * GameScore.HP_DRAIN_MULTIPLIER);
