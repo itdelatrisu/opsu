@@ -45,6 +45,8 @@ import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.util.Log;
 import org.newdawn.slick.util.ResourceLoader;
 
+import static itdelatrisu.opsu.SoundController.BasicSounds.*;
+
 /**
  * Contains miscellaneous utilities.
  */
@@ -488,7 +490,7 @@ public abstract class Utils extends BasicGameState {
 			File file = new File(dir, String.format("screenshot_%s.%s",
 					date.format(new Date()), options.getScreenshotFormat()));
 
-			soundController.playSound(soundController.SOUND_SHUTTER);
+			soundController.playSound(SOUND_SHUTTER);
 
 			// copy the screen
 			Image screen = new Image(container.getWidth(), container.getHeight());

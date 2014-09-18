@@ -21,8 +21,11 @@ package itdelatrisu.opsu.states;
 import itdelatrisu.opsu.GUIMenuButton;
 import itdelatrisu.opsu.GameMod;
 import itdelatrisu.opsu.Opsu;
+import itdelatrisu.opsu.Resources.Origin;
+import itdelatrisu.opsu.Resources.Resource;
 import itdelatrisu.opsu.SoundController;
 import itdelatrisu.opsu.Utils;
+import static itdelatrisu.opsu.SoundController.BasicSounds.*;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -736,6 +739,25 @@ public class Options extends Utils {
 			if (screenWidth == containerWidth && screenHeight == containerHeight)
 				System.setProperty("org.lwjgl.opengl.Window.undecorated", "true");
 		}
+		
+		/**
+		 * Determines which types of resources are loaded from which origins.
+		 * 
+		 * Any combination of "ignore beatmap hitsounds", "load skin", etc... can be implemented here.
+		 * 
+		 * @param resource 
+		 * @param origin
+		 * @return
+		 */
+		public boolean isLoadFromOrigin(Resource<?> resource, Origin origin) {
+			if(origin == Origin.GAME)
+				return true;
+			if(origin == Origin.SKIN)
+				return true;
+			if(origin == Origin.BEATMAP)
+				return !isBeatmapSkinIgnored();
+			throw new RuntimeException();
+		}
 	}
 	
 	/**
@@ -1003,7 +1025,7 @@ public class Options extends Utils {
 
 		// back
 		if (Utils.getBackButton().contains(x, y)) {
-			soundController.playSound(soundController.SOUND_MENUBACK);
+			soundController.playSound(SOUND_MENUBACK);
 			game.enterState(Opsu.STATE_SONGMENU, new EmptyTransition(), new FadeInTransition(Color.black));
 			return;
 		}
@@ -1013,7 +1035,7 @@ public class Options extends Utils {
 			if (optionTabs[i].contains(x, y)) {
 				if (i != currentTab) {
 					currentTab = i;
-					soundController.playSound(soundController.SOUND_MENUCLICK);
+					soundController.playSound(SOUND_MENUCLICK);
 				}
 				return;
 			}
@@ -1025,7 +1047,7 @@ public class Options extends Utils {
 				boolean prevState = mod.isActive();
 				mod.toggle(true);
 				if (mod.isActive() != prevState)
-					soundController.playSound(soundController.SOUND_MENUCLICK);
+					soundController.playSound(SOUND_MENUCLICK);
 				return;
 			}
 		}
@@ -1218,7 +1240,7 @@ public class Options extends Utils {
 
 		switch (key) {
 		case Input.KEY_ESCAPE:
-			soundController.playSound(soundController.SOUND_MENUBACK);
+			soundController.playSound(SOUND_MENUBACK);
 			game.enterState(Opsu.STATE_SONGMENU, new EmptyTransition(), new FadeInTransition(Color.black));
 			break;
 		case Input.KEY_F12:
@@ -1229,7 +1251,7 @@ public class Options extends Utils {
 			if (input.isKeyDown(Input.KEY_LSHIFT) || input.isKeyDown(Input.KEY_RSHIFT))
 				i = TAB_MAX - 1;
 			currentTab = (currentTab + i) % TAB_MAX;
-			soundController.playSound(soundController.SOUND_MENUCLICK);
+			soundController.playSound(SOUND_MENUCLICK);
 			break;
 		}
 	}

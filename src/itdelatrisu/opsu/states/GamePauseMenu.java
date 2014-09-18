@@ -35,6 +35,7 @@ import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.state.transition.FadeInTransition;
 import org.newdawn.slick.state.transition.FadeOutTransition;
+import static itdelatrisu.opsu.SoundController.BasicSounds.*;
 
 /**
  * "Game Pause/Fail" state.
@@ -114,7 +115,7 @@ public class GamePauseMenu extends Utils {
 			if (gameState.getRestart() == Game.RESTART_LOSE) {
 				MusicController.stop();
 				MusicController.playAt(MusicController.getOsuFile().previewTime, true);
-				soundController.playSound(soundController.SOUND_MENUBACK);
+				soundController.playSound(SOUND_MENUBACK);
 				game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 			} else
 				unPause(Game.RESTART_FALSE);
@@ -143,7 +144,7 @@ public class GamePauseMenu extends Utils {
 		} else if (backButton.contains(x, y)) {
 			MusicController.pause();  // lose state
 			MusicController.playAt(MusicController.getOsuFile().previewTime, true);
-			soundController.playSound(soundController.SOUND_MENUBACK);
+			soundController.playSound(SOUND_MENUBACK);
 			game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 		}
 	}
@@ -154,7 +155,7 @@ public class GamePauseMenu extends Utils {
 		pauseStartTime = System.currentTimeMillis();
 		if (gameState.getRestart() == Game.RESTART_LOSE) {
 			MusicController.fadeOut(FADEOUT_TIME);
-			soundController.playSound(soundController.SOUND_FAIL);
+			soundController.playSound(SOUND_FAIL);
 		} else
 			MusicController.pause();
 	}
@@ -164,9 +165,9 @@ public class GamePauseMenu extends Utils {
 	 */
 	private void unPause(byte restart) {
 		if (restart == Game.RESTART_MANUAL)
-			soundController.playSound(soundController.SOUND_MENUHIT);
+			soundController.playSound(SOUND_MENUHIT);
 		else
-			soundController.playSound(soundController.SOUND_MENUBACK);
+			soundController.playSound(SOUND_MENUBACK);
 		gameState.setRestart(restart);
 		game.enterState(Opsu.STATE_GAME);
 	}

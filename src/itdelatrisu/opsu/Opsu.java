@@ -73,7 +73,8 @@ public class Opsu extends StateBasedGame {
 		STATE_OPTIONS       = 7;
 
 	OpsuOptions options = new OpsuOptions();
-	SoundController soundController = new SoundController(options);
+	Resources resources = new Resources(options);
+	SoundController soundController = new SoundController(options, resources);
 	
 	/**
 	 * Used to restrict the program to a single instance.
@@ -124,9 +125,6 @@ public class Opsu extends StateBasedGame {
 			Log.error(String.format("Another program is already running on port %d.", opsu.options.getPort()), e);
 			System.exit(1);
 		}
-
-		// set path for lwjgl natives - NOT NEEDED if using JarSplice
-//		System.setProperty("org.lwjgl.librarypath", new File("native").getAbsolutePath());
 
 		// set the resource paths
 		ResourceLoader.removeAllResourceLocations();

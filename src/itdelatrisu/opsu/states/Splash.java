@@ -78,7 +78,6 @@ public class Splash extends Utils {
 		// display progress
 		String unpackedFile = OszUnpacker.getCurrentFileName();
 		String parsedFile = OsuParser.getCurrentFileName();
-		String soundFile = soundController.getCurrentFileName();
 		if (unpackedFile != null) {
 			drawLoadProgress(
 					g, OszUnpacker.getUnpackerProgress(),
@@ -89,12 +88,9 @@ public class Splash extends Utils {
 					g, OsuParser.getParserProgress(),
 					"Loading beatmaps...", parsedFile
 			);
-		} else if (soundFile != null) {
-			drawLoadProgress(
-					g, soundController.getLoadingProgress(),
-					"Loading sounds...", soundFile
-			);
 		}
+		
+		// TODO load exactly those sounds needed for the main menu
 	}
 
 	@Override
@@ -116,9 +112,6 @@ public class Splash extends Utils {
 
 					// parse song directory
 					OsuParser.parseAllFiles(beatmapDir, width, height, options);
-
-					// load sounds
-					soundController.init();
 
 					finished = true;
 				}

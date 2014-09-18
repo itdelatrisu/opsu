@@ -42,6 +42,7 @@ import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.state.transition.FadeInTransition;
 import org.newdawn.slick.state.transition.FadeOutTransition;
 
+import static itdelatrisu.opsu.SoundController.BasicSounds.*;
 /**
  * "Main Menu" state.
  * <ul>
@@ -309,17 +310,17 @@ public class MainMenu extends Utils {
 				logoTimer = 0;
 				playButton.getImage().setAlpha(0f);
 				exitButton.getImage().setAlpha(0f);
-				soundController.playSound(soundController.SOUND_MENUHIT);
+				soundController.playSound(SOUND_MENUHIT);
 			}
 		}
 
 		// other button actions (if visible)
 		else if (logoClicked) {
 			if (logo.contains(x, y) || playButton.contains(x, y)) {
-				soundController.playSound(soundController.SOUND_MENUHIT);
+				soundController.playSound(SOUND_MENUHIT);
 				game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 			} else if (exitButton.contains(x, y)) {
-				soundController.playSound(soundController.SOUND_MENUHIT);
+				soundController.playSound(SOUND_MENUHIT);
 				game.enterState(Opsu.STATE_MAINMENUEXIT);
 			}
 		}
@@ -343,9 +344,9 @@ public class MainMenu extends Utils {
 				logoTimer = 0;
 				playButton.getImage().setAlpha(0f);
 				exitButton.getImage().setAlpha(0f);
-				soundController.playSound(soundController.SOUND_MENUHIT);
+				soundController.playSound(SOUND_MENUHIT);
 			} else {
-				soundController.playSound(soundController.SOUND_MENUHIT);
+				soundController.playSound(SOUND_MENUHIT);
 				game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 			}
 			break;

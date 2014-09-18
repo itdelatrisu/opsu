@@ -32,6 +32,7 @@ import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.SlickException;
+import static itdelatrisu.opsu.SoundController.BasicSounds.*;
 
 /**
  * Data type representing a spinner object.
@@ -155,7 +156,7 @@ public class Spinner {
 		if (ratio >= 1.0f ||
 			GameMod.AUTO.isActive() || GameMod.SPUN_OUT.isActive()) {
 			result = GameScore.HIT_300;
-			soundController.playSound(soundController.SOUND_SPINNEROSU);
+			soundController.playSound(SOUND_SPINNEROSU);
 		} else if (ratio >= 0.8f)
 			result = GameScore.HIT_100;
 		else if (ratio >= 0.5f)
@@ -235,10 +236,10 @@ public class Spinner {
 		if (Math.floor(newRotations) > rotations) {
 			if (newRotations > rotationsNeeded) {  // extra rotations
 				score.changeScore(1000);
-				soundController.playSound(soundController.SOUND_SPINNERBONUS);
+				soundController.playSound(SOUND_SPINNERBONUS);
 			} else {
 				score.changeScore(100);
-				soundController.playSound(soundController.SOUND_SPINNERSPIN);
+				soundController.playSound(SOUND_SPINNERSPIN);
 			}
 		}
 

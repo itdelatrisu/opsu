@@ -29,6 +29,7 @@ import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.SlickException;
+import static itdelatrisu.opsu.SoundController.BasicSounds.*;
 
 /**
  * Holds score data and renders all score-related elements.
@@ -829,7 +830,7 @@ public class GameScore {
 	 */
 	private void resetComboStreak() {
 		if (combo >= 20)
-			soundController.playSound(soundController.SOUND_COMBOBREAK);
+			soundController.playSound(SOUND_COMBOBREAK);
 		combo = 0;
 		if (GameMod.SUDDEN_DEATH.isActive())
 			health = 0f;
@@ -855,7 +856,7 @@ public class GameScore {
 		case HIT_SLIDER10:
 			hitValue = 10;
 			incrementComboStreak();
-			soundController.playHitSound(soundController.HIT_SLIDERTICK);
+			soundController.playHitSound(SoundController.HitSounds.HIT_SLIDERTICK);
 			break;
 		case HIT_MISS:
 			resetComboStreak();
