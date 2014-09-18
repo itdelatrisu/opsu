@@ -67,7 +67,26 @@ public class Resources {
 	}
 	
 	public interface ImageResource extends Resource<Image> {
-		
+		/**
+		 * scale the image according to the current window size
+		 * 
+		 * @param original
+		 *            original unscaled image. {@link Resource#unload(Object)}
+		 *            will be called on this image if the method doesnt return
+		 *            null.
+		 * @param resources
+		 *            the pool of resources if the dimensions of other Images
+		 *            matter
+		 * @param options
+		 * @param windowWidth
+		 *            as set with
+		 *            {@link Resources#setWindowDimensions(int, int)}
+		 * @param windowHeight
+		 *            as set with
+		 *            {@link Resources#setWindowDimensions(int, int)}
+		 * @return null if the image doesn't need to be scaled
+		 */
+		public Image scale(Image original, Resources resources, OpsuOptions options, int windowWidth, int windowHeight);
 	}
 	
 	private class LoadedResource<T> {
@@ -129,7 +148,6 @@ public class Resources {
 	 */
 	@CheckForNull
 	<T> LoadedResource<T> loadResource(Resource<?> resource, LoadedResource<T> existingResource) {
-		System.out.println("loading " + resource.getName());
 		for (Origin origin : resource.getOrigins()) {
 			if(!options.isLoadFromOrigin(resource, origin))
 				continue;
@@ -181,12 +199,15 @@ public class Resources {
 	}
 	
 	Map<Resource<?>, LoadedResource<?>> loadedResources = new HashMap<>();
+	private int height;
+	private int width;
 	
 	<T> T loadResource(Resource<T> resource, InputStream inputStream, String filename) {
 		if (resource instanceof ImageResource) {
 			try {
 				@SuppressWarnings("unchecked")
-				T image = (T) new Image(inputStream, filename, false);
+				T image = (T) loadImage((ImageResource) resource, inputStream, filename);
+				
 				return image;
 			} catch (SlickException e) {
 				Log.error("can't load " + filename, e);
@@ -201,6 +222,19 @@ public class Resources {
 		}
 		
 		throw new RuntimeException();
+	}
+
+	public Image loadImage(ImageResource resource, InputStream inputStream, String filename)
+			throws SlickException {
+		Image image = new Image(inputStream, filename, false);
+		
+		Image scaledImage = resource.scale(image, this, options, width, height);
+		
+		if(scaledImage != null) {
+			return scaledImage;
+		}
+		
+		return image;
 	}
 
 	public static Clip loadClip(InputStream inputStream, String filename) {
@@ -224,12 +258,22 @@ public class Resources {
 		removeAll(Origin.SKIN);
 	}
 	
-	public <T> T getResource(Resource<T> resource) {
+	public synchronized <T> T getResource(Resource<T> resource) {
+		LoadedResource<T> loaded = getLoadedResource(resource);
+		
+		if(loaded != null) {
+			return loaded.data;			
+		}
+		
+		return null;
+	}
+
+	<T> LoadedResource<T> getLoadedResource(Resource<T> resource) {
 		@SuppressWarnings("unchecked")
 		LoadedResource<T> cached = (LoadedResource<T>) loadedResources.get(resource);
 		
 		if(cached != null && cached.tryToOverride == false) {
-			return cached.data;
+			return cached;
 		}
 		
 		LoadedResource<T> loaded = loadResource(resource, cached);
@@ -238,10 +282,33 @@ public class Resources {
 			if(loaded != cached) {
 				loadedResources.put(resource, loaded);
 			}
-			
-			return loaded.data;
 		}
+		return loaded;
+	}
+	
+	/**
+	 * sets current window dimensions and unloads all images.
+	 * 
+	 * @param width
+	 * @param height
+	 */
+	public void setWindowDimensions(int width, int height) {
+		this.width = width;
+		this.height = height;
 		
-		return null;
+		for (Iterator<Entry<Resource<?>, LoadedResource<?>>> iterator = loadedResources.entrySet().iterator(); iterator.hasNext();) {
+			Entry<Resource<?>, LoadedResource<?>> entry = iterator.next();
+			Resource<?> resource = entry.getKey();
+			if (resource instanceof ImageResource) {
+				ImageResource imageResource = (ImageResource) resource;
+				
+				@SuppressWarnings("unchecked")
+				LoadedResource<Image> cached = (LoadedResource<Image>) entry.getValue();
+				
+				imageResource.unload(cached.data);
+				
+				iterator.remove();
+			}
+		}
 	}
 }

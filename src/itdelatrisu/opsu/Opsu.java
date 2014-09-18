@@ -87,14 +87,14 @@ public class Opsu extends StateBasedGame {
 
 	@Override
 	public void initStatesList(GameContainer container) throws SlickException {
-		addState(new Splash(STATE_SPLASH, options, soundController));
-		addState(new MainMenu(STATE_MAINMENU, options, soundController));
-		addState(new MainMenuExit(STATE_MAINMENUEXIT, options, soundController));
-		addState(new SongMenu(STATE_SONGMENU, options, soundController));
-		addState(new Game(STATE_GAME, options, soundController));
-		addState(new GamePauseMenu(STATE_GAMEPAUSEMENU, options, soundController));
-		addState(new GameRanking(STATE_GAMERANKING, options, soundController));
-		addState(new Options(STATE_OPTIONS, options, soundController));
+		addState(new Splash(STATE_SPLASH, options, soundController, resources));
+		addState(new MainMenu(STATE_MAINMENU, options, soundController, resources));
+		addState(new MainMenuExit(STATE_MAINMENUEXIT, options, soundController, resources));
+		addState(new SongMenu(STATE_SONGMENU, options, soundController, resources));
+		addState(new Game(STATE_GAME, options, soundController, resources));
+		addState(new GamePauseMenu(STATE_GAMEPAUSEMENU, options, soundController, resources));
+		addState(new GameRanking(STATE_GAMERANKING, options, soundController, resources));
+		addState(new Options(STATE_OPTIONS, options, soundController, resources));
 	}
 
 	public static void main(String[] args) {

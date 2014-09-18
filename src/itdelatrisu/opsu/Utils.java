@@ -18,6 +18,7 @@
 
 package itdelatrisu.opsu;
 
+import itdelatrisu.opsu.Resources.Resource;
 import itdelatrisu.opsu.states.Options.OpsuOptions;
 
 import java.awt.Font;
@@ -88,11 +89,6 @@ public abstract class Utils extends BasicGameState {
 	private static GUIMenuButton backButton;
 
 	/**
-	 * Tab image (shared by other states).
-	 */
-	private static Image tab;
-
-	/**
 	 * Cursor image and trail.
 	 */
 	private static Image cursor, cursorTrail, cursorMiddle;
@@ -121,12 +117,14 @@ public abstract class Utils extends BasicGameState {
 	private final int id;
 	protected final OpsuOptions options;
 	protected SoundController soundController;
+	protected Resources resources;
 
-	protected Utils(int id, OpsuOptions options, SoundController soundController) {
+	protected Utils(int id, OpsuOptions options, SoundController soundController, Resources resources) {
 		super();
 		this.id = id;
 		this.options = options;
 		this.soundController = soundController;
+		this.resources = resources;
 	}
 
 	@Override
@@ -149,7 +147,7 @@ public abstract class Utils extends BasicGameState {
 
 	}
 	
-	public static void initializeContainer(GameContainer container, OpsuOptions options) throws SlickException {
+	public static void initializeContainer(GameContainer container, OpsuOptions options, Resources resources) throws SlickException {
 		// game settings
 		container.setTargetFrameRate(options.getTargetFPS());
 		container.setMusicVolume(options.getMusicVolume());
@@ -201,11 +199,6 @@ public abstract class Utils extends BasicGameState {
 			Log.error("Failed to load fonts.", e);
 		}
 
-		// tab image
-		tab = new Image("selection-tab.png");
-		float tabScale = (height * 0.033f) / tab.getHeight();
-		tab = tab.getScaledCopy(tabScale);
-
 		// back button
 		Image back = new Image("menu-back.png");
 		float scale = (height * 0.1f) / back.getHeight();
@@ -224,13 +217,8 @@ public abstract class Utils extends BasicGameState {
 
 		// initialize sorts
 		for (SongSort sort : SongSort.values())
-			sort.init(tab, width, height);
+			sort.init(resources.getResource(OpsuImages.TAB), width, height);
 	}
-
-	/**
-	 * Returns the 'selection-tab' image.
-	 */
-	public static Image getTabImage() { return tab; }
 
 	/**
 	 * Returns the 'menu-back' GUIMenuButton.
@@ -550,5 +538,14 @@ public abstract class Utils extends BasicGameState {
 				Log.warn("Failed to load glyphs.", e);
 			}
 		}
+	}
+	
+	/**
+	 * convenience method to retreive resources from local {@link Resources} object.
+	 * @param resource
+	 * @return
+	 */
+	protected <T> T getResource(Resource<T> resource) {
+		return resources.getResource(resource);
 	}
 }

@@ -83,6 +83,7 @@ public class SoundController {
 
 		@Override
 		public List<Origin> getOrigins() {
+			// TODO where should these be able to be loaded from?
 			return Arrays.asList(Origin.BEATMAP, Origin.SKIN, Origin.GAME);
 		}
 

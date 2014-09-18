@@ -20,9 +20,11 @@ package itdelatrisu.opsu.states;
 
 import itdelatrisu.opsu.GUIMenuButton;
 import itdelatrisu.opsu.Opsu;
+import itdelatrisu.opsu.Resources;
 import itdelatrisu.opsu.SoundController;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.states.Options.OpsuOptions;
+import static itdelatrisu.opsu.OpsuImages.*;
 
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
@@ -52,8 +54,8 @@ public class MainMenuExit extends Utils {
 	 */
 	private float centerOffset;
 
-	public MainMenuExit(int state, OpsuOptions options, SoundController soundController) {
-		super(state, options, soundController);
+	public MainMenuExit(int state, OpsuOptions options, SoundController soundController, Resources resources) {
+		super(state, options, soundController, resources);
 	}
 
 	@Override
@@ -67,10 +69,9 @@ public class MainMenuExit extends Utils {
 		centerOffset = width / 18f;
 
 		// initialize buttons
-		Image button = new Image("button-middle.png");
-		Image buttonL = new Image("button-left.png");
-		Image buttonR = new Image("button-right.png");
-		button = button.getScaledCopy(width / 2, button.getHeight());
+		Image button = getResource(EXIT_BUTTON_CENTER);
+		Image buttonL = getResource(EXIT_BUTTON_LEFT);
+		Image buttonR = getResource(EXIT_BUTTON_RIGHT);
 		yesButton = new GUIMenuButton(button, buttonL, buttonR,
 				width / 2f + centerOffset, height * 0.2f
 		);

@@ -24,6 +24,7 @@ import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.OsuFile;
 import itdelatrisu.opsu.OsuGroupNode;
 import itdelatrisu.opsu.OsuParser;
+import itdelatrisu.opsu.Resources;
 import itdelatrisu.opsu.SongSort;
 import itdelatrisu.opsu.SoundController;
 import itdelatrisu.opsu.Utils;
@@ -43,8 +44,9 @@ import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.state.transition.EmptyTransition;
 import org.newdawn.slick.state.transition.FadeInTransition;
 import org.newdawn.slick.state.transition.FadeOutTransition;
-import static itdelatrisu.opsu.SoundController.BasicSounds.*;
 
+import static itdelatrisu.opsu.SoundController.BasicSounds.*;
+import static itdelatrisu.opsu.OpsuImages.*;
 /**
  * "Song Selection" state.
  * <ul>
@@ -126,8 +128,8 @@ public class SongMenu extends Utils {
 	 */
 	private Animation loader;
 
-	public SongMenu(int state, OpsuOptions options, SoundController soundController) {
-		super(state, options, soundController);
+	public SongMenu(int state, OpsuOptions options, SoundController soundController, Resources resources) {
+		super(state, options, soundController, resources);
 	}
 
 	@Override
@@ -139,7 +141,7 @@ public class SongMenu extends Utils {
 		int height = container.getHeight();
 
 		// song button background & graphics context
-		Image menuBackground = new Image("menu-button-background.png").getScaledCopy(width / 2, height / 6);
+		Image menuBackground = getResource(MENU_BUTTON_BACKGROUND).getScaledCopy(width / 2, height / 6);
 		OsuGroupNode.setBackground(menuBackground);
 
 		// song button coordinates
@@ -157,7 +159,7 @@ public class SongMenu extends Utils {
 		float iconScale = Utils.FONT_BOLD.getLineHeight() * 2f / searchIcon.getHeight();
 		searchIcon = searchIcon.getScaledCopy(iconScale);
 
-		Image tab = Utils.getTabImage();
+		Image tab = getResource(TAB);
 		search = new TextField(
 				container, Utils.FONT_DEFAULT,
 				(int) buttonX + (tab.getWidth() / 2) + searchIcon.getWidth(),
@@ -180,7 +182,7 @@ public class SongMenu extends Utils {
 
 		// loader
 		SpriteSheet spr = new SpriteSheet(
-				new Image("loader.png").getScaledCopy(musicNoteDim / 48f),
+				getResource(LOADER).getScaledCopy(musicNoteDim / 48f),
 				musicNoteDim, musicNoteDim
 		);
 		loader = new Animation(spr, 50);

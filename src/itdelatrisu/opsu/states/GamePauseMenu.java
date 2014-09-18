@@ -22,6 +22,7 @@ import itdelatrisu.opsu.GUIMenuButton;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.MusicController;
 import itdelatrisu.opsu.Opsu;
+import itdelatrisu.opsu.Resources;
 import itdelatrisu.opsu.SoundController;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.states.Options.OpsuOptions;
@@ -35,6 +36,7 @@ import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.state.transition.FadeInTransition;
 import org.newdawn.slick.state.transition.FadeOutTransition;
+
 import static itdelatrisu.opsu.SoundController.BasicSounds.*;
 
 /**
@@ -62,8 +64,8 @@ public class GamePauseMenu extends Utils {
 	private GUIMenuButton continueButton, retryButton, backButton;
 
 	private Game gameState;
-	public GamePauseMenu(int state, OpsuOptions options, SoundController soundController) {
-		super(state, options, soundController);
+	public GamePauseMenu(int state, OpsuOptions options, SoundController soundController, Resources resources) {
+		super(state, options, soundController, resources);
 	}
 
 	@Override

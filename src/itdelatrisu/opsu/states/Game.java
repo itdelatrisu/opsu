@@ -27,6 +27,7 @@ import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.OsuFile;
 import itdelatrisu.opsu.OsuHitObject;
 import itdelatrisu.opsu.OsuTimingPoint;
+import itdelatrisu.opsu.Resources;
 import itdelatrisu.opsu.SoundController;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.objects.Circle;
@@ -34,7 +35,6 @@ import itdelatrisu.opsu.objects.Slider;
 import itdelatrisu.opsu.objects.Spinner;
 import itdelatrisu.opsu.states.Options.OpsuOptions;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.Stack;
 
@@ -194,8 +194,8 @@ public class Game extends Utils {
 	 */
 	private int deathTime = -1;
 
-	public Game(int state, OpsuOptions options, SoundController soundController) {
-		super(state, options, soundController);
+	public Game(int state, OpsuOptions options, SoundController soundController, Resources resources) {
+		super(state, options, soundController, resources);
 	}
 
 	@Override
@@ -460,7 +460,13 @@ public class Game extends Utils {
 		// map complete!
 		if (objectIndex >= osu.objects.length) {
 			// if checkpoint used, don't show the ranking screen
-			int state = (checkpointLoaded) ? Opsu.STATE_SONGMENU : Opsu.STATE_GAMERANKING;
+			final int state;
+			if(checkpointLoaded) {
+				state = Opsu.STATE_SONGMENU;
+				resources.setCurrentBeatmapDir(null);
+			} else {
+				state = Opsu.STATE_GAMERANKING;
+			}
 			((GameRanking) game.getState(Opsu.STATE_GAMERANKING)).setScore(getGameScore());
 			game.enterState(state, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 			return;
@@ -713,6 +719,8 @@ public class Game extends Utils {
 		if (restart != RESTART_FALSE) {
 			// new game
 			if (restart == RESTART_NEW) {
+				resources.setCurrentBeatmapDir(osu.getFile().getParentFile());
+				
 				loadImages();
 				setMapModifiers();
 			}
@@ -812,11 +820,6 @@ public class Game extends Utils {
 	private void loadImages() throws SlickException {
 		int width = container.getWidth();
 		int height = container.getHeight();
-
-		// set images
-		File parent = osu.getFile().getParentFile();
-		for (GameImage o : GameImage.values())
-			o.setSkinImage(parent, options);
 
 		// skip button
 		Image skip = GameImage.SKIP.getImage();

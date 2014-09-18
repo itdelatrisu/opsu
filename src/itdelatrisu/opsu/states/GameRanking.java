@@ -24,6 +24,7 @@ import itdelatrisu.opsu.GameScore;
 import itdelatrisu.opsu.MusicController;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.OsuFile;
+import itdelatrisu.opsu.Resources;
 import itdelatrisu.opsu.SoundController;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.states.Options.OpsuOptions;
@@ -38,6 +39,7 @@ import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.state.transition.FadeInTransition;
 import org.newdawn.slick.state.transition.FadeOutTransition;
+
 import static itdelatrisu.opsu.SoundController.BasicSounds.*;
 
 /**
@@ -59,8 +61,8 @@ public class GameRanking extends Utils {
 	 */
 	private GUIMenuButton retryButton, exitButton;
 
-	public GameRanking(int state, OpsuOptions options, SoundController soundController) {
-		super(state, options, soundController);
+	public GameRanking(int state, OpsuOptions options, SoundController soundController, Resources resources) {
+		super(state, options, soundController, resources);
 	}
 
 	@Override
@@ -164,11 +166,13 @@ public class GameRanking extends Utils {
 			game.enterState(Opsu.STATE_GAME, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 		} else if (exitButton.contains(x, y)) {
 			soundController.playSound(SOUND_MENUBACK);
+			resources.setCurrentBeatmapDir(null);
 			game.enterState(Opsu.STATE_MAINMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 		} else if (Utils.getBackButton().contains(x, y)) {
 			MusicController.pause();
 			MusicController.playAt(MusicController.getOsuFile().previewTime, true);
 			soundController.playSound(SOUND_MENUBACK);
+			resources.setCurrentBeatmapDir(null);
 			game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 		}
 	}

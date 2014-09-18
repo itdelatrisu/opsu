@@ -21,6 +21,7 @@ package itdelatrisu.opsu.states;
 import itdelatrisu.opsu.GUIMenuButton;
 import itdelatrisu.opsu.GameMod;
 import itdelatrisu.opsu.Opsu;
+import itdelatrisu.opsu.Resources;
 import itdelatrisu.opsu.Resources.Origin;
 import itdelatrisu.opsu.Resources.Resource;
 import itdelatrisu.opsu.SoundController;
@@ -51,6 +52,7 @@ import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.state.transition.EmptyTransition;
 import org.newdawn.slick.state.transition.FadeInTransition;
 import org.newdawn.slick.util.Log;
+import static itdelatrisu.opsu.OpsuImages.*;
 
 /**
  * "Game Options" state.
@@ -898,8 +900,8 @@ public class Options extends Utils {
 	private int textY, offsetY;
 
 	private Graphics g;
-	public Options(int state, OpsuOptions options, SoundController soundController) {
-		super(state, options, soundController);
+	public Options(int state, OpsuOptions options, SoundController soundController, Resources resources) {
+		super(state, options, soundController, resources);
 	}
 
 	@Override
@@ -917,7 +919,7 @@ public class Options extends Utils {
 		offsetY = (int) (((height * 0.8f) - textY) / maxOptionsScreen);
 
 		// option tabs
-		Image tab = Utils.getTabImage();
+		Image tab = getResource(TAB);
 		int subtextWidth = Utils.FONT_DEFAULT.getWidth("Click or drag an option to change it.");
 		float tabX = (width / 50) + (tab.getWidth() / 2f);
 		float tabY = 15 + Utils.FONT_XLARGE.getLineHeight() + (tab.getHeight() / 2f);

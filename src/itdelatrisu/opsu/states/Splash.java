@@ -21,9 +21,11 @@ package itdelatrisu.opsu.states;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.OsuParser;
 import itdelatrisu.opsu.OszUnpacker;
+import itdelatrisu.opsu.Resources;
 import itdelatrisu.opsu.SoundController;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.states.Options.OpsuOptions;
+import static itdelatrisu.opsu.OpsuImages.*;
 
 import java.io.File;
 
@@ -42,38 +44,33 @@ import org.newdawn.slick.state.StateBasedGame;
  */
 public class Splash extends Utils {
 	/**
-	 * Logo image.
-	 */
-	private Image logo;
-
-	/**
 	 * Whether or not loading has completed.
 	 */
 	private boolean finished = false;
 
 	private boolean init = false;
-	public Splash(int state, OpsuOptions options, SoundController soundController) {
-		super(state, options, soundController);
+	public Splash(int state, OpsuOptions options, SoundController soundController, Resources resources) {
+		super(state, options, soundController, resources);
 	}
 
 	@Override
 	public void init(GameContainer container, StateBasedGame game)
 			throws SlickException {
 		super.init(container, game);
-
-		logo = new Image("logo.png");
-		logo = logo.getScaledCopy((container.getHeight() / 1.2f) / logo.getHeight());
-		logo.setAlpha(0f);
+		
+		resources.setWindowDimensions(container.getWidth(), container.getHeight());
 
 		// load Utils class first (needed in other 'init' methods)
-		Utils.initializeContainer(container, options);
+		Utils.initializeContainer(container, options, resources);
+		
+		getResource(LOGO).setAlpha(0f);
 	}
 
 	@Override
 	public void render(GameContainer container, StateBasedGame game, Graphics g)
 			throws SlickException {
 		g.setBackground(Color.black);
-		logo.drawCentered(container.getWidth() / 2, container.getHeight() / 2);
+		getResource(LOGO).drawCentered(container.getWidth() / 2, container.getHeight() / 2);
 
 		// display progress
 		String unpackedFile = OszUnpacker.getCurrentFileName();
@@ -118,6 +115,7 @@ public class Splash extends Utils {
 			}.start();
 		}
 
+		Image logo = getResource(LOGO);
 		// fade in logo
 		float alpha = logo.getAlpha();
 		if (alpha < 1f)

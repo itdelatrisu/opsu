@@ -23,6 +23,7 @@ import itdelatrisu.opsu.MusicController;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.OsuFile;
 import itdelatrisu.opsu.OsuGroupNode;
+import itdelatrisu.opsu.Resources;
 import itdelatrisu.opsu.SoundController;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.states.Options.OpsuOptions;
@@ -43,6 +44,7 @@ import org.newdawn.slick.state.transition.FadeInTransition;
 import org.newdawn.slick.state.transition.FadeOutTransition;
 
 import static itdelatrisu.opsu.SoundController.BasicSounds.*;
+import static itdelatrisu.opsu.OpsuImages.*;
 /**
  * "Main Menu" state.
  * <ul>
@@ -101,8 +103,8 @@ public class MainMenu extends Utils {
 	 */
 	private float bgAlpha = 0f;
 
-	public MainMenu(int state, OpsuOptions options, SoundController soundController) {
-		super(state, options, soundController);
+	public MainMenu(int state, OpsuOptions options, SoundController soundController, Resources resources) {
+		super(state, options, soundController, resources);
 	}
 
 	@Override
@@ -117,34 +119,30 @@ public class MainMenu extends Utils {
 		int height = container.getHeight();
 
 		// initialize buttons
-		Image logoImg = new Image("logo.png");
-		float buttonScale = (height / 1.2f) / logoImg.getHeight();
-		Image logoImgScaled = logoImg.getScaledCopy(buttonScale);
+		Image logoImgScaled = getResource(LOGO);
 		logo = new GUIMenuButton(logoImgScaled, width / 2f, height / 2f);
 
-		Image playImg = new Image("menu-play.png");
-		Image exitImg = new Image("menu-exit.png");
-		playImg = playImg.getScaledCopy((logoImg.getWidth() * 0.83f) / playImg.getWidth());
-		exitImg = exitImg.getScaledCopy((logoImg.getWidth() * 0.66f) / exitImg.getWidth());
+		Image playImg = getResource(MENU_PLAY);
+		Image exitImg = getResource(MENU_EXIT);
 		float exitOffset = (playImg.getWidth() - exitImg.getWidth()) / 3f;
-		playButton = new GUIMenuButton(playImg.getScaledCopy(buttonScale),
+		playButton = new GUIMenuButton(playImg,
 				width * 0.75f, (height / 2) - (logoImgScaled.getHeight() / 5f)
 		);
-		exitButton = new GUIMenuButton(exitImg.getScaledCopy(buttonScale),
+		exitButton = new GUIMenuButton(exitImg,
 				width * 0.75f - exitOffset, (height / 2) + (exitImg.getHeight() / 2f)
 		);
 
 		// initialize music buttons
 		int musicWidth  = 48;
 		int musicHeight = 30;
-		musicPlay     = new GUIMenuButton(new Image("music-play.png"), width - (2 * musicWidth), musicHeight);
-		musicPause    = new GUIMenuButton(new Image("music-pause.png"), width - (2 * musicWidth), musicHeight);
-		musicNext     = new GUIMenuButton(new Image("music-next.png"), width - musicWidth, musicHeight);
-		musicPrevious = new GUIMenuButton(new Image("music-previous.png"), width - (3 * musicWidth), musicHeight);
+		musicPlay     = new GUIMenuButton(getResource(MUSIC_PLAY), width - (2 * musicWidth), musicHeight);
+		musicPause    = new GUIMenuButton(getResource(MUSIC_PAUSE), width - (2 * musicWidth), musicHeight);
+		musicNext     = new GUIMenuButton(getResource(MUSIC_NEXT), width - musicWidth, musicHeight);
+		musicPrevious = new GUIMenuButton(getResource(MUSIC_PREVIOUS), width - (3 * musicWidth), musicHeight);
 
 		// menu background
 		try {
-			backgroundImage = new Image("menu-background.jpg").getScaledCopy(width, height);
+			backgroundImage = getResource(MENU_BACKGROUND);
 			backgroundImage.setAlpha(0.9f);
 		} catch (Exception e) {
 			// optional
