@@ -23,10 +23,10 @@ import itdelatrisu.opsu.GameMod;
 import itdelatrisu.opsu.GameScore;
 import itdelatrisu.opsu.MusicController;
 import itdelatrisu.opsu.Opsu;
-import itdelatrisu.opsu.OpsuOptions;
 import itdelatrisu.opsu.OsuFile;
 import itdelatrisu.opsu.SoundController;
 import itdelatrisu.opsu.Utils;
+import itdelatrisu.opsu.states.Options.OpsuOptions;
 
 import org.lwjgl.opengl.Display;
 import org.newdawn.slick.Color;
@@ -99,7 +99,7 @@ public class GameRanking extends Utils {
 			g.setBackground(Utils.COLOR_BLACK_ALPHA);
 
 		// ranking screen elements
-		getScore().drawRankingElements(g, width, height);
+		score.drawRankingElements(g, width, height);
 
 		// game mods
 		for (GameMod mod : GameMod.valuesReversed()) {
@@ -179,10 +179,10 @@ public class GameRanking extends Utils {
 		SoundController.playSound(SoundController.SOUND_APPLAUSE);
 	}
 
-	public GameScore getScore() {
-		return score;
-	}
-
+	/**
+	 * Set the score to be displayed. This method must be called before showing the state.
+	 * @param score not null
+	 */
 	public void setScore(GameScore score) {
 		this.score = score;
 	}

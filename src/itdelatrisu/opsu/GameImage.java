@@ -18,6 +18,8 @@
 
 package itdelatrisu.opsu;
 
+import itdelatrisu.opsu.states.Options.OpsuOptions;
+
 import java.io.File;
 
 import org.newdawn.slick.Image;

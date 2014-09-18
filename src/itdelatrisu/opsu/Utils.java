@@ -18,6 +18,8 @@
 
 package itdelatrisu.opsu;
 
+import itdelatrisu.opsu.states.Options.OpsuOptions;
+
 import java.awt.Font;
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -268,7 +270,7 @@ public abstract class Utils extends BasicGameState {
 
 		// TODO: cleanup
 		boolean skinCursor = new File(options.getSkinDir(), "cursor.png").isFile();
-		if (options.newCursor) {
+		if (options.isNewCursorEnabled()) {
 			// load new cursor type
 			// if skin cursor exists but middle part does not, don't load default middle
 			if (skinCursor && !new File(options.getSkinDir(), "cursormiddle.png").isFile())

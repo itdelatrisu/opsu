@@ -22,9 +22,9 @@ import itdelatrisu.opsu.GUIMenuButton;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.MusicController;
 import itdelatrisu.opsu.Opsu;
-import itdelatrisu.opsu.OpsuOptions;
 import itdelatrisu.opsu.SoundController;
 import itdelatrisu.opsu.Utils;
+import itdelatrisu.opsu.states.Options.OpsuOptions;
 
 import org.lwjgl.input.Keyboard;
 import org.newdawn.slick.Color;

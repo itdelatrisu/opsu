@@ -18,7 +18,7 @@
 
 package itdelatrisu.opsu;
 
-import itdelatrisu.opsu.states.Options;
+import itdelatrisu.opsu.states.Options.OpsuOptions;
 
 import java.io.File;
 import java.lang.reflect.Field;

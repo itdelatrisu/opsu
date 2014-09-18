@@ -24,6 +24,7 @@ import itdelatrisu.opsu.states.GameRanking;
 import itdelatrisu.opsu.states.MainMenu;
 import itdelatrisu.opsu.states.MainMenuExit;
 import itdelatrisu.opsu.states.Options;
+import itdelatrisu.opsu.states.Options.OpsuOptions;
 import itdelatrisu.opsu.states.SongMenu;
 import itdelatrisu.opsu.states.Splash;
 
@@ -118,9 +119,9 @@ public class Opsu extends StateBasedGame {
 
 		// only allow a single instance
 		try {
-			SERVER_SOCKET = new ServerSocket(opsu.options.port);
+			SERVER_SOCKET = new ServerSocket(opsu.options.getPort());
 		} catch (IOException e) {
-			Log.error(String.format("Another program is already running on port %d.", opsu.options.port), e);
+			Log.error(String.format("Another program is already running on port %d.", opsu.options.getPort()), e);
 			System.exit(1);
 		}
 

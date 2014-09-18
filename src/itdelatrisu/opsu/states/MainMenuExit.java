@@ -20,8 +20,8 @@ package itdelatrisu.opsu.states;
 
 import itdelatrisu.opsu.GUIMenuButton;
 import itdelatrisu.opsu.Opsu;
-import itdelatrisu.opsu.OpsuOptions;
 import itdelatrisu.opsu.Utils;
+import itdelatrisu.opsu.states.Options.OpsuOptions;
 
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
