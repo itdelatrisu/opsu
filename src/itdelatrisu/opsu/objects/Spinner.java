@@ -67,6 +67,8 @@ public class Spinner {
 	 */
 	private float rotationsNeeded;
 
+	private SoundController soundController;
+
 	/**
 	 * Initializes the Spinner data type with images and dimensions.
 	 * @param container the game container
@@ -89,9 +91,10 @@ public class Spinner {
 	 * @param game the associated Game object
 	 * @param score the associated GameScore object
 	 */
-	public Spinner(OsuHitObject hitObject, Game game, GameScore score) {
+	public Spinner(OsuHitObject hitObject, Game game, GameScore score, SoundController soundController) {
 		this.hitObject = hitObject;
 		this.score = score;
+		this.soundController = soundController;
 
 		// calculate rotations needed
 		float spinsPerMinute = 100 + (score.getDifficulty() * 15);
@@ -152,7 +155,7 @@ public class Spinner {
 		if (ratio >= 1.0f ||
 			GameMod.AUTO.isActive() || GameMod.SPUN_OUT.isActive()) {
 			result = GameScore.HIT_300;
-			SoundController.playSound(SoundController.SOUND_SPINNEROSU);
+			soundController.playSound(soundController.SOUND_SPINNEROSU);
 		} else if (ratio >= 0.8f)
 			result = GameScore.HIT_100;
 		else if (ratio >= 0.5f)
@@ -232,10 +235,10 @@ public class Spinner {
 		if (Math.floor(newRotations) > rotations) {
 			if (newRotations > rotationsNeeded) {  // extra rotations
 				score.changeScore(1000);
-				SoundController.playSound(SoundController.SOUND_SPINNERBONUS);
+				soundController.playSound(soundController.SOUND_SPINNERBONUS);
 			} else {
 				score.changeScore(100);
-				SoundController.playSound(SoundController.SOUND_SPINNERSPIN);
+				soundController.playSound(soundController.SOUND_SPINNERSPIN);
 			}
 		}
 

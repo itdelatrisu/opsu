@@ -73,6 +73,7 @@ public class Opsu extends StateBasedGame {
 		STATE_OPTIONS       = 7;
 
 	OpsuOptions options = new OpsuOptions();
+	SoundController soundController = new SoundController(options);
 	
 	/**
 	 * Used to restrict the program to a single instance.
@@ -85,14 +86,14 @@ public class Opsu extends StateBasedGame {
 
 	@Override
 	public void initStatesList(GameContainer container) throws SlickException {
-		addState(new Splash(STATE_SPLASH, options));
-		addState(new MainMenu(STATE_MAINMENU, options));
-		addState(new MainMenuExit(STATE_MAINMENUEXIT, options));
-		addState(new SongMenu(STATE_SONGMENU, options));
-		addState(new Game(STATE_GAME, options));
-		addState(new GamePauseMenu(STATE_GAMEPAUSEMENU, options));
-		addState(new GameRanking(STATE_GAMERANKING, options));
-		addState(new Options(STATE_OPTIONS, options));
+		addState(new Splash(STATE_SPLASH, options, soundController));
+		addState(new MainMenu(STATE_MAINMENU, options, soundController));
+		addState(new MainMenuExit(STATE_MAINMENUEXIT, options, soundController));
+		addState(new SongMenu(STATE_SONGMENU, options, soundController));
+		addState(new Game(STATE_GAME, options, soundController));
+		addState(new GamePauseMenu(STATE_GAMEPAUSEMENU, options, soundController));
+		addState(new GameRanking(STATE_GAMERANKING, options, soundController));
+		addState(new Options(STATE_OPTIONS, options, soundController));
 	}
 
 	public static void main(String[] args) {
@@ -115,7 +116,6 @@ public class Opsu extends StateBasedGame {
 		// parse configuration file
 		opsu.options.parseOptions();
 		MusicController.setOptions(opsu.options);
-		SoundController.setOptions(opsu.options);
 
 		// only allow a single instance
 		try {

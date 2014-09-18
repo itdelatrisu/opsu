@@ -20,6 +20,7 @@ package itdelatrisu.opsu.states;
 
 import itdelatrisu.opsu.GUIMenuButton;
 import itdelatrisu.opsu.Opsu;
+import itdelatrisu.opsu.SoundController;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.states.Options.OpsuOptions;
 
@@ -51,8 +52,8 @@ public class MainMenuExit extends Utils {
 	 */
 	private float centerOffset;
 
-	public MainMenuExit(int state, OpsuOptions options) {
-		super(state, options);
+	public MainMenuExit(int state, OpsuOptions options, SoundController soundController) {
+		super(state, options, soundController);
 	}
 
 	@Override

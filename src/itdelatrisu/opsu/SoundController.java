@@ -43,7 +43,7 @@ public class SoundController {
 	/**
 	 * Sound effect constants.
 	 */
-	public static final int
+	public final int
 		SOUND_APPLAUSE     = 0,
 		SOUND_COMBOBREAK   = 1,
 //		SOUND_COUNT        = ,  // ?
@@ -67,7 +67,7 @@ public class SoundController {
 	/**
 	 * Sound effect names (indexed by SOUND_* constants).
 	 */
-	private static final String[] soundNames = {
+	private final String[] soundNames = {
 		"applause",
 		"combobreak",
 //		"count",  // ?
@@ -91,12 +91,12 @@ public class SoundController {
 	/**
 	 * Sound effects (indexed by SOUND_* constants).
 	 */
-	private static Clip[] sounds = new Clip[SOUND_MAX];
+	private Clip[] sounds = new Clip[SOUND_MAX];
 
 	/**
 	 * Sound sample sets.
 	 */
-	private static final String[] sampleSets = {
+	private final String[] sampleSets = {
 		"normal",
 		"soft",
 		"drum",
@@ -106,12 +106,12 @@ public class SoundController {
 	/**
 	 * Current sample set (index in sampleSet[] array).
 	 */
-	private static int sampleSetIndex = -1;
+	private int sampleSetIndex = -1;
 
 	/**
 	 * Hit sound effects.
 	 */
-	public static final int
+	public final int
 		HIT_CLAP          = 0,
 		HIT_FINISH        = 1,
 		HIT_NORMAL        = 2,
@@ -124,7 +124,7 @@ public class SoundController {
 	/**
 	 * Hit sound effect names (indexed by HIT_* constants).
 	 */
-	private static final String[] hitSoundNames = {
+	private final String[] hitSoundNames = {
 		"hitclap",
 		"hitfinish",
 		"hitnormal",
@@ -137,32 +137,29 @@ public class SoundController {
 	/**
 	 * Hit sound effects (indexed by sampleSets[], HIT_* constants).
 	 */
-	private static Clip[][] hitSounds = new Clip[sampleSets.length][HIT_MAX];
+	private Clip[][] hitSounds = new Clip[sampleSets.length][HIT_MAX];
 
 	/**
 	 * Sample volume multiplier, from timing points [0, 1].
 	 */
-	private static float sampleVolumeMultiplier = 1f;
+	private float sampleVolumeMultiplier = 1f;
 
 	/**
 	 * The name of the current sound file being loaded.
 	 */
-	private static String currentFileName;
+	private String currentFileName;
 
 	/**
 	 * The number of the current sound file being loaded.
 	 */
-	private static int currentFileIndex = -1;
-
-	// This class should not be instantiated.
-	private SoundController() {}
+	private int currentFileIndex = -1;
 
 	/**
 	 * Loads and returns a Clip from a resource.
 	 * @param ref the resource name
 	 * @return the loaded and opened clip
 	 */
-	private static Clip loadClip(String ref) {
+	private Clip loadClip(String ref) {
 		try {
 			URL url = ResourceLoader.getResource(ref);
 			AudioInputStream audioIn = AudioSystem.getAudioInputStream(url);
@@ -184,7 +181,7 @@ public class SoundController {
 	/**
 	 * Loads all sound files.
 	 */
-	public static void init() {
+	public void init() {
 		if (options.isSoundDisabled())
 			return;
 
@@ -213,7 +210,7 @@ public class SoundController {
 	 * Sets the sample set to use when playing hit sounds.
 	 * @param sampleSet the sample set ("None", "Normal", "Soft", "Drum")
 	 */
-	public static void setSampleSet(String sampleSet) {
+	public void setSampleSet(String sampleSet) {
 		sampleSetIndex = -1;
 		for (int i = 0; i < sampleSets.length; i++) {
 			if (sampleSet.equalsIgnoreCase(sampleSets[i])) {
@@ -227,7 +224,7 @@ public class SoundController {
 	 * Sets the sample set to use when playing hit sounds.
 	 * @param sampleType the sample set (0:none, 1:normal, 2:soft, 3:drum)
 	 */
-	public static void setSampleSet(byte sampleType) {
+	public void setSampleSet(byte sampleType) {
 		if (sampleType >= 0 && sampleType <= 3)
 			sampleSetIndex = sampleType - 1;
 	}
@@ -236,7 +233,7 @@ public class SoundController {
 	 * Sets the sample volume (modifies the global sample volume).
 	 * @param volume the sample volume [0, 1]
 	 */
-	public static void setSampleVolume(float volume) {
+	public void setSampleVolume(float volume) {
 		if (volume >= 0f && volume <= 1f)
 			sampleVolumeMultiplier = volume;
 	}
@@ -246,7 +243,7 @@ public class SoundController {
 	 * @param clip the Clip to play
 	 * @param volume the volume [0, 1]
 	 */
-	private static void playClip(Clip clip, float volume) {
+	private void playClip(Clip clip, float volume) {
 		if (clip == null)  // clip failed to load properly
 			return;
 
@@ -275,7 +272,7 @@ public class SoundController {
 	 * Plays a sound.
 	 * @param sound the sound (SOUND_* constant)
 	 */
-	public static void playSound(int sound) {
+	public void playSound(int sound) {
 		if (sound < 0 || sound >= SOUND_MAX)
 			return;
 
@@ -286,7 +283,7 @@ public class SoundController {
 	 * Plays hit sound(s) using an OsuHitObject bitmask.
 	 * @param hitSound the sound (bitmask)
 	 */
-	public static void playHitSound(byte hitSound) {
+	public void playHitSound(byte hitSound) {
 		if (sampleSetIndex < 0 || hitSound < 0)
 			return;
 
@@ -311,7 +308,7 @@ public class SoundController {
 	 * Plays a hit sound.
 	 * @param sound (HIT_* constant)
 	 */
-	public static void playHitSound(int sound) {
+	public void playHitSound(int sound) {
 		if (sampleSetIndex < 0 || sound < 0 || sound > HIT_MAX)
 			return;
 
@@ -322,7 +319,7 @@ public class SoundController {
 	/**
 	 * Returns the name of the current file being loaded, or null if none.
 	 */
-	public static String getCurrentFileName() {
+	public String getCurrentFileName() {
 		return (currentFileName != null) ? currentFileName : null;
 	}
 
@@ -330,15 +327,17 @@ public class SoundController {
 	 * Returns the progress of sound loading, or -1 if not loading.
 	 * @return the completion percent [0, 100] or -1
 	 */
-	public static int getLoadingProgress() {
+	public int getLoadingProgress() {
 		if (currentFileIndex == -1)
 			return -1;
 
 		return currentFileIndex * 100 / (SOUND_MAX + (sampleSets.length * HIT_MAX));
 	}
 	
-	static OpsuOptions options;
-	public static void setOptions(OpsuOptions options) {
-		SoundController.options = options;
+	private OpsuOptions options;
+
+	public SoundController(OpsuOptions options) {
+		super();
+		this.options = options;
 	}
 }

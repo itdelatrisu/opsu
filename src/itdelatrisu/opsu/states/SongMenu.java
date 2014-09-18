@@ -125,8 +125,8 @@ public class SongMenu extends Utils {
 	 */
 	private Animation loader;
 
-	public SongMenu(int id, OpsuOptions options) {
-		super(id, options);
+	public SongMenu(int state, OpsuOptions options, SoundController soundController) {
+		super(state, options, soundController);
 	}
 
 	@Override
@@ -336,14 +336,14 @@ public class SongMenu extends Utils {
 
 		// back
 		if (Utils.getBackButton().contains(x, y)) {
-			SoundController.playSound(SoundController.SOUND_MENUBACK);
+			soundController.playSound(soundController.SOUND_MENUBACK);
 			game.enterState(Opsu.STATE_MAINMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 			return;
 		}
 
 		// options
 		if (optionsButton.contains(x, y)) {
-			SoundController.playSound(SoundController.SOUND_MENUHIT);
+			soundController.playSound(soundController.SOUND_MENUHIT);
 			game.enterState(Opsu.STATE_OPTIONS, new EmptyTransition(), new FadeInTransition(Color.black));
 			return;
 		}
@@ -356,7 +356,7 @@ public class SongMenu extends Utils {
 			if (sort.contains(x, y)) {
 				if (sort != SongSort.getSort()) {
 					SongSort.setSort(sort);
-					SoundController.playSound(SoundController.SOUND_MENUCLICK);
+					soundController.playSound(soundController.SOUND_MENUCLICK);
 					OsuGroupNode oldFocusBase = Opsu.groups.getBaseNode(focusNode.index);
 					int oldFocusFileIndex = focusNode.osuFileIndex;
 					focusNode = null;
@@ -384,7 +384,7 @@ public class SongMenu extends Utils {
 
 					} else {
 						// focus the node
-						SoundController.playSound(SoundController.SOUND_MENUCLICK);
+						soundController.playSound(soundController.SOUND_MENUCLICK);
 						setFocus(node, 0, false);
 					}
 					break;
@@ -392,7 +392,7 @@ public class SongMenu extends Utils {
 
 				// clicked node is a new group
 				else {
-					SoundController.playSound(SoundController.SOUND_MENUCLICK);
+					soundController.playSound(soundController.SOUND_MENUCLICK);
 					setFocus(node, -1, false);
 					break;
 				}
@@ -408,7 +408,7 @@ public class SongMenu extends Utils {
 				search.setText("");
 				searchTimer = SEARCH_DELAY;
 			} else {
-				SoundController.playSound(SoundController.SOUND_MENUBACK);
+				soundController.playSound(soundController.SOUND_MENUBACK);
 				game.enterState(Opsu.STATE_MAINMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 			}
 			break;
@@ -436,7 +436,7 @@ public class SongMenu extends Utils {
 				break;
 			OsuGroupNode next = focusNode.next;
 			if (next != null) {
-				SoundController.playSound(SoundController.SOUND_MENUCLICK);
+				soundController.playSound(soundController.SOUND_MENUCLICK);
 				setFocus(next, 0, false);
 			}
 			break;
@@ -445,7 +445,7 @@ public class SongMenu extends Utils {
 				break;
 			OsuGroupNode prev = focusNode.prev;
 			if (prev != null) {
-				SoundController.playSound(SoundController.SOUND_MENUCLICK);
+				soundController.playSound(soundController.SOUND_MENUCLICK);
 				setFocus(prev, (prev.index == focusNode.index) ? 0 : prev.osuFiles.size() - 1, false);
 			}
 			break;
@@ -598,11 +598,11 @@ public class SongMenu extends Utils {
 		if (MusicController.isTrackLoading())
 			return;
 
-		SoundController.playSound(SoundController.SOUND_MENUHIT);
+		soundController.playSound(soundController.SOUND_MENUHIT);
 		OsuFile osu = MusicController.getOsuFile();
 		Display.setTitle(String.format("%s - %s", game.getTitle(), osu.toString()));
 		OsuParser.parseHitObjects(osu);
-		SoundController.setSampleSet(osu.sampleSet);
+		soundController.setSampleSet(osu.sampleSet);
 		((Game) game.getState(Opsu.STATE_GAME)).setRestart(Game.RESTART_NEW);
 		game.enterState(Opsu.STATE_GAME, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 	}

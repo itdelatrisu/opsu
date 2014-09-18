@@ -876,8 +876,8 @@ public class Options extends Utils {
 	private int textY, offsetY;
 
 	private Graphics g;
-	public Options(int state, OpsuOptions options) {
-		super(state, options);
+	public Options(int state, OpsuOptions options, SoundController soundController) {
+		super(state, options, soundController);
 	}
 
 	@Override
@@ -1003,7 +1003,7 @@ public class Options extends Utils {
 
 		// back
 		if (Utils.getBackButton().contains(x, y)) {
-			SoundController.playSound(SoundController.SOUND_MENUBACK);
+			soundController.playSound(soundController.SOUND_MENUBACK);
 			game.enterState(Opsu.STATE_SONGMENU, new EmptyTransition(), new FadeInTransition(Color.black));
 			return;
 		}
@@ -1013,7 +1013,7 @@ public class Options extends Utils {
 			if (optionTabs[i].contains(x, y)) {
 				if (i != currentTab) {
 					currentTab = i;
-					SoundController.playSound(SoundController.SOUND_MENUCLICK);
+					soundController.playSound(soundController.SOUND_MENUCLICK);
 				}
 				return;
 			}
@@ -1025,7 +1025,7 @@ public class Options extends Utils {
 				boolean prevState = mod.isActive();
 				mod.toggle(true);
 				if (mod.isActive() != prevState)
-					SoundController.playSound(SoundController.SOUND_MENUCLICK);
+					soundController.playSound(soundController.SOUND_MENUCLICK);
 				return;
 			}
 		}
@@ -1218,7 +1218,7 @@ public class Options extends Utils {
 
 		switch (key) {
 		case Input.KEY_ESCAPE:
-			SoundController.playSound(SoundController.SOUND_MENUBACK);
+			soundController.playSound(soundController.SOUND_MENUBACK);
 			game.enterState(Opsu.STATE_SONGMENU, new EmptyTransition(), new FadeInTransition(Color.black));
 			break;
 		case Input.KEY_F12:
@@ -1229,7 +1229,7 @@ public class Options extends Utils {
 			if (input.isKeyDown(Input.KEY_LSHIFT) || input.isKeyDown(Input.KEY_RSHIFT))
 				i = TAB_MAX - 1;
 			currentTab = (currentTab + i) % TAB_MAX;
-			SoundController.playSound(SoundController.SOUND_MENUCLICK);
+			soundController.playSound(soundController.SOUND_MENUCLICK);
 			break;
 		}
 	}

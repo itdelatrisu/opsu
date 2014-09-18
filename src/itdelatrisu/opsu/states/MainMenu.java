@@ -100,8 +100,8 @@ public class MainMenu extends Utils {
 	 */
 	private float bgAlpha = 0f;
 
-	public MainMenu(int state, OpsuOptions options) {
-		super(state, options);
+	public MainMenu(int state, OpsuOptions options, SoundController soundController) {
+		super(state, options, soundController);
 	}
 
 	@Override
@@ -309,17 +309,17 @@ public class MainMenu extends Utils {
 				logoTimer = 0;
 				playButton.getImage().setAlpha(0f);
 				exitButton.getImage().setAlpha(0f);
-				SoundController.playSound(SoundController.SOUND_MENUHIT);
+				soundController.playSound(soundController.SOUND_MENUHIT);
 			}
 		}
 
 		// other button actions (if visible)
 		else if (logoClicked) {
 			if (logo.contains(x, y) || playButton.contains(x, y)) {
-				SoundController.playSound(SoundController.SOUND_MENUHIT);
+				soundController.playSound(soundController.SOUND_MENUHIT);
 				game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 			} else if (exitButton.contains(x, y)) {
-				SoundController.playSound(SoundController.SOUND_MENUHIT);
+				soundController.playSound(soundController.SOUND_MENUHIT);
 				game.enterState(Opsu.STATE_MAINMENUEXIT);
 			}
 		}
@@ -343,9 +343,9 @@ public class MainMenu extends Utils {
 				logoTimer = 0;
 				playButton.getImage().setAlpha(0f);
 				exitButton.getImage().setAlpha(0f);
-				SoundController.playSound(SoundController.SOUND_MENUHIT);
+				soundController.playSound(soundController.SOUND_MENUHIT);
 			} else {
-				SoundController.playSound(SoundController.SOUND_MENUHIT);
+				soundController.playSound(soundController.SOUND_MENUHIT);
 				game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 			}
 			break;

@@ -61,8 +61,8 @@ public class GamePauseMenu extends Utils {
 	private GUIMenuButton continueButton, retryButton, backButton;
 
 	private Game gameState;
-	public GamePauseMenu(int state, OpsuOptions options) {
-		super(state, options);
+	public GamePauseMenu(int state, OpsuOptions options, SoundController soundController) {
+		super(state, options, soundController);
 	}
 
 	@Override
@@ -114,7 +114,7 @@ public class GamePauseMenu extends Utils {
 			if (gameState.getRestart() == Game.RESTART_LOSE) {
 				MusicController.stop();
 				MusicController.playAt(MusicController.getOsuFile().previewTime, true);
-				SoundController.playSound(SoundController.SOUND_MENUBACK);
+				soundController.playSound(soundController.SOUND_MENUBACK);
 				game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 			} else
 				unPause(Game.RESTART_FALSE);
@@ -143,7 +143,7 @@ public class GamePauseMenu extends Utils {
 		} else if (backButton.contains(x, y)) {
 			MusicController.pause();  // lose state
 			MusicController.playAt(MusicController.getOsuFile().previewTime, true);
-			SoundController.playSound(SoundController.SOUND_MENUBACK);
+			soundController.playSound(soundController.SOUND_MENUBACK);
 			game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 		}
 	}
@@ -154,7 +154,7 @@ public class GamePauseMenu extends Utils {
 		pauseStartTime = System.currentTimeMillis();
 		if (gameState.getRestart() == Game.RESTART_LOSE) {
 			MusicController.fadeOut(FADEOUT_TIME);
-			SoundController.playSound(SoundController.SOUND_FAIL);
+			soundController.playSound(soundController.SOUND_FAIL);
 		} else
 			MusicController.pause();
 	}
@@ -164,9 +164,9 @@ public class GamePauseMenu extends Utils {
 	 */
 	private void unPause(byte restart) {
 		if (restart == Game.RESTART_MANUAL)
-			SoundController.playSound(SoundController.SOUND_MENUHIT);
+			soundController.playSound(soundController.SOUND_MENUHIT);
 		else
-			SoundController.playSound(SoundController.SOUND_MENUBACK);
+			soundController.playSound(soundController.SOUND_MENUBACK);
 		gameState.setRestart(restart);
 		game.enterState(Opsu.STATE_GAME);
 	}

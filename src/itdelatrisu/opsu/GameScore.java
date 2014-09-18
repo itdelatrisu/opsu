@@ -211,14 +211,17 @@ public class GameScore {
 	
 	private OpsuOptions options;
 
+	private SoundController soundController;
+
 	/**
 	 * Constructor.
 	 * @param width container width
 	 * @param height container height
 	 */
-	public GameScore(int width, int height) {
+	public GameScore(int width, int height, SoundController soundController) {
 		this.width = width;
 		this.height = height;
+		this.soundController = soundController;
 
 		clear();
 	}
@@ -826,7 +829,7 @@ public class GameScore {
 	 */
 	private void resetComboStreak() {
 		if (combo >= 20)
-			SoundController.playSound(SoundController.SOUND_COMBOBREAK);
+			soundController.playSound(soundController.SOUND_COMBOBREAK);
 		combo = 0;
 		if (GameMod.SUDDEN_DEATH.isActive())
 			health = 0f;
@@ -847,12 +850,12 @@ public class GameScore {
 			hitValue = 30;
 			incrementComboStreak();
 			changeHealth(1f);
-			SoundController.playHitSound(hitSound);
+			soundController.playHitSound(hitSound);
 			break;
 		case HIT_SLIDER10:
 			hitValue = 10;
 			incrementComboStreak();
-			SoundController.playHitSound(SoundController.HIT_SLIDERTICK);
+			soundController.playHitSound(soundController.HIT_SLIDERTICK);
 			break;
 		case HIT_MISS:
 			resetComboStreak();
@@ -914,7 +917,7 @@ public class GameScore {
 			return;
 		}
 		if (hitValue > 0) {
-			SoundController.playHitSound(hitSound);
+			soundController.playHitSound(hitSound);
 
 			// game mod score multipliers
 			float modMultiplier = 1f;

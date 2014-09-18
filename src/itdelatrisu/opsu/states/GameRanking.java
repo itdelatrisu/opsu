@@ -58,8 +58,8 @@ public class GameRanking extends Utils {
 	 */
 	private GUIMenuButton retryButton, exitButton;
 
-	public GameRanking(int id, OpsuOptions options) {
-		super(id, options);
+	public GameRanking(int state, OpsuOptions options, SoundController soundController) {
+		super(state, options, soundController);
 	}
 
 	@Override
@@ -140,7 +140,7 @@ public class GameRanking extends Utils {
 		case Input.KEY_ESCAPE:
 			MusicController.pause();
 			MusicController.playAt(MusicController.getOsuFile().previewTime, true);
-			SoundController.playSound(SoundController.SOUND_MENUBACK);
+			soundController.playSound(soundController.SOUND_MENUBACK);
 			game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 			break;
 		case Input.KEY_F12:
@@ -159,15 +159,15 @@ public class GameRanking extends Utils {
 			OsuFile osu = MusicController.getOsuFile();
 			Display.setTitle(String.format("%s - %s", game.getTitle(), osu.toString()));
 			((Game) game.getState(Opsu.STATE_GAME)).setRestart(Game.RESTART_MANUAL);
-			SoundController.playSound(SoundController.SOUND_MENUHIT);
+			soundController.playSound(soundController.SOUND_MENUHIT);
 			game.enterState(Opsu.STATE_GAME, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 		} else if (exitButton.contains(x, y)) {
-			SoundController.playSound(SoundController.SOUND_MENUBACK);
+			soundController.playSound(soundController.SOUND_MENUBACK);
 			game.enterState(Opsu.STATE_MAINMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 		} else if (Utils.getBackButton().contains(x, y)) {
 			MusicController.pause();
 			MusicController.playAt(MusicController.getOsuFile().previewTime, true);
-			SoundController.playSound(SoundController.SOUND_MENUBACK);
+			soundController.playSound(soundController.SOUND_MENUBACK);
 			game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 		}
 	}
@@ -176,7 +176,7 @@ public class GameRanking extends Utils {
 	public void enter(GameContainer container, StateBasedGame game)
 			throws SlickException {
 		Display.setTitle(game.getTitle());
-		SoundController.playSound(SoundController.SOUND_APPLAUSE);
+		soundController.playSound(soundController.SOUND_APPLAUSE);
 	}
 
 	/**

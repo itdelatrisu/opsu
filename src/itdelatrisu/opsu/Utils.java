@@ -118,11 +118,13 @@ public abstract class Utils extends BasicGameState {
 	protected Input input;
 	private final int id;
 	protected final OpsuOptions options;
+	protected SoundController soundController;
 
-	protected Utils(int id, OpsuOptions options) {
+	protected Utils(int id, OpsuOptions options, SoundController soundController) {
 		super();
 		this.id = id;
 		this.options = options;
+		this.soundController = soundController;
 	}
 
 	@Override
@@ -486,7 +488,7 @@ public abstract class Utils extends BasicGameState {
 			File file = new File(dir, String.format("screenshot_%s.%s",
 					date.format(new Date()), options.getScreenshotFormat()));
 
-			SoundController.playSound(SoundController.SOUND_SHUTTER);
+			soundController.playSound(soundController.SOUND_SHUTTER);
 
 			// copy the screen
 			Image screen = new Image(container.getWidth(), container.getHeight());
