@@ -22,6 +22,7 @@ import itdelatrisu.opsu.states.Options;
 
 import java.awt.Font;
 import java.io.File;
+import java.nio.IntBuffer;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashSet;
@@ -144,8 +145,10 @@ public class Utils {
 		// set the cursor
 		try {
 			// hide the native cursor
-			Cursor emptyCursor = new Cursor(1, 1, 0, 0, 1, BufferUtils.createIntBuffer(1), null);
-			container.setMouseCursor(emptyCursor, 0, 0);
+	        int min = Cursor.getMinCursorSize();
+	        IntBuffer tmp = BufferUtils.createIntBuffer(min * min);
+	        Cursor emptyCursor = new Cursor(min, min, min/2, min/2, 1, tmp, null);
+	        container.setMouseCursor(emptyCursor, 0, 0);
 		} catch (LWJGLException e) {
 			Log.error("Failed to set the cursor.", e);
 		}
