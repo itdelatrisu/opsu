@@ -109,7 +109,7 @@ public class OsuParser {
 	 * @param parseObjects if true, hit objects will be fully parsed now
 	 * @return the new OsuFile object
 	 */
-	private static OsuFile parseFile(File file, ArrayList<OsuFile> osuFiles, boolean parseObjects) {
+	public static OsuFile parseFile(File file, ArrayList<OsuFile> osuFiles, boolean parseObjects) {
 		OsuFile osu = new OsuFile(file);
 
 		try (BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF-8"))) {
@@ -464,7 +464,9 @@ public class OsuParser {
 			parseHitObjects(osu);
 
 		// add OsuFile to song group
-		osuFiles.add(osu);
+		if (osuFiles != null)
+			osuFiles.add(osu);
+
 		return osu;
 	}
 

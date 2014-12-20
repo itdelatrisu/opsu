@@ -84,6 +84,11 @@ public class Options extends BasicGameState {
 	public static final String FONT_NAME = "kochi-gothic.ttf";
 
 	/**
+	 * The theme song OsuFile file name.
+	 */
+	public static final String OSU_THEME_NAME = "theme.osu";
+
+	/**
 	 * The beatmap directory.
 	 */
 	private static File beatmapDir;
@@ -134,7 +139,8 @@ public class Options extends BasicGameState {
 		DISABLE_SOUNDS,
 		KEY_LEFT,
 		KEY_RIGHT,
-		SHOW_UNICODE;
+		SHOW_UNICODE,
+		ENABLE_THEME_SONG;
 	};
 
 	/**
@@ -190,7 +196,8 @@ public class Options extends BasicGameState {
 		GameOption.EFFECT_VOLUME,
 		GameOption.HITSOUND_VOLUME,
 		GameOption.MUSIC_OFFSET,
-		GameOption.DISABLE_SOUNDS
+		GameOption.DISABLE_SOUNDS,
+		GameOption.ENABLE_THEME_SONG
 	};
 
 	/**
@@ -343,6 +350,11 @@ public class Options extends BasicGameState {
 	 * Whether or not to ignore resources in the beatmap folders.
 	 */
 	private static boolean ignoreBeatmapSkins = false;
+
+	/**
+	 * Whether or not to play the theme song.
+	 */
+	private static boolean themeSongEnabled = true;
 
 	/**
 	 * Fixed difficulty overrides.
@@ -630,6 +642,9 @@ public class Options extends BasicGameState {
 					Log.warn("Failed to load glyphs.", e);
 				}
 			}
+			break;
+		case ENABLE_THEME_SONG:
+			themeSongEnabled = !themeSongEnabled;
 			break;
 		default:
 			break;
@@ -938,6 +953,12 @@ public class Options extends BasicGameState {
 					"Press CTRL+L while playing to load a checkpoint, and CTRL+S to set one."
 			);
 			break;
+		case ENABLE_THEME_SONG:
+			drawOption(pos, "Enable Theme Song",
+					themeSongEnabled ? "Yes" : "No",
+					"Whether to play the theme song upon starting opsu!"
+			);
+			break;
 		default:
 			break;
 		}
@@ -1167,6 +1188,12 @@ public class Options extends BasicGameState {
 	 * @return true if Unicode preferred
 	 */
 	public static boolean useUnicodeMetadata() { return showUnicode; }
+
+	/**
+	 * Returns whether or not to play the theme song.
+	 * @return true if enabled
+	 */
+	public static boolean isThemSongEnabled() { return themeSongEnabled; }
 
 	/**
 	 * Sets the track checkpoint time, if within bounds.
@@ -1410,6 +1437,9 @@ public class Options extends BasicGameState {
 				case "Checkpoint":
 					setCheckpoint(Integer.parseInt(value));
 					break;
+				case "MenuMusic":
+					themeSongEnabled = Boolean.parseBoolean(value);
+					break;
 				}
 			}
 		} catch (IOException e) {
@@ -1500,6 +1530,8 @@ public class Options extends BasicGameState {
 			writer.write(String.format(Locale.US, "FixedOD = %.1f", fixedOD));
 			writer.newLine();
 			writer.write(String.format("Checkpoint = %d", checkpoint));
+			writer.newLine();
+			writer.write(String.format("MenuMusic = %b", themeSongEnabled));
 			writer.newLine();
 			writer.close();
 		} catch (IOException e) {

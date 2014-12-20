@@ -22,6 +22,7 @@ import itdelatrisu.opsu.states.Options;
 
 import java.io.File;
 import java.lang.reflect.Field;
+import java.net.URL;
 import java.nio.IntBuffer;
 
 import javazoom.jl.converter.Converter;
@@ -34,6 +35,7 @@ import org.newdawn.slick.SlickException;
 import org.newdawn.slick.openal.Audio;
 import org.newdawn.slick.openal.SoundStore;
 import org.newdawn.slick.util.Log;
+import org.newdawn.slick.util.ResourceLoader;
 
 /**
  * Controller for all music.
@@ -59,6 +61,11 @@ public class MusicController {
 	 */
 	private static Thread trackLoader;
 
+	/**
+	 * Whether the theme song is currently playing.
+	 */
+	private static boolean themePlaying = false;
+
 	// This class should not be instantiated.
 	private MusicController() {}
 
@@ -70,6 +77,8 @@ public class MusicController {
 		boolean play = (lastOsu == null || !osu.audioFilename.equals(lastOsu.audioFilename));
 		lastOsu = osu;
 		if (play) {
+			themePlaying = false;
+
 			// TODO: properly interrupt instead of using deprecated Thread.stop();
 			// interrupt the conversion/track loading
 			if (isTrackLoading())
@@ -246,6 +255,30 @@ public class MusicController {
 	 */
 	public static boolean setPosition(int position) {
 		return (trackExists() && player.setPosition(position / 1000f));
+	}
+
+	/**
+	 * Plays the theme song.
+	 */
+	public static void playThemeSong() {
+		try {
+			URL themeURL = ResourceLoader.getResource(Options.OSU_THEME_NAME);
+			File themeFile = new File(themeURL.toURI());
+			OsuFile osu = OsuParser.parseFile(themeFile, null, false);
+			URL audioURL = ResourceLoader.getResource(osu.audioFilename.getName());
+			osu.audioFilename = new File(audioURL.toURI());
+			play(osu, true);
+			themePlaying = true;
+		} catch (Exception e) {
+			Log.error("Failed to load theme song.", e);
+		}
+	}
+
+	/**
+	 * Returns whether or not the current track, if any, is the theme song.
+	 */
+	public static boolean isThemePlaying() {
+		return (themePlaying && trackExists());
 	}
 
 	/**

@@ -293,11 +293,13 @@ public class MainMenu extends BasicGameState {
 			else if (!MusicController.isTrackLoading())
 				MusicController.resume();
 		} else if (musicNext.contains(x, y)) {
+			boolean isTheme = MusicController.isThemePlaying();
 			SongMenu menu = (SongMenu) game.getState(Opsu.STATE_SONGMENU);
 			OsuGroupNode node = menu.setFocus(Opsu.groups.getRandomNode(), -1, true);
-			if (node != null)
+			if (node != null && !isTheme)
 				previous.add(node.index);
-			if (Options.isDynamicBackgroundEnabled())
+			if (Options.isDynamicBackgroundEnabled() &&
+				MusicController.getOsuFile() != null && !MusicController.isThemePlaying())
 				bgAlpha = 0f;
 		} else if (musicPrevious.contains(x, y)) {
 			if (!previous.isEmpty()) {

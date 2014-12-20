@@ -18,6 +18,7 @@
 
 package itdelatrisu.opsu.states;
 
+import itdelatrisu.opsu.MusicController;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.OsuParser;
 import itdelatrisu.opsu.OszUnpacker;
@@ -139,6 +140,10 @@ public class Splash extends BasicGameState {
 			// initialize song list
 			Opsu.groups.init();
 			((SongMenu) game.getState(Opsu.STATE_SONGMENU)).setFocus(Opsu.groups.getRandomNode(), -1, true);
+
+			// play the theme song
+			if (Options.isThemSongEnabled())
+				MusicController.playThemeSong();
 
 			game.enterState(Opsu.STATE_MAINMENU);
 		}

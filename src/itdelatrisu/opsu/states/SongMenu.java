@@ -501,6 +501,10 @@ public class SongMenu extends BasicGameState {
 	public void enter(GameContainer container, StateBasedGame game)
 			throws SlickException {
 		Display.setTitle(game.getTitle());
+
+		// stop playing the theme song
+		if (MusicController.isThemePlaying() && focusNode != null)
+			MusicController.play(focusNode.osuFiles.get(focusNode.osuFileIndex), true);
 	}
 
 	@Override

@@ -27,3 +27,7 @@ The following projects were referenced in creating opsu!:
 * "Wojtkosu" - Wojtek Kowaluk (https://osu.ppy.sh/forum/t/97260)
 * "osu-parser" - nojhamster (https://github.com/nojhamster/osu-parser)
 * "osu! web" - pictuga (https://github.com/pictuga/osu-web)
+
+Theme Song
+----------
+The theme song is "welcome to osu!" by nekodex (https://soundcloud.com/nekodex).
