@@ -139,14 +139,14 @@ public class MusicController {
 	 * Converts an MP3 file to a temporary WAV file.
 	 */
 	private static File convertMp3(File file) {
-        try {
+		try {
 			wavFile = File.createTempFile(".osu", ".wav", Options.TMP_DIR);
 			wavFile.deleteOnExit();
 
 			Converter converter = new Converter();
 			converter.convert(file.getPath(), wavFile.getPath());
 			return wavFile;
-        } catch (Exception e) {
+		} catch (Exception e) {
 			Log.error(String.format("Failed to play file '%s'.", file.getAbsolutePath()), e);
 		}
 		return wavFile;

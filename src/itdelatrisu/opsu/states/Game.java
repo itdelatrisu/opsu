@@ -36,6 +36,7 @@ import itdelatrisu.opsu.objects.Spinner;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Stack;
+import java.util.concurrent.TimeUnit;
 
 import org.lwjgl.input.Keyboard;
 import org.newdawn.slick.Color;
@@ -248,7 +249,13 @@ public class Game extends BasicGameState {
 
 		// checkpoint
 		if (checkpointLoaded) {
-			String checkpointText = "~ Playing from checkpoint. ~";
+			int checkpoint = Options.getCheckpoint();
+			String checkpointText = String.format(
+					"~ Playing from checkpoint at %02d:%02d. ~",
+					TimeUnit.MILLISECONDS.toMinutes(checkpoint),
+					TimeUnit.MILLISECONDS.toSeconds(checkpoint) -
+					TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(checkpoint))
+			);
 			Utils.FONT_MEDIUM.drawString(
 					(container.getWidth() - Utils.FONT_MEDIUM.getWidth(checkpointText)) / 2,
 					container.getHeight() - 15 - Utils.FONT_MEDIUM.getLineHeight(),

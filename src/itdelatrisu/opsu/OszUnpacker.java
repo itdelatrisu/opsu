@@ -79,12 +79,12 @@ public class OszUnpacker {
 	 * @param dest the destination directory
 	 */
 	private static void unzip(File file, File dest) {
-	    try {
-	         ZipFile zipFile = new ZipFile(file);
-	         zipFile.extractAll(dest.getAbsolutePath());
-	    } catch (ZipException e) {
-	        e.printStackTrace();
-	    }
+		try {
+			ZipFile zipFile = new ZipFile(file);
+			zipFile.extractAll(dest.getAbsolutePath());
+		} catch (ZipException e) {
+			e.printStackTrace();
+		}
 	}
 
 	/**

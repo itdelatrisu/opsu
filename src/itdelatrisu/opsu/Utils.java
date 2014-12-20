@@ -145,10 +145,10 @@ public class Utils {
 		// set the cursor
 		try {
 			// hide the native cursor
-	        int min = Cursor.getMinCursorSize();
-	        IntBuffer tmp = BufferUtils.createIntBuffer(min * min);
-	        Cursor emptyCursor = new Cursor(min, min, min/2, min/2, 1, tmp, null);
-	        container.setMouseCursor(emptyCursor, 0, 0);
+			int min = Cursor.getMinCursorSize();
+			IntBuffer tmp = BufferUtils.createIntBuffer(min * min);
+			Cursor emptyCursor = new Cursor(min, min, min/2, min/2, 1, tmp, null);
+			container.setMouseCursor(emptyCursor, 0, 0);
 		} catch (LWJGLException e) {
 			Log.error("Failed to set the cursor.", e);
 		}

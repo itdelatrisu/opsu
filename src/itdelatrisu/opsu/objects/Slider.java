@@ -236,8 +236,8 @@ public class Slider {
 			int n = order - 1;
 			if (n < 4) {  // normal curve
 				for (int i = 0; i <= n; i++) {
-		            c[0] += getX(i) * bernstein(i, n, t);
-		            c[1] += getY(i) * bernstein(i, n, t);
+					c[0] += getX(i) * bernstein(i, n, t);
+					c[1] += getY(i) * bernstein(i, n, t);
 				}
 			} else {  // split curve into path
 				// TODO: this is probably wrong...
@@ -247,8 +247,8 @@ public class Slider {
 				int segmentOrder = Math.min(startIndex + 3, n) - startIndex;
 				float segmentT = (t * segmentCount) - segment;
 				for (int i = 0; i <= segmentOrder; i++) {
-		            c[0] += getX(i + startIndex) * bernstein(i, segmentOrder, segmentT);
-		            c[1] += getY(i + startIndex) * bernstein(i, segmentOrder, segmentT);
+					c[0] += getX(i + startIndex) * bernstein(i, segmentOrder, segmentT);
+					c[1] += getY(i + startIndex) * bernstein(i, segmentOrder, segmentT);
 				}
 			}
 			return c;

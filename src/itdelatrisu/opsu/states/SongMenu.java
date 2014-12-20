@@ -526,7 +526,7 @@ public class SongMenu extends BasicGameState {
 					buttonY = height * 0.18f;
 				shift++;
 			} else if (shift > 0 && startNode.next != null &&
-					   Opsu.groups.getNode(startNode, MAX_BUTTONS) != null) {
+			           Opsu.groups.getNode(startNode, MAX_BUTTONS) != null) {
 				startNode = startNode.next;
 				buttonY -= buttonOffset / 4;
 				if (buttonY < height * 0.14f)
