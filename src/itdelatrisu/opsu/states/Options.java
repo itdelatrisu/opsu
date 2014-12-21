@@ -306,7 +306,7 @@ public class Options extends BasicGameState {
 	/**
 	 * Offset time, in milliseconds, for music position-related elements.
 	 */
-	private static int musicOffset = -150;
+	private static int musicOffset = 0;
 
 	/**
 	 * Screenshot file format.
