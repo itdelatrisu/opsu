@@ -21,6 +21,7 @@ package itdelatrisu.opsu.states;
 import itdelatrisu.opsu.GUIMenuButton;
 import itdelatrisu.opsu.GameMod;
 import itdelatrisu.opsu.Opsu;
+import itdelatrisu.opsu.OsuFile;
 import itdelatrisu.opsu.SoundController;
 import itdelatrisu.opsu.Utils;
 
@@ -84,11 +85,6 @@ public class Options extends BasicGameState {
 	public static final String FONT_NAME = "kochi-gothic.ttf";
 
 	/**
-	 * The theme song OsuFile file name.
-	 */
-	public static final String OSU_THEME_NAME = "theme.osu";
-
-	/**
 	 * The beatmap directory.
 	 */
 	private static File beatmapDir;
@@ -107,6 +103,12 @@ public class Options extends BasicGameState {
 	 * The current skin directory (for user skins).
 	 */
 	private static File skinDir;
+
+	/**
+	 * The theme song string:
+	 * filename, title, artist, length (ms)
+	 */
+	private static String themeString = "theme.ogg,welcome to osu!,nekodex,48000";
 
 	/**
 	 * Game options.
@@ -1290,6 +1292,31 @@ public class Options extends BasicGameState {
 	}
 
 	/**
+	 * Returns a dummy OsuFile containing the theme song.
+	 * @return the theme song OsuFile
+	 */
+	public static OsuFile getOsuTheme() {
+		String[] tokens = themeString.split(",");
+		if (tokens.length != 4) {
+			Log.error("Theme song string is malformed.");
+			return null;
+		}
+
+		OsuFile osu = new OsuFile(null);
+		osu.audioFilename = new File(tokens[0]);
+		osu.title = tokens[1];
+		osu.artist = tokens[2];
+		try {
+			osu.endTime = Integer.parseInt(tokens[3]);
+		} catch (NumberFormatException e) {
+			Log.error("Theme song length is not a valid integer", e);
+			return null;
+		}
+
+		return osu;
+	}
+
+	/**
 	 * Reads user options from the options file, if it exists.
 	 */
 	public static void parseOptions() {
@@ -1324,6 +1351,9 @@ public class Options extends BasicGameState {
 					break;
 				case "Skin":
 					skinDir = new File(value);
+					break;
+				case "ThemeSong":
+					themeString = value;
 					break;
 				case "Port":
 					i = Integer.parseInt(value);
@@ -1474,6 +1504,8 @@ public class Options extends BasicGameState {
 			writer.write(String.format("ScreenshotDirectory = %s", getScreenshotDir().getAbsolutePath()));
 			writer.newLine();
 			writer.write(String.format("Skin = %s", getSkinDir().getAbsolutePath()));
+			writer.newLine();
+			writer.write(String.format("ThemeSong = %s", themeString));
 			writer.newLine();
 			writer.write(String.format("Port = %d", port));
 			writer.newLine();

@@ -22,7 +22,6 @@ import itdelatrisu.opsu.states.Options;
 
 import java.io.File;
 import java.lang.reflect.Field;
-import java.net.URL;
 import java.nio.IntBuffer;
 
 import javazoom.jl.converter.Converter;
@@ -35,7 +34,6 @@ import org.newdawn.slick.SlickException;
 import org.newdawn.slick.openal.Audio;
 import org.newdawn.slick.openal.SoundStore;
 import org.newdawn.slick.util.Log;
-import org.newdawn.slick.util.ResourceLoader;
 
 /**
  * Controller for all music.
@@ -261,16 +259,10 @@ public class MusicController {
 	 * Plays the theme song.
 	 */
 	public static void playThemeSong() {
-		try {
-			URL themeURL = ResourceLoader.getResource(Options.OSU_THEME_NAME);
-			File themeFile = new File(themeURL.toURI());
-			OsuFile osu = OsuParser.parseFile(themeFile, null, false);
-			URL audioURL = ResourceLoader.getResource(osu.audioFilename.getName());
-			osu.audioFilename = new File(audioURL.toURI());
+		OsuFile osu = Options.getOsuTheme();
+		if (osu != null) {
 			play(osu, true);
 			themePlaying = true;
-		} catch (Exception e) {
-			Log.error("Failed to load theme song.", e);
 		}
 	}
 
