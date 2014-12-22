@@ -330,7 +330,6 @@ public class MainMenu extends BasicGameState {
 				SoundController.playSound(SoundController.SOUND_MENUHIT);
 				game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 			} else if (exitButton.contains(x, y)) {
-				SoundController.playSound(SoundController.SOUND_MENUHIT);
 				Options.saveOptions();
 				Opsu.closeSocket();
 				container.exit();
