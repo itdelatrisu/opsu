@@ -101,6 +101,7 @@ public class MainMenu extends BasicGameState {
 	private float bgAlpha = 0f;
 
 	// game-related variables
+	private GameContainer container;
 	private StateBasedGame game;
 	private int state;
 
@@ -111,6 +112,7 @@ public class MainMenu extends BasicGameState {
 	@Override
 	public void init(GameContainer container, StateBasedGame game)
 			throws SlickException {
+		this.container = container;
 		this.game = game;
 
 		osuStartTime = System.currentTimeMillis();
@@ -329,7 +331,9 @@ public class MainMenu extends BasicGameState {
 				game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 			} else if (exitButton.contains(x, y)) {
 				SoundController.playSound(SoundController.SOUND_MENUHIT);
-				game.enterState(Opsu.STATE_MAINMENUEXIT);
+				Options.saveOptions();
+				Opsu.closeSocket();
+				container.exit();
 			}
 		}
 	}
