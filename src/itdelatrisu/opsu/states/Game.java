@@ -251,7 +251,7 @@ public class Game extends BasicGameState {
 		if (checkpointLoaded) {
 			int checkpoint = Options.getCheckpoint();
 			String checkpointText = String.format(
-					"~ Playing from checkpoint at %02d:%02d. ~",
+					"Playing from checkpoint at %02d:%02d.",
 					TimeUnit.MILLISECONDS.toMinutes(checkpoint),
 					TimeUnit.MILLISECONDS.toSeconds(checkpoint) -
 					TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(checkpoint))
