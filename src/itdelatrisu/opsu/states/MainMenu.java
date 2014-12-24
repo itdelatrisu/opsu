@@ -103,6 +103,7 @@ public class MainMenu extends BasicGameState {
 	// game-related variables
 	private GameContainer container;
 	private StateBasedGame game;
+	private Input input;
 	private int state;
 
 	public MainMenu(int state) {
@@ -114,6 +115,7 @@ public class MainMenu extends BasicGameState {
 			throws SlickException {
 		this.container = container;
 		this.game = game;
+		this.input = container.getInput();
 
 		osuStartTime = System.currentTimeMillis();
 		previous = new Stack<Integer>();
@@ -126,6 +128,7 @@ public class MainMenu extends BasicGameState {
 		float buttonScale = (height / 1.2f) / logoImg.getHeight();
 		Image logoImgScaled = logoImg.getScaledCopy(buttonScale);
 		logo = new GUIMenuButton(logoImgScaled, width / 2f, height / 2f);
+		logo.setHoverScale(1.05f);
 
 		Image playImg = new Image("menu-play.png");
 		Image exitImg = new Image("menu-exit.png");
@@ -138,6 +141,8 @@ public class MainMenu extends BasicGameState {
 		exitButton = new GUIMenuButton(exitImg.getScaledCopy(buttonScale),
 				width * 0.75f - exitOffset, (height / 2) + (exitImg.getHeight() / 2f)
 		);
+		playButton.setHoverScale(1.05f);
+		exitButton.setHoverScale(1.05f);
 
 		// initialize music buttons
 		int musicWidth  = 48;
@@ -146,6 +151,10 @@ public class MainMenu extends BasicGameState {
 		musicPause    = new GUIMenuButton(new Image("music-pause.png"), width - (2 * musicWidth), musicHeight);
 		musicNext     = new GUIMenuButton(new Image("music-next.png"), width - musicWidth, musicHeight);
 		musicPrevious = new GUIMenuButton(new Image("music-previous.png"), width - (3 * musicWidth), musicHeight);
+		musicPlay.setHoverScale(1.5f);
+		musicPause.setHoverScale(1.5f);
+		musicNext.setHoverScale(1.5f);
+		musicPrevious.setHoverScale(1.5f);
 
 		// menu background
 		try {
@@ -226,6 +235,14 @@ public class MainMenu extends BasicGameState {
 	public void update(GameContainer container, StateBasedGame game, int delta)
 			throws SlickException {
 		Utils.updateCursor(delta);
+		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
+		logo.hoverUpdate(delta, mouseX, mouseY);
+		playButton.hoverUpdate(delta, mouseX, mouseY);
+		exitButton.hoverUpdate(delta, mouseX, mouseY);
+		musicPlay.hoverUpdate(delta, mouseX, mouseY);
+		musicPause.hoverUpdate(delta, mouseX, mouseY);
+		musicNext.hoverUpdate(delta, mouseX, mouseY);
+		musicPrevious.hoverUpdate(delta, mouseX, mouseY);
 
 		// fade in background
 		if (bgAlpha < 0.9f) {
@@ -280,6 +297,13 @@ public class MainMenu extends BasicGameState {
 		logoClicked = false;
 		logoTimer = 0;
 		logo.setX(container.getWidth() / 2);
+		logo.setScale(1f);
+		playButton.setScale(1f);
+		exitButton.setScale(1f);
+		musicPlay.setScale(1f);
+		musicPause.setScale(1f);
+		musicNext.setScale(1f);
+		musicPrevious.setScale(1f);
 	}
 
 	@Override

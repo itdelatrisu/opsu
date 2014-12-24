@@ -525,6 +525,10 @@ public class Options extends BasicGameState {
 	public void update(GameContainer container, StateBasedGame game, int delta)
 			throws SlickException {
 		Utils.updateCursor(delta);
+		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
+		Utils.getBackButton().hoverUpdate(delta, mouseX, mouseY);
+		for (GameMod mod : GameMod.values())
+			mod.hoverUpdate(delta, mouseX, mouseY);
 	}
 
 	@Override
@@ -782,6 +786,9 @@ public class Options extends BasicGameState {
 	public void enter(GameContainer container, StateBasedGame game)
 			throws SlickException {
 		currentTab = TAB_DISPLAY;
+		Utils.getBackButton().setScale(1f);
+		for (GameMod mod : GameMod.values())
+			mod.setScale(1f);
 	}
 
 	/**

@@ -180,6 +180,7 @@ public class SongMenu extends BasicGameState {
 		// options button
 		Image optionsIcon = new Image("options.png").getScaledCopy(iconScale);
 		optionsButton = new GUIMenuButton(optionsIcon, search.getX() - (optionsIcon.getWidth() * 1.5f), search.getY());
+		optionsButton.setHoverScale(1.75f);
 
 		// music note
 		int musicNoteDim = (int) (Utils.FONT_LARGE.getLineHeight() * 0.75f + Utils.FONT_DEFAULT.getLineHeight());
@@ -281,6 +282,9 @@ public class SongMenu extends BasicGameState {
 	public void update(GameContainer container, StateBasedGame game, int delta)
 			throws SlickException {
 		Utils.updateCursor(delta);
+		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
+		Utils.getBackButton().hoverUpdate(delta, mouseX, mouseY);
+		optionsButton.hoverUpdate(delta, mouseX, mouseY);
 
 		// search
 		search.setFocus(true);
@@ -501,6 +505,8 @@ public class SongMenu extends BasicGameState {
 	public void enter(GameContainer container, StateBasedGame game)
 			throws SlickException {
 		Display.setTitle(game.getTitle());
+		Utils.getBackButton().setScale(1f);
+		optionsButton.setScale(1f);
 
 		// stop playing the theme song
 		if (MusicController.isThemePlaying() && focusNode != null)

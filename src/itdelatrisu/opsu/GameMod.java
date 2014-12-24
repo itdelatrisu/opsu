@@ -107,6 +107,7 @@ public enum GameMod {
 			// create button
 			img.setAlpha(0.5f);
 			this.button = new GUIMenuButton(img, x + (offsetX * id), y);
+			this.button.setHoverScale(1.15f);
 		} catch (SlickException e) {
 			Log.error(String.format("Failed to initialize game mod '%s'.", this), e);
 		}
@@ -177,4 +178,19 @@ public enum GameMod {
 	 * @return true if within bounds
 	 */
 	public boolean contains(float x, float y) { return button.contains(x, y); }
+
+	/**
+	 * Sets the current button scale (for hovering).
+	 * @param scale the new scale (default 1.0f)
+	 */
+	public void setScale(float scale) { button.setScale(scale); }
+
+	/**
+	 * Updates the scale of the button depending on whether or not the cursor
+	 * is hovering over the button.
+	 * @param delta the delta interval
+	 * @param x the x coordinate
+	 * @param y the y coordinate
+	 */
+	public void hoverUpdate(int delta, float x, float y) { button.hoverUpdate(delta, x, y); }
 }

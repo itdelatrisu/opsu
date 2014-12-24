@@ -197,6 +197,7 @@ public class Utils {
 		backButton = new GUIMenuButton(back,
 				back.getWidth() / 2f,
 				height - (back.getHeight() / 2f));
+		backButton.setHoverDir(GUIMenuButton.Expand.UP_RIGHT);
 
 		// set default game images
 		for (GameImage img : GameImage.values())

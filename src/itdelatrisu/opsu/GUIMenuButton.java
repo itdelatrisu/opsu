@@ -25,6 +25,7 @@ import org.newdawn.slick.Image;
 /**
  * A convenience class for menu buttons.
  * Consists of an image or animation and coordinates.
+ * Multi-part images and animations currently do not support hover updates.
  */
 public class GUIMenuButton {
 	/**
@@ -48,20 +49,37 @@ public class GUIMenuButton {
 	private float x, y;
 
 	/**
-	 * The x and y radius of the button.
+	 * The x and y radius of the button (scaled).
 	 */
 	private float xRadius, yRadius;
+
+	/**
+	 * The current and max scale of the button (for hovering).
+	 */
+	private float scale, hoverScale = 1.25f;
+
+	/**
+	 * The scaled expansion direction for the botton (for hovering).
+	 */
+	private Expand dir = Expand.CENTER;
+
+	/**
+	 * Scaled expansion directions (for hovering).
+	 */
+	public enum Expand {
+		CENTER, UP_RIGHT, UP_LEFT, DOWN_RIGHT, DOWN_LEFT;
+	}
 
 	/**
 	 * Creates a new button from an Image.
 	 */
 	public GUIMenuButton(Image img, float x, float y) {
 		this.img = img;
-		this.x   = x;
-		this.y   = y;
-
-		xRadius = img.getWidth() / 2f;
-		yRadius = img.getHeight() / 2f;
+		this.x = x;
+		this.y = y;
+		this.xRadius = img.getWidth() / 2f;
+		this.yRadius = img.getHeight() / 2f;
+		this.scale = 1f;
 	}
 
 	/**
@@ -72,11 +90,11 @@ public class GUIMenuButton {
 		this.img  = imgCenter;
 		this.imgL = imgLeft;
 		this.imgR = imgRight;
-		this.x    = x;
-		this.y    = y;
-
-		xRadius = (img.getWidth() + imgL.getWidth() + imgR.getWidth()) / 2f;
-		yRadius = img.getHeight() / 2f;
+		this.x  = x;
+		this.y  = y;
+		this.xRadius = (img.getWidth() + imgL.getWidth() + imgR.getWidth()) / 2f;
+		this.yRadius = img.getHeight() / 2f;
+		this.scale = 1f;
 	}
 
 	/**
@@ -84,11 +102,11 @@ public class GUIMenuButton {
 	 */
 	public GUIMenuButton(Animation anim, float x, float y) {
 		this.anim = anim;
-		this.x    = x;
-		this.y    = y;
-
-		xRadius = anim.getWidth() / 2f;
-		yRadius = anim.getHeight() / 2f;
+		this.x = x;
+		this.y = y;
+		this.xRadius = anim.getWidth() / 2f;
+		this.yRadius = anim.getHeight() / 2f;
+		this.scale = 1f;
 	}
 
 	/**
@@ -110,9 +128,11 @@ public class GUIMenuButton {
 	 */
 	public void draw() {
 		if (img != null) {
-			if (imgL == null)
-				img.draw(x - xRadius, y - yRadius);
-			else {
+			if (imgL == null) {
+				Image imgScaled = img.getScaledCopy(scale);
+				imgScaled.setAlpha(img.getAlpha());
+				imgScaled.draw(x - xRadius, y - yRadius);
+			} else {
 				img.draw(x - xRadius + imgL.getWidth(), y - yRadius);
 				imgL.draw(x - xRadius, y - yRadius);
 				imgR.draw(x + xRadius - imgR.getWidth(), y - yRadius);
@@ -128,7 +148,7 @@ public class GUIMenuButton {
 	public void draw(Color filter) {
 		if (img != null) {
 			if (imgL == null)
-				img.draw(x - xRadius, y - yRadius, filter);
+				img.getScaledCopy(scale).draw(x - xRadius, y - yRadius, filter);
 			else {
 				img.draw(x - xRadius + imgL.getWidth(), y - yRadius, filter);
 				imgL.draw(x - xRadius, y - yRadius, filter);
@@ -140,9 +160,77 @@ public class GUIMenuButton {
 
 	/**
 	 * Returns true if the coordinates are within the button bounds.
+	 * @param cx the x coordinate
+	 * @param cy the y coordinate
 	 */
 	public boolean contains(float cx, float cy) {
 		return ((cx > x - xRadius && cx < x + xRadius) &&
 				(cy > y - yRadius && cy < y + yRadius));
+	}
+
+	/**
+	 * Sets the current button scale (for hovering).
+	 * @param scale the new scale (default 1.0f)
+	 */
+	public void setScale(float scale) {
+		this.scale = scale;
+		setHoverRadius();
+	}
+
+	/**
+	 * Sets the maximum scale factor for the button (for hovering).
+	 * @param scale the maximum scale factor (default 1.25f)
+	 */
+	public void setHoverScale(float scale) {
+		this.hoverScale = scale;
+	}
+
+	/**
+	 * Sets the expansion direction when hovering over the button.
+	 * @param dir the direction
+	 */
+	public void setHoverDir(Expand dir) {
+		this.dir = dir;
+	}
+
+	/**
+	 * Updates the scale of the button depending on whether or not the cursor
+	 * is hovering over the button.
+	 * @param delta the delta interval
+	 * @param cx the x coordinate
+	 * @param cy the y coordinate
+	 */
+	public void hoverUpdate(int delta, float cx, float cy) {
+		boolean isHover = contains(cx, cy);
+		if (isHover && scale < hoverScale) {
+			scale += (hoverScale - 1f) * delta / 100f;
+			if (scale > hoverScale)
+				scale = hoverScale;
+			setHoverRadius();
+		} else if (!isHover && scale > 1f) {
+			scale -= (hoverScale - 1f) * delta / 100f;
+			if (scale < 1f)
+				scale = 1f;
+			setHoverRadius();
+		}
+	}
+
+	/**
+	 * Set x and y radius of the button based on current scale factor
+	 * and expansion direction.
+	 */
+	private void setHoverRadius() {
+		int xOffset = 0, yOffset = 0;
+		if (dir != Expand.CENTER) {
+			// offset by difference between normal/scaled image dimensions
+			xOffset = (int) ((scale - 1f) * img.getWidth());
+			yOffset = (int) ((scale - 1f) * img.getHeight());
+			if (dir == Expand.DOWN_RIGHT || dir == Expand.UP_RIGHT)
+				xOffset *= -1;  // flip x for right
+			if (dir == Expand.DOWN_LEFT || dir == Expand.DOWN_RIGHT)
+				yOffset *= -1;  // flip y for down
+		}
+		this.xRadius = ((img.getWidth() * scale) + xOffset) / 2f;
+		this.yRadius = ((img.getHeight() * scale) + yOffset) / 2f;
 	}
 }

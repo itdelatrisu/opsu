@@ -101,6 +101,10 @@ public class GamePauseMenu extends BasicGameState {
 	public void update(GameContainer container, StateBasedGame game, int delta)
 			throws SlickException {
 		Utils.updateCursor(delta);
+		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
+		continueButton.hoverUpdate(delta, mouseX, mouseY);
+		retryButton.hoverUpdate(delta, mouseX, mouseY);
+		backButton.hoverUpdate(delta, mouseX, mouseY);
 	}
 
 	@Override
@@ -165,6 +169,9 @@ public class GamePauseMenu extends BasicGameState {
 			SoundController.playSound(SoundController.SOUND_FAIL);
 		} else
 			MusicController.pause();
+		continueButton.setScale(1f);
+		retryButton.setScale(1f);
+		backButton.setScale(1f);
 	}
 
 	/**

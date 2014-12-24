@@ -61,6 +61,7 @@ public class GameRanking extends BasicGameState {
 	// game-related variables
 	private StateBasedGame game;
 	private int state;
+	private Input input;
 
 	public GameRanking(int state) {
 		this.state = state;
@@ -70,6 +71,7 @@ public class GameRanking extends BasicGameState {
 	public void init(GameContainer container, StateBasedGame game)
 			throws SlickException {
 		this.game = game;
+		this.input = container.getInput();
 
 		score = Game.getGameScore();
 
@@ -138,6 +140,8 @@ public class GameRanking extends BasicGameState {
 	public void update(GameContainer container, StateBasedGame game, int delta)
 			throws SlickException {
 		Utils.updateCursor(delta);
+		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
+		Utils.getBackButton().hoverUpdate(delta, mouseX, mouseY);
 	}
 
 	@Override
@@ -185,6 +189,7 @@ public class GameRanking extends BasicGameState {
 	public void enter(GameContainer container, StateBasedGame game)
 			throws SlickException {
 		Display.setTitle(game.getTitle());
+		Utils.getBackButton().setScale(1f);
 		SoundController.playSound(SoundController.SOUND_APPLAUSE);
 	}
 }
