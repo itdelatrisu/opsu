@@ -424,6 +424,8 @@ public class Game extends BasicGameState {
 	public void update(GameContainer container, StateBasedGame game, int delta)
 			throws SlickException {
 		Utils.updateCursor(delta);
+		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
+		skipButton.hoverUpdate(delta, mouseX, mouseY);
 
 		if (isLeadIn()) {  // stop updating during song lead-in
 			leadInTime -= delta;
@@ -521,8 +523,8 @@ public class Game extends BasicGameState {
 		// pause game if focus lost
 		if (!container.hasFocus() && !GameMod.AUTO.isActive()) {
 			if (pauseTime < 0) {
-				pausedMouseX = input.getMouseX();
-				pausedMouseY = input.getMouseY();
+				pausedMouseX = mouseX;
+				pausedMouseY = mouseY;
 				pausePulse = 0f;
 			}
 			if (MusicController.isPlaying() || isLeadIn())
@@ -563,9 +565,9 @@ public class Game extends BasicGameState {
 			if (hitObject.isCircle())
 				done = circles.get(objectIndex).update(overlap);
 			else if (hitObject.isSlider())
-				done = sliders.get(objectIndex).update(overlap, delta, input.getMouseX(), input.getMouseY());
+				done = sliders.get(objectIndex).update(overlap, delta, mouseX, mouseY);
 			else if (hitObject.isSpinner())
-				done = spinners.get(objectIndex).update(overlap, delta, input.getMouseX(), input.getMouseY());
+				done = spinners.get(objectIndex).update(overlap, delta, mouseX, mouseY);
 
 			// increment object index?
 			if (done)
@@ -789,6 +791,8 @@ public class Game extends BasicGameState {
 			leadInTime = osu.audioLeadIn + approachTime;
 			restart = RESTART_FALSE;
 		}
+
+		skipButton.setScale(1f);
 	}
 
 //	@Override
@@ -842,6 +846,7 @@ public class Game extends BasicGameState {
 		skipButton = new GUIMenuButton(skip,
 				width - (skip.getWidth() / 2f),
 				height - (skip.getHeight() / 2f));
+		skipButton.setHoverDir(GUIMenuButton.Expand.UP_LEFT);
 
 		// countdown
 		float countdownHeight = height / 3f;

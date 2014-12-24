@@ -100,8 +100,13 @@ public class Circle {
 			float x = hitObject.getX(), y = hitObject.getY();
 			float approachScale = 1 + (timeDiff * 2f / game.getApproachTime());
 			Utils.drawCentered(GameImage.APPROACHCIRCLE.getImage().getScaledCopy(approachScale), x, y, color);
-			Utils.drawCentered(GameImage.HITCIRCLE_OVERLAY.getImage(), x, y, Color.white);
+			float alpha = (approachScale > 3.3f) ? 0f : 1f - (approachScale - 1f) / 2.7f;
+			color.a = alpha;
+			Utils.COLOR_WHITE_FADE.a = alpha;
+			Utils.drawCentered(GameImage.HITCIRCLE_OVERLAY.getImage(), x, y, Utils.COLOR_WHITE_FADE);
 			Utils.drawCentered(GameImage.HITCIRCLE.getImage(), x, y, color);
+			color.a = 1f;
+			Utils.COLOR_WHITE_FADE.a = 1f;
 			score.drawSymbolNumber(hitObject.getComboNumber(), x, y,
 					GameImage.HITCIRCLE.getImage().getWidth() * 0.40f / score.getDefaultSymbolImage(0).getHeight());
 		}

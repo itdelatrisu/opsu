@@ -263,7 +263,7 @@ public class Slider {
 
 			// draw overlay and hit circle
 			for (int i = curveX.length - 1; i >= 0; i--)
-				Utils.drawCentered(hitCircleOverlay, curveX[i], curveY[i], Color.white);
+				Utils.drawCentered(hitCircleOverlay, curveX[i], curveY[i], Utils.COLOR_WHITE_FADE);
 			for (int i = curveX.length - 1; i >= 0; i--)
 				Utils.drawCentered(hitCircle, curveX[i], curveY[i], color);
 		}
@@ -345,27 +345,33 @@ public class Slider {
 		float[] sliderX = hitObject.getSliderX(), sliderY = hitObject.getSliderY();
 		int timeDiff = hitObject.getTime() - trackPosition;
 
-		Image hitCircleOverlay = GameImage.HITCIRCLE_OVERLAY.getImage();
-		Image hitCircle = GameImage.HITCIRCLE.getImage();
+		float approachScale = (timeDiff >= 0) ? 1 + (timeDiff * 2f / game.getApproachTime()) : 1f;
+		float alpha = (approachScale > 3.3f) ? 0f : 1f - (approachScale - 1f) / 2.7f;
+		color.a = alpha;
+		Utils.COLOR_WHITE_FADE.a = alpha;
 
 		// bezier
 		bezier.draw();
 
 		// ticks
 		if (currentObject && ticksT != null) {
+			Image tick = GameImage.SLIDER_TICK.getImage();
 			for (int i = 0; i < ticksT.length; i++) {
 				float[] c = bezier.pointAt(ticksT[i]);
-				GameImage.SLIDER_TICK.getImage().drawCentered(c[0], c[1]);
+				tick.drawCentered(c[0], c[1]);
 			}
 		}
 
+		Image hitCircleOverlay = GameImage.HITCIRCLE_OVERLAY.getImage();
+		Image hitCircle = GameImage.HITCIRCLE.getImage();
+
 		// end circle
 		int lastIndex = sliderX.length - 1;
-		Utils.drawCentered(hitCircleOverlay, sliderX[lastIndex], sliderY[lastIndex], Color.white);
+		Utils.drawCentered(hitCircleOverlay, sliderX[lastIndex], sliderY[lastIndex], Utils.COLOR_WHITE_FADE);
 		Utils.drawCentered(hitCircle, sliderX[lastIndex], sliderY[lastIndex], color);
 
 		// start circle
-		Utils.drawCentered(hitCircleOverlay, x, y, Color.white);
+		Utils.drawCentered(hitCircleOverlay, x, y, Utils.COLOR_WHITE_FADE);
 		Utils.drawCentered(hitCircle, x, y, color);
 		if (sliderClicked)
 			;  // don't draw current combo number if already clicked
@@ -373,9 +379,13 @@ public class Slider {
 			score.drawSymbolNumber(hitObject.getComboNumber(), x, y,
 					hitCircle.getWidth() * 0.40f / score.getDefaultSymbolImage(0).getHeight());
 
+		color.a = 1f;
+		Utils.COLOR_WHITE_FADE.a = 1f;
+
 		// repeats
 		if (hitObject.getRepeatCount() - 1 > currentRepeats) {
 			Image arrow = GameImage.REVERSEARROW.getImage();
+			arrow.setAlpha(alpha);
 			if (currentRepeats % 2 == 0) {  // last circle
 				arrow.setRotation(bezier.getEndAngle());
 				arrow.drawCentered(sliderX[lastIndex], sliderY[lastIndex]);
@@ -383,11 +393,11 @@ public class Slider {
 				arrow.setRotation(bezier.getStartAngle());
 				arrow.drawCentered(x, y);
 			}
+			arrow.setAlpha(1f);
 		}
 
 		if (timeDiff >= 0) {
 			// approach circle
-			float approachScale = 1 + (timeDiff * 2f / game.getApproachTime());
 			Utils.drawCentered(GameImage.APPROACHCIRCLE.getImage().getScaledCopy(approachScale), x, y, color);
 		} else {
 			float[] c = bezier.pointAt(getT(trackPosition, false));
