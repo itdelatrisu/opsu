@@ -352,6 +352,7 @@ public class SongMenu extends BasicGameState {
 		// back
 		if (Utils.getBackButton().contains(x, y)) {
 			SoundController.playSound(SoundController.SOUND_MENUBACK);
+			((MainMenu) game.getState(Opsu.STATE_MAINMENU)).reset();
 			game.enterState(Opsu.STATE_MAINMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 			return;
 		}
@@ -424,6 +425,7 @@ public class SongMenu extends BasicGameState {
 				searchTimer = SEARCH_DELAY;
 			} else {
 				SoundController.playSound(SoundController.SOUND_MENUBACK);
+				((MainMenu) game.getState(Opsu.STATE_MAINMENU)).reset();
 				game.enterState(Opsu.STATE_MAINMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 			}
 			break;

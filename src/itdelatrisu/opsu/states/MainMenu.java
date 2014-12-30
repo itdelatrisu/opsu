@@ -156,6 +156,8 @@ public class MainMenu extends BasicGameState {
 		musicNext.setHoverScale(1.5f);
 		musicPrevious.setHoverScale(1.5f);
 
+		reset();
+
 		// menu background
 		try {
 			backgroundImage = new Image("menu-background.jpg").getScaledCopy(width, height);
@@ -294,16 +296,22 @@ public class MainMenu extends BasicGameState {
 	@Override
 	public void enter(GameContainer container, StateBasedGame game)
 			throws SlickException {
-		logoClicked = false;
-		logoTimer = 0;
-		logo.setX(container.getWidth() / 2);
-		logo.setScale(1f);
-		playButton.setScale(1f);
-		exitButton.setScale(1f);
-		musicPlay.setScale(1f);
-		musicPause.setScale(1f);
-		musicNext.setScale(1f);
-		musicPrevious.setScale(1f);
+		// reset button hover states if mouse is not currently hovering over the button
+		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
+		if (!logo.contains(mouseX, mouseY))
+			logo.setScale(1f);
+		if (!playButton.contains(mouseX, mouseY))
+			playButton.setScale(1f);
+		if (!exitButton.contains(mouseX, mouseY))
+			exitButton.setScale(1f);
+		if (!musicPlay.contains(mouseX, mouseY))
+			musicPlay.setScale(1f);
+		if (!musicPause.contains(mouseX, mouseY))
+			musicPause.setScale(1f);
+		if (!musicNext.contains(mouseX, mouseY))
+			musicNext.setScale(1f);
+		if (!musicPrevious.contains(mouseX, mouseY))
+			musicPrevious.setScale(1f);
 	}
 
 	@Override
@@ -368,11 +376,6 @@ public class MainMenu extends BasicGameState {
 	public void keyPressed(int key, char c) {
 		switch (key) {
 		case Input.KEY_ESCAPE:
-			if (logoClicked)
-				logoTimer = MOVE_DELAY;
-			else
-				game.enterState(Opsu.STATE_MAINMENUEXIT);
-			break;
 		case Input.KEY_Q:
 			game.enterState(Opsu.STATE_MAINMENUEXIT);
 			break;
@@ -392,6 +395,23 @@ public class MainMenu extends BasicGameState {
 			Utils.takeScreenShot();
 			break;
 		}
-		
+	}
+
+	/**
+	 * Resets the button states.
+	 */
+	public void reset() {
+		// reset logo
+		logo.setX(container.getWidth() / 2);
+		logoClicked = false;
+		logoTimer = 0;
+
+		logo.setScale(1f);
+		playButton.setScale(1f);
+		exitButton.setScale(1f);
+		musicPlay.setScale(1f);
+		musicPause.setScale(1f);
+		musicNext.setScale(1f);
+		musicPrevious.setScale(1f);
 	}
 }
