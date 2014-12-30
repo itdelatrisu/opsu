@@ -18,7 +18,7 @@
 
 package itdelatrisu.opsu.states;
 
-import itdelatrisu.opsu.GUIMenuButton;
+import itdelatrisu.opsu.MenuButton;
 import itdelatrisu.opsu.MusicController;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.OsuFile;
@@ -58,7 +58,7 @@ public class MainMenu extends BasicGameState {
 	/**
 	 * Logo button that reveals other buttons on click.
 	 */
-	private GUIMenuButton logo;
+	private MenuButton logo;
 
 	/**
 	 * Whether or not the logo has been clicked.
@@ -73,12 +73,12 @@ public class MainMenu extends BasicGameState {
 	/**
 	 * Main "Play" and "Exit" buttons.
 	 */
-	private GUIMenuButton playButton, exitButton;
+	private MenuButton playButton, exitButton;
 
 	/**
 	 * Music control buttons.
 	 */
-	private GUIMenuButton musicPlay, musicPause, musicNext, musicPrevious;
+	private MenuButton musicPlay, musicPause, musicNext, musicPrevious;
 
 	/**
 	 * Application start time, for drawing the total running time.
@@ -127,7 +127,7 @@ public class MainMenu extends BasicGameState {
 		Image logoImg = new Image("logo.png");
 		float buttonScale = (height / 1.2f) / logoImg.getHeight();
 		Image logoImgScaled = logoImg.getScaledCopy(buttonScale);
-		logo = new GUIMenuButton(logoImgScaled, width / 2f, height / 2f);
+		logo = new MenuButton(logoImgScaled, width / 2f, height / 2f);
 		logo.setHoverScale(1.05f);
 
 		Image playImg = new Image("menu-play.png");
@@ -135,10 +135,10 @@ public class MainMenu extends BasicGameState {
 		playImg = playImg.getScaledCopy((logoImg.getWidth() * 0.83f) / playImg.getWidth());
 		exitImg = exitImg.getScaledCopy((logoImg.getWidth() * 0.66f) / exitImg.getWidth());
 		float exitOffset = (playImg.getWidth() - exitImg.getWidth()) / 3f;
-		playButton = new GUIMenuButton(playImg.getScaledCopy(buttonScale),
+		playButton = new MenuButton(playImg.getScaledCopy(buttonScale),
 				width * 0.75f, (height / 2) - (logoImgScaled.getHeight() / 5f)
 		);
-		exitButton = new GUIMenuButton(exitImg.getScaledCopy(buttonScale),
+		exitButton = new MenuButton(exitImg.getScaledCopy(buttonScale),
 				width * 0.75f - exitOffset, (height / 2) + (exitImg.getHeight() / 2f)
 		);
 		playButton.setHoverScale(1.05f);
@@ -147,10 +147,10 @@ public class MainMenu extends BasicGameState {
 		// initialize music buttons
 		int musicWidth  = 48;
 		int musicHeight = 30;
-		musicPlay     = new GUIMenuButton(new Image("music-play.png"), width - (2 * musicWidth), musicHeight);
-		musicPause    = new GUIMenuButton(new Image("music-pause.png"), width - (2 * musicWidth), musicHeight);
-		musicNext     = new GUIMenuButton(new Image("music-next.png"), width - musicWidth, musicHeight);
-		musicPrevious = new GUIMenuButton(new Image("music-previous.png"), width - (3 * musicWidth), musicHeight);
+		musicPlay     = new MenuButton(new Image("music-play.png"), width - (2 * musicWidth), musicHeight);
+		musicPause    = new MenuButton(new Image("music-pause.png"), width - (2 * musicWidth), musicHeight);
+		musicNext     = new MenuButton(new Image("music-next.png"), width - musicWidth, musicHeight);
+		musicPrevious = new MenuButton(new Image("music-previous.png"), width - (3 * musicWidth), musicHeight);
 		musicPlay.setHoverScale(1.5f);
 		musicPause.setHoverScale(1.5f);
 		musicNext.setHoverScale(1.5f);

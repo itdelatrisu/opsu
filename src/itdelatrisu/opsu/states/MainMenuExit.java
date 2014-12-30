@@ -18,7 +18,7 @@
 
 package itdelatrisu.opsu.states;
 
-import itdelatrisu.opsu.GUIMenuButton;
+import itdelatrisu.opsu.MenuButton;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.Utils;
 
@@ -44,7 +44,7 @@ public class MainMenuExit extends BasicGameState {
 	/**
 	 * "Yes" and "No" buttons.
 	 */
-	private GUIMenuButton yesButton, noButton;
+	private MenuButton yesButton, noButton;
 
 	/**
 	 * Initial x coordinate offsets left/right of center (for shifting animation).
@@ -76,10 +76,10 @@ public class MainMenuExit extends BasicGameState {
 		Image buttonL = new Image("button-left.png");
 		Image buttonR = new Image("button-right.png");
 		button = button.getScaledCopy(width / 2, button.getHeight());
-		yesButton = new GUIMenuButton(button, buttonL, buttonR,
+		yesButton = new MenuButton(button, buttonL, buttonR,
 				width / 2f + centerOffset, height * 0.2f
 		);
-		noButton = new GUIMenuButton(button, buttonL, buttonR,
+		noButton = new MenuButton(button, buttonL, buttonR,
 				width / 2f - centerOffset, height * 0.2f + (button.getHeight() * 1.25f)
 		);
 	}

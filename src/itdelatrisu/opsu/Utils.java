@@ -84,7 +84,7 @@ public class Utils {
 	/**
 	 * Back button (shared by other states).
 	 */
-	private static GUIMenuButton backButton;
+	private static MenuButton backButton;
 
 	/**
 	 * Tab image (shared by other states).
@@ -195,10 +195,10 @@ public class Utils {
 		Image back = new Image("menu-back.png");
 		float scale = (height * 0.1f) / back.getHeight();
 		back = back.getScaledCopy(scale);
-		backButton = new GUIMenuButton(back,
+		backButton = new MenuButton(back,
 				back.getWidth() / 2f,
 				height - (back.getHeight() / 2f));
-		backButton.setHoverDir(GUIMenuButton.Expand.UP_RIGHT);
+		backButton.setHoverDir(MenuButton.Expand.UP_RIGHT);
 
 		// set default game images
 		for (GameImage img : GameImage.values())
@@ -219,9 +219,9 @@ public class Utils {
 	public static Image getTabImage() { return tab; }
 
 	/**
-	 * Returns the 'menu-back' GUIMenuButton.
+	 * Returns the 'menu-back' MenuButton.
 	 */
-	public static GUIMenuButton getBackButton() { return backButton; }
+	public static MenuButton getBackButton() { return backButton; }
 
 	/**
 	 * Draws an image based on its center with a color filter.

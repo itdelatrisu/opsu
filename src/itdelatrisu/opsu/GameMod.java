@@ -54,7 +54,7 @@ public enum GameMod {
 	/**
 	 * The button containing the mod image (displayed in Options screen).
 	 */
-	private GUIMenuButton button;
+	private MenuButton button;
 
 	/**
 	 * Total number of mods.
@@ -106,7 +106,7 @@ public enum GameMod {
 
 			// create button
 			img.setAlpha(0.5f);
-			this.button = new GUIMenuButton(img, x + (offsetX * id), y);
+			this.button = new MenuButton(img, x + (offsetX * id), y);
 			this.button.setHoverScale(1.15f);
 		} catch (SlickException e) {
 			Log.error(String.format("Failed to initialize game mod '%s'.", this), e);

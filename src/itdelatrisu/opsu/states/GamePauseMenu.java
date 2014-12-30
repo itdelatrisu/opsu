@@ -18,7 +18,7 @@
 
 package itdelatrisu.opsu.states;
 
-import itdelatrisu.opsu.GUIMenuButton;
+import itdelatrisu.opsu.MenuButton;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.MusicController;
 import itdelatrisu.opsu.Opsu;
@@ -58,7 +58,7 @@ public class GamePauseMenu extends BasicGameState {
 	/**
 	 * "Continue", "Retry", and "Back" buttons.
 	 */
-	private GUIMenuButton continueButton, retryButton, backButton;
+	private MenuButton continueButton, retryButton, backButton;
 
 	// game-related variables
 	private GameContainer container;
@@ -196,9 +196,9 @@ public class GamePauseMenu extends BasicGameState {
 		int height = container.getHeight();
 
 		// initialize buttons
-		continueButton = new GUIMenuButton(GameImage.PAUSE_CONTINUE.getImage(), width / 2f, height * 0.25f);
-		retryButton = new GUIMenuButton(GameImage.PAUSE_RETRY.getImage(), width / 2f, height * 0.5f);
-		backButton = new GUIMenuButton(GameImage.PAUSE_BACK.getImage(), width / 2f, height * 0.75f);
+		continueButton = new MenuButton(GameImage.PAUSE_CONTINUE.getImage(), width / 2f, height * 0.25f);
+		retryButton = new MenuButton(GameImage.PAUSE_RETRY.getImage(), width / 2f, height * 0.5f);
+		backButton = new MenuButton(GameImage.PAUSE_BACK.getImage(), width / 2f, height * 0.75f);
 
 		// pause background image
 		if (!GameImage.PAUSE_OVERLAY.isScaled()) {

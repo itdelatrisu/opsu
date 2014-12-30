@@ -18,7 +18,7 @@
 
 package itdelatrisu.opsu.states;
 
-import itdelatrisu.opsu.GUIMenuButton;
+import itdelatrisu.opsu.MenuButton;
 import itdelatrisu.opsu.GameMod;
 import itdelatrisu.opsu.GameScore;
 import itdelatrisu.opsu.MusicController;
@@ -56,7 +56,7 @@ public class GameRanking extends BasicGameState {
 	/**
 	 * "Retry" and "Exit" buttons.
 	 */
-	private GUIMenuButton retryButton, exitButton;
+	private MenuButton retryButton, exitButton;
 
 	// game-related variables
 	private StateBasedGame game;
@@ -84,11 +84,11 @@ public class GameRanking extends BasicGameState {
 		float scale = (height * 0.15f) / retry.getHeight();
 		retry = retry.getScaledCopy(scale);
 		exit  = exit.getScaledCopy(scale);
-		retryButton = new GUIMenuButton(retry,
+		retryButton = new MenuButton(retry,
 				width - (retry.getWidth() / 2f),
 				(height * 0.97f) - (exit.getHeight() * 1.5f)
 		);
-		exitButton  = new GUIMenuButton(exit,
+		exitButton  = new MenuButton(exit,
 				width - (exit.getWidth() / 2f),
 				(height * 0.97f) - (exit.getHeight() / 2f)
 		);

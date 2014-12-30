@@ -53,7 +53,7 @@ public enum SongSort {
 	/**
 	 * The tab associated with the sort (displayed in Song Menu screen).
 	 */
-	private GUIMenuButton tab;
+	private MenuButton tab;
 
 	/**
 	 * Total number of sorts.
@@ -181,7 +181,7 @@ public enum SongSort {
 	public void init(Image img, int width, int height) {
 		float buttonX = width * 0.6f;
 		float tabOffset = (width - buttonX - img.getWidth()) / (SIZE - 1);
-		this.tab = new GUIMenuButton(img,
+		this.tab = new MenuButton(img,
 				(buttonX + (img.getWidth() / 2f)) + (id * tabOffset),
 				(height * 0.15f) - (img.getHeight() / 2f) - 2f
 		);

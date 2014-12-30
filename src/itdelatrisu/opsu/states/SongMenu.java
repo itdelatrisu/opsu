@@ -18,7 +18,7 @@
 
 package itdelatrisu.opsu.states;
 
-import itdelatrisu.opsu.GUIMenuButton;
+import itdelatrisu.opsu.MenuButton;
 import itdelatrisu.opsu.MusicController;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.OsuFile;
@@ -92,7 +92,7 @@ public class SongMenu extends BasicGameState {
 	/**
 	 * The options button (to enter the "Game Options" menu).
 	 */
-	private GUIMenuButton optionsButton;
+	private MenuButton optionsButton;
 
 	/**
 	 * The search textfield.
@@ -179,7 +179,7 @@ public class SongMenu extends BasicGameState {
 
 		// options button
 		Image optionsIcon = new Image("options.png").getScaledCopy(iconScale);
-		optionsButton = new GUIMenuButton(optionsIcon, search.getX() - (optionsIcon.getWidth() * 1.5f), search.getY());
+		optionsButton = new MenuButton(optionsIcon, search.getX() - (optionsIcon.getWidth() * 1.5f), search.getY());
 		optionsButton.setHoverScale(1.75f);
 
 		// music note

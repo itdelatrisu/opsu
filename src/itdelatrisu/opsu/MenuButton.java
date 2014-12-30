@@ -27,7 +27,7 @@ import org.newdawn.slick.Image;
  * Consists of an image or animation and coordinates.
  * Multi-part images and animations currently do not support hover updates.
  */
-public class GUIMenuButton {
+public class MenuButton {
 	/**
 	 * The image associated with the button.
 	 */
@@ -73,7 +73,7 @@ public class GUIMenuButton {
 	/**
 	 * Creates a new button from an Image.
 	 */
-	public GUIMenuButton(Image img, float x, float y) {
+	public MenuButton(Image img, float x, float y) {
 		this.img = img;
 		this.x = x;
 		this.y = y;
@@ -85,7 +85,7 @@ public class GUIMenuButton {
 	/**
 	 * Creates a new button from a 3-part Image.
 	 */
-	public GUIMenuButton(Image imgCenter, Image imgLeft, Image imgRight,
+	public MenuButton(Image imgCenter, Image imgLeft, Image imgRight,
 			float x, float y) {
 		this.img  = imgCenter;
 		this.imgL = imgLeft;
@@ -100,7 +100,7 @@ public class GUIMenuButton {
 	/**
 	 * Creates a new button from an Animation.
 	 */
-	public GUIMenuButton(Animation anim, float x, float y) {
+	public MenuButton(Animation anim, float x, float y) {
 		this.anim = anim;
 		this.x = x;
 		this.y = y;

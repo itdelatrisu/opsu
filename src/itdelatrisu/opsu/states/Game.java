@@ -18,7 +18,7 @@
 
 package itdelatrisu.opsu.states;
 
-import itdelatrisu.opsu.GUIMenuButton;
+import itdelatrisu.opsu.MenuButton;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.GameMod;
 import itdelatrisu.opsu.GameScore;
@@ -133,7 +133,7 @@ public class Game extends BasicGameState {
 	/**
 	 * Skip button (displayed at song start, when necessary).
 	 */
-	private GUIMenuButton skipButton;
+	private MenuButton skipButton;
 
 	/**
 	 * Minimum time before start of song, in milliseconds, to process skip-related actions.
@@ -870,10 +870,10 @@ public class Game extends BasicGameState {
 			GameImage.SKIP.setImage(skip);
 			GameImage.SKIP.setScaled();
 		}
-		skipButton = new GUIMenuButton(skip,
+		skipButton = new MenuButton(skip,
 				width - (skip.getWidth() / 2f),
 				height - (skip.getHeight() / 2f));
-		skipButton.setHoverDir(GUIMenuButton.Expand.UP_LEFT);
+		skipButton.setHoverDir(MenuButton.Expand.UP_LEFT);
 
 		// countdown
 		float countdownHeight = height / 3f;

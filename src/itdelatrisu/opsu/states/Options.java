@@ -18,7 +18,7 @@
 
 package itdelatrisu.opsu.states;
 
-import itdelatrisu.opsu.GUIMenuButton;
+import itdelatrisu.opsu.MenuButton;
 import itdelatrisu.opsu.GameMod;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.OsuFile;
@@ -168,7 +168,7 @@ public class Options extends BasicGameState {
 	/**
 	 * Option tab buttons.
 	 */
-	private static GUIMenuButton[] optionTabs = new GUIMenuButton[TAB_MAX];
+	private static MenuButton[] optionTabs = new MenuButton[TAB_MAX];
 
 	/**
 	 * Current tab.
@@ -440,7 +440,7 @@ public class Options extends BasicGameState {
 		float tabOffset = (float) Math.min(tab.getWidth(), 
 				((width - subtextWidth - tab.getWidth()) / 2) / TAB_MAX);
 		for (int i = 0; i < optionTabs.length; i++)
-			optionTabs[i] = new GUIMenuButton(tab, tabX + (i * tabOffset), tabY);
+			optionTabs[i] = new MenuButton(tab, tabX + (i * tabOffset), tabY);
 	}
 
 	@Override
