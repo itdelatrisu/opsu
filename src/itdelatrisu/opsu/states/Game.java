@@ -193,6 +193,11 @@ public class Game extends BasicGameState {
 	 */
 	private int deathTime = -1;
 
+	/**
+	 * Number of retries.
+	 */
+	private int retries = 0;
+
 	// game-related variables
 	private GameContainer container;
 	private StateBasedGame game;
@@ -246,6 +251,8 @@ public class Game extends BasicGameState {
 			trackPosition = pauseTime;
 		else if (deathTime > -1)  // "Easy" mod: health bar increasing
 			trackPosition = deathTime;
+		int firstObjectTime = osu.objects[0].getTime();
+		int timeDiff = firstObjectTime - trackPosition;
 
 		// checkpoint
 		if (checkpointLoaded) {
@@ -257,8 +264,8 @@ public class Game extends BasicGameState {
 					TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(checkpoint))
 			);
 			Utils.FONT_MEDIUM.drawString(
-					(container.getWidth() - Utils.FONT_MEDIUM.getWidth(checkpointText)) / 2,
-					container.getHeight() - 15 - Utils.FONT_MEDIUM.getLineHeight(),
+					(width - Utils.FONT_MEDIUM.getWidth(checkpointText)) / 2,
+					height - 15 - Utils.FONT_MEDIUM.getLineHeight(),
 					checkpointText, Color.white
 			);
 		}
@@ -323,16 +330,31 @@ public class Game extends BasicGameState {
 
 		// skip beginning
 		if (objectIndex == 0 &&
-			osu.objects[0].getTime() - SKIP_OFFSET > 5000 &&
-			trackPosition < osu.objects[0].getTime() - SKIP_OFFSET)
+		    firstObjectTime - SKIP_OFFSET > 5000 &&
+		    trackPosition < osu.objects[0].getTime() - SKIP_OFFSET)
 			skipButton.draw();
+
+		// show retries
+		if (retries >= 2 && timeDiff >= -1000) {
+			int retryHeight = Math.max(
+					GameImage.SCOREBAR_BG.getImage().getHeight(),
+					GameImage.SCOREBAR_KI.getImage().getHeight()
+			);
+			if (timeDiff < -500)
+				Utils.COLOR_WHITE_FADE.a = (1000 + timeDiff) / 500f;
+			Utils.FONT_MEDIUM.drawString(
+					2 + (width / 100), retryHeight,
+					String.format("%d retries and counting...", retries),
+					Utils.COLOR_WHITE_FADE
+			);
+			Utils.COLOR_WHITE_FADE.a = 1f;
+		}
 
 		if (isLeadIn())
 			trackPosition = leadInTime * -1;  // render approach circles during song lead-in
 
 		// countdown
 		if (osu.countdown > 0) {  // TODO: implement half/double rate settings
-			int timeDiff = osu.objects[0].getTime() - trackPosition;
 			if (timeDiff >= 500 && timeDiff < 3000) {
 				if (timeDiff >= 1500) {
 					GameImage.COUNTDOWN_READY.getImage().drawCentered(width / 2, height / 2);
@@ -582,6 +604,8 @@ public class Game extends BasicGameState {
 
 	@Override
 	public void keyPressed(int key, char c) {
+		int trackPosition = MusicController.getPosition();
+
 		// game keys
 		if (!Keyboard.isRepeatEvent()) {
 			if (key == Options.getGameKeyLeft())
@@ -593,7 +617,6 @@ public class Game extends BasicGameState {
 		switch (key) {
 		case Input.KEY_ESCAPE:
 			// pause game
-			int trackPosition = MusicController.getPosition();
 			if (pauseTime < 0 && breakTime <= 0 &&
 				trackPosition >= osu.objects[0].getTime() &&
 				!GameMod.AUTO.isActive()) {
@@ -613,6 +636,8 @@ public class Game extends BasicGameState {
 			// restart
 			if (input.isKeyDown(Input.KEY_RCONTROL) || input.isKeyDown(Input.KEY_LCONTROL)) {
 				try {
+					if (trackPosition < osu.objects[0].getTime())
+						retries--;  // don't count this retry (cancel out later increment)
 					restart = RESTART_MANUAL;
 					enter(container, game);
 					skipIntro();
@@ -627,7 +652,7 @@ public class Game extends BasicGameState {
 				if (isLeadIn())
 					break;
 
-				int position = (pauseTime > -1) ? pauseTime : MusicController.getPosition();
+				int position = (pauseTime > -1) ? pauseTime : trackPosition;
 				if (Options.setCheckpoint(position / 1000))
 					SoundController.playSound(SoundController.SOUND_MENUCLICK);
 			}
@@ -651,7 +676,7 @@ public class Game extends BasicGameState {
 					// skip to checkpoint
 					MusicController.setPosition(checkpoint);
 					while (objectIndex < osu.objects.length &&
-							osu.objects[objectIndex++].getTime() <= MusicController.getPosition())
+							osu.objects[objectIndex++].getTime() <= trackPosition)
 						;
 					objectIndex--;
 				} catch (SlickException e) {
@@ -730,7 +755,9 @@ public class Game extends BasicGameState {
 			if (restart == RESTART_NEW) {
 				loadImages();
 				setMapModifiers();
-			}
+				retries = 0;
+			} else
+				retries++;
 
 			// initialize object maps
 			circles = new HashMap<Integer, Circle>();

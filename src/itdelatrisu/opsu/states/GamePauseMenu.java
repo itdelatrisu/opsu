@@ -128,8 +128,18 @@ public class GamePauseMenu extends BasicGameState {
 				MusicController.playAt(MusicController.getOsuFile().previewTime, true);
 				SoundController.playSound(SoundController.SOUND_MENUBACK);
 				game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
-			} else
-				unPause(Game.RESTART_FALSE);
+			} else {
+				SoundController.playSound(SoundController.SOUND_MENUBACK);
+				Game.setRestart(Game.RESTART_FALSE);
+				game.enterState(Opsu.STATE_GAME);
+			}
+			break;
+		case Input.KEY_R:
+			// restart
+			if (input.isKeyDown(Input.KEY_RCONTROL) || input.isKeyDown(Input.KEY_LCONTROL)) {
+				Game.setRestart(Game.RESTART_MANUAL);
+				game.enterState(Opsu.STATE_GAME);
+			}
 			break;
 		case Input.KEY_F12:
 			Utils.takeScreenShot();
@@ -148,10 +158,14 @@ public class GamePauseMenu extends BasicGameState {
 		if (loseState && System.currentTimeMillis() - pauseStartTime < FADEOUT_TIME)
 			return;
 
-		if (continueButton.contains(x, y) && !loseState)
-			unPause(Game.RESTART_FALSE);
-		else if (retryButton.contains(x, y)) {
-			unPause(Game.RESTART_MANUAL);
+		if (continueButton.contains(x, y) && !loseState) {
+			SoundController.playSound(SoundController.SOUND_MENUBACK);
+			Game.setRestart(Game.RESTART_FALSE);
+			game.enterState(Opsu.STATE_GAME);
+		} else if (retryButton.contains(x, y)) {
+			SoundController.playSound(SoundController.SOUND_MENUHIT);
+			Game.setRestart(Game.RESTART_MANUAL);
+			game.enterState(Opsu.STATE_GAME);
 		} else if (backButton.contains(x, y)) {
 			MusicController.pause();  // lose state
 			MusicController.playAt(MusicController.getOsuFile().previewTime, true);
@@ -172,18 +186,6 @@ public class GamePauseMenu extends BasicGameState {
 		continueButton.setScale(1f);
 		retryButton.setScale(1f);
 		backButton.setScale(1f);
-	}
-
-	/**
-	 * Unpause and return to the Game state.
-	 */
-	private void unPause(byte restart) {
-		if (restart == Game.RESTART_MANUAL)
-			SoundController.playSound(SoundController.SOUND_MENUHIT);
-		else
-			SoundController.playSound(SoundController.SOUND_MENUBACK);
-		Game.setRestart(restart);
-		game.enterState(Opsu.STATE_GAME);
 	}
 
 	/**
