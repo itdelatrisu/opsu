@@ -490,7 +490,7 @@ public class Game extends BasicGameState {
 			}
 		}
 
-		score.updateScoreDisplay(delta);
+		score.updateDisplays(delta);
 
 		// map complete!
 		if (objectIndex >= osu.objects.length) {
@@ -517,10 +517,8 @@ public class Game extends BasicGameState {
 		}
 
 		// song beginning
-		if (objectIndex == 0) {
-			if (trackPosition < osu.objects[0].getTime())
-				return;  // nothing to do here
-		}
+		if (objectIndex == 0 && trackPosition < osu.objects[0].getTime())
+			return;  // nothing to do here
 
 		// break periods
 		if (osu.breaks != null && breakIndex < osu.breaks.size()) {
@@ -553,8 +551,6 @@ public class Game extends BasicGameState {
 				pauseTime = trackPosition;
 			game.enterState(Opsu.STATE_GAMEPAUSEMENU);
 		}
-
-		score.updateComboBurst(delta);
 
 		// drain health
 		score.changeHealth(delta * -1 * GameScore.HP_DRAIN_MULTIPLIER);

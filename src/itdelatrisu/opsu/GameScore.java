@@ -175,6 +175,11 @@ public class GameScore {
 	private float health;
 
 	/**
+	 * Displayed health (for animation, slightly behind health).
+	 */
+	private float healthDisplay;
+
+	/**
 	 * Beatmap HPDrainRate value. (0:easy ~ 10:hard)
 	 */
 	private float drainRate = 5f;
@@ -228,6 +233,7 @@ public class GameScore {
 		score = 0;
 		scoreDisplay = 0;
 		health = 100f;
+		healthDisplay = 100f;
 		hitResultCount = new int[HIT_MAX];
 		hitResultList = new LinkedList<OsuHitObjectResult>();
 		objectCount = 0;
@@ -533,7 +539,7 @@ public class GameScore {
 
 		if (!breakPeriod) {
 			// scorebar
-			float healthRatio = health / 100f;
+			float healthRatio = healthDisplay / 100f;
 			if (firstObject) {  // gradually move ki before map begins
 				if (firstObjectTime >= 1500 && trackPosition < firstObjectTime - 500)
 					healthRatio = (float) trackPosition / (firstObjectTime - 500);
@@ -762,22 +768,32 @@ public class GameScore {
 	}
 
 	/**
-	 * Updates the score display based on a delta value.
+	 * Updates the score, health, and combo burst displays based on a delta value.
 	 * @param delta the delta interval since the last call
 	 */
-	public void updateScoreDisplay(int delta) {
+	public void updateDisplays(int delta) {
+		// score display
 		if (scoreDisplay < score) {
 			scoreDisplay += (score - scoreDisplay) * delta / 50 + 1;
 			if (scoreDisplay > score)
 				scoreDisplay = score;
 		}
-	}
 
-	/**
-	 * Updates combo burst data based on a delta value.
-	 * @param delta the delta interval since the last call
-	 */
-	public void updateComboBurst(int delta) {
+		// health display
+		if (healthDisplay != health) {
+			float shift = delta / 15f;
+			if (healthDisplay < health) {
+				healthDisplay += shift;
+				if (healthDisplay > health)
+					healthDisplay = health;
+			} else {
+				healthDisplay -= shift;
+				if (healthDisplay < health)
+					healthDisplay = health;
+			}
+		}
+
+		// combo burst
 		if (comboBurstIndex > -1 && Options.isComboBurstEnabled()) {
 			int leftX  = 0;
 			int rightX = width - comboBurstImages[comboBurstIndex].getWidth();
