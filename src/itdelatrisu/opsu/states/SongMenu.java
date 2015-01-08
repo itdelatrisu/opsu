@@ -86,6 +86,11 @@ public class SongMenu extends BasicGameState {
 	private int oldFileIndex = -1;
 
 	/**
+	 * Current focus node's song information.
+	 */
+	private String[] songInfo;
+
+	/**
 	 * Button coordinate values.
 	 */
 	private float
@@ -208,17 +213,18 @@ public class SongMenu extends BasicGameState {
 			int iconWidth = musicNote.getWidth();
 			int iconHeight = musicNote.getHeight();
 
-			String[] info = focusNode.getInfo();
+			if (songInfo == null)
+				songInfo = focusNode.getInfo();
 			g.setColor(Color.white);
-			Utils.FONT_LARGE.drawString(iconWidth + 5, -3, info[0]);
+			Utils.FONT_LARGE.drawString(iconWidth + 5, -3, songInfo[0]);
 			Utils.FONT_DEFAULT.drawString(
-					iconWidth + 5, -3 + Utils.FONT_LARGE.getLineHeight() * 0.75f, info[1]);
+					iconWidth + 5, -3 + Utils.FONT_LARGE.getLineHeight() * 0.75f, songInfo[1]);
 			int headerY = iconHeight - 3;
-			Utils.FONT_BOLD.drawString(5, headerY, info[2]);
+			Utils.FONT_BOLD.drawString(5, headerY, songInfo[2]);
 			headerY += Utils.FONT_BOLD.getLineHeight() - 6;
-			Utils.FONT_DEFAULT.drawString(5, headerY, info[3]);
+			Utils.FONT_DEFAULT.drawString(5, headerY, songInfo[3]);
 			headerY += Utils.FONT_DEFAULT.getLineHeight() - 4;
-			Utils.FONT_SMALL.drawString(5, headerY, info[4]);
+			Utils.FONT_SMALL.drawString(5, headerY, songInfo[4]);
 		}
 
 		// song buttons
@@ -546,6 +552,7 @@ public class SongMenu extends BasicGameState {
 		if (node == null)
 			return null;
 
+		songInfo = null;
 		OsuGroupNode oldFocus = focusNode;
 
 		// expand node before focusing it

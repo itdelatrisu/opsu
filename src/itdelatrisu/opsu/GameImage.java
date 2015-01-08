@@ -324,7 +324,7 @@ public enum GameImage {
 	}
 
 	/**
-	 * Game image constructor.
+	 * Constructor.
 	 * @param filename the image file name
 	 */
 	GameImage(String filename) {
@@ -333,7 +333,7 @@ public enum GameImage {
 	}
 
 	/**
-	 * Game image constructor.
+	 * Constructor.
 	 * @param filename the image file name
 	 * @param gameImage whether or not the image is related to gameplay
 	 */

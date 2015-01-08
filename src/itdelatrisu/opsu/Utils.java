@@ -500,6 +500,9 @@ public class Utils {
 	 * @param osu the OsuFile
 	 */
 	public static void loadGlyphs(OsuFile osu) {
+		if (!Options.useUnicodeMetadata())
+			return;
+
 		boolean glyphsAdded = false;
 		if (!osu.titleUnicode.isEmpty() && !loadedGlyphs.contains(osu.titleUnicode)) {
 			Utils.FONT_LARGE.addGlyphs(osu.titleUnicode);
@@ -515,7 +518,7 @@ public class Utils {
 			loadedGlyphs.add(osu.artistUnicode);
 			glyphsAdded = true;
 		}
-		if (glyphsAdded && Options.useUnicodeMetadata()) {
+		if (glyphsAdded) {
 			try {
 				Utils.FONT_LARGE.loadGlyphs();
 				Utils.FONT_MEDIUM.loadGlyphs();

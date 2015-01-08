@@ -24,6 +24,8 @@ import java.io.FilenameFilter;
 import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
 
+import org.newdawn.slick.util.Log;
+
 /**
  * Unpacker for OSZ (ZIP) archives.
  */
@@ -83,7 +85,8 @@ public class OszUnpacker {
 			ZipFile zipFile = new ZipFile(file);
 			zipFile.extractAll(dest.getAbsolutePath());
 		} catch (ZipException e) {
-			e.printStackTrace();
+			Log.error(String.format("Failed to unzip file %s to dest %s.",
+					file.getAbsolutePath(), dest.getAbsolutePath()), e);
 		}
 	}
 
