@@ -204,12 +204,99 @@ public enum GameImage {
 	SCORE_COMMA ("score-comma.png"),
 	SCORE_DOT ("score-dot.png"),
 	SCORE_PERCENT ("score-percent.png"),
-	SCORE_X ("score-x.png");
+	SCORE_X ("score-x.png"),
+
+	// Non-Game Components
+	MENU_BACK ("menu-back.png", false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy((h * 0.1f) / img.getHeight());
+		}
+	},
+	MENU_BUTTON_BG ("menu-button-background.png", false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy(w / 2, h / 6);
+		}
+	},
+	MENU_TAB ("selection-tab.png", false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy((h * 0.033f) / img.getHeight());
+		}
+	},
+	MENU_SEARCH ("search.png", false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy(Utils.FONT_BOLD.getLineHeight() * 2f / img.getHeight());
+		}
+	},
+	MENU_OPTIONS ("options.png", false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy(Utils.FONT_BOLD.getLineHeight() * 2f / img.getHeight());
+		}
+	},
+	MENU_MUSICNOTE ("music-note.png", false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			int r = (int) (Utils.FONT_LARGE.getLineHeight() * 0.75f + Utils.FONT_DEFAULT.getLineHeight());
+			return img.getScaledCopy(r, r);
+		}
+	},
+	MENU_LOADER ("loader.png", false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			int r = (int) (Utils.FONT_LARGE.getLineHeight() * 0.75f + Utils.FONT_DEFAULT.getLineHeight());
+			return img.getScaledCopy(r / 48f);
+		}
+	},
+	MENU_LOGO ("logo.png", false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy((h / 1.2f) / img.getHeight());
+		}
+	},
+	// TODO: scale MENU_PLAY and MENU_EXIT
+	MENU_PlAY ("menu-play.png", false),
+	MENU_EXIT ("menu-exit.png", false),
+	MENU_BUTTON_MID ("button-middle.png", false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy(w / 2, img.getHeight());
+		}
+	},
+	MENU_BUTTON_LEFT ("button-left.png", false),
+	MENU_BUTTON_RIGHT ("button-right.png", false),
+
+	MUSIC_PLAY ("music-play.png", false),
+	MUSIC_PAUSE ("music-pause.png", false),
+	MUSIC_NEXT ("music-next.png", false),
+	MUSIC_PREVIOUS ("music-previous.png", false),
+
+	RANKING_RETRY ("ranking-retry.png", false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy((h * 0.15f) / img.getHeight());
+		}
+	},
+	RANKING_EXIT ("ranking-back.png", false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy((h * 0.15f) / img.getHeight());
+		}
+	};
 
 	/**
 	 * The file name.
 	 */
 	private String filename;
+
+	/**
+	 * Whether or not the image is related to gameplay.
+	 * Game images are skinnable per beatmap, while other images are not.
+	 */
+	private boolean gameImage;
 
 	/**
 	 * The default image.
@@ -237,12 +324,29 @@ public enum GameImage {
 	}
 
 	/**
-	 * Constructor.
+	 * Game image constructor.
 	 * @param filename the image file name
 	 */
 	GameImage(String filename) {
 		this.filename = filename;
+		this.gameImage = true;
 	}
+
+	/**
+	 * Game image constructor.
+	 * @param filename the image file name
+	 * @param gameImage whether or not the image is related to gameplay
+	 */
+	GameImage(String filename, boolean gameImage) {
+		this.filename = filename;
+		this.gameImage = gameImage;
+	}
+
+	/**
+	 * Returns whether or not the image is related to gameplay.
+	 * @return true if game image
+	 */
+	public boolean isGameImage() { return gameImage; }
 
 	/**
 	 * Returns the image associated with this resource.

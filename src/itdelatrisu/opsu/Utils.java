@@ -89,11 +89,6 @@ public class Utils {
 	private static MenuButton backButton;
 
 	/**
-	 * Tab image (shared by other states).
-	 */
-	private static Image tab;
-
-	/**
 	 * Cursor image and trail.
 	 */
 	private static Image cursor, cursorTrail, cursorMiddle;
@@ -188,20 +183,6 @@ public class Utils {
 			Log.error("Failed to load fonts.", e);
 		}
 
-		// tab image
-		tab = new Image("selection-tab.png");
-		float tabScale = (height * 0.033f) / tab.getHeight();
-		tab = tab.getScaledCopy(tabScale);
-
-		// back button
-		Image back = new Image("menu-back.png");
-		float scale = (height * 0.1f) / back.getHeight();
-		back = back.getScaledCopy(scale);
-		backButton = new MenuButton(back,
-				back.getWidth() / 2f,
-				height - (back.getHeight() / 2f));
-		backButton.setHoverDir(MenuButton.Expand.UP_RIGHT);
-
 		// set default game images
 		GameImage.init(width, height);
 		for (GameImage img : GameImage.values()) {
@@ -215,13 +196,15 @@ public class Utils {
 
 		// initialize sorts
 		for (SongSort sort : SongSort.values())
-			sort.init(tab, width, height);
-	}
+			sort.init(width, height);
 
-	/**
-	 * Returns the 'selection-tab' image.
-	 */
-	public static Image getTabImage() { return tab; }
+		// back button
+		Image back = GameImage.MENU_BACK.getImage();
+		backButton = new MenuButton(back,
+				back.getWidth() / 2f,
+				height - (back.getHeight() / 2f));
+		backButton.setHoverDir(MenuButton.Expand.UP_RIGHT);
+	}
 
 	/**
 	 * Returns the 'menu-back' MenuButton.

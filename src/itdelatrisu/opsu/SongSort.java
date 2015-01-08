@@ -178,12 +178,13 @@ public enum SongSort {
 	 * @param width the container width
 	 * @param height the container height
 	 */
-	public void init(Image img, int width, int height) {
+	public void init(int width, int height) {
+		Image tab = GameImage.MENU_TAB.getImage();
 		float buttonX = width * 0.6f;
-		float tabOffset = (width - buttonX - img.getWidth()) / (SIZE - 1);
-		this.tab = new MenuButton(img,
-				(buttonX + (img.getWidth() / 2f)) + (id * tabOffset),
-				(height * 0.15f) - (img.getHeight() / 2f) - 2f
+		float tabOffset = (width - buttonX - tab.getWidth()) / (SIZE - 1);
+		this.tab = new MenuButton(tab,
+				(buttonX + (tab.getWidth() / 2f)) + (id * tabOffset),
+				(height * 0.15f) - (tab.getHeight() / 2f) - 2f
 		);
 	}
 

@@ -18,6 +18,7 @@
 
 package itdelatrisu.opsu.states;
 
+import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.OsuParser;
 import itdelatrisu.opsu.OszUnpacker;
@@ -43,11 +44,6 @@ import org.newdawn.slick.state.StateBasedGame;
  */
 public class Splash extends BasicGameState {
 	/**
-	 * Logo image.
-	 */
-	private Image logo;
-
-	/**
 	 * Whether or not loading has completed.
 	 */
 	private boolean finished = false;
@@ -66,19 +62,17 @@ public class Splash extends BasicGameState {
 			throws SlickException {
 		this.container = container;
 
-		logo = new Image("logo.png");
-		logo = logo.getScaledCopy((container.getHeight() / 1.2f) / logo.getHeight());
-		logo.setAlpha(0f);
-
 		// load Utils class first (needed in other 'init' methods)
 		Utils.init(container, game);
+
+		GameImage.MENU_LOGO.getImage().setAlpha(0f);
 	}
 
 	@Override
 	public void render(GameContainer container, StateBasedGame game, Graphics g)
 			throws SlickException {
 		g.setBackground(Color.black);
-		logo.drawCentered(container.getWidth() / 2, container.getHeight() / 2);
+		GameImage.MENU_LOGO.getImage().drawCentered(container.getWidth() / 2, container.getHeight() / 2);
 
 		// display progress
 		String unpackedFile = OszUnpacker.getCurrentFileName();
@@ -131,9 +125,10 @@ public class Splash extends BasicGameState {
 		}
 
 		// fade in logo
+		Image logo = GameImage.MENU_LOGO.getImage();
 		float alpha = logo.getAlpha();
 		if (alpha < 1f)
-			logo.setAlpha(alpha + (delta / 400f));
+			logo.setAlpha(alpha + (delta / 500f));
 
 		// change states when loading complete
 		if (finished && alpha >= 1f) {

@@ -18,6 +18,7 @@
 
 package itdelatrisu.opsu.states;
 
+import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.MenuButton;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.OsuFile;
@@ -113,16 +114,6 @@ public class SongMenu extends BasicGameState {
 	private String searchResultString;
 
 	/**
-	 * Search icon.
-	 */
-	private Image searchIcon;
-
-	/**
-	 * Music note icon.
-	 */
-	private Image musicNote;
-
-	/**
 	 * Loader animation.
 	 */
 	private Animation loader;
@@ -148,7 +139,7 @@ public class SongMenu extends BasicGameState {
 		int height = container.getHeight();
 
 		// song button background & graphics context
-		Image menuBackground = new Image("menu-button-background.png").getScaledCopy(width / 2, height / 6);
+		Image menuBackground = GameImage.MENU_BUTTON_BG.getImage();
 		OsuGroupNode.setBackground(menuBackground);
 
 		// song button coordinates
@@ -161,12 +152,8 @@ public class SongMenu extends BasicGameState {
 		// search
 		searchTimer = 0;
 		searchResultString = "Type to search!";
-
-		searchIcon = new Image("search.png");
-		float iconScale = Utils.FONT_BOLD.getLineHeight() * 2f / searchIcon.getHeight();
-		searchIcon = searchIcon.getScaledCopy(iconScale);
-
-		Image tab = Utils.getTabImage();
+		Image searchIcon = GameImage.MENU_SEARCH.getImage();
+		Image tab = GameImage.MENU_TAB.getImage();
 		search = new TextField(
 				container, Utils.FONT_DEFAULT,
 				(int) buttonX + (tab.getWidth() / 2) + searchIcon.getWidth(),
@@ -180,19 +167,13 @@ public class SongMenu extends BasicGameState {
 		search.setMaxLength(60);
 
 		// options button
-		Image optionsIcon = new Image("options.png").getScaledCopy(iconScale);
+		Image optionsIcon = GameImage.MENU_OPTIONS.getImage();
 		optionsButton = new MenuButton(optionsIcon, search.getX() - (optionsIcon.getWidth() * 1.5f), search.getY());
 		optionsButton.setHoverScale(1.75f);
 
-		// music note
-		int musicNoteDim = (int) (Utils.FONT_LARGE.getLineHeight() * 0.75f + Utils.FONT_DEFAULT.getLineHeight());
-		musicNote = new Image("music-note.png").getScaledCopy(musicNoteDim, musicNoteDim);
-
 		// loader
-		SpriteSheet spr = new SpriteSheet(
-				new Image("loader.png").getScaledCopy(musicNoteDim / 48f),
-				musicNoteDim, musicNoteDim
-		);
+		int loaderDim = GameImage.MENU_MUSICNOTE.getImage().getWidth();
+		SpriteSheet spr = new SpriteSheet(GameImage.MENU_LOADER.getImage(), loaderDim, loaderDim);
 		loader = new Animation(spr, 50);
 	}
 
@@ -219,6 +200,7 @@ public class SongMenu extends BasicGameState {
 
 		// header
 		if (focusNode != null) {
+			Image musicNote = GameImage.MENU_MUSICNOTE.getImage();
 			if (MusicController.isTrackLoading())
 				loader.draw();
 			else
@@ -254,6 +236,7 @@ public class SongMenu extends BasicGameState {
 		SongSort.drawAll();
 
 		// search
+		Image searchIcon = GameImage.MENU_SEARCH.getImage();
 		Utils.FONT_BOLD.drawString(
 				search.getX(), search.getY() - Utils.FONT_BOLD.getLineHeight(),
 				searchResultString, Color.white

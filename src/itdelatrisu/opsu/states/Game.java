@@ -858,7 +858,7 @@ public class Game extends BasicGameState {
 		// set images
 		File parent = osu.getFile().getParentFile();
 		for (GameImage img : GameImage.values()) {
-			if (img.setSkinImage(parent))
+			if (img.isGameImage() && img.setSkinImage(parent))
 				img.process();
 		}
 

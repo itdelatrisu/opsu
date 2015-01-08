@@ -18,6 +18,7 @@
 
 package itdelatrisu.opsu.states;
 
+import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.MenuButton;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.Utils;
@@ -72,10 +73,9 @@ public class MainMenuExit extends BasicGameState {
 		centerOffset = width / 18f;
 
 		// initialize buttons
-		Image button = new Image("button-middle.png");
-		Image buttonL = new Image("button-left.png");
-		Image buttonR = new Image("button-right.png");
-		button = button.getScaledCopy(width / 2, button.getHeight());
+		Image button = GameImage.MENU_BUTTON_MID.getImage();
+		Image buttonL = GameImage.MENU_BUTTON_LEFT.getImage();
+		Image buttonR = GameImage.MENU_BUTTON_RIGHT.getImage();
 		yesButton = new MenuButton(button, buttonL, buttonR,
 				width / 2f + centerOffset, height * 0.2f
 		);

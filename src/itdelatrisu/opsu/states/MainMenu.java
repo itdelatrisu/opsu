@@ -18,6 +18,7 @@
 
 package itdelatrisu.opsu.states;
 
+import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.MenuButton;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.OsuFile;
@@ -125,14 +126,15 @@ public class MainMenu extends BasicGameState {
 		int height = container.getHeight();
 
 		// initialize buttons
+		// TODO: clean this up, scale in GameImage.process_sub()
 		Image logoImg = new Image("logo.png");
 		float buttonScale = (height / 1.2f) / logoImg.getHeight();
-		Image logoImgScaled = logoImg.getScaledCopy(buttonScale);
+		Image logoImgScaled = GameImage.MENU_LOGO.getImage();
 		logo = new MenuButton(logoImgScaled, width / 2f, height / 2f);
 		logo.setHoverScale(1.05f);
 
-		Image playImg = new Image("menu-play.png");
-		Image exitImg = new Image("menu-exit.png");
+		Image playImg = GameImage.MENU_PlAY.getImage();
+		Image exitImg = GameImage.MENU_EXIT.getImage();
 		playImg = playImg.getScaledCopy((logoImg.getWidth() * 0.83f) / playImg.getWidth());
 		exitImg = exitImg.getScaledCopy((logoImg.getWidth() * 0.66f) / exitImg.getWidth());
 		float exitOffset = (playImg.getWidth() - exitImg.getWidth()) / 3f;
@@ -148,10 +150,10 @@ public class MainMenu extends BasicGameState {
 		// initialize music buttons
 		int musicWidth  = 48;
 		int musicHeight = 30;
-		musicPlay     = new MenuButton(new Image("music-play.png"), width - (2 * musicWidth), musicHeight);
-		musicPause    = new MenuButton(new Image("music-pause.png"), width - (2 * musicWidth), musicHeight);
-		musicNext     = new MenuButton(new Image("music-next.png"), width - musicWidth, musicHeight);
-		musicPrevious = new MenuButton(new Image("music-previous.png"), width - (3 * musicWidth), musicHeight);
+		musicPlay     = new MenuButton(GameImage.MUSIC_PLAY.getImage(), width - (2 * musicWidth), musicHeight);
+		musicPause    = new MenuButton(GameImage.MUSIC_PAUSE.getImage(), width - (2 * musicWidth), musicHeight);
+		musicNext     = new MenuButton(GameImage.MUSIC_NEXT.getImage(), width - musicWidth, musicHeight);
+		musicPrevious = new MenuButton(GameImage.MUSIC_PREVIOUS.getImage(), width - (3 * musicWidth), musicHeight);
 		musicPlay.setHoverScale(1.5f);
 		musicPause.setHoverScale(1.5f);
 		musicNext.setHoverScale(1.5f);

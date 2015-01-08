@@ -18,6 +18,7 @@
 
 package itdelatrisu.opsu.states;
 
+import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.GameMod;
 import itdelatrisu.opsu.GameScore;
 import itdelatrisu.opsu.MenuButton;
@@ -80,11 +81,8 @@ public class GameRanking extends BasicGameState {
 		int height = container.getHeight();
 
 		// buttons
-		Image retry = new Image("ranking-retry.png");
-		Image exit  = new Image("ranking-back.png");
-		float scale = (height * 0.15f) / retry.getHeight();
-		retry = retry.getScaledCopy(scale);
-		exit  = exit.getScaledCopy(scale);
+		Image retry = GameImage.RANKING_RETRY.getImage();
+		Image exit  = GameImage.RANKING_EXIT.getImage();
 		retryButton = new MenuButton(retry,
 				width - (retry.getWidth() / 2f),
 				(height * 0.97f) - (exit.getHeight() * 1.5f)

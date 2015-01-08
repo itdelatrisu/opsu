@@ -18,6 +18,7 @@
 
 package itdelatrisu.opsu.states;
 
+import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.GameMod;
 import itdelatrisu.opsu.MenuButton;
 import itdelatrisu.opsu.Opsu;
@@ -434,7 +435,7 @@ public class Options extends BasicGameState {
 		offsetY = (int) (((height * 0.8f) - textY) / maxOptionsScreen);
 
 		// option tabs
-		Image tab = Utils.getTabImage();
+		Image tab = GameImage.MENU_TAB.getImage();
 		int subtextWidth = Utils.FONT_DEFAULT.getWidth("Click or drag an option to change it.");
 		float tabX = (width / 50) + (tab.getWidth() / 2f);
 		float tabY = 15 + Utils.FONT_XLARGE.getLineHeight() + (tab.getHeight() / 2f);
