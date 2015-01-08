@@ -18,14 +18,15 @@
 
 package itdelatrisu.opsu.states;
 
-import itdelatrisu.opsu.MenuButton;
 import itdelatrisu.opsu.GameMod;
 import itdelatrisu.opsu.GameScore;
-import itdelatrisu.opsu.MusicController;
+import itdelatrisu.opsu.MenuButton;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.OsuFile;
-import itdelatrisu.opsu.SoundController;
 import itdelatrisu.opsu.Utils;
+import itdelatrisu.opsu.audio.MusicController;
+import itdelatrisu.opsu.audio.SoundController;
+import itdelatrisu.opsu.audio.SoundEffect;
 
 import org.lwjgl.opengl.Display;
 import org.newdawn.slick.Color;
@@ -153,7 +154,7 @@ public class GameRanking extends BasicGameState {
 		case Input.KEY_ESCAPE:
 			MusicController.pause();
 			MusicController.playAt(MusicController.getOsuFile().previewTime, true);
-			SoundController.playSound(SoundController.SOUND_MENUBACK);
+			SoundController.playSound(SoundEffect.MENUBACK);
 			game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 			break;
 		case Input.KEY_F12:
@@ -172,16 +173,16 @@ public class GameRanking extends BasicGameState {
 			OsuFile osu = MusicController.getOsuFile();
 			Display.setTitle(String.format("%s - %s", game.getTitle(), osu.toString()));
 			Game.setRestart(Game.RESTART_MANUAL);
-			SoundController.playSound(SoundController.SOUND_MENUHIT);
+			SoundController.playSound(SoundEffect.MENUHIT);
 			game.enterState(Opsu.STATE_GAME, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 		} else if (exitButton.contains(x, y)) {
-			SoundController.playSound(SoundController.SOUND_MENUBACK);
+			SoundController.playSound(SoundEffect.MENUBACK);
 			((MainMenu) game.getState(Opsu.STATE_MAINMENU)).reset();
 			game.enterState(Opsu.STATE_MAINMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 		} else if (Utils.getBackButton().contains(x, y)) {
 			MusicController.pause();
 			MusicController.playAt(MusicController.getOsuFile().previewTime, true);
-			SoundController.playSound(SoundController.SOUND_MENUBACK);
+			SoundController.playSound(SoundEffect.MENUBACK);
 			game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 		}
 	}
@@ -191,6 +192,6 @@ public class GameRanking extends BasicGameState {
 			throws SlickException {
 		Display.setTitle(game.getTitle());
 		Utils.getBackButton().setScale(1f);
-		SoundController.playSound(SoundController.SOUND_APPLAUSE);
+		SoundController.playSound(SoundEffect.APPLAUSE);
 	}
 }

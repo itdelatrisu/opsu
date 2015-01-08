@@ -16,8 +16,10 @@
  * along with opsu!.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package itdelatrisu.opsu;
+package itdelatrisu.opsu.audio;
 
+import itdelatrisu.opsu.OsuHitObject;
+import itdelatrisu.opsu.audio.HitSound.SampleSet;
 import itdelatrisu.opsu.states.Options;
 
 import java.io.IOException;
@@ -36,108 +38,20 @@ import org.newdawn.slick.util.Log;
 import org.newdawn.slick.util.ResourceLoader;
 
 /**
- * Controller for all sound effects.
+ * Controller for all (non-music) sound components.
  * Note: Uses Java Sound because OpenAL lags too much for accurate hit sounds.
  */
 public class SoundController {
 	/**
-	 * Sound effect constants.
+	 * Interface for all (non-music) sound components.
 	 */
-	public static final int
-		SOUND_APPLAUSE     = 0,
-		SOUND_COMBOBREAK   = 1,
-//		SOUND_COUNT        = ,  // ?
-		SOUND_COUNT1       = 2,
-		SOUND_COUNT2       = 3,
-		SOUND_COUNT3       = 4,
-		SOUND_FAIL         = 5,
-		SOUND_GO           = 6,
-		SOUND_MENUBACK     = 7,
-		SOUND_MENUCLICK    = 8,
-		SOUND_MENUHIT      = 9,
-		SOUND_READY        = 10,
-		SOUND_SECTIONFAIL  = 11,
-		SOUND_SECTIONPASS  = 12,
-		SOUND_SHUTTER      = 13,
-		SOUND_SPINNERBONUS = 14,
-		SOUND_SPINNEROSU   = 15,
-		SOUND_SPINNERSPIN  = 16,
-		SOUND_MAX          = 17;  // not a sound
-
-	/**
-	 * Sound effect names (indexed by SOUND_* constants).
-	 */
-	private static final String[] soundNames = {
-		"applause",
-		"combobreak",
-//		"count",  // ?
-		"count1s",
-		"count2s",
-		"count3s",
-		"failsound",
-		"gos",
-		"menuback",
-		"menuclick",
-		"menuhit",
-		"readys",
-		"sectionfail",
-		"sectionpass",
-		"shutter",
-		"spinnerbonus",
-		"spinner-osu",
-		"spinnerspin",
-	};
-
-	/**
-	 * Sound effects (indexed by SOUND_* constants).
-	 */
-	private static Clip[] sounds = new Clip[SOUND_MAX];
-
-	/**
-	 * Sound sample sets.
-	 */
-	private static final String[] sampleSets = {
-		"normal",
-		"soft",
-		"drum",
-//		"taiko"
-	};
-
-	/**
-	 * Current sample set (index in sampleSet[] array).
-	 */
-	private static int sampleSetIndex = -1;
-
-	/**
-	 * Hit sound effects.
-	 */
-	public static final int
-		HIT_CLAP          = 0,
-		HIT_FINISH        = 1,
-		HIT_NORMAL        = 2,
-		HIT_WHISTLE       = 3,
-		HIT_SLIDERSLIDE   = 4,
-		HIT_SLIDERTICK    = 5,
-		HIT_SLIDERWHISTLE = 6,
-		HIT_MAX           = 7;  // not a sound
-
-	/**
-	 * Hit sound effect names (indexed by HIT_* constants).
-	 */
-	private static final String[] hitSoundNames = {
-		"hitclap",
-		"hitfinish",
-		"hitnormal",
-		"hitwhistle",
-		"sliderslide",
-		"slidertick",
-		"sliderwhistle"
-	};
-
-	/**
-	 * Hit sound effects (indexed by sampleSets[], HIT_* constants).
-	 */
-	private static Clip[][] hitSounds = new Clip[sampleSets.length][HIT_MAX];
+	public interface SoundComponent {
+		/**
+		 * Returns the Clip associated with the sound component.
+		 * @return the Clip
+		 */
+		public Clip getClip();
+	}
 
 	/**
 	 * Sample volume multiplier, from timing points [0, 1].
@@ -175,7 +89,7 @@ public class SoundController {
 
 			clip.open(audioIn);
 			return clip;
-		} catch (UnsupportedAudioFileException | IOException | LineUnavailableException e) {
+		} catch (UnsupportedAudioFileException | IOException | LineUnavailableException | RuntimeException e) {
 			Log.error(String.format("Failed to load file '%s'.", ref), e);
 		}
 		return null;
@@ -192,44 +106,23 @@ public class SoundController {
 		currentFileIndex = 0;
 
 		// menu and game sounds
-		for (int i = 0; i < SOUND_MAX; i++, currentFileIndex++) {
-			currentFileName = String.format("%s.wav", soundNames[i]);
-			sounds[i] = loadClip(currentFileName);
+		for (SoundEffect s : SoundEffect.values()) {
+			currentFileName = String.format("%s.wav", s.getFileName());
+			s.setClip(loadClip(currentFileName));
+			currentFileIndex++;
 		}
 
 		// hit sounds
-		for (int i = 0; i < sampleSets.length; i++) {
-			for (int j = 0; j < HIT_MAX; j++, currentFileIndex++) {
-				currentFileName = String.format("%s-%s.wav", sampleSets[i], hitSoundNames[j]);
-				hitSounds[i][j] = loadClip(currentFileName);
+		for (SampleSet ss : SampleSet.values()) {
+			for (HitSound s : HitSound.values()) {
+				currentFileName = String.format("%s-%s.wav", ss.getName(), s.getFileName());
+				s.setClip(ss, loadClip(currentFileName));
+				currentFileIndex++;
 			}
 		}
 
 		currentFileName = null;
 		currentFileIndex = -1;
-	}
-
-	/**
-	 * Sets the sample set to use when playing hit sounds.
-	 * @param sampleSet the sample set ("None", "Normal", "Soft", "Drum")
-	 */
-	public static void setSampleSet(String sampleSet) {
-		sampleSetIndex = -1;
-		for (int i = 0; i < sampleSets.length; i++) {
-			if (sampleSet.equalsIgnoreCase(sampleSets[i])) {
-				sampleSetIndex = i;
-				return;
-			}
-		}
-	}
-
-	/**
-	 * Sets the sample set to use when playing hit sounds.
-	 * @param sampleType the sample set (0:none, 1:normal, 2:soft, 3:drum)
-	 */
-	public static void setSampleSet(byte sampleType) {
-		if (sampleType >= 0 && sampleType <= 3)
-			sampleSetIndex = sampleType - 1;
 	}
 	
 	/**
@@ -273,21 +166,18 @@ public class SoundController {
 
 	/**
 	 * Plays a sound.
-	 * @param sound the sound (SOUND_* constant)
+	 * @param s the sound effect
 	 */
-	public static void playSound(int sound) {
-		if (sound < 0 || sound >= SOUND_MAX)
-			return;
-
-		playClip(sounds[sound], Options.getEffectVolume());
+	public static void playSound(SoundComponent s) {
+		playClip(s.getClip(), Options.getEffectVolume());
 	}
 
 	/**
 	 * Plays hit sound(s) using an OsuHitObject bitmask.
-	 * @param hitSound the sound (bitmask)
+	 * @param hitSound the hit sound (bitmask)
 	 */
 	public static void playHitSound(byte hitSound) {
-		if (sampleSetIndex < 0 || hitSound < 0)
+		if (hitSound < 0)
 			return;
 
 		float volume = Options.getHitSoundVolume() * sampleVolumeMultiplier;
@@ -296,27 +186,23 @@ public class SoundController {
 
 		// play all sounds
 		if (hitSound == OsuHitObject.SOUND_NORMAL)
-			playClip(hitSounds[sampleSetIndex][HIT_NORMAL], volume);
+			playClip(HitSound.NORMAL.getClip(), volume);
 		else {
 			if ((hitSound & OsuHitObject.SOUND_WHISTLE) > 0)
-				playClip(hitSounds[sampleSetIndex][HIT_WHISTLE], volume);
+				playClip(HitSound.WHISTLE.getClip(), volume);
 			if ((hitSound & OsuHitObject.SOUND_FINISH) > 0)
-				playClip(hitSounds[sampleSetIndex][HIT_FINISH], volume);
+				playClip(HitSound.FINISH.getClip(), volume);
 			if ((hitSound & OsuHitObject.SOUND_CLAP) > 0)
-				playClip(hitSounds[sampleSetIndex][HIT_CLAP], volume);
+				playClip(HitSound.CLAP.getClip(), volume);
 		}
 	}
 
 	/**
 	 * Plays a hit sound.
-	 * @param sound (HIT_* constant)
+	 * @param s the hit sound
 	 */
-	public static void playHitSound(int sound) {
-		if (sampleSetIndex < 0 || sound < 0 || sound > HIT_MAX)
-			return;
-
-		playClip(hitSounds[sampleSetIndex][sound],
-				Options.getHitSoundVolume() * sampleVolumeMultiplier);
+	public static void playHitSound(SoundComponent s) {
+		playClip(s.getClip(), Options.getHitSoundVolume() * sampleVolumeMultiplier);
 	}
 
 	/**
@@ -334,6 +220,6 @@ public class SoundController {
 		if (currentFileIndex == -1)
 			return -1;
 
-		return currentFileIndex * 100 / (SOUND_MAX + (sampleSets.length * HIT_MAX));
+		return currentFileIndex * 100 / (SoundEffect.SIZE + (HitSound.SIZE * SampleSet.SIZE));
 	}
 }

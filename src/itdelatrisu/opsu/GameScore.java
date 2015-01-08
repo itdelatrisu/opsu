@@ -18,6 +18,10 @@
 
 package itdelatrisu.opsu;
 
+import itdelatrisu.opsu.audio.HitSound;
+import itdelatrisu.opsu.audio.MusicController;
+import itdelatrisu.opsu.audio.SoundController;
+import itdelatrisu.opsu.audio.SoundEffect;
 import itdelatrisu.opsu.states.Options;
 
 import java.io.File;
@@ -841,7 +845,7 @@ public class GameScore {
 	 */
 	private void resetComboStreak() {
 		if (combo >= 20)
-			SoundController.playSound(SoundController.SOUND_COMBOBREAK);
+			SoundController.playSound(SoundEffect.COMBOBREAK);
 		combo = 0;
 		if (GameMod.SUDDEN_DEATH.isActive())
 			health = 0f;
@@ -867,7 +871,7 @@ public class GameScore {
 		case HIT_SLIDER10:
 			hitValue = 10;
 			incrementComboStreak();
-			SoundController.playHitSound(SoundController.HIT_SLIDERTICK);
+			SoundController.playHitSound(HitSound.SLIDERTICK);
 			break;
 		case HIT_MISS:
 			resetComboStreak();

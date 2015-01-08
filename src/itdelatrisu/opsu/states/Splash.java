@@ -18,12 +18,12 @@
 
 package itdelatrisu.opsu.states;
 
-import itdelatrisu.opsu.MusicController;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.OsuParser;
 import itdelatrisu.opsu.OszUnpacker;
-import itdelatrisu.opsu.SoundController;
 import itdelatrisu.opsu.Utils;
+import itdelatrisu.opsu.audio.MusicController;
+import itdelatrisu.opsu.audio.SoundController;
 
 import java.io.File;
 

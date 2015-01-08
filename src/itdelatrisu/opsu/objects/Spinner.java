@@ -21,10 +21,11 @@ package itdelatrisu.opsu.objects;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.GameMod;
 import itdelatrisu.opsu.GameScore;
-import itdelatrisu.opsu.MusicController;
 import itdelatrisu.opsu.OsuHitObject;
-import itdelatrisu.opsu.SoundController;
 import itdelatrisu.opsu.Utils;
+import itdelatrisu.opsu.audio.MusicController;
+import itdelatrisu.opsu.audio.SoundController;
+import itdelatrisu.opsu.audio.SoundEffect;
 import itdelatrisu.opsu.states.Game;
 
 import org.newdawn.slick.Color;
@@ -152,7 +153,7 @@ public class Spinner {
 		if (ratio >= 1.0f ||
 			GameMod.AUTO.isActive() || GameMod.SPUN_OUT.isActive()) {
 			result = GameScore.HIT_300;
-			SoundController.playSound(SoundController.SOUND_SPINNEROSU);
+			SoundController.playSound(SoundEffect.SPINNEROSU);
 		} else if (ratio >= 0.8f)
 			result = GameScore.HIT_100;
 		else if (ratio >= 0.5f)
@@ -231,10 +232,10 @@ public class Spinner {
 		if (Math.floor(newRotations) > rotations) {
 			if (newRotations > rotationsNeeded) {  // extra rotations
 				score.changeScore(1000);
-				SoundController.playSound(SoundController.SOUND_SPINNERBONUS);
+				SoundController.playSound(SoundEffect.SPINNERBONUS);
 			} else {
 				score.changeScore(100);
-				SoundController.playSound(SoundController.SOUND_SPINNERSPIN);
+				SoundController.playSound(SoundEffect.SPINNERSPIN);
 			}
 		}
 

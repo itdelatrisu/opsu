@@ -16,8 +16,10 @@
  * along with opsu!.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package itdelatrisu.opsu;
+package itdelatrisu.opsu.audio;
 
+import itdelatrisu.opsu.OsuFile;
+import itdelatrisu.opsu.OsuParser;
 import itdelatrisu.opsu.states.Options;
 
 import java.io.File;

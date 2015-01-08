@@ -21,10 +21,10 @@ package itdelatrisu.opsu.objects;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.GameMod;
 import itdelatrisu.opsu.GameScore;
-import itdelatrisu.opsu.MusicController;
 import itdelatrisu.opsu.OsuFile;
 import itdelatrisu.opsu.OsuHitObject;
 import itdelatrisu.opsu.Utils;
+import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.states.Game;
 
 import java.io.File;

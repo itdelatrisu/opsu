@@ -18,12 +18,13 @@
 
 package itdelatrisu.opsu.states;
 
-import itdelatrisu.opsu.MenuButton;
 import itdelatrisu.opsu.GameImage;
-import itdelatrisu.opsu.MusicController;
+import itdelatrisu.opsu.MenuButton;
 import itdelatrisu.opsu.Opsu;
-import itdelatrisu.opsu.SoundController;
 import itdelatrisu.opsu.Utils;
+import itdelatrisu.opsu.audio.MusicController;
+import itdelatrisu.opsu.audio.SoundController;
+import itdelatrisu.opsu.audio.SoundEffect;
 
 import org.lwjgl.input.Keyboard;
 import org.newdawn.slick.Color;
@@ -126,10 +127,10 @@ public class GamePauseMenu extends BasicGameState {
 			if (Game.getRestart() == Game.RESTART_LOSE) {
 				MusicController.stop();
 				MusicController.playAt(MusicController.getOsuFile().previewTime, true);
-				SoundController.playSound(SoundController.SOUND_MENUBACK);
+				SoundController.playSound(SoundEffect.MENUBACK);
 				game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 			} else {
-				SoundController.playSound(SoundController.SOUND_MENUBACK);
+				SoundController.playSound(SoundEffect.MENUBACK);
 				Game.setRestart(Game.RESTART_FALSE);
 				game.enterState(Opsu.STATE_GAME);
 			}
@@ -159,17 +160,17 @@ public class GamePauseMenu extends BasicGameState {
 			return;
 
 		if (continueButton.contains(x, y) && !loseState) {
-			SoundController.playSound(SoundController.SOUND_MENUBACK);
+			SoundController.playSound(SoundEffect.MENUBACK);
 			Game.setRestart(Game.RESTART_FALSE);
 			game.enterState(Opsu.STATE_GAME);
 		} else if (retryButton.contains(x, y)) {
-			SoundController.playSound(SoundController.SOUND_MENUHIT);
+			SoundController.playSound(SoundEffect.MENUHIT);
 			Game.setRestart(Game.RESTART_MANUAL);
 			game.enterState(Opsu.STATE_GAME);
 		} else if (backButton.contains(x, y)) {
 			MusicController.pause();  // lose state
 			MusicController.playAt(MusicController.getOsuFile().previewTime, true);
-			SoundController.playSound(SoundController.SOUND_MENUBACK);
+			SoundController.playSound(SoundEffect.MENUBACK);
 			game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 		}
 	}
@@ -180,7 +181,7 @@ public class GamePauseMenu extends BasicGameState {
 		pauseStartTime = System.currentTimeMillis();
 		if (Game.getRestart() == Game.RESTART_LOSE) {
 			MusicController.fadeOut(FADEOUT_TIME);
-			SoundController.playSound(SoundController.SOUND_FAIL);
+			SoundController.playSound(SoundEffect.FAIL);
 		} else
 			MusicController.pause();
 		continueButton.setScale(1f);

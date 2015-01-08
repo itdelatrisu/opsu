@@ -18,6 +18,7 @@
 
 package itdelatrisu.opsu;
 
+import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.states.Game;
 import itdelatrisu.opsu.states.GamePauseMenu;
 import itdelatrisu.opsu.states.GameRanking;

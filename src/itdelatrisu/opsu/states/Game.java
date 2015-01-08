@@ -18,17 +18,19 @@
 
 package itdelatrisu.opsu.states;
 
-import itdelatrisu.opsu.MenuButton;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.GameMod;
 import itdelatrisu.opsu.GameScore;
-import itdelatrisu.opsu.MusicController;
+import itdelatrisu.opsu.MenuButton;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.OsuFile;
 import itdelatrisu.opsu.OsuHitObject;
 import itdelatrisu.opsu.OsuTimingPoint;
-import itdelatrisu.opsu.SoundController;
 import itdelatrisu.opsu.Utils;
+import itdelatrisu.opsu.audio.HitSound;
+import itdelatrisu.opsu.audio.MusicController;
+import itdelatrisu.opsu.audio.SoundController;
+import itdelatrisu.opsu.audio.SoundEffect;
 import itdelatrisu.opsu.objects.Circle;
 import itdelatrisu.opsu.objects.Slider;
 import itdelatrisu.opsu.objects.Spinner;
@@ -292,13 +294,13 @@ public class Game extends BasicGameState {
 					if (score.getHealth() >= 50) {
 						GameImage.SECTION_PASS.getImage().drawCentered(width / 2f, height / 2f);
 						if (!breakSound) {
-							SoundController.playSound(SoundController.SOUND_SECTIONPASS);
+							SoundController.playSound(SoundEffect.SECTIONPASS);
 							breakSound = true;
 						}
 					} else {
 						GameImage.SECTION_FAIL.getImage().drawCentered(width / 2f, height / 2f);
 						if (!breakSound) {
-							SoundController.playSound(SoundController.SOUND_SECTIONFAIL);
+							SoundController.playSound(SoundEffect.SECTIONFAIL);
 							breakSound = true;
 						}
 					}
@@ -359,28 +361,28 @@ public class Game extends BasicGameState {
 				if (timeDiff >= 1500) {
 					GameImage.COUNTDOWN_READY.getImage().drawCentered(width / 2, height / 2);
 					if (!countdownReadySound) {
-						SoundController.playSound(SoundController.SOUND_READY);
+						SoundController.playSound(SoundEffect.READY);
 						countdownReadySound = true;
 					}
 				}
 				if (timeDiff < 2000) {
 					GameImage.COUNTDOWN_3.getImage().draw(0, 0);
 					if (!countdown3Sound) {
-						SoundController.playSound(SoundController.SOUND_COUNT3);
+						SoundController.playSound(SoundEffect.COUNT3);
 						countdown3Sound = true;
 					}
 				}
 				if (timeDiff < 1500) {
 					GameImage.COUNTDOWN_2.getImage().draw(width - GameImage.COUNTDOWN_2.getImage().getWidth(), 0);
 					if (!countdown2Sound) {
-						SoundController.playSound(SoundController.SOUND_COUNT2);
+						SoundController.playSound(SoundEffect.COUNT2);
 						countdown2Sound = true;
 					}
 				}
 				if (timeDiff < 1000) {
 					GameImage.COUNTDOWN_1.getImage().drawCentered(width / 2, height / 2);
 					if (!countdown1Sound) {
-						SoundController.playSound(SoundController.SOUND_COUNT1);
+						SoundController.playSound(SoundEffect.COUNT1);
 						countdown1Sound = true;
 					}
 				}
@@ -389,7 +391,7 @@ public class Game extends BasicGameState {
 				go.setAlpha((timeDiff < 0) ? 1 - (timeDiff / -1000f) : 1);
 				go.drawCentered(width / 2, height / 2);
 				if (!countdownGoSound) {
-					SoundController.playSound(SoundController.SOUND_GO);
+					SoundController.playSound(SoundEffect.GO);
 					countdownGoSound = true;
 				}
 			}
@@ -510,7 +512,7 @@ public class Game extends BasicGameState {
 					beatLengthBase = beatLength = timingPoint.getBeatLength();
 				else
 					beatLength = beatLengthBase * timingPoint.getSliderMultiplier();
-				SoundController.setSampleSet(timingPoint.getSampleType());
+				HitSound.setSampleSet(timingPoint.getSampleType());
 				SoundController.setSampleVolume(timingPoint.getSampleVolume());
 				timingPointIndex++;
 			}
@@ -650,7 +652,7 @@ public class Game extends BasicGameState {
 
 				int position = (pauseTime > -1) ? pauseTime : trackPosition;
 				if (Options.setCheckpoint(position / 1000))
-					SoundController.playSound(SoundController.SOUND_MENUCLICK);
+					SoundController.playSound(SoundEffect.MENUCLICK);
 			}
 			break;
 		case Input.KEY_L:
@@ -667,7 +669,7 @@ public class Game extends BasicGameState {
 						leadInTime = 0;
 						MusicController.resume();
 					}
-					SoundController.playSound(SoundController.SOUND_MENUHIT);
+					SoundController.playSound(SoundEffect.MENUHIT);
 
 					// skip to checkpoint
 					MusicController.setPosition(checkpoint);
@@ -805,7 +807,7 @@ public class Game extends BasicGameState {
 				OsuTimingPoint timingPoint = osu.timingPoints.get(0);
 				if (!timingPoint.isInherited()) {
 					beatLengthBase = beatLength = timingPoint.getBeatLength();
-					SoundController.setSampleSet(timingPoint.getSampleType());
+					HitSound.setSampleSet(timingPoint.getSampleType());
 					SoundController.setSampleVolume(timingPoint.getSampleVolume());
 					timingPointIndex++;
 				}
@@ -839,7 +841,7 @@ public class Game extends BasicGameState {
 				MusicController.resume();
 			}
 			MusicController.setPosition(firstObjectTime - SKIP_OFFSET);
-			SoundController.playSound(SoundController.SOUND_MENUHIT);
+			SoundController.playSound(SoundEffect.MENUHIT);
 			return true;
 		}
 		return false;

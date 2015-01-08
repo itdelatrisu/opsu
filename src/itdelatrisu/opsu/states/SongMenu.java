@@ -19,14 +19,16 @@
 package itdelatrisu.opsu.states;
 
 import itdelatrisu.opsu.MenuButton;
-import itdelatrisu.opsu.MusicController;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.OsuFile;
 import itdelatrisu.opsu.OsuGroupNode;
 import itdelatrisu.opsu.OsuParser;
 import itdelatrisu.opsu.SongSort;
-import itdelatrisu.opsu.SoundController;
 import itdelatrisu.opsu.Utils;
+import itdelatrisu.opsu.audio.HitSound;
+import itdelatrisu.opsu.audio.MusicController;
+import itdelatrisu.opsu.audio.SoundController;
+import itdelatrisu.opsu.audio.SoundEffect;
 
 import org.lwjgl.opengl.Display;
 import org.newdawn.slick.Animation;
@@ -351,7 +353,7 @@ public class SongMenu extends BasicGameState {
 
 		// back
 		if (Utils.getBackButton().contains(x, y)) {
-			SoundController.playSound(SoundController.SOUND_MENUBACK);
+			SoundController.playSound(SoundEffect.MENUBACK);
 			((MainMenu) game.getState(Opsu.STATE_MAINMENU)).reset();
 			game.enterState(Opsu.STATE_MAINMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 			return;
@@ -359,7 +361,7 @@ public class SongMenu extends BasicGameState {
 
 		// options
 		if (optionsButton.contains(x, y)) {
-			SoundController.playSound(SoundController.SOUND_MENUHIT);
+			SoundController.playSound(SoundEffect.MENUHIT);
 			game.enterState(Opsu.STATE_OPTIONS, new EmptyTransition(), new FadeInTransition(Color.black));
 			return;
 		}
@@ -372,7 +374,7 @@ public class SongMenu extends BasicGameState {
 			if (sort.contains(x, y)) {
 				if (sort != SongSort.getSort()) {
 					SongSort.setSort(sort);
-					SoundController.playSound(SoundController.SOUND_MENUCLICK);
+					SoundController.playSound(SoundEffect.MENUCLICK);
 					OsuGroupNode oldFocusBase = Opsu.groups.getBaseNode(focusNode.index);
 					int oldFocusFileIndex = focusNode.osuFileIndex;
 					focusNode = null;
@@ -400,7 +402,7 @@ public class SongMenu extends BasicGameState {
 
 					} else {
 						// focus the node
-						SoundController.playSound(SoundController.SOUND_MENUCLICK);
+						SoundController.playSound(SoundEffect.MENUCLICK);
 						setFocus(node, 0, false);
 					}
 					break;
@@ -408,7 +410,7 @@ public class SongMenu extends BasicGameState {
 
 				// clicked node is a new group
 				else {
-					SoundController.playSound(SoundController.SOUND_MENUCLICK);
+					SoundController.playSound(SoundEffect.MENUCLICK);
 					setFocus(node, -1, false);
 					break;
 				}
@@ -424,7 +426,7 @@ public class SongMenu extends BasicGameState {
 				search.setText("");
 				searchTimer = SEARCH_DELAY;
 			} else {
-				SoundController.playSound(SoundController.SOUND_MENUBACK);
+				SoundController.playSound(SoundEffect.MENUBACK);
 				((MainMenu) game.getState(Opsu.STATE_MAINMENU)).reset();
 				game.enterState(Opsu.STATE_MAINMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 			}
@@ -453,7 +455,7 @@ public class SongMenu extends BasicGameState {
 				break;
 			OsuGroupNode next = focusNode.next;
 			if (next != null) {
-				SoundController.playSound(SoundController.SOUND_MENUCLICK);
+				SoundController.playSound(SoundEffect.MENUCLICK);
 				setFocus(next, 0, false);
 			}
 			break;
@@ -462,7 +464,7 @@ public class SongMenu extends BasicGameState {
 				break;
 			OsuGroupNode prev = focusNode.prev;
 			if (prev != null) {
-				SoundController.playSound(SoundController.SOUND_MENUCLICK);
+				SoundController.playSound(SoundEffect.MENUCLICK);
 				setFocus(prev, (prev.index == focusNode.index) ? 0 : prev.osuFiles.size() - 1, false);
 			}
 			break;
@@ -621,11 +623,11 @@ public class SongMenu extends BasicGameState {
 		if (MusicController.isTrackLoading())
 			return;
 
-		SoundController.playSound(SoundController.SOUND_MENUHIT);
+		SoundController.playSound(SoundEffect.MENUHIT);
 		OsuFile osu = MusicController.getOsuFile();
 		Display.setTitle(String.format("%s - %s", game.getTitle(), osu.toString()));
 		OsuParser.parseHitObjects(osu);
-		SoundController.setSampleSet(osu.sampleSet);
+		HitSound.setSampleSet(osu.sampleSet);
 		Game.setRestart(Game.RESTART_NEW);
 		game.enterState(Opsu.STATE_GAME, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 	}

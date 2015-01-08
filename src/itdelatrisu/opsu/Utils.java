@@ -18,6 +18,8 @@
 
 package itdelatrisu.opsu;
 
+import itdelatrisu.opsu.audio.SoundController;
+import itdelatrisu.opsu.audio.SoundEffect;
 import itdelatrisu.opsu.states.Options;
 
 import java.awt.Font;
@@ -476,7 +478,7 @@ public class Utils {
 			File file = new File(dir, String.format("screenshot_%s.%s",
 					date.format(new Date()), Options.getScreenshotFormat()));
 
-			SoundController.playSound(SoundController.SOUND_SHUTTER);
+			SoundController.playSound(SoundEffect.SHUTTER);
 
 			// copy the screen
 			Image screen = new Image(container.getWidth(), container.getHeight());

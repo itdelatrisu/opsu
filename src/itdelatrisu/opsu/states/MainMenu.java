@@ -19,12 +19,13 @@
 package itdelatrisu.opsu.states;
 
 import itdelatrisu.opsu.MenuButton;
-import itdelatrisu.opsu.MusicController;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.OsuFile;
 import itdelatrisu.opsu.OsuGroupNode;
-import itdelatrisu.opsu.SoundController;
 import itdelatrisu.opsu.Utils;
+import itdelatrisu.opsu.audio.MusicController;
+import itdelatrisu.opsu.audio.SoundController;
+import itdelatrisu.opsu.audio.SoundEffect;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -355,14 +356,14 @@ public class MainMenu extends BasicGameState {
 				logoTimer = 0;
 				playButton.getImage().setAlpha(0f);
 				exitButton.getImage().setAlpha(0f);
-				SoundController.playSound(SoundController.SOUND_MENUHIT);
+				SoundController.playSound(SoundEffect.MENUHIT);
 			}
 		}
 
 		// other button actions (if visible)
 		else if (logoClicked) {
 			if (logo.contains(x, y) || playButton.contains(x, y)) {
-				SoundController.playSound(SoundController.SOUND_MENUHIT);
+				SoundController.playSound(SoundEffect.MENUHIT);
 				game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 			} else if (exitButton.contains(x, y)) {
 				Options.saveOptions();
@@ -385,9 +386,9 @@ public class MainMenu extends BasicGameState {
 				logoTimer = 0;
 				playButton.getImage().setAlpha(0f);
 				exitButton.getImage().setAlpha(0f);
-				SoundController.playSound(SoundController.SOUND_MENUHIT);
+				SoundController.playSound(SoundEffect.MENUHIT);
 			} else {
-				SoundController.playSound(SoundController.SOUND_MENUHIT);
+				SoundController.playSound(SoundEffect.MENUHIT);
 				game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 			}
 			break;

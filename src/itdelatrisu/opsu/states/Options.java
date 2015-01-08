@@ -18,12 +18,13 @@
 
 package itdelatrisu.opsu.states;
 
-import itdelatrisu.opsu.MenuButton;
 import itdelatrisu.opsu.GameMod;
+import itdelatrisu.opsu.MenuButton;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.OsuFile;
-import itdelatrisu.opsu.SoundController;
 import itdelatrisu.opsu.Utils;
+import itdelatrisu.opsu.audio.SoundController;
+import itdelatrisu.opsu.audio.SoundEffect;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -548,7 +549,7 @@ public class Options extends BasicGameState {
 
 		// back
 		if (Utils.getBackButton().contains(x, y)) {
-			SoundController.playSound(SoundController.SOUND_MENUBACK);
+			SoundController.playSound(SoundEffect.MENUBACK);
 			game.enterState(Opsu.STATE_SONGMENU, new EmptyTransition(), new FadeInTransition(Color.black));
 			return;
 		}
@@ -558,7 +559,7 @@ public class Options extends BasicGameState {
 			if (optionTabs[i].contains(x, y)) {
 				if (i != currentTab) {
 					currentTab = i;
-					SoundController.playSound(SoundController.SOUND_MENUCLICK);
+					SoundController.playSound(SoundEffect.MENUCLICK);
 				}
 				return;
 			}
@@ -570,7 +571,7 @@ public class Options extends BasicGameState {
 				boolean prevState = mod.isActive();
 				mod.toggle(true);
 				if (mod.isActive() != prevState)
-					SoundController.playSound(SoundController.SOUND_MENUCLICK);
+					SoundController.playSound(SoundEffect.MENUCLICK);
 				return;
 			}
 		}
@@ -766,7 +767,7 @@ public class Options extends BasicGameState {
 
 		switch (key) {
 		case Input.KEY_ESCAPE:
-			SoundController.playSound(SoundController.SOUND_MENUBACK);
+			SoundController.playSound(SoundEffect.MENUBACK);
 			game.enterState(Opsu.STATE_SONGMENU, new EmptyTransition(), new FadeInTransition(Color.black));
 			break;
 		case Input.KEY_F12:
@@ -777,7 +778,7 @@ public class Options extends BasicGameState {
 			if (input.isKeyDown(Input.KEY_LSHIFT) || input.isKeyDown(Input.KEY_RSHIFT))
 				i = TAB_MAX - 1;
 			currentTab = (currentTab + i) % TAB_MAX;
-			SoundController.playSound(SoundController.SOUND_MENUCLICK);
+			SoundController.playSound(SoundEffect.MENUCLICK);
 			break;
 		}
 	}
