@@ -66,6 +66,11 @@ public class SongMenu extends BasicGameState {
 	private static final int SEARCH_DELAY = 500;
 
 	/**
+	 * Maximum x offset of song buttons for mouse hover, in pixels.
+	 */
+	private static final float MAX_HOVER_OFFSET = 30f;
+
+	/**
 	 * Current start node (topmost menu entry).
 	 */
 	private OsuGroupNode startNode;
@@ -96,6 +101,16 @@ public class SongMenu extends BasicGameState {
 	private float
 		buttonX, buttonY, buttonOffset,
 		buttonWidth, buttonHeight;
+
+	/**
+	 * Current x offset of song buttons for mouse hover, in pixels.
+	 */
+	private float hoverOffset = 0f;
+
+	/**
+	 * Current index of hovered song button.
+	 */
+	private int hoverIndex = -1;
 
 	/**
 	 * The options button (to enter the "Game Options" menu).
@@ -229,10 +244,10 @@ public class SongMenu extends BasicGameState {
 
 		// song buttons
 		OsuGroupNode node = startNode;
-		for (int i = 0; i < MAX_BUTTONS && node != null; i++) {
-			node.draw(buttonX, buttonY + (i*buttonOffset), (node == focusNode));
+		for (int i = 0; i < MAX_BUTTONS && node != null; i++, node = node.next) {
+			float offset = (i == hoverIndex) ? hoverOffset : 0f;
+			node.draw(buttonX - offset, buttonY + (i*buttonOffset), (node == focusNode));
 			Utils.loadGlyphs(node.osuFiles.get(0));
-			node = node.next;
 		}
 
 		// options button
@@ -329,6 +344,32 @@ public class SongMenu extends BasicGameState {
 			if (buttonY > targetY)
 				buttonY = targetY;
 		}
+
+		// mouse hover
+		OsuGroupNode node = startNode;
+		boolean isHover = false;
+		for (int i = 0; i < MAX_BUTTONS && node != null; i++, node = node.next) {
+			float cx = (node.index == Opsu.groups.getExpandedIndex()) ? buttonX * 0.9f : buttonX;
+			if ((mouseX > cx && mouseX < cx + buttonWidth) &&
+				(mouseY > buttonY + (i * buttonOffset) && mouseY < buttonY + (i * buttonOffset) + buttonHeight)) {
+				if (i == hoverIndex) {
+					if (hoverOffset < MAX_HOVER_OFFSET) {
+						hoverOffset += delta / 3f;
+						if (hoverOffset > MAX_HOVER_OFFSET)
+							hoverOffset = MAX_HOVER_OFFSET;
+					}
+				} else {
+					hoverIndex = i;
+					hoverOffset = 0f;
+				}
+				isHover = true;
+				break;
+			}
+		}
+		if (!isHover) {
+			hoverOffset = 0f;
+			hoverIndex = -1;
+		}
 	}
 
 	@Override
@@ -382,6 +423,8 @@ public class SongMenu extends BasicGameState {
 			float cx = (node.index == expandedIndex) ? buttonX * 0.9f : buttonX;
 			if ((x > cx && x < cx + buttonWidth) &&
 				(y > buttonY + (i * buttonOffset) && y < buttonY + (i * buttonOffset) + buttonHeight)) {
+				float oldHoverOffset = hoverOffset;
+				int oldHoverIndex = hoverIndex;
 
 				// clicked node is already expanded
 				if (node.index == expandedIndex) {
@@ -394,15 +437,19 @@ public class SongMenu extends BasicGameState {
 						SoundController.playSound(SoundEffect.MENUCLICK);
 						setFocus(node, 0, false);
 					}
-					break;
 				}
 
 				// clicked node is a new group
 				else {
 					SoundController.playSound(SoundEffect.MENUCLICK);
 					setFocus(node, -1, false);
-					break;
 				}
+
+				// restore hover data
+				hoverOffset = oldHoverOffset;
+				hoverIndex = oldHoverIndex;
+
+				break;
 			}
 		}
 	}
@@ -500,6 +547,8 @@ public class SongMenu extends BasicGameState {
 		Display.setTitle(game.getTitle());
 		Utils.getBackButton().setScale(1f);
 		optionsButton.setScale(1f);
+		hoverOffset = 0f;
+		hoverIndex = -1;
 
 		// stop playing the theme song
 		if (MusicController.isThemePlaying() && focusNode != null)
@@ -515,28 +564,40 @@ public class SongMenu extends BasicGameState {
 	/**
 	 * Shifts the startNode forward (+) or backwards (-) by a given number of nodes.
 	 * Initiates sliding "animation" by shifting the button Y position.
+	 * @param shift the number of nodes to shift
 	 */
 	private void changeIndex(int shift) {
-		while (shift != 0) {
+		if (shift == 0)
+			return;
+
+		int n = shift;
+		boolean shifted = false;
+		while (n != 0) {
 			if (startNode == null)
 				break;
 	
 			int height = container.getHeight();
-			if (shift < 0 && startNode.prev != null) {
+			if (n < 0 && startNode.prev != null) {
 				startNode = startNode.prev;
 				buttonY += buttonOffset / 4;
 				if (buttonY > height * 0.18f)
 					buttonY = height * 0.18f;
-				shift++;
-			} else if (shift > 0 && startNode.next != null &&
+				n++;
+				shifted = true;
+			} else if (n > 0 && startNode.next != null &&
 			           Opsu.groups.getNode(startNode, MAX_BUTTONS) != null) {
 				startNode = startNode.next;
 				buttonY -= buttonOffset / 4;
 				if (buttonY < height * 0.14f)
 					buttonY = height * 0.14f;
-				shift--;
+				n--;
+				shifted = true;
 			} else
 				break;
+		}
+		if (shifted) {
+			hoverOffset = 0f;
+			hoverIndex = -1;
 		}
 		return;
 	}
@@ -552,6 +613,8 @@ public class SongMenu extends BasicGameState {
 		if (node == null)
 			return null;
 
+		hoverOffset = 0f;
+		hoverIndex = -1;
 		songInfo = null;
 		OsuGroupNode oldFocus = focusNode;
 
