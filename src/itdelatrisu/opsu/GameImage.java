@@ -34,12 +34,42 @@ public enum GameImage {
 	SECTION_PASS ("section-pass.png"),
 	SECTION_FAIL ("section-fail.png"),
 	WARNINGARROW ("play-warningarrow.png"),
-	SKIP ("play-skip.png"),
-	COUNTDOWN_READY ("ready.png"),
-	COUNTDOWN_3 ("count3.png"),
-	COUNTDOWN_2 ("count2.png"),
-	COUNTDOWN_1 ("count1.png"),
-	COUNTDOWN_GO ("go.png"),
+	SKIP ("play-skip.png") {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy((h * 0.1f) / img.getHeight());
+		}
+	},
+	COUNTDOWN_READY ("ready.png") {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy((h / 3f) / img.getHeight());
+		}
+	},
+	COUNTDOWN_3 ("count3.png") {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy((h / 3f) / img.getHeight());
+		}
+	},
+	COUNTDOWN_2 ("count2.png") {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy((h / 3f) / img.getHeight());
+		}
+	},
+	COUNTDOWN_1 ("count1.png") {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy((h / 3f) / img.getHeight());
+		}
+	},
+	COUNTDOWN_GO ("go.png") {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy((h / 3f) / img.getHeight());
+		}
+	},
 	HITCIRCLE_SELECT ("hitcircleselect.png"),
 	UNRANKED ("play-unranked.png"),
 
@@ -47,8 +77,20 @@ public enum GameImage {
 	PAUSE_CONTINUE ("pause-continue.png"),
 	PAUSE_RETRY ("pause-retry.png"),
 	PAUSE_BACK ("pause-back.png"),
-	PAUSE_OVERLAY ("pause-overlay.png"),
-	FAIL_BACKGROUND ("fail-background.png"),
+	PAUSE_OVERLAY ("pause-overlay.png") {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			img.setAlpha(0.7f);
+			return img.getScaledCopy(w, h);
+		}
+	},
+	FAIL_BACKGROUND ("fail-background.png") {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			img.setAlpha(0.7f);
+			return img.getScaledCopy(w, h);
+		}
+	},
 
 	// Circle
 	HITCIRCLE ("hitcircle.png"),
@@ -69,8 +111,18 @@ public enum GameImage {
 	SPINNER_OSU ("spinner-osu.png"),
 
 	// Game Score
-	SCOREBAR_BG ("scorebar-bg.png"),
-	SCOREBAR_COLOUR ("scorebar-colour.png"),
+	SCOREBAR_BG ("scorebar-bg.png") {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy(w / 2, img.getHeight());
+		}
+	},
+	SCOREBAR_COLOUR ("scorebar-colour.png") {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy(w / 2, img.getHeight());
+		}
+	},
 	SCOREBAR_KI ("scorebar-ki.png"),
 	SCOREBAR_KI_DANGER ("scorebar-kidanger.png"),
 	SCOREBAR_KI_DANGER2 ("scorebar-kidanger2.png"),
@@ -99,11 +151,36 @@ public enum GameImage {
 	RANKING_C_SMALL ("ranking-C-small.png"),
 	RANKING_D ("ranking-D.png"),
 	RANKING_D_SMALL ("ranking-D-small.png"),
-	RANKING_PANEL ("ranking-panel.png"),
-	RANKING_PERFECT ("ranking-perfect.png"),
-	RANKING_TITLE ("ranking-title.png"),
-	RANKING_MAXCOMBO ("ranking-maxcombo.png"),
-	RANKING_ACCURACY ("ranking-accuracy.png"),
+	RANKING_PANEL ("ranking-panel.png") {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy((h * 0.63f) / img.getHeight());
+		}
+	},
+	RANKING_PERFECT ("ranking-perfect.png") {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy((h * 0.16f) / img.getHeight());
+		}
+	},
+	RANKING_TITLE ("ranking-title.png") {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy((h * 0.15f) / img.getHeight());
+		}
+	},
+	RANKING_MAXCOMBO ("ranking-maxcombo.png") {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy((h * 0.05f) / img.getHeight());
+		}
+	},
+	RANKING_ACCURACY ("ranking-accuracy.png") {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy((h * 0.05f) / img.getHeight());
+		}
+	},
 	DEFAULT_0 ("default-0.png"),
 	DEFAULT_1 ("default-1.png"),
 	DEFAULT_2 ("default-2.png"),
@@ -145,9 +222,19 @@ public enum GameImage {
 	private Image skinImage;
 
 	/**
-	 * Whether or not the default image has been scaled.
+	 * Container dimensions.
 	 */
-	private boolean scaled;
+	private static int containerWidth, containerHeight;
+
+	/**
+	 * Initializes the GameImage class with container dimensions.
+	 * @param width the container width
+	 * @param height the container height
+	 */
+	public static void init(int width, int height) {
+		containerWidth = width;
+		containerHeight = height;
+	}
 
 	/**
 	 * Constructor.
@@ -185,7 +272,6 @@ public enum GameImage {
 				defaultImage.destroy();
 
 			defaultImage = new Image(filename);
-			scaled = false;
 		} catch (SlickException e) {
 			Log.error(String.format("Failed to set default image '%s'.", filename), e);
 		}
@@ -194,8 +280,9 @@ public enum GameImage {
 	/**
 	 * Sets the associated skin image.
 	 * If the path does not contain the image, the default image is used.
+	 * @return true if a new skin image is loaded, false otherwise
 	 */
-	public void setSkinImage(File dir) {
+	public boolean setSkinImage(File dir) {
 		try {
 			// destroy the existing image, if any
 			if (skinImage != null && !skinImage.isDestroyed())
@@ -203,22 +290,34 @@ public enum GameImage {
 
 			// set a new image
 			File file = new File(dir, filename);
-			if (file.isFile() && !Options.isBeatmapSkinIgnored())
+			if (file.isFile() && !Options.isBeatmapSkinIgnored()) {
 				skinImage = new Image(file.getAbsolutePath());
-			else
+				return true;
+			} else {
 				skinImage = null;
+				return false;
+			}
 		} catch (SlickException e) {
 			Log.error(String.format("Failed to set skin image '%s'.", filename), e);
+			return false;
 		}
 	}
 
 	/**
-	 * Returns whether or not the image has been scaled.
+	 * Sub-method for image processing actions (via an override).
+	 * @param img the image to process
+	 * @param w the container width
+	 * @param h the container height
+	 * @return the processed image
 	 */
-	public boolean isScaled() { return (skinImage != null) ? false : scaled; }
+	protected Image process_sub(Image img, int w, int h) {
+		return img;
+	}
 
 	/**
-	 * Sets the scaled status of the image.
+	 * Performs individual post-loading actions on the image.
 	 */
-	public void setScaled() { if (skinImage == null) this.scaled = true; }
+	public void process() {
+		setImage(process_sub(getImage(), containerWidth, containerHeight));
+	}
 }

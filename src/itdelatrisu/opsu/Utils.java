@@ -203,8 +203,11 @@ public class Utils {
 		backButton.setHoverDir(MenuButton.Expand.UP_RIGHT);
 
 		// set default game images
-		for (GameImage img : GameImage.values())
+		GameImage.init(width, height);
+		for (GameImage img : GameImage.values()) {
 			img.setDefaultImage();
+			img.process();
+		}
 
 		// initialize game mods
 		for (GameMod mod : GameMod.values())

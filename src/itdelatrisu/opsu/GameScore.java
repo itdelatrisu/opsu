@@ -313,19 +313,6 @@ public class GameScore {
 			}
 		}
 
-		// scorebar
-		int bgWidth = width / 2;
-		if (!GameImage.SCOREBAR_BG.isScaled()) {
-			Image bg = GameImage.SCOREBAR_BG.getImage();
-			GameImage.SCOREBAR_BG.setImage(bg.getScaledCopy(bgWidth, bg.getHeight()));
-			GameImage.SCOREBAR_BG.setScaled();
-		}
-		if (!GameImage.SCOREBAR_COLOUR.isScaled()) {
-			Image colour = GameImage.SCOREBAR_COLOUR.getImage();
-			GameImage.SCOREBAR_COLOUR.setImage(colour.getScaledCopy(bgWidth, colour.getHeight()));
-			GameImage.SCOREBAR_COLOUR.setScaled();
-		}
-
 		// default symbol images
 		defaultSymbols = new Image[10];
 		defaultSymbols[0] = GameImage.DEFAULT_0.getImage();
@@ -387,33 +374,6 @@ public class GameScore {
 		gradesSmall[GRADE_C] = GameImage.RANKING_C_SMALL.getImage();
 		gradesLarge[GRADE_D] = GameImage.RANKING_D.getImage();
 		gradesSmall[GRADE_D] = GameImage.RANKING_D_SMALL.getImage();
-
-		// ranking screen elements
-		if (!GameImage.RANKING_PANEL.isScaled()) {
-			Image rankingPanel = GameImage.RANKING_PANEL.getImage();
-			GameImage.RANKING_PANEL.setImage(rankingPanel.getScaledCopy((height * 0.63f) / rankingPanel.getHeight()));
-			GameImage.RANKING_PANEL.setScaled();
-		}
-		if (!GameImage.RANKING_PERFECT.isScaled()) {
-			Image rankingPerfect = GameImage.RANKING_PERFECT.getImage();
-			GameImage.RANKING_PERFECT.setImage(rankingPerfect.getScaledCopy((height * 0.16f) / rankingPerfect.getHeight()));
-			GameImage.RANKING_PERFECT.setScaled();
-		}
-		if (!GameImage.RANKING_TITLE.isScaled()) {
-			Image rankingTitle = GameImage.RANKING_TITLE.getImage();
-			GameImage.RANKING_TITLE.setImage(rankingTitle.getScaledCopy((height * 0.15f) / rankingTitle.getHeight()));
-			GameImage.RANKING_TITLE.setScaled();
-		}
-		if (!GameImage.RANKING_MAXCOMBO.isScaled()) {
-			Image rankingMaxCombo = GameImage.RANKING_MAXCOMBO.getImage();
-			GameImage.RANKING_MAXCOMBO.setImage(rankingMaxCombo.getScaledCopy((height * 0.05f) / rankingMaxCombo.getHeight()));
-			GameImage.RANKING_MAXCOMBO.setScaled();
-		}
-		if (!GameImage.RANKING_ACCURACY.isScaled()) {
-			Image rankingAccuracy = GameImage.RANKING_ACCURACY.getImage();
-			GameImage.RANKING_ACCURACY.setImage(rankingAccuracy.getScaledCopy((height * 0.05f) / rankingAccuracy.getHeight()));
-			GameImage.RANKING_ACCURACY.setScaled();
-		}
 	}
 
 	/**
