@@ -7,9 +7,13 @@ opsu! is written in Java using [Slick2D](http://slick.ninjacave.com/) and
 [LWJGL](http://lwjgl.org/), wrappers around the OpenGL and OpenAL libraries.
 
 ## Getting Started
+Precompiled binaries for opsu! can be found on the
+[releases](https://github.com/itdelatrisu/opsu/releases) page, with the latest
+builds at the top.
+
 ### Java Setup
 The Java Runtime Environment (JRE) must be installed in order to run opsu!.
-The download page can be found [here](https://www.java.com/en/download/).
+The download page is located [here](https://www.java.com/en/download/).
 
 ### Beatmaps
 opsu! also requires beatmaps to run, which are available for download on the
