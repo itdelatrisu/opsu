@@ -345,8 +345,11 @@ public class Slider {
 		float[] sliderX = hitObject.getSliderX(), sliderY = hitObject.getSliderY();
 		int timeDiff = hitObject.getTime() - trackPosition;
 
-		float approachScale = (timeDiff >= 0) ? 1 + (timeDiff * 2f / game.getApproachTime()) : 1f;
+		float approachScale = (timeDiff >= 0) ? 1 + (timeDiff * 3f / game.getApproachTime()) : 1f;
 		float alpha = (approachScale > 3.3f) ? 0f : 1f - (approachScale - 1f) / 2.7f;
+		
+		float scale = timeDiff / (float)game.getApproachTime();
+		alpha = (1 - scale)*2 * 0.3f;
 		color.a = alpha;
 		Utils.COLOR_WHITE_FADE.a = alpha;
 
@@ -398,6 +401,8 @@ public class Slider {
 
 		if (timeDiff >= 0) {
 			// approach circle
+			color.a = 1 - scale;
+			
 			Utils.drawCentered(GameImage.APPROACHCIRCLE.getImage().getScaledCopy(approachScale), x, y, color);
 		} else {
 			float[] c = bezier.pointAt(getT(trackPosition, false));

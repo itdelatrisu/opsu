@@ -98,10 +98,12 @@ public class Circle {
 
 		if (timeDiff >= 0) {
 			float x = hitObject.getX(), y = hitObject.getY();
-			float approachScale = 1 + (timeDiff * 2f / game.getApproachTime());
+			float scale = timeDiff / (float)game.getApproachTime();
+			float approachScale = 1 + scale*3 ;//(timeDiff * 3f / game.getApproachTime());
+			color.a = 1 - scale;
 			Utils.drawCentered(GameImage.APPROACHCIRCLE.getImage().getScaledCopy(approachScale), x, y, color);
-			float alpha = (approachScale > 3.3f) ? 0f : 1f - (approachScale - 1f) / 2.7f;
-			color.a = alpha;
+			float alpha = (1 - scale)*2;//= (approachScale > 3.3f) ? 0f : 1f - (approachScale - 1f) / 2.7f;
+			color.a = alpha;//alpha;
 			Utils.COLOR_WHITE_FADE.a = alpha;
 			Utils.drawCentered(GameImage.HITCIRCLE_OVERLAY.getImage(), x, y, Utils.COLOR_WHITE_FADE);
 			Utils.drawCentered(GameImage.HITCIRCLE.getImage(), x, y, color);

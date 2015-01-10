@@ -33,8 +33,11 @@ public enum SongSort {
 	ARTIST  (1, "Artist",  new ArtistOrder()),
 	CREATOR (2, "Creator", new CreatorOrder()),
 	BPM     (3, "BPM",     new BPMOrder()),
-	LENGTH  (4, "Length",  new LengthOrder());
+	LENGTH  (4, "Length",  new LengthOrder()),
+	RAND  (5, "Random",  new RandOrder());
 
+	
+	
 	/**
 	 * The ID of the sort (used for tab positioning).
 	 */
@@ -157,6 +160,16 @@ public enum SongSort {
 					wMax = osu.endTime;
 			}
 			return Integer.compare(vMax, wMax);
+		}
+	}
+	/**
+	 * Compares two OsuGroupNode objects by length.
+	 * Uses the longest beatmap in each set for comparison.
+	 */
+	private static class RandOrder implements Comparator<OsuGroupNode> {
+		@Override
+		public int compare(OsuGroupNode v, OsuGroupNode w) {
+			return v.randNum - w.randNum;
 		}
 	}
 
