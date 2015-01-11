@@ -31,6 +31,11 @@ import java.util.regex.Pattern;
  */
 public class OsuGroupList {
 	/**
+	 * Song group structure (each group contains of an ArrayList of OsuFiles).
+	 */
+	private static OsuGroupList list = new OsuGroupList();
+
+	/**
 	 * Search pattern for conditional expressions.
 	 */
 	private static final Pattern SEARCH_CONDITION_PATTERN = Pattern.compile(
@@ -63,11 +68,16 @@ public class OsuGroupList {
 	 * The last search query.
 	 */
 	private String lastQuery = "";
+
+	/**
+	 * Returns the single instance of this class.
+	 */
+	public static OsuGroupList get() { return list; }
 	
 	/**
 	 * Constructor.
 	 */
-	public OsuGroupList() {
+	private OsuGroupList() {
 		parsedNodes = new ArrayList<OsuGroupNode>();
 		nodes = parsedNodes;
 	}

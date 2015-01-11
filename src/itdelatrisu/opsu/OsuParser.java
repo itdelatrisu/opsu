@@ -93,7 +93,7 @@ public class OsuParser {
 			}
 			if (!osuFiles.isEmpty()) {  // add entry if non-empty
 				Collections.sort(osuFiles);
-				Opsu.groups.addSongGroup(osuFiles);
+				OsuGroupList.get().addSongGroup(osuFiles);
 			}
 		}
 

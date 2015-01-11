@@ -55,11 +55,6 @@ import org.newdawn.slick.util.ResourceLoader;
  */
 public class Opsu extends StateBasedGame {
 	/**
-	 * Song group structure (each group contains of an ArrayList of OsuFiles).
-	 */
-	public static OsuGroupList groups = new OsuGroupList();
-
-	/**
 	 * Game states.
 	 */
 	public static final int
@@ -93,6 +88,9 @@ public class Opsu extends StateBasedGame {
 		addState(new Options(STATE_OPTIONS));
 	}
 
+	/**
+	 * Launches opsu!.
+	 */
 	public static void main(String[] args) {
 		// log all errors to a file
 		Log.setVerbose(false);

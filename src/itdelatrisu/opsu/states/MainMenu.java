@@ -22,6 +22,7 @@ import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.MenuButton;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.OsuFile;
+import itdelatrisu.opsu.OsuGroupList;
 import itdelatrisu.opsu.OsuGroupNode;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.MusicController;
@@ -217,7 +218,7 @@ public class MainMenu extends BasicGameState {
 		g.setFont(Utils.FONT_MEDIUM);
 		int lineHeight = Utils.FONT_MEDIUM.getLineHeight();
 		g.drawString(String.format("Loaded %d songs and %d beatmaps.",
-				Opsu.groups.size(), Opsu.groups.getMapCount()), 25, 25);
+				OsuGroupList.get().size(), OsuGroupList.get().getMapCount()), 25, 25);
 		if (MusicController.isTrackLoading())
 			g.drawString("Track loading...", 25, 25 + lineHeight);
 		else if (MusicController.trackExists()) {
@@ -349,7 +350,7 @@ public class MainMenu extends BasicGameState {
 		} else if (musicNext.contains(x, y)) {
 			boolean isTheme = MusicController.isThemePlaying();
 			SongMenu menu = (SongMenu) game.getState(Opsu.STATE_SONGMENU);
-			OsuGroupNode node = menu.setFocus(Opsu.groups.getRandomNode(), -1, true);
+			OsuGroupNode node = menu.setFocus(OsuGroupList.get().getRandomNode(), -1, true);
 			boolean sameAudio = false;
 			if (node != null) {
 				sameAudio = MusicController.getOsuFile().audioFilename.equals(node.osuFiles.get(0).audioFilename);
@@ -361,7 +362,7 @@ public class MainMenu extends BasicGameState {
 		} else if (musicPrevious.contains(x, y)) {
 			if (!previous.isEmpty()) {
 				SongMenu menu = (SongMenu) game.getState(Opsu.STATE_SONGMENU);
-				menu.setFocus(Opsu.groups.getBaseNode(previous.pop()), -1, true);
+				menu.setFocus(OsuGroupList.get().getBaseNode(previous.pop()), -1, true);
 				if (Options.isDynamicBackgroundEnabled())
 					bgAlpha = 0f;
 			} else

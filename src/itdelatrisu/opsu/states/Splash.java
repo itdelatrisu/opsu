@@ -20,6 +20,7 @@ package itdelatrisu.opsu.states;
 
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.Opsu;
+import itdelatrisu.opsu.OsuGroupList;
 import itdelatrisu.opsu.OsuParser;
 import itdelatrisu.opsu.OszUnpacker;
 import itdelatrisu.opsu.Utils;
@@ -133,8 +134,8 @@ public class Splash extends BasicGameState {
 		// change states when loading complete
 		if (finished && alpha >= 1f) {
 			// initialize song list
-			Opsu.groups.init();
-			((SongMenu) game.getState(Opsu.STATE_SONGMENU)).setFocus(Opsu.groups.getRandomNode(), -1, true);
+			OsuGroupList.get().init();
+			((SongMenu) game.getState(Opsu.STATE_SONGMENU)).setFocus(OsuGroupList.get().getRandomNode(), -1, true);
 
 			// play the theme song
 			if (Options.isThemSongEnabled())
