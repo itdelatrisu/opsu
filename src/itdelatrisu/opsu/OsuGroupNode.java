@@ -53,6 +53,8 @@ public class OsuGroupNode {
 	 * Links to other OsuGroupNode objects.
 	 */
 	public OsuGroupNode prev, next;
+	
+	public int randNum = (int)(Math.random()*0xffffff);
 
 	/**
 	 * Constructor.

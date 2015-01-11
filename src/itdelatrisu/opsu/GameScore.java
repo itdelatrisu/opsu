@@ -639,25 +639,34 @@ public class GameScore {
 		while (iter.hasNext()) {
 			OsuHitObjectResult hitResult = iter.next();
 			if (hitResult.time + fadeDelay > trackPosition) {
+				
+				// hit lighting
+				if (Options.isHitLightingEnabled() && lighting != null &&
+					hitResult.result != HIT_MISS && hitResult.result != HIT_SLIDER30 && hitResult.result != HIT_SLIDER10) {
+					float scale = 1f + ((trackPosition - hitResult.time) / (float) fadeDelay)/2;
+					Image scaledLighting  = lighting.getScaledCopy(scale);
+					scaledLighting.setAlpha(0.4f);//1-(trackPosition - hitResult.time)/(float) fadeDelay);
+					/*scaledLighting.draw(hitResult.x - (scaledLighting.getWidth() / 2f),
+										hitResult.y - (scaledLighting.getHeight() / 2f),
+										hitResult.color);*/
+					/*if (lighting1 != null) {
+						Image scaledLighting1 = lighting1.getScaledCopy(scale);
+						scaledLighting1.setAlpha(1-(trackPosition - hitResult.time)/(float) fadeDelay);
+						scaledLighting1.draw(hitResult.x - (scaledLighting1.getWidth() / 2f),
+								hitResult.y - (scaledLighting1.getHeight() / 2f),
+								hitResult.color);
+					}*/
+					Image scaledHitCircle = GameImage.HITCIRCLE.getImage().getScaledCopy(scale);
+					scaledHitCircle.setAlpha(1-(trackPosition - hitResult.time)*2/(float) fadeDelay);
+					scaledHitCircle.draw(hitResult.x - (scaledHitCircle.getWidth() / 2f),
+							hitResult.y - (scaledHitCircle.getHeight() / 2f),
+							hitResult.color);
+				}
+				
 				hitResults[hitResult.result].setAlpha(hitResult.alpha);
 				hitResult.alpha = 1 - ((float) (trackPosition - hitResult.time) / fadeDelay);
 				hitResults[hitResult.result].drawCentered(hitResult.x, hitResult.y);
 
-				// hit lighting
-				if (Options.isHitLightingEnabled() && lighting != null &&
-					hitResult.result != HIT_MISS && hitResult.result != HIT_SLIDER30 && hitResult.result != HIT_SLIDER10) {
-					float scale = 1f + ((trackPosition - hitResult.time) / (float) fadeDelay);
-					Image scaledLighting  = lighting.getScaledCopy(scale);
-					scaledLighting.draw(hitResult.x - (scaledLighting.getWidth() / 2f),
-										hitResult.y - (scaledLighting.getHeight() / 2f),
-										hitResult.color);
-					if (lighting1 != null) {
-						Image scaledLighting1 = lighting1.getScaledCopy(scale);
-						scaledLighting1.draw(hitResult.x - (scaledLighting1.getWidth() / 2f),
-								hitResult.y - (scaledLighting1.getHeight() / 2f),
-								hitResult.color);
-					}
-				}
 			} else
 				iter.remove();
 		}
