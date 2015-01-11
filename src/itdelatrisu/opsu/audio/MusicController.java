@@ -258,6 +258,14 @@ public class MusicController {
 	}
 
 	/**
+	 * Sets the music volume.
+	 * @param volume [0, 1]
+	 */
+	public static void setVolume(float volume) {
+		SoundStore.get().setMusicVolume(volume);
+	}
+
+	/**
 	 * Plays the theme song.
 	 */
 	public static void playThemeSong() {

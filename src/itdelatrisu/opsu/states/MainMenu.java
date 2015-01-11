@@ -102,6 +102,11 @@ public class MainMenu extends BasicGameState {
 	 */
 	private float bgAlpha = 0f;
 
+	/**
+	 * Whether the theme song volume has been dimmed.
+	 */
+	private boolean volumeDimmed = false;
+
 	// game-related variables
 	private GameContainer container;
 	private StateBasedGame game;
@@ -248,6 +253,18 @@ public class MainMenu extends BasicGameState {
 		musicPause.hoverUpdate(delta, mouseX, mouseY);
 		musicNext.hoverUpdate(delta, mouseX, mouseY);
 		musicPrevious.hoverUpdate(delta, mouseX, mouseY);
+
+		// window focus change: increase/decrease theme song volume
+		if (MusicController.isThemePlaying()) {
+			boolean hasFocus = container.hasFocus();
+			if (volumeDimmed == hasFocus) {
+				if (hasFocus)  // restored focus
+					MusicController.setVolume(Options.getMusicVolume());
+				else  // lost focus
+					MusicController.setVolume(Options.getMusicVolume() / 3f);
+				volumeDimmed = !hasFocus;
+			}
+		}
 
 		// fade in background
 		if (bgAlpha < 0.9f) {
