@@ -212,6 +212,30 @@ public class Utils {
 	public static MenuButton getBackButton() { return backButton; }
 
 	/**
+	 * Draws a tab image and text centered at a location.
+	 * @param x the center x coordinate
+	 * @param y the center y coordinate
+	 * @param text the text to draw inside the tab
+	 * @param selected whether the tab is selected (white) or not (red)
+	 */
+	public static void drawTab(float x, float y, String text, boolean selected) {
+		Image tabImage = GameImage.MENU_TAB.getImage();
+		float tabTextX = x - (Utils.FONT_MEDIUM.getWidth(text) / 2);
+		float tabTextY = y - (tabImage.getHeight() / 2f) +
+				Math.max((tabImage.getHeight() - Utils.FONT_MEDIUM.getLineHeight()) / 1.5f, 0);
+		Color filter, textColor;
+		if (selected) {
+			filter = Color.white;
+			textColor = Color.black;
+		} else {
+			filter = Color.red;
+			textColor = Color.white;
+		}
+		Utils.drawCentered(tabImage, x, y, filter);
+		Utils.FONT_MEDIUM.drawString(tabTextX, tabTextY, text, textColor);
+	}
+
+	/**
 	 * Draws an image based on its center with a color filter.
 	 * @param img the image to draw
 	 * @param x the center x coordinate

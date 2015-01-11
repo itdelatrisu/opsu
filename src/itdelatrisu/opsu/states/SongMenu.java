@@ -254,7 +254,12 @@ public class SongMenu extends BasicGameState {
 		optionsButton.draw();
 
 		// sorting tabs
-		SongSort.drawAll();
+		SongSort currentSort = SongSort.getSort();
+		for (SongSort sort : SongSort.VALUES_REVERSED) {
+			if (sort != currentSort)
+				sort.draw(false);
+		}
+		currentSort.draw(true);
 
 		// search
 		Image searchIcon = GameImage.MENU_SEARCH.getImage();

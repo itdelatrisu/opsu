@@ -487,17 +487,14 @@ public class Options extends BasicGameState {
 		}
 
 		// option tabs
-		g.setColor(Color.white);
-		Image tab = optionTabs[0].getImage();
-		float tabTextY = optionTabs[0].getY() - (tab.getHeight() / 2f);
 		for (int i = optionTabs.length - 1; i >= 0; i--) {
-			tab.setAlpha((i == currentTab) ? 1.0f : 0.7f);
-			optionTabs[i].draw();
-			float tabTextX = optionTabs[i].getX() - (Utils.FONT_MEDIUM.getWidth(TAB_NAMES[i]) / 2);
-			Utils.FONT_MEDIUM.drawString(tabTextX, tabTextY, TAB_NAMES[i], Color.white);
+			if (i != currentTab)
+				Utils.drawTab(optionTabs[i].getX(), optionTabs[i].getY(), TAB_NAMES[i], false);
 		}
+		Utils.drawTab(optionTabs[currentTab].getX(), optionTabs[currentTab].getY(), TAB_NAMES[currentTab], true);
+		g.setColor(Color.white);
 		g.setLineWidth(2f);
-		float lineY = optionTabs[0].getY() + (tab.getHeight() / 2f);
+		float lineY = optionTabs[0].getY() + (GameImage.MENU_TAB.getImage().getHeight() / 2f);
 		g.drawLine(0, lineY, width, lineY);
 		g.resetLineWidth();
 

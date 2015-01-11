@@ -22,7 +22,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 
-import org.newdawn.slick.Color;
 import org.newdawn.slick.Image;
 
 /**
@@ -63,7 +62,7 @@ public enum SongSort {
 	/**
 	 * Array of SongSort objects in reverse order.
 	 */
-	private static final SongSort[] VALUES_REVERSED;
+	public static final SongSort[] VALUES_REVERSED;
 	static {
 		VALUES_REVERSED = SongSort.values();
 		Collections.reverse(Arrays.asList(VALUES_REVERSED));
@@ -85,20 +84,6 @@ public enum SongSort {
 	 * @param sort the new sort
 	 */
 	public static void setSort(SongSort sort) { SongSort.currentSort = sort; }
-
-	/**
-	 * Draws all sort tabs.
-	 */
-	public static void drawAll() {
-		Image tabImage = currentSort.tab.getImage();
-		float tabTextY = currentSort.tab.getY() - (tabImage.getHeight() / 2f);
-		for (SongSort sort : VALUES_REVERSED) {
-			float tabTextX = sort.tab.getX() - (Utils.FONT_MEDIUM.getWidth(sort.name) / 2);
-			tabImage.setAlpha((sort == currentSort) ? 1.0f : 0.7f);
-			sort.tab.draw();
-			Utils.FONT_MEDIUM.drawString(tabTextX, tabTextY, sort.name, Color.white);
-		}
-	}
 
 	/**
 	 * Compares two OsuGroupNode objects by title.
@@ -180,10 +165,15 @@ public enum SongSort {
 	 */
 	public void init(int width, int height) {
 		Image tab = GameImage.MENU_TAB.getImage();
-		float buttonX = width * 0.6f;
-		float tabOffset = (width - buttonX - tab.getWidth()) / (SIZE - 1);
+		int tabWidth = tab.getWidth();
+		float buttonX = width / 2f;
+		float tabOffset = (width - buttonX - tabWidth) / (SIZE - 1);
+		if (tabOffset > tabWidth) {  // prevent tabs from being spaced out
+			tabOffset = tabWidth;
+			buttonX = (width * 0.99f) - (tabWidth * SIZE);
+		}
 		this.tab = new MenuButton(tab,
-				(buttonX + (tab.getWidth() / 2f)) + (id * tabOffset),
+				(buttonX + (tabWidth / 2f)) + (id * tabOffset),
 				(height * 0.15f) - (tab.getHeight() / 2f) - 2f
 		);
 	}
@@ -201,4 +191,12 @@ public enum SongSort {
 	 * @return true if within bounds
 	 */
 	public boolean contains(float x, float y) { return tab.contains(x, y); }
+
+	/**
+	 * Draws the sort tab.
+	 * @param selected whether the tab is selected (white) or not (red)
+	 */
+	public void draw(boolean selected) {
+		Utils.drawTab(tab.getX(), tab.getY(), name, selected);
+	}
 }
