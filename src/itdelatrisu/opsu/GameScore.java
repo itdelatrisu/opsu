@@ -633,7 +633,7 @@ public class GameScore {
 	 * @param trackPosition the current track position
 	 */
 	public void drawHitResults(int trackPosition) {
-		int fadeDelay = 500;
+		final int fadeDelay = 500;
 
 		Iterator<OsuHitObjectResult> iter = hitResultList.iterator();
 		while (iter.hasNext()) {
@@ -897,16 +897,10 @@ public class GameScore {
 
 			// game mod score multipliers
 			float modMultiplier = 1f;
-			if (GameMod.EASY.isActive())
-				modMultiplier *= 0.5f;
-			if (GameMod.NO_FAIL.isActive())
-				modMultiplier *= 0.5f;
-			if (GameMod.HARD_ROCK.isActive())
-				modMultiplier *= 1.06f;
-			if (GameMod.SPUN_OUT.isActive())
-				modMultiplier *= 0.9f;
-			// not implemented:
-			// HALF_TIME (0.3x), DOUBLE_TIME (1.12x), HIDDEN (1.06x), FLASHLIGHT (1.12x)
+			for (GameMod mod : GameMod.values()) {
+				if (mod.isActive())
+					modMultiplier *= mod.getMultiplier();
+			}
 
 			/**
 			 * [SCORE FORMULA]
