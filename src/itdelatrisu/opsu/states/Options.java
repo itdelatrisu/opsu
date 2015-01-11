@@ -453,6 +453,7 @@ public class Options extends BasicGameState {
 
 		int width = container.getWidth();
 		int height = container.getHeight();
+		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
 
 		// title
 		Utils.FONT_XLARGE.drawString(
@@ -487,11 +488,20 @@ public class Options extends BasicGameState {
 		}
 
 		// option tabs
+		int hoverTab = -1;
+		for (int i = 0; i < optionTabs.length; i++) {
+			if (optionTabs[i].contains(mouseX, mouseY)) {
+				hoverTab = i;
+				break;
+			}
+		}
 		for (int i = optionTabs.length - 1; i >= 0; i--) {
 			if (i != currentTab)
-				Utils.drawTab(optionTabs[i].getX(), optionTabs[i].getY(), TAB_NAMES[i], false);
+				Utils.drawTab(optionTabs[i].getX(), optionTabs[i].getY(),
+						TAB_NAMES[i], false, i == hoverTab);
 		}
-		Utils.drawTab(optionTabs[currentTab].getX(), optionTabs[currentTab].getY(), TAB_NAMES[currentTab], true);
+		Utils.drawTab(optionTabs[currentTab].getX(), optionTabs[currentTab].getY(),
+				TAB_NAMES[currentTab], true, false);
 		g.setColor(Color.white);
 		g.setLineWidth(2f);
 		float lineY = optionTabs[0].getY() + (GameImage.MENU_TAB.getImage().getHeight() / 2f);

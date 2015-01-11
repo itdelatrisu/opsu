@@ -204,6 +204,7 @@ public class SongMenu extends BasicGameState {
 
 		int width = container.getWidth();
 		int height = container.getHeight();
+		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
 
 		// background
 		if (focusNode != null)
@@ -255,11 +256,18 @@ public class SongMenu extends BasicGameState {
 
 		// sorting tabs
 		SongSort currentSort = SongSort.getSort();
+		SongSort hoverSort = null;
+		for (SongSort sort : SongSort.values()) {
+			if (sort.contains(mouseX, mouseY)) {
+				hoverSort = sort;
+				break;
+			}
+		}
 		for (SongSort sort : SongSort.VALUES_REVERSED) {
 			if (sort != currentSort)
-				sort.draw(false);
+				sort.draw(false, sort == hoverSort);
 		}
-		currentSort.draw(true);
+		currentSort.draw(true, false);
 
 		// search
 		Image searchIcon = GameImage.MENU_SEARCH.getImage();

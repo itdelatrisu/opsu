@@ -195,8 +195,9 @@ public enum SongSort {
 	/**
 	 * Draws the sort tab.
 	 * @param selected whether the tab is selected (white) or not (red)
+	 * @param isHover whether to include a hover effect (unselected only)
 	 */
-	public void draw(boolean selected) {
-		Utils.drawTab(tab.getX(), tab.getY(), name, selected);
+	public void draw(boolean selected, boolean isHover) {
+		Utils.drawTab(tab.getX(), tab.getY(), name, selected, isHover);
 	}
 }

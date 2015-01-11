@@ -66,7 +66,8 @@ public class Utils {
 		COLOR_RED_OBJECT      = new Color(243, 48, 77),
 		COLOR_ORANGE_OBJECT   = new Color(255, 200, 32),
 		COLOR_YELLOW_ALPHA    = new Color(255, 255, 0, 0.4f),
-		COLOR_WHITE_FADE      = new Color(255, 255, 255, 1f);
+		COLOR_WHITE_FADE      = new Color(255, 255, 255, 1f),
+		COLOR_RED_HOVER       = new Color(255, 112, 112);
 
 	/**
 	 * The default map colors, used when a map does not provide custom colors.
@@ -217,8 +218,9 @@ public class Utils {
 	 * @param y the center y coordinate
 	 * @param text the text to draw inside the tab
 	 * @param selected whether the tab is selected (white) or not (red)
+	 * @param isHover whether to include a hover effect (unselected only)
 	 */
-	public static void drawTab(float x, float y, String text, boolean selected) {
+	public static void drawTab(float x, float y, String text, boolean selected, boolean isHover) {
 		Image tabImage = GameImage.MENU_TAB.getImage();
 		float tabTextX = x - (Utils.FONT_MEDIUM.getWidth(text) / 2);
 		float tabTextY = y - (tabImage.getHeight() / 2f) +
@@ -228,7 +230,7 @@ public class Utils {
 			filter = Color.white;
 			textColor = Color.black;
 		} else {
-			filter = Color.red;
+			filter = (isHover) ? Utils.COLOR_RED_HOVER : Color.red;
 			textColor = Color.white;
 		}
 		Utils.drawCentered(tabImage, x, y, filter);
