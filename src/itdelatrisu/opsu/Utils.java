@@ -259,6 +259,40 @@ public class Utils {
 	}
 
 	/**
+	 * Returns a bounded value for a base value and displacement.
+	 * @param base the initial value
+	 * @param diff the value change
+	 * @param min the minimum value
+	 * @param max the maximum value
+	 * @return the bounded value
+	 */
+	public static int getBoundedValue(int base, int diff, int min, int max) {
+		int val = base + diff;
+		if (val < min)
+			val = min;
+		else if (val > max)
+			val = max;
+		return val;
+	}
+
+	/**
+	 * Returns a bounded value for a base value and displacement.
+	 * @param base the initial value
+	 * @param diff the value change
+	 * @param min the minimum value
+	 * @param max the maximum value
+	 * @return the bounded value
+	 */
+	public static float getBoundedValue(float base, float diff, float min, float max) {
+		float val = base + diff;
+		if (val < min)
+			val = min;
+		else if (val > max)
+			val = max;
+		return val;
+	}
+
+	/**
 	 * Loads the cursor images.
 	 * @throws SlickException 
 	 */
