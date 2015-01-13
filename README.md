@@ -39,9 +39,11 @@ opsu! is distributed as a Maven project.
 
 * To run the project, execute the Maven goal `compile exec:exec`.
 * To create a single executable JAR file, execute the Maven goal
-`package shade:shade`.  Note that the LWJGL native libraries must be linked and
-distributed with this application; [JarSplice](http://ninjacave.com/jarsplice)
-is included in the tools directory to merge the files into a fat jar.
+  `install -Djar`.  This will link the LWJGL native libraries using a
+  [modified version](https://github.com/itdelatrisu/JarSplicePlus) of
+  [JarSplice](http://ninjacave.com/jarsplice), which is included in the
+  `tools` directory in both its original and modified forms.  The resulting
+  file will be located in `target/opsu-${version}-runnable.jar`.
 
 ## Credits
 This software was created by Jeffrey Han 
