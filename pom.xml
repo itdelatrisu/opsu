@@ -77,7 +77,7 @@
 								<argument>-Dmain="itdelatrisu.opsu.Opsu"</argument>
 								<argument>-Doutput="opsu-${project.version}-runnable.jar"</argument>
 								<argument>${basedir}/tools/JarSplicePlus.jar</argument>
-								</arguments>
+							</arguments>
 						</configuration>
 					</execution>
 				</executions>

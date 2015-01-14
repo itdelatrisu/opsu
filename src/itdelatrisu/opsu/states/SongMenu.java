@@ -506,7 +506,14 @@ public class SongMenu extends BasicGameState {
 			OsuGroupNode next = focusNode.next;
 			if (next != null) {
 				SoundController.playSound(SoundEffect.MENUCLICK);
+				OsuGroupNode oldStartNode = startNode;
+				float oldHoverOffset = hoverOffset;
+				int oldHoverIndex = hoverIndex;
 				setFocus(next, 0, false);
+				if (startNode == oldStartNode) {
+					hoverOffset = oldHoverOffset;
+					hoverIndex = oldHoverIndex;
+				}
 			}
 			break;
 		case Input.KEY_LEFT:
@@ -515,7 +522,14 @@ public class SongMenu extends BasicGameState {
 			OsuGroupNode prev = focusNode.prev;
 			if (prev != null) {
 				SoundController.playSound(SoundEffect.MENUCLICK);
+				OsuGroupNode oldStartNode = startNode;
+				float oldHoverOffset = hoverOffset;
+				int oldHoverIndex = hoverIndex;
 				setFocus(prev, (prev.index == focusNode.index) ? 0 : prev.osuFiles.size() - 1, false);
+				if (startNode == oldStartNode) {
+					hoverOffset = oldHoverOffset;
+					hoverIndex = oldHoverIndex;
+				}
 			}
 			break;
 		case Input.KEY_NEXT:
