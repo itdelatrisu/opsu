@@ -168,7 +168,7 @@ public class GameRanking extends BasicGameState {
 		if (retryButton.contains(x, y)) {
 			OsuFile osu = MusicController.getOsuFile();
 			Display.setTitle(String.format("%s - %s", game.getTitle(), osu.toString()));
-			((Game) game.getState(Opsu.STATE_GAME)).setRestart(Game.RESTART_MANUAL);
+			((Game) game.getState(Opsu.STATE_GAME)).setRestart(Game.Restart.MANUAL);
 			SoundController.playSound(SoundEffect.MENUHIT);
 			game.enterState(Opsu.STATE_GAME, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 		} else if (exitButton.contains(x, y)) {

@@ -61,11 +61,12 @@ public class Game extends BasicGameState {
 	/**
 	 * Game restart states.
 	 */
-	public static final byte
-		RESTART_FALSE   = 0,
-		RESTART_NEW     = 1,   // first time loading song
-		RESTART_MANUAL  = 2,   // retry
-		RESTART_LOSE    = 3;   // health is zero: no-continue/force restart
+	public enum Restart {
+		FALSE,   // no restart
+		NEW,     // first time loading song
+		MANUAL,  // retry
+		LOSE;    // health is zero: no-continue/force restart
+	}
 
 	/**
 	 * Minimum time before start of song, in milliseconds, to process skip-related actions.
@@ -120,7 +121,7 @@ public class Game extends BasicGameState {
 	/**
 	 * Current restart state.
 	 */
-	private byte restart;
+	private Restart restart;
 
 	/**
 	 * Current break index in breaks ArrayList.
@@ -570,7 +571,7 @@ public class Game extends BasicGameState {
 			}
 
 			// game over, force a restart
-			restart = RESTART_LOSE;
+			restart = Restart.LOSE;
 			game.enterState(Opsu.STATE_GAMEPAUSEMENU);
 		}
 
@@ -638,7 +639,7 @@ public class Game extends BasicGameState {
 				try {
 					if (trackPosition < osu.objects[0].getTime())
 						retries--;  // don't count this retry (cancel out later increment)
-					restart = RESTART_MANUAL;
+					restart = Restart.MANUAL;
 					enter(container, game);
 					skipIntro();
 				} catch (SlickException e) {
@@ -664,7 +665,7 @@ public class Game extends BasicGameState {
 				if (checkpoint == 0 || checkpoint > osu.endTime)
 					break;  // invalid checkpoint
 				try {
-					restart = RESTART_MANUAL;
+					restart = Restart.MANUAL;
 					enter(container, game);
 					checkpointLoaded = true;
 					if (isLeadIn()) {
@@ -740,7 +741,7 @@ public class Game extends BasicGameState {
 	@Override
 	public void enter(GameContainer container, StateBasedGame game)
 			throws SlickException {
-		if (restart == RESTART_NEW)
+		if (restart == Restart.NEW)
 			osu = MusicController.getOsuFile();
 
 		if (osu == null || osu.objects == null)
@@ -750,9 +751,9 @@ public class Game extends BasicGameState {
 //		container.setMouseGrabbed(true);
 
 		// restart the game
-		if (restart != RESTART_FALSE) {
+		if (restart != Restart.FALSE) {
 			// new game
-			if (restart == RESTART_NEW) {
+			if (restart == Restart.NEW) {
 				loadImages();
 				setMapModifiers();
 				retries = 0;
@@ -816,7 +817,7 @@ public class Game extends BasicGameState {
 			}
 
 			leadInTime = osu.audioLeadIn + approachTime;
-			restart = RESTART_FALSE;
+			restart = Restart.FALSE;
 		}
 
 		skipButton.setScale(1f);
@@ -944,8 +945,8 @@ public class Game extends BasicGameState {
 	/**
 	 * Sets/returns whether entering the state will restart it.
 	 */
-	public void setRestart(byte restart) { this.restart = restart; }
-	public byte getRestart() { return restart; }
+	public void setRestart(Restart restart) { this.restart = restart; }
+	public Restart getRestart() { return restart; }
 
 	/**
 	 * Returns whether or not the track is in the lead-in time state.

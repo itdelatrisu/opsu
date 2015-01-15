@@ -257,9 +257,18 @@ public enum GameImage {
 			return img.getScaledCopy((h / 1.2f) / img.getHeight());
 		}
 	},
-	// TODO: scale MENU_PLAY and MENU_EXIT
-	MENU_PlAY ("menu-play.png", false),
-	MENU_EXIT ("menu-exit.png", false),
+	MENU_PlAY ("menu-play.png", false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy(MENU_LOGO.getImage().getWidth() * 0.83f / img.getWidth());
+		}
+	},
+	MENU_EXIT ("menu-exit.png", false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy(MENU_LOGO.getImage().getWidth() * 0.66f / img.getWidth());
+		}
+	},
 	MENU_BUTTON_MID ("button-middle.png", false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {

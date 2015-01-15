@@ -91,7 +91,7 @@ public class MainMenu extends BasicGameState {
 	/**
 	 * Indexes of previous songs.
 	 */
-	private static Stack<Integer> previous;
+	private Stack<Integer> previous;
 
 	/**
 	 * Main menu background image (optional).
@@ -132,24 +132,18 @@ public class MainMenu extends BasicGameState {
 		int height = container.getHeight();
 
 		// initialize buttons
-		// TODO: clean this up, scale in GameImage.process_sub()
-		Image logoImg = new Image("logo.png");
-		float buttonScale = (height / 1.2f) / logoImg.getHeight();
-		Image logoImgScaled = GameImage.MENU_LOGO.getImage();
-		logo = new MenuButton(logoImgScaled, width / 2f, height / 2f);
-		logo.setHoverScale(1.05f);
-
+		Image logoImg = GameImage.MENU_LOGO.getImage();
 		Image playImg = GameImage.MENU_PlAY.getImage();
 		Image exitImg = GameImage.MENU_EXIT.getImage();
-		playImg = playImg.getScaledCopy((logoImg.getWidth() * 0.83f) / playImg.getWidth());
-		exitImg = exitImg.getScaledCopy((logoImg.getWidth() * 0.66f) / exitImg.getWidth());
 		float exitOffset = (playImg.getWidth() - exitImg.getWidth()) / 3f;
-		playButton = new MenuButton(playImg.getScaledCopy(buttonScale),
-				width * 0.75f, (height / 2) - (logoImgScaled.getHeight() / 5f)
+		logo = new MenuButton(logoImg, width / 2f, height / 2f);
+		playButton = new MenuButton(playImg,
+				width * 0.75f, (height / 2) - (logoImg.getHeight() / 5f)
 		);
-		exitButton = new MenuButton(exitImg.getScaledCopy(buttonScale),
+		exitButton = new MenuButton(exitImg,
 				width * 0.75f - exitOffset, (height / 2) + (exitImg.getHeight() / 2f)
 		);
+		logo.setHoverScale(1.05f);
 		playButton.setHoverScale(1.05f);
 		exitButton.setHoverScale(1.05f);
 

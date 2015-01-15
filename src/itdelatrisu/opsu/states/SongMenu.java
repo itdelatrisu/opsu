@@ -582,6 +582,10 @@ public class SongMenu extends BasicGameState {
 		if (MusicController.isThemePlaying() && focusNode != null)
 			MusicController.play(focusNode.osuFiles.get(focusNode.osuFileIndex), true);
 
+		// unpause track
+		else if (MusicController.isPaused())
+			MusicController.resume();
+
 		// destroy skin images, if any
 		GameImage.destroySkinImages();
 	}
@@ -712,7 +716,7 @@ public class SongMenu extends BasicGameState {
 		Display.setTitle(String.format("%s - %s", game.getTitle(), osu.toString()));
 		OsuParser.parseHitObjects(osu);
 		HitSound.setSampleSet(osu.sampleSet);
-		((Game) game.getState(Opsu.STATE_GAME)).setRestart(Game.RESTART_NEW);
+		((Game) game.getState(Opsu.STATE_GAME)).setRestart(Game.Restart.NEW);
 		game.enterState(Opsu.STATE_GAME, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 	}
 }

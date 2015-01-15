@@ -66,6 +66,11 @@ public class MusicController {
 	 */
 	private static boolean themePlaying = false;
 
+	/**
+	 * Track pause time.
+	 */
+	private static float pauseTime = 0f;
+
 	// This class should not be instantiated.
 	private MusicController() {}
 
@@ -141,6 +146,7 @@ public class MusicController {
 				player.loop();
 			else
 				player.play();
+			pauseTime = 0f;
 		}
 	}
 
@@ -206,11 +212,20 @@ public class MusicController {
 	}
 
 	/**
+	 * Returns true if the current track is paused.
+	 */
+	public static boolean isPaused() {
+		return (trackExists() && pauseTime > 0f);
+	}
+
+	/**
 	 * Pauses the current track.
 	 */
 	public static void pause() {
-		if (isPlaying())
+		if (isPlaying()) {
+			pauseTime = player.getPosition();
 			player.pause();
+		}
 	}
 
 	/**
@@ -218,6 +233,7 @@ public class MusicController {
 	 */
 	public static void resume() {
 		if (trackExists()) {
+			pauseTime = 0f;
 			player.resume();
 			player.setVolume(1.0f);
 		}
@@ -241,11 +257,13 @@ public class MusicController {
 
 	/**
 	 * Returns the position in the current track, in ms.
-	 * If no track is playing, 0 will be returned.
+	 * If no track is loaded, 0 will be returned.
 	 */
 	public static int getPosition() {
 		if (isPlaying())
 			return Math.max((int) (player.getPosition() * 1000 + Options.getMusicOffset()), 0);
+		else if (isPaused())
+			return Math.max((int) (pauseTime * 1000 + Options.getMusicOffset()), 0);
 		else
 			return 0;
 	}
