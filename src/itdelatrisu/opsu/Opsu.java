@@ -109,7 +109,7 @@ public class Opsu extends StateBasedGame {
 			public void uncaughtException(Thread t, Throwable e) {
 				if (!(e instanceof ThreadDeath)) {  // TODO: see MusicController
 					Log.error("** Uncaught Exception! **", e);
-					openCrashPopup();
+					openErrorPopup();
 				}
 			}
 		});
@@ -196,16 +196,16 @@ public class Opsu extends StateBasedGame {
 	}
 
 	/**
-	 * Opens the crash popup.
+	 * Opens the error popup.
 	 */
-	private static void openCrashPopup() {
+	private static void openErrorPopup() {
 		try {
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 			if (Desktop.isDesktopSupported()) {
 				// try to open the log file and/or issues webpage
 				String[] options = {"Send Report", "View Error Log", "Close"};
 				int n = JOptionPane.showOptionDialog(null,
-						"opsu! has crashed. Please report this!",
+						"opsu! has encountered an error.\nPlease report this!",
 						"Error", JOptionPane.DEFAULT_OPTION,
 						JOptionPane.ERROR_MESSAGE, null, options,
 						options[2]);
@@ -218,7 +218,7 @@ public class Opsu extends StateBasedGame {
 			} else {
 				// display error only
 				JOptionPane.showMessageDialog(null,
-						"opsu! has crashed. Please report this!",
+						"opsu! has encountered an error.\nPlease report this!",
 						"Error", JOptionPane.ERROR_MESSAGE);
 			}
 		} catch (Exception e) {

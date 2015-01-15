@@ -95,6 +95,7 @@ public class MusicController {
 
 			// releases all sources from previous tracks
 			destroyOpenAL();
+			System.gc();
 
 			switch (OsuParser.getExtension(osu.audioFilename.getName())) {
 			case "ogg":

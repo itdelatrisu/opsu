@@ -752,19 +752,22 @@ public class Game extends BasicGameState {
 
 		// restart the game
 		if (restart != Restart.FALSE) {
-			// new game
 			if (restart == Restart.NEW) {
+				// new game
 				loadImages();
 				setMapModifiers();
 				retries = 0;
-			} else
+			} else {
+				// retry
 				retries++;
+			}
+
+			// reset game data
+			resetGameData();
+			MusicController.setPosition(0);
+			MusicController.pause();
 
 			// initialize object maps
-			circles = new HashMap<Integer, Circle>();
-			sliders = new HashMap<Integer, Slider>();
-			spinners = new HashMap<Integer, Spinner>();
-
 			for (int i = 0; i < osu.objects.length; i++) {
 				OsuHitObject hitObject = osu.objects[i];
 
@@ -782,28 +785,6 @@ public class Game extends BasicGameState {
 					spinners.put(i, new Spinner(hitObject, this, score));
 				}
 			}
-
-			// reset data
-			MusicController.setPosition(0);
-			MusicController.pause();
-			score.clear();
-			objectIndex = 0;
-			breakIndex = 0;
-			breakTime = 0;
-			breakSound = false;
-			timingPointIndex = 0;
-			beatLengthBase = beatLength = 1;
-			pauseTime = -1;
-			pausedMouseX = -1;
-			pausedMouseY = -1;
-			countdownReadySound = false;
-			countdown3Sound = false;
-			countdown1Sound = false;
-			countdown2Sound = false;
-			countdownGoSound = false;
-			checkpointLoaded = false;
-			deaths = 0;
-			deathTime = -1;
 
 			// load the first timingPoint
 			if (!osu.timingPoints.isEmpty()) {
@@ -828,6 +809,35 @@ public class Game extends BasicGameState {
 //			throws SlickException {
 //		container.setMouseGrabbed(false);
 //	}
+
+	/**
+	 * Resets all game data and structures.
+	 */
+	public void resetGameData() {
+		circles = new HashMap<Integer, Circle>();
+		sliders = new HashMap<Integer, Slider>();
+		spinners = new HashMap<Integer, Spinner>();
+		score.clear();
+		objectIndex = 0;
+		breakIndex = 0;
+		breakTime = 0;
+		breakSound = false;
+		timingPointIndex = 0;
+		beatLengthBase = beatLength = 1;
+		pauseTime = -1;
+		pausedMouseX = -1;
+		pausedMouseY = -1;
+		countdownReadySound = false;
+		countdown3Sound = false;
+		countdown1Sound = false;
+		countdown2Sound = false;
+		countdownGoSound = false;
+		checkpointLoaded = false;
+		deaths = 0;
+		deathTime = -1;
+
+		System.gc();
+	}
 
 	/**
 	 * Skips the beginning of a track.
