@@ -35,6 +35,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.net.ServerSocket;
+import java.net.URI;
 
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
@@ -108,20 +109,7 @@ public class Opsu extends StateBasedGame {
 			public void uncaughtException(Thread t, Throwable e) {
 				if (!(e instanceof ThreadDeath)) {  // TODO: see MusicController
 					Log.error("** Uncaught Exception! **", e);
-
-					// try to open the log file
-					if (Desktop.isDesktopSupported()) {
-						try {
-							UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-							JOptionPane.showMessageDialog(null,
-									"opsu! has crashed. Please report this!",
-									"Error", JOptionPane.ERROR_MESSAGE
-							);
-							Desktop.getDesktop().open(Options.LOG_FILE);
-						} catch (Exception e1) {
-							Log.error("Failed to open log file.", e1);
-						}
-					}
+					openCrashPopup();
 				}
 			}
 		});
@@ -204,6 +192,37 @@ public class Opsu extends StateBasedGame {
 			SERVER_SOCKET.close();
 		} catch (IOException e) {
 			Log.error("Failed to close server socket.", e);
+		}
+	}
+
+	/**
+	 * Opens the crash popup.
+	 */
+	private static void openCrashPopup() {
+		try {
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+			if (Desktop.isDesktopSupported()) {
+				// try to open the log file and/or issues webpage
+				String[] options = {"Send Report", "View Error Log", "Close"};
+				int n = JOptionPane.showOptionDialog(null,
+						"opsu! has crashed. Please report this!",
+						"Error", JOptionPane.DEFAULT_OPTION,
+						JOptionPane.ERROR_MESSAGE, null, options,
+						options[2]);
+				if (n == 0) {
+					Desktop.getDesktop().browse(
+							new URI("https://github.com/itdelatrisu/opsu/issues/new"));
+					Desktop.getDesktop().open(Options.LOG_FILE);
+				} else if (n == 1)
+					Desktop.getDesktop().open(Options.LOG_FILE);
+			} else {
+				// display error only
+				JOptionPane.showMessageDialog(null,
+						"opsu! has crashed. Please report this!",
+						"Error", JOptionPane.ERROR_MESSAGE);
+			}
+		} catch (Exception e) {
+			Log.error("Error opening crash popup.", e);
 		}
 	}
 }
