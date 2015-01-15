@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
 
 import org.newdawn.slick.Color;
@@ -50,6 +51,11 @@ public class OsuParser {
 	 * The total number of directories to parse.
 	 */
 	private static int totalDirectories = -1;
+
+	/**
+	 * The string database.
+	 */
+	private static HashMap<String, String> stringdb = new HashMap<String, String>();
 
 	// This class should not be instantiated.
 	private OsuParser() {}
@@ -92,10 +98,14 @@ public class OsuParser {
 				parseFile(file, osuFiles, false);
 			}
 			if (!osuFiles.isEmpty()) {  // add entry if non-empty
+				osuFiles.trimToSize();
 				Collections.sort(osuFiles);
 				OsuGroupList.get().addSongGroup(osuFiles);
 			}
 		}
+
+		// clear string DB
+		stringdb = new HashMap<String, String>();
 
 		currentFile = null;
 		currentDirectoryIndex = -1;
@@ -153,7 +163,7 @@ public class OsuParser {
 								osu.countdown = Byte.parseByte(tokens[1]);
 								break;
 							case "SampleSet":
-								osu.sampleSet = tokens[1];
+								osu.sampleSet = getDBString(tokens[1]);
 								break;
 							case "StackLeniency":
 								osu.stackLeniency = Float.parseFloat(tokens[1]);
@@ -234,28 +244,28 @@ public class OsuParser {
 						try {
 							switch (tokens[0]) {
 							case "Title":
-								osu.title = tokens[1];
+								osu.title = getDBString(tokens[1]);
 								break;
 							case "TitleUnicode":
-								osu.titleUnicode = tokens[1];
+								osu.titleUnicode = getDBString(tokens[1]);
 								break;
 							case "Artist":
-								osu.artist = tokens[1];
+								osu.artist = getDBString(tokens[1]);
 								break;
 							case "ArtistUnicode":
-								osu.artistUnicode = tokens[1];
+								osu.artistUnicode = getDBString(tokens[1]);
 								break;
 							case "Creator":
-								osu.creator = tokens[1];
+								osu.creator = getDBString(tokens[1]);
 								break;
 							case "Version":
-								osu.version = tokens[1];
+								osu.version = getDBString(tokens[1]);
 								break;
 							case "Source":
-								osu.source = tokens[1];
+								osu.source = getDBString(tokens[1]);
 								break;
 							case "Tags":
-								osu.tags = tokens[1].toLowerCase();
+								osu.tags = getDBString(tokens[1].toLowerCase());
 								break;
 							case "BeatmapID":
 								osu.beatmapID = Integer.parseInt(tokens[1]);
@@ -321,7 +331,7 @@ public class OsuParser {
 							tokens[2] = tokens[2].replaceAll("^\"|\"$", "");
 							String ext = OsuParser.getExtension(tokens[2]);
 							if (ext.equals("jpg") || ext.equals("png"))
-								osu.bg = file.getParent() + File.separator + tokens[2];
+								osu.bg = getDBString(file.getParent() + File.separator + tokens[2]);
 							break;
 						case "2":  // break periods
 							try {
@@ -339,6 +349,8 @@ public class OsuParser {
 							break;
 						}
 					}
+					if (osu.breaks != null)
+						osu.breaks.trimToSize();
 					break;
 				case "[TimingPoints]":
 					while ((line = in.readLine()) != null) {
@@ -369,6 +381,7 @@ public class OsuParser {
 									line, file.getAbsolutePath()), e);
 						}
 					}
+					osu.timingPoints.trimToSize();
 					break;
 				case "[Colours]":
 					LinkedList<Color> colors = new LinkedList<Color>();
@@ -585,5 +598,20 @@ public class OsuParser {
 			return -1;
 
 		return currentDirectoryIndex * 100 / totalDirectories;
+	}
+
+	/**
+	 * Returns the String object in the database for the given String.
+	 * If none, insert the String into the database and return the original String.
+	 * @param s the string to retrieve
+	 * @return the string object
+	 */
+	private static String getDBString(String s) {
+		String DBString = stringdb.get(s);
+		if (DBString == null) {
+			stringdb.put(s, s);
+			return s;
+		} else
+			return DBString;
 	}
 }

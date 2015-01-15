@@ -698,7 +698,7 @@ public class Options extends BasicGameState {
 		int subtextWidth = Utils.FONT_DEFAULT.getWidth("Click or drag an option to change it.");
 		float tabX = (width / 50) + (tab.getWidth() / 2f);
 		float tabY = 15 + Utils.FONT_XLARGE.getLineHeight() + (tab.getHeight() / 2f);
-		float tabOffset = (float) Math.min(tab.getWidth(), 
+		int tabOffset = Math.min(tab.getWidth(), 
 				((width - subtextWidth - tab.getWidth()) / 2) / TAB_MAX);
 		for (int i = 0; i < optionTabs.length; i++)
 			optionTabs[i] = new MenuButton(tab, tabX + (i * tabOffset), tabY);
