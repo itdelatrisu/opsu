@@ -28,12 +28,16 @@ import itdelatrisu.opsu.states.Options;
 import itdelatrisu.opsu.states.SongMenu;
 import itdelatrisu.opsu.states.Splash;
 
+import java.awt.Desktop;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.net.ServerSocket;
+
+import javax.swing.JOptionPane;
+import javax.swing.UIManager;
 
 import org.newdawn.slick.AppGameContainer;
 import org.newdawn.slick.Color;
@@ -102,8 +106,23 @@ public class Opsu extends StateBasedGame {
 		Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
 			@Override
 			public void uncaughtException(Thread t, Throwable e) {
-				if (!(e instanceof ThreadDeath))  // TODO: see MusicController
+				if (!(e instanceof ThreadDeath)) {  // TODO: see MusicController
 					Log.error("** Uncaught Exception! **", e);
+
+					// try to open the log file
+					if (Desktop.isDesktopSupported()) {
+						try {
+							UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+							JOptionPane.showMessageDialog(null,
+									"opsu! has crashed. Please report this!",
+									"Error", JOptionPane.ERROR_MESSAGE
+							);
+							Desktop.getDesktop().open(Options.LOG_FILE);
+						} catch (Exception e1) {
+							Log.error("Failed to open log file.", e1);
+						}
+					}
+				}
 			}
 		});
 
@@ -119,7 +138,9 @@ public class Opsu extends StateBasedGame {
 		}
 
 		// set path for lwjgl natives - NOT NEEDED if using JarSplice
-//		System.setProperty("org.lwjgl.librarypath", new File("native").getAbsolutePath());
+		File nativeDir = new File("./target/natives/");
+		if (nativeDir.isDirectory())
+			System.setProperty("org.lwjgl.librarypath", nativeDir.getAbsolutePath());
 
 		// set the resource paths
 		ResourceLoader.removeAllResourceLocations();
