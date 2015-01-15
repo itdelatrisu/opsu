@@ -314,6 +314,11 @@ public enum GameImage {
 	private static int containerWidth, containerHeight;
 
 	/**
+	 * Whether a skin image has been loaded.
+	 */
+	private static boolean skinImageLoaded = false;
+
+	/**
 	 * Initializes the GameImage class with container dimensions.
 	 * @param width the container width
 	 * @param height the container height
@@ -321,6 +326,19 @@ public enum GameImage {
 	public static void init(int width, int height) {
 		containerWidth = width;
 		containerHeight = height;
+	}
+
+	/**
+	 * Destroys all skin images, if any have been loaded.
+	 */
+	public static void destroySkinImages() {
+		if (skinImageLoaded) {
+			for (GameImage img : GameImage.values()) {
+				if (img.isGameImage())
+					img.destroySkinImage();
+			}
+			skinImageLoaded = false;
+		}
 	}
 
 	/**
@@ -353,6 +371,8 @@ public enum GameImage {
 	 * The skin image takes priority over the default image.
 	 */
 	public Image getImage() {
+		if (defaultImage == null)
+			setDefaultImage();
 		return (skinImage != null) ? skinImage : defaultImage;
 	}
 
@@ -369,13 +389,14 @@ public enum GameImage {
 
 	/**
 	 * Sets the default image for this resource.
+	 * If the default image has already been loaded, this will do nothing.
 	 */
 	public void setDefaultImage() {
+		if (defaultImage != null)
+			return;
 		try {
-			if (defaultImage != null && !defaultImage.isDestroyed())
-				defaultImage.destroy();
-
 			defaultImage = new Image(filename);
+			process();
 		} catch (SlickException e) {
 			Log.error(String.format("Failed to set default image '%s'.", filename), e);
 		}
@@ -387,15 +408,19 @@ public enum GameImage {
 	 * @return true if a new skin image is loaded, false otherwise
 	 */
 	public boolean setSkinImage(File dir) {
-		try {
-			// destroy the existing image, if any
-			if (skinImage != null && !skinImage.isDestroyed())
-				skinImage.destroy();
+		if (dir == null)
+			return false;
 
+		// destroy the existing image, if any
+		destroySkinImage();
+
+		try {
 			// set a new image
 			File file = new File(dir, filename);
 			if (file.isFile() && !Options.isBeatmapSkinIgnored()) {
 				skinImage = new Image(file.getAbsolutePath());
+				process();
+				skinImageLoaded = true;
 				return true;
 			} else {
 				skinImage = null;
@@ -404,6 +429,21 @@ public enum GameImage {
 		} catch (SlickException e) {
 			Log.error(String.format("Failed to set skin image '%s'.", filename), e);
 			return false;
+		}
+	}
+
+	/**
+	 * Destroys the associated skin image, if any.
+	 */
+	private void destroySkinImage() {
+		if (skinImage == null)
+			return;
+		try {
+			if (!skinImage.isDestroyed())
+				skinImage.destroy();
+			skinImage = null;
+		} catch (SlickException e) {
+			Log.error(String.format("Failed to destroy skin image for '%s'.", this.name()), e);
 		}
 	}
 
@@ -421,7 +461,7 @@ public enum GameImage {
 	/**
 	 * Performs individual post-loading actions on the image.
 	 */
-	public void process() {
+	private void process() {
 		setImage(process_sub(getImage(), containerWidth, containerHeight));
 	}
 }

@@ -184,12 +184,8 @@ public class Utils {
 			Log.error("Failed to load fonts.", e);
 		}
 
-		// set default game images
+		// initialize game images
 		GameImage.init(width, height);
-		for (GameImage img : GameImage.values()) {
-			img.setDefaultImage();
-			img.process();
-		}
 
 		// initialize game mods
 		for (GameMod mod : GameMod.values())

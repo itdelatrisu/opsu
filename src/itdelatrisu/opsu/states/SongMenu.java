@@ -581,6 +581,9 @@ public class SongMenu extends BasicGameState {
 		// stop playing the theme song
 		if (MusicController.isThemePlaying() && focusNode != null)
 			MusicController.play(focusNode.osuFiles.get(focusNode.osuFileIndex), true);
+
+		// destroy skin images, if any
+		GameImage.destroySkinImages();
 	}
 
 	@Override
