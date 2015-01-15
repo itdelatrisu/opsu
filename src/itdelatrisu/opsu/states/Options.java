@@ -119,15 +119,15 @@ public class Options extends BasicGameState {
 		NULL (null, null),
 		SCREEN_RESOLUTION ("Screen Resolution", "Restart to apply resolution changes.") {
 			@Override
-			public String getValueString() { return String.format("%dx%d", resolutions[resolutionIndex][0], resolutions[resolutionIndex][1]); }
+			public String getValueString() { return resolution.toString(); }
 
 			@Override
 			public void click(GameContainer container) {
 				do {
-					resolutionIndex = (resolutionIndex + 1) % resolutions.length;
-				} while (resolutionIndex != 0 &&
-						(container.getScreenWidth() < resolutions[resolutionIndex][0] ||
-						 container.getScreenHeight() < resolutions[resolutionIndex][1]));
+					resolution = resolution.next();
+				} while (resolution != Resolution.RES_800_600 &&
+						(container.getScreenWidth() < resolution.getWidth() ||
+						 container.getScreenHeight() < resolution.getHeight()));
 			}
 		},
 //		FULLSCREEN ("Fullscreen Mode", "Restart to apply changes.") {
@@ -139,12 +139,15 @@ public class Options extends BasicGameState {
 //		},
 		TARGET_FPS ("Frame Limiter", "Higher values may cause high CPU usage.") {
 			@Override
-			public String getValueString() { return String.format("%dfps", getTargetFPS()); }
+			public String getValueString() {
+				return String.format((getTargetFPS() == 60) ? "%dfps (vsync)" : "%dfps", getTargetFPS());
+			}
 
 			@Override
 			public void click(GameContainer container) {
 				targetFPSindex = (targetFPSindex + 1) % targetFPS.length;
 				container.setTargetFrameRate(getTargetFPS());
+				container.setVSync(getTargetFPS() == 60);
 			}
 		},
 		MUSIC_VOLUME ("Music Volume", "Global music volume.") {
@@ -498,26 +501,64 @@ public class Options extends BasicGameState {
 	/**
 	 * Screen resolutions.
 	 */
-	private static final int[][] resolutions = {
-		{ 800, 600 },
-		{ 1024, 600 },
-		{ 1024, 768 },
-		{ 1280, 800 },
-		{ 1280, 960 },
-		{ 1366, 768 },
-		{ 1440, 900 },
-		{ 1600, 900 },
-		{ 1680, 1050 },
-		{ 1920, 1080 },
-		{ 1920, 1200 },
-		{ 2560, 1440 },
-		{ 2560, 1600 }
-	};
+	private enum Resolution {
+		RES_800_600 (800, 600),
+		RES_1024_600 (1024, 600),
+		RES_1024_768 (1024, 768),
+		RES_1280_800 (1280, 800),
+		RES_1280_960 (1280, 960),
+		RES_1366_768 (1366, 768),
+		RES_1440_900 (1440, 900),
+		RES_1600_900 (1600, 900),
+		RES_1680_1050 (1680, 1050),
+		RES_1920_1080 (1920, 1080),
+		RES_1920_1200 (1920, 1200),
+		RES_2560_1440 (2560, 1440),
+		RES_2560_1600 (2560, 1600);
+
+		/**
+		 * Screen dimensions.
+		 */
+		private int width, height;
+
+		/**
+		 * Enum values.
+		 */
+		private static Resolution[] values = Resolution.values();
+
+		/**
+		 * Constructor.
+		 * @param width the screen width
+		 * @param height the screen height
+		 */
+		Resolution(int width, int height) {
+			this.width = width;
+			this.height = height;
+		}
+
+		/**
+		 * Returns the screen width.
+		 */
+		public int getWidth() { return width; }
+
+		/**
+		 * Returns the screen height.
+		 */
+		public int getHeight() { return height; }
+
+		/**
+		 * Returns the next (larger) Resolution.
+		 */
+		public Resolution next() { return values[(this.ordinal() + 1) % values.length]; }
+
+		@Override
+		public String toString() { return String.format("%sx%s", width, height); }
+	}
 
 	/**
 	 * Index (row) in resolutions[][] array.
 	 */
-	private static int resolutionIndex = 3;
+	private static Resolution resolution = Resolution.RES_1280_800;
 
 //	/**
 //	 * Whether or not the game should run in fullscreen mode.
@@ -1016,13 +1057,15 @@ public class Options extends BasicGameState {
 	public static void setDisplayMode(AppGameContainer app) throws SlickException {
 		int screenWidth = app.getScreenWidth();
 		int screenHeight = app.getScreenHeight();
-		if (screenWidth < resolutions[resolutionIndex][0] || screenHeight < resolutions[resolutionIndex][1])
-			resolutionIndex = 0;
 
-		int containerWidth = resolutions[resolutionIndex][0];
-		int containerHeight = resolutions[resolutionIndex][1];
-		app.setDisplayMode(containerWidth, containerHeight, false);
-		if (screenWidth == containerWidth && screenHeight == containerHeight)
+		// check for larger-than-screen dimensions
+		if (screenWidth < resolution.getWidth() || screenHeight < resolution.getHeight())
+			resolution = Resolution.RES_800_600;
+
+		app.setDisplayMode(resolution.getWidth(), resolution.getHeight(), false);
+
+		// set borderless window if dimensions match screen size
+		if (screenWidth == resolution.getWidth() && screenHeight == resolution.getHeight())
 			System.setProperty("org.lwjgl.opengl.Window.undecorated", "true");
 	}
 
@@ -1310,17 +1353,20 @@ public class Options extends BasicGameState {
 						port = i;
 					break;
 				case "ScreenResolution":
-					i = Integer.parseInt(value);
-					if (i >= 0 && i < resolutions.length)
-						resolutionIndex = i;
+					try {
+						Resolution res = Resolution.valueOf(String.format("RES_%s", value.replace('x', '_')));
+						resolution = res;
+					} catch (IllegalArgumentException e) {}
 					break;
 //				case "Fullscreen":
 //					fullscreen = Boolean.parseBoolean(value);
 //					break;
 				case "FrameSync":
 					i = Integer.parseInt(value);
-					if (i >= 0 && i <= targetFPS.length)
-						targetFPSindex = i;
+					for (int j = 0; j < targetFPS.length; j++) {
+						if (i == targetFPS[j])
+							targetFPSindex = j;
+					}
 					break;
 				case "ScreenshotFormat":
 					i = Integer.parseInt(value);
@@ -1458,11 +1504,11 @@ public class Options extends BasicGameState {
 			writer.newLine();
 			writer.write(String.format("Port = %d", port));
 			writer.newLine();
-			writer.write(String.format("ScreenResolution = %d", resolutionIndex));
+			writer.write(String.format("ScreenResolution = %s", resolution.toString()));
 			writer.newLine();
 //			writer.write(String.format("Fullscreen = %b", fullscreen));
 //			writer.newLine();
-			writer.write(String.format("FrameSync = %d", targetFPSindex));
+			writer.write(String.format("FrameSync = %d", targetFPS[targetFPSindex]));
 			writer.newLine();
 			writer.write(String.format("FpsCounter = %b", showFPS));
 			writer.newLine();
