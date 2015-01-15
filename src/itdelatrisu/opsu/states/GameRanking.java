@@ -75,8 +75,6 @@ public class GameRanking extends BasicGameState {
 		this.game = game;
 		this.input = container.getInput();
 
-		score = Game.getGameScore();
-
 		int width = container.getWidth();
 		int height = container.getHeight();
 
@@ -170,7 +168,7 @@ public class GameRanking extends BasicGameState {
 		if (retryButton.contains(x, y)) {
 			OsuFile osu = MusicController.getOsuFile();
 			Display.setTitle(String.format("%s - %s", game.getTitle(), osu.toString()));
-			Game.setRestart(Game.RESTART_MANUAL);
+			((Game) game.getState(Opsu.STATE_GAME)).setRestart(Game.RESTART_MANUAL);
 			SoundController.playSound(SoundEffect.MENUHIT);
 			game.enterState(Opsu.STATE_GAME, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 		} else if (exitButton.contains(x, y)) {
@@ -191,5 +189,13 @@ public class GameRanking extends BasicGameState {
 		Display.setTitle(game.getTitle());
 		Utils.getBackButton().setScale(1f);
 		SoundController.playSound(SoundEffect.APPLAUSE);
+	}
+
+	/**
+	 * Sets the associated GameScore object.
+	 * @param score the GameScore
+	 */
+	public void setGameScore(GameScore score) {
+		this.score = score;
 	}
 }

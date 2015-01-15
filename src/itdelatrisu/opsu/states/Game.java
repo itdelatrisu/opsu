@@ -68,9 +68,9 @@ public class Game extends BasicGameState {
 		RESTART_LOSE    = 3;   // health is zero: no-continue/force restart
 
 	/**
-	 * Current restart state.
+	 * Minimum time before start of song, in milliseconds, to process skip-related actions.
 	 */
-	private static byte restart;
+	private static final int SKIP_OFFSET = 2000;
 
 	/**
 	 * The associated OsuFile object.
@@ -80,7 +80,7 @@ public class Game extends BasicGameState {
 	/**
 	 * The associated GameScore object (holds all score data).
 	 */
-	private static GameScore score;
+	private GameScore score;
 
 	/**
 	 * Current hit object index in OsuHitObject[] array.
@@ -118,6 +118,11 @@ public class Game extends BasicGameState {
 	private int[] hitResultOffset;
 
 	/**
+	 * Current restart state.
+	 */
+	private byte restart;
+
+	/**
 	 * Current break index in breaks ArrayList.
 	 */
 	private int breakIndex;
@@ -136,11 +141,6 @@ public class Game extends BasicGameState {
 	 * Skip button (displayed at song start, when necessary).
 	 */
 	private MenuButton skipButton;
-
-	/**
-	 * Minimum time before start of song, in milliseconds, to process skip-related actions.
-	 */
-	private static final int SKIP_OFFSET = 2000;
 
 	/**
 	 * Current timing point index in timingPoints ArrayList.
@@ -222,6 +222,7 @@ public class Game extends BasicGameState {
 
 		// create the associated GameScore object
 		score = new GameScore(width, height);
+		((GameRanking) game.getState(Opsu.STATE_GAMERANKING)).setGameScore(score);
 
 		// playfield background
 		try {
@@ -874,7 +875,7 @@ public class Game extends BasicGameState {
 
 		// load other images...
 		((GamePauseMenu) game.getState(Opsu.STATE_GAMEPAUSEMENU)).loadImages();
-		score.loadImages();
+		score.loadImages(osu.getFile().getParentFile());
 	}
 
 	/**
@@ -943,13 +944,8 @@ public class Game extends BasicGameState {
 	/**
 	 * Sets/returns whether entering the state will restart it.
 	 */
-	public static void setRestart(byte restart) { Game.restart = restart; }
-	public static byte getRestart() { return Game.restart; }
-
-	/**
-	 * Returns the associated GameScore object.
-	 */
-	public static GameScore getGameScore() { return score; }
+	public void setRestart(byte restart) { this.restart = restart; }
+	public byte getRestart() { return restart; }
 
 	/**
 	 * Returns whether or not the track is in the lead-in time state.
