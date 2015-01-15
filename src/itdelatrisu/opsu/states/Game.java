@@ -357,6 +357,7 @@ public class Game extends BasicGameState {
 
 		// countdown
 		if (osu.countdown > 0) {  // TODO: implement half/double rate settings
+			timeDiff = firstObjectTime - trackPosition;
 			if (timeDiff >= 500 && timeDiff < 3000) {
 				if (timeDiff >= 1500) {
 					GameImage.COUNTDOWN_READY.getImage().drawCentered(width / 2, height / 2);
