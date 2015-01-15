@@ -84,11 +84,19 @@ public class GamePauseMenu extends BasicGameState {
 	@Override
 	public void render(GameContainer container, StateBasedGame game, Graphics g)
 			throws SlickException {
-		// background
-		if (gameState.getRestart() != Game.Restart.LOSE)
-			GameImage.PAUSE_OVERLAY.getImage().draw();
+		// get background image
+		GameImage bg = (gameState.getRestart() == Game.Restart.LOSE) ?
+				GameImage.FAIL_BACKGROUND : GameImage.PAUSE_OVERLAY;
+
+		// don't draw default background if button skinned and background unskinned
+		boolean buttonsSkinned =
+			GameImage.PAUSE_CONTINUE.hasSkinImage() ||
+			GameImage.PAUSE_RETRY.hasSkinImage() ||
+			GameImage.PAUSE_BACK.hasSkinImage();
+		if (!buttonsSkinned || bg.hasSkinImage())
+			bg.getImage().draw();
 		else
-			GameImage.FAIL_BACKGROUND.getImage().draw();
+			g.setBackground(Color.black);
 
 		// draw buttons
 		if (gameState.getRestart() != Game.Restart.LOSE)

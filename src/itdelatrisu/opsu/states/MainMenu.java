@@ -94,11 +94,6 @@ public class MainMenu extends BasicGameState {
 	private Stack<Integer> previous;
 
 	/**
-	 * Main menu background image (optional).
-	 */
-	private Image backgroundImage;
-
-	/**
 	 * Background alpha level (for fade-in effect).
 	 */
 	private float bgAlpha = 0f;
@@ -160,14 +155,6 @@ public class MainMenu extends BasicGameState {
 		musicPrevious.setHoverScale(1.5f);
 
 		reset();
-
-		// menu background
-		try {
-			backgroundImage = new Image("menu-background.jpg").getScaledCopy(width, height);
-			backgroundImage.setAlpha(0.9f);
-		} catch (Exception e) {
-			// optional
-		}
 	}
 
 	@Override
@@ -181,11 +168,11 @@ public class MainMenu extends BasicGameState {
 		if (Options.isDynamicBackgroundEnabled() &&
 			osu != null && osu.drawBG(width, height, bgAlpha))
 				;
-		else if (backgroundImage != null) {
-			backgroundImage.setAlpha(bgAlpha);
-			backgroundImage.draw();
-		} else
-			g.setBackground(Utils.COLOR_BLUE_BACKGROUND);
+		else {
+			Image bg = GameImage.MENU_BG.getImage();
+			bg.setAlpha(bgAlpha);
+			bg.draw();
+		}
 
 		// draw buttons
 		if (logoTimer > 0) {
