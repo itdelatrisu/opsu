@@ -138,7 +138,7 @@ public class GamePauseMenu extends BasicGameState {
 				MusicController.stop();
 				MusicController.playAt(MusicController.getOsuFile().previewTime, true);
 				SoundController.playSound(SoundEffect.MENUBACK);
-				gameState.resetGameData();
+				((SongMenu) game.getState(Opsu.STATE_SONGMENU)).resetGameDataOnLoad();
 				game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 			} else {
 				SoundController.playSound(SoundEffect.MENUBACK);
@@ -182,7 +182,7 @@ public class GamePauseMenu extends BasicGameState {
 			MusicController.pause();  // lose state
 			MusicController.playAt(MusicController.getOsuFile().previewTime, true);
 			SoundController.playSound(SoundEffect.MENUBACK);
-			gameState.resetGameData();
+			((SongMenu) game.getState(Opsu.STATE_SONGMENU)).resetGameDataOnLoad();
 			game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 		}
 	}

@@ -139,6 +139,11 @@ public class SongMenu extends BasicGameState {
 	 */
 	private Animation loader;
 
+	/**
+	 * Whether or not to reset game data upon entering the state.
+	 */
+	private boolean resetGame = false;
+
 	// game-related variables
 	private GameContainer container;
 	private StateBasedGame game;
@@ -586,8 +591,12 @@ public class SongMenu extends BasicGameState {
 		else if (MusicController.isPaused())
 			MusicController.resume();
 
-		// destroy skin images, if any
-		GameImage.destroySkinImages();
+		// reset game data
+		if (resetGame) {
+			((Game) game.getState(Opsu.STATE_GAME)).resetGameData();
+			GameImage.destroySkinImages();  // destroy skin images, if any
+			resetGame = false;
+		}
 	}
 
 	@Override
@@ -702,6 +711,11 @@ public class SongMenu extends BasicGameState {
 
 		return oldFocus;
 	}
+
+	/**
+	 * Triggers a reset of game data upon entering this state.
+	 */
+	public void resetGameDataOnLoad() { resetGame = true; }
 
 	/**
 	 * Starts the game.

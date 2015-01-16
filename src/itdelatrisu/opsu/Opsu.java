@@ -168,6 +168,7 @@ public class Opsu extends StateBasedGame {
 			// start playing track at preview position
 			MusicController.pause();
 			MusicController.playAt(MusicController.getOsuFile().previewTime, true);
+			((SongMenu) this.getState(Opsu.STATE_SONGMENU)).resetGameDataOnLoad();
 			this.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 			return false;
 		}
