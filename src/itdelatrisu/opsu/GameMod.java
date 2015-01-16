@@ -22,22 +22,23 @@ import java.util.Arrays;
 import java.util.Collections;
 
 import org.newdawn.slick.Image;
+import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 
 /**
  * Game mods.
  */
 public enum GameMod {
-	EASY          (0, "selection-mod-easy.png", 0.5f),
-	NO_FAIL       (1, "selection-mod-nofail.png", 0.5f),
-	HARD_ROCK     (2, "selection-mod-hardrock.png", 1.06f),
-	SUDDEN_DEATH  (3, "selection-mod-suddendeath.png"),
-	SPUN_OUT      (4, "selection-mod-spunout.png", 0.9f),
-	AUTO          (5, "selection-mod-autoplay.png");
-//	HALF_TIME     (, "selection-mod-halftime.png", 0.3f),
-//	DOUBLE_TIME   (, "selection-mod-doubletime.png", 1.12f),
-//	HIDDEN        (, "selection-mod-hidden.png", 1.06f),
-//	FLASHLIGHT    (, "selection-mod-flashlight.png", 1.12f);
+	EASY          (0, "selection-mod-easy.png", Input.KEY_Q, 0.5f),
+	NO_FAIL       (1, "selection-mod-nofail.png", Input.KEY_W, 0.5f),
+	HARD_ROCK     (2, "selection-mod-hardrock.png", Input.KEY_A, 1.06f),
+	SUDDEN_DEATH  (3, "selection-mod-suddendeath.png", Input.KEY_S),
+	SPUN_OUT      (4, "selection-mod-spunout.png", Input.KEY_V, 0.9f),
+	AUTO          (5, "selection-mod-autoplay.png", Input.KEY_B);
+//	HALF_TIME     (, "selection-mod-halftime.png", Input.KEY_E, 0.3f),
+//	DOUBLE_TIME   (, "selection-mod-doubletime.png", Input.KEY_D, 1.12f),
+//	HIDDEN        (, "selection-mod-hidden.png", Input.KEY_F, 1.06f),
+//	FLASHLIGHT    (, "selection-mod-flashlight.png", Input.KEY_G, 1.12f);
 
 	/**
 	 * The ID of the mod (used for positioning).
@@ -48,6 +49,11 @@ public enum GameMod {
 	 * The file name of the mod image.
 	 */
 	private String filename;
+
+	/**
+	 * The shortcut key associated with the mod.
+	 */
+	private int key;
 
 	/**
 	 * Score multiplier.
@@ -89,10 +95,12 @@ public enum GameMod {
 	 * Constructor.
 	 * @param id the ID of the mod (for positioning).
 	 * @param filename the image file name
+	 * @param key the shortcut key
 	 */
-	GameMod(int id, String filename) {
+	GameMod(int id, String filename, int key) {
 		this.id = id;
 		this.filename = filename;
+		this.key = key;
 		this.multiplier = 1f;
 	}
 
@@ -100,11 +108,13 @@ public enum GameMod {
 	 * Constructor.
 	 * @param id the ID of the mod (for positioning).
 	 * @param filename the image file name
+	 * @param key the shortcut key
 	 * @param multiplier the score multiplier
 	 */
-	GameMod(int id, String filename, float multiplier) {
+	GameMod(int id, String filename, int key, float multiplier) {
 		this.id = id;
 		this.filename = filename;
+		this.key = key;
 		this.multiplier = multiplier;
 	}
 
@@ -133,6 +143,13 @@ public enum GameMod {
 			ErrorHandler.error(String.format("Failed to initialize game mod '%s'.", this), e, false);
 		}
 	}
+
+	/**
+	 * Returns the shortcut key for the mod.
+	 * @return the key
+	 * @see org.newdawn.slick.Input
+	 */
+	public int getKey() { return key; }
 
 	/**
 	 * Returns the score multiplier for the mod.

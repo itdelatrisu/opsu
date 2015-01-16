@@ -947,6 +947,15 @@ public class Options extends BasicGameState {
 			currentTab = (currentTab + i) % TAB_MAX;
 			SoundController.playSound(SoundEffect.MENUCLICK);
 			break;
+		default:
+			// check mod shortcut keys
+			for (GameMod mod : GameMod.values()) {
+				if (key == mod.getKey()) {
+					mod.toggle(true);
+					break;
+				}
+			}
+			break;
 		}
 	}
 
