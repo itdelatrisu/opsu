@@ -18,6 +18,8 @@
 
 package itdelatrisu.opsu.states;
 
+import java.util.Stack;
+
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.MenuButton;
 import itdelatrisu.opsu.Opsu;
@@ -72,6 +74,41 @@ public class SongMenu extends BasicGameState {
 	private static final float MAX_HOVER_OFFSET = 30f;
 
 	/**
+	 * Song node class representing an OsuGroupNode and file index.
+	 */
+	private static class SongNode {
+		/**
+		 * Song node.
+		 */
+		private OsuGroupNode node;
+
+		/**
+		 * File index.
+		 */
+		private int index;
+
+		/**
+		 * Constructor.
+		 * @param node the OsuGroupNode
+		 * @param index the file index
+		 */
+		public SongNode(OsuGroupNode node, int index) {
+			this.node = node;
+			this.index = index;
+		}
+
+		/**
+		 * Returns the associated OsuGroupNode.
+		 */
+		public OsuGroupNode getNode() { return node; }
+
+		/**
+		 * Returns the associated file index.
+		 */
+		public int getIndex() { return index; }
+	}
+
+	/**
 	 * Current start node (topmost menu entry).
 	 */
 	private OsuGroupNode startNode;
@@ -84,12 +121,12 @@ public class SongMenu extends BasicGameState {
 	/**
 	 * The base node of the previous focus node.
 	 */
-	private OsuGroupNode oldFocusNode = null;
+	private SongNode oldFocusNode = null;
 
 	/**
-	 * The file index of the previous focus node.
+	 * Stack of previous "random" (F2) focus nodes.
 	 */
-	private int oldFileIndex = -1;
+	private Stack<SongNode> randomStack = new Stack<SongNode>();
 
 	/**
 	 * Current focus node's song information.
@@ -318,12 +355,13 @@ public class SongMenu extends BasicGameState {
 			searchTimer = 0;
 
 			// store the start/focus nodes
-			if (focusNode != null) {
-				oldFocusNode = OsuGroupList.get().getBaseNode(focusNode.index);
-				oldFileIndex = focusNode.osuFileIndex;
-			}
+			if (focusNode != null)
+				oldFocusNode = new SongNode(OsuGroupList.get().getBaseNode(focusNode.index), focusNode.osuFileIndex);
 
 			if (OsuGroupList.get().search(search.getText())) {
+				// reset song stack
+				randomStack = new Stack<SongNode>();
+
 				// empty search
 				if (search.getText().isEmpty())
 					searchResultString = "Type to search!";
@@ -335,7 +373,7 @@ public class SongMenu extends BasicGameState {
 					if (search.getText().isEmpty()) {  // cleared search
 						// use previous start/focus if possible
 						if (oldFocusNode != null)
-							setFocus(oldFocusNode, oldFileIndex, true);
+							setFocus(oldFocusNode.getNode(), oldFocusNode.getIndex(), true);
 						else
 							setFocus(OsuGroupList.get().getRandomNode(), -1, true);
 					} else {
@@ -345,7 +383,6 @@ public class SongMenu extends BasicGameState {
 						setFocus(OsuGroupList.get().getRandomNode(), -1, true);
 					}
 					oldFocusNode = null;
-					oldFileIndex = -1;
 				} else if (!search.getText().isEmpty())
 					searchResultString = "No matches found. Hit 'esc' to reset.";
 			}
@@ -490,7 +527,19 @@ public class SongMenu extends BasicGameState {
 			game.enterState(Opsu.STATE_OPTIONS, new EmptyTransition(), new FadeInTransition(Color.black));
 			break;
 		case Input.KEY_F2:
-			setFocus(OsuGroupList.get().getRandomNode(), -1, true);
+			if (focusNode == null)
+				break;
+			if (input.isKeyDown(Input.KEY_RSHIFT) || input.isKeyDown(Input.KEY_LSHIFT)) {
+				// shift key: previous random track
+				SongNode prev;
+				if (randomStack.isEmpty() || (prev = randomStack.pop()) == null)
+					break;
+				setFocus(prev.getNode(), prev.getIndex(), true);
+			} else {
+				// random track, add previous to stack
+				randomStack.push(new SongNode(OsuGroupList.get().getBaseNode(focusNode.index), focusNode.osuFileIndex));
+				setFocus(OsuGroupList.get().getRandomNode(), -1, true);
+			}
 			break;
 		case Input.KEY_F12:
 			Utils.takeScreenShot();
@@ -590,6 +639,9 @@ public class SongMenu extends BasicGameState {
 		// unpause track
 		else if (MusicController.isPaused())
 			MusicController.resume();
+
+		// reset song stack
+		randomStack = new Stack<SongNode>();
 
 		// reset game data
 		if (resetGame) {
