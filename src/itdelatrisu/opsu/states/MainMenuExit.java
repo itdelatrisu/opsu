@@ -130,7 +130,7 @@ public class MainMenuExit extends BasicGameState {
 
 	@Override
 	public void mousePressed(int button, int x, int y) {
-		// check mouse button 
+		// check mouse button
 		if (button != Input.MOUSE_LEFT_BUTTON)
 			return;
 

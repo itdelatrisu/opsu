@@ -124,7 +124,7 @@ public class SoundController {
 		currentFileName = null;
 		currentFileIndex = -1;
 	}
-	
+
 	/**
 	 * Sets the sample volume (modifies the global sample volume).
 	 * @param volume the sample volume [0, 1]

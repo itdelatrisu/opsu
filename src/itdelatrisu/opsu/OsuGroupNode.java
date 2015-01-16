@@ -124,7 +124,7 @@ public class OsuGroupNode {
 				osu.creator);
 		info[2] = String.format("Length: %d:%02d  BPM: %s  Objects: %d",
 				TimeUnit.MILLISECONDS.toMinutes(osu.endTime),
-				TimeUnit.MILLISECONDS.toSeconds(osu.endTime) - 
+				TimeUnit.MILLISECONDS.toSeconds(osu.endTime) -
 				TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(osu.endTime)),
 				(osu.bpmMax <= 0) ? "--" :
 				 ((osu.bpmMin == osu.bpmMax) ? osu.bpmMin : String.format("%d-%d", osu.bpmMin, osu.bpmMax)),

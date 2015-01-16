@@ -90,6 +90,7 @@ public class Circle implements HitObject {
 		this.comboEnd = comboEnd;
 	}
 
+	@Override
 	public void draw(int trackPosition, boolean currentObject, Graphics g) {
 		int timeDiff = hitObject.getTime() - trackPosition;
 
@@ -133,6 +134,7 @@ public class Circle implements HitObject {
 		return result;
 	}
 
+	@Override
 	public boolean mousePressed(int x, int y) {
 		double distance = Math.hypot(hitObject.getX() - x, hitObject.getY() - y);
 		int circleRadius = GameImage.HITCIRCLE.getImage().getWidth() / 2;
@@ -150,6 +152,7 @@ public class Circle implements HitObject {
 		return false;
 	}
 
+	@Override
 	public boolean update(boolean overlap, int delta, int mouseX, int mouseY) {
 		int time = hitObject.getTime();
 		float x = hitObject.getX(), y = hitObject.getY();
@@ -162,7 +165,7 @@ public class Circle implements HitObject {
 		if (overlap || trackPosition > time + hitResultOffset[GameScore.HIT_50]) {
 			if (isAutoMod)  // "auto" mod: catch any missed notes due to lag
 				score.hitResult(time, GameScore.HIT_300, x, y, color, comboEnd, hitSound);
-			
+
 			else  // no more points can be scored, so send a miss
 				score.hitResult(time, GameScore.HIT_MISS, x, y, null, comboEnd, hitSound);
 			return true;

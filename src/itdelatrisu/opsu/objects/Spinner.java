@@ -71,7 +71,7 @@ public class Spinner implements HitObject {
 	/**
 	 * Initializes the Spinner data type with images and dimensions.
 	 * @param container the game container
-	 * @throws SlickException 
+	 * @throws SlickException
 	 */
 	public static void init(GameContainer container) throws SlickException {
 		width  = container.getWidth();
@@ -99,6 +99,7 @@ public class Spinner implements HitObject {
 		rotationsNeeded = spinsPerMinute * (hitObject.getEndTime() - hitObject.getTime()) / 60000f;
 	}
 
+	@Override
 	public void draw(int trackPosition, boolean currentObject, Graphics g) {
 		// only draw spinners if current object
 		if (!currentObject)
@@ -139,7 +140,7 @@ public class Spinner implements HitObject {
 				score.drawSymbolNumber(extraRotations * 1000, width / 2, height * 2 / 3, 1.0f);
 		}
 	}
-	
+
 	/**
 	 * Calculates and sends the spinner hit result.
 	 * @return the hit result (GameScore.HIT_* constants)
@@ -165,9 +166,10 @@ public class Spinner implements HitObject {
 		return result;
 	}
 
-	// not used
-	public boolean mousePressed(int x, int y) { return false; }
+	@Override
+	public boolean mousePressed(int x, int y) { return false; }  // not used
 
+	@Override
 	public boolean update(boolean overlap, int delta, int mouseX, int mouseY) {
 		int trackPosition = MusicController.getPosition();
 		if (overlap)

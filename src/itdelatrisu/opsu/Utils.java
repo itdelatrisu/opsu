@@ -98,7 +98,7 @@ public class Utils {
 	 * Last cursor coordinates.
 	 */
 	private static int lastX = -1, lastY = -1;
-	
+
 	/**
 	 * Stores all previous cursor locations to display a trail.
 	 */
@@ -293,7 +293,7 @@ public class Utils {
 
 	/**
 	 * Loads the cursor images.
-	 * @throws SlickException 
+	 * @throws SlickException
 	 */
 	public static void loadCursor() throws SlickException {
 		// destroy old cursors, if they exist
@@ -428,7 +428,7 @@ public class Utils {
 		int dx2 = (dx << 1);  // point
 		int ix = x1 < x2 ? 1 : -1;  // increment direction
 		int iy = y1 < y2 ? 1 : -1;
-		
+
 		int k = 5;  // sample size
 		if (dy <= dx) {
 			for (int i = 0; ; i++) {

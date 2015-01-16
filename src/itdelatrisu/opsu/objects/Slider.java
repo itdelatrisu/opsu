@@ -84,7 +84,7 @@ public class Slider implements HitObject {
 	 * The time duration of the slider, in milliseconds.
 	 */
 	private float sliderTime = 0f;
-	
+
 	/**
 	 * The time duration of the slider including repeats, in milliseconds.
 	 */
@@ -99,7 +99,7 @@ public class Slider implements HitObject {
 	 * Whether or not to show the follow circle.
 	 */
 	private boolean followCircleActive = false;
-	
+
 	/**
 	 * Whether or not the slider result ends the combo streak.
 	 */
@@ -114,12 +114,12 @@ public class Slider implements HitObject {
 	 * The t values of the slider ticks.
 	 */
 	private float[] ticksT;
-	
+
 	/**
 	 * The tick index in the ticksT[] array.
 	 */
 	private int tickIndex = 0;
-	
+
 	/**
 	 * Number of ticks hit and tick intervals so far.
 	 */
@@ -201,7 +201,7 @@ public class Slider implements HitObject {
 		 * Returns the angle of the first control point.
 		 */
 		private float getStartAngle() { return startAngle; }
-		
+
 		/**
 		 * Returns the angle of the last control point.
 		 */
@@ -336,6 +336,7 @@ public class Slider implements HitObject {
 		this.bezier = new Bezier();
 	}
 
+	@Override
 	public void draw(int trackPosition, boolean currentObject, Graphics g) {
 		float x = hitObject.getX(), y = hitObject.getY();
 		float[] sliderX = hitObject.getSliderX(), sliderY = hitObject.getSliderY();
@@ -438,6 +439,7 @@ public class Slider implements HitObject {
 		return result;
 	}
 
+	@Override
 	public boolean mousePressed(int x, int y) {
 		if (sliderClicked)  // first circle already processed
 			return false;
@@ -448,7 +450,7 @@ public class Slider implements HitObject {
 			int trackPosition = MusicController.getPosition();
 			int timeDiff = Math.abs(trackPosition - hitObject.getTime());
 			int[] hitResultOffset = game.getHitResultOffsets();
-			
+
 			int result = -1;
 			if (timeDiff < hitResultOffset[GameScore.HIT_50]) {
 				result = GameScore.HIT_SLIDER30;
@@ -467,6 +469,7 @@ public class Slider implements HitObject {
 		return false;
 	}
 
+	@Override
 	public boolean update(boolean overlap, int delta, int mouseX, int mouseY) {
 		int repeatCount = hitObject.getRepeatCount();
 
@@ -490,7 +493,7 @@ public class Slider implements HitObject {
 
 		byte hitSound = hitObject.getHitSoundType();
 		int trackPosition = MusicController.getPosition();
-		int[] hitResultOffset = game.getHitResultOffsets();	
+		int[] hitResultOffset = game.getHitResultOffsets();
 		int lastIndex = hitObject.getSliderX().length - 1;
 		boolean isAutoMod = GameMod.AUTO.isActive();
 

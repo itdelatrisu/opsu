@@ -451,20 +451,30 @@ public class GameScore {
 	 * @param firstObject true if the first hit object's start time has not yet passed
 	 */
 	public void drawGameElements(Graphics g, boolean breakPeriod, boolean firstObject) {
+		int marginX = (int) (width * 0.008f);
+
 		// score
 		drawSymbolString((scoreDisplay < 100000000) ? String.format("%08d", scoreDisplay) : Long.toString(scoreDisplay),
-				width - 2, 0, 1.0f, true);
+				width - marginX, 0, 1.0f, true);
 
 		// score percentage
 		int symbolHeight = getScoreSymbolImage('0').getHeight();
-		String scorePercentage = String.format("%02.2f%%", getScorePercent());
-		drawSymbolString(scorePercentage, width - 2, symbolHeight, 0.75f, true);
+		float scorePercent = getScorePercent();
+		drawSymbolString(
+				String.format((scorePercent < 10f) ? "0%.2f%%" : "%.2f%%", scorePercent),
+				width - marginX, symbolHeight, 0.75f, true
+		);
 
 		// map progress circle
 		g.setAntiAlias(true);
 		g.setLineWidth(2f);
 		g.setColor(Color.white);
-		int circleX = width - (getScoreSymbolImage('0').getWidth() * scorePercentage.length());
+		int circleX = width - marginX - (  // max width: "100.00%"
+				getScoreSymbolImage('1').getWidth() +
+				getScoreSymbolImage('0').getWidth() * 4 +
+				getScoreSymbolImage('.').getWidth() +
+				getScoreSymbolImage('%').getWidth()
+		);
 		float circleDiameter = symbolHeight * 0.75f;
 		g.drawOval(circleX, symbolHeight, circleDiameter, circleDiameter);
 
@@ -783,7 +793,7 @@ public class GameScore {
 		combo++;
 		if (combo > comboMax)
 			comboMax = combo;
-	
+
 		// combo bursts (at 30, 60, 100+50x)
 		if (Options.isComboBurstEnabled() &&
 			(combo == 30 || combo == 60 || (combo >= 100 && combo % 50 == 0))) {

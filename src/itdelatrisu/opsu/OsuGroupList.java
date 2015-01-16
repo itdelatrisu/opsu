@@ -73,7 +73,7 @@ public class OsuGroupList {
 	 * Returns the single instance of this class.
 	 */
 	public static OsuGroupList get() { return list; }
-	
+
 	/**
 	 * Constructor.
 	 */
@@ -239,7 +239,7 @@ public class OsuGroupList {
 	}
 
 	/**
-	 * Creates a new list of song groups in which each group contains a match to a search query. 
+	 * Creates a new list of song groups in which each group contains a match to a search query.
 	 * @param query the search query (terms separated by spaces)
 	 * @return false if query is the same as the previous one, true otherwise
 	 */

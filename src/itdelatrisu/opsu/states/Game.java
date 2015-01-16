@@ -932,7 +932,7 @@ public class Game extends BasicGameState {
 	 * Returns the object approach time, in milliseconds.
 	 */
 	public int getApproachTime() { return approachTime; }
-	
+
 	/**
 	 * Returns an array of hit result offset times, in milliseconds (indexed by GameScore.HIT_* constants).
 	 */

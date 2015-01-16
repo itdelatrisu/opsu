@@ -118,9 +118,10 @@ public class GameRanking extends BasicGameState {
 		}
 
 		// header text
-		Utils.FONT_LARGE.drawString(10, 0,
+		float marginX = width * 0.01f, marginY = height * 0.01f;
+		Utils.FONT_LARGE.drawString(marginX, marginY,
 				String.format("%s - %s [%s]", osu.getArtist(), osu.getTitle(), osu.version), Color.white);
-		Utils.FONT_MEDIUM.drawString(10, Utils.FONT_LARGE.getLineHeight() - 6,
+		Utils.FONT_MEDIUM.drawString(marginX, marginY + Utils.FONT_LARGE.getLineHeight() - 6,
 				String.format("Beatmap by %s", osu.creator), Color.white);
 
 		// buttons
@@ -147,10 +148,10 @@ public class GameRanking extends BasicGameState {
 	public void keyPressed(int key, char c) {
 		switch (key) {
 		case Input.KEY_ESCAPE:
-			MusicController.pause();
-			MusicController.playAt(MusicController.getOsuFile().previewTime, true);
 			SoundController.playSound(SoundEffect.MENUBACK);
-			((SongMenu) game.getState(Opsu.STATE_SONGMENU)).resetGameDataOnLoad();
+			SongMenu songMenu = (SongMenu) game.getState(Opsu.STATE_SONGMENU);
+			songMenu.resetGameDataOnLoad();
+			songMenu.resetTrackOnLoad();
 			game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 			break;
 		case Input.KEY_F12:
@@ -161,7 +162,7 @@ public class GameRanking extends BasicGameState {
 
 	@Override
 	public void mousePressed(int button, int x, int y) {
-		// check mouse button 
+		// check mouse button
 		if (button != Input.MOUSE_LEFT_BUTTON)
 			return;
 
@@ -177,10 +178,10 @@ public class GameRanking extends BasicGameState {
 			((SongMenu) game.getState(Opsu.STATE_SONGMENU)).resetGameDataOnLoad();
 			game.enterState(Opsu.STATE_MAINMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 		} else if (Utils.getBackButton().contains(x, y)) {
-			MusicController.pause();
-			MusicController.playAt(MusicController.getOsuFile().previewTime, true);
 			SoundController.playSound(SoundEffect.MENUBACK);
-			((SongMenu) game.getState(Opsu.STATE_SONGMENU)).resetGameDataOnLoad();
+			SongMenu songMenu = (SongMenu) game.getState(Opsu.STATE_SONGMENU);
+			songMenu.resetGameDataOnLoad();
+			songMenu.resetTrackOnLoad();
 			game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 		}
 	}

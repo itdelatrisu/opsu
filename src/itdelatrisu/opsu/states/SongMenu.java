@@ -18,8 +18,6 @@
 
 package itdelatrisu.opsu.states;
 
-import java.util.Stack;
-
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.GameMod;
 import itdelatrisu.opsu.MenuButton;
@@ -34,6 +32,8 @@ import itdelatrisu.opsu.audio.HitSound;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
+
+import java.util.Stack;
 
 import org.lwjgl.opengl.Display;
 import org.newdawn.slick.Animation;
@@ -181,6 +181,11 @@ public class SongMenu extends BasicGameState {
 	 * Whether or not to reset game data upon entering the state.
 	 */
 	private boolean resetGame = false;
+
+	/**
+	 * Whether or not to reset music track upon entering the state.
+	 */
+	private boolean resetTrack = false;
 
 	// game-related variables
 	private GameContainer container;
@@ -435,7 +440,7 @@ public class SongMenu extends BasicGameState {
 
 	@Override
 	public void mousePressed(int button, int x, int y) {
-		// check mouse button 
+		// check mouse button
 		if (button != Input.MOUSE_LEFT_BUTTON)
 			return;
 
@@ -657,6 +662,13 @@ public class SongMenu extends BasicGameState {
 			GameImage.destroySkinImages();  // destroy skin images, if any
 			resetGame = false;
 		}
+
+		// reset music track
+		if (resetTrack) {
+			MusicController.pause();
+			MusicController.playAt(MusicController.getOsuFile().previewTime, true);
+			resetTrack = false;
+		}
 	}
 
 	@Override
@@ -679,7 +691,7 @@ public class SongMenu extends BasicGameState {
 		while (n != 0) {
 			if (startNode == null)
 				break;
-	
+
 			int height = container.getHeight();
 			if (n < 0 && startNode.prev != null) {
 				startNode = startNode.prev;
@@ -776,6 +788,11 @@ public class SongMenu extends BasicGameState {
 	 * Triggers a reset of game data upon entering this state.
 	 */
 	public void resetGameDataOnLoad() { resetGame = true; }
+
+	/**
+	 * Triggers a reset of the music track upon entering this state.
+	 */
+	public void resetTrackOnLoad() { resetTrack = true; }
 
 	/**
 	 * Starts the game.

@@ -18,7 +18,6 @@
 
 package itdelatrisu.opsu;
 
-import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.states.Game;
 import itdelatrisu.opsu.states.GamePauseMenu;
 import itdelatrisu.opsu.states.GameRanking;
@@ -166,9 +165,9 @@ public class Opsu extends StateBasedGame {
 		// intercept close requests in game-related states and return to song menu
 		if (id == STATE_GAME || id == STATE_GAMEPAUSEMENU || id == STATE_GAMERANKING) {
 			// start playing track at preview position
-			MusicController.pause();
-			MusicController.playAt(MusicController.getOsuFile().previewTime, true);
-			((SongMenu) this.getState(Opsu.STATE_SONGMENU)).resetGameDataOnLoad();
+			SongMenu songMenu = (SongMenu) this.getState(Opsu.STATE_SONGMENU);
+			songMenu.resetGameDataOnLoad();
+			songMenu.resetTrackOnLoad();
 			this.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 			return false;
 		}

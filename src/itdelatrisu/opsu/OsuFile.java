@@ -158,7 +158,7 @@ public class OsuFile implements Comparable<OsuFile> {
 	/**
 	 * Compares two OsuFile objects first by overall difficulty, then by total objects.
 	 */
-	@Override	
+	@Override
 	public int compareTo(OsuFile that) {
 		int cmp = Float.compare(this.overallDifficulty, that.overallDifficulty);
 		if (cmp == 0)

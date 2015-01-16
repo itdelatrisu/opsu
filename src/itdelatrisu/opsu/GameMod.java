@@ -129,7 +129,7 @@ public enum GameMod {
 			Image img = new Image(filename);
 			float scale = (height * 0.12f) / img.getHeight();
 			img = img.getScaledCopy(scale);
-	
+
 			// find coordinates
 			float offsetX = img.getWidth() * 1.5f;
 			float x = (width / 2f) - (offsetX * SIZE / 2.75f);

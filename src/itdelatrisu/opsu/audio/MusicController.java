@@ -305,10 +305,10 @@ public class MusicController {
 	/**
 	 * Stops and releases all sources, clears each of the specified Audio
 	 * buffers, destroys the OpenAL context, and resets SoundStore for future use.
-	 * 
+	 *
 	 * Calling SoundStore.get().init() will re-initialize the OpenAL context
 	 * after a call to destroyOpenAL (Note: AudioLoader.getXXX calls init for you).
-	 * 
+	 *
 	 * @author davedes (http://slick.ninjacave.com/forum/viewtopic.php?t=3920)
 	 */
 	private static void destroyOpenAL() {
