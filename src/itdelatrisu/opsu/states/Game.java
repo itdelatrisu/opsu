@@ -617,10 +617,14 @@ public class Game extends BasicGameState {
 
 		switch (key) {
 		case Input.KEY_ESCAPE:
+			// "auto" mod: go back to song menu
+			if (GameMod.AUTO.isActive()) {
+				game.closeRequested();
+				break;
+			}
+
 			// pause game
-			if (pauseTime < 0 && breakTime <= 0 &&
-				trackPosition >= osu.objects[0].getTime() &&
-				!GameMod.AUTO.isActive()) {
+			if (pauseTime < 0 && breakTime <= 0 && trackPosition >= osu.objects[0].getTime()) {
 				pausedMouseX = input.getMouseX();
 				pausedMouseY = input.getMouseY();
 				pausePulse = 0f;

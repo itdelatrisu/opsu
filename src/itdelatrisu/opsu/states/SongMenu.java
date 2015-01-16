@@ -21,6 +21,7 @@ package itdelatrisu.opsu.states;
 import java.util.Stack;
 
 import itdelatrisu.opsu.GameImage;
+import itdelatrisu.opsu.GameMod;
 import itdelatrisu.opsu.MenuButton;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.OsuFile;
@@ -545,8 +546,14 @@ public class SongMenu extends BasicGameState {
 			Utils.takeScreenShot();
 			break;
 		case Input.KEY_ENTER:
-			if (focusNode != null)
-				startGame();
+			if (focusNode == null)
+				break;
+			if (input.isKeyDown(Input.KEY_RCONTROL) || input.isKeyDown(Input.KEY_LCONTROL)) {
+				// turn on "auto" mod
+				if (!GameMod.AUTO.isActive())
+					GameMod.AUTO.toggle(true);
+			}
+			startGame();
 			break;
 		case Input.KEY_DOWN:
 			changeIndex(1);
