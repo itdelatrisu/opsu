@@ -32,6 +32,7 @@ import org.newdawn.slick.util.Log;
  * Game images.
  */
 public enum GameImage {
+	
 	// Game
 	SECTION_PASS ("section-pass.png"),
 	SECTION_FAIL ("section-fail.png"),
