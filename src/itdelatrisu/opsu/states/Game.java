@@ -33,11 +33,11 @@ import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
 import itdelatrisu.opsu.objects.Circle;
+import itdelatrisu.opsu.objects.HitObject;
 import itdelatrisu.opsu.objects.Slider;
 import itdelatrisu.opsu.objects.Spinner;
 
 import java.io.File;
-import java.util.HashMap;
 import java.util.Stack;
 import java.util.concurrent.TimeUnit;
 
@@ -89,19 +89,9 @@ public class Game extends BasicGameState {
 	private int objectIndex = 0;
 
 	/**
-	 * This map's hit circles objects, keyed by objectIndex.
+	 * The map's HitObjects, indexed by objectIndex.
 	 */
-	private HashMap<Integer, Circle> circles;
-
-	/**
-	 * This map's slider objects, keyed by objectIndex.
-	 */
-	private HashMap<Integer, Slider> sliders;
-
-	/**
-	 * This map's spinner objects, keyed by objectIndex.
-	 */
-	private HashMap<Integer, Spinner> spinners;
+	private HitObject[] hitObjects;
 
 	/**
 	 * Delay time, in milliseconds, before song starts.
@@ -405,21 +395,8 @@ public class Game extends BasicGameState {
 		for (int i = objectIndex; i < osu.objects.length && osu.objects[i].getTime() < trackPosition + approachTime; i++)
 			stack.add(i);
 
-		while (!stack.isEmpty()) {
-			int i = stack.pop();
-			OsuHitObject hitObject = osu.objects[i];
-
-			if (hitObject.isCircle())
-				circles.get(i).draw(trackPosition);
-			else if (hitObject.isSlider())
-				sliders.get(i).draw(trackPosition, stack.isEmpty());
-			else if (hitObject.isSpinner()) {
-				if (stack.isEmpty())  // only draw spinner at objectIndex
-					spinners.get(i).draw(trackPosition, g);
-				else
-					continue;
-			}
-		}
+		while (!stack.isEmpty())
+			hitObjects[stack.pop()].draw(trackPosition, stack.isEmpty(), g);
 
 		// draw OsuHitObjectResult objects
 		score.drawHitResults(trackPosition);
@@ -577,24 +554,13 @@ public class Game extends BasicGameState {
 
 		// update objects (loop in unlikely event of any skipped indexes)
 		while (objectIndex < osu.objects.length && trackPosition > osu.objects[objectIndex].getTime()) {
-			OsuHitObject hitObject = osu.objects[objectIndex];
-
 			// check if we've already passed the next object's start time
 			boolean overlap = (objectIndex + 1 < osu.objects.length &&
 					trackPosition > osu.objects[objectIndex + 1].getTime() - hitResultOffset[GameScore.HIT_300]);
 
-			// check completion status of the hit object
-			boolean done = false;
-			if (hitObject.isCircle())
-				done = circles.get(objectIndex).update(overlap);
-			else if (hitObject.isSlider())
-				done = sliders.get(objectIndex).update(overlap, delta, mouseX, mouseY);
-			else if (hitObject.isSpinner())
-				done = spinners.get(objectIndex).update(overlap, delta, mouseX, mouseY);
-
-			// increment object index?
-			if (done)
-				objectIndex++;
+			// update hit object and check completion status
+			if (hitObjects[objectIndex].update(overlap, delta, mouseX, mouseY))
+				objectIndex++;  // done, so increment object index
 			else
 				break;
 		}
@@ -731,15 +697,12 @@ public class Game extends BasicGameState {
 			return;
 
 		// circles
-		if (hitObject.isCircle()) {
-			boolean hit = circles.get(objectIndex).mousePressed(x, y);
-			if (hit)
-				objectIndex++;
-		}
+		if (hitObject.isCircle() && hitObjects[objectIndex].mousePressed(x, y))
+			objectIndex++;  // circle hit
 
 		// sliders
 		else if (hitObject.isSlider())
-			sliders.get(objectIndex).mousePressed(x, y);
+			hitObjects[objectIndex].mousePressed(x, y);
 	}
 
 	@Override
@@ -781,13 +744,12 @@ public class Game extends BasicGameState {
 					comboEnd = true;
 
 				Color color = osu.combo[hitObject.getComboIndex()];
-				if (hitObject.isCircle()) {
-					circles.put(i, new Circle(hitObject, this, score, color, comboEnd));
-				} else if (hitObject.isSlider()) {
-					sliders.put(i, new Slider(hitObject, this, score, color, comboEnd));
-				} else if (hitObject.isSpinner()) {
-					spinners.put(i, new Spinner(hitObject, this, score));
-				}
+				if (hitObject.isCircle())
+					hitObjects[i] = new Circle(hitObject, this, score, color, comboEnd);
+				else if (hitObject.isSlider())
+					hitObjects[i] = new Slider(hitObject, this, score, color, comboEnd);
+				else if (hitObject.isSpinner())
+					hitObjects[i] = new Spinner(hitObject, this, score);
 			}
 
 			// load the first timingPoint
@@ -818,9 +780,7 @@ public class Game extends BasicGameState {
 	 * Resets all game data and structures.
 	 */
 	public void resetGameData() {
-		circles = new HashMap<Integer, Circle>();
-		sliders = new HashMap<Integer, Slider>();
-		spinners = new HashMap<Integer, Spinner>();
+		hitObjects = new HitObject[osu.objects.length];
 		score.clear();
 		objectIndex = 0;
 		breakIndex = 0;

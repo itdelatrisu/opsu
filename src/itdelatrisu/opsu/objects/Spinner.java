@@ -37,7 +37,7 @@ import org.newdawn.slick.SlickException;
 /**
  * Data type representing a spinner object.
  */
-public class Spinner {
+public class Spinner implements HitObject {
 	/**
 	 * Container dimensions.
 	 */
@@ -99,12 +99,11 @@ public class Spinner {
 		rotationsNeeded = spinsPerMinute * (hitObject.getEndTime() - hitObject.getTime()) / 60000f;
 	}
 
-	/**
-	 * Draws the spinner to the graphics context.
-	 * @param trackPosition the current track position
-	 * @param g the graphics context
-	 */
-	public void draw(int trackPosition, Graphics g) {
+	public void draw(int trackPosition, boolean currentObject, Graphics g) {
+		// only draw spinners if current object
+		if (!currentObject)
+			return;
+
 		int timeDiff = hitObject.getTime() - trackPosition;
 		boolean spinnerComplete = (rotations >= rotationsNeeded);
 
@@ -145,7 +144,7 @@ public class Spinner {
 	 * Calculates and sends the spinner hit result.
 	 * @return the hit result (GameScore.HIT_* constants)
 	 */
-	public int hitResult() {
+	private int hitResult() {
 		// TODO: verify ratios
 
 		int result;
@@ -166,14 +165,9 @@ public class Spinner {
 		return result;
 	}
 
-	/**
-	 * Updates the spinner by a delta interval.
-	 * @param overlap true if the next object's start time has already passed
-	 * @param delta the delta interval since the last call
-	 * @param mouseX the x coordinate of the mouse
-	 * @param mouseY the y coordinate of the mouse
-	 * @return true if spinner ended
-	 */
+	// not used
+	public boolean mousePressed(int x, int y) { return false; }
+
 	public boolean update(boolean overlap, int delta, int mouseX, int mouseY) {
 		int trackPosition = MusicController.getPosition();
 		if (overlap)

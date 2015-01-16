@@ -32,13 +32,14 @@ import java.io.File;
 import org.newdawn.slick.Animation;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
+import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.SlickException;
 
 /**
  * Data type representing a slider object.
  */
-public class Slider {
+public class Slider implements HitObject {
 	/**
 	 * Slider ball animation.
 	 */
@@ -335,12 +336,7 @@ public class Slider {
 		this.bezier = new Bezier();
 	}
 
-	/**
-	 * Draws the slider to the graphics context.
-	 * @param trackPosition the current track position
-	 * @param currentObject true if this is the current hit object
-	 */
-	public void draw(int trackPosition, boolean currentObject) {
+	public void draw(int trackPosition, boolean currentObject, Graphics g) {
 		float x = hitObject.getX(), y = hitObject.getY();
 		float[] sliderX = hitObject.getSliderX(), sliderY = hitObject.getSliderY();
 		int timeDiff = hitObject.getTime() - trackPosition;
@@ -417,7 +413,7 @@ public class Slider {
 	 * @param lastCircleHit true if the cursor was held within the last circle
 	 * @return the hit result (GameScore.HIT_* constants)
 	 */
-	public int hitResult() {
+	private int hitResult() {
 		int lastIndex = hitObject.getSliderX().length - 1;
 		float tickRatio = (float) ticksHit / tickIntervals;
 
@@ -442,13 +438,6 @@ public class Slider {
 		return result;
 	}
 
-	/**
-	 * Processes a mouse click.
-	 * @param x the x coordinate of the mouse
-	 * @param y the y coordinate of the mouse
-	 * @param comboEnd if this is the last object in the combo
-	 * @return true if a hit result was processed
-	 */
 	public boolean mousePressed(int x, int y) {
 		if (sliderClicked)  // first circle already processed
 			return false;
@@ -478,14 +467,6 @@ public class Slider {
 		return false;
 	}
 
-	/**
-	 * Updates the slider object.
-	 * @param overlap true if the next object's start time has already passed
-	 * @param delta the delta interval since the last call
-	 * @param mouseX the x coordinate of the mouse
-	 * @param mouseY the y coordinate of the mouse
-	 * @return true if slider ended
-	 */
 	public boolean update(boolean overlap, int delta, int mouseX, int mouseY) {
 		int repeatCount = hitObject.getRepeatCount();
 
@@ -629,7 +610,7 @@ public class Slider {
 	 * @param raw if false, ensures that the value lies within [0, 1] by looping repeats
 	 * @return the t value: raw [0, repeats] or looped [0, 1]
 	 */
-	public float getT(int trackPosition, boolean raw) {
+	private float getT(int trackPosition, boolean raw) {
 		float t = (trackPosition - hitObject.getTime()) / sliderTime;
 		if (raw)
 			return t;
