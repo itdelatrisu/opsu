@@ -133,6 +133,7 @@ public class Utils {
 
 		// game settings
 		container.setTargetFrameRate(Options.getTargetFPS());
+		container.setVSync(Options.getTargetFPS() == 60);
 		container.setMusicVolume(Options.getMusicVolume());
 		container.setShowFPS(false);
 		container.getInput().enableKeyRepeat();

@@ -476,9 +476,10 @@ public class Game extends BasicGameState {
 
 		// map complete!
 		if (objectIndex >= osu.objects.length) {
-			// if checkpoint used, don't show the ranking screen
-			int state = (checkpointLoaded) ? Opsu.STATE_SONGMENU : Opsu.STATE_GAMERANKING;
-			game.enterState(state, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
+			if (checkpointLoaded)  // if checkpoint used, skip ranking screen
+				game.closeRequested();
+			else  // go to ranking screen
+				game.enterState(Opsu.STATE_GAMERANKING, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 			return;
 		}
 
@@ -647,7 +648,7 @@ public class Game extends BasicGameState {
 					// skip to checkpoint
 					MusicController.setPosition(checkpoint);
 					while (objectIndex < osu.objects.length &&
-							osu.objects[objectIndex++].getTime() <= trackPosition)
+							osu.objects[objectIndex++].getTime() <= checkpoint)
 						;
 					objectIndex--;
 				} catch (SlickException e) {
