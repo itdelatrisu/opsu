@@ -26,14 +26,15 @@ import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
+import itdelatrisu.opsu.fake.*;
 import itdelatrisu.opsu.states.Game;
-
+/*
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.SlickException;
-
+*/
 /**
  * Data type representing a spinner object.
  */
@@ -129,6 +130,7 @@ public class Spinner {
 
 		// main spinner elements
 		float approachScale = 1 - ((float) timeDiff / (hitObject.getTime() - hitObject.getEndTime()));
+		GameImage.SPINNER_CIRCLE.getImage().setRotation(rotations*360);
 		GameImage.SPINNER_CIRCLE.getImage().drawCentered(width / 2, height / 2);
 		GameImage.SPINNER_APPROACHCIRCLE.getImage().getScaledCopy(approachScale).drawCentered(width / 2, height / 2);
 		GameImage.SPINNER_SPIN.getImage().drawCentered(width / 2, height * 3 / 4);

@@ -18,7 +18,9 @@
 
 package itdelatrisu.opsu;
 
-import org.newdawn.slick.util.Log;
+import itdelatrisu.opsu.fake.Log;
+
+//import org.newdawn.slick.util.Log;
 
 /**
  * Data type representing a timing point.

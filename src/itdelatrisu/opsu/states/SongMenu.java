@@ -22,7 +22,6 @@ import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.MenuButton;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.OsuFile;
-import itdelatrisu.opsu.OsuGroupList;
 import itdelatrisu.opsu.OsuGroupNode;
 import itdelatrisu.opsu.OsuParser;
 import itdelatrisu.opsu.SongSort;
@@ -31,7 +30,8 @@ import itdelatrisu.opsu.audio.HitSound;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
-
+import itdelatrisu.opsu.fake.*;
+/*
 import org.lwjgl.opengl.Display;
 import org.newdawn.slick.Animation;
 import org.newdawn.slick.Color;
@@ -47,7 +47,7 @@ import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.state.transition.EmptyTransition;
 import org.newdawn.slick.state.transition.FadeInTransition;
 import org.newdawn.slick.state.transition.FadeOutTransition;
-
+*/
 /**
  * "Song Selection" state.
  * <ul>
@@ -150,8 +150,7 @@ public class SongMenu extends BasicGameState {
 	}
 
 	@Override
-	public void init(GameContainer container, StateBasedGame game)
-			throws SlickException {
+	public void init(GameContainer container, StateBasedGame game) {
 		this.container = container;
 		this.game = game;
 		this.input = container.getInput();
@@ -205,7 +204,6 @@ public class SongMenu extends BasicGameState {
 
 		int width = container.getWidth();
 		int height = container.getHeight();
-		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
 
 		// background
 		if (focusNode != null)
@@ -256,19 +254,7 @@ public class SongMenu extends BasicGameState {
 		optionsButton.draw();
 
 		// sorting tabs
-		SongSort currentSort = SongSort.getSort();
-		SongSort hoverSort = null;
-		for (SongSort sort : SongSort.values()) {
-			if (sort.contains(mouseX, mouseY)) {
-				hoverSort = sort;
-				break;
-			}
-		}
-		for (SongSort sort : SongSort.VALUES_REVERSED) {
-			if (sort != currentSort)
-				sort.draw(false, sort == hoverSort);
-		}
-		currentSort.draw(true, false);
+		SongSort.drawAll();
 
 		// search
 		Image searchIcon = GameImage.MENU_SEARCH.getImage();
@@ -288,7 +274,7 @@ public class SongMenu extends BasicGameState {
 			g.setColor(Utils.COLOR_BLACK_ALPHA);
 			g.fillRoundRect(width - 10, scrollStartY, 5, scrollEndY, 4);
 			g.setColor(Color.white);
-			g.fillRoundRect(width - 10, scrollStartY + (scrollEndY * startNode.index / OsuGroupList.get().size()), 5, 20, 4);
+			g.fillRoundRect(width - 10, scrollStartY + (scrollEndY * startNode.index / Opsu.groups.size()), 5, 20, 4);
 		}
 
 		// back button
@@ -314,30 +300,30 @@ public class SongMenu extends BasicGameState {
 
 			// store the start/focus nodes
 			if (focusNode != null) {
-				oldFocusNode = OsuGroupList.get().getBaseNode(focusNode.index);
+				oldFocusNode = Opsu.groups.getBaseNode(focusNode.index);
 				oldFileIndex = focusNode.osuFileIndex;
 			}
 
-			if (OsuGroupList.get().search(search.getText())) {
+			if (Opsu.groups.search(search.getText())) {
 				// empty search
 				if (search.getText().isEmpty())
 					searchResultString = "Type to search!";
 
 				// search produced new list: re-initialize it
 				startNode = focusNode = null;
-				if (OsuGroupList.get().size() > 0) {
-					OsuGroupList.get().init();
+				if (Opsu.groups.size() > 0) {
+					Opsu.groups.init();
 					if (search.getText().isEmpty()) {  // cleared search
 						// use previous start/focus if possible
 						if (oldFocusNode != null)
 							setFocus(oldFocusNode, oldFileIndex, true);
 						else
-							setFocus(OsuGroupList.get().getRandomNode(), -1, true);
+							setFocus(Opsu.groups.getRandomNode(), -1, true);
 					} else {
-						int size = OsuGroupList.get().size();
+						int size = Opsu.groups.size();
 						searchResultString = String.format("%d match%s found!",
 								size, (size == 1) ? "" : "es");
-						setFocus(OsuGroupList.get().getRandomNode(), -1, true);
+						setFocus(Opsu.groups.getRandomNode(), -1, true);
 					}
 					oldFocusNode = null;
 					oldFileIndex = -1;
@@ -363,7 +349,7 @@ public class SongMenu extends BasicGameState {
 		OsuGroupNode node = startNode;
 		boolean isHover = false;
 		for (int i = 0; i < MAX_BUTTONS && node != null; i++, node = node.next) {
-			float cx = (node.index == OsuGroupList.get().getExpandedIndex()) ? buttonX * 0.9f : buttonX;
+			float cx = (node.index == Opsu.groups.getExpandedIndex()) ? buttonX * 0.9f : buttonX;
 			if ((mouseX > cx && mouseX < cx + buttonWidth) &&
 				(mouseY > buttonY + (i * buttonOffset) && mouseY < buttonY + (i * buttonOffset) + buttonHeight)) {
 				if (i == hoverIndex) {
@@ -419,10 +405,10 @@ public class SongMenu extends BasicGameState {
 				if (sort != SongSort.getSort()) {
 					SongSort.setSort(sort);
 					SoundController.playSound(SoundEffect.MENUCLICK);
-					OsuGroupNode oldFocusBase = OsuGroupList.get().getBaseNode(focusNode.index);
+					OsuGroupNode oldFocusBase = Opsu.groups.getBaseNode(focusNode.index);
 					int oldFocusFileIndex = focusNode.osuFileIndex;
 					focusNode = null;
-					OsuGroupList.get().init();
+					Opsu.groups.init();
 					setFocus(oldFocusBase, oldFocusFileIndex, true);
 				}
 				return;
@@ -430,7 +416,7 @@ public class SongMenu extends BasicGameState {
 		}
 
 		// song buttons
-		int expandedIndex = OsuGroupList.get().getExpandedIndex();
+		int expandedIndex = Opsu.groups.getExpandedIndex();
 		OsuGroupNode node = startNode;
 		for (int i = 0; i < MAX_BUTTONS && node != null; i++, node = node.next) {
 			// is button at this index clicked?
@@ -470,9 +456,11 @@ public class SongMenu extends BasicGameState {
 
 	@Override
 	public void keyPressed(int key, char c) {
+		System.out.println("Key "+key+" "+c);
 		switch (key) {
 		case Input.KEY_ESCAPE:
-			if (!search.getText().isEmpty()) {
+		case Input.ANDROID_BACK:
+				if (!search.getText().isEmpty()) {
 				search.setText("");
 				searchTimer = SEARCH_DELAY;
 			} else {
@@ -485,7 +473,7 @@ public class SongMenu extends BasicGameState {
 			game.enterState(Opsu.STATE_OPTIONS, new EmptyTransition(), new FadeInTransition(Color.black));
 			break;
 		case Input.KEY_F2:
-			setFocus(OsuGroupList.get().getRandomNode(), -1, true);
+			setFocus(Opsu.groups.getRandomNode(), -1, true);
 			break;
 		case Input.KEY_F12:
 			Utils.takeScreenShot();
@@ -506,14 +494,7 @@ public class SongMenu extends BasicGameState {
 			OsuGroupNode next = focusNode.next;
 			if (next != null) {
 				SoundController.playSound(SoundEffect.MENUCLICK);
-				OsuGroupNode oldStartNode = startNode;
-				float oldHoverOffset = hoverOffset;
-				int oldHoverIndex = hoverIndex;
 				setFocus(next, 0, false);
-				if (startNode == oldStartNode) {
-					hoverOffset = oldHoverOffset;
-					hoverIndex = oldHoverIndex;
-				}
 			}
 			break;
 		case Input.KEY_LEFT:
@@ -522,14 +503,7 @@ public class SongMenu extends BasicGameState {
 			OsuGroupNode prev = focusNode.prev;
 			if (prev != null) {
 				SoundController.playSound(SoundEffect.MENUCLICK);
-				OsuGroupNode oldStartNode = startNode;
-				float oldHoverOffset = hoverOffset;
-				int oldHoverIndex = hoverIndex;
 				setFocus(prev, (prev.index == focusNode.index) ? 0 : prev.osuFiles.size() - 1, false);
-				if (startNode == oldStartNode) {
-					hoverOffset = oldHoverOffset;
-					hoverIndex = oldHoverIndex;
-				}
 			}
 			break;
 		case Input.KEY_NEXT:
@@ -570,8 +544,7 @@ public class SongMenu extends BasicGameState {
 	}
 
 	@Override
-	public void enter(GameContainer container, StateBasedGame game)
-			throws SlickException {
+	public void enter(GameContainer container, StateBasedGame game) {
 		Display.setTitle(game.getTitle());
 		Utils.getBackButton().setScale(1f);
 		optionsButton.setScale(1f);
@@ -581,13 +554,6 @@ public class SongMenu extends BasicGameState {
 		// stop playing the theme song
 		if (MusicController.isThemePlaying() && focusNode != null)
 			MusicController.play(focusNode.osuFiles.get(focusNode.osuFileIndex), true);
-
-		// unpause track
-		else if (MusicController.isPaused())
-			MusicController.resume();
-
-		// destroy skin images, if any
-		GameImage.destroySkinImages();
 	}
 
 	@Override
@@ -620,7 +586,7 @@ public class SongMenu extends BasicGameState {
 				n++;
 				shifted = true;
 			} else if (n > 0 && startNode.next != null &&
-			           OsuGroupList.get().getNode(startNode, MAX_BUTTONS) != null) {
+			           Opsu.groups.getNode(startNode, MAX_BUTTONS) != null) {
 				startNode = startNode.next;
 				buttonY -= buttonOffset / 4;
 				if (buttonY < height * 0.14f)
@@ -654,9 +620,9 @@ public class SongMenu extends BasicGameState {
 		OsuGroupNode oldFocus = focusNode;
 
 		// expand node before focusing it
-		int expandedIndex = OsuGroupList.get().getExpandedIndex();
+		int expandedIndex = Opsu.groups.getExpandedIndex();
 		if (node.index != expandedIndex) {
-			node = OsuGroupList.get().expand(node.index);
+			node = Opsu.groups.expand(node.index);
 
 			// if start node was previously expanded, move it
 			if (startNode != null && startNode.index == expandedIndex)
@@ -671,13 +637,13 @@ public class SongMenu extends BasicGameState {
 		// change the focus node
 		if (flag || (startNode.index == 0 && startNode.osuFileIndex == -1 && startNode.prev == null))
 			startNode = node;
-		focusNode = OsuGroupList.get().getNode(node, pos);
+		focusNode = Opsu.groups.getNode(node, pos);
 		OsuFile osu = focusNode.osuFiles.get(focusNode.osuFileIndex);
 		MusicController.play(osu, true);
 		Utils.loadGlyphs(osu);
 
 		// check startNode bounds
-		while (startNode.index >= OsuGroupList.get().size() + length - MAX_BUTTONS && startNode.prev != null)
+		while (startNode.index >= Opsu.groups.size() + length - MAX_BUTTONS && startNode.prev != null)
 			startNode = startNode.prev;
 
 		// make sure focusNode is on the screen (TODO: cleanup...)
@@ -716,7 +682,7 @@ public class SongMenu extends BasicGameState {
 		Display.setTitle(String.format("%s - %s", game.getTitle(), osu.toString()));
 		OsuParser.parseHitObjects(osu);
 		HitSound.setSampleSet(osu.sampleSet);
-		((Game) game.getState(Opsu.STATE_GAME)).setRestart(Game.Restart.NEW);
+		Game.setRestart(Game.RESTART_NEW);
 		game.enterState(Opsu.STATE_GAME, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 	}
 }

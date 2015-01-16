@@ -21,9 +21,11 @@ package itdelatrisu.opsu;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
+import itdelatrisu.opsu.fake.*;
+/*
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Image;
-
+*/
 /**
  * Node in an OsuGroupList representing a group of OsuFile objects.
  */
@@ -53,6 +55,8 @@ public class OsuGroupNode {
 	 * Links to other OsuGroupNode objects.
 	 */
 	public OsuGroupNode prev, next;
+	
+	public int randNum = (int)(Math.random()*0xffffff);
 
 	/**
 	 * Constructor.

@@ -22,17 +22,19 @@ import itdelatrisu.opsu.audio.HitSound;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
+import itdelatrisu.opsu.fake.*;
 import itdelatrisu.opsu.states.Options;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
-
+/*
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
-import org.newdawn.slick.SlickException;
+import org.newdawn.slick.SlickException;*/
+
+import com.badlogic.gdx.files.FileHandle;
 
 /**
  * Holds score data and renders all score-related elements.
@@ -250,10 +252,11 @@ public class GameScore {
 
 	/**
 	 * Loads all game score images.
-	 * @param dir the image directory
 	 * @throws SlickException
 	 */
-	public void loadImages(File dir) throws SlickException {
+	public void loadImages() {
+		com.badlogic.gdx.files.FileHandle dir = MusicController.getOsuFile().getFile().parent();
+
 		// combo burst images
 		if (comboBurstImages != null) {
 			for (int i = 0; i < comboBurstImages.length; i++) {
@@ -264,15 +267,15 @@ public class GameScore {
 		LinkedList<Image> comboBurst = new LinkedList<Image>();
 		String comboFormat = "comboburst-%d.png";
 		int comboIndex = 0;
-		File comboFile = new File(dir, "comboburst.png");
-		File comboFileN = new File(dir, String.format(comboFormat, comboIndex));
-		if (comboFileN.isFile()) {  // beatmap provides images
+		FileHandle comboFile = dir.child("comboburst.png");//new File(dir, "comboburst.png");
+		FileHandle comboFileN = dir.child(String.format(comboFormat, comboIndex));//new FileHandle(dir, String.format(comboFormat, comboIndex));
+		if (comboFileN.exists() && !comboFileN.isDirectory()) {  // beatmap provides images
 			do {
-				comboBurst.add(new Image(comboFileN.getAbsolutePath()));
-				comboFileN = new File(dir, String.format(comboFormat, ++comboIndex));
-			} while (comboFileN.isFile());
-		} else if (comboFile.isFile())  // beatmap provides single image
-			comboBurst.add(new Image(comboFile.getAbsolutePath()));
+				comboBurst.add(new Image(comboFileN.path()));
+				comboFileN = dir.child(String.format(comboFormat, ++comboIndex));//new FileHandle(dir, String.format(comboFormat, ++comboIndex));
+			} while (comboFileN.exists() && !comboFileN.isDirectory());
+		} else if (comboFile.exists() && !comboFile.isDirectory())  // beatmap provides single image
+			comboBurst.add(new Image(comboFile.path()));
 		else {  // load default images
 			while (true) {
 				try {
@@ -294,12 +297,12 @@ public class GameScore {
 			lighting1.destroy();
 			lighting1 = null;
 		}
-		File lightingFile = new File(dir, "lighting.png");
-		File lighting1File = new File(dir, "lighting1.png");
-		if (lightingFile.isFile()) {  // beatmap provides images
+		FileHandle lightingFile = dir.child("lighting.png");//new FileHandle(dir, "lighting.png");
+		FileHandle lighting1File = dir.child("lighting1.png");//new FileHandle(dir, "lighting1.png");
+		if (lightingFile.exists() && !lightingFile.isDirectory()) {  // beatmap provides images
 			try {
-				lighting  = new Image(lightingFile.getAbsolutePath());
-				lighting1 = new Image(lighting1File.getAbsolutePath());
+				lighting  = new Image(lightingFile.path());
+				lighting1 = new Image(lighting1File.path());
 			} catch (Exception e) {
 				// optional
 			}
@@ -632,31 +635,40 @@ public class GameScore {
 	 * @param trackPosition the current track position
 	 */
 	public void drawHitResults(int trackPosition) {
-		final int fadeDelay = 500;
+		int fadeDelay = 500;
 
 		Iterator<OsuHitObjectResult> iter = hitResultList.iterator();
 		while (iter.hasNext()) {
 			OsuHitObjectResult hitResult = iter.next();
 			if (hitResult.time + fadeDelay > trackPosition) {
+				
+				// hit lighting
+				if (Options.isHitLightingEnabled() && lighting != null &&
+					hitResult.result != HIT_MISS && hitResult.result != HIT_SLIDER30 && hitResult.result != HIT_SLIDER10) {
+					float scale = 1f + ((trackPosition - hitResult.time) / (float) fadeDelay)/2;
+					Image scaledLighting  = lighting.getScaledCopy(scale);
+					scaledLighting.setAlpha(0.4f);//1-(trackPosition - hitResult.time)/(float) fadeDelay);
+					/*scaledLighting.draw(hitResult.x - (scaledLighting.getWidth() / 2f),
+										hitResult.y - (scaledLighting.getHeight() / 2f),
+										hitResult.color);*/
+					/*if (lighting1 != null) {
+						Image scaledLighting1 = lighting1.getScaledCopy(scale);
+						scaledLighting1.setAlpha(1-(trackPosition - hitResult.time)/(float) fadeDelay);
+						scaledLighting1.draw(hitResult.x - (scaledLighting1.getWidth() / 2f),
+								hitResult.y - (scaledLighting1.getHeight() / 2f),
+								hitResult.color);
+					}*/
+					Image scaledHitCircle = GameImage.HITCIRCLE.getImage().getScaledCopy(scale);
+					scaledHitCircle.setAlpha(1-(trackPosition - hitResult.time)*2/(float) fadeDelay);
+					scaledHitCircle.draw(hitResult.x - (scaledHitCircle.getWidth() / 2f),
+							hitResult.y - (scaledHitCircle.getHeight() / 2f),
+							hitResult.color);
+				}
+				
 				hitResults[hitResult.result].setAlpha(hitResult.alpha);
 				hitResult.alpha = 1 - ((float) (trackPosition - hitResult.time) / fadeDelay);
 				hitResults[hitResult.result].drawCentered(hitResult.x, hitResult.y);
 
-				// hit lighting
-				if (Options.isHitLightingEnabled() && lighting != null &&
-					hitResult.result != HIT_MISS && hitResult.result != HIT_SLIDER30 && hitResult.result != HIT_SLIDER10) {
-					float scale = 1f + ((trackPosition - hitResult.time) / (float) fadeDelay);
-					Image scaledLighting  = lighting.getScaledCopy(scale);
-					scaledLighting.draw(hitResult.x - (scaledLighting.getWidth() / 2f),
-										hitResult.y - (scaledLighting.getHeight() / 2f),
-										hitResult.color);
-					if (lighting1 != null) {
-						Image scaledLighting1 = lighting1.getScaledCopy(scale);
-						scaledLighting1.draw(hitResult.x - (scaledLighting1.getWidth() / 2f),
-								hitResult.y - (scaledLighting1.getHeight() / 2f),
-								hitResult.color);
-					}
-				}
 			} else
 				iter.remove();
 		}
@@ -896,10 +908,16 @@ public class GameScore {
 
 			// game mod score multipliers
 			float modMultiplier = 1f;
-			for (GameMod mod : GameMod.values()) {
-				if (mod.isActive())
-					modMultiplier *= mod.getMultiplier();
-			}
+			if (GameMod.EASY.isActive())
+				modMultiplier *= 0.5f;
+			if (GameMod.NO_FAIL.isActive())
+				modMultiplier *= 0.5f;
+			if (GameMod.HARD_ROCK.isActive())
+				modMultiplier *= 1.06f;
+			if (GameMod.SPUN_OUT.isActive())
+				modMultiplier *= 0.9f;
+			// not implemented:
+			// HALF_TIME (0.3x), DOUBLE_TIME (1.12x), HIDDEN (1.06x), FLASHLIGHT (1.12x)
 
 			/**
 			 * [SCORE FORMULA]

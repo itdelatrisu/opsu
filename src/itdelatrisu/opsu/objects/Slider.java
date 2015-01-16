@@ -25,15 +25,18 @@ import itdelatrisu.opsu.OsuFile;
 import itdelatrisu.opsu.OsuHitObject;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.MusicController;
+import itdelatrisu.opsu.fake.*;
 import itdelatrisu.opsu.states.Game;
 
 import java.io.File;
-
+/*
 import org.newdawn.slick.Animation;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Image;
-import org.newdawn.slick.SlickException;
+import org.newdawn.slick.SlickException;*/
+
+import com.badlogic.gdx.files.FileHandle;
 
 /**
  * Data type representing a slider object.
@@ -291,19 +294,21 @@ public class Slider {
 		sliderBall = new Animation();
 		String sliderFormat = "sliderb%d.png";
 		int sliderIndex = 0;
-		File dir = MusicController.getOsuFile().getFile().getParentFile();
-		File slider = new File(dir, String.format(sliderFormat, sliderIndex));
-		if (slider.isFile()) {
+		FileHandle dir = MusicController.getOsuFile().getFile().parent();
+		FileHandle slider = dir.child( String.format(sliderFormat, sliderIndex));//new FileHandle(dir, String.format(sliderFormat, sliderIndex));
+		if (slider.exists() && !slider.isDirectory()) {
 			do {
-				sliderBall.addFrame(new Image(slider.getAbsolutePath()).getScaledCopy(diameter * 118 / 128, diameter * 118 / 128), 60);
-				slider = new File(dir, String.format(sliderFormat, ++sliderIndex));
-			} while (slider.isFile());
+				sliderBall.addFrame(new Image(slider.path()).getScaledCopy(diameter * 118 / 128, diameter * 118 / 128), 60);
+				slider = dir.child(String.format(sliderFormat, ++sliderIndex));//new FileHandle(dir, String.format(sliderFormat, ++sliderIndex));
+			} while (slider.exists() && !slider.isDirectory());
 		} else {
 			while (true) {
 				try {
 					Image sliderFrame = new Image(String.format(sliderFormat, sliderIndex++));
 					sliderBall.addFrame(sliderFrame.getScaledCopy(diameter * 118 / 128, diameter * 118 / 128), 60);
 				} catch (Exception e) {
+					System.out.println("Non Crash Exception");
+					e.printStackTrace();
 					break;
 				}
 			}
@@ -345,9 +350,12 @@ public class Slider {
 		float[] sliderX = hitObject.getSliderX(), sliderY = hitObject.getSliderY();
 		int timeDiff = hitObject.getTime() - trackPosition;
 
-		float approachScale = (timeDiff >= 0) ? 1 + (timeDiff * 2f / game.getApproachTime()) : 1f;
+		float approachScale = (timeDiff >= 0) ? 1 + (timeDiff * 3f / game.getApproachTime()) : 1f;
 		float alpha = (approachScale > 3.3f) ? 0f : 1f - (approachScale - 1f) / 2.7f;
-		color.a = alpha;
+		
+		float scale = timeDiff / (float)game.getApproachTime();
+		alpha = (1 - scale)*2 ;
+		color.a = alpha* 0.3f;
 		Utils.COLOR_WHITE_FADE.a = alpha;
 
 		// bezier
@@ -361,6 +369,8 @@ public class Slider {
 				tick.drawCentered(c[0], c[1]);
 			}
 		}
+		
+		color.a = alpha;
 
 		Image hitCircleOverlay = GameImage.HITCIRCLE_OVERLAY.getImage();
 		Image hitCircle = GameImage.HITCIRCLE.getImage();
@@ -398,6 +408,8 @@ public class Slider {
 
 		if (timeDiff >= 0) {
 			// approach circle
+			color.a = 1 - scale;
+			
 			Utils.drawCentered(GameImage.APPROACHCIRCLE.getImage().getScaledCopy(approachScale), x, y, color);
 		} else {
 			float[] c = bezier.pointAt(getT(trackPosition, false));

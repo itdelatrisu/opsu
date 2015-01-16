@@ -20,12 +20,14 @@ package itdelatrisu.opsu.audio;
 
 import itdelatrisu.opsu.OsuHitObject;
 import itdelatrisu.opsu.audio.HitSound.SampleSet;
+import itdelatrisu.opsu.fake.Log;
+import itdelatrisu.opsu.fake.ResourceLoader;
 import itdelatrisu.opsu.states.Options;
 
 import java.io.IOException;
 import java.net.URL;
 
-import javax.sound.sampled.AudioFormat;
+/*import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
@@ -33,9 +35,10 @@ import javax.sound.sampled.DataLine;
 import javax.sound.sampled.FloatControl;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.UnsupportedAudioFileException;
-
+*/
+/*
 import org.newdawn.slick.util.Log;
-import org.newdawn.slick.util.ResourceLoader;
+import org.newdawn.slick.util.ResourceLoader;*/
 
 /**
  * Controller for all (non-music) sound components.
@@ -77,7 +80,8 @@ public class SoundController {
 	 * @return the loaded and opened clip
 	 */
 	private static Clip loadClip(String ref) {
-		try {
+		return new Clip(ref);
+		/*try {
 			URL url = ResourceLoader.getResource(ref);
 			AudioInputStream audioIn = AudioSystem.getAudioInputStream(url);
 
@@ -91,8 +95,8 @@ public class SoundController {
 			return clip;
 		} catch (UnsupportedAudioFileException | IOException | LineUnavailableException | RuntimeException e) {
 			Log.error(String.format("Failed to load file '%s'.", ref), e);
-		}
-		return null;
+		}*/
+		//return null;
 	}
 
 	/**
@@ -151,16 +155,17 @@ public class SoundController {
 			}
 
 			// PulseAudio does not support Master Gain
+			/*
 			if (clip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
 				// set volume
 				FloatControl gainControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
 				float dB = (float) (Math.log(volume) / Math.log(10.0) * 20.0);
 				gainControl.setValue(dB);
-			}
+			}*/
 
 			// play clip
 			clip.setFramePosition(0);
-			clip.start();
+			clip.start(volume);
 		}
 	}
 

@@ -20,16 +20,22 @@ package itdelatrisu.opsu.states;
 
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.Opsu;
-import itdelatrisu.opsu.OsuGroupList;
 import itdelatrisu.opsu.OsuParser;
 import itdelatrisu.opsu.OszUnpacker;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
+import itdelatrisu.opsu.fake.BasicGameState;
+import itdelatrisu.opsu.fake.Color;
+import itdelatrisu.opsu.fake.GameContainer;
+import itdelatrisu.opsu.fake.Graphics;
+import itdelatrisu.opsu.fake.Image;
+import itdelatrisu.opsu.fake.Input;
+import itdelatrisu.opsu.fake.StateBasedGame;
 
 import java.io.File;
 
-import org.newdawn.slick.Color;
+/*import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
@@ -37,7 +43,7 @@ import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
-
+*/
 /**
  * "Splash Screen" state.
  * <p>
@@ -59,8 +65,7 @@ public class Splash extends BasicGameState {
 	}
 
 	@Override
-	public void init(GameContainer container, StateBasedGame game)
-			throws SlickException {
+	public void init(GameContainer container, StateBasedGame game){
 		this.container = container;
 
 		// load Utils class first (needed in other 'init' methods)
@@ -71,9 +76,10 @@ public class Splash extends BasicGameState {
 
 	@Override
 	public void render(GameContainer container, StateBasedGame game, Graphics g)
-			throws SlickException {
+			 {
 		g.setBackground(Color.black);
 		GameImage.MENU_LOGO.getImage().drawCentered(container.getWidth() / 2, container.getHeight() / 2);
+		//GameImage.TESTLOGO.getImage().draw(0,0);
 
 		// display progress
 		String unpackedFile = OszUnpacker.getCurrentFileName();
@@ -98,8 +104,7 @@ public class Splash extends BasicGameState {
 	}
 
 	@Override
-	public void update(GameContainer container, StateBasedGame game, int delta)
-			throws SlickException {
+	public void update(GameContainer container, StateBasedGame game, int delta) {
 		if (!init) {
 			init = true;
 
@@ -134,8 +139,8 @@ public class Splash extends BasicGameState {
 		// change states when loading complete
 		if (finished && alpha >= 1f) {
 			// initialize song list
-			OsuGroupList.get().init();
-			((SongMenu) game.getState(Opsu.STATE_SONGMENU)).setFocus(OsuGroupList.get().getRandomNode(), -1, true);
+			Opsu.groups.init();
+			((SongMenu) game.getState(Opsu.STATE_SONGMENU)).setFocus(Opsu.groups.getRandomNode(), -1, true);
 
 			// play the theme song
 			if (Options.isThemSongEnabled())

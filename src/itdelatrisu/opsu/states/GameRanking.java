@@ -28,7 +28,9 @@ import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
+import itdelatrisu.opsu.fake.*;
 
+/*
 import org.lwjgl.opengl.Display;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
@@ -39,7 +41,7 @@ import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.state.transition.FadeInTransition;
-import org.newdawn.slick.state.transition.FadeOutTransition;
+import org.newdawn.slick.state.transition.FadeOutTransition;*/
 
 /**
  * "Game Ranking" (score card) state.
@@ -70,10 +72,11 @@ public class GameRanking extends BasicGameState {
 	}
 
 	@Override
-	public void init(GameContainer container, StateBasedGame game)
-			throws SlickException {
+	public void init(GameContainer container, StateBasedGame game) {
 		this.game = game;
 		this.input = container.getInput();
+
+		score = Game.getGameScore();
 
 		int width = container.getWidth();
 		int height = container.getHeight();
@@ -168,36 +171,25 @@ public class GameRanking extends BasicGameState {
 		if (retryButton.contains(x, y)) {
 			OsuFile osu = MusicController.getOsuFile();
 			Display.setTitle(String.format("%s - %s", game.getTitle(), osu.toString()));
-			((Game) game.getState(Opsu.STATE_GAME)).setRestart(Game.Restart.MANUAL);
+			Game.setRestart(Game.RESTART_MANUAL);
 			SoundController.playSound(SoundEffect.MENUHIT);
 			game.enterState(Opsu.STATE_GAME, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 		} else if (exitButton.contains(x, y)) {
 			SoundController.playSound(SoundEffect.MENUBACK);
 			((MainMenu) game.getState(Opsu.STATE_MAINMENU)).reset();
-			((Game) game.getState(Opsu.STATE_GAME)).resetGameData();
 			game.enterState(Opsu.STATE_MAINMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 		} else if (Utils.getBackButton().contains(x, y)) {
 			MusicController.pause();
 			MusicController.playAt(MusicController.getOsuFile().previewTime, true);
 			SoundController.playSound(SoundEffect.MENUBACK);
-			((Game) game.getState(Opsu.STATE_GAME)).resetGameData();
 			game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 		}
 	}
 
 	@Override
-	public void enter(GameContainer container, StateBasedGame game)
-			throws SlickException {
+	public void enter(GameContainer container, StateBasedGame game) {
 		Display.setTitle(game.getTitle());
 		Utils.getBackButton().setScale(1f);
 		SoundController.playSound(SoundEffect.APPLAUSE);
-	}
-
-	/**
-	 * Sets the associated GameScore object.
-	 * @param score the GameScore
-	 */
-	public void setGameScore(GameScore score) {
-		this.score = score;
 	}
 }

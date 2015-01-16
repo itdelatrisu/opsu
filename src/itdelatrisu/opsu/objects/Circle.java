@@ -18,17 +18,21 @@
 
 package itdelatrisu.opsu.objects;
 
+import com.badlogic.gdx.math.MathUtils;
+
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.GameMod;
 import itdelatrisu.opsu.GameScore;
 import itdelatrisu.opsu.OsuHitObject;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.MusicController;
+import itdelatrisu.opsu.fake.Color;
+import itdelatrisu.opsu.fake.GameContainer;
 import itdelatrisu.opsu.states.Game;
-
+/*
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
-import org.newdawn.slick.SlickException;
+import org.newdawn.slick.SlickException;*/
 
 /**
  * Data type representing a circle object.
@@ -65,9 +69,16 @@ public class Circle {
 	 * @param circleSize the map's circleSize value
 	 * @throws SlickException
 	 */
-	public static void init(GameContainer container, float circleSize) throws SlickException {
+	public static void init(GameContainer container, float circleSize) {
 		int diameter = (int) (96 - (circleSize * 8));
-		diameter = diameter * container.getWidth() / 640;  // convert from Osupixels (640x480)
+		int swidth = container.getWidth();
+		int sheight = container.getHeight();
+		if(swidth*3>sheight*4){
+			swidth = sheight*4/3;
+		}else{
+			sheight = swidth*3/4;
+		}
+		diameter = diameter * swidth / 640;  // convert from Osupixels (640x480)
 		GameImage.HITCIRCLE.setImage(GameImage.HITCIRCLE.getImage().getScaledCopy(diameter, diameter));
 		GameImage.HITCIRCLE_OVERLAY.setImage(GameImage.HITCIRCLE_OVERLAY.getImage().getScaledCopy(diameter, diameter));
 		GameImage.APPROACHCIRCLE.setImage(GameImage.APPROACHCIRCLE.getImage().getScaledCopy(diameter, diameter));
@@ -98,10 +109,12 @@ public class Circle {
 
 		if (timeDiff >= 0) {
 			float x = hitObject.getX(), y = hitObject.getY();
-			float approachScale = 1 + (timeDiff * 2f / game.getApproachTime());
+			float scale = timeDiff / (float)game.getApproachTime();
+			float approachScale = 1 + scale*3 ;//(timeDiff * 3f / game.getApproachTime());
+			color.a = 1 - scale;
 			Utils.drawCentered(GameImage.APPROACHCIRCLE.getImage().getScaledCopy(approachScale), x, y, color);
-			float alpha = (approachScale > 3.3f) ? 0f : 1f - (approachScale - 1f) / 2.7f;
-			color.a = alpha;
+			float alpha = MathUtils.clamp((1 - scale)*2, 0, 1);//= (approachScale > 3.3f) ? 0f : 1f - (approachScale - 1f) / 2.7f;
+			color.a = 1f;//alpha;//alpha;
 			Utils.COLOR_WHITE_FADE.a = alpha;
 			Utils.drawCentered(GameImage.HITCIRCLE_OVERLAY.getImage(), x, y, Utils.COLOR_WHITE_FADE);
 			Utils.drawCentered(GameImage.HITCIRCLE.getImage(), x, y, color);

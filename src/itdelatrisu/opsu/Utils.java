@@ -20,9 +20,10 @@ package itdelatrisu.opsu;
 
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
+import itdelatrisu.opsu.fake.*;
 import itdelatrisu.opsu.states.Options;
 
-import java.awt.Font;
+//import java.awt.Font;
 import java.io.File;
 import java.nio.IntBuffer;
 import java.text.SimpleDateFormat;
@@ -31,7 +32,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 
-import org.lwjgl.BufferUtils;
+/*import org.lwjgl.BufferUtils;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.input.Cursor;
 import org.newdawn.slick.Animation;
@@ -45,7 +46,7 @@ import org.newdawn.slick.font.effects.ColorEffect;
 import org.newdawn.slick.imageout.ImageOut;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.util.Log;
-import org.newdawn.slick.util.ResourceLoader;
+import org.newdawn.slick.util.ResourceLoader;*/
 
 /**
  * Contains miscellaneous utilities.
@@ -66,8 +67,7 @@ public class Utils {
 		COLOR_RED_OBJECT      = new Color(243, 48, 77),
 		COLOR_ORANGE_OBJECT   = new Color(255, 200, 32),
 		COLOR_YELLOW_ALPHA    = new Color(255, 255, 0, 0.4f),
-		COLOR_WHITE_FADE      = new Color(255, 255, 255, 1f),
-		COLOR_RED_HOVER       = new Color(255, 112, 112);
+		COLOR_WHITE_FADE      = new Color(255, 255, 255, 1f);
 
 	/**
 	 * The default map colors, used when a map does not provide custom colors.
@@ -123,10 +123,8 @@ public class Utils {
 	 * Initializes game settings and class data.
 	 * @param container the game container
 	 * @param game the game object
-	 * @throws SlickException
 	 */
-	public static void init(GameContainer container, StateBasedGame game)
-			throws SlickException {
+	public static void init(GameContainer container, StateBasedGame game) {
 		Utils.container = container;
 		Utils.game = game;
 		Utils.input = container.getInput();
@@ -141,8 +139,8 @@ public class Utils {
 		int width = container.getWidth();
 		int height = container.getHeight();
 
-		// set the cursor
-		try {
+		//TODO set the cursor
+		/*try {
 			// hide the native cursor
 			int min = Cursor.getMinCursorSize();
 			IntBuffer tmp = BufferUtils.createIntBuffer(min * min);
@@ -150,7 +148,7 @@ public class Utils {
 			container.setMouseCursor(emptyCursor, 0, 0);
 		} catch (LWJGLException e) {
 			Log.error("Failed to set the cursor.", e);
-		}
+		}*/
 		loadCursor();
 
 		// create fonts
@@ -165,7 +163,11 @@ public class Utils {
 			fontBase = 15f;
 
 		try {
-			Font javaFont = Font.createFont(Font.TRUETYPE_FONT, ResourceLoader.getResourceAsStream(Options.FONT_NAME));
+			//FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Gdx.files.internal("fonts/myfont.ttf"));
+
+			
+			//Font javaFont = Font.createFont(Font.TRUETYPE_FONT, ResourceLoader.getResourceAsStream(Options.FONT_NAME));
+			Font javaFont = new Font(Options.FONT_NAME);
 			Font font    = javaFont.deriveFont(Font.PLAIN, (int) (fontBase * 4 / 3));
 			FONT_DEFAULT = new UnicodeFont(font);
 			FONT_BOLD    = new UnicodeFont(font.deriveFont(Font.BOLD));
@@ -184,10 +186,12 @@ public class Utils {
 			Log.error("Failed to load fonts.", e);
 		}
 
-		// initialize game images
+		// set default game images
 		GameImage.init(width, height);
-		GameImage.MENU_LOGO.setDefaultImage();
-		GameImage.MENU_BG.setDefaultImage();
+		for (GameImage img : GameImage.values()) {
+			img.setDefaultImage();
+			img.process();
+		}
 
 		// initialize game mods
 		for (GameMod mod : GameMod.values())
@@ -211,31 +215,6 @@ public class Utils {
 	public static MenuButton getBackButton() { return backButton; }
 
 	/**
-	 * Draws a tab image and text centered at a location.
-	 * @param x the center x coordinate
-	 * @param y the center y coordinate
-	 * @param text the text to draw inside the tab
-	 * @param selected whether the tab is selected (white) or not (red)
-	 * @param isHover whether to include a hover effect (unselected only)
-	 */
-	public static void drawTab(float x, float y, String text, boolean selected, boolean isHover) {
-		Image tabImage = GameImage.MENU_TAB.getImage();
-		float tabTextX = x - (Utils.FONT_MEDIUM.getWidth(text) / 2);
-		float tabTextY = y - (tabImage.getHeight() / 2f) +
-				Math.max((tabImage.getHeight() - Utils.FONT_MEDIUM.getLineHeight()) / 1.5f, 0);
-		Color filter, textColor;
-		if (selected) {
-			filter = Color.white;
-			textColor = Color.black;
-		} else {
-			filter = (isHover) ? Utils.COLOR_RED_HOVER : Color.red;
-			textColor = Color.white;
-		}
-		Utils.drawCentered(tabImage, x, y, filter);
-		Utils.FONT_MEDIUM.drawString(tabTextX, tabTextY, text, textColor);
-	}
-
-	/**
 	 * Draws an image based on its center with a color filter.
 	 * @param img the image to draw
 	 * @param x the center x coordinate
@@ -257,44 +236,9 @@ public class Utils {
 	}
 
 	/**
-	 * Returns a bounded value for a base value and displacement.
-	 * @param base the initial value
-	 * @param diff the value change
-	 * @param min the minimum value
-	 * @param max the maximum value
-	 * @return the bounded value
-	 */
-	public static int getBoundedValue(int base, int diff, int min, int max) {
-		int val = base + diff;
-		if (val < min)
-			val = min;
-		else if (val > max)
-			val = max;
-		return val;
-	}
-
-	/**
-	 * Returns a bounded value for a base value and displacement.
-	 * @param base the initial value
-	 * @param diff the value change
-	 * @param min the minimum value
-	 * @param max the maximum value
-	 * @return the bounded value
-	 */
-	public static float getBoundedValue(float base, float diff, float min, float max) {
-		float val = base + diff;
-		if (val < min)
-			val = min;
-		else if (val > max)
-			val = max;
-		return val;
-	}
-
-	/**
 	 * Loads the cursor images.
-	 * @throws SlickException 
 	 */
-	public static void loadCursor() throws SlickException {
+	public static void loadCursor() {
 		// destroy old cursors, if they exist
 		if (cursor != null)
 			cursor.destroy();
@@ -509,7 +453,7 @@ public class Utils {
 	 */
 	public static boolean takeScreenShot() {
 		// TODO: should this be threaded?
-		try {
+		//try {
 			// create the screenshot directory
 			File dir = Options.getScreenshotDir();
 			if (!dir.isDirectory()) {
@@ -529,10 +473,10 @@ public class Utils {
 			container.getGraphics().copyArea(screen, 0, 0);
 			ImageOut.write(screen, file.getAbsolutePath(), false);
 			screen.destroy();
-		} catch (SlickException e) {
-			Log.warn("Failed to take a screenshot.", e);
-			return false;
-		}
+		//} catch (SlickException e) {
+		//	Log.warn("Failed to take a screenshot.", e);
+		//	return false;
+		//}
 		return true;
 	}
 
@@ -577,13 +521,13 @@ public class Utils {
 			glyphsAdded = true;
 		}
 		if (glyphsAdded) {
-			try {
+			//try {
 				Utils.FONT_LARGE.loadGlyphs();
 				Utils.FONT_MEDIUM.loadGlyphs();
 				Utils.FONT_DEFAULT.loadGlyphs();
-			} catch (SlickException e) {
-				Log.warn("Failed to load glyphs.", e);
-			}
+			//} catch (SlickException e) {
+			//	Log.warn("Failed to load glyphs.", e);
+			//}
 		}
 	}
 }

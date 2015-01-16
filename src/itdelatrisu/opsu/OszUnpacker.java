@@ -21,10 +21,10 @@ package itdelatrisu.opsu;
 import java.io.File;
 import java.io.FilenameFilter;
 
-import net.lingala.zip4j.core.ZipFile;
-import net.lingala.zip4j.exception.ZipException;
+//import net.lingala.zip4j.core.ZipFile;
+//import net.lingala.zip4j.exception.ZipException;
 
-import org.newdawn.slick.util.Log;
+//import org.newdawn.slick.util.Log;
 
 /**
  * Unpacker for OSZ (ZIP) archives.
@@ -49,13 +49,18 @@ public class OszUnpacker {
 	 * @param dest the destination directory
 	 */
 	public static void unpackAllFiles(File root, File dest) {
+		if(root == null || dest == null){
+			System.out.println("root or dest null "+root+" "+dest );
+		}
 		files = root.listFiles(new FilenameFilter() {
 			@Override
 			public boolean accept(File dir, String name) {
 				return name.toLowerCase().endsWith(".osz");
 			}
 		});
-		if (files.length < 1) {
+		
+		if (files == null || files.length < 1) {
+			System.out.println("unpackAllFiles "+files );
 			files = null;
 			return;
 		}
@@ -81,13 +86,13 @@ public class OszUnpacker {
 	 * @param dest the destination directory
 	 */
 	private static void unzip(File file, File dest) {
-		try {
+		/*try {
 			ZipFile zipFile = new ZipFile(file);
 			zipFile.extractAll(dest.getAbsolutePath());
 		} catch (ZipException e) {
 			Log.error(String.format("Failed to unzip file %s to dest %s.",
 					file.getAbsolutePath(), dest.getAbsolutePath()), e);
-		}
+		}*/
 	}
 
 	/**

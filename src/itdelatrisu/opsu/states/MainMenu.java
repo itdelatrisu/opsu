@@ -22,7 +22,6 @@ import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.MenuButton;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.OsuFile;
-import itdelatrisu.opsu.OsuGroupList;
 import itdelatrisu.opsu.OsuGroupNode;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.MusicController;
@@ -34,6 +33,8 @@ import java.util.Date;
 import java.util.Stack;
 import java.util.concurrent.TimeUnit;
 
+import itdelatrisu.opsu.fake.*;
+/*
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
@@ -44,7 +45,7 @@ import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.state.transition.FadeInTransition;
 import org.newdawn.slick.state.transition.FadeOutTransition;
-
+*/
 /**
  * "Main Menu" state.
  * <ul>
@@ -91,17 +92,17 @@ public class MainMenu extends BasicGameState {
 	/**
 	 * Indexes of previous songs.
 	 */
-	private Stack<Integer> previous;
+	private static Stack<Integer> previous;
+
+	/**
+	 * Main menu background image (optional).
+	 */
+	private Image backgroundImage;
 
 	/**
 	 * Background alpha level (for fade-in effect).
 	 */
 	private float bgAlpha = 0f;
-
-	/**
-	 * Whether the theme song volume has been dimmed.
-	 */
-	private boolean volumeDimmed = false;
 
 	// game-related variables
 	private GameContainer container;
@@ -114,8 +115,7 @@ public class MainMenu extends BasicGameState {
 	}
 
 	@Override
-	public void init(GameContainer container, StateBasedGame game)
-			throws SlickException {
+	public void init(GameContainer container, StateBasedGame game) {
 		this.container = container;
 		this.game = game;
 		this.input = container.getInput();
@@ -127,18 +127,25 @@ public class MainMenu extends BasicGameState {
 		int height = container.getHeight();
 
 		// initialize buttons
-		Image logoImg = GameImage.MENU_LOGO.getImage();
+		// TODO: clean this up, scale in GameImage.process_sub()
+		Image logoImg = new Image("logo.png");
+		float buttonScale = (height / 1.2f) / logoImg.getHeight();
+		Image logoImgScaled = GameImage.MENU_LOGO.getImage();
+		
+		logo = new MenuButton(logoImgScaled, width / 2f, height / 2f);
+		logo.setHoverScale(1.05f);
+
 		Image playImg = GameImage.MENU_PlAY.getImage();
 		Image exitImg = GameImage.MENU_EXIT.getImage();
+		playImg = playImg.getScaledCopy((logoImg.getWidth() * 0.83f) / playImg.getWidth());
+		exitImg = exitImg.getScaledCopy((logoImg.getWidth() * 0.66f) / exitImg.getWidth());
 		float exitOffset = (playImg.getWidth() - exitImg.getWidth()) / 3f;
-		logo = new MenuButton(logoImg, width / 2f, height / 2f);
-		playButton = new MenuButton(playImg,
-				width * 0.75f, (height / 2) - (logoImg.getHeight() / 5f)
+		playButton = new MenuButton(playImg.getScaledCopy(buttonScale),
+				width * 0.75f, (height / 2) - (logoImgScaled.getHeight() / 5f)
 		);
-		exitButton = new MenuButton(exitImg,
+		exitButton = new MenuButton(exitImg.getScaledCopy(buttonScale),
 				width * 0.75f - exitOffset, (height / 2) + (exitImg.getHeight() / 2f)
 		);
-		logo.setHoverScale(1.05f);
 		playButton.setHoverScale(1.05f);
 		exitButton.setHoverScale(1.05f);
 
@@ -155,6 +162,14 @@ public class MainMenu extends BasicGameState {
 		musicPrevious.setHoverScale(1.5f);
 
 		reset();
+
+		// menu background
+		try {
+			backgroundImage = new Image("menu-background.jpg").getScaledCopy(width, height);
+			backgroundImage.setAlpha(0.9f);
+		} catch (Exception e) {
+			// optional
+		}
 	}
 
 	@Override
@@ -168,11 +183,11 @@ public class MainMenu extends BasicGameState {
 		if (Options.isDynamicBackgroundEnabled() &&
 			osu != null && osu.drawBG(width, height, bgAlpha))
 				;
-		else {
-			Image bg = GameImage.MENU_BG.getImage();
-			bg.setAlpha(bgAlpha);
-			bg.draw();
-		}
+		else if (backgroundImage != null) {
+			backgroundImage.setAlpha(bgAlpha);
+			backgroundImage.draw();
+		} else
+			g.setBackground(Utils.COLOR_BLUE_BACKGROUND);
 
 		// draw buttons
 		if (logoTimer > 0) {
@@ -199,7 +214,7 @@ public class MainMenu extends BasicGameState {
 		g.setFont(Utils.FONT_MEDIUM);
 		int lineHeight = Utils.FONT_MEDIUM.getLineHeight();
 		g.drawString(String.format("Loaded %d songs and %d beatmaps.",
-				OsuGroupList.get().size(), OsuGroupList.get().getMapCount()), 25, 25);
+				Opsu.groups.size(), Opsu.groups.getMapCount()), 25, 25);
 		if (MusicController.isTrackLoading())
 			g.drawString("Track loading...", 25, 25 + lineHeight);
 		else if (MusicController.trackExists()) {
@@ -235,18 +250,6 @@ public class MainMenu extends BasicGameState {
 		musicPause.hoverUpdate(delta, mouseX, mouseY);
 		musicNext.hoverUpdate(delta, mouseX, mouseY);
 		musicPrevious.hoverUpdate(delta, mouseX, mouseY);
-
-		// window focus change: increase/decrease theme song volume
-		if (MusicController.isThemePlaying()) {
-			boolean hasFocus = container.hasFocus();
-			if (volumeDimmed == hasFocus) {
-				if (hasFocus)  // restored focus
-					MusicController.setVolume(Options.getMusicVolume());
-				else  // lost focus
-					MusicController.setVolume(Options.getMusicVolume() / 3f);
-				volumeDimmed = !hasFocus;
-			}
-		}
 
 		// fade in background
 		if (bgAlpha < 0.9f) {
@@ -296,8 +299,7 @@ public class MainMenu extends BasicGameState {
 	public int getID() { return state; }
 
 	@Override
-	public void enter(GameContainer container, StateBasedGame game)
-			throws SlickException {
+	public void enter(GameContainer container, StateBasedGame game) {
 		// reset button hover states if mouse is not currently hovering over the button
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
 		if (!logo.contains(mouseX, mouseY))
@@ -331,7 +333,7 @@ public class MainMenu extends BasicGameState {
 		} else if (musicNext.contains(x, y)) {
 			boolean isTheme = MusicController.isThemePlaying();
 			SongMenu menu = (SongMenu) game.getState(Opsu.STATE_SONGMENU);
-			OsuGroupNode node = menu.setFocus(OsuGroupList.get().getRandomNode(), -1, true);
+			OsuGroupNode node = menu.setFocus(Opsu.groups.getRandomNode(), -1, true);
 			boolean sameAudio = false;
 			if (node != null) {
 				sameAudio = MusicController.getOsuFile().audioFilename.equals(node.osuFiles.get(0).audioFilename);
@@ -340,10 +342,11 @@ public class MainMenu extends BasicGameState {
 			}
 			if (Options.isDynamicBackgroundEnabled() && !sameAudio && !MusicController.isThemePlaying())
 				bgAlpha = 0f;
+			MusicController.setPosition(0);
 		} else if (musicPrevious.contains(x, y)) {
 			if (!previous.isEmpty()) {
 				SongMenu menu = (SongMenu) game.getState(Opsu.STATE_SONGMENU);
-				menu.setFocus(OsuGroupList.get().getBaseNode(previous.pop()), -1, true);
+				menu.setFocus(Opsu.groups.getBaseNode(previous.pop()), -1, true);
 				if (Options.isDynamicBackgroundEnabled())
 					bgAlpha = 0f;
 			} else

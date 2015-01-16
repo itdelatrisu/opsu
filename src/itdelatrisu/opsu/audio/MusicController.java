@@ -20,12 +20,13 @@ package itdelatrisu.opsu.audio;
 
 import itdelatrisu.opsu.OsuFile;
 import itdelatrisu.opsu.OsuParser;
+import itdelatrisu.opsu.fake.*;
 import itdelatrisu.opsu.states.Options;
 
 import java.io.File;
 import java.lang.reflect.Field;
 import java.nio.IntBuffer;
-
+/*
 import javazoom.jl.converter.Converter;
 
 import org.lwjgl.BufferUtils;
@@ -35,7 +36,11 @@ import org.newdawn.slick.Music;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.openal.Audio;
 import org.newdawn.slick.openal.SoundStore;
-import org.newdawn.slick.util.Log;
+import org.newdawn.slick.util.Log;*/
+
+
+
+import com.badlogic.gdx.Audio;
 
 /**
  * Controller for all music.
@@ -66,11 +71,6 @@ public class MusicController {
 	 */
 	private static boolean themePlaying = false;
 
-	/**
-	 * Track pause time.
-	 */
-	private static float pauseTime = 0f;
-
 	// This class should not be instantiated.
 	private MusicController() {}
 
@@ -80,22 +80,35 @@ public class MusicController {
 	@SuppressWarnings("deprecation")
 	public static void play(final OsuFile osu, final boolean loop) {
 		boolean play = (lastOsu == null || !osu.audioFilename.equals(lastOsu.audioFilename));
+		System.out.println("play "+play+" "+osu.audioFilename+" Last:"+(lastOsu!=null?lastOsu.audioFilename:"NULL")+" "+player);
 		lastOsu = osu;
+		
 		if (play) {
 			themePlaying = false;
 
 			// TODO: properly interrupt instead of using deprecated Thread.stop();
 			// interrupt the conversion/track loading
-			if (isTrackLoading())
-//				trackLoader.interrupt();
-				trackLoader.stop();
+			if (isTrackLoading()){
+				trackLoader.interrupt();
+				try {
+					trackLoader.join();
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}	
+			}
+			//	trackLoader.stop();
+			if(player!=null){
+				player.stop();
+			}
+			stop();
+			
 
 			if (wavFile != null)
 				wavFile.delete();
 
 			// releases all sources from previous tracks
 			destroyOpenAL();
-			System.gc();
 
 			switch (OsuParser.getExtension(osu.audioFilename.getName())) {
 			case "ogg":
@@ -111,9 +124,11 @@ public class MusicController {
 				trackLoader = new Thread() {
 					@Override
 					public void run() {
-						convertMp3(osu.audioFilename);
+						
+						//convertMp3(osu.audioFilename);
 //						if (!Thread.currentThread().isInterrupted())
-							loadTrack(wavFile, osu.previewTime, loop);
+						
+						loadTrack(osu.audioFilename, osu.previewTime, loop);
 					}
 				};
 				trackLoader.start();
@@ -129,6 +144,8 @@ public class MusicController {
 	 */
 	private static void loadTrack(File file, int previewTime, boolean loop) {
 		try {   // create a new player
+			if(player!=null)
+				player.stop();
 			player = new Music(file.getPath());
 			playAt((previewTime > 0) ? previewTime : 0, loop);
 		} catch (Exception e) {
@@ -147,7 +164,6 @@ public class MusicController {
 				player.loop();
 			else
 				player.play();
-			pauseTime = 0f;
 		}
 	}
 
@@ -159,8 +175,8 @@ public class MusicController {
 			wavFile = File.createTempFile(".osu", ".wav", Options.TMP_DIR);
 			wavFile.deleteOnExit();
 
-			Converter converter = new Converter();
-			converter.convert(file.getPath(), wavFile.getPath());
+			//Converter converter = new Converter();
+			//converter.convert(file.getPath(), wavFile.getPath());
 			return wavFile;
 		} catch (Exception e) {
 			Log.error(String.format("Failed to play file '%s'.", file.getAbsolutePath()), e);
@@ -213,20 +229,11 @@ public class MusicController {
 	}
 
 	/**
-	 * Returns true if the current track is paused.
-	 */
-	public static boolean isPaused() {
-		return (trackExists() && pauseTime > 0f);
-	}
-
-	/**
 	 * Pauses the current track.
 	 */
 	public static void pause() {
-		if (isPlaying()) {
-			pauseTime = player.getPosition();
+		if (isPlaying())
 			player.pause();
-		}
 	}
 
 	/**
@@ -234,7 +241,6 @@ public class MusicController {
 	 */
 	public static void resume() {
 		if (trackExists()) {
-			pauseTime = 0f;
 			player.resume();
 			player.setVolume(1.0f);
 		}
@@ -244,8 +250,10 @@ public class MusicController {
 	 * Stops the current track.
 	 */
 	public static void stop() {
-		if (isPlaying())
+		if (isPlaying()){
 			player.stop();
+			System.out.println("Stopping "+lastOsu.audioFilename);
+		}
 	}
 
 	/**
@@ -258,15 +266,13 @@ public class MusicController {
 
 	/**
 	 * Returns the position in the current track, in ms.
-	 * If no track is loaded, 0 will be returned.
+	 * If no track is playing, 0 will be returned.
 	 */
 	public static int getPosition() {
-		if (isPlaying())
+		//if (isPlaying())
 			return Math.max((int) (player.getPosition() * 1000 + Options.getMusicOffset()), 0);
-		else if (isPaused())
-			return Math.max((int) (pauseTime * 1000 + Options.getMusicOffset()), 0);
-		else
-			return 0;
+		//else
+		//	return 0;
 	}
 
 	/**
@@ -274,14 +280,6 @@ public class MusicController {
 	 */
 	public static boolean setPosition(int position) {
 		return (trackExists() && player.setPosition(position / 1000f));
-	}
-
-	/**
-	 * Sets the music volume.
-	 * @param volume [0, 1]
-	 */
-	public static void setVolume(float volume) {
-		SoundStore.get().setMusicVolume(volume);
 	}
 
 	/**
@@ -315,7 +313,7 @@ public class MusicController {
 		if (!trackExists())
 			return;
 		stop();
-
+/*
 		try {
 			// get Music object's (private) Audio object reference
 			Field sound = player.getClass().getDeclaredField("sound");
@@ -363,6 +361,6 @@ public class MusicController {
 			player = null;
 		} catch (Exception e) {
 			Log.error("Failed to destroy OpenAL.", e);
-		}
+		}*/
 	}
 }

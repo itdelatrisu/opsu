@@ -19,6 +19,17 @@
 package itdelatrisu.opsu;
 
 import itdelatrisu.opsu.audio.MusicController;
+import itdelatrisu.opsu.fake.BasicGameState;
+import itdelatrisu.opsu.fake.ClasspathLocation;
+import itdelatrisu.opsu.fake.Color;
+import itdelatrisu.opsu.fake.DefaultLogSystem;
+import itdelatrisu.opsu.fake.FileSystemLocation;
+import itdelatrisu.opsu.fake.GameContainer;
+import itdelatrisu.opsu.fake.Graphics;
+import itdelatrisu.opsu.fake.Log;
+import itdelatrisu.opsu.fake.ResourceLoader;
+import itdelatrisu.opsu.fake.SlickException;
+import itdelatrisu.opsu.fake.StateBasedGame;
 import itdelatrisu.opsu.states.Game;
 import itdelatrisu.opsu.states.GamePauseMenu;
 import itdelatrisu.opsu.states.GameRanking;
@@ -28,18 +39,24 @@ import itdelatrisu.opsu.states.Options;
 import itdelatrisu.opsu.states.SongMenu;
 import itdelatrisu.opsu.states.Splash;
 
-import java.awt.Desktop;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.net.ServerSocket;
-import java.net.URI;
+import java.util.HashMap;
+import java.util.LinkedList;
 
-import javax.swing.JOptionPane;
-import javax.swing.UIManager;
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.InputProcessor;
+import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.files.FileHandle;
+import com.badlogic.gdx.graphics.GL20;
 
+//import com.badlogic.gdx.Game;
+
+/*
 import org.newdawn.slick.AppGameContainer;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
@@ -52,13 +69,18 @@ import org.newdawn.slick.util.DefaultLogSystem;
 import org.newdawn.slick.util.FileSystemLocation;
 import org.newdawn.slick.util.Log;
 import org.newdawn.slick.util.ResourceLoader;
-
+*/
 /**
  * Main class.
  * <p>
  * Creates game container, adds all other states, and initializes song data.
  */
-public class Opsu extends StateBasedGame {
+public class Opsu extends com.badlogic.gdx.Game {
+	/**
+	 * Song group structure (each group contains of an ArrayList of OsuFiles).
+	 */
+	public static OsuGroupList groups = new OsuGroupList();
+
 	/**
 	 * Game states.
 	 */
@@ -77,12 +99,15 @@ public class Opsu extends StateBasedGame {
 	 */
 	private static ServerSocket SERVER_SOCKET;
 
+	//GameContainer gc = new GameContainer();
+	StateBasedGame sbg;
+	
 	public Opsu(String name) {
-		super(name);
+		
 	}
 
-	@Override
-	public void initStatesList(GameContainer container) throws SlickException {
+	//@Override
+	public void initStatesList(GameContainer container) {
 		addState(new Splash(STATE_SPLASH));
 		addState(new MainMenu(STATE_MAINMENU));
 		addState(new MainMenuExit(STATE_MAINMENUEXIT));
@@ -93,10 +118,12 @@ public class Opsu extends StateBasedGame {
 		addState(new Options(STATE_OPTIONS));
 	}
 
-	/**
-	 * Launches opsu!.
-	 */
-	public static void main(String[] args) {
+	private void addState(BasicGameState gs) {
+		sbg.addState(gs);
+		
+	}
+
+	public static void main2(String[] args) {
 		// log all errors to a file
 		Log.setVerbose(false);
 		try {
@@ -107,10 +134,11 @@ public class Opsu extends StateBasedGame {
 		Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
 			@Override
 			public void uncaughtException(Thread t, Throwable e) {
-				if (!(e instanceof ThreadDeath)) {  // TODO: see MusicController
+				if(e==null)
+					System.out.println("E is null...");
+				if (!(e instanceof ThreadDeath))  // TODO: see MusicController
 					Log.error("** Uncaught Exception! **", e);
-					openErrorPopup();
-				}
+				e.printStackTrace();
 			}
 		});
 
@@ -122,31 +150,32 @@ public class Opsu extends StateBasedGame {
 			SERVER_SOCKET = new ServerSocket(Options.getPort());
 		} catch (IOException e) {
 			Log.error(String.format("Another program is already running on port %d.", Options.getPort()), e);
-			System.exit(1);
+			//System.exit(1);
 		}
 
 		// set path for lwjgl natives - NOT NEEDED if using JarSplice
-		File nativeDir = new File("./target/natives/");
-		if (nativeDir.isDirectory())
-			System.setProperty("org.lwjgl.librarypath", nativeDir.getAbsolutePath());
+//		System.setProperty("org.lwjgl.librarypath", new File("native").getAbsolutePath());
 
 		// set the resource paths
 		ResourceLoader.removeAllResourceLocations();
+		ResourceLoader.addResourceLocation(new FileSystemLocation(new File("res/")));
 		ResourceLoader.addResourceLocation(new FileSystemLocation(Options.getSkinDir()));
 		ResourceLoader.addResourceLocation(new ClasspathLocation());
 		ResourceLoader.addResourceLocation(new FileSystemLocation(new File(".")));
-		ResourceLoader.addResourceLocation(new FileSystemLocation(new File("./res/")));
+		ResourceLoader.addResourceLocation(new FileSystemLocation(new File("..")));
+		
 
+		
 		// clear the cache
-		if (!Options.TMP_DIR.mkdir()) {
-			for (File tmp : Options.TMP_DIR.listFiles())
-				tmp.delete();
-		}
-		Options.TMP_DIR.deleteOnExit();
+		//if (!Options.TMP_DIR.mkdir()) {
+		//	for (File tmp : Options.TMP_DIR.listFiles())
+		//		tmp.delete();
+		//}
+		//Options.TMP_DIR.deleteOnExit();
 
 		// start the game
-		Opsu opsu = new Opsu("opsu!");
-		try {
+		//Opsu opsu = new Opsu("opsu!");
+		/*try {
 			AppGameContainer app = new AppGameContainer(opsu);
 
 			// basic game settings
@@ -162,11 +191,11 @@ public class Opsu extends StateBasedGame {
 				Log.error("Cannot run JAR from path containing '!'.");
 			else
 				Log.error("Error while creating game container.", e);
-		}
+		}*/
 	}
 
-	@Override
-	public boolean closeRequested() {
+	//@Override
+	/*public boolean closeRequested() {
 		int id = this.getCurrentStateID();
 
 		// intercept close requests in game-related states and return to song menu
@@ -182,47 +211,88 @@ public class Opsu extends StateBasedGame {
 		((AppGameContainer) this.getContainer()).destroy();
 		closeSocket();
 		return true;
-	}
+	}*/
 
 	/**
 	 * Closes the server socket.
 	 */
 	public static void closeSocket() {
 		try {
-			SERVER_SOCKET.close();
+			if(SERVER_SOCKET!=null)
+				SERVER_SOCKET.close();
 		} catch (IOException e) {
 			Log.error("Failed to close server socket.", e);
 		}
 	}
 
-	/**
-	 * Opens the error popup.
-	 */
-	private static void openErrorPopup() {
-		try {
-			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-			if (Desktop.isDesktopSupported()) {
-				// try to open the log file and/or issues webpage
-				String[] options = {"Send Report", "View Error Log", "Close"};
-				int n = JOptionPane.showOptionDialog(null,
-						"opsu! has encountered an error.\nPlease report this!",
-						"Error", JOptionPane.DEFAULT_OPTION,
-						JOptionPane.ERROR_MESSAGE, null, options,
-						options[2]);
-				if (n == 0) {
-					Desktop.getDesktop().browse(
-							new URI("https://github.com/itdelatrisu/opsu/issues/new"));
-					Desktop.getDesktop().open(Options.LOG_FILE);
-				} else if (n == 1)
-					Desktop.getDesktop().open(Options.LOG_FILE);
-			} else {
-				// display error only
-				JOptionPane.showMessageDialog(null,
-						"opsu! has encountered an error.\nPlease report this!",
-						"Error", JOptionPane.ERROR_MESSAGE);
-			}
-		} catch (Exception e) {
-			Log.error("Error opening crash popup.", e);
-		}
+	@Override
+	public void dispose() {
+		super.dispose();
 	}
+
+	@Override
+	public void render() {
+		super.render();
+		Color bgcolor = Graphics.bgcolor;
+		if(bgcolor!=null)
+			Gdx.gl.glClearColor(bgcolor.r, bgcolor.g, bgcolor.b, 1);
+		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+		try {
+			sbg.render();
+		} catch (SlickException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		Graphics.checkMode(0);
+	}
+
+	@Override
+	public void resize(int width, int height) {
+		// TODO Auto-generated method stub
+		super.resize(width, height);
+		Graphics.resize(width, height);
+		sbg.gc.width = width;
+		sbg.gc.height = height;
+		
+	}
+
+	@Override
+	public void create() {
+		
+		FileHandle aedsf;
+		aedsf = Gdx.files.local("./res");
+		System.out.println(" local "+aedsf+" "+aedsf.exists()+" "+aedsf.length()+" "+aedsf.lastModified());
+		aedsf = Gdx.files.internal("./res");
+		System.out.println(" internal "+aedsf+" "+aedsf.exists()+" ");
+		
+		Gdx.input.setCatchBackKey(true);
+		Gdx.gl.glEnable(GL20.GL_BLEND);
+		Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);  
+		sbg = new StateBasedGame();
+		Graphics.init();
+		main2(null);
+		initStatesList(new GameContainer());
+		try {
+			sbg.init();
+		} catch (SlickException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		Gdx.input.setInputProcessor(sbg);
+		
+	}
+
+	@Override
+	public void setScreen(Screen screen) {
+		// TODO Auto-generated method stub
+		super.setScreen(screen);
+	}
+
+	@Override
+	public Screen getScreen() {
+		// TODO Auto-generated method stub
+		return super.getScreen();
+	}
+	
+	
 }

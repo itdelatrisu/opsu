@@ -22,7 +22,7 @@ import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.MenuButton;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.Utils;
-
+/*
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
@@ -32,7 +32,8 @@ import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.state.transition.EmptyTransition;
-import org.newdawn.slick.state.transition.FadeInTransition;
+import org.newdawn.slick.state.transition.FadeInTransition;*/
+import itdelatrisu.opsu.fake.*;
 
 /**
  * "Confirm Exit" state.
@@ -62,8 +63,7 @@ public class MainMenuExit extends BasicGameState {
 	}
 
 	@Override
-	public void init(GameContainer container, StateBasedGame game)
-			throws SlickException {
+	public void init(GameContainer container, StateBasedGame game) {
 		this.container = container;
 		this.game = game;
 
@@ -161,8 +161,7 @@ public class MainMenuExit extends BasicGameState {
 	}
 
 	@Override
-	public void enter(GameContainer container, StateBasedGame game)
-			throws SlickException {
+	public void enter(GameContainer container, StateBasedGame game) {
 		float center = container.getWidth() / 2f;
 		yesButton.setX(center - centerOffset);
 		noButton.setX(center + centerOffset);

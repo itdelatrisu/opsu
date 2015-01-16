@@ -18,14 +18,17 @@
 
 package itdelatrisu.opsu;
 
+import itdelatrisu.opsu.fake.*;
 import itdelatrisu.opsu.states.Options;
 
 import java.io.File;
 import java.util.ArrayList;
-
+/*
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Image;
-import org.newdawn.slick.util.Log;
+import org.newdawn.slick.util.Log;*/
+
+import com.badlogic.gdx.files.FileHandle;
 
 /**
  * Data type storing parsed data from OSU files.
@@ -34,7 +37,7 @@ public class OsuFile implements Comparable<OsuFile> {
 	/**
 	 * The OSU File object associated with this OsuFile.
 	 */
-	private File file;
+	private FileHandle file;
 
 	/* [General] */
 	public File audioFilename;                  // audio file object
@@ -102,17 +105,17 @@ public class OsuFile implements Comparable<OsuFile> {
 
 	/**
 	 * Constructor.
-	 * @param file the file associated with this OsuFile
+	 * @param file2 the file associated with this OsuFile
 	 */
-	public OsuFile(File file) {
-		this.file = file;
+	public OsuFile(FileHandle file2) {
+		this.file = file2;
 	}
 
 	/**
 	 * Returns the associated file object.
 	 * @return the File object
 	 */
-	public File getFile() { return file; }
+	public FileHandle getFile() { return file; }
 
 	/**
 	 * Returns the song title.
@@ -143,10 +146,20 @@ public class OsuFile implements Comparable<OsuFile> {
 		if (bg == null)
 			return false;
 		try {
-			if (bgImage == null)
-				bgImage = new Image(bg).getScaledCopy(width, height);
+			if (bgImage == null){
+				Image timg = new Image(bg);
+				int swidth = width;
+				int sheight = height;
+				//fit image to screen with aspec
+				if(timg.getWidth()/(float)timg.getHeight()  >  width/(float)height){// x > y
+					sheight = (int)( width * timg.getHeight()/(float)timg.getWidth());
+				}else{
+					swidth = (int)( height * timg.getWidth()/(float)timg.getHeight());
+				}
+				bgImage = timg.getScaledCopy(swidth, sheight);
+			}
 			bgImage.setAlpha(alpha);
-			bgImage.draw();
+			bgImage.draw( (width-bgImage.getWidth())/2, (height-bgImage.getHeight())/2 );
 		} catch (Exception e) {
 			Log.warn(String.format("Failed to get background image '%s'.", bg), e);
 			bg = null;  // don't try to load the file again until a restart
