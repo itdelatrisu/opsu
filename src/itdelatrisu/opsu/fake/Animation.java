@@ -1,0 +1,83 @@
+package itdelatrisu.opsu.fake;
+
+import java.util.ArrayList;
+
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
+
+public class Animation extends Image{
+
+	ArrayList<ImageDura> imgs = new ArrayList<ImageDura>();
+	class ImageDura{
+		Image img;
+		int duration;
+		public ImageDura(Image img, int duration){
+			this.img = img;
+			this.duration = duration;
+			
+		}
+	}
+	int curFrame;
+	public Animation(String filename) {
+		super(filename);
+		throw new Error("Not IMplemented");
+	}
+
+	public Animation() {
+	}
+
+	@Override
+	public int getHeight() {
+		return imgs.get(0).img.getHeight();
+	}
+
+	@Override
+	public int getWidth() {
+		return imgs.get(0).img.getHeight();
+	}
+	public Image getScaledCopy(float w, float h) {
+		throw new Error("Not IMplemented");
+	}
+	
+	public Image getScaledCopy(float f) {
+		throw new Error("Not IMplemented");
+		
+	}
+
+
+	public Animation(SpriteSheet spr, int i) {
+		for(int y=0;y<spr.image.getHeight();y+=spr.height){
+			for(int x=0; x<spr.image.getWidth();x+=spr.width){
+				imgs.add(new ImageDura(new Image(spr.image,x,y,spr.width,spr.height),i));
+			}
+		}
+	}
+
+	public int getFrameCount() {
+		return imgs.size();
+	}
+
+	public Image getImage(int i) {
+		ImageDura im = imgs.get(i);
+		return im.img;
+	}
+
+	public void addFrame(Image scaledCopy, int i) {
+		//System.out.println("add frame2 "+i+" "+scaledCopy.name);
+		//System.out.println("ADGDSGGL:"+imgs);
+		imgs.add(new ImageDura(scaledCopy.getScaledCopy(1f), i));
+		//System.out.println("ADGDSGG2L:"+imgs);
+	}
+
+	long lastUpdate = System.currentTimeMillis();
+	@Override
+	public TextureRegion getTextureRegion() {
+		while(System.currentTimeMillis()-lastUpdate>imgs.get(curFrame).duration){
+			lastUpdate=System.currentTimeMillis();
+			curFrame = (curFrame+1)%getFrameCount();
+		}
+		//System.out.println("curFrame Anim:"+curFrame);
+		return getImage(curFrame).tex;
+	}
+	
+
+}
