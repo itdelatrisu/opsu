@@ -265,26 +265,27 @@ public class SongMenu extends BasicGameState {
 
 		// header
 		if (focusNode != null) {
+			float marginX = width * 0.005f, marginY = height * 0.005f;
+
 			Image musicNote = GameImage.MENU_MUSICNOTE.getImage();
 			if (MusicController.isTrackLoading())
-				loader.draw();
+				loader.draw(marginX, marginY);
 			else
-				musicNote.draw();
+				musicNote.draw(marginX, marginY);
 			int iconWidth = musicNote.getWidth();
 			int iconHeight = musicNote.getHeight();
 
 			if (songInfo == null)
 				songInfo = focusNode.getInfo();
-			g.setColor(Color.white);
-			Utils.FONT_LARGE.drawString(iconWidth + 5, -3, songInfo[0]);
-			Utils.FONT_DEFAULT.drawString(
-					iconWidth + 5, -3 + Utils.FONT_LARGE.getLineHeight() * 0.75f, songInfo[1]);
-			int headerY = iconHeight - 3;
-			Utils.FONT_BOLD.drawString(5, headerY, songInfo[2]);
+			marginX += 5;
+			Utils.FONT_LARGE.drawString(marginX + iconWidth, marginY, songInfo[0], Color.white);
+			Utils.FONT_DEFAULT.drawString(marginX + iconWidth, marginY + Utils.FONT_LARGE.getLineHeight() * 0.75f, songInfo[1], Color.white);
+			float headerY = marginY + iconHeight;
+			Utils.FONT_BOLD.drawString(marginX, headerY, songInfo[2], Color.white);
 			headerY += Utils.FONT_BOLD.getLineHeight() - 6;
-			Utils.FONT_DEFAULT.drawString(5, headerY, songInfo[3]);
+			Utils.FONT_DEFAULT.drawString(marginX, headerY, songInfo[3], Color.white);
 			headerY += Utils.FONT_DEFAULT.getLineHeight() - 4;
-			Utils.FONT_SMALL.drawString(5, headerY, songInfo[4]);
+			Utils.FONT_SMALL.drawString(marginX, headerY, songInfo[4], Color.white);
 		}
 
 		// song buttons

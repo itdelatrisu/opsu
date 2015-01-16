@@ -771,7 +771,6 @@ public class Options extends BasicGameState {
 	public void render(GameContainer container, StateBasedGame game, Graphics g)
 			throws SlickException {
 		g.setBackground(Utils.COLOR_BLACK_ALPHA);
-		g.setColor(Color.white);
 
 		int width = container.getWidth();
 		int height = container.getHeight();
@@ -779,17 +778,17 @@ public class Options extends BasicGameState {
 
 		// title
 		Utils.FONT_XLARGE.drawString(
-				(width / 2) - (Utils.FONT_XLARGE.getWidth("GAME OPTIONS") / 2),
-				10, "GAME OPTIONS"
+				(width / 2) - (Utils.FONT_XLARGE.getWidth("GAME OPTIONS") / 2), 10,
+				"GAME OPTIONS", Color.white
 		);
 		Utils.FONT_DEFAULT.drawString(
 				(width / 2) - (Utils.FONT_DEFAULT.getWidth("Click or drag an option to change it.") / 2),
-				10 + Utils.FONT_XLARGE.getLineHeight(), "Click or drag an option to change it."
+				10 + Utils.FONT_XLARGE.getLineHeight(),
+				"Click or drag an option to change it.", Color.white
 		);
 
 		// game options
 		g.setLineWidth(1f);
-		g.setFont(Utils.FONT_LARGE);
 		switch (currentTab) {
 		case TAB_DISPLAY:
 			for (int i = 0; i < displayOptions.length; i++)
@@ -999,10 +998,9 @@ public class Options extends BasicGameState {
 		int textHeight = Utils.FONT_LARGE.getLineHeight();
 		float y = textY + (pos * offsetY);
 
-		g.setColor(Color.white);
-		g.drawString(option.getName(), width / 30, y);
-		g.drawString(option.getValueString(), width / 2, y);
-		Utils.FONT_SMALL.drawString(width / 30, y + textHeight, option.getDescription());
+		Utils.FONT_LARGE.drawString(width / 30, y, option.getName(), Color.white);
+		Utils.FONT_LARGE.drawString(width / 2, y, option.getValueString(), Color.white);
+		Utils.FONT_SMALL.drawString(width / 30, y + textHeight, option.getDescription(), Color.white);
 		g.setColor(Utils.COLOR_WHITE_ALPHA);
 		g.drawLine(0, y + textHeight, width, y + textHeight);
 	}

@@ -165,16 +165,16 @@ public class Splash extends BasicGameState {
 	 * @param file the file being loaded
 	 */
 	private void drawLoadProgress(Graphics g, int progress, String text, String file) {
-		g.setColor(Color.white);
-		g.setFont(Utils.FONT_MEDIUM);
 		int lineY = container.getHeight() - 25;
 		int lineOffsetY = Utils.FONT_MEDIUM.getLineHeight();
-
 		if (Options.isLoadVerbose()) {
-			g.drawString(String.format("%s (%d%%)", text, progress), 25, lineY - (lineOffsetY * 2));
-			g.drawString(file, 25, lineY - lineOffsetY);
+			Utils.FONT_MEDIUM.drawString(
+					25, lineY - (lineOffsetY * 2),
+					String.format("%s (%d%%)", text, progress), Color.white);
+			Utils.FONT_MEDIUM.drawString(25, lineY - lineOffsetY, file, Color.white);
 		} else {
-			g.drawString(text, 25, lineY - (lineOffsetY * 2));
+			Utils.FONT_MEDIUM.drawString(25, lineY - (lineOffsetY * 2), text, Color.white);
+			g.setColor(Color.white);
 			g.fillRect(25, lineY - (lineOffsetY / 2f), (container.getWidth() - 50) * progress / 100f, lineOffsetY / 4f);
 		}
 	}

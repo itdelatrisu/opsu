@@ -118,11 +118,10 @@ public class GameRanking extends BasicGameState {
 		}
 
 		// header text
-		g.setColor(Color.white);
 		Utils.FONT_LARGE.drawString(10, 0,
-				String.format("%s - %s [%s]", osu.getArtist(), osu.getTitle(), osu.version));
+				String.format("%s - %s [%s]", osu.getArtist(), osu.getTitle(), osu.version), Color.white);
 		Utils.FONT_MEDIUM.drawString(10, Utils.FONT_LARGE.getLineHeight() - 6,
-				String.format("Beatmap by %s", osu.creator));
+				String.format("Beatmap by %s", osu.creator), Color.white);
 
 		// buttons
 		retryButton.draw();
