@@ -149,7 +149,7 @@ public class Utils {
 			Cursor emptyCursor = new Cursor(min, min, min/2, min/2, 1, tmp, null);
 			container.setMouseCursor(emptyCursor, 0, 0);
 		} catch (LWJGLException e) {
-			Log.error("Failed to set the cursor.", e);
+			ErrorHandler.error("Failed to set the cursor.", e, true);
 		}
 		loadCursor();
 
@@ -181,7 +181,7 @@ public class Utils {
 			loadFont(FONT_MEDIUM, 3, colorEffect);
 			loadFont(FONT_SMALL, 1, colorEffect);
 		} catch (Exception e) {
-			Log.error("Failed to load fonts.", e);
+			ErrorHandler.error("Failed to load fonts.", e, true);
 		}
 
 		// initialize game images

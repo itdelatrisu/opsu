@@ -23,7 +23,6 @@ import java.util.Collections;
 
 import org.newdawn.slick.Image;
 import org.newdawn.slick.SlickException;
-import org.newdawn.slick.util.Log;
 
 /**
  * Game mods.
@@ -131,7 +130,7 @@ public enum GameMod {
 			this.button = new MenuButton(img, x + (offsetX * id), y);
 			this.button.setHoverScale(1.15f);
 		} catch (SlickException e) {
-			Log.error(String.format("Failed to initialize game mod '%s'.", this), e);
+			ErrorHandler.error(String.format("Failed to initialize game mod '%s'.", this), e, false);
 		}
 	}
 

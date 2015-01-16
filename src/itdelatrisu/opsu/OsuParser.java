@@ -465,7 +465,7 @@ public class OsuParser {
 				}
 			}
 		} catch (IOException e) {
-			Log.error(String.format("Failed to read file '%s'.", file.getAbsolutePath()), e);
+			ErrorHandler.error(String.format("Failed to read file '%s'.", file.getAbsolutePath()), e, false);
 		}
 
 		// if no custom colors, use the default color scheme
@@ -546,7 +546,7 @@ public class OsuParser {
 				}
 			}
 		} catch (IOException e) {
-			Log.error(String.format("Failed to read file '%s'.", osu.getFile().getAbsolutePath()), e);
+			ErrorHandler.error(String.format("Failed to read file '%s'.", osu.getFile().getAbsolutePath()), e, false);
 		}
 	}
 

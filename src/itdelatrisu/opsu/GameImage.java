@@ -26,7 +26,6 @@ import java.util.List;
 
 import org.newdawn.slick.Image;
 import org.newdawn.slick.SlickException;
-import org.newdawn.slick.util.Log;
 
 /**
  * Game images.
@@ -471,7 +470,7 @@ public enum GameImage {
 				continue;
 			}
 		}
-		Log.error(String.format("Failed to set default image '%s'.", filename));
+		ErrorHandler.error(String.format("Failed to set default image '%s'.", filename), null, false);
 	}
 
 	/**
@@ -512,7 +511,7 @@ public enum GameImage {
 		}
 		skinImage = null;
 		if (errorFile != null)
-			Log.error(String.format("Failed to set skin image '%s'.", errorFile));
+			ErrorHandler.error(String.format("Failed to set skin image '%s'.", errorFile), null, false);
 		return false;
 	}
 
@@ -533,7 +532,7 @@ public enum GameImage {
 				skinImage.destroy();
 			skinImage = null;
 		} catch (SlickException e) {
-			Log.error(String.format("Failed to destroy skin image for '%s'.", this.name()), e);
+			ErrorHandler.error(String.format("Failed to destroy skin image for '%s'.", this.name()), e, true);
 		}
 	}
 

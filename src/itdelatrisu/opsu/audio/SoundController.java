@@ -18,6 +18,7 @@
 
 package itdelatrisu.opsu.audio;
 
+import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.OsuHitObject;
 import itdelatrisu.opsu.audio.HitSound.SampleSet;
 import itdelatrisu.opsu.states.Options;
@@ -34,7 +35,6 @@ import javax.sound.sampled.FloatControl;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
-import org.newdawn.slick.util.Log;
 import org.newdawn.slick.util.ResourceLoader;
 
 /**
@@ -90,7 +90,7 @@ public class SoundController {
 			clip.open(audioIn);
 			return clip;
 		} catch (UnsupportedAudioFileException | IOException | LineUnavailableException | RuntimeException e) {
-			Log.error(String.format("Failed to load file '%s'.", ref), e);
+			ErrorHandler.error(String.format("Failed to load file '%s'.", ref), e, true);
 		}
 		return null;
 	}

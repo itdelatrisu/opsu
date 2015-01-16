@@ -18,6 +18,7 @@
 
 package itdelatrisu.opsu.states;
 
+import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.GameMod;
 import itdelatrisu.opsu.GameScore;
@@ -52,7 +53,6 @@ import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.state.transition.EmptyTransition;
 import org.newdawn.slick.state.transition.FadeInTransition;
 import org.newdawn.slick.state.transition.FadeOutTransition;
-import org.newdawn.slick.util.Log;
 
 /**
  * "Game" state.
@@ -643,7 +643,7 @@ public class Game extends BasicGameState {
 					enter(container, game);
 					skipIntro();
 				} catch (SlickException e) {
-					Log.error("Failed to restart game.", e);
+					ErrorHandler.error("Failed to restart game.", e, false);
 				}
 			}
 			break;
@@ -681,7 +681,7 @@ public class Game extends BasicGameState {
 						;
 					objectIndex--;
 				} catch (SlickException e) {
-					Log.error("Failed to load checkpoint.", e);
+					ErrorHandler.error("Failed to load checkpoint.", e, false);
 				}
 			}
 			break;
@@ -948,7 +948,7 @@ public class Game extends BasicGameState {
 			score.setDrainRate(HPDrainRate);
 			score.setDifficulty(overallDifficulty);
 		} catch (SlickException e) {
-			Log.error("Error while setting map modifiers.", e);
+			ErrorHandler.error("Error while setting map modifiers.", e, true);
 		}
 	}
 

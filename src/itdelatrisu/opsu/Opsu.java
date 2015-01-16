@@ -28,17 +28,12 @@ import itdelatrisu.opsu.states.Options;
 import itdelatrisu.opsu.states.SongMenu;
 import itdelatrisu.opsu.states.Splash;
 
-import java.awt.Desktop;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.net.ServerSocket;
-import java.net.URI;
-
-import javax.swing.JOptionPane;
-import javax.swing.UIManager;
 
 import org.newdawn.slick.AppGameContainer;
 import org.newdawn.slick.Color;
@@ -108,8 +103,7 @@ public class Opsu extends StateBasedGame {
 			@Override
 			public void uncaughtException(Thread t, Throwable e) {
 				if (!(e instanceof ThreadDeath)) {  // TODO: see MusicController
-					Log.error("** Uncaught Exception! **", e);
-					openErrorPopup();
+					ErrorHandler.error("** Uncaught Exception! **", e, true);
 				}
 			}
 		});
@@ -121,7 +115,7 @@ public class Opsu extends StateBasedGame {
 		try {
 			SERVER_SOCKET = new ServerSocket(Options.getPort());
 		} catch (IOException e) {
-			Log.error(String.format("Another program is already running on port %d.", Options.getPort()), e);
+			ErrorHandler.error(String.format("Another program is already running on port %d.", Options.getPort()), e, false);
 			System.exit(1);
 		}
 
@@ -159,9 +153,9 @@ public class Opsu extends StateBasedGame {
 			// JARs will not run properly inside directories containing '!'
 			// http://bugs.java.com/view_bug.do?bug_id=4523159
 			if (new File("").getAbsolutePath().indexOf('!') != -1)
-				Log.error("Cannot run JAR from path containing '!'.");
+				ErrorHandler.error("Cannot run JAR from path containing '!'.", null, false);
 			else
-				Log.error("Error while creating game container.", e);
+				ErrorHandler.error("Error while creating game container.", e, true);
 		}
 	}
 
@@ -191,38 +185,7 @@ public class Opsu extends StateBasedGame {
 		try {
 			SERVER_SOCKET.close();
 		} catch (IOException e) {
-			Log.error("Failed to close server socket.", e);
-		}
-	}
-
-	/**
-	 * Opens the error popup.
-	 */
-	private static void openErrorPopup() {
-		try {
-			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-			if (Desktop.isDesktopSupported()) {
-				// try to open the log file and/or issues webpage
-				String[] options = {"Send Report", "View Error Log", "Close"};
-				int n = JOptionPane.showOptionDialog(null,
-						"opsu! has encountered an error.\nPlease report this!",
-						"Error", JOptionPane.DEFAULT_OPTION,
-						JOptionPane.ERROR_MESSAGE, null, options,
-						options[2]);
-				if (n == 0) {
-					Desktop.getDesktop().browse(
-							new URI("https://github.com/itdelatrisu/opsu/issues/new"));
-					Desktop.getDesktop().open(Options.LOG_FILE);
-				} else if (n == 1)
-					Desktop.getDesktop().open(Options.LOG_FILE);
-			} else {
-				// display error only
-				JOptionPane.showMessageDialog(null,
-						"opsu! has encountered an error.\nPlease report this!",
-						"Error", JOptionPane.ERROR_MESSAGE);
-			}
-		} catch (Exception e) {
-			Log.error("Error opening crash popup.", e);
+			ErrorHandler.error("Failed to close server socket.", e, false);
 		}
 	}
 }

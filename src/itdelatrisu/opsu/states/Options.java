@@ -18,6 +18,7 @@
 
 package itdelatrisu.opsu.states;
 
+import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.GameMod;
 import itdelatrisu.opsu.MenuButton;
@@ -226,7 +227,7 @@ public class Options extends BasicGameState {
 				try {
 					Utils.loadCursor();
 				} catch (SlickException e) {
-					Log.error("Failed to load cursor.", e);
+					ErrorHandler.error("Failed to load cursor.", e, true);
 				}
 			}
 		},
@@ -1290,7 +1291,7 @@ public class Options extends BasicGameState {
 	public static OsuFile getOsuTheme() {
 		String[] tokens = themeString.split(",");
 		if (tokens.length != 4) {
-			Log.error("Theme song string is malformed.");
+			ErrorHandler.error("Theme song string is malformed.", null, false);
 			return null;
 		}
 
@@ -1301,7 +1302,7 @@ public class Options extends BasicGameState {
 		try {
 			osu.endTime = Integer.parseInt(tokens[3]);
 		} catch (NumberFormatException e) {
-			Log.error("Theme song length is not a valid integer", e);
+			ErrorHandler.error("Theme song length is not a valid integer", e, false);
 			return null;
 		}
 
@@ -1468,7 +1469,7 @@ public class Options extends BasicGameState {
 				}
 			}
 		} catch (IOException e) {
-			Log.error(String.format("Failed to read file '%s'.", OPTIONS_FILE.getAbsolutePath()), e);
+			ErrorHandler.error(String.format("Failed to read file '%s'.", OPTIONS_FILE.getAbsolutePath()), e, false);
 		} catch (NumberFormatException e) {
 			Log.warn("Format error in options file.", e);
 			return;
@@ -1562,7 +1563,7 @@ public class Options extends BasicGameState {
 			writer.newLine();
 			writer.close();
 		} catch (IOException e) {
-			Log.error(String.format("Failed to write to file '%s'.", OPTIONS_FILE.getAbsolutePath()), e);
+			ErrorHandler.error(String.format("Failed to write to file '%s'.", OPTIONS_FILE.getAbsolutePath()), e, false);
 		}
 	}
 }

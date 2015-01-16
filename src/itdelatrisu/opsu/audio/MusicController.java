@@ -18,6 +18,7 @@
 
 package itdelatrisu.opsu.audio;
 
+import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.OsuFile;
 import itdelatrisu.opsu.OsuParser;
 import itdelatrisu.opsu.states.Options;
@@ -35,7 +36,6 @@ import org.newdawn.slick.Music;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.openal.Audio;
 import org.newdawn.slick.openal.SoundStore;
-import org.newdawn.slick.util.Log;
 
 /**
  * Controller for all music.
@@ -132,7 +132,7 @@ public class MusicController {
 			player = new Music(file.getPath());
 			playAt((previewTime > 0) ? previewTime : 0, loop);
 		} catch (Exception e) {
-			Log.error(String.format("Could not play track '%s'.", file.getName()), e);
+			ErrorHandler.error(String.format("Could not play track '%s'.", file.getName()), e, false);
 		}
 	}
 
@@ -163,7 +163,7 @@ public class MusicController {
 			converter.convert(file.getPath(), wavFile.getPath());
 			return wavFile;
 		} catch (Exception e) {
-			Log.error(String.format("Failed to play file '%s'.", file.getAbsolutePath()), e);
+			ErrorHandler.error(String.format("Failed to play file '%s'.", file.getAbsolutePath()), e, false);
 		}
 		return wavFile;
 	}
@@ -362,7 +362,7 @@ public class MusicController {
 
 			player = null;
 		} catch (Exception e) {
-			Log.error("Failed to destroy OpenAL.", e);
+			ErrorHandler.error("Failed to destroy OpenAL.", e, false);
 		}
 	}
 }
