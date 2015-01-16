@@ -71,6 +71,11 @@ public class MusicController {
 	 */
 	private static float pauseTime = 0f;
 
+	/**
+	 * Whether the current track volume is dimmed.
+	 */
+	private static boolean trackDimmed = false;
+
 	// This class should not be instantiated.
 	private MusicController() {}
 
@@ -148,6 +153,7 @@ public class MusicController {
 			else
 				player.play();
 			pauseTime = 0f;
+			trackDimmed = false;
 		}
 	}
 
@@ -300,6 +306,20 @@ public class MusicController {
 	 */
 	public static boolean isThemePlaying() {
 		return (themePlaying && trackExists());
+	}
+
+	/**
+	 * Returns whether or not the volume of the current track, if any,
+	 * has been dimmed.
+	 */
+	public static boolean isTrackDimmed() { return trackDimmed; }
+
+	/**
+	 * Toggles the volume dim state of the current track.
+	 */
+	public static void toggleTrackDimmed() {
+		setVolume((trackDimmed) ? Options.getMusicVolume() : Options.getMusicVolume() / 3f);
+		trackDimmed = !trackDimmed;
 	}
 
 	/**
