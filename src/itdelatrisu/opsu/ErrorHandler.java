@@ -24,8 +24,6 @@ import java.awt.Cursor;
 import java.awt.Desktop;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.net.URI;
-import java.net.URISyntaxException;
 
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
@@ -81,18 +79,6 @@ public class ErrorHandler {
 		message = { desc, scroll },
 		messageR = { descR, scroll };
 
-	/**
-	 * Address to report issues.
-	 */
-	private static URI uri;
-	static {
-		try {
-			uri = new URI("https://github.com/itdelatrisu/opsu/issues/new");
-		} catch (URISyntaxException e) {
-			Log.error("Problem with error URI.", e);
-		}
-	}
-
 	// This class should not be instantiated.
 	private ErrorHandler() {}
 
@@ -137,7 +123,7 @@ public class ErrorHandler {
 							JOptionPane.DEFAULT_OPTION, JOptionPane.ERROR_MESSAGE,
 							null, optionsR, optionsR[2]);
 					if (n == 0) {
-						Desktop.getDesktop().browse(uri);
+						Desktop.getDesktop().browse(Options.ISSUES_URI);
 						Desktop.getDesktop().open(Options.LOG_FILE);
 					} else if (n == 1)
 						Desktop.getDesktop().open(Options.LOG_FILE);

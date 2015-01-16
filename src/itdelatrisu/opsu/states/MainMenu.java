@@ -18,6 +18,7 @@
 
 package itdelatrisu.opsu.states;
 
+import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.MenuButton;
 import itdelatrisu.opsu.Opsu;
@@ -29,6 +30,8 @@ import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
 
+import java.awt.Desktop;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Stack;
@@ -84,6 +87,11 @@ public class MainMenu extends BasicGameState {
 	private MenuButton musicPlay, musicPause, musicNext, musicPrevious;
 
 	/**
+	 * Button linking to repository.
+	 */
+	private MenuButton repoButton;
+
+	/**
 	 * Application start time, for drawing the total running time.
 	 */
 	private long osuStartTime;
@@ -126,7 +134,7 @@ public class MainMenu extends BasicGameState {
 		int width = container.getWidth();
 		int height = container.getHeight();
 
-		// initialize buttons
+		// initialize menu buttons
 		Image logoImg = GameImage.MENU_LOGO.getImage();
 		Image playImg = GameImage.MENU_PlAY.getImage();
 		Image exitImg = GameImage.MENU_EXIT.getImage();
@@ -153,6 +161,14 @@ public class MainMenu extends BasicGameState {
 		musicPause.setHoverScale(1.5f);
 		musicNext.setHoverScale(1.5f);
 		musicPrevious.setHoverScale(1.5f);
+
+		// initialize repository button
+		if (Desktop.isDesktopSupported()) {  // only if a webpage can be opened
+			Image repoImg = GameImage.REPOSITORY.getImage();
+			repoButton = new MenuButton(repoImg,
+					(width * 0.995f) - repoImg.getWidth(), (height * 0.995f) - repoImg.getHeight()
+			);
+		}
 
 		reset();
 	}
@@ -195,6 +211,10 @@ public class MainMenu extends BasicGameState {
 			g.fillRoundRect(width - 168, 54,
 				148f * MusicController.getPosition() / osu.endTime, 5, 4);
 
+		// draw repository button
+		if (repoButton != null)
+			repoButton.draw();
+
 		// draw text
 		g.setFont(Utils.FONT_MEDIUM);
 		int lineHeight = Utils.FONT_MEDIUM.getLineHeight();
@@ -235,6 +255,8 @@ public class MainMenu extends BasicGameState {
 		musicPause.hoverUpdate(delta, mouseX, mouseY);
 		musicNext.hoverUpdate(delta, mouseX, mouseY);
 		musicPrevious.hoverUpdate(delta, mouseX, mouseY);
+		if (repoButton != null)
+			repoButton.hoverUpdate(delta, mouseX, mouseY);
 
 		// window focus change: increase/decrease theme song volume
 		if (MusicController.isThemePlaying()) {
@@ -314,6 +336,8 @@ public class MainMenu extends BasicGameState {
 			musicNext.setScale(1f);
 		if (!musicPrevious.contains(mouseX, mouseY))
 			musicPrevious.setScale(1f);
+		if (repoButton != null && !repoButton.contains(mouseX, mouseY))
+			repoButton.setScale(1f);
 	}
 
 	@Override
@@ -348,6 +372,15 @@ public class MainMenu extends BasicGameState {
 					bgAlpha = 0f;
 			} else
 				MusicController.setPosition(0);
+		}
+
+		// repository button actions
+		else if (repoButton != null && repoButton.contains(x, y)) {
+			try {
+				Desktop.getDesktop().browse(Options.REPOSITORY_URI);
+			} catch (IOException e) {
+				ErrorHandler.error("Could not browse to repository URI.", e, false);
+			}
 		}
 
 		// start moving logo (if clicked)

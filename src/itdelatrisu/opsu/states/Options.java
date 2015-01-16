@@ -35,6 +35,8 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -86,6 +88,25 @@ public class Options extends BasicGameState {
 	 * Font file name.
 	 */
 	public static final String FONT_NAME = "kochi-gothic.ttf";
+
+	/**
+	 * Repository address.
+	 */
+	public static URI REPOSITORY_URI;
+
+	/**
+	 * Issue reporting address.
+	 */
+	public static URI ISSUES_URI;
+
+	static {
+		try {
+			REPOSITORY_URI = new URI("https://github.com/itdelatrisu/opsu");
+			ISSUES_URI = new URI("https://github.com/itdelatrisu/opsu/issues/new");
+		} catch (URISyntaxException e) {
+			Log.error("Problem loading URIs.", e);
+		}
+	}
 
 	/**
 	 * The beatmap directory.
@@ -559,7 +580,7 @@ public class Options extends BasicGameState {
 	/**
 	 * Index (row) in resolutions[][] array.
 	 */
-	private static Resolution resolution = Resolution.RES_1280_800;
+	private static Resolution resolution = Resolution.RES_1024_768;
 
 //	/**
 //	 * Whether or not the game should run in fullscreen mode.
