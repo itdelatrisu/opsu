@@ -131,7 +131,7 @@ public class ErrorHandler {
 					// don't report the error
 					int n = JOptionPane.showOptionDialog(null, message, title,
 							JOptionPane.DEFAULT_OPTION, JOptionPane.ERROR_MESSAGE,
-							null, options, optionsR[1]);
+							null, options, options[1]);
 					if (n == 0)
 						Desktop.getDesktop().open(Options.LOG_FILE);
 				}
