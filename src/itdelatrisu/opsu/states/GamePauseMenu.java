@@ -109,7 +109,8 @@ public class GamePauseMenu extends BasicGameState {
 	}
 
 	@Override
-	public void update(GameContainer container, StateBasedGame game, int delta) {
+	public void update(GameContainer container, StateBasedGame game, int delta)
+			throws SlickException {
 		Utils.updateCursor(delta);
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
 		continueButton.hoverUpdate(delta, mouseX, mouseY);
@@ -135,7 +136,6 @@ public class GamePauseMenu extends BasicGameState {
 			// 'esc' will normally unpause, but will return to song menu if health is zero
 			if (gameState.getRestart() == Game.Restart.LOSE) {
 				SoundController.playSound(SoundEffect.MENUBACK);
-
 				SongMenu songMenu = (SongMenu) game.getState(Opsu.STATE_SONGMENU);
 				songMenu.resetGameDataOnLoad();
 				songMenu.resetTrackOnLoad();
@@ -180,7 +180,6 @@ public class GamePauseMenu extends BasicGameState {
 			game.enterState(Opsu.STATE_GAME);
 		} else if (backButton.contains(x, y)) {
 			SoundController.playSound(SoundEffect.MENUBACK);
-
 			SongMenu songMenu = (SongMenu) game.getState(Opsu.STATE_SONGMENU);
 			songMenu.resetGameDataOnLoad();
 			songMenu.resetTrackOnLoad();
@@ -189,7 +188,8 @@ public class GamePauseMenu extends BasicGameState {
 	}
 
 	@Override
-	public void enter(GameContainer container, StateBasedGame game) {
+	public void enter(GameContainer container, StateBasedGame game)
+			throws SlickException {
 		pauseStartTime = System.currentTimeMillis();
 		if (gameState.getRestart() == Game.Restart.LOSE) {
 			MusicController.fadeOut(FADEOUT_TIME);

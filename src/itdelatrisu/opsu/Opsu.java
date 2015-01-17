@@ -155,7 +155,9 @@ public class Opsu extends com.badlogic.gdx.Game {
 		}
 
 		// set path for lwjgl natives - NOT NEEDED if using JarSplice
-//		System.setProperty("org.lwjgl.librarypath", new File("native").getAbsolutePath());
+		//File nativeDir = new File("./target/natives/");
+		//if (nativeDir.isDirectory())
+			//System.setProperty("org.lwjgl.librarypath", nativeDir.getAbsolutePath());
 
 		// set the resource paths
 		ResourceLoader.removeAllResourceLocations();

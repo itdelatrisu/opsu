@@ -34,7 +34,7 @@ import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
 import itdelatrisu.opsu.fake.*;
 
-import java.util.Stack;
+import java.util.Stack; 
 
 /*
 import org.lwjgl.opengl.Display;

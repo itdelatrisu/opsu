@@ -72,7 +72,7 @@ public class Spinner implements HitObject {
 	/**
 	 * Initializes the Spinner data type with images and dimensions.
 	 * @param container the game container
-	 * @throws SlickException 
+	 * @throws SlickException
 	 */
 	public static void init(GameContainer container) throws SlickException {
 		width  = container.getWidth();
@@ -142,7 +142,7 @@ public class Spinner implements HitObject {
 				score.drawSymbolNumber(extraRotations * 1000, width / 2, height * 2 / 3, 1.0f);
 		}
 	}
-	
+
 	/**
 	 * Calculates and sends the spinner hit result.
 	 * @return the hit result (GameScore.HIT_* constants)

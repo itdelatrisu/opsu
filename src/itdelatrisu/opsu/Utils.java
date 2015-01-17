@@ -128,7 +128,8 @@ public class Utils {
 	 * @param game the game object
 	 * @throws SlickException 
 	 */
-	public static void init(GameContainer container, StateBasedGame game) throws SlickException {
+	public static void init(GameContainer container, StateBasedGame game)
+			throws SlickException {
 		Utils.container = container;
 		Utils.game = game;
 		Utils.input = container.getInput();
@@ -152,7 +153,7 @@ public class Utils {
 			Cursor emptyCursor = new Cursor(min, min, min/2, min/2, 1, tmp, null);
 			container.setMouseCursor(emptyCursor, 0, 0);
 		} catch (LWJGLException e) {
-			Log.error("Failed to set the cursor.", e);
+			ErrorHandler.error("Failed to set the cursor.", e, true);
 		}*/
 		loadCursor();
 

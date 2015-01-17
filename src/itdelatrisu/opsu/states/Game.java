@@ -38,6 +38,8 @@ import itdelatrisu.opsu.objects.HitObject;
 import itdelatrisu.opsu.objects.Slider;
 import itdelatrisu.opsu.objects.Spinner;
 
+
+//import java.io.File;
 import java.util.Stack;
 import java.util.concurrent.TimeUnit;
 
@@ -838,7 +840,7 @@ public class Game extends BasicGameState {
 		int height = container.getHeight();
 
 		// set images
-		File parent = osu.getFile().getParent();
+		File parent = osu.getFile().getParentFile();
 		for (GameImage img : GameImage.values()) {
 			if (img.isGameImage()) {
 				img.setDefaultImage();  // ensure that default image has been loaded
@@ -855,7 +857,7 @@ public class Game extends BasicGameState {
 
 		// load other images...
 		((GamePauseMenu) game.getState(Opsu.STATE_GAMEPAUSEMENU)).loadImages();
-		score.loadImages(osu.getFile().getParent());
+		score.loadImages(osu.getFile().getParentFile());
 	}
 
 	/**

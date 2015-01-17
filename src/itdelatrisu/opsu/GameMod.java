@@ -18,7 +18,7 @@
 
 package itdelatrisu.opsu;
 
-import itdelatrisu.opsu.fake.*;
+import itdelatrisu.opsu.fake.*; 
 
 import java.util.Arrays;
 import java.util.Collections;

@@ -19,7 +19,7 @@
 package itdelatrisu.opsu;
 
 import itdelatrisu.opsu.fake.File;
-import itdelatrisu.opsu.fake.FilenameFilter;
+import itdelatrisu.opsu.fake.FilenameFilter; 
 
 //import java.io.File;
 //import java.io.FilenameFilter;

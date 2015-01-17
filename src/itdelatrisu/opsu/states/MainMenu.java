@@ -248,8 +248,12 @@ public class MainMenu extends BasicGameState {
 		logo.hoverUpdate(delta, mouseX, mouseY);
 		playButton.hoverUpdate(delta, mouseX, mouseY);
 		exitButton.hoverUpdate(delta, mouseX, mouseY);
+		if (repoButton != null)
+			repoButton.hoverUpdate(delta, mouseX, mouseY);
 		musicPlay.hoverUpdate(delta, mouseX, mouseY);
 		musicPause.hoverUpdate(delta, mouseX, mouseY);
+		if (musicPlay.contains(mouseX, mouseY))
+			mouseX = mouseY = -1;  // ensure only one button is in hover state at once
 		musicNext.hoverUpdate(delta, mouseX, mouseY);
 		musicPrevious.hoverUpdate(delta, mouseX, mouseY);
 		if (repoButton != null)

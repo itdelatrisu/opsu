@@ -39,7 +39,7 @@ import javax.swing.UIManager;
 public class ErrorHandler {
 	/**
 	 * Error popup title.
-	 */
+	 */ 
 	private static final String title = "Error";
 
 	/**

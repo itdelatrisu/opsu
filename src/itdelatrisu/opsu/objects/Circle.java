@@ -68,7 +68,7 @@ public class Circle implements HitObject {
 	 * @param circleSize the map's circleSize value
 	 * @throws SlickException
 	 */
-	public static void init(GameContainer container, float circleSize) {
+	public static void init(GameContainer container, float circleSize) throws SlickException {
 		int diameter = (int) (96 - (circleSize * 8));
 		int swidth = container.getWidth();
 		int sheight = container.getHeight();

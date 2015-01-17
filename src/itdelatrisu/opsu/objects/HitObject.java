@@ -16,7 +16,7 @@
  * along with opsu!.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package itdelatrisu.opsu.objects;
+package itdelatrisu.opsu.objects; 
 
 import itdelatrisu.opsu.fake.Graphics;
 

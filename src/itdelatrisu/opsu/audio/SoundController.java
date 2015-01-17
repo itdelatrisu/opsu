@@ -18,6 +18,7 @@
 
 package itdelatrisu.opsu.audio;
 
+import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.OsuHitObject;
 import itdelatrisu.opsu.audio.HitSound.SampleSet;
 import itdelatrisu.opsu.fake.Log;
@@ -94,7 +95,7 @@ public class SoundController {
 			clip.open(audioIn);
 			return clip;
 		} catch (UnsupportedAudioFileException | IOException | LineUnavailableException | RuntimeException e) {
-			Log.error(String.format("Failed to load file '%s'.", ref), e);
+			ErrorHandler.error(String.format("Failed to load file '%s'.", ref), e, true);
 		}*/
 		//return null;
 	}
