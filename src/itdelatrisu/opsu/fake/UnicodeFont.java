@@ -68,7 +68,7 @@ public class UnicodeFont {
 		return (int) bitmap.getBounds(str).width;
 	}
 
-	public void loadGlyphs() {
+	public void loadGlyphs() throws SlickException {
 		// TODO Auto-generated method stub
 
 	}

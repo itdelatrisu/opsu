@@ -34,6 +34,7 @@ import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.SlickException;*/
 
+
 import com.badlogic.gdx.files.FileHandle;
 
 /**
@@ -252,11 +253,10 @@ public class GameScore {
 
 	/**
 	 * Loads all game score images.
+	 * @param dir the image directory
 	 * @throws SlickException
 	 */
-	public void loadImages() {
-		com.badlogic.gdx.files.FileHandle dir = MusicController.getOsuFile().getFile().parent();
-
+	public void loadImages(File dir) throws SlickException {
 		// combo burst images
 		if (comboBurstImages != null) {
 			for (int i = 0; i < comboBurstImages.length; i++) {
@@ -267,15 +267,15 @@ public class GameScore {
 		LinkedList<Image> comboBurst = new LinkedList<Image>();
 		String comboFormat = "comboburst-%d.png";
 		int comboIndex = 0;
-		FileHandle comboFile = dir.child("comboburst.png");//new File(dir, "comboburst.png");
-		FileHandle comboFileN = dir.child(String.format(comboFormat, comboIndex));//new FileHandle(dir, String.format(comboFormat, comboIndex));
-		if (comboFileN.exists() && !comboFileN.isDirectory()) {  // beatmap provides images
+		File comboFile = new File(dir, "comboburst.png");
+		File comboFileN = new File(dir, String.format(comboFormat, comboIndex));
+		if (comboFileN.isFile()) {  // beatmap provides images
 			do {
-				comboBurst.add(new Image(comboFileN.path()));
-				comboFileN = dir.child(String.format(comboFormat, ++comboIndex));//new FileHandle(dir, String.format(comboFormat, ++comboIndex));
-			} while (comboFileN.exists() && !comboFileN.isDirectory());
-		} else if (comboFile.exists() && !comboFile.isDirectory())  // beatmap provides single image
-			comboBurst.add(new Image(comboFile.path()));
+				comboBurst.add(new Image(comboFileN.getAbsolutePath()));
+				comboFileN = new File(dir, String.format(comboFormat, ++comboIndex));
+			} while (comboFileN.isFile());
+		} else if (comboFile.isFile())  // beatmap provides single image
+			comboBurst.add(new Image(comboFile.getAbsolutePath()));
 		else {  // load default images
 			while (true) {
 				try {
@@ -297,12 +297,12 @@ public class GameScore {
 			lighting1.destroy();
 			lighting1 = null;
 		}
-		FileHandle lightingFile = dir.child("lighting.png");//new FileHandle(dir, "lighting.png");
-		FileHandle lighting1File = dir.child("lighting1.png");//new FileHandle(dir, "lighting1.png");
-		if (lightingFile.exists() && !lightingFile.isDirectory()) {  // beatmap provides images
+		File lightingFile = new File(dir, "lighting.png");
+		File lighting1File = new File(dir, "lighting1.png");
+		if (lightingFile.isFile()) {  // beatmap provides images
 			try {
-				lighting  = new Image(lightingFile.path());
-				lighting1 = new Image(lighting1File.path());
+				lighting  = new Image(lightingFile.getAbsolutePath());
+				lighting1 = new Image(lighting1File.getAbsolutePath());
 			} catch (Exception e) {
 				// optional
 			}
@@ -454,20 +454,30 @@ public class GameScore {
 	 * @param firstObject true if the first hit object's start time has not yet passed
 	 */
 	public void drawGameElements(Graphics g, boolean breakPeriod, boolean firstObject) {
+		int marginX = (int) (width * 0.008f);
+
 		// score
 		drawSymbolString((scoreDisplay < 100000000) ? String.format("%08d", scoreDisplay) : Long.toString(scoreDisplay),
-				width - 2, 0, 1.0f, true);
+				width - marginX, 0, 1.0f, true);
 
 		// score percentage
 		int symbolHeight = getScoreSymbolImage('0').getHeight();
-		String scorePercentage = String.format("%02.2f%%", getScorePercent());
-		drawSymbolString(scorePercentage, width - 2, symbolHeight, 0.75f, true);
+		float scorePercent = getScorePercent();
+		drawSymbolString(
+				String.format((scorePercent < 10f) ? "0%.2f%%" : "%.2f%%", scorePercent),
+				width - marginX, symbolHeight, 0.75f, true
+		);
 
 		// map progress circle
 		g.setAntiAlias(true);
 		g.setLineWidth(2f);
 		g.setColor(Color.white);
-		int circleX = width - (getScoreSymbolImage('0').getWidth() * scorePercentage.length());
+		int circleX = width - marginX - (  // max width: "100.00%"
+				getScoreSymbolImage('1').getWidth() +
+				getScoreSymbolImage('0').getWidth() * 4 +
+				getScoreSymbolImage('.').getWidth() +
+				getScoreSymbolImage('%').getWidth()
+		);
 		float circleDiameter = symbolHeight * 0.75f;
 		g.drawOval(circleX, symbolHeight, circleDiameter, circleDiameter);
 
@@ -635,13 +645,16 @@ public class GameScore {
 	 * @param trackPosition the current track position
 	 */
 	public void drawHitResults(int trackPosition) {
-		int fadeDelay = 500;
+		final int fadeDelay = 500;
 
 		Iterator<OsuHitObjectResult> iter = hitResultList.iterator();
 		while (iter.hasNext()) {
 			OsuHitObjectResult hitResult = iter.next();
 			if (hitResult.time + fadeDelay > trackPosition) {
-				
+				hitResults[hitResult.result].setAlpha(hitResult.alpha);
+				hitResult.alpha = 1 - ((float) (trackPosition - hitResult.time) / fadeDelay);
+				hitResults[hitResult.result].drawCentered(hitResult.x, hitResult.y);
+
 				// hit lighting
 				if (Options.isHitLightingEnabled() && lighting != null &&
 					hitResult.result != HIT_MISS && hitResult.result != HIT_SLIDER30 && hitResult.result != HIT_SLIDER10) {
@@ -795,7 +808,7 @@ public class GameScore {
 		combo++;
 		if (combo > comboMax)
 			comboMax = combo;
-	
+
 		// combo bursts (at 30, 60, 100+50x)
 		if (Options.isComboBurstEnabled() &&
 			(combo == 30 || combo == 60 || (combo >= 100 && combo % 50 == 0))) {
@@ -908,16 +921,10 @@ public class GameScore {
 
 			// game mod score multipliers
 			float modMultiplier = 1f;
-			if (GameMod.EASY.isActive())
-				modMultiplier *= 0.5f;
-			if (GameMod.NO_FAIL.isActive())
-				modMultiplier *= 0.5f;
-			if (GameMod.HARD_ROCK.isActive())
-				modMultiplier *= 1.06f;
-			if (GameMod.SPUN_OUT.isActive())
-				modMultiplier *= 0.9f;
-			// not implemented:
-			// HALF_TIME (0.3x), DOUBLE_TIME (1.12x), HIDDEN (1.06x), FLASHLIGHT (1.12x)
+			for (GameMod mod : GameMod.values()) {
+				if (mod.isActive())
+					modMultiplier *= mod.getMultiplier();
+			}
 
 			/**
 			 * [SCORE FORMULA]

@@ -33,7 +33,7 @@ public class StateBasedGame implements InputProcessor{
 		System.out.println("Enter State Transition "+newState);
 		nextState = bgs.get(newState);
 	}
-	private void enterNextState(){
+	private void enterNextState() throws SlickException{
 		if(nextState!=null){
 			currentState = nextState;
 			nextState = null;
@@ -56,7 +56,7 @@ public class StateBasedGame implements InputProcessor{
 		return null;
 	}
 
-	public void addState(BasicGameState gs) {
+	public void addState(BasicGameState gs) throws SlickException {
 		// TODO Auto-generated method stub
 		bgs.put(gs.getID(),gs);
 		if(gs.getID()==0)
@@ -122,6 +122,10 @@ public class StateBasedGame implements InputProcessor{
 	public boolean scrolled(int amount) {
 		currentState.mouseWheelMoved(-amount);
 		return false;
+	}
+	public void closeRequested() {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

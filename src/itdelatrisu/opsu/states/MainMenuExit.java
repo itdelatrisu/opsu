@@ -1,6 +1,6 @@
 /*
  * opsu! - an open-source osu! client
- * Copyright (C) 2014 Jeffrey Han
+ * Copyright (C) 2014, 2015 Jeffrey Han
  *
  * opsu! is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -88,23 +88,23 @@ public class MainMenuExit extends BasicGameState {
 	public void render(GameContainer container, StateBasedGame game, Graphics g)
 			throws SlickException {
 		g.setBackground(Color.black);
-		g.setColor(Color.white);
 
 		// draw text
 		float c = container.getWidth() * 0.02f;
-		Utils.FONT_LARGE.drawString(c, c, "Are you sure you want to exit opsu!?");
+		Utils.FONT_LARGE.drawString(c, c, "Are you sure you want to exit opsu!?", Color.white);
 
 		// draw buttons
 		yesButton.draw(Color.green);
 		noButton.draw(Color.red);
-		g.setFont(Utils.FONT_XLARGE);
-		g.drawString("1. Yes",
+		Utils.FONT_XLARGE.drawString(
 				yesButton.getX() - (Utils.FONT_XLARGE.getWidth("1. Yes") / 2f),
-				yesButton.getY() - (Utils.FONT_XLARGE.getLineHeight() / 2f)
+				yesButton.getY() - (Utils.FONT_XLARGE.getLineHeight() / 2f),
+				"1. Yes", Color.white
 		);
-		g.drawString("2. No",
+		Utils.FONT_XLARGE.drawString(
 				noButton.getX() - (Utils.FONT_XLARGE.getWidth("2. No") / 2f),
-				noButton.getY() - (Utils.FONT_XLARGE.getLineHeight() / 2f)
+				noButton.getY() - (Utils.FONT_XLARGE.getLineHeight() / 2f),
+				"2. No", Color.white
 		);
 
 		Utils.drawFPS();
@@ -130,7 +130,7 @@ public class MainMenuExit extends BasicGameState {
 
 	@Override
 	public void mousePressed(int button, int x, int y) {
-		// check mouse button 
+		// check mouse button
 		if (button != Input.MOUSE_LEFT_BUTTON)
 			return;
 

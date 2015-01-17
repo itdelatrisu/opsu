@@ -18,12 +18,13 @@
 
 package itdelatrisu.opsu.audio;
 
+import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.OsuFile;
 import itdelatrisu.opsu.OsuParser;
 import itdelatrisu.opsu.fake.*;
 import itdelatrisu.opsu.states.Options;
 
-import java.io.File;
+//import java.io.File;
 import java.lang.reflect.Field;
 import java.nio.IntBuffer;
 /*
@@ -71,6 +72,16 @@ public class MusicController {
 	 */
 	private static boolean themePlaying = false;
 
+	/**
+	 * Track pause time.
+	 */
+	private static float pauseTime = 0f;
+
+	/**
+	 * Whether the current track volume is dimmed.
+	 */
+	private static boolean trackDimmed = false;
+
 	// This class should not be instantiated.
 	private MusicController() {}
 
@@ -109,6 +120,7 @@ public class MusicController {
 
 			// releases all sources from previous tracks
 			destroyOpenAL();
+			System.gc();
 
 			switch (OsuParser.getExtension(osu.audioFilename.getName())) {
 			case "ogg":
@@ -149,7 +161,7 @@ public class MusicController {
 			player = new Music(file.getPath());
 			playAt((previewTime > 0) ? previewTime : 0, loop);
 		} catch (Exception e) {
-			Log.error(String.format("Could not play track '%s'.", file.getName()), e);
+			ErrorHandler.error(String.format("Could not play track '%s'.", file.getName()), e, false);
 		}
 	}
 
@@ -164,6 +176,7 @@ public class MusicController {
 				player.loop();
 			else
 				player.play();
+			pauseTime = 0f;
 		}
 	}
 
@@ -172,14 +185,14 @@ public class MusicController {
 	 */
 	private static File convertMp3(File file) {
 		try {
-			wavFile = File.createTempFile(".osu", ".wav", Options.TMP_DIR);
-			wavFile.deleteOnExit();
+			//wavFile = File.createTempFile(".osu", ".wav", Options.TMP_DIR);
+			//wavFile.deleteOnExit();
 
 			//Converter converter = new Converter();
 			//converter.convert(file.getPath(), wavFile.getPath());
 			return wavFile;
 		} catch (Exception e) {
-			Log.error(String.format("Failed to play file '%s'.", file.getAbsolutePath()), e);
+			ErrorHandler.error(String.format("Failed to play file '%s'.", file.getAbsolutePath()), e, false);
 		}
 		return wavFile;
 	}
@@ -229,11 +242,20 @@ public class MusicController {
 	}
 
 	/**
+	 * Returns true if the current track is paused.
+	 */
+	public static boolean isPaused() {
+		return (trackExists() && pauseTime > 0f);
+	}
+
+	/**
 	 * Pauses the current track.
 	 */
 	public static void pause() {
-		if (isPlaying())
+		if (isPlaying()) {
+			pauseTime = player.getPosition();
 			player.pause();
+		}
 	}
 
 	/**
@@ -241,6 +263,7 @@ public class MusicController {
 	 */
 	public static void resume() {
 		if (trackExists()) {
+			pauseTime = 0f;
 			player.resume();
 			player.setVolume(1.0f);
 		}
@@ -266,13 +289,15 @@ public class MusicController {
 
 	/**
 	 * Returns the position in the current track, in ms.
-	 * If no track is playing, 0 will be returned.
+	 * If no track is loaded, 0 will be returned.
 	 */
 	public static int getPosition() {
-		//if (isPlaying())
+		if (isPlaying())
 			return Math.max((int) (player.getPosition() * 1000 + Options.getMusicOffset()), 0);
-		//else
-		//	return 0;
+		else if (isPaused())
+			return Math.max((int) (pauseTime * 1000 + Options.getMusicOffset()), 0);
+		else
+			return 0;
 	}
 
 	/**
@@ -280,6 +305,14 @@ public class MusicController {
 	 */
 	public static boolean setPosition(int position) {
 		return (trackExists() && player.setPosition(position / 1000f));
+	}
+
+	/**
+	 * Sets the music volume.
+	 * @param volume [0, 1]
+	 */
+	public static void setVolume(float volume) {
+		SoundStore.get().setMusicVolume(volume);
 	}
 
 	/**
@@ -301,12 +334,26 @@ public class MusicController {
 	}
 
 	/**
+	 * Returns whether or not the volume of the current track, if any,
+	 * has been dimmed.
+	 */
+	public static boolean isTrackDimmed() { return trackDimmed; }
+
+	/**
+	 * Toggles the volume dim state of the current track.
+	 */
+	public static void toggleTrackDimmed() {
+		setVolume((trackDimmed) ? Options.getMusicVolume() : Options.getMusicVolume() / 3f);
+		trackDimmed = !trackDimmed;
+	}
+
+	/**
 	 * Stops and releases all sources, clears each of the specified Audio
 	 * buffers, destroys the OpenAL context, and resets SoundStore for future use.
-	 * 
+	 *
 	 * Calling SoundStore.get().init() will re-initialize the OpenAL context
 	 * after a call to destroyOpenAL (Note: AudioLoader.getXXX calls init for you).
-	 * 
+	 *
 	 * @author davedes (http://slick.ninjacave.com/forum/viewtopic.php?t=3920)
 	 */
 	private static void destroyOpenAL() {
@@ -360,7 +407,7 @@ public class MusicController {
 
 			player = null;
 		} catch (Exception e) {
-			Log.error("Failed to destroy OpenAL.", e);
+			ErrorHandler.error("Failed to destroy OpenAL.", e, false);
 		}*/
 	}
 }

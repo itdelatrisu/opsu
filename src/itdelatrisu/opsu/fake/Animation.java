@@ -17,7 +17,7 @@ public class Animation extends Image{
 		}
 	}
 	int curFrame;
-	public Animation(String filename) {
+	public Animation(String filename) throws SlickException {
 		super(filename);
 		throw new Error("Not IMplemented");
 	}

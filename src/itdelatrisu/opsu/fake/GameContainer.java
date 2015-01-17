@@ -71,4 +71,9 @@ public class GameContainer {
 		return height;
 	}
 
+	public void setVSync(boolean b) {
+		// TODO Auto-generated method stub
+		
+	}
+
 }

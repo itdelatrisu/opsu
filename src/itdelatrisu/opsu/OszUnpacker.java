@@ -18,8 +18,11 @@
 
 package itdelatrisu.opsu;
 
-import java.io.File;
-import java.io.FilenameFilter;
+import itdelatrisu.opsu.fake.File;
+import itdelatrisu.opsu.fake.FilenameFilter;
+
+//import java.io.File;
+//import java.io.FilenameFilter;
 
 //import net.lingala.zip4j.core.ZipFile;
 //import net.lingala.zip4j.exception.ZipException;

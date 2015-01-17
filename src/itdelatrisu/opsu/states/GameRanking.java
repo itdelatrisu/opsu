@@ -1,6 +1,6 @@
 /*
  * opsu! - an open-source osu! client
- * Copyright (C) 2014 Jeffrey Han
+ * Copyright (C) 2014, 2015 Jeffrey Han
  *
  * opsu! is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -76,8 +76,6 @@ public class GameRanking extends BasicGameState {
 		this.game = game;
 		this.input = container.getInput();
 
-		score = Game.getGameScore();
-
 		int width = container.getWidth();
 		int height = container.getHeight();
 
@@ -121,11 +119,11 @@ public class GameRanking extends BasicGameState {
 		}
 
 		// header text
-		g.setColor(Color.white);
-		Utils.FONT_LARGE.drawString(10, 0,
-				String.format("%s - %s [%s]", osu.getArtist(), osu.getTitle(), osu.version));
-		Utils.FONT_MEDIUM.drawString(10, Utils.FONT_LARGE.getLineHeight() - 6,
-				String.format("Beatmap by %s", osu.creator));
+		float marginX = width * 0.01f, marginY = height * 0.01f;
+		Utils.FONT_LARGE.drawString(marginX, marginY,
+				String.format("%s - %s [%s]", osu.getArtist(), osu.getTitle(), osu.version), Color.white);
+		Utils.FONT_MEDIUM.drawString(marginX, marginY + Utils.FONT_LARGE.getLineHeight() - 6,
+				String.format("Beatmap by %s", osu.creator), Color.white);
 
 		// buttons
 		retryButton.draw();
@@ -151,9 +149,10 @@ public class GameRanking extends BasicGameState {
 	public void keyPressed(int key, char c) {
 		switch (key) {
 		case Input.KEY_ESCAPE:
-			MusicController.pause();
-			MusicController.playAt(MusicController.getOsuFile().previewTime, true);
 			SoundController.playSound(SoundEffect.MENUBACK);
+			SongMenu songMenu = (SongMenu) game.getState(Opsu.STATE_SONGMENU);
+			songMenu.resetGameDataOnLoad();
+			songMenu.resetTrackOnLoad();
 			game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 			break;
 		case Input.KEY_F12:
@@ -164,24 +163,26 @@ public class GameRanking extends BasicGameState {
 
 	@Override
 	public void mousePressed(int button, int x, int y) {
-		// check mouse button 
+		// check mouse button
 		if (button != Input.MOUSE_LEFT_BUTTON)
 			return;
 
 		if (retryButton.contains(x, y)) {
 			OsuFile osu = MusicController.getOsuFile();
 			Display.setTitle(String.format("%s - %s", game.getTitle(), osu.toString()));
-			Game.setRestart(Game.RESTART_MANUAL);
+			((Game) game.getState(Opsu.STATE_GAME)).setRestart(Game.Restart.MANUAL);
 			SoundController.playSound(SoundEffect.MENUHIT);
 			game.enterState(Opsu.STATE_GAME, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 		} else if (exitButton.contains(x, y)) {
 			SoundController.playSound(SoundEffect.MENUBACK);
 			((MainMenu) game.getState(Opsu.STATE_MAINMENU)).reset();
+			((SongMenu) game.getState(Opsu.STATE_SONGMENU)).resetGameDataOnLoad();
 			game.enterState(Opsu.STATE_MAINMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 		} else if (Utils.getBackButton().contains(x, y)) {
-			MusicController.pause();
-			MusicController.playAt(MusicController.getOsuFile().previewTime, true);
 			SoundController.playSound(SoundEffect.MENUBACK);
+			SongMenu songMenu = (SongMenu) game.getState(Opsu.STATE_SONGMENU);
+			songMenu.resetGameDataOnLoad();
+			songMenu.resetTrackOnLoad();
 			game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 		}
 	}
@@ -191,5 +192,13 @@ public class GameRanking extends BasicGameState {
 		Display.setTitle(game.getTitle());
 		Utils.getBackButton().setScale(1f);
 		SoundController.playSound(SoundEffect.APPLAUSE);
+	}
+
+	/**
+	 * Sets the associated GameScore object.
+	 * @param score the GameScore
+	 */
+	public void setGameScore(GameScore score) {
+		this.score = score;
 	}
 }

@@ -1,6 +1,6 @@
 /*
  * opsu! - an open-source osu! client
- * Copyright (C) 2014 Jeffrey Han
+ * Copyright (C) 2014, 2015 Jeffrey Han
  *
  * opsu! is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -128,7 +128,7 @@ public class OsuGroupNode {
 				osu.creator);
 		info[2] = String.format("Length: %d:%02d  BPM: %s  Objects: %d",
 				TimeUnit.MILLISECONDS.toMinutes(osu.endTime),
-				TimeUnit.MILLISECONDS.toSeconds(osu.endTime) - 
+				TimeUnit.MILLISECONDS.toSeconds(osu.endTime) -
 				TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(osu.endTime)),
 				(osu.bpmMax <= 0) ? "--" :
 				 ((osu.bpmMin == osu.bpmMax) ? osu.bpmMin : String.format("%d-%d", osu.bpmMin, osu.bpmMax)),

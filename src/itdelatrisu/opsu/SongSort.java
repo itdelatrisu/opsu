@@ -69,7 +69,7 @@ public enum SongSort {
 	/**
 	 * Array of SongSort objects in reverse order.
 	 */
-	private static final SongSort[] VALUES_REVERSED;
+	public static final SongSort[] VALUES_REVERSED;
 	static {
 		VALUES_REVERSED = SongSort.values();
 		Collections.reverse(Arrays.asList(VALUES_REVERSED));
@@ -196,10 +196,15 @@ public enum SongSort {
 	 */
 	public void init(int width, int height) {
 		Image tab = GameImage.MENU_TAB.getImage();
-		float buttonX = width * 0.4f;
-		float tabOffset = (width - buttonX - tab.getWidth()) / (SIZE - 1);
+		int tabWidth = tab.getWidth();
+		float buttonX = width / 2f;
+		float tabOffset = (width - buttonX - tabWidth) / (SIZE - 1);
+		if (tabOffset > tabWidth) {  // prevent tabs from being spaced out
+			tabOffset = tabWidth;
+			buttonX = (width * 0.99f) - (tabWidth * SIZE);
+		}
 		this.tab = new MenuButton(tab,
-				(buttonX + (tab.getWidth() / 2f)) + (id * tabOffset),
+				(buttonX + (tabWidth / 2f)) + (id * tabOffset),
 				(height * 0.15f) - (tab.getHeight() / 2f) - 2f
 		);
 	}
@@ -217,4 +222,13 @@ public enum SongSort {
 	 * @return true if within bounds
 	 */
 	public boolean contains(float x, float y) { return tab.contains(x, y); }
+
+	/**
+	 * Draws the sort tab.
+	 * @param selected whether the tab is selected (white) or not (red)
+	 * @param isHover whether to include a hover effect (unselected only)
+	 */
+	public void draw(boolean selected, boolean isHover) {
+		Utils.drawTab(tab.getX(), tab.getY(), name, selected, isHover);
+	}
 }

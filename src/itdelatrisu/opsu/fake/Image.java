@@ -10,7 +10,7 @@ public class Image {
 	float width,height;
 	private float alpha=1f, rotation=0;
 	String name;
-	public Image(String filename) {
+	public Image(String filename) throws SlickException{
 		Texture ttex = new Texture(ResourceLoader.getFileHandle(filename));
 		ttex.setFilter(TextureFilter.Linear, TextureFilter.Linear);
 		tex = new TextureRegion(ttex);
@@ -65,7 +65,7 @@ public class Image {
 	}
 
 	boolean destroyed = false;
-	public void destroy() {
+	public void destroy() throws SlickException {
 		destroyed=true;
 	}
 

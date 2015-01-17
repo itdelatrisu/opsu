@@ -1,6 +1,6 @@
 /*
  * opsu! - an open-source osu! client
- * Copyright (C) 2014 Jeffrey Han
+ * Copyright (C) 2014, 2015 Jeffrey Han
  *
  * opsu! is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.Collections;
 /*
 import org.newdawn.slick.Image;
+import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.util.Log;*/
 
@@ -31,12 +32,16 @@ import org.newdawn.slick.util.Log;*/
  * Game mods.
  */
 public enum GameMod {
-	EASY          (0, "selection-mod-easy.png"),
-	NO_FAIL       (1, "selection-mod-nofail.png"),
-	HARD_ROCK     (2, "selection-mod-hardrock.png"),
-	SUDDEN_DEATH  (3, "selection-mod-suddendeath.png"),
-	SPUN_OUT      (4, "selection-mod-spunout.png"),
-	AUTO          (5, "selection-mod-autoplay.png");
+	EASY          (0, "selection-mod-easy.png", Input.KEY_Q, 0.5f),
+	NO_FAIL       (1, "selection-mod-nofail.png", Input.KEY_W, 0.5f),
+	HARD_ROCK     (2, "selection-mod-hardrock.png", Input.KEY_A, 1.06f),
+	SUDDEN_DEATH  (3, "selection-mod-suddendeath.png", Input.KEY_S),
+	SPUN_OUT      (4, "selection-mod-spunout.png", Input.KEY_V, 0.9f),
+	AUTO          (5, "selection-mod-autoplay.png", Input.KEY_B);
+//	HALF_TIME     (, "selection-mod-halftime.png", Input.KEY_E, 0.3f),
+//	DOUBLE_TIME   (, "selection-mod-doubletime.png", Input.KEY_D, 1.12f),
+//	HIDDEN        (, "selection-mod-hidden.png", Input.KEY_F, 1.06f),
+//	FLASHLIGHT    (, "selection-mod-flashlight.png", Input.KEY_G, 1.12f);
 
 	/**
 	 * The ID of the mod (used for positioning).
@@ -47,6 +52,16 @@ public enum GameMod {
 	 * The file name of the mod image.
 	 */
 	private String filename;
+
+	/**
+	 * The shortcut key associated with the mod.
+	 */
+	private int key;
+
+	/**
+	 * Score multiplier.
+	 */
+	private float multiplier;
 
 	/**
 	 * Whether or not this mod is active.
@@ -83,10 +98,27 @@ public enum GameMod {
 	 * Constructor.
 	 * @param id the ID of the mod (for positioning).
 	 * @param filename the image file name
+	 * @param key the shortcut key
 	 */
-	GameMod(int id, String filename) {
+	GameMod(int id, String filename, int key) {
 		this.id = id;
 		this.filename = filename;
+		this.key = key;
+		this.multiplier = 1f;
+	}
+
+	/**
+	 * Constructor.
+	 * @param id the ID of the mod (for positioning).
+	 * @param filename the image file name
+	 * @param key the shortcut key
+	 * @param multiplier the score multiplier
+	 */
+	GameMod(int id, String filename, int key, float multiplier) {
+		this.id = id;
+		this.filename = filename;
+		this.key = key;
+		this.multiplier = multiplier;
 	}
 
 	/**
@@ -95,12 +127,12 @@ public enum GameMod {
 	 * @param height the container height
 	 */
 	public void init(int width, int height) {
-		//try {
+		try {
 			// create and scale image
 			Image img = new Image(filename);
 			float scale = (height * 0.12f) / img.getHeight();
 			img = img.getScaledCopy(scale);
-	
+
 			// find coordinates
 			float offsetX = img.getWidth() * 1.5f;
 			float x = (width / 2f) - (offsetX * SIZE / 2.75f);
@@ -110,10 +142,23 @@ public enum GameMod {
 			img.setAlpha(0.5f);
 			this.button = new MenuButton(img, x + (offsetX * id), y);
 			this.button.setHoverScale(1.15f);
-		//} catch (SlickException e) {
-		//	Log.error(String.format("Failed to initialize game mod '%s'.", this), e);
-		//}
+		} catch (SlickException e) {
+			ErrorHandler.error(String.format("Failed to initialize game mod '%s'.", this), e, false);
+		}
 	}
+
+	/**
+	 * Returns the shortcut key for the mod.
+	 * @return the key
+	 * @see org.newdawn.slick.Input
+	 */
+	public int getKey() { return key; }
+
+	/**
+	 * Returns the score multiplier for the mod.
+	 * @return the multiplier
+	 */
+	public float getMultiplier() { return multiplier; }
 
 	/**
 	 * Toggles the active status of the mod.

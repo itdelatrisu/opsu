@@ -38,6 +38,11 @@ public class Input {
 	public static final int KEY_RSHIFT = Keys.SHIFT_RIGHT;
 	public static final int KEY_Z = Keys.Z;
 	public static final int KEY_X = Keys.X;
+	public static final int KEY_A = Keys.A;
+	public static final int KEY_B = Keys.B;
+	public static final int KEY_V = Keys.V;
+	public static final int KEY_W = Keys.W;
+	
 	public static final int ANDROID_BACK = Keys.BACK;
 
 	public int getMouseY() {

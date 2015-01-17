@@ -1,6 +1,6 @@
 /*
  * opsu! - an open-source osu! client
- * Copyright (C) 2014 Jeffrey Han
+ * Copyright (C) 2014, 2015 Jeffrey Han
  *
  * opsu! is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,7 +28,7 @@ import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.fake.*;
 import itdelatrisu.opsu.states.Game;
 
-import java.io.File;
+//import java.io.File;
 /*
 import org.newdawn.slick.Animation;
 import org.newdawn.slick.Color;
@@ -41,7 +41,7 @@ import com.badlogic.gdx.files.FileHandle;
 /**
  * Data type representing a slider object.
  */
-public class Slider {
+public class Slider implements HitObject {
 	/**
 	 * Slider ball animation.
 	 */
@@ -86,7 +86,7 @@ public class Slider {
 	 * The time duration of the slider, in milliseconds.
 	 */
 	private float sliderTime = 0f;
-	
+
 	/**
 	 * The time duration of the slider including repeats, in milliseconds.
 	 */
@@ -101,7 +101,7 @@ public class Slider {
 	 * Whether or not to show the follow circle.
 	 */
 	private boolean followCircleActive = false;
-	
+
 	/**
 	 * Whether or not the slider result ends the combo streak.
 	 */
@@ -116,12 +116,12 @@ public class Slider {
 	 * The t values of the slider ticks.
 	 */
 	private float[] ticksT;
-	
+
 	/**
 	 * The tick index in the ticksT[] array.
 	 */
 	private int tickIndex = 0;
-	
+
 	/**
 	 * Number of ticks hit and tick intervals so far.
 	 */
@@ -203,7 +203,7 @@ public class Slider {
 		 * Returns the angle of the first control point.
 		 */
 		private float getStartAngle() { return startAngle; }
-		
+
 		/**
 		 * Returns the angle of the last control point.
 		 */
@@ -294,13 +294,13 @@ public class Slider {
 		sliderBall = new Animation();
 		String sliderFormat = "sliderb%d.png";
 		int sliderIndex = 0;
-		FileHandle dir = MusicController.getOsuFile().getFile().parent();
-		FileHandle slider = dir.child( String.format(sliderFormat, sliderIndex));//new FileHandle(dir, String.format(sliderFormat, sliderIndex));
-		if (slider.exists() && !slider.isDirectory()) {
+		File dir = MusicController.getOsuFile().getFile().getParentFile();
+		File slider = new File(dir, String.format(sliderFormat, sliderIndex));
+		if (slider.isFile()) {
 			do {
-				sliderBall.addFrame(new Image(slider.path()).getScaledCopy(diameter * 118 / 128, diameter * 118 / 128), 60);
-				slider = dir.child(String.format(sliderFormat, ++sliderIndex));//new FileHandle(dir, String.format(sliderFormat, ++sliderIndex));
-			} while (slider.exists() && !slider.isDirectory());
+				sliderBall.addFrame(new Image(slider.getAbsolutePath()).getScaledCopy(diameter * 118 / 128, diameter * 118 / 128), 60);
+				slider = new File(dir, String.format(sliderFormat, ++sliderIndex));
+			} while (slider.isFile());
 		} else {
 			while (true) {
 				try {
@@ -340,12 +340,8 @@ public class Slider {
 		this.bezier = new Bezier();
 	}
 
-	/**
-	 * Draws the slider to the graphics context.
-	 * @param trackPosition the current track position
-	 * @param currentObject true if this is the current hit object
-	 */
-	public void draw(int trackPosition, boolean currentObject) {
+	@Override
+	public void draw(int trackPosition, boolean currentObject, Graphics g) {
 		float x = hitObject.getX(), y = hitObject.getY();
 		float[] sliderX = hitObject.getSliderX(), sliderY = hitObject.getSliderY();
 		int timeDiff = hitObject.getTime() - trackPosition;
@@ -429,7 +425,7 @@ public class Slider {
 	 * @param lastCircleHit true if the cursor was held within the last circle
 	 * @return the hit result (GameScore.HIT_* constants)
 	 */
-	public int hitResult() {
+	private int hitResult() {
 		int lastIndex = hitObject.getSliderX().length - 1;
 		float tickRatio = (float) ticksHit / tickIntervals;
 
@@ -454,13 +450,7 @@ public class Slider {
 		return result;
 	}
 
-	/**
-	 * Processes a mouse click.
-	 * @param x the x coordinate of the mouse
-	 * @param y the y coordinate of the mouse
-	 * @param comboEnd if this is the last object in the combo
-	 * @return true if a hit result was processed
-	 */
+	@Override
 	public boolean mousePressed(int x, int y) {
 		if (sliderClicked)  // first circle already processed
 			return false;
@@ -471,7 +461,7 @@ public class Slider {
 			int trackPosition = MusicController.getPosition();
 			int timeDiff = Math.abs(trackPosition - hitObject.getTime());
 			int[] hitResultOffset = game.getHitResultOffsets();
-			
+
 			int result = -1;
 			if (timeDiff < hitResultOffset[GameScore.HIT_50]) {
 				result = GameScore.HIT_SLIDER30;
@@ -490,14 +480,7 @@ public class Slider {
 		return false;
 	}
 
-	/**
-	 * Updates the slider object.
-	 * @param overlap true if the next object's start time has already passed
-	 * @param delta the delta interval since the last call
-	 * @param mouseX the x coordinate of the mouse
-	 * @param mouseY the y coordinate of the mouse
-	 * @return true if slider ended
-	 */
+	@Override
 	public boolean update(boolean overlap, int delta, int mouseX, int mouseY) {
 		int repeatCount = hitObject.getRepeatCount();
 
@@ -521,7 +504,7 @@ public class Slider {
 
 		byte hitSound = hitObject.getHitSoundType();
 		int trackPosition = MusicController.getPosition();
-		int[] hitResultOffset = game.getHitResultOffsets();	
+		int[] hitResultOffset = game.getHitResultOffsets();
 		int lastIndex = hitObject.getSliderX().length - 1;
 		boolean isAutoMod = GameMod.AUTO.isActive();
 
@@ -641,7 +624,7 @@ public class Slider {
 	 * @param raw if false, ensures that the value lies within [0, 1] by looping repeats
 	 * @return the t value: raw [0, repeats] or looped [0, 1]
 	 */
-	public float getT(int trackPosition, boolean raw) {
+	private float getT(int trackPosition, boolean raw) {
 		float t = (trackPosition - hitObject.getTime()) / sliderTime;
 		if (raw)
 			return t;

@@ -1,6 +1,6 @@
 /*
  * opsu! - an open-source osu! client
- * Copyright (C) 2014 Jeffrey Han
+ * Copyright (C) 2014, 2015 Jeffrey Han
  *
  * opsu! is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,11 +18,11 @@
 
 package itdelatrisu.opsu;
 
-import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.fake.BasicGameState;
 import itdelatrisu.opsu.fake.ClasspathLocation;
 import itdelatrisu.opsu.fake.Color;
 import itdelatrisu.opsu.fake.DefaultLogSystem;
+import itdelatrisu.opsu.fake.File;
 import itdelatrisu.opsu.fake.FileSystemLocation;
 import itdelatrisu.opsu.fake.GameContainer;
 import itdelatrisu.opsu.fake.Graphics;
@@ -39,9 +39,10 @@ import itdelatrisu.opsu.states.Options;
 import itdelatrisu.opsu.states.SongMenu;
 import itdelatrisu.opsu.states.Splash;
 
-import java.io.File;
+
+//import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
+//import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.net.ServerSocket;
@@ -107,7 +108,7 @@ public class Opsu extends com.badlogic.gdx.Game {
 	}
 
 	//@Override
-	public void initStatesList(GameContainer container) {
+	public void initStatesList(GameContainer container) throws SlickException {
 		addState(new Splash(STATE_SPLASH));
 		addState(new MainMenu(STATE_MAINMENU));
 		addState(new MainMenuExit(STATE_MAINMENUEXIT));
@@ -118,7 +119,7 @@ public class Opsu extends com.badlogic.gdx.Game {
 		addState(new Options(STATE_OPTIONS));
 	}
 
-	private void addState(BasicGameState gs) {
+	private void addState(BasicGameState gs) throws SlickException {
 		sbg.addState(gs);
 		
 	}
@@ -149,7 +150,7 @@ public class Opsu extends com.badlogic.gdx.Game {
 		try {
 			SERVER_SOCKET = new ServerSocket(Options.getPort());
 		} catch (IOException e) {
-			Log.error(String.format("Another program is already running on port %d.", Options.getPort()), e);
+			ErrorHandler.error(String.format("Another program is already running on port %d.", Options.getPort()), e, false);
 			//System.exit(1);
 		}
 
@@ -188,9 +189,9 @@ public class Opsu extends com.badlogic.gdx.Game {
 			// JARs will not run properly inside directories containing '!'
 			// http://bugs.java.com/view_bug.do?bug_id=4523159
 			if (new File("").getAbsolutePath().indexOf('!') != -1)
-				Log.error("Cannot run JAR from path containing '!'.");
+				ErrorHandler.error("Cannot run JAR from path containing '!'.", null, false);
 			else
-				Log.error("Error while creating game container.", e);
+				ErrorHandler.error("Error while creating game container.", e, true);
 		}*/
 	}
 
@@ -201,8 +202,9 @@ public class Opsu extends com.badlogic.gdx.Game {
 		// intercept close requests in game-related states and return to song menu
 		if (id == STATE_GAME || id == STATE_GAMEPAUSEMENU || id == STATE_GAMERANKING) {
 			// start playing track at preview position
-			MusicController.pause();
-			MusicController.playAt(MusicController.getOsuFile().previewTime, true);
+			SongMenu songMenu = (SongMenu) this.getState(Opsu.STATE_SONGMENU);
+			songMenu.resetGameDataOnLoad();
+			songMenu.resetTrackOnLoad();
 			this.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 			return false;
 		}
@@ -271,8 +273,8 @@ public class Opsu extends com.badlogic.gdx.Game {
 		sbg = new StateBasedGame();
 		Graphics.init();
 		main2(null);
-		initStatesList(new GameContainer());
 		try {
+			initStatesList(new GameContainer());
 			sbg.init();
 		} catch (SlickException e) {
 			// TODO Auto-generated catch block

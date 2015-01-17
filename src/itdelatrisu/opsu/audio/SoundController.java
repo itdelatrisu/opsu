@@ -1,6 +1,6 @@
 /*
  * opsu! - an open-source osu! client
- * Copyright (C) 2014 Jeffrey Han
+ * Copyright (C) 2014, 2015 Jeffrey Han
  *
  * opsu! is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -128,7 +128,7 @@ public class SoundController {
 		currentFileName = null;
 		currentFileIndex = -1;
 	}
-	
+
 	/**
 	 * Sets the sample volume (modifies the global sample volume).
 	 * @param volume the sample volume [0, 1]

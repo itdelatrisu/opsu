@@ -1,6 +1,6 @@
 /*
  * opsu! - an open-source osu! client
- * Copyright (C) 2014 Jeffrey Han
+ * Copyright (C) 2014, 2015 Jeffrey Han
  *
  * opsu! is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,14 +21,15 @@ package itdelatrisu.opsu;
 import itdelatrisu.opsu.fake.*;
 
 import java.io.BufferedReader;
-import java.io.File;
+//import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
-import java.io.FilenameFilter;
+//import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
 
 import com.badlogic.gdx.Gdx;
@@ -44,7 +45,7 @@ public class OsuParser {
 	/**
 	 * The current file being parsed.
 	 */
-	private static FileHandle currentFile;
+	private static File currentFile;
 
 	/**
 	 * The current directory number while parsing.
@@ -55,6 +56,11 @@ public class OsuParser {
 	 * The total number of directories to parse.
 	 */
 	private static int totalDirectories = -1;
+
+	/**
+	 * The string database.
+	 */
+	private static HashMap<String, String> stringdb = new HashMap<String, String>();
 
 	// This class should not be instantiated.
 	private OsuParser() {}
@@ -69,32 +75,34 @@ public class OsuParser {
 		// initialize hit objects
 		OsuHitObject.init(width, height);
 
-		FileHandle fh;
-		fh = Gdx.files.internal("Songs");
-		System.out.println("parseAllFiles: internal"+fh+" "+fh.exists()+" "+fh.path());
-		fh = Gdx.files.local("Songs");
-		System.out.println("parseAllFiles: local"+fh+" "+fh.exists()+" "+fh.path());
-		fh = Gdx.files.external("Songs");
-		System.out.println("parseAllFiles: external"+fh+" "+fh.exists()+" "+fh.path());
+		//FileHandle gh;
+		//gh.
+		File fh;
+		fh = File.internal("Songs");
+		System.out.println("parseAllFiles: internal"+fh+" "+fh.exists()+" "+fh.getPath());
+		fh =  File.local("Songs");
+		System.out.println("parseAllFiles: local"+fh+" "+fh.exists()+" "+fh.getPath());
+		fh =  File.external("Songs");
+		System.out.println("parseAllFiles: external"+fh+" "+fh.exists()+" "+fh.getPath());
 		//fh.
 		// progress tracking
 		
 		//FileHandle songsF = Gdx.files.external(".");
 		
 		
-		FileHandle songsFile;// = Gdx.files.external("Songs");
-		songsFile = Gdx.files.local("Songs");
-		System.out.println("parseAllFiles: local"+songsFile+" "+songsFile.exists()+" "+songsFile.path());
+		File songsFile;// = Gdx.files.external("Songs");
+		songsFile = File.local("Songs");
+		System.out.println("parseAllFiles: local"+songsFile+" "+songsFile.exists()+" "+songsFile.getPath());
 		if(!songsFile.exists()){
-			songsFile = Gdx.files.external("Songs");
-			System.out.println("parseAllFiles: external"+songsFile+" "+songsFile.exists()+" "+songsFile.path());
+			songsFile = File.external("Songs");
+			System.out.println("parseAllFiles: external"+songsFile+" "+songsFile.exists()+" "+songsFile.getPath());
 		}
 		if(!songsFile.exists()){
-			songsFile = Gdx.files.internal("Songs");
-			System.out.println("parseAllFiles: internal"+songsFile+" "+songsFile.exists()+" "+songsFile.path());
+			songsFile = File.internal("Songs");
+			System.out.println("parseAllFiles: internal"+songsFile+" "+songsFile.exists()+" "+songsFile.getPath());
 		}
 		
-		FileHandle[] folders = songsFile.list();
+		File[] folders = songsFile.listFiles();
 		currentDirectoryIndex = 0;
 		if(folders == null){
 			System.out.println("parseAllFiles folders are null");
@@ -102,13 +110,13 @@ public class OsuParser {
 		}
 		totalDirectories = folders.length;
 
-		System.out.println("OsuParser TotalDir:"+totalDirectories+" exists:"+songsFile.exists()+" isDir"+songsFile.isDirectory()+" "+songsFile.list()+" "+songsFile.path()+" "+songsFile.name());
-		for (FileHandle folder : folders) {
+		System.out.println("OsuParser TotalDir:"+totalDirectories+" exists:"+songsFile.exists()+" isDir"+songsFile.isDirectory()+" "+songsFile.listFiles()+" "+songsFile.getPath()+" "+songsFile.getName());
+		for (File folder : folders) {
 			System.out.println("OsuParser Folder:"+folder);
 			currentDirectoryIndex++;
 			if (!folder.isDirectory())
 				continue;
-			FileHandle[] files = folder.list(new FilenameFilter() {
+			File[] files = folder.listFiles(new FilenameFilter() {
 				@Override
 				public boolean accept(File dir, String name) {
 					return name.toLowerCase().endsWith(".osu");
@@ -119,7 +127,7 @@ public class OsuParser {
 
 			// create a new group entry
 			ArrayList<OsuFile> osuFiles = new ArrayList<OsuFile>();
-			for (FileHandle file : files) {
+			for (File file : files) {
 				currentFile = file;
 
 				// Parse hit objects only when needed to save time/memory.
@@ -127,10 +135,14 @@ public class OsuParser {
 				parseFile(file, osuFiles, false);
 			}
 			if (!osuFiles.isEmpty()) {  // add entry if non-empty
+				osuFiles.trimToSize();
 				Collections.sort(osuFiles);
-				Opsu.groups.addSongGroup(osuFiles);
+				OsuGroupList.get().addSongGroup(osuFiles);
 			}
 		}
+
+		// clear string DB
+		stringdb = new HashMap<String, String>();
 
 		currentFile = null;
 		currentDirectoryIndex = -1;
@@ -144,7 +156,7 @@ public class OsuParser {
 	 * @param parseObjects if true, hit objects will be fully parsed now
 	 * @return the new OsuFile object
 	 */
-	public static OsuFile parseFile(FileHandle file, ArrayList<OsuFile> osuFiles, boolean parseObjects) {
+	public static OsuFile parseFile(File file, ArrayList<OsuFile> osuFiles, boolean parseObjects) {
 		OsuFile osu = new OsuFile(file);
 
 		//try (BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF-8"))) {
@@ -173,7 +185,7 @@ public class OsuParser {
 						try {
 							switch (tokens[0]) {
 							case "AudioFilename":
-								osu.audioFilename = new File(file.parent() + File.separator + tokens[1]);
+								osu.audioFilename = new File(file.getParent() + File.separator + tokens[1]);
 								break;
 							case "AudioLeadIn":
 								osu.audioLeadIn = Integer.parseInt(tokens[1]);
@@ -188,7 +200,7 @@ public class OsuParser {
 								osu.countdown = Byte.parseByte(tokens[1]);
 								break;
 							case "SampleSet":
-								osu.sampleSet = tokens[1];
+								osu.sampleSet = getDBString(tokens[1]);
 								break;
 							case "StackLeniency":
 								osu.stackLeniency = Float.parseFloat(tokens[1]);
@@ -214,7 +226,7 @@ public class OsuParser {
 							}
 						} catch (Exception e) {
 							Log.warn(String.format("Failed to read line '%s' for file '%s'.",
-									line, file.path(), e));
+									line, file.getAbsolutePath()), e);
 						}
 					}
 					break;
@@ -253,7 +265,7 @@ public class OsuParser {
 //							}
 //						} catch (Exception e) {
 //							Log.warn(String.format("Failed to read editor line '%s' for file '%s'.",
-//									line, file.path()), e);
+//									line, file.getAbsolutePath()), e);
 //						}
 					}
 					break;
@@ -269,28 +281,28 @@ public class OsuParser {
 						try {
 							switch (tokens[0]) {
 							case "Title":
-								osu.title = tokens[1];
+								osu.title = getDBString(tokens[1]);
 								break;
 							case "TitleUnicode":
-								osu.titleUnicode = tokens[1];
+								osu.titleUnicode = getDBString(tokens[1]);
 								break;
 							case "Artist":
-								osu.artist = tokens[1];
+								osu.artist = getDBString(tokens[1]);
 								break;
 							case "ArtistUnicode":
-								osu.artistUnicode = tokens[1];
+								osu.artistUnicode = getDBString(tokens[1]);
 								break;
 							case "Creator":
-								osu.creator = tokens[1];
+								osu.creator = getDBString(tokens[1]);
 								break;
 							case "Version":
-								osu.version = tokens[1];
+								osu.version = getDBString(tokens[1]);
 								break;
 							case "Source":
-								osu.source = tokens[1];
+								osu.source = getDBString(tokens[1]);
 								break;
 							case "Tags":
-								osu.tags = tokens[1].toLowerCase();
+								osu.tags = getDBString(tokens[1].toLowerCase());
 								break;
 							case "BeatmapID":
 								osu.beatmapID = Integer.parseInt(tokens[1]);
@@ -301,7 +313,7 @@ public class OsuParser {
 							}
 						} catch (Exception e) {
 							Log.warn(String.format("Failed to read metadata '%s' for file '%s'.",
-									line, file.path()), e);
+									line, file.getAbsolutePath()), e);
 						}
 					}
 					break;
@@ -337,7 +349,7 @@ public class OsuParser {
 							}
 						} catch (Exception e) {
 							Log.warn(String.format("Failed to read difficulty '%s' for file '%s'.",
-									line, file.path()), e);
+									line, file.getAbsolutePath()), e);
 						}
 					}
 					if (osu.approachRate == -1f)  // not in old format
@@ -356,7 +368,7 @@ public class OsuParser {
 							tokens[2] = tokens[2].replaceAll("^\"|\"$", "");
 							String ext = OsuParser.getExtension(tokens[2]);
 							if (ext.equals("jpg") || ext.equals("png"))
-								osu.bg = file.parent().path() + File.separator + tokens[2];
+								osu.bg = getDBString(file.getParent() + File.separator + tokens[2]);
 							break;
 						case "2":  // break periods
 							try {
@@ -366,7 +378,7 @@ public class OsuParser {
 								osu.breaks.add(Integer.parseInt(tokens[2]));
 							} catch (Exception e) {
 								Log.warn(String.format("Failed to read break period '%s' for file '%s'.",
-										line, file.path()), e);
+										line, file.getAbsolutePath()), e);
 							}
 							break;
 						default:
@@ -374,6 +386,8 @@ public class OsuParser {
 							break;
 						}
 					}
+					if (osu.breaks != null)
+						osu.breaks.trimToSize();
 					break;
 				case "[TimingPoints]":
 					while ((line = in.readLine()) != null) {
@@ -401,9 +415,10 @@ public class OsuParser {
 							osu.timingPoints.add(timingPoint);
 						} catch (Exception e) {
 							Log.warn(String.format("Failed to read timing point '%s' for file '%s'.",
-									line, file.path()), e);
+									line, file.getAbsolutePath()), e);
 						}
 					}
+					osu.timingPoints.trimToSize();
 					break;
 				case "[Colours]":
 					LinkedList<Color> colors = new LinkedList<Color>();
@@ -436,7 +451,7 @@ public class OsuParser {
 							}
 						} catch (Exception e) {
 							Log.warn(String.format("Failed to read color '%s' for file '%s'.",
-									line, file.path()), e);
+									line, file.getAbsolutePath()), e);
 						}
 					}
 					if (!colors.isEmpty())
@@ -462,7 +477,7 @@ public class OsuParser {
 								osu.hitObjectSpinner++;
 						} catch (Exception e) {
 							Log.warn(String.format("Failed to read hit object '%s' for file '%s'.",
-									line, file.path()), e);
+									line, file.getAbsolutePath()), e);
 						}
 					}
 
@@ -478,7 +493,7 @@ public class OsuParser {
 							osu.endTime = Integer.parseInt(tokens[2]);
 					} catch (Exception e) {
 						Log.warn(String.format("Failed to read hit object end time '%s' for file '%s'.",
-								line, file.path()), e);
+								line, file.getAbsolutePath()), e);
 					}
 					break;
 				default:
@@ -487,7 +502,7 @@ public class OsuParser {
 				}
 			}
 		} catch (IOException e) {
-			Log.error(String.format("Failed to read file '%s'.", file.path()), e);
+			ErrorHandler.error(String.format("Failed to read file '%s'.", file.getAbsolutePath()), e, false);
 		}
 
 		// if no custom colors, use the default color scheme
@@ -519,7 +534,6 @@ public class OsuParser {
 		//try (BufferedReader in = new BufferedReader(new FileReader(osu.getFile()))) {
 		try (BufferedReader in = osu.getFile().reader(0xfff)) {
 			String line = in.readLine();
-			
 			while (line != null) {
 				line = line.trim();
 				if (!line.equals("[HitObjects]"))
@@ -570,9 +584,7 @@ public class OsuParser {
 				}
 			}
 		} catch (IOException e) {
-			//Log.error(String.format("Failed to read file '%s'.", osu.getFile().path()), e);
-			Log.error(String.format("Failed to read file '%s'.", osu.getFile().path()), e);
-			
+			ErrorHandler.error(String.format("Failed to read file '%s'.", osu.getFile().getAbsolutePath()), e, false);
 		}
 	}
 
@@ -612,7 +624,7 @@ public class OsuParser {
 	 * Returns the name of the current file being parsed, or null if none.
 	 */
 	public static String getCurrentFileName() {
-		return (currentFile != null) ? currentFile.name() : null;
+		return (currentFile != null) ? currentFile.getName() : null;
 	}
 
 	/**
@@ -624,5 +636,20 @@ public class OsuParser {
 			return -1;
 
 		return currentDirectoryIndex * 100 / totalDirectories;
+	}
+
+	/**
+	 * Returns the String object in the database for the given String.
+	 * If none, insert the String into the database and return the original String.
+	 * @param s the string to retrieve
+	 * @return the string object
+	 */
+	private static String getDBString(String s) {
+		String DBString = stringdb.get(s);
+		if (DBString == null) {
+			stringdb.put(s, s);
+			return s;
+		} else
+			return DBString;
 	}
 }

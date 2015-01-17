@@ -1,6 +1,6 @@
 /*
  * opsu! - an open-source osu! client
- * Copyright (C) 2014 Jeffrey Han
+ * Copyright (C) 2014, 2015 Jeffrey Han
  *
  * opsu! is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,8 +26,7 @@ import itdelatrisu.opsu.GameScore;
 import itdelatrisu.opsu.OsuHitObject;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.MusicController;
-import itdelatrisu.opsu.fake.Color;
-import itdelatrisu.opsu.fake.GameContainer;
+import itdelatrisu.opsu.fake.*;
 import itdelatrisu.opsu.states.Game;
 /*
 import org.newdawn.slick.Color;
@@ -37,7 +36,7 @@ import org.newdawn.slick.SlickException;*/
 /**
  * Data type representing a circle object.
  */
-public class Circle {
+public class Circle implements HitObject {
 	/**
 	 * The associated OsuHitObject.
 	 */
@@ -100,11 +99,8 @@ public class Circle {
 		this.comboEnd = comboEnd;
 	}
 
-	/**
-	 * Draws the circle to the graphics context.
-	 * @param trackPosition the current track position
-	 */
-	public void draw(int trackPosition) {
+	@Override
+	public void draw(int trackPosition, boolean currentObject, Graphics g) {
 		int timeDiff = hitObject.getTime() - trackPosition;
 
 		if (timeDiff >= 0) {
@@ -130,7 +126,7 @@ public class Circle {
 	 * @param time the hit object time (difference between track time)
 	 * @return the hit result (GameScore.HIT_* constants)
 	 */
-	public int hitResult(int time) {
+	private int hitResult(int time) {
 		int trackPosition = MusicController.getPosition();
 		int timeDiff = Math.abs(trackPosition - time);
 
@@ -149,13 +145,7 @@ public class Circle {
 		return result;
 	}
 
-	/**
-	 * Processes a mouse click.
-	 * @param x the x coordinate of the mouse
-	 * @param y the y coordinate of the mouse
-	 * @param comboEnd if this is the last object in the combo
-	 * @return true if a hit result was processed
-	 */
+	@Override
 	public boolean mousePressed(int x, int y) {
 		double distance = Math.hypot(hitObject.getX() - x, hitObject.getY() - y);
 		int circleRadius = GameImage.HITCIRCLE.getImage().getWidth() / 2;
@@ -173,12 +163,8 @@ public class Circle {
 		return false;
 	}
 
-	/**
-	 * Updates the circle object.
-	 * @param overlap true if the next object's start time has already passed
-	 * @return true if a hit result (miss) was processed
-	 */
-	public boolean update(boolean overlap) {
+	@Override
+	public boolean update(boolean overlap, int delta, int mouseX, int mouseY) {
 		int time = hitObject.getTime();
 		float x = hitObject.getX(), y = hitObject.getY();
 		byte hitSound = hitObject.getHitSoundType();
@@ -190,7 +176,7 @@ public class Circle {
 		if (overlap || trackPosition > time + hitResultOffset[GameScore.HIT_50]) {
 			if (isAutoMod)  // "auto" mod: catch any missed notes due to lag
 				score.hitResult(time, GameScore.HIT_300, x, y, color, comboEnd, hitSound);
-			
+
 			else  // no more points can be scored, so send a miss
 				score.hitResult(time, GameScore.HIT_MISS, x, y, null, comboEnd, hitSound);
 			return true;

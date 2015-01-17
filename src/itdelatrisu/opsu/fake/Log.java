@@ -69,4 +69,9 @@ public class Log {
 		}
 	}
 
+	public static void error(Throwable e) {
+		error("Er:,e");
+		
+	}
+
 }

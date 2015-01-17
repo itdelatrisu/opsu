@@ -11,7 +11,7 @@ public abstract class BasicGameState {
 		
 	}
 
-	public void init(GameContainer container, StateBasedGame game) {
+	public void init(GameContainer container, StateBasedGame game) throws SlickException {
 		
 	}
 
@@ -27,7 +27,7 @@ public abstract class BasicGameState {
 		
 	}
 
-	public void enter(GameContainer container, StateBasedGame game) {
+	public void enter(GameContainer container, StateBasedGame game) throws SlickException {
 		
 	}
 

@@ -1,6 +1,6 @@
 /*
  * opsu! - an open-source osu! client
- * Copyright (C) 2014 Jeffrey Han
+ * Copyright (C) 2014, 2015 Jeffrey Han
  *
  * opsu! is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,6 +18,7 @@
 
 package itdelatrisu.opsu.states;
 
+import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.GameMod;
 import itdelatrisu.opsu.MenuButton;
@@ -30,16 +31,20 @@ import itdelatrisu.opsu.fake.*;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.File;
+//import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.io.Writer;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
+
+import java.io.Writer;
+
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
@@ -66,7 +71,7 @@ public class Options extends BasicGameState {
 	 * Temporary folder for file conversions, auto-deleted upon successful exit.
 	 */
 	public static final File TMP_DIR = new File(".opsu_tmp/");
-	
+
 	/**
 	 * File for logging errors.
 	 */
@@ -90,6 +95,25 @@ public class Options extends BasicGameState {
 	 * Font file name.
 	 */
 	public static final String FONT_NAME = "kochi-gothic.ttf";
+
+	/**
+	 * Repository address.
+	 */
+	public static URI REPOSITORY_URI;
+
+	/**
+	 * Issue reporting address.
+	 */
+	public static URI ISSUES_URI;
+
+	static {
+		try {
+			REPOSITORY_URI = new URI("https://github.com/itdelatrisu/opsu");
+			ISSUES_URI = new URI("https://github.com/itdelatrisu/opsu/issues/new");
+		} catch (URISyntaxException e) {
+			Log.error("Problem loading URIs.", e);
+		}
+	}
 
 	/**
 	 * The beatmap directory.
@@ -121,35 +145,297 @@ public class Options extends BasicGameState {
 	 * Game options.
 	 */
 	private static enum GameOption {
-		NULL,
-		SCREEN_RESOLUTION,
-//		FULLSCREEN,
-		TARGET_FPS,
-		MUSIC_VOLUME,
-		EFFECT_VOLUME,
-		HITSOUND_VOLUME,
-		MUSIC_OFFSET,
-		SCREENSHOT_FORMAT,
-		SHOW_FPS,
-		SHOW_HIT_LIGHTING,
-		SHOW_COMBO_BURSTS,
-		NEW_CURSOR,
-		DYNAMIC_BACKGROUND,
-		SHOW_PERFECT_HIT,
-		BACKGROUND_DIM,
-		FORCE_DEFAULT_PLAYFIELD,
-		IGNORE_BEATMAP_SKINS,
-		FIXED_CS,
-		FIXED_HP,
-		FIXED_AR,
-		FIXED_OD,
-		LOAD_VERBOSE,
-		CHECKPOINT,
-		DISABLE_SOUNDS,
-		KEY_LEFT,
-		KEY_RIGHT,
-		SHOW_UNICODE,
-		ENABLE_THEME_SONG;
+		NULL (null, null),
+		SCREEN_RESOLUTION ("Screen Resolution", "Restart to apply resolution changes.") {
+			@Override
+			public String getValueString() { return resolution.toString(); }
+
+			@Override
+			public void click(GameContainer container) {
+				do {
+					resolution = resolution.next();
+				} while (resolution != Resolution.RES_800_600 &&
+						(container.getScreenWidth() < resolution.getWidth() ||
+						 container.getScreenHeight() < resolution.getHeight()));
+			}
+		},
+//		FULLSCREEN ("Fullscreen Mode", "Restart to apply changes.") {
+//			@Override
+//			public String getValueString() { return fullscreen ? "Yes" : "No"; }
+//
+//			@Override
+//			public void click(GameContainer container) { fullscreen = !fullscreen; }
+//		},
+		TARGET_FPS ("Frame Limiter", "Higher values may cause high CPU usage.") {
+			@Override
+			public String getValueString() {
+				return String.format((getTargetFPS() == 60) ? "%dfps (vsync)" : "%dfps", getTargetFPS());
+			}
+
+			@Override
+			public void click(GameContainer container) {
+				targetFPSindex = (targetFPSindex + 1) % targetFPS.length;
+				container.setTargetFrameRate(getTargetFPS());
+				container.setVSync(getTargetFPS() == 60);
+			}
+		},
+		MUSIC_VOLUME ("Music Volume", "Global music volume.") {
+			@Override
+			public String getValueString() { return String.format("%d%%", musicVolume); }
+
+			@Override
+			public void drag(GameContainer container, int d) {
+				musicVolume = Utils.getBoundedValue(musicVolume, d, 0, 100);
+				container.setMusicVolume(getMusicVolume());
+			}
+		},
+		EFFECT_VOLUME ("Effect Volume", "Volume of menu and game sounds.") {
+			@Override
+			public String getValueString() { return String.format("%d%%", effectVolume); }
+
+			@Override
+			public void drag(GameContainer container, int d) { effectVolume = Utils.getBoundedValue(effectVolume, d, 0, 100); }
+		},
+		HITSOUND_VOLUME ("Hit Sound Volume", "Volume of hit sounds.") {
+			@Override
+			public String getValueString() { return String.format("%d%%", hitSoundVolume); }
+
+			@Override
+			public void drag(GameContainer container, int d) { hitSoundVolume = Utils.getBoundedValue(hitSoundVolume, d, 0, 100); }
+		},
+		MUSIC_OFFSET ("Music Offset", "Adjust this value if hit objects are out of sync.") {
+			@Override
+			public String getValueString() { return String.format("%dms", musicOffset); }
+
+			@Override
+			public void drag(GameContainer container, int d) { musicOffset = Utils.getBoundedValue(musicOffset, d, -500, 500); }
+		},
+		SCREENSHOT_FORMAT ("Screenshot Format", "Press F12 to take a screenshot.") {
+			@Override
+			public String getValueString() { return screenshotFormat[screenshotFormatIndex].toUpperCase(); }
+
+			@Override
+			public void click(GameContainer container) { screenshotFormatIndex = (screenshotFormatIndex + 1) % screenshotFormat.length; }
+		},
+		SHOW_FPS ("Show FPS Counter", "Show an FPS counter in the bottom-right hand corner.") {
+			@Override
+			public String getValueString() { return showFPS ? "Yes" : "No"; }
+
+			@Override
+			public void click(GameContainer container) { showFPS = !showFPS; }
+		},
+		SHOW_HIT_LIGHTING ("Show Hit Lighting", "Adds an effect behind hit explosions.") {
+			@Override
+			public String getValueString() { return showHitLighting ? "Yes" : "No"; }
+
+			@Override
+			public void click(GameContainer container) { showHitLighting = !showHitLighting; }
+		},
+		SHOW_COMBO_BURSTS ("Show Combo Bursts", "A character image is displayed at combo milestones.") {
+			@Override
+			public String getValueString() { return showComboBursts ? "Yes" : "No"; }
+
+			@Override
+			public void click(GameContainer container) { showComboBursts = !showComboBursts; }
+		},
+		SHOW_PERFECT_HIT ("Show Perfect Hits", "Whether to show perfect hit result bursts (300s, slider ticks).") {
+			@Override
+			public String getValueString() { return showPerfectHit ? "Yes" : "No"; }
+
+			@Override
+			public void click(GameContainer container) { showPerfectHit = !showPerfectHit; }
+		},
+		NEW_CURSOR ("Enable New Cursor", "Use the new cursor style (may cause higher CPU usage).") {
+			@Override
+			public String getValueString() { return newCursor ? "Yes" : "No"; }
+
+			@Override
+			public void click(GameContainer container) {
+				newCursor = !newCursor;
+				try {
+					Utils.loadCursor();
+				} catch (SlickException e) {
+					ErrorHandler.error("Failed to load cursor.", e, true);
+				}
+			}
+		},
+		DYNAMIC_BACKGROUND ("Enable Dynamic Backgrounds", "The song background will be used as the main menu background.") {
+			@Override
+			public String getValueString() { return dynamicBackground ? "Yes" : "No"; }
+
+			@Override
+			public void click(GameContainer container) { dynamicBackground = !dynamicBackground; }
+		},
+		BACKGROUND_DIM ("Background Dim", "Percentage to dim the background image during gameplay.") {
+			@Override
+			public String getValueString() { return String.format("%d%%", backgroundDim); }
+
+			@Override
+			public void drag(GameContainer container, int d) { backgroundDim = Utils.getBoundedValue(backgroundDim, d, 0, 100); }
+		},
+		FORCE_DEFAULT_PLAYFIELD ("Force Default Playfield", "Override the song background with the default playfield background.") {
+			@Override
+			public String getValueString() { return forceDefaultPlayfield ? "Yes" : "No"; }
+
+			@Override
+			public void click(GameContainer container) { forceDefaultPlayfield = !forceDefaultPlayfield; }
+		},
+		IGNORE_BEATMAP_SKINS ("Ignore All Beatmap Skins", "Never use skin element overrides provided by beatmaps.") {
+			@Override
+			public String getValueString() { return ignoreBeatmapSkins ? "Yes" : "No"; }
+
+			@Override
+			public void click(GameContainer container) { ignoreBeatmapSkins = !ignoreBeatmapSkins; }
+		},
+		FIXED_CS ("Fixed Circle Size (CS)", "Determines the size of circles and sliders.") {
+			@Override
+			public String getValueString() { return (fixedCS == 0f) ? "Disabled" : String.format("%.1f", fixedCS); }
+
+			@Override
+			public void drag(GameContainer container, int d) { fixedCS = Utils.getBoundedValue(fixedCS, d / 10f, 0f, 10f); }
+		},
+		FIXED_HP ("Fixed HP Drain Rate (HP)", "Determines the rate at which health decreases.") {
+			@Override
+			public String getValueString() { return (fixedHP == 0f) ? "Disabled" : String.format("%.1f", fixedHP); }
+
+			@Override
+			public void drag(GameContainer container, int d) { fixedHP = Utils.getBoundedValue(fixedHP, d / 10f, 0f, 10f); }
+		},
+		FIXED_AR ("Fixed Approach Rate (AR)", "Determines how long hit circles stay on the screen.") {
+			@Override
+			public String getValueString() { return (fixedAR == 0f) ? "Disabled" : String.format("%.1f", fixedAR); }
+
+			@Override
+			public void drag(GameContainer container, int d) { fixedAR = Utils.getBoundedValue(fixedAR, d / 10f, 0f, 10f); }
+		},
+		FIXED_OD ("Fixed Overall Difficulty (OD)", "Determines the time window for hit results.") {
+			@Override
+			public String getValueString() { return (fixedOD == 0f) ? "Disabled" : String.format("%.1f", fixedOD); }
+
+			@Override
+			public void drag(GameContainer container, int d) { fixedOD = Utils.getBoundedValue(fixedOD, d / 10f, 0f, 10f); }
+		},
+		LOAD_VERBOSE ("Show Detailed Loading Progress", "Display more specific loading information in the splash screen.") {
+			@Override
+			public String getValueString() { return loadVerbose ? "Yes" : "No"; }
+
+			@Override
+			public void click(GameContainer container) { loadVerbose = !loadVerbose; }
+		},
+		CHECKPOINT ("Track Checkpoint", "Press CTRL+L while playing to load a checkpoint, and CTRL+S to set one.") {
+			@Override
+			public String getValueString() {
+				return (checkpoint == 0) ? "Disabled" : String.format("%02d:%02d",
+						TimeUnit.SECONDS.toMinutes(checkpoint),
+						checkpoint - TimeUnit.MINUTES.toSeconds(TimeUnit.SECONDS.toMinutes(checkpoint)));
+			}
+
+			@Override
+			public void drag(GameContainer container, int d) { checkpoint = Utils.getBoundedValue(checkpoint, d, 0, 3599); }
+		},
+		DISABLE_SOUNDS ("Disable All Sound Effects", "May resolve Linux sound driver issues.  Requires a restart.") {
+			@Override
+			public String getValueString() { return disableSound ? "Yes" : "No"; }
+
+			@Override
+			public void click(GameContainer container) { disableSound = !disableSound; }
+		},
+		KEY_LEFT ("Left Game Key", "Select this option to input a key.") {
+			@Override
+			public String getValueString() { return Keyboard.getKeyName(getGameKeyLeft()); }
+
+			@Override
+			public void click(GameContainer container) {
+				keyEntryLeft = true;
+				keyEntryRight = false;
+			}
+		},
+		KEY_RIGHT ("Right Game Key", "Select this option to input a key.") {
+			@Override
+			public String getValueString() { return Keyboard.getKeyName(getGameKeyRight()); }
+
+			@Override
+			public void click(GameContainer container) {
+				keyEntryLeft = false;
+				keyEntryRight = true;
+			}
+		},
+		SHOW_UNICODE ("Prefer Non-English Metadata", "Where available, song titles will be shown in their native language.") {
+			@Override
+			public String getValueString() { return showUnicode ? "Yes" : "No"; }
+
+			@Override
+			public void click(GameContainer container) {
+				showUnicode = !showUnicode;
+				if (showUnicode) {
+					try {
+						Utils.FONT_LARGE.loadGlyphs();
+						Utils.FONT_MEDIUM.loadGlyphs();
+						Utils.FONT_DEFAULT.loadGlyphs();
+					} catch (SlickException e) {
+						Log.warn("Failed to load glyphs.", e);
+					}
+				}
+			}
+		},
+		ENABLE_THEME_SONG ("Enable Theme Song", "Whether to play the theme song upon starting opsu!") {
+			@Override
+			public String getValueString() { return themeSongEnabled ? "Yes" : "No"; }
+
+			@Override
+			public void click(GameContainer container) { themeSongEnabled = !themeSongEnabled; }
+		};
+
+		/**
+		 * Option name.
+		 */
+		private String name;
+
+		/**
+		 * Option description.
+		 */
+		private String description;
+
+		/**
+		 * Constructor.
+		 * @param name the option name
+		 * @param description the option description
+		 */
+		GameOption(String name, String description) {
+			this.name = name;
+			this.description = description;
+		}
+
+		/**
+		 * Returns the option name.
+		 * @return the name string
+		 */
+		public String getName() { return name; }
+
+		/**
+		 * Returns the option description
+		 * @return the description string
+		 */
+		public String getDescription() { return description; }
+
+		/**
+		 * Returns the value of the option as a string (via override).
+		 * @return the value string
+		 */
+		public String getValueString() { return ""; }
+
+		/**
+		 * Processes a mouse click action (via override).
+		 * @param container the game container
+		 */
+		public void click(GameContainer container) {}
+
+		/**
+		 * Processes a mouse drag action (via override).
+		 * @param container the game container
+		 * @param d the dragged distance (modified by multiplier)
+		 */
+		public void drag(GameContainer container, int d) {}
 	};
 
 	/**
@@ -244,26 +530,64 @@ public class Options extends BasicGameState {
 	/**
 	 * Screen resolutions.
 	 */
-	private static final int[][] resolutions = {
-		{ 800, 600 },
-		{ 1024, 600 },
-		{ 1024, 768 },
-		{ 1280, 800 },
-		{ 1280, 960 },
-		{ 1366, 768 },
-		{ 1440, 900 },
-		{ 1600, 900 },
-		{ 1680, 1050 },
-		{ 1920, 1080 },
-		{ 1920, 1200 },
-		{ 2560, 1440 },
-		{ 2560, 1600 }
-	};
+	private enum Resolution {
+		RES_800_600 (800, 600),
+		RES_1024_600 (1024, 600),
+		RES_1024_768 (1024, 768),
+		RES_1280_800 (1280, 800),
+		RES_1280_960 (1280, 960),
+		RES_1366_768 (1366, 768),
+		RES_1440_900 (1440, 900),
+		RES_1600_900 (1600, 900),
+		RES_1680_1050 (1680, 1050),
+		RES_1920_1080 (1920, 1080),
+		RES_1920_1200 (1920, 1200),
+		RES_2560_1440 (2560, 1440),
+		RES_2560_1600 (2560, 1600);
+
+		/**
+		 * Screen dimensions.
+		 */
+		private int width, height;
+
+		/**
+		 * Enum values.
+		 */
+		private static Resolution[] values = Resolution.values();
+
+		/**
+		 * Constructor.
+		 * @param width the screen width
+		 * @param height the screen height
+		 */
+		Resolution(int width, int height) {
+			this.width = width;
+			this.height = height;
+		}
+
+		/**
+		 * Returns the screen width.
+		 */
+		public int getWidth() { return width; }
+
+		/**
+		 * Returns the screen height.
+		 */
+		public int getHeight() { return height; }
+
+		/**
+		 * Returns the next (larger) Resolution.
+		 */
+		public Resolution next() { return values[(this.ordinal() + 1) % values.length]; }
+
+		@Override
+		public String toString() { return String.format("%sx%s", width, height); }
+	}
 
 	/**
 	 * Index (row) in resolutions[][] array.
 	 */
-	private static int resolutionIndex = 3;
+	private static Resolution resolution = Resolution.RES_1024_768;
 
 //	/**
 //	 * Whether or not the game should run in fullscreen mode.
@@ -274,7 +598,7 @@ public class Options extends BasicGameState {
 	 * Frame limiters.
 	 */
 	private static final int[] targetFPS = { 60, 120, 240 };
-	
+
 	/**
 	 * Index in targetFPS[] array.
 	 */
@@ -406,7 +730,7 @@ public class Options extends BasicGameState {
 	/**
 	 * Key entry states.
 	 */
-	private boolean keyEntryLeft = false, keyEntryRight = false;
+	private static boolean keyEntryLeft = false, keyEntryRight = false;
 
 	/**
 	 * Game option coordinate modifiers (for drawing).
@@ -425,7 +749,8 @@ public class Options extends BasicGameState {
 	}
 
 	@Override
-	public void init(GameContainer container, StateBasedGame game) {
+	public void init(GameContainer container, StateBasedGame game)
+			throws SlickException {
 		this.container = container;
 		this.game = game;
 		this.input = container.getInput();
@@ -443,7 +768,7 @@ public class Options extends BasicGameState {
 		int subtextWidth = Utils.FONT_DEFAULT.getWidth("Click or drag an option to change it.");
 		float tabX = (width / 50) + (tab.getWidth() / 2f);
 		float tabY = 15 + Utils.FONT_XLARGE.getLineHeight() + (tab.getHeight() / 2f);
-		float tabOffset = (float) Math.min(tab.getWidth(), 
+		int tabOffset = Math.min(tab.getWidth(),
 				((width - subtextWidth - tab.getWidth()) / 2) / TAB_MAX);
 		for (int i = 0; i < optionTabs.length; i++)
 			optionTabs[i] = new MenuButton(tab, tabX + (i * tabOffset), tabY);
@@ -453,24 +778,24 @@ public class Options extends BasicGameState {
 	public void render(GameContainer container, StateBasedGame game, Graphics g)
 			throws SlickException {
 		g.setBackground(Utils.COLOR_BLACK_ALPHA);
-		g.setColor(Color.white);
 
 		int width = container.getWidth();
 		int height = container.getHeight();
+		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
 
 		// title
 		Utils.FONT_XLARGE.drawString(
-				(width / 2) - (Utils.FONT_XLARGE.getWidth("GAME OPTIONS") / 2),
-				10, "GAME OPTIONS"
+				(width / 2) - (Utils.FONT_XLARGE.getWidth("GAME OPTIONS") / 2), 10,
+				"GAME OPTIONS", Color.white
 		);
 		Utils.FONT_DEFAULT.drawString(
 				(width / 2) - (Utils.FONT_DEFAULT.getWidth("Click or drag an option to change it.") / 2),
-				10 + Utils.FONT_XLARGE.getLineHeight(), "Click or drag an option to change it."
+				10 + Utils.FONT_XLARGE.getLineHeight(),
+				"Click or drag an option to change it.", Color.white
 		);
 
 		// game options
 		g.setLineWidth(1f);
-		g.setFont(Utils.FONT_LARGE);
 		switch (currentTab) {
 		case TAB_DISPLAY:
 			for (int i = 0; i < displayOptions.length; i++)
@@ -491,17 +816,23 @@ public class Options extends BasicGameState {
 		}
 
 		// option tabs
-		g.setColor(Color.white);
-		Image tab = optionTabs[0].getImage();
-		float tabTextY = optionTabs[0].getY() - (tab.getHeight() / 2f);
-		for (int i = optionTabs.length - 1; i >= 0; i--) {
-			tab.setAlpha((i == currentTab) ? 1.0f : 0.7f);
-			optionTabs[i].draw();
-			float tabTextX = optionTabs[i].getX() - (Utils.FONT_MEDIUM.getWidth(TAB_NAMES[i]) / 2);
-			Utils.FONT_MEDIUM.drawString(tabTextX, tabTextY, TAB_NAMES[i], Color.white);
+		int hoverTab = -1;
+		for (int i = 0; i < optionTabs.length; i++) {
+			if (optionTabs[i].contains(mouseX, mouseY)) {
+				hoverTab = i;
+				break;
+			}
 		}
+		for (int i = optionTabs.length - 1; i >= 0; i--) {
+			if (i != currentTab)
+				Utils.drawTab(optionTabs[i].getX(), optionTabs[i].getY(),
+						TAB_NAMES[i], false, i == hoverTab);
+		}
+		Utils.drawTab(optionTabs[currentTab].getX(), optionTabs[currentTab].getY(),
+				TAB_NAMES[currentTab], true, false);
+		g.setColor(Color.white);
 		g.setLineWidth(2f);
-		float lineY = optionTabs[0].getY() + (tab.getHeight() / 2f);
+		float lineY = optionTabs[0].getY() + (GameImage.MENU_TAB.getImage().getHeight() / 2f);
 		g.drawLine(0, lineY, width, lineY);
 		g.resetLineWidth();
 
@@ -548,7 +879,7 @@ public class Options extends BasicGameState {
 			return;
 		}
 
-		// check mouse button 
+		// check mouse button
 		if (button == Input.MOUSE_MIDDLE_BUTTON)
 			return;
 
@@ -582,81 +913,9 @@ public class Options extends BasicGameState {
 		}
 
 		// options (click only)
-		switch (getClickedOption(y)) {
-		case SCREEN_RESOLUTION:
-			do {
-				resolutionIndex = (resolutionIndex + 1) % resolutions.length;
-			} while (resolutionIndex != 0 &&
-					(container.getScreenWidth() < resolutions[resolutionIndex][0] ||
-					 container.getScreenHeight() < resolutions[resolutionIndex][1]));
-			break;
-//		case FULLSCREEN:
-//			fullscreen = !fullscreen;
-//			break;
-		case TARGET_FPS:
-			targetFPSindex = (targetFPSindex + 1) % targetFPS.length;
-			container.setTargetFrameRate(getTargetFPS());
-			break;
-		case SCREENSHOT_FORMAT:
-			screenshotFormatIndex = (screenshotFormatIndex + 1) % screenshotFormat.length;
-			break;
-		case SHOW_FPS:
-			showFPS = !showFPS;
-			break;
-		case SHOW_HIT_LIGHTING:
-			showHitLighting = !showHitLighting;
-			break;
-		case SHOW_COMBO_BURSTS:
-			showComboBursts = !showComboBursts;
-			break;
-		case NEW_CURSOR:
-			newCursor = !newCursor;
-			Utils.loadCursor();
-			break;
-		case DYNAMIC_BACKGROUND:
-			dynamicBackground = !dynamicBackground;
-			break;
-		case SHOW_PERFECT_HIT:
-			showPerfectHit = !showPerfectHit;
-			break;
-		case FORCE_DEFAULT_PLAYFIELD:
-			forceDefaultPlayfield = !forceDefaultPlayfield;
-			break;
-		case IGNORE_BEATMAP_SKINS:
-			ignoreBeatmapSkins = !ignoreBeatmapSkins;
-			break;
-		case LOAD_VERBOSE:
-			loadVerbose = !loadVerbose;
-			break;
-		case DISABLE_SOUNDS:
-			disableSound = !disableSound;
-			break;
-		case KEY_LEFT:
-			keyEntryLeft = true;
-			keyEntryRight = false;
-			break;
-		case KEY_RIGHT:
-			keyEntryLeft = false;
-			keyEntryRight = true;
-			break;
-		case SHOW_UNICODE:
-			showUnicode = !showUnicode;
-			if (showUnicode) {
-				//try {
-					Utils.FONT_LARGE.loadGlyphs();
-					Utils.FONT_MEDIUM.loadGlyphs();
-					Utils.FONT_DEFAULT.loadGlyphs();
-				//} catch (SlickException e) {
-				//	Log.warn("Failed to load glyphs.", e);
-				//}
-			}
-			break;
-		case ENABLE_THEME_SONG:
-			themeSongEnabled = !themeSongEnabled;
-			break;
-		default:
-			break;
-		}
+		GameOption option = getClickedOption(y);
+		if (option != GameOption.NULL)
+			option.click(container);
 	}
 
 	@Override
@@ -681,75 +940,9 @@ public class Options extends BasicGameState {
 		diff = ((diff > 0) ? 1 : -1) * multiplier;
 
 		// options (drag only)
-		switch (getClickedOption(oldy)) {
-		case MUSIC_VOLUME:
-			musicVolume = getBoundedValue(musicVolume, diff, 0, 100);
-			container.setMusicVolume(getMusicVolume());
-			break;
-		case EFFECT_VOLUME:
-			effectVolume = getBoundedValue(effectVolume, diff, 0, 100);
-			break;
-		case HITSOUND_VOLUME:
-			hitSoundVolume = getBoundedValue(hitSoundVolume, diff, 0, 100);
-			break;
-		case MUSIC_OFFSET:
-			musicOffset = getBoundedValue(musicOffset, diff, -500, 500);
-			break;
-		case BACKGROUND_DIM:
-			backgroundDim = getBoundedValue(backgroundDim, diff, 0, 100);
-			break;
-		case FIXED_CS:
-			fixedCS = getBoundedValue(fixedCS, diff / 10f, 0f, 10f);
-			break;
-		case FIXED_HP:
-			fixedHP = getBoundedValue(fixedHP, diff / 10f, 0f, 10f);
-			break;
-		case FIXED_AR:
-			fixedAR = getBoundedValue(fixedAR, diff / 10f, 0f, 10f);
-			break;
-		case FIXED_OD:
-			fixedOD = getBoundedValue(fixedOD, diff / 10f, 0f, 10f);
-			break;
-		case CHECKPOINT:
-			checkpoint = getBoundedValue(checkpoint, diff * multiplier, 0, 3599);
-			break;
-		default:
-			break;
-		}
-	}
-
-	/**
-	 * Returns a bounded value for when an option is dragged.
-	 * @param var the initial value
-	 * @param diff the value change
-	 * @param min the minimum value
-	 * @param max the maximum value
-	 * @return the bounded value
-	 */
-	private int getBoundedValue(int var, int diff, int min, int max) {
-		int val = var + diff;
-		if (val < min)
-			val = min;
-		else if (val > max)
-			val = max;
-		return val;
-	}
-
-	/**
-	 * Returns a bounded value for when an option is dragged.
-	 * @param var the initial value
-	 * @param diff the value change
-	 * @param min the minimum value
-	 * @param max the maximum value
-	 * @return the bounded value
-	 */
-	private float getBoundedValue(float var, float diff, float min, float max) {
-		float val = var + diff;
-		if (val < min)
-			val = min;
-		else if (val > max)
-			val = max;
-		return val;
+		GameOption option = getClickedOption(oldy);
+		if (option != GameOption.NULL)
+			option.drag(container, diff);
 	}
 
 	@Override
@@ -781,11 +974,21 @@ public class Options extends BasicGameState {
 			currentTab = (currentTab + i) % TAB_MAX;
 			SoundController.playSound(SoundEffect.MENUCLICK);
 			break;
+		default:
+			// check mod shortcut keys
+			for (GameMod mod : GameMod.values()) {
+				if (key == mod.getKey()) {
+					mod.toggle(true);
+					break;
+				}
+			}
+			break;
 		}
 	}
 
 	@Override
-	public void enter(GameContainer container, StateBasedGame game) {
+	public void enter(GameContainer container, StateBasedGame game)
+			throws SlickException {
 		currentTab = TAB_DISPLAY;
 		Utils.getBackButton().setScale(1f);
 		for (GameMod mod : GameMod.values())
@@ -798,198 +1001,13 @@ public class Options extends BasicGameState {
 	 * @param pos the position to draw at
 	 */
 	private void drawOption(GameOption option, int pos) {
-		switch (option) {
-		case SCREEN_RESOLUTION:
-			drawOption(pos, "Screen Resolution",
-					String.format("%dx%d", resolutions[resolutionIndex][0], resolutions[resolutionIndex][1]),
-					"Restart to apply resolution changes."
-			);
-			break;
-//		case FULLSCREEN:
-//			drawOption(pos, "Fullscreen Mode",
-//					fullscreen ? "Yes" : "No",
-//					"Restart to apply changes."
-//			);
-//			break;
-		case TARGET_FPS:
-			drawOption(pos, "Frame Limiter",
-					String.format("%dfps", getTargetFPS()),
-					"Higher values may cause high CPU usage."
-			);
-			break;
-		case SCREENSHOT_FORMAT:
-			drawOption(pos, "Screenshot Format",
-					screenshotFormat[screenshotFormatIndex].toUpperCase(),
-					"Press F12 to take a screenshot."
-			);
-			break;
-		case SHOW_FPS:
-			drawOption(pos, "Show FPS Counter",
-					showFPS ? "Yes" : "No",
-					"Show an FPS counter in the bottom-right hand corner."
-			);
-			break;
-		case SHOW_UNICODE:
-			drawOption(pos, "Prefer Non-English Metadata",
-					showUnicode ? "Yes" : "No",
-					"Where available, song titles will be shown in their native language."
-			);
-			break;
-		case NEW_CURSOR:
-			drawOption(pos, "Enable New Cursor",
-					newCursor ? "Yes" : "No",
-					"Use the new cursor style (may cause higher CPU usage)."
-			);
-			break;
-		case DYNAMIC_BACKGROUND:
-			drawOption(pos, "Enable Dynamic Backgrounds",
-					dynamicBackground ? "Yes" : "No",
-					"The song background will be used as the main menu background."
-			);
-			break;
-		case LOAD_VERBOSE:
-			drawOption(pos, "Show Detailed Loading Progress",
-					loadVerbose ? "Yes" : "No",
-					"Display more specific loading information in the splash screen."
-			);
-			break;
-		case MUSIC_VOLUME:
-			drawOption(pos, "Music Volume",
-					String.format("%d%%", musicVolume),
-					"Global music volume."
-			);
-			break;
-		case EFFECT_VOLUME:
-			drawOption(pos, "Effect Volume",
-					String.format("%d%%", effectVolume),
-					"Volume of menu and game sounds."
-			);
-			break;
-		case HITSOUND_VOLUME:
-			drawOption(pos, "Hit Sound Volume",
-					String.format("%d%%", hitSoundVolume),
-					"Volume of hit sounds."
-			);
-			break;
-		case MUSIC_OFFSET:
-			drawOption(pos, "Music Offset",
-					String.format("%dms", musicOffset),
-					"Adjust this value if hit objects are out of sync."
-			);
-			break;
-		case DISABLE_SOUNDS:
-			drawOption(pos, "Disable All Sound Effects",
-					disableSound ? "Yes" : "No",
-					"May resolve Linux sound driver issues.  Requires a restart."
-			);
-			break;
-		case KEY_LEFT:
-			drawOption(pos, "Left Game Key",
-					Keyboard.getKeyName(getGameKeyLeft()),
-					"Select this option to input a key."
-			);
-			break;
-		case KEY_RIGHT:
-			drawOption(pos, "Right Game Key",
-					Keyboard.getKeyName(getGameKeyRight()),
-					"Select this option to input a key."
-			);
-			break;
-		case BACKGROUND_DIM:
-			drawOption(pos, "Background Dim",
-					String.format("%d%%", backgroundDim),
-					"Percentage to dim the background image during gameplay."
-			);
-			break;
-		case FORCE_DEFAULT_PLAYFIELD:
-			drawOption(pos, "Force Default Playfield",
-					forceDefaultPlayfield ? "Yes" : "No",
-					"Override the song background with the default playfield background."
-			);
-			break;
-		case IGNORE_BEATMAP_SKINS:
-			drawOption(pos, "Ignore All Beatmap Skins",
-					ignoreBeatmapSkins ? "Yes" : "No",
-					"Never use skin element overrides provided by beatmaps."
-			);
-			break;
-		case SHOW_HIT_LIGHTING:
-			drawOption(pos, "Show Hit Lighting",
-					showHitLighting ? "Yes" : "No",
-					"Adds an effect behind hit explosions."
-			);
-			break;
-		case SHOW_COMBO_BURSTS:
-			drawOption(pos, "Show Combo Bursts",
-					showComboBursts ? "Yes" : "No",
-					"A character image is displayed at combo milestones."
-			);
-			break;
-		case SHOW_PERFECT_HIT:
-			drawOption(pos, "Show Perfect Hits",
-					showPerfectHit ? "Yes" : "No",
-					"Whether to show perfect hit result bursts (300s, slider ticks)."
-			);
-			break;
-		case FIXED_CS:
-			drawOption(pos, "Fixed Circle Size (CS)",
-					(fixedCS == 0f) ? "Disabled" : String.format("%.1f", fixedCS),
-					"Determines the size of circles and sliders."
-			);
-			break;
-		case FIXED_HP:
-			drawOption(pos, "Fixed HP Drain Rate (HP)",
-					(fixedHP == 0f) ? "Disabled" : String.format("%.1f", fixedHP),
-					"Determines the rate at which health decreases."
-			);
-			break;
-		case FIXED_AR:
-			drawOption(pos, "Fixed Approach Rate (AR)",
-					(fixedAR == 0f) ? "Disabled" : String.format("%.1f", fixedAR),
-					"Determines how long hit circles stay on the screen."
-			);
-			break;
-		case FIXED_OD:
-			drawOption(pos, "Fixed Overall Difficulty (OD)",
-					(fixedOD == 0f) ? "Disabled" : String.format("%.1f", fixedOD),
-					"Determines the time window for hit results."
-			);
-			break;
-		case CHECKPOINT:
-			drawOption(pos, "Track Checkpoint",
-					(checkpoint == 0) ? "Disabled" : String.format("%02d:%02d",
-							TimeUnit.SECONDS.toMinutes(checkpoint),
-							checkpoint - TimeUnit.MINUTES.toSeconds(TimeUnit.SECONDS.toMinutes(checkpoint))),
-					"Press CTRL+L while playing to load a checkpoint, and CTRL+S to set one."
-			);
-			break;
-		case ENABLE_THEME_SONG:
-			drawOption(pos, "Enable Theme Song",
-					themeSongEnabled ? "Yes" : "No",
-					"Whether to play the theme song upon starting opsu!"
-			);
-			break;
-		default:
-			break;
-		}
-	}
-
-	/**
-	 * Draws a game option.
-	 * @param pos the element position
-	 * @param label the option name
-	 * @param value the option value
-	 * @param notes additional notes
-	 */
-	private void drawOption(int pos, String label, String value, String notes) {
 		int width = container.getWidth();
 		int textHeight = Utils.FONT_LARGE.getLineHeight();
 		float y = textY + (pos * offsetY);
 
-		g.setColor(Color.white);
-		g.drawString(label, width / 30, y);
-		g.drawString(value, width / 2, y);
-		Utils.FONT_SMALL.drawString(width / 30, y + textHeight, notes);
+		Utils.FONT_LARGE.drawString(width / 30, y, option.getName(), Color.white);
+		Utils.FONT_LARGE.drawString(width / 2, y, option.getValueString(), Color.white);
+		Utils.FONT_SMALL.drawString(width / 30, y + textHeight, option.getDescription(), Color.white);
 		g.setColor(Utils.COLOR_WHITE_ALPHA);
 		g.drawLine(0, y + textHeight, width, y + textHeight);
 	}
@@ -1075,13 +1093,15 @@ public class Options extends BasicGameState {
 	public static void setDisplayMode(AppGameContainer app) throws SlickException {
 		int screenWidth = app.getScreenWidth();
 		int screenHeight = app.getScreenHeight();
-		if (screenWidth < resolutions[resolutionIndex][0] || screenHeight < resolutions[resolutionIndex][1])
-			resolutionIndex = 0;
 
-		int containerWidth = resolutions[resolutionIndex][0];
-		int containerHeight = resolutions[resolutionIndex][1];
-		app.setDisplayMode(containerWidth, containerHeight, false);
-		if (screenWidth == containerWidth && screenHeight == containerHeight)
+		// check for larger-than-screen dimensions
+		if (screenWidth < resolution.getWidth() || screenHeight < resolution.getHeight())
+			resolution = Resolution.RES_800_600;
+
+		app.setDisplayMode(resolution.getWidth(), resolution.getHeight(), false);
+
+		// set borderless window if dimensions match screen size
+		if (screenWidth == resolution.getWidth() && screenHeight == resolution.getHeight())
 			System.setProperty("org.lwjgl.opengl.Window.undecorated", "true");
 	}
 
@@ -1306,7 +1326,7 @@ public class Options extends BasicGameState {
 	public static OsuFile getOsuTheme() {
 		String[] tokens = themeString.split(",");
 		if (tokens.length != 4) {
-			Log.error("Theme song string is malformed.");
+			ErrorHandler.error("Theme song string is malformed.", null, false);
 			return null;
 		}
 
@@ -1317,7 +1337,7 @@ public class Options extends BasicGameState {
 		try {
 			osu.endTime = Integer.parseInt(tokens[3]);
 		} catch (NumberFormatException e) {
-			Log.error("Theme song length is not a valid integer", e);
+			ErrorHandler.error("Theme song length is not a valid integer", e, false);
 			return null;
 		}
 
@@ -1373,17 +1393,20 @@ public class Options extends BasicGameState {
 						port = i;
 					break;
 				case "ScreenResolution":
-					i = Integer.parseInt(value);
-					if (i >= 0 && i < resolutions.length)
-						resolutionIndex = i;
+					try {
+						Resolution res = Resolution.valueOf(String.format("RES_%s", value.replace('x', '_')));
+						resolution = res;
+					} catch (IllegalArgumentException e) {}
 					break;
 //				case "Fullscreen":
 //					fullscreen = Boolean.parseBoolean(value);
 //					break;
 				case "FrameSync":
 					i = Integer.parseInt(value);
-					if (i >= 0 && i <= targetFPS.length)
-						targetFPSindex = i;
+					for (int j = 0; j < targetFPS.length; j++) {
+						if (i == targetFPS[j])
+							targetFPSindex = j;
+					}
 					break;
 				case "ScreenshotFormat":
 					i = Integer.parseInt(value);
@@ -1485,7 +1508,7 @@ public class Options extends BasicGameState {
 				}
 			}
 		} catch (IOException e) {
-			Log.error(String.format("Failed to read file '%s'.", OPTIONS_FILE.getAbsolutePath()), e);
+			ErrorHandler.error(String.format("Failed to read file '%s'.", OPTIONS_FILE.getAbsolutePath()), e, false);
 		} catch (NumberFormatException e) {
 			Log.warn("Format error in options file.", e);
 			return;
@@ -1524,11 +1547,11 @@ public class Options extends BasicGameState {
 			writer.newLine();
 			writer.write(String.format("Port = %d", port));
 			writer.newLine();
-			writer.write(String.format("ScreenResolution = %d", resolutionIndex));
+			writer.write(String.format("ScreenResolution = %s", resolution.toString()));
 			writer.newLine();
 //			writer.write(String.format("Fullscreen = %b", fullscreen));
 //			writer.newLine();
-			writer.write(String.format("FrameSync = %d", targetFPSindex));
+			writer.write(String.format("FrameSync = %d", targetFPS[targetFPSindex]));
 			writer.newLine();
 			writer.write(String.format("FpsCounter = %b", showFPS));
 			writer.newLine();
@@ -1582,7 +1605,7 @@ public class Options extends BasicGameState {
 			writer.newLine();
 			writer.close();
 		} catch (IOException e) {
-			Log.error(String.format("Failed to write to file '%s'.", OPTIONS_FILE.getAbsolutePath()), e);
+			ErrorHandler.error(String.format("Failed to write to file '%s'.", OPTIONS_FILE.getAbsolutePath()), e, false);
 		}
 	}
 }

@@ -1,6 +1,6 @@
 /*
  * opsu! - an open-source osu! client
- * Copyright (C) 2014 Jeffrey Han
+ * Copyright (C) 2014, 2015 Jeffrey Han
  *
  * opsu! is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,6 +18,7 @@
 
 package itdelatrisu.opsu.states;
 
+import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.GameMod;
 import itdelatrisu.opsu.GameScore;
@@ -33,10 +34,10 @@ import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
 import itdelatrisu.opsu.fake.*;
 import itdelatrisu.opsu.objects.Circle;
+import itdelatrisu.opsu.objects.HitObject;
 import itdelatrisu.opsu.objects.Slider;
 import itdelatrisu.opsu.objects.Spinner;
 
-import java.util.HashMap;
 import java.util.Stack;
 import java.util.concurrent.TimeUnit;
 
@@ -54,7 +55,6 @@ import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.state.transition.EmptyTransition;
 import org.newdawn.slick.state.transition.FadeInTransition;
 import org.newdawn.slick.state.transition.FadeOutTransition;
-import org.newdawn.slick.util.Log;
 */
 /**
  * "Game" state.
@@ -63,16 +63,17 @@ public class Game extends BasicGameState {
 	/**
 	 * Game restart states.
 	 */
-	public static final byte
-		RESTART_FALSE   = 0,
-		RESTART_NEW     = 1,   // first time loading song
-		RESTART_MANUAL  = 2,   // retry
-		RESTART_LOSE    = 3;   // health is zero: no-continue/force restart
+	public enum Restart {
+		FALSE,   // no restart
+		NEW,     // first time loading song
+		MANUAL,  // retry
+		LOSE;    // health is zero: no-continue/force restart
+	}
 
 	/**
-	 * Current restart state.
+	 * Minimum time before start of song, in milliseconds, to process skip-related actions.
 	 */
-	private static byte restart;
+	private static final int SKIP_OFFSET = 2000;
 
 	/**
 	 * The associated OsuFile object.
@@ -82,7 +83,7 @@ public class Game extends BasicGameState {
 	/**
 	 * The associated GameScore object (holds all score data).
 	 */
-	private static GameScore score;
+	private GameScore score;
 
 	/**
 	 * Current hit object index in OsuHitObject[] array.
@@ -90,19 +91,9 @@ public class Game extends BasicGameState {
 	private int objectIndex = 0;
 
 	/**
-	 * This map's hit circles objects, keyed by objectIndex.
+	 * The map's HitObjects, indexed by objectIndex.
 	 */
-	private HashMap<Integer, Circle> circles;
-
-	/**
-	 * This map's slider objects, keyed by objectIndex.
-	 */
-	private HashMap<Integer, Slider> sliders;
-
-	/**
-	 * This map's spinner objects, keyed by objectIndex.
-	 */
-	private HashMap<Integer, Spinner> spinners;
+	private HitObject[] hitObjects;
 
 	/**
 	 * Delay time, in milliseconds, before song starts.
@@ -118,6 +109,11 @@ public class Game extends BasicGameState {
 	 * Time offsets for obtaining each hit result (indexed by HIT_* constants).
 	 */
 	private int[] hitResultOffset;
+
+	/**
+	 * Current restart state.
+	 */
+	private Restart restart;
 
 	/**
 	 * Current break index in breaks ArrayList.
@@ -138,11 +134,6 @@ public class Game extends BasicGameState {
 	 * Skip button (displayed at song start, when necessary).
 	 */
 	private MenuButton skipButton;
-
-	/**
-	 * Minimum time before start of song, in milliseconds, to process skip-related actions.
-	 */
-	private static final int SKIP_OFFSET = 2000;
 
 	/**
 	 * Current timing point index in timingPoints ArrayList.
@@ -213,7 +204,8 @@ public class Game extends BasicGameState {
 	}
 
 	@Override
-	public void init(GameContainer container, StateBasedGame game) {
+	public void init(GameContainer container, StateBasedGame game)
+			throws SlickException {
 		this.container = container;
 		this.game = game;
 		input = container.getInput();
@@ -223,6 +215,7 @@ public class Game extends BasicGameState {
 
 		// create the associated GameScore object
 		score = new GameScore(width, height);
+		((GameRanking) game.getState(Opsu.STATE_GAMERANKING)).setGameScore(score);
 
 		// playfield background
 		try {
@@ -233,7 +226,8 @@ public class Game extends BasicGameState {
 	}
 
 	@Override
-	public void render(GameContainer container, StateBasedGame game, Graphics g) {
+	public void render(GameContainer container, StateBasedGame game, Graphics g)
+			throws SlickException {
 		int width = container.getWidth();
 		int height = container.getHeight();
 
@@ -357,6 +351,7 @@ public class Game extends BasicGameState {
 
 		// countdown
 		if (osu.countdown > 0) {  // TODO: implement half/double rate settings
+			timeDiff = firstObjectTime - trackPosition;
 			if (timeDiff >= 500 && timeDiff < 3000) {
 				if (timeDiff >= 1500) {
 					GameImage.COUNTDOWN_READY.getImage().drawCentered(width / 2, height / 2);
@@ -402,21 +397,8 @@ public class Game extends BasicGameState {
 		for (int i = objectIndex; i < osu.objects.length && osu.objects[i].getTime() < trackPosition + approachTime; i++)
 			stack.add(i);
 
-		while (!stack.isEmpty()) {
-			int i = stack.pop();
-			OsuHitObject hitObject = osu.objects[i];
-
-			if (hitObject.isCircle())
-				circles.get(i).draw(trackPosition);
-			else if (hitObject.isSlider())
-				sliders.get(i).draw(trackPosition, stack.isEmpty());
-			else if (hitObject.isSpinner()) {
-				if (stack.isEmpty())  // only draw spinner at objectIndex
-					spinners.get(i).draw(trackPosition, g);
-				else
-					continue;
-			}
-		}
+		while (!stack.isEmpty())
+			hitObjects[stack.pop()].draw(trackPosition, stack.isEmpty(), g);
 
 		// draw OsuHitObjectResult objects
 		score.drawHitResults(trackPosition);
@@ -445,13 +427,11 @@ public class Game extends BasicGameState {
 	}
 
 	@Override
-	public void update(GameContainer container, StateBasedGame game, int delta) {
+	public void update(GameContainer container, StateBasedGame game, int delta)
+			throws SlickException {
 		Utils.updateCursor(delta);
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
 		skipButton.hoverUpdate(delta, mouseX, mouseY);
-		
-		float angle = (float) Math.atan2(mouseY - (container.getHeight() / 2), mouseX - (container.getWidth() / 2));
-		
 
 		if (isLeadIn()) {  // stop updating during song lead-in
 			leadInTime -= delta;
@@ -498,9 +478,10 @@ public class Game extends BasicGameState {
 
 		// map complete!
 		if (objectIndex >= osu.objects.length) {
-			// if checkpoint used, don't show the ranking screen
-			int state = (checkpointLoaded) ? Opsu.STATE_SONGMENU : Opsu.STATE_GAMERANKING;
-			game.enterState(state, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
+			if (checkpointLoaded)  // if checkpoint used, skip ranking screen
+				game.closeRequested();
+			else  // go to ranking screen
+				game.enterState(Opsu.STATE_GAMERANKING, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 			return;
 		}
 
@@ -570,30 +551,19 @@ public class Game extends BasicGameState {
 			}
 
 			// game over, force a restart
-			restart = RESTART_LOSE;
+			restart = Restart.LOSE;
 			game.enterState(Opsu.STATE_GAMEPAUSEMENU);
 		}
 
 		// update objects (loop in unlikely event of any skipped indexes)
 		while (objectIndex < osu.objects.length && trackPosition > osu.objects[objectIndex].getTime()) {
-			OsuHitObject hitObject = osu.objects[objectIndex];
-
 			// check if we've already passed the next object's start time
 			boolean overlap = (objectIndex + 1 < osu.objects.length &&
 					trackPosition > osu.objects[objectIndex + 1].getTime() - hitResultOffset[GameScore.HIT_300]);
 
-			// check completion status of the hit object
-			boolean done = false;
-			if (hitObject.isCircle())
-				done = circles.get(objectIndex).update(overlap);
-			else if (hitObject.isSlider())
-				done = sliders.get(objectIndex).update(overlap, delta, mouseX, mouseY);
-			else if (hitObject.isSpinner())
-				done = spinners.get(objectIndex).update(overlap, delta, mouseX, mouseY);
-
-			// increment object index?
-			if (done)
-				objectIndex++;
+			// update hit object and check completion status
+			if (hitObjects[objectIndex].update(overlap, delta, mouseX, mouseY))
+				objectIndex++;  // done, so increment object index
 			else
 				break;
 		}
@@ -615,14 +585,17 @@ public class Game extends BasicGameState {
 		}
 
 		switch (key) {
-		case Input.KEY_ESCAPE:
 		case Input.ANDROID_BACK:
-			
+		case Input.KEY_ESCAPE:
+			// "auto" mod: go back to song menu
+			if (GameMod.AUTO.isActive()) {
+				game.closeRequested();
+				break;
+			}
+
 			// pause game
-			if (pauseTime < 0 && breakTime <= 0 &&
-				trackPosition >= osu.objects[0].getTime() &&
-				!GameMod.AUTO.isActive()) {
-				pausedMouseX = input.getMouseY();
+			if (pauseTime < 0 && breakTime <= 0 && trackPosition >= osu.objects[0].getTime()) {
+				pausedMouseX = input.getMouseX();
 				pausedMouseY = input.getMouseY();
 				pausePulse = 0f;
 			}
@@ -637,15 +610,15 @@ public class Game extends BasicGameState {
 		case Input.KEY_R:
 			// restart
 			if (input.isKeyDown(Input.KEY_RCONTROL) || input.isKeyDown(Input.KEY_LCONTROL)) {
-				//try {
+				try {
 					if (trackPosition < osu.objects[0].getTime())
 						retries--;  // don't count this retry (cancel out later increment)
-					restart = RESTART_MANUAL;
+					restart = Restart.MANUAL;
 					enter(container, game);
 					skipIntro();
-				//} catch (SlickException e) {
-				//	Log.error("Failed to restart game.", e);
-				//}
+				} catch (SlickException e) {
+					ErrorHandler.error("Failed to restart game.", e, false);
+				}
 			}
 			break;
 		case Input.KEY_S:
@@ -665,8 +638,8 @@ public class Game extends BasicGameState {
 				int checkpoint = Options.getCheckpoint();
 				if (checkpoint == 0 || checkpoint > osu.endTime)
 					break;  // invalid checkpoint
-				//try {
-					restart = RESTART_MANUAL;
+				try {
+					restart = Restart.MANUAL;
 					enter(container, game);
 					checkpointLoaded = true;
 					if (isLeadIn()) {
@@ -678,12 +651,12 @@ public class Game extends BasicGameState {
 					// skip to checkpoint
 					MusicController.setPosition(checkpoint);
 					while (objectIndex < osu.objects.length &&
-							osu.objects[objectIndex++].getTime() <= trackPosition)
+							osu.objects[objectIndex++].getTime() <= checkpoint)
 						;
 					objectIndex--;
-				//} catch (SlickException e) {
-				//	Log.error("Failed to load checkpoint.", e);
-				//}
+				} catch (SlickException e) {
+					ErrorHandler.error("Failed to load checkpoint.", e, false);
+				}
 			}
 			break;
 		case Input.KEY_F12:
@@ -729,20 +702,18 @@ public class Game extends BasicGameState {
 			return;
 
 		// circles
-		if (hitObject.isCircle()) {
-			boolean hit = circles.get(objectIndex).mousePressed(x, y);
-			if (hit)
-				objectIndex++;
-		}
+		if (hitObject.isCircle() && hitObjects[objectIndex].mousePressed(x, y))
+			objectIndex++;  // circle hit
 
 		// sliders
 		else if (hitObject.isSlider())
-			sliders.get(objectIndex).mousePressed(x, y);
+			hitObjects[objectIndex].mousePressed(x, y);
 	}
 
 	@Override
-	public void enter(GameContainer container, StateBasedGame game) {
-		if (restart == RESTART_NEW)
+	public void enter(GameContainer container, StateBasedGame game)
+			throws SlickException {
+		if (restart == Restart.NEW)
 			osu = MusicController.getOsuFile();
 
 		if (osu == null || osu.objects == null)
@@ -752,20 +723,23 @@ public class Game extends BasicGameState {
 //		container.setMouseGrabbed(true);
 
 		// restart the game
-		if (restart != RESTART_FALSE) {
-			// new game
-			if (restart == RESTART_NEW) {
+		if (restart != Restart.FALSE) {
+			if (restart == Restart.NEW) {
+				// new game
 				loadImages();
 				setMapModifiers();
 				retries = 0;
-			} else
+			} else {
+				// retry
 				retries++;
+			}
+
+			// reset game data
+			resetGameData();
+			MusicController.setPosition(0);
+			MusicController.pause();
 
 			// initialize object maps
-			circles = new HashMap<Integer, Circle>();
-			sliders = new HashMap<Integer, Slider>();
-			spinners = new HashMap<Integer, Spinner>();
-
 			for (int i = 0; i < osu.objects.length; i++) {
 				OsuHitObject hitObject = osu.objects[i];
 
@@ -775,36 +749,13 @@ public class Game extends BasicGameState {
 					comboEnd = true;
 
 				Color color = osu.combo[hitObject.getComboIndex()];
-				if (hitObject.isCircle()) {
-					circles.put(i, new Circle(hitObject, this, score, color, comboEnd));
-				} else if (hitObject.isSlider()) {
-					sliders.put(i, new Slider(hitObject, this, score, color, comboEnd));
-				} else if (hitObject.isSpinner()) {
-					spinners.put(i, new Spinner(hitObject, this, score));
-				}
+				if (hitObject.isCircle())
+					hitObjects[i] = new Circle(hitObject, this, score, color, comboEnd);
+				else if (hitObject.isSlider())
+					hitObjects[i] = new Slider(hitObject, this, score, color, comboEnd);
+				else if (hitObject.isSpinner())
+					hitObjects[i] = new Spinner(hitObject, this, score);
 			}
-
-			// reset data
-			MusicController.setPosition(0);
-			MusicController.pause();
-			score.clear();
-			objectIndex = 0;
-			breakIndex = 0;
-			breakTime = 0;
-			breakSound = false;
-			timingPointIndex = 0;
-			beatLengthBase = beatLength = 1;
-			pauseTime = -1;
-			pausedMouseX = -1;
-			pausedMouseY = -1;
-			countdownReadySound = false;
-			countdown3Sound = false;
-			countdown1Sound = false;
-			countdown2Sound = false;
-			countdownGoSound = false;
-			checkpointLoaded = false;
-			deaths = 0;
-			deathTime = -1;
 
 			// load the first timingPoint
 			if (!osu.timingPoints.isEmpty()) {
@@ -818,7 +769,7 @@ public class Game extends BasicGameState {
 			}
 
 			leadInTime = osu.audioLeadIn + approachTime;
-			restart = RESTART_FALSE;
+			restart = Restart.FALSE;
 		}
 
 		skipButton.setScale(1f);
@@ -829,6 +780,33 @@ public class Game extends BasicGameState {
 //			throws SlickException {
 //		container.setMouseGrabbed(false);
 //	}
+
+	/**
+	 * Resets all game data and structures.
+	 */
+	public void resetGameData() {
+		hitObjects = new HitObject[osu.objects.length];
+		score.clear();
+		objectIndex = 0;
+		breakIndex = 0;
+		breakTime = 0;
+		breakSound = false;
+		timingPointIndex = 0;
+		beatLengthBase = beatLength = 1;
+		pauseTime = -1;
+		pausedMouseX = -1;
+		pausedMouseY = -1;
+		countdownReadySound = false;
+		countdown3Sound = false;
+		countdown1Sound = false;
+		countdown2Sound = false;
+		countdownGoSound = false;
+		checkpointLoaded = false;
+		deaths = 0;
+		deathTime = -1;
+
+		System.gc();
+	}
 
 	/**
 	 * Skips the beginning of a track.
@@ -855,15 +833,17 @@ public class Game extends BasicGameState {
 	 * Loads all game images.
 	 * @throws SlickException
 	 */
-	private void loadImages()  {
+	private void loadImages() throws SlickException {
 		int width = container.getWidth();
 		int height = container.getHeight();
 
 		// set images
-		FileHandle parent = osu.getFile().parent();
+		File parent = osu.getFile().getParent();
 		for (GameImage img : GameImage.values()) {
-			if (img.isGameImage() && img.setSkinImage(parent))
-				img.process();
+			if (img.isGameImage()) {
+				img.setDefaultImage();  // ensure that default image has been loaded
+				img.setSkinImage(parent);
+			}
 		}
 
 		// skip button
@@ -875,7 +855,7 @@ public class Game extends BasicGameState {
 
 		// load other images...
 		((GamePauseMenu) game.getState(Opsu.STATE_GAMEPAUSEMENU)).loadImages();
-		score.loadImages();
+		score.loadImages(osu.getFile().getParent());
 	}
 
 	/**
@@ -937,20 +917,15 @@ public class Game extends BasicGameState {
 			score.setDrainRate(HPDrainRate);
 			score.setDifficulty(overallDifficulty);
 		} catch (SlickException e) {
-			Log.error("Error while setting map modifiers.", e);
+			ErrorHandler.error("Error while setting map modifiers.", e, true);
 		}
 	}
 
 	/**
 	 * Sets/returns whether entering the state will restart it.
 	 */
-	public static void setRestart(byte restart) { Game.restart = restart; }
-	public static byte getRestart() { return Game.restart; }
-
-	/**
-	 * Returns the associated GameScore object.
-	 */
-	public static GameScore getGameScore() { return score; }
+	public void setRestart(Restart restart) { this.restart = restart; }
+	public Restart getRestart() { return restart; }
 
 	/**
 	 * Returns whether or not the track is in the lead-in time state.
@@ -961,7 +936,7 @@ public class Game extends BasicGameState {
 	 * Returns the object approach time, in milliseconds.
 	 */
 	public int getApproachTime() { return approachTime; }
-	
+
 	/**
 	 * Returns an array of hit result offset times, in milliseconds (indexed by GameScore.HIT_* constants).
 	 */

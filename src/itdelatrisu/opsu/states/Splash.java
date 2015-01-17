@@ -25,15 +25,9 @@ import itdelatrisu.opsu.OszUnpacker;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
-import itdelatrisu.opsu.fake.BasicGameState;
-import itdelatrisu.opsu.fake.Color;
-import itdelatrisu.opsu.fake.GameContainer;
-import itdelatrisu.opsu.fake.Graphics;
-import itdelatrisu.opsu.fake.Image;
-import itdelatrisu.opsu.fake.Input;
-import itdelatrisu.opsu.fake.StateBasedGame;
+import itdelatrisu.opsu.fake.*;
 
-import java.io.File;
+//import java.io.File;
 
 /*import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
@@ -65,7 +59,8 @@ public class Splash extends BasicGameState {
 	}
 
 	@Override
-	public void init(GameContainer container, StateBasedGame game){
+	public void init(GameContainer container, StateBasedGame game)
+			throws SlickException {
 		this.container = container;
 
 		// load Utils class first (needed in other 'init' methods)

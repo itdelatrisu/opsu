@@ -21,7 +21,7 @@ package itdelatrisu.opsu;
 import itdelatrisu.opsu.fake.*;
 import itdelatrisu.opsu.states.Options;
 
-import java.io.File;
+//import java.io.File;
 import java.util.ArrayList;
 /*
 import org.newdawn.slick.Color;
@@ -37,7 +37,7 @@ public class OsuFile implements Comparable<OsuFile> {
 	/**
 	 * The OSU File object associated with this OsuFile.
 	 */
-	private FileHandle file;
+	private File file;
 
 	/* [General] */
 	public File audioFilename;                  // audio file object
@@ -107,15 +107,15 @@ public class OsuFile implements Comparable<OsuFile> {
 	 * Constructor.
 	 * @param file2 the file associated with this OsuFile
 	 */
-	public OsuFile(FileHandle file2) {
-		this.file = file2;
+	public OsuFile(File file) {
+		this.file = file;
 	}
 
 	/**
 	 * Returns the associated file object.
 	 * @return the File object
 	 */
-	public FileHandle getFile() { return file; }
+	public File getFile() { return file; }
 
 	/**
 	 * Returns the song title.
@@ -171,7 +171,7 @@ public class OsuFile implements Comparable<OsuFile> {
 	/**
 	 * Compares two OsuFile objects first by overall difficulty, then by total objects.
 	 */
-	@Override	
+	@Override
 	public int compareTo(OsuFile that) {
 		int cmp = Float.compare(this.overallDifficulty, that.overallDifficulty);
 		if (cmp == 0)
