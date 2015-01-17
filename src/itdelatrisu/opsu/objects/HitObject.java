@@ -18,7 +18,7 @@
 
 package itdelatrisu.opsu.objects; 
 
-import itdelatrisu.opsu.fake.Graphics;
+import fluddokt.opsu.fake.Graphics;
 
 //import org.newdawn.slick.Graphics;
 

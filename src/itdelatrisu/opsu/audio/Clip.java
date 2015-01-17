@@ -1,7 +1,7 @@
 package itdelatrisu.opsu.audio;
 
-import itdelatrisu.opsu.fake.Log;
-import itdelatrisu.opsu.fake.ResourceLoader;
+import fluddokt.opsu.fake.Log;
+import fluddokt.opsu.fake.ResourceLoader;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Sound;

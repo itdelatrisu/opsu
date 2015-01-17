@@ -18,10 +18,11 @@
 
 package itdelatrisu.opsu;
 
+import fluddokt.opsu.fake.*;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
-import itdelatrisu.opsu.fake.*;
 import itdelatrisu.opsu.states.Options;
+
 
 
 

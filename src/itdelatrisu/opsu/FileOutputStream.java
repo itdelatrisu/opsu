@@ -4,7 +4,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import itdelatrisu.opsu.fake.File;
+import fluddokt.opsu.fake.File;
 
 public class FileOutputStream extends OutputStream{
 

@@ -18,7 +18,7 @@
 
 package itdelatrisu.opsu;
 
-import itdelatrisu.opsu.fake.Log;
+import fluddokt.opsu.fake.Log;
 import itdelatrisu.opsu.states.Options;
 
 import java.awt.Cursor;
@@ -59,7 +59,7 @@ public class ErrorHandler {
 	/**
 	 * Text area for Exception.
 	 */
-	private static final JTextArea textArea = new JTextArea(7, 30);
+/*	private static final JTextArea textArea = new JTextArea(7, 30);
 	static {
 		textArea.setEditable(false);
 		textArea.setBackground(UIManager.getColor("Panel.background"));
@@ -67,18 +67,18 @@ public class ErrorHandler {
 		textArea.setTabSize(2);
 		textArea.setLineWrap(true);
 	}
-
+*/
 	/**
 	 * Scroll pane holding JTextArea.
 	 */
-	private static final JScrollPane scroll = new JScrollPane(textArea);
+	//private static final JScrollPane scroll = new JScrollPane(textArea);
 
 	/**
 	 * Error popup objects.
 	 */
-	private static final Object[]
-		message = { desc, scroll },
-		messageR = { descR, scroll };
+	//private static final Object[]
+	//	message = { desc, scroll },
+	//	messageR = { descR, scroll };
 
 	// This class should not be instantiated.
 	private ErrorHandler() {}
@@ -100,7 +100,7 @@ public class ErrorHandler {
 			Log.error(error);
 		else
 			Log.error(error, e);
-
+/*
 		// set the textArea to the error message
 		textArea.setText(null);
 		if (error != null) {
@@ -144,5 +144,6 @@ public class ErrorHandler {
 		} catch (Exception e1) {
 			Log.error("Error opening crash popup.", e1);
 		}
+		*/
 	}
 }

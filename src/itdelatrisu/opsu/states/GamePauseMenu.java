@@ -18,6 +18,7 @@
 
 package itdelatrisu.opsu.states;
 
+import fluddokt.opsu.fake.*;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.MenuButton;
 import itdelatrisu.opsu.Opsu;
@@ -36,7 +37,6 @@ import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.state.transition.FadeInTransition;
 import org.newdawn.slick.state.transition.FadeOutTransition;*/
-import itdelatrisu.opsu.fake.*;
 
 /**
  * "Game Pause/Fail" state.

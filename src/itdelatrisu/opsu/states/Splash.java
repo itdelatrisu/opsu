@@ -18,14 +18,15 @@
 
 package itdelatrisu.opsu.states;
 
+import fluddokt.opsu.fake.*;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.Opsu;
+import itdelatrisu.opsu.OsuGroupList;
 import itdelatrisu.opsu.OsuParser;
 import itdelatrisu.opsu.OszUnpacker;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
-import itdelatrisu.opsu.fake.*;
 
 //import java.io.File;
 
@@ -71,10 +72,9 @@ public class Splash extends BasicGameState {
 
 	@Override
 	public void render(GameContainer container, StateBasedGame game, Graphics g)
-			 {
+			throws SlickException {
 		g.setBackground(Color.black);
 		GameImage.MENU_LOGO.getImage().drawCentered(container.getWidth() / 2, container.getHeight() / 2);
-		//GameImage.TESTLOGO.getImage().draw(0,0);
 
 		// display progress
 		String unpackedFile = OszUnpacker.getCurrentFileName();
@@ -99,7 +99,8 @@ public class Splash extends BasicGameState {
 	}
 
 	@Override
-	public void update(GameContainer container, StateBasedGame game, int delta) {
+	public void update(GameContainer container, StateBasedGame game, int delta)
+			throws SlickException {
 		if (!init) {
 			init = true;
 
@@ -134,8 +135,8 @@ public class Splash extends BasicGameState {
 		// change states when loading complete
 		if (finished && alpha >= 1f) {
 			// initialize song list
-			Opsu.groups.init();
-			((SongMenu) game.getState(Opsu.STATE_SONGMENU)).setFocus(Opsu.groups.getRandomNode(), -1, true);
+			OsuGroupList.get().init();
+			((SongMenu) game.getState(Opsu.STATE_SONGMENU)).setFocus(OsuGroupList.get().getRandomNode(), -1, true);
 
 			// play the theme song
 			if (Options.isThemSongEnabled())

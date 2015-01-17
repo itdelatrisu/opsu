@@ -18,8 +18,9 @@
 
 package itdelatrisu.opsu;
 
-import itdelatrisu.opsu.fake.*; 
+import fluddokt.opsu.fake.*;
 import itdelatrisu.opsu.states.Options;
+
 
 //import java.io.File;
 import java.util.ArrayList;

@@ -18,11 +18,11 @@
 
 package itdelatrisu.opsu;
 
+import fluddokt.opsu.fake.*;
 import itdelatrisu.opsu.audio.HitSound;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
-import itdelatrisu.opsu.fake.*;
 import itdelatrisu.opsu.states.Options;
 
 import java.util.HashMap;
@@ -33,9 +33,6 @@ import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.SlickException;*/
-
-
-import com.badlogic.gdx.files.FileHandle;
 
 /**
  * Holds score data and renders all score-related elements.

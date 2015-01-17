@@ -18,6 +18,7 @@
 
 package itdelatrisu.opsu.states;
 
+import fluddokt.opsu.fake.*;
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.GameMod;
@@ -32,18 +33,16 @@ import itdelatrisu.opsu.audio.HitSound;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
-import itdelatrisu.opsu.fake.*;
 import itdelatrisu.opsu.objects.Circle;
 import itdelatrisu.opsu.objects.HitObject;
 import itdelatrisu.opsu.objects.Slider;
 import itdelatrisu.opsu.objects.Spinner;
 
 
+
 //import java.io.File;
 import java.util.Stack;
 import java.util.concurrent.TimeUnit;
-
-import com.badlogic.gdx.files.FileHandle;
 /*
 import org.lwjgl.input.Keyboard;
 import org.newdawn.slick.Color;

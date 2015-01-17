@@ -18,11 +18,10 @@
 
 package itdelatrisu.opsu;
 
-import itdelatrisu.opsu.fake.File;
-import itdelatrisu.opsu.fake.FilenameFilter; 
+import fluddokt.opsu.fake.File;
 
 //import java.io.File;
-//import java.io.FilenameFilter;
+import java.io.FilenameFilter;
 
 //import net.lingala.zip4j.core.ZipFile;
 //import net.lingala.zip4j.exception.ZipException;
@@ -57,7 +56,7 @@ public class OszUnpacker {
 		}
 		files = root.listFiles(new FilenameFilter() {
 			@Override
-			public boolean accept(File dir, String name) {
+			public boolean accept(java.io.File dir, String name) {
 				return name.toLowerCase().endsWith(".osz");
 			}
 		});

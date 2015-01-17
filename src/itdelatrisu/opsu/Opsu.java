@@ -18,18 +18,18 @@
 
 package itdelatrisu.opsu;
 
-import itdelatrisu.opsu.fake.BasicGameState;
-import itdelatrisu.opsu.fake.ClasspathLocation;
-import itdelatrisu.opsu.fake.Color;
-import itdelatrisu.opsu.fake.DefaultLogSystem;
-import itdelatrisu.opsu.fake.File;
-import itdelatrisu.opsu.fake.FileSystemLocation;
-import itdelatrisu.opsu.fake.GameContainer;
-import itdelatrisu.opsu.fake.Graphics;
-import itdelatrisu.opsu.fake.Log;
-import itdelatrisu.opsu.fake.ResourceLoader;
-import itdelatrisu.opsu.fake.SlickException;
-import itdelatrisu.opsu.fake.StateBasedGame;
+import fluddokt.opsu.fake.BasicGameState;
+import fluddokt.opsu.fake.ClasspathLocation;
+import fluddokt.opsu.fake.Color;
+import fluddokt.opsu.fake.DefaultLogSystem;
+import fluddokt.opsu.fake.File;
+import fluddokt.opsu.fake.FileSystemLocation;
+import fluddokt.opsu.fake.GameContainer;
+import fluddokt.opsu.fake.Graphics;
+import fluddokt.opsu.fake.Log;
+import fluddokt.opsu.fake.ResourceLoader;
+import fluddokt.opsu.fake.SlickException;
+import fluddokt.opsu.fake.StateBasedGame;
 import itdelatrisu.opsu.states.Game;
 import itdelatrisu.opsu.states.GamePauseMenu;
 import itdelatrisu.opsu.states.GameRanking;
@@ -38,6 +38,7 @@ import itdelatrisu.opsu.states.MainMenuExit;
 import itdelatrisu.opsu.states.Options;
 import itdelatrisu.opsu.states.SongMenu;
 import itdelatrisu.opsu.states.Splash;
+
 
 
 //import java.io.File;
@@ -50,7 +51,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.GL20;
@@ -77,11 +77,6 @@ import org.newdawn.slick.util.ResourceLoader;
  * Creates game container, adds all other states, and initializes song data.
  */
 public class Opsu extends com.badlogic.gdx.Game {
-	/**
-	 * Song group structure (each group contains of an ArrayList of OsuFiles).
-	 */
-	public static OsuGroupList groups = new OsuGroupList();
-
 	/**
 	 * Game states.
 	 */

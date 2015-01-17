@@ -18,12 +18,13 @@
 
 package itdelatrisu.opsu;
 
-import itdelatrisu.opsu.fake.*;
+import fluddokt.opsu.fake.*;
 
 import java.io.BufferedReader;
 //import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
+import java.io.FilenameFilter;
 //import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -33,7 +34,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.files.FileHandle;
 
 //import org.newdawn.slick.Color;
 //import org.newdawn.slick.util.Log;
@@ -77,13 +77,14 @@ public class OsuParser {
 
 		//FileHandle gh;
 		//gh.
-		File fh;
+		/*File fh;
 		fh = File.internal("Songs");
 		System.out.println("parseAllFiles: internal"+fh+" "+fh.exists()+" "+fh.getPath());
 		fh =  File.local("Songs");
 		System.out.println("parseAllFiles: local"+fh+" "+fh.exists()+" "+fh.getPath());
 		fh =  File.external("Songs");
 		System.out.println("parseAllFiles: external"+fh+" "+fh.exists()+" "+fh.getPath());
+		*/
 		//fh.
 		// progress tracking
 		
@@ -118,7 +119,7 @@ public class OsuParser {
 				continue;
 			File[] files = folder.listFiles(new FilenameFilter() {
 				@Override
-				public boolean accept(File dir, String name) {
+				public boolean accept(java.io.File dir, String name) {
 					return name.toLowerCase().endsWith(".osu");
 				}
 			});

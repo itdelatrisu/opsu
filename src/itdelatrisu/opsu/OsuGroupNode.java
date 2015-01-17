@@ -21,7 +21,7 @@ package itdelatrisu.opsu;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
-import itdelatrisu.opsu.fake.*;
+import fluddokt.opsu.fake.*;
 /*
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Image;

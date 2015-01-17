@@ -18,11 +18,11 @@
 
 package itdelatrisu.opsu.audio;
 
+import fluddokt.opsu.fake.Log;
+import fluddokt.opsu.fake.ResourceLoader;
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.OsuHitObject;
 import itdelatrisu.opsu.audio.HitSound.SampleSet;
-import itdelatrisu.opsu.fake.Log;
-import itdelatrisu.opsu.fake.ResourceLoader;
 import itdelatrisu.opsu.states.Options;
 
 import java.io.IOException;

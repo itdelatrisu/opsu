@@ -18,7 +18,7 @@
 
 package itdelatrisu.opsu;
 
-import itdelatrisu.opsu.fake.Log;
+import fluddokt.opsu.fake.Log;
 
 //import org.newdawn.slick.util.Log;
 

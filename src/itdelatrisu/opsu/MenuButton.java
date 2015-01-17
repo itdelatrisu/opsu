@@ -18,11 +18,7 @@
 
 package itdelatrisu.opsu;
 
-import itdelatrisu.opsu.fake.*;
-/*
-import org.newdawn.slick.Animation;
-import org.newdawn.slick.Color;
-import org.newdawn.slick.Image;*/
+import fluddokt.opsu.fake.*;
 
 /**
  * A convenience class for menu buttons.

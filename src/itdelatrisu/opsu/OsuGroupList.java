@@ -77,7 +77,7 @@ public class OsuGroupList {
 	/**
 	 * Constructor.
 	 */
-	OsuGroupList() {
+	private OsuGroupList() {
 		parsedNodes = new ArrayList<OsuGroupNode>();
 		nodes = parsedNodes;
 	}

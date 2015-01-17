@@ -18,6 +18,7 @@
 
 package itdelatrisu.opsu.states;
 
+import fluddokt.opsu.fake.*;
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.MenuButton;
@@ -30,14 +31,14 @@ import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
 
-import java.awt.Desktop;
+
+
+//import java.awt.Desktop;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Stack;
 import java.util.concurrent.TimeUnit;
-
-import itdelatrisu.opsu.fake.*;
 /*
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;

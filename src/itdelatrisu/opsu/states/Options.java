@@ -18,6 +18,7 @@
 
 package itdelatrisu.opsu.states;
 
+import fluddokt.opsu.fake.*;
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.GameMod;
@@ -27,7 +28,6 @@ import itdelatrisu.opsu.OsuFile;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
-import itdelatrisu.opsu.fake.*;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -42,9 +42,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
-
 import java.io.Writer;
-
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;

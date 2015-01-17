@@ -18,6 +18,7 @@
 
 package itdelatrisu.opsu.objects;
 
+import fluddokt.opsu.fake.*;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.GameMod;
 import itdelatrisu.opsu.GameScore;
@@ -25,7 +26,6 @@ import itdelatrisu.opsu.OsuFile;
 import itdelatrisu.opsu.OsuHitObject;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.MusicController;
-import itdelatrisu.opsu.fake.*;
 import itdelatrisu.opsu.states.Game;
 
 //import java.io.File;
@@ -36,8 +36,6 @@ import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.SlickException;*/
-
-import com.badlogic.gdx.files.FileHandle;
 
 /**
  * Data type representing a slider object.

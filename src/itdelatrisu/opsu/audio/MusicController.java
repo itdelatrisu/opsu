@@ -18,30 +18,11 @@
 
 package itdelatrisu.opsu.audio;
 
+import fluddokt.opsu.fake.*;
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.OsuFile;
 import itdelatrisu.opsu.OsuParser;
-import itdelatrisu.opsu.fake.*;
 import itdelatrisu.opsu.states.Options;
-
-//import java.io.File;
-import java.lang.reflect.Field;
-import java.nio.IntBuffer;
-/*
-import javazoom.jl.converter.Converter;
-
-import org.lwjgl.BufferUtils;
-import org.lwjgl.openal.AL;
-import org.lwjgl.openal.AL10;
-import org.newdawn.slick.Music;
-import org.newdawn.slick.SlickException;
-import org.newdawn.slick.openal.Audio;
-import org.newdawn.slick.openal.SoundStore;
-import org.newdawn.slick.util.Log;*/
-
-
-
-import com.badlogic.gdx.Audio;
 
 /**
  * Controller for all music.

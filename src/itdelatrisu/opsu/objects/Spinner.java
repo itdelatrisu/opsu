@@ -18,6 +18,7 @@
 
 package itdelatrisu.opsu.objects;
 
+import fluddokt.opsu.fake.*;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.GameMod;
 import itdelatrisu.opsu.GameScore;
@@ -26,7 +27,6 @@ import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
-import itdelatrisu.opsu.fake.*;
 import itdelatrisu.opsu.states.Game;
 /*
 import org.newdawn.slick.Color;
