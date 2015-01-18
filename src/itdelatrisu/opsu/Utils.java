@@ -188,8 +188,10 @@ public class Utils {
 
 		// initialize game images
 		GameImage.init(width, height);
-		GameImage.MENU_LOGO.setDefaultImage();
-		GameImage.MENU_BG.setDefaultImage();
+		for (GameImage img : GameImage.values()) {
+			if (img.isPreload())
+				img.setDefaultImage();
+		}
 
 		// initialize game mods
 		for (GameMod mod : GameMod.values())

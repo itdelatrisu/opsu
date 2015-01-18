@@ -828,19 +828,16 @@ public class Game extends BasicGameState {
 
 	/**
 	 * Loads all game images.
-	 * @throws SlickException
 	 */
-	private void loadImages() throws SlickException {
+	private void loadImages() {
 		int width = container.getWidth();
 		int height = container.getHeight();
 
 		// set images
 		File parent = osu.getFile().getParentFile();
 		for (GameImage img : GameImage.values()) {
-			if (img.isGameImage()) {
-				img.setDefaultImage();  // ensure that default image has been loaded
+			if (img.isSkinnable())
 				img.setSkinImage(parent);
-			}
 		}
 
 		// skip button
@@ -852,7 +849,11 @@ public class Game extends BasicGameState {
 
 		// load other images...
 		((GamePauseMenu) game.getState(Opsu.STATE_GAMEPAUSEMENU)).loadImages();
-		score.loadImages(osu.getFile().getParentFile());
+		try {
+			score.loadImages(osu.getFile().getParentFile());
+		} catch (Exception e) {
+			ErrorHandler.error("Failed to load GameScore images.", e, false);
+		}
 	}
 
 	/**

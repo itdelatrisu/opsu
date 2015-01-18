@@ -208,103 +208,103 @@ public enum GameImage {
 	SCORE_X ("score-x", "png"),
 
 	// Non-Game Components
-	MENU_BACK ("menu-back", "png", false) {
+	MENU_BACK ("menu-back", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
 			return img.getScaledCopy((h * 0.1f) / img.getHeight());
 		}
 	},
-	MENU_BUTTON_BG ("menu-button-background", "png", false) {
+	MENU_BUTTON_BG ("menu-button-background", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
 			return img.getScaledCopy(w / 2, h / 6);
 		}
 	},
-	MENU_TAB ("selection-tab", "png", false) {
+	MENU_TAB ("selection-tab", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
 			return img.getScaledCopy((h * 0.033f) / img.getHeight());
 		}
 	},
-	MENU_SEARCH ("search", "png", false) {
+	MENU_SEARCH ("search", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
 			return img.getScaledCopy(Utils.FONT_BOLD.getLineHeight() * 2f / img.getHeight());
 		}
 	},
-	MENU_OPTIONS ("options", "png", false) {
+	MENU_OPTIONS ("options", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
 			return img.getScaledCopy(Utils.FONT_BOLD.getLineHeight() * 2f / img.getHeight());
 		}
 	},
-	MENU_MUSICNOTE ("music-note", "png", false) {
+	MENU_MUSICNOTE ("music-note", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
 			int r = (int) (Utils.FONT_LARGE.getLineHeight() * 0.75f + Utils.FONT_DEFAULT.getLineHeight());
 			return img.getScaledCopy(r, r);
 		}
 	},
-	MENU_LOADER ("loader", "png", false) {
+	MENU_LOADER ("loader", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
 			int r = (int) (Utils.FONT_LARGE.getLineHeight() * 0.75f + Utils.FONT_DEFAULT.getLineHeight());
 			return img.getScaledCopy(r / 48f);
 		}
 	},
-	MENU_BG ("menu-background", "png|jpg", false) {
+	MENU_BG ("menu-background", "png|jpg", false, true) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
 			img.setAlpha(0.9f);
 			return img.getScaledCopy(w, h);
 		}
 	},
-	MENU_LOGO ("logo", "png", false) {
+	MENU_LOGO ("logo", "png", false, true) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
 			return img.getScaledCopy((h / 1.2f) / img.getHeight());
 		}
 	},
-	MENU_PlAY ("menu-play", "png", false) {
+	MENU_PlAY ("menu-play", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
 			return img.getScaledCopy(MENU_LOGO.getImage().getWidth() * 0.83f / img.getWidth());
 		}
 	},
-	MENU_EXIT ("menu-exit", "png", false) {
+	MENU_EXIT ("menu-exit", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
 			return img.getScaledCopy(MENU_LOGO.getImage().getWidth() * 0.66f / img.getWidth());
 		}
 	},
-	MENU_BUTTON_MID ("button-middle", "png", false) {
+	MENU_BUTTON_MID ("button-middle", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
 			return img.getScaledCopy(w / 2, img.getHeight());
 		}
 	},
-	MENU_BUTTON_LEFT ("button-left", "png", false),
-	MENU_BUTTON_RIGHT ("button-right", "png", false),
+	MENU_BUTTON_LEFT ("button-left", "png", false, false),
+	MENU_BUTTON_RIGHT ("button-right", "png", false, false),
 
-	MUSIC_PLAY ("music-play", "png", false),
-	MUSIC_PAUSE ("music-pause", "png", false),
-	MUSIC_NEXT ("music-next", "png", false),
-	MUSIC_PREVIOUS ("music-previous", "png", false),
+	MUSIC_PLAY ("music-play", "png", false, false),
+	MUSIC_PAUSE ("music-pause", "png", false, false),
+	MUSIC_NEXT ("music-next", "png", false, false),
+	MUSIC_PREVIOUS ("music-previous", "png", false, false),
 
-	RANKING_RETRY ("ranking-retry", "png", false) {
+	RANKING_RETRY ("ranking-retry", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
 			return img.getScaledCopy((h * 0.15f) / img.getHeight());
 		}
 	},
-	RANKING_EXIT ("ranking-back", "png", false) {
+	RANKING_EXIT ("ranking-back", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
 			return img.getScaledCopy((h * 0.15f) / img.getHeight());
 		}
 	},
 
-	REPOSITORY ("repo", "png", false) {
+	REPOSITORY ("repo", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
 			return img.getScaledCopy((h / 17f) / img.getHeight());
@@ -329,10 +329,15 @@ public enum GameImage {
 	private byte type;
 
 	/**
-	 * Whether or not the image is related to gameplay.
-	 * Game images are skinnable per beatmap, while other images are not.
+	 * Whether or not the image is skinnable by a beatmap.
+	 * These images are typically related to gameplay.
 	 */
-	private boolean gameImage;
+	private boolean skinnable;
+
+	/**
+	 * Whether or not to preload the image when the program starts.
+	 */
+	private boolean preload;
 
 	/**
 	 * The default image.
@@ -370,7 +375,7 @@ public enum GameImage {
 	public static void destroySkinImages() {
 		if (skinImageLoaded) {
 			for (GameImage img : GameImage.values()) {
-				if (img.isGameImage())
+				if (img.isSkinnable())
 					img.destroySkinImage();
 			}
 			skinImageLoaded = false;
@@ -395,33 +400,42 @@ public enum GameImage {
 	}
 
 	/**
-	 * Constructor.
+	 * Constructor for game-related images (skinnable and preloaded).
 	 * @param filename the image file name
 	 * @param type the file types (separated by '|')
 	 */
 	GameImage(String filename, String type) {
 		this.filename = filename;
 		this.type = getType(type);
-		this.gameImage = true;
+		this.skinnable = true;
+		this.preload = true;
 	}
 
 	/**
-	 * Constructor.
+	 * Constructor for general images.
 	 * @param filename the image file name
 	 * @param type the file types (separated by '|')
-	 * @param gameImage whether or not the image is related to gameplay
+	 * @param skinnable whether or not the image is skinnable
+	 * @param preload whether or not to preload the image
 	 */
-	GameImage(String filename, String type, boolean gameImage) {
+	GameImage(String filename, String type, boolean skinnable, boolean preload) {
 		this.filename = filename;
 		this.type = getType(type);
-		this.gameImage = gameImage;
+		this.skinnable = skinnable;
+		this.preload = preload;
 	}
 
 	/**
-	 * Returns whether or not the image is related to gameplay.
-	 * @return true if game image
+	 * Returns whether or not the image is skinnable.
+	 * @return true if skinnable
 	 */
-	public boolean isGameImage() { return gameImage; }
+	public boolean isSkinnable() { return skinnable; }
+
+	/**
+	 * Returns whether or not to preload the image when the program starts.
+	 * @return true if preload
+	 */
+	public boolean isPreload() { return preload; }
 
 	/**
 	 * Returns the image associated with this resource.
