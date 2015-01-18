@@ -161,7 +161,7 @@ public class MainMenu extends BasicGameState {
 		if (Desktop.isDesktopSupported()) {  // only if a webpage can be opened
 			Image repoImg = GameImage.REPOSITORY.getImage();
 			repoButton = new MenuButton(repoImg,
-					(width * 0.995f) - repoImg.getWidth(), (height * 0.995f) - repoImg.getHeight()
+					(width * 0.997f) - repoImg.getWidth(), (height * 0.997f) - repoImg.getHeight()
 			);
 		}
 
@@ -184,6 +184,13 @@ public class MainMenu extends BasicGameState {
 			bg.setAlpha(bgAlpha);
 			bg.draw();
 		}
+
+		float oldAlpha = Utils.COLOR_BLACK_ALPHA.a;
+		Utils.COLOR_BLACK_ALPHA.a = 0.2f;
+		g.setColor(Utils.COLOR_BLACK_ALPHA);
+		g.fillRect(0, 0, width, height / 9f);
+		g.fillRect(0, height * 8 / 9f, width, height / 9f);
+		Utils.COLOR_BLACK_ALPHA.a = oldAlpha;
 
 		// draw buttons
 		if (logoTimer > 0) {
@@ -211,28 +218,29 @@ public class MainMenu extends BasicGameState {
 			repoButton.draw();
 
 		// draw text
+		float marginX = width * 0.015f, marginY = height * 0.015f;
 		g.setFont(Utils.FONT_MEDIUM);
-		int lineHeight = Utils.FONT_MEDIUM.getLineHeight();
+		int lineHeight = Utils.FONT_MEDIUM.getLineHeight() * 9 / 10;
 		g.drawString(String.format("Loaded %d songs and %d beatmaps.",
-				OsuGroupList.get().size(), OsuGroupList.get().getMapCount()), 25, 25);
+				OsuGroupList.get().size(), OsuGroupList.get().getMapCount()), marginX, marginY);
 		if (MusicController.isTrackLoading())
-			g.drawString("Track loading...", 25, 25 + lineHeight);
+			g.drawString("Track loading...", marginX, marginY + lineHeight);
 		else if (MusicController.trackExists()) {
-			g.drawString((MusicController.isPlaying()) ? "Now Playing:" : "Paused:", 25, 25 + lineHeight);
+			g.drawString((MusicController.isPlaying()) ? "Now Playing:" : "Paused:", marginX, marginY + lineHeight);
 			g.drawString(String.format("%s: %s",
 					MusicController.getArtistName(),
 					MusicController.getTrackName()),
-					50, 25 + (lineHeight * 2));
+					marginX + 25, marginY + (lineHeight * 2));
 		}
 		long time = System.currentTimeMillis() - osuStartTime;
 		g.drawString(String.format("opsu! has been running for %d minutes, %d seconds.",
 				TimeUnit.MILLISECONDS.toMinutes(time),
 				TimeUnit.MILLISECONDS.toSeconds(time) -
 				TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(time))),
-				25, height - 25 - (lineHeight * 2));
+				marginX, height - marginY - (lineHeight * 2));
 		g.drawString(String.format("The current time is %s.",
 				new SimpleDateFormat("h:mm a").format(new Date())),
-				25, height - 25 - lineHeight);
+				marginX, height - marginY - lineHeight);
 
 		Utils.drawFPS();
 		Utils.drawCursor();

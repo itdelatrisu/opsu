@@ -42,6 +42,7 @@ import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.UnicodeFont;
 import org.newdawn.slick.font.effects.ColorEffect;
+import org.newdawn.slick.font.effects.Effect;
 import org.newdawn.slick.imageout.ImageOut;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.util.Log;
@@ -496,11 +497,16 @@ public class Utils {
 		if (!Options.isFPSCounterEnabled())
 			return;
 
-		String fps = String.format("FPS: %d", container.getFPS());
+		String fps = String.format("%dFPS", container.getFPS());
+		FONT_BOLD.drawString(
+				container.getWidth() * 0.997f - FONT_BOLD.getWidth(fps),
+				container.getHeight() * 0.997f - FONT_BOLD.getHeight(fps),
+				Integer.toString(container.getFPS()), Color.white
+		);
 		FONT_DEFAULT.drawString(
-				container.getWidth() - 15 - FONT_DEFAULT.getWidth(fps),
-				container.getHeight() - 15 - FONT_DEFAULT.getHeight(fps),
-				fps, Color.white
+				container.getWidth() * 0.997f - FONT_BOLD.getWidth("FPS"),
+				container.getHeight() * 0.997f - FONT_BOLD.getHeight("FPS"),
+				"FPS", Color.white
 		);
 	}
 
@@ -541,16 +547,16 @@ public class Utils {
 	 * Loads a Unicode font.
 	 * @param font the font to load
 	 * @param padding the top and bottom padding
-	 * @param colorEffect the ColorEffect
+	 * @param effect the font effect
 	 * @throws SlickException
 	 */
 	@SuppressWarnings("unchecked")
 	private static void loadFont(UnicodeFont font, int padding,
-			ColorEffect colorEffect) throws SlickException {
+			Effect effect) throws SlickException {
 		font.setPaddingTop(padding);
 		font.setPaddingBottom(padding);
 		font.addAsciiGlyphs();
-		font.getEffects().add(colorEffect);
+		font.getEffects().add(effect);
 		font.loadGlyphs();
 	}
 

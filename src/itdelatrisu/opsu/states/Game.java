@@ -334,6 +334,7 @@ public class Game extends BasicGameState {
 					GameImage.SCOREBAR_BG.getImage().getHeight(),
 					GameImage.SCOREBAR_KI.getImage().getHeight()
 			);
+			float oldAlpha = Utils.COLOR_WHITE_FADE.a;
 			if (timeDiff < -500)
 				Utils.COLOR_WHITE_FADE.a = (1000 + timeDiff) / 500f;
 			Utils.FONT_MEDIUM.drawString(
@@ -341,7 +342,7 @@ public class Game extends BasicGameState {
 					String.format("%d retries and counting...", retries),
 					Utils.COLOR_WHITE_FADE
 			);
-			Utils.COLOR_WHITE_FADE.a = 1f;
+			Utils.COLOR_WHITE_FADE.a = oldAlpha;
 		}
 
 		if (isLeadIn())
