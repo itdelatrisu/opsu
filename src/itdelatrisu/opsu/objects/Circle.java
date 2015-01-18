@@ -21,6 +21,7 @@ package itdelatrisu.opsu.objects;
 import com.badlogic.gdx.math.MathUtils;
 
 import fluddokt.opsu.fake.*;
+
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.GameMod;
 import itdelatrisu.opsu.GameScore;

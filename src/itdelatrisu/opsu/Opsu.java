@@ -19,6 +19,7 @@
 package itdelatrisu.opsu;
 
 import fluddokt.opsu.fake.*;
+import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.states.Game;
 import itdelatrisu.opsu.states.GamePauseMenu;
 import itdelatrisu.opsu.states.GameRanking;
@@ -45,7 +46,6 @@ import com.badlogic.gdx.graphics.GL20;
 //import com.badlogic.gdx.Game;
 
 /*
-import org.newdawn.slick.AppGameContainer;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.SlickException;
@@ -153,7 +153,7 @@ public class Opsu extends StateBasedGame {
 		// start the game
 		//Opsu opsu = new Opsu("opsu!");
 		/*try {
-			AppGameContainer app = new AppGameContainer(opsu);
+			Container app = new Container(opsu);
 
 			// basic game settings
 			Options.setDisplayMode(app);
@@ -185,8 +185,9 @@ public class Opsu extends StateBasedGame {
 			return false;
 		}
 
+		MusicController.reset();
 		Options.saveOptions();
-		((AppGameContainer) this.getContainer()).destroy();
+		((Container) this.getContainer()).destroy();
 		closeSocket();
 		return true;
 	}
@@ -197,11 +198,12 @@ public class Opsu extends StateBasedGame {
 	 * Closes the server socket.
 	 */
 	public static void closeSocket() {
-		try {
-			if(SERVER_SOCKET!=null)
+		if (SERVER_SOCKET != null) {
+			try {
 				SERVER_SOCKET.close();
-		} catch (IOException e) {
-			ErrorHandler.error("Failed to close server socket.", e, false);
+			} catch (IOException e) {
+				ErrorHandler.error("Failed to close server socket.", e, false);
+			}
 		}
 		
 		

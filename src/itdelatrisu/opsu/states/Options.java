@@ -19,6 +19,8 @@
 package itdelatrisu.opsu.states;
 
 import fluddokt.opsu.fake.*;
+
+import itdelatrisu.opsu.Container;
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.GameMod;
@@ -48,7 +50,6 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
 /*
 import org.lwjgl.input.Keyboard;
-import org.newdawn.slick.AppGameContainer;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
@@ -1088,7 +1089,7 @@ public class Options extends BasicGameState {
 	 * @param app the game container
 	 * @throws SlickException failure to set display mode
 	 */
-	public static void setDisplayMode(AppGameContainer app) throws SlickException {
+	public static void setDisplayMode(Container app) throws SlickException {
 		int screenWidth = app.getScreenWidth();
 		int screenHeight = app.getScreenHeight();
 

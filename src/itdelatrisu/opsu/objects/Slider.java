@@ -347,6 +347,8 @@ public class Slider implements HitObject {
 
 		float approachScale = (timeDiff >= 0) ? 1 + (timeDiff * 3f / game.getApproachTime()) : 1f;
 		float alpha = (approachScale > 3.3f) ? 0f : 1f - (approachScale - 1f) / 2.7f;
+		float oldAlpha = color.a;
+		float oldAlphaFade = Utils.COLOR_WHITE_FADE.a;
 		
 		float scale = timeDiff / (float)game.getApproachTime();
 		alpha = (1 - scale)*2 ;
@@ -384,8 +386,8 @@ public class Slider implements HitObject {
 			score.drawSymbolNumber(hitObject.getComboNumber(), x, y,
 					hitCircle.getWidth() * 0.40f / score.getDefaultSymbolImage(0).getHeight());
 
-		color.a = 1f;
-		Utils.COLOR_WHITE_FADE.a = 1f;
+		color.a = oldAlpha;
+		Utils.COLOR_WHITE_FADE.a = oldAlphaFade;
 
 		// repeats
 		if (hitObject.getRepeatCount() - 1 > currentRepeats) {

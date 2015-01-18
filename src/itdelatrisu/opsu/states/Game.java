@@ -337,6 +337,7 @@ public class Game extends BasicGameState {
 					GameImage.SCOREBAR_BG.getImage().getHeight(),
 					GameImage.SCOREBAR_KI.getImage().getHeight()
 			);
+			float oldAlpha = Utils.COLOR_WHITE_FADE.a;
 			if (timeDiff < -500)
 				Utils.COLOR_WHITE_FADE.a = (1000 + timeDiff) / 500f;
 			Utils.FONT_MEDIUM.drawString(
@@ -344,7 +345,7 @@ public class Game extends BasicGameState {
 					String.format("%d retries and counting...", retries),
 					Utils.COLOR_WHITE_FADE
 			);
-			Utils.COLOR_WHITE_FADE.a = 1f;
+			Utils.COLOR_WHITE_FADE.a = oldAlpha;
 		}
 
 		if (isLeadIn())
@@ -832,19 +833,16 @@ public class Game extends BasicGameState {
 
 	/**
 	 * Loads all game images.
-	 * @throws SlickException
 	 */
-	private void loadImages() throws SlickException {
+	private void loadImages() {
 		int width = container.getWidth();
 		int height = container.getHeight();
 
 		// set images
 		File parent = osu.getFile().getParentFile();
 		for (GameImage img : GameImage.values()) {
-			if (img.isGameImage()) {
-				img.setDefaultImage();  // ensure that default image has been loaded
+			if (img.isSkinnable())
 				img.setSkinImage(parent);
-			}
 		}
 
 		// skip button
@@ -856,7 +854,11 @@ public class Game extends BasicGameState {
 
 		// load other images...
 		((GamePauseMenu) game.getState(Opsu.STATE_GAMEPAUSEMENU)).loadImages();
-		score.loadImages(osu.getFile().getParentFile());
+		try {
+			score.loadImages(osu.getFile().getParentFile());
+		} catch (Exception e) {
+			ErrorHandler.error("Failed to load GameScore images.", e, false);
+		}
 	}
 
 	/**

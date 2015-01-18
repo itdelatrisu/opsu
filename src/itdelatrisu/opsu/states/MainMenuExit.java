@@ -134,11 +134,9 @@ public class MainMenuExit extends BasicGameState {
 		if (button != Input.MOUSE_LEFT_BUTTON)
 			return;
 
-		if (yesButton.contains(x, y)) {
-			Options.saveOptions();
-			Opsu.closeSocket();
+		if (yesButton.contains(x, y))
 			container.exit();
-		} else if (noButton.contains(x, y))
+		else if (noButton.contains(x, y))
 			game.enterState(Opsu.STATE_MAINMENU, new EmptyTransition(), new FadeInTransition(Color.black));
 	}
 
@@ -146,8 +144,6 @@ public class MainMenuExit extends BasicGameState {
 	public void keyPressed(int key, char c) {
 		switch (key) {
 		case Input.KEY_1:
-			Options.saveOptions();
-			Opsu.closeSocket();
 			container.exit();
 			break;
 		case Input.KEY_2:
