@@ -33,6 +33,7 @@ import itdelatrisu.opsu.audio.SoundEffect;
 
 
 
+
 //import java.awt.Desktop;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -407,6 +408,7 @@ public class MainMenu extends BasicGameState {
 		switch (key) {
 		case Input.KEY_ESCAPE:
 		case Input.KEY_Q:
+		case Input.ANDROID_BACK:
 			game.enterState(Opsu.STATE_MAINMENUEXIT);
 			break;
 		case Input.KEY_P:

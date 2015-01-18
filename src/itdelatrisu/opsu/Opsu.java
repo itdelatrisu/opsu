@@ -18,18 +18,7 @@
 
 package itdelatrisu.opsu;
 
-import fluddokt.opsu.fake.BasicGameState;
-import fluddokt.opsu.fake.ClasspathLocation;
-import fluddokt.opsu.fake.Color;
-import fluddokt.opsu.fake.DefaultLogSystem;
-import fluddokt.opsu.fake.File;
-import fluddokt.opsu.fake.FileSystemLocation;
-import fluddokt.opsu.fake.GameContainer;
-import fluddokt.opsu.fake.Graphics;
-import fluddokt.opsu.fake.Log;
-import fluddokt.opsu.fake.ResourceLoader;
-import fluddokt.opsu.fake.SlickException;
-import fluddokt.opsu.fake.StateBasedGame;
+import fluddokt.opsu.fake.*;
 import itdelatrisu.opsu.states.Game;
 import itdelatrisu.opsu.states.GamePauseMenu;
 import itdelatrisu.opsu.states.GameRanking;
@@ -38,8 +27,6 @@ import itdelatrisu.opsu.states.MainMenuExit;
 import itdelatrisu.opsu.states.Options;
 import itdelatrisu.opsu.states.SongMenu;
 import itdelatrisu.opsu.states.Splash;
-
-
 
 //import java.io.File;
 import java.io.FileNotFoundException;
@@ -76,7 +63,7 @@ import org.newdawn.slick.util.ResourceLoader;
  * <p>
  * Creates game container, adds all other states, and initializes song data.
  */
-public class Opsu extends com.badlogic.gdx.Game {
+public class Opsu extends StateBasedGame {
 	/**
 	 * Game states.
 	 */
@@ -95,14 +82,11 @@ public class Opsu extends com.badlogic.gdx.Game {
 	 */
 	private static ServerSocket SERVER_SOCKET;
 
-	//GameContainer gc = new GameContainer();
-	StateBasedGame sbg;
-	
 	public Opsu(String name) {
-		
+		super(name);
 	}
 
-	//@Override
+	@Override
 	public void initStatesList(GameContainer container) throws SlickException {
 		addState(new Splash(STATE_SPLASH));
 		addState(new MainMenu(STATE_MAINMENU));
@@ -114,12 +98,10 @@ public class Opsu extends com.badlogic.gdx.Game {
 		addState(new Options(STATE_OPTIONS));
 	}
 
-	private void addState(BasicGameState gs) throws SlickException {
-		sbg.addState(gs);
-		
-	}
-
-	public static void main2(String[] args) {
+	/**
+	 * Launches opsu!.
+	 */
+	public static void main(String[] args) {
 		// log all errors to a file
 		Log.setVerbose(false);
 		try {
@@ -130,11 +112,9 @@ public class Opsu extends com.badlogic.gdx.Game {
 		Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
 			@Override
 			public void uncaughtException(Thread t, Throwable e) {
-				if(e==null)
-					System.out.println("E is null...");
-				if (!(e instanceof ThreadDeath))  // TODO: see MusicController
-					Log.error("** Uncaught Exception! **", e);
-				e.printStackTrace();
+				if (!(e instanceof ThreadDeath)) {  // TODO: see MusicController
+					ErrorHandler.error("** Uncaught Exception! **", e, true);
+				}
 			}
 		});
 
@@ -160,7 +140,6 @@ public class Opsu extends com.badlogic.gdx.Game {
 		ResourceLoader.addResourceLocation(new FileSystemLocation(Options.getSkinDir()));
 		ResourceLoader.addResourceLocation(new ClasspathLocation());
 		ResourceLoader.addResourceLocation(new FileSystemLocation(new File(".")));
-		ResourceLoader.addResourceLocation(new FileSystemLocation(new File("..")));
 		
 
 		
@@ -192,8 +171,8 @@ public class Opsu extends com.badlogic.gdx.Game {
 		}*/
 	}
 
-	//@Override
-	/*public boolean closeRequested() {
+	@Override
+	public boolean closeRequested() {
 		int id = this.getCurrentStateID();
 
 		// intercept close requests in game-related states and return to song menu
@@ -210,7 +189,9 @@ public class Opsu extends com.badlogic.gdx.Game {
 		((AppGameContainer) this.getContainer()).destroy();
 		closeSocket();
 		return true;
-	}*/
+	}
+
+	
 
 	/**
 	 * Closes the server socket.
@@ -220,78 +201,10 @@ public class Opsu extends com.badlogic.gdx.Game {
 			if(SERVER_SOCKET!=null)
 				SERVER_SOCKET.close();
 		} catch (IOException e) {
-			Log.error("Failed to close server socket.", e);
+			ErrorHandler.error("Failed to close server socket.", e, false);
 		}
-	}
-
-	@Override
-	public void dispose() {
-		super.dispose();
-	}
-
-	@Override
-	public void render() {
-		super.render();
-		Color bgcolor = Graphics.bgcolor;
-		if(bgcolor!=null)
-			Gdx.gl.glClearColor(bgcolor.r, bgcolor.g, bgcolor.b, 1);
-		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-		try {
-			sbg.render();
-		} catch (SlickException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		Graphics.checkMode(0);
-	}
-
-	@Override
-	public void resize(int width, int height) {
-		// TODO Auto-generated method stub
-		super.resize(width, height);
-		Graphics.resize(width, height);
-		sbg.gc.width = width;
-		sbg.gc.height = height;
+		
 		
 	}
 
-	@Override
-	public void create() {
-		
-		FileHandle aedsf;
-		aedsf = Gdx.files.local("./res");
-		System.out.println(" local "+aedsf+" "+aedsf.exists()+" "+aedsf.length()+" "+aedsf.lastModified());
-		aedsf = Gdx.files.internal("./res");
-		System.out.println(" internal "+aedsf+" "+aedsf.exists()+" ");
-		
-		Gdx.input.setCatchBackKey(true);
-		Gdx.gl.glEnable(GL20.GL_BLEND);
-		Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);  
-		sbg = new StateBasedGame();
-		Graphics.init();
-		main2(null);
-		try {
-			initStatesList(new GameContainer());
-			sbg.init();
-		} catch (SlickException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		Gdx.input.setInputProcessor(sbg);
-		
-	}
-
-	@Override
-	public void setScreen(Screen screen) {
-		// TODO Auto-generated method stub
-		super.setScreen(screen);
-	}
-
-	@Override
-	public Screen getScreen() {
-		// TODO Auto-generated method stub
-		return super.getScreen();
-	}
-	
-	
 }

@@ -24,6 +24,22 @@ import itdelatrisu.opsu.OsuFile;
 import itdelatrisu.opsu.OsuParser;
 import itdelatrisu.opsu.states.Options;
 
+/*
+import java.io.File;
+import java.lang.reflect.Field;
+import java.nio.IntBuffer;
+
+import javazoom.jl.converter.Converter;
+
+import org.lwjgl.BufferUtils;
+import org.lwjgl.openal.AL;
+import org.lwjgl.openal.AL10;
+import org.newdawn.slick.Music;
+import org.newdawn.slick.SlickException;
+import org.newdawn.slick.openal.Audio;
+import org.newdawn.slick.openal.SoundStore;
+*/
+
 /**
  * Controller for all music.
  */
@@ -138,7 +154,7 @@ public class MusicController {
 	private static void loadTrack(File file, int previewTime, boolean loop) {
 		try {   // create a new player
 			if(player!=null)
-				player.stop();
+				player.dispose();
 			player = new Music(file.getPath());
 			playAt((previewTime > 0) ? previewTime : 0, loop);
 		} catch (Exception e) {
@@ -274,6 +290,7 @@ public class MusicController {
 	 * If no track is loaded, 0 will be returned.
 	 */
 	public static int getPosition() {
+		//System.out.println("Player Position:"+player.getPosition());
 		if (isPlaying())
 			return Math.max((int) (player.getPosition() * 1000 + Options.getMusicOffset()), 0);
 		else if (isPaused())

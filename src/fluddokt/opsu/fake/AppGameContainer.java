@@ -8,4 +8,9 @@ public class AppGameContainer extends GameContainer{
 		
 	}
 
+	public void destroy() {
+		// TODO Auto-generated method stub
+		
+	}
+
 }

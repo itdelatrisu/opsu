@@ -22,6 +22,7 @@ import fluddokt.opsu.fake.*;
 import itdelatrisu.opsu.states.Options;
 
 
+
 //import java.io.File;
 import java.util.ArrayList;
 /*
@@ -174,7 +175,7 @@ public class OsuFile implements Comparable<OsuFile> {
 	public int compareTo(OsuFile that) {
 		int cmp = Float.compare(this.overallDifficulty, that.overallDifficulty);
 		if (cmp == 0)
-			cmp = Integer.compare(
+			cmp = Integer2.compare(
 					this.hitObjectCircle + this.hitObjectSlider + this.hitObjectSpinner,
 					that.hitObjectCircle + that.hitObjectSlider + that.hitObjectSpinner
 			);

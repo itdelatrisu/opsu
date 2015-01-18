@@ -5,14 +5,14 @@ import java.util.HashMap;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
 
-public class StateBasedGame implements InputProcessor{
+public abstract class StateBasedGame implements InputProcessor{
 
 	public GameContainer gc = new GameContainer();
 	BasicGameState currentState = new BasicGameState(){};
 	BasicGameState nextState = null;
 	HashMap<Integer,BasicGameState> bgs = new HashMap<Integer,BasicGameState>();
 	
-	public StateBasedGame(){
+	public StateBasedGame(String name){
 		gc.width = Gdx.graphics.getWidth();
 		gc.height = Gdx.graphics.getHeight();
 		
@@ -70,6 +70,7 @@ public class StateBasedGame implements InputProcessor{
 	}
 
 	public void init() throws SlickException {
+		initStatesList(gc);
 		for(BasicGameState tgs : bgs.values()){
 			if(!tgs.inited){
 				tgs.init(gc, this);
@@ -124,9 +125,12 @@ public class StateBasedGame implements InputProcessor{
 		currentState.mouseWheelMoved(-amount);
 		return false;
 	}
-	public void closeRequested() {
-		// TODO Auto-generated method stub
-		
+	public boolean closeRequested() {
+		return false;
 	}
-
+	public abstract void initStatesList(GameContainer container) throws SlickException ;
+	public AppGameContainer getContainer() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }
