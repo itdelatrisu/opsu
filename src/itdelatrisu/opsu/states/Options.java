@@ -1086,7 +1086,7 @@ public class Options extends BasicGameState {
 	public static void setDisplayMode(Container app) throws SlickException {
 		int screenWidth = app.getScreenWidth();
 		int screenHeight = app.getScreenHeight();
-	
+
 		// check for larger-than-screen dimensions
 		if (screenWidth < resolution.getWidth() || screenHeight < resolution.getHeight())
 			resolution = Resolution.RES_800_600;

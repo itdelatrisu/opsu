@@ -18,6 +18,7 @@
 
 package itdelatrisu.opsu;
 
+import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.states.Game;
 import itdelatrisu.opsu.states.GamePauseMenu;
 import itdelatrisu.opsu.states.GameRanking;
@@ -171,6 +172,7 @@ public class Opsu extends StateBasedGame {
 			return false;
 		}
 
+		MusicController.reset();
 		Options.saveOptions();
 		((Container) this.getContainer()).destroy();
 		closeSocket();
@@ -181,10 +183,12 @@ public class Opsu extends StateBasedGame {
 	 * Closes the server socket.
 	 */
 	public static void closeSocket() {
-		try {
-			SERVER_SOCKET.close();
-		} catch (IOException e) {
-			ErrorHandler.error("Failed to close server socket.", e, false);
+		if (SERVER_SOCKET != null) {
+			try {
+				SERVER_SOCKET.close();
+			} catch (IOException e) {
+				ErrorHandler.error("Failed to close server socket.", e, false);
+			}
 		}
 	}
 }

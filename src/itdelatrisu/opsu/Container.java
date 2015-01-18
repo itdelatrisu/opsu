@@ -19,6 +19,7 @@
 package itdelatrisu.opsu;
 
 import itdelatrisu.opsu.audio.MusicController;
+import itdelatrisu.opsu.states.Options;
 
 import org.newdawn.slick.AppGameContainer;
 import org.newdawn.slick.Game;
@@ -84,5 +85,12 @@ public class Container extends AppGameContainer {
 			this.e = e;
 			throw e;
 		}
+	}
+
+	@Override
+	public void exit() {
+		Options.saveOptions();
+		Opsu.closeSocket();
+		running = false;
 	}
 }

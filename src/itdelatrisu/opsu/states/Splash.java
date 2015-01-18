@@ -49,6 +49,16 @@ public class Splash extends BasicGameState {
 	 */
 	private boolean finished = false;
 
+	/**
+	 * Loading thread.
+	 */
+	private Thread thread;
+
+	/**
+	 * Number of times the ESC key has been pressed.
+	 */
+	private int escapeCount = 0;
+
 	// game-related variables
 	private int state;
 	private GameContainer container;
@@ -106,7 +116,7 @@ public class Splash extends BasicGameState {
 			// load other resources in a new thread
 			final int width = container.getWidth();
 			final int height = container.getHeight();
-			new Thread() {
+			thread = new Thread() {
 				@Override
 				public void run() {
 					File beatmapDir = Options.getBeatmapDir();
@@ -122,7 +132,8 @@ public class Splash extends BasicGameState {
 
 					finished = true;
 				}
-			}.start();
+			};
+			thread.start();
 		}
 
 		// fade in logo
@@ -150,11 +161,13 @@ public class Splash extends BasicGameState {
 
 	@Override
 	public void keyPressed(int key, char c) {
-		if (key == Input.KEY_ESCAPE) {
-			Options.saveOptions();
-			Opsu.closeSocket();
+		// close program
+		if (++escapeCount >= 3)
 			container.exit();
-		}
+
+		// stop parsing OsuFiles by sending interrupt to OsuParser
+		else if (key == Input.KEY_ESCAPE && thread != null)
+			thread.interrupt();
 	}
 
 	/**
@@ -165,17 +178,20 @@ public class Splash extends BasicGameState {
 	 * @param file the file being loaded
 	 */
 	private void drawLoadProgress(Graphics g, int progress, String text, String file) {
-		int lineY = container.getHeight() - 25;
+		float marginX = container.getWidth() * 0.02f, marginY = container.getHeight() * 0.02f;
+		float lineY = container.getHeight() - marginY;
 		int lineOffsetY = Utils.FONT_MEDIUM.getLineHeight();
 		if (Options.isLoadVerbose()) {
 			Utils.FONT_MEDIUM.drawString(
-					25, lineY - (lineOffsetY * 2),
+					marginX, lineY - (lineOffsetY * 2),
 					String.format("%s (%d%%)", text, progress), Color.white);
-			Utils.FONT_MEDIUM.drawString(25, lineY - lineOffsetY, file, Color.white);
+			Utils.FONT_MEDIUM.drawString(marginX, lineY - lineOffsetY, file, Color.white);
 		} else {
-			Utils.FONT_MEDIUM.drawString(25, lineY - (lineOffsetY * 2), text, Color.white);
+			Utils.FONT_MEDIUM.drawString(marginX, lineY - (lineOffsetY * 2), text, Color.white);
 			g.setColor(Color.white);
-			g.fillRect(25, lineY - (lineOffsetY / 2f), (container.getWidth() - 50) * progress / 100f, lineOffsetY / 4f);
+			g.fillRoundRect(marginX, lineY - (lineOffsetY / 2f),
+					(container.getWidth() - (marginX * 2f)) * progress / 100f, lineOffsetY / 4f, 4
+			);
 		}
 	}
 }

@@ -102,6 +102,10 @@ public class OsuParser {
 				Collections.sort(osuFiles);
 				OsuGroupList.get().addSongGroup(osuFiles);
 			}
+
+			// stop parsing files (interrupt sent by Splash)
+			if (Thread.interrupted())
+				break;
 		}
 
 		// clear string DB
