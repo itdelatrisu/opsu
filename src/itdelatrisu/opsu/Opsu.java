@@ -34,7 +34,6 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.net.ServerSocket;
 
-import org.newdawn.slick.AppGameContainer;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.SlickException;
@@ -140,7 +139,7 @@ public class Opsu extends StateBasedGame {
 		// start the game
 		Opsu opsu = new Opsu("opsu!");
 		try {
-			AppGameContainer app = new AppGameContainer(opsu);
+			Container app = new Container(opsu);
 
 			// basic game settings
 			Options.setDisplayMode(app);
@@ -173,7 +172,7 @@ public class Opsu extends StateBasedGame {
 		}
 
 		Options.saveOptions();
-		((AppGameContainer) this.getContainer()).destroy();
+		((Container) this.getContainer()).destroy();
 		closeSocket();
 		return true;
 	}

@@ -82,24 +82,11 @@ public class MusicController {
 	/**
 	 * Plays an audio file at the preview position.
 	 */
-	@SuppressWarnings("deprecation")
 	public static void play(final OsuFile osu, final boolean loop) {
 		boolean play = (lastOsu == null || !osu.audioFilename.equals(lastOsu.audioFilename));
 		lastOsu = osu;
 		if (play) {
-			themePlaying = false;
-
-			// TODO: properly interrupt instead of using deprecated Thread.stop();
-			// interrupt the conversion/track loading
-			if (isTrackLoading())
-//				trackLoader.interrupt();
-				trackLoader.stop();
-
-			if (wavFile != null)
-				wavFile.delete();
-
-			// releases all sources from previous tracks
-			destroyOpenAL();
+			reset();
 			System.gc();
 
 			switch (OsuParser.getExtension(osu.audioFilename.getName())) {
@@ -152,8 +139,6 @@ public class MusicController {
 				player.loop();
 			else
 				player.play();
-			pauseTime = 0f;
-			trackDimmed = false;
 		}
 	}
 
@@ -320,6 +305,38 @@ public class MusicController {
 	public static void toggleTrackDimmed() {
 		setVolume((trackDimmed) ? Options.getMusicVolume() : Options.getMusicVolume() / 3f);
 		trackDimmed = !trackDimmed;
+	}
+
+	/**
+	 * Completely resets MusicController state.
+	 * <p>
+	 * Stops the current track, cancels track conversions, erases
+	 * temporary files, releases OpenAL sources, and resets state.
+	 */
+	@SuppressWarnings("deprecation")
+	public static void reset() {
+		stop();
+
+		// TODO: properly interrupt instead of using deprecated Thread.stop();
+		// interrupt the conversion/track loading
+		if (isTrackLoading())
+//			trackLoader.interrupt();
+			trackLoader.stop();
+		trackLoader = null;
+
+		// delete temporary WAV file
+		if (wavFile != null) {
+			wavFile.delete();
+			wavFile = null;
+		}
+
+		// reset state
+		themePlaying = false;
+		pauseTime = 0f;
+		trackDimmed = false;
+
+		// releases all sources from previous tracks
+		destroyOpenAL();
 	}
 
 	/**
