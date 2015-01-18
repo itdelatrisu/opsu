@@ -31,8 +31,7 @@ public class File {
 	}
 
 	public String getAbsolutePath() {
-		// TODO Auto-generated method stub
-		return null;
+		return fh.path();
 	}
 
 	public static File internal(String name) {

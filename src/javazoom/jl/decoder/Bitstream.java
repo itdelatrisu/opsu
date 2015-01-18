@@ -47,12 +47,12 @@ public final class Bitstream {
 	/**
 	 * Synchronization control constant for the initial synchronization to the start of a frame.
 	 */
-	static byte INITIAL_SYNC = 0;
+	static final byte INITIAL_SYNC = 0;
 
 	/**
 	 * Synchronization control constant for non-initial frame synchronizations.
 	 */
-	static byte STRICT_SYNC = 1;
+	static final byte STRICT_SYNC = 1;
 
 	// max. 1730 bytes per frame: 144 * 384kbit/s / 32000 Hz + 2 Bytes CRC
 	/**

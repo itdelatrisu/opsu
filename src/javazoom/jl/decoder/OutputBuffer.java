@@ -102,7 +102,7 @@ public class OutputBuffer {
 	public int reset () {
 		try {
 			int index = channels - 1;
-			return channelPointer2[index] - index;
+			return channelPointer[index] - index*2;
 		} finally {
 			// Points to byte location, implicitely assuming 16 bit samples.
 			for (int i = 0; i < channels; i++){

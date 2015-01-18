@@ -4,7 +4,9 @@ public class Music {
 
 	AbsMusic music;
 	public Music(String path){
+		//music = new MusicGdx(path);
 		music = new MusicJL(path);
+		
 	}
 
 	public boolean setPosition(float f){
