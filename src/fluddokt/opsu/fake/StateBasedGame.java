@@ -11,11 +11,12 @@ public abstract class StateBasedGame implements InputProcessor{
 	BasicGameState currentState = new BasicGameState(){};
 	BasicGameState nextState = null;
 	HashMap<Integer,BasicGameState> bgs = new HashMap<Integer,BasicGameState>();
-	
+	String title;
 	public StateBasedGame(String name){
+		this.title = name;
+		Display.setTitle(name);
 		gc.width = Gdx.graphics.getWidth();
 		gc.height = Gdx.graphics.getHeight();
-		
 	}
 	public BasicGameState getState(int stateSongmenu) {
 		return bgs.get(stateSongmenu);
@@ -50,8 +51,7 @@ public abstract class StateBasedGame implements InputProcessor{
 	}
 
 	public String getTitle() {
-		// TODO Auto-generated method stub
-		return null;
+		return title;
 	}
 
 	public void addState(BasicGameState gs) throws SlickException {

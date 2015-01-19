@@ -38,7 +38,6 @@ public class Graphics {
 	}
 	public void setBackground(Color ncolor) {
 		bgcolor = ncolor;
-		
 	}
 
 	public void setFont(UnicodeFont nfont) {
@@ -46,10 +45,7 @@ public class Graphics {
 	}
 
 	public void drawString(String str, float x, float y) {
-		//checkMode(SPRITE);
-		//curFont.bitmap.draw(batch, str, x, height-y-curFont.getHeight(str));
-		drawString(curFont,str,x,y-curFont.getLineHeight());
-		
+		drawString(curFont,str,x,y);
 	}
 	public void drawString(UnicodeFont font, String str, float x, float y) {
 		if(str==null)
@@ -168,8 +164,6 @@ public class Graphics {
 		checkMode(SPRITE);
 		if(tex == null)
 			throw new Error("Texture is null");
-		//batch.draw(tex, x, height-y-hei,wid,hei);
-		//batch.draw(texture, x, y, originX, originY, wid, hei, scaleX, scaleY, rotation, srcX, srcY, srcWidth, srcHeight, flipX, flipY)()
 		//draw(TextureRegion region, float x, float y, float originX, float originY, float width, float height, float scaleX, float scaleY, float rotation, boolean clockwise)
 		batch.draw(tex, x, height-y-hei, wid/2, hei/2, wid, hei, 1, 1, -rotation);
 	}

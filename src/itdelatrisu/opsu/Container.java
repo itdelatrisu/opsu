@@ -18,12 +18,13 @@
 
 package itdelatrisu.opsu;
 
+import fluddokt.opsu.fake.*;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.states.Options;
 
-import org.newdawn.slick.AppGameContainer;
-import org.newdawn.slick.Game;
-import org.newdawn.slick.SlickException;
+//import org.newdawn.slick.AppGameContainer;
+//import org.newdawn.slick.Game;
+//import org.newdawn.slick.SlickException;
 
 /**
  * AppGameContainer extension that sends critical errors to ErrorHandler.

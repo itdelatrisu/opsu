@@ -6,20 +6,29 @@ public class GameContainer {
 
 	public int width = 800;
 	public int height = 600;
+	public boolean hasFocus = true;
+	
+	protected boolean running;
+	protected boolean forceExit;
+	
+	protected void setup(){}
+	protected void getDelta(){}
+	
+	protected boolean running(){return false;}
+	protected void gameLoop(){}
+	
+	
+	
 	public int getWidth() {
-		// TODO Auto-generated method stub
-		return width;
+			return width;
 	}
 
 	public int getHeight() {
-		// TODO Auto-generated method stub
 		return height;
 	}
 
 	public void exit() {
 		Gdx.app.exit();
-		// TODO Auto-generated method stub
-		
 	}
 
 	public Input getInput() {
@@ -28,8 +37,7 @@ public class GameContainer {
 	}
 
 	public boolean hasFocus() {
-		// TODO Auto-generated method stub
-		return true;
+		return hasFocus;
 	}
 
 	public void setTargetFrameRate(int targetFPS) {
@@ -37,9 +45,11 @@ public class GameContainer {
 		
 	}
 
+	static float musvolume;
 	public void setMusicVolume(float musicVolume) {
-		// TODO Auto-generated method stub
-		
+		musvolume = musicVolume;
+		if(music!=null)
+			music.setVolume(musvolume);
 	}
 
 	public void setShowFPS(boolean b) {
@@ -52,9 +62,9 @@ public class GameContainer {
 		
 	}
 
-	public Object getFPS() {
+	public int getFPS() {
 		// TODO Auto-generated method stub
-		return null;
+		return Gdx.graphics.getFramesPerSecond();
 	}
 
 	public Graphics getGraphics() {
@@ -62,18 +72,35 @@ public class GameContainer {
 	}
 
 	public int getScreenWidth() {
-		// TODO Auto-generated method stub
 		return width;
 	}
 
 	public int getScreenHeight() {
-		// TODO Auto-generated method stub
 		return height;
 	}
 
 	public void setVSync(boolean b) {
 		// TODO Auto-generated method stub
 		
+	}
+
+	public void start() throws SlickException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	protected void updateAndRender(int delta) throws SlickException {
+		// TODO Auto-generated method stub
+		
+	}
+	
+	static Music music;
+	public static void setMusic(Music imusic) {
+		// TODO Auto-generated method stub
+		if(music!=null)
+			music.dispose();
+		music = imusic;
+		music.setVolume(musvolume);
 	}
 
 }

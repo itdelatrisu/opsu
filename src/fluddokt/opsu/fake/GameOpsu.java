@@ -9,13 +9,28 @@ import com.badlogic.gdx.graphics.GL20;
 
 public class GameOpsu  extends com.badlogic.gdx.Game {
 
+	@Override
+	public void pause() {
+		// TODO Auto-generated method stub
+		super.pause();
+		sbg.gc.hasFocus=false;
+		sbg.gc.music.pause();
+	}
+
+	@Override
+	public void resume() {
+		// TODO Auto-generated method stub
+		super.resume();
+		sbg.gc.hasFocus=true;
+	}
+
 	//GameContainer gc = new GameContainer();
 	StateBasedGame sbg;
 	
-	private void addState(BasicGameState gs) throws SlickException {
+	/*private void addState(BasicGameState gs) throws SlickException {
 		sbg.addState(gs);
 		
-	}
+	}*/
 
 
 	@Override

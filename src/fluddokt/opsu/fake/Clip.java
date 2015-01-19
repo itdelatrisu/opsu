@@ -1,7 +1,4 @@
-package itdelatrisu.opsu.audio;
-
-import fluddokt.opsu.fake.Log;
-import fluddokt.opsu.fake.ResourceLoader;
+package fluddokt.opsu.fake;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Sound;

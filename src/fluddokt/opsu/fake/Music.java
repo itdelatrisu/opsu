@@ -6,7 +6,7 @@ public class Music {
 	public Music(String path){
 		//music = new MusicGdx(path);
 		music = new MusicJL(path);
-		
+		GameContainer.setMusic(this);
 	}
 
 	public boolean setPosition(float f){

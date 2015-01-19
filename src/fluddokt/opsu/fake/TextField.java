@@ -4,7 +4,7 @@ public class TextField {
 
 	UnicodeFont font;
 	int x,y,w,h;
-	String str=null;
+	String str="";
 	Color bgColor=Color.green,textColor=Color.blue, borderColor=Color.red;
 	
 	public TextField(GameContainer container, UnicodeFont font, int x,

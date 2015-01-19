@@ -1,7 +1,6 @@
 package fluddokt.opsu.fake;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.TimeUtils;
 
 
@@ -67,7 +66,7 @@ public class MusicGdx extends AbsMusic{
 
 	public void fade(int duration, float f, boolean b) {
 		// TODO Auto-generated method stub
-		final int dura = duration;
+		//final int dura = duration;
 		/*new Thread(){
 			@Override
 			public void run() {

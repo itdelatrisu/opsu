@@ -522,6 +522,7 @@ public class SongMenu extends BasicGameState {
 	@Override
 	public void keyPressed(int key, char c) {
 		switch (key) {
+		case Input.ANDROID_BACK:
 		case Input.KEY_ESCAPE:
 			if (!search.getText().isEmpty()) {
 				search.setText("");

@@ -20,6 +20,8 @@ package itdelatrisu.opsu.audio;
 
 import java.util.HashMap;
 
+import fluddokt.opsu.fake.Clip;
+
 //import javax.sound.sampled.Clip;
 
 /**

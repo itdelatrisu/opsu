@@ -4,15 +4,6 @@ import com.badlogic.gdx.Gdx;
 
 public class Log {
 
-	/*public static void error(String string, Exception e) {
-		Gdx.app.error("Error",string, e);
-		if(DefaultLogSystem.out != null){
-			DefaultLogSystem.out.println("Error: "+string+" ");
-			e.printStackTrace(DefaultLogSystem.out);
-			}
-		
-	}*/
-
 	public static void error(String string) {
 		Gdx.app.error("Error",string);
 		if(DefaultLogSystem.out != null){

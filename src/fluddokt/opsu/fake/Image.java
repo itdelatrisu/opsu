@@ -50,14 +50,10 @@ public class Image {
 	
 	public Image getScaledCopy(float f) {
 		return new Image(this,width*f,height*f);
-		//return new Image(this,tex.getWidth()*f,tex.getHeight()*f);
-		
 	}
 
 	public void setAlpha(float f) {
-		//System.out.println("setAlpha: "+this+" "+name+" "+getAlpha()+" "+f);
 		this.alpha = f;
-		
 	}
 
 	public boolean isDestroyed() {
@@ -79,26 +75,19 @@ public class Image {
 
 	public void draw() {
 		Graphics.getGraphics().setColor(Color.white.multAlpha(alpha));
-		//Graphics.setColor(Color.white);
-		
 		Graphics.getGraphics().drawTexture(getTextureRegion(), 0, 0, getWidth(),getHeight(),rotation);
 	}
 	public void draw(float x, float y) {
-		//System.out.println("imgalpha: "+this+" "+name+" "+alpha);
 		Graphics.getGraphics().setColor(Color.white.multAlpha(alpha));
-		//Graphics.getGraphics().setColor(Color.white);
-		
 		Graphics.getGraphics().drawTexture(getTextureRegion(),x,y, getWidth(),getHeight(),rotation);
 	}
 
 	public void draw(float x, float y, Color filter) {
 		Graphics.getGraphics().setColor(filter.multAlpha(alpha));
-		//Graphics.getGraphics().setColor(Color.white);
 		Graphics.getGraphics().drawTexture(getTextureRegion(), x, y, getWidth(),getHeight(),rotation);
 	}
 	public void drawCentered(float x, float y) {
 		Graphics.getGraphics().setColor(Color.white.multAlpha(alpha));
-		//Graphics.getGraphics().setColor(Color.white);
 		Graphics.getGraphics().drawTexture(getTextureRegion(), x-getWidth()/2, y-getHeight()/2,getWidth(),getHeight(),rotation);
 	}
 	public TextureRegion getTextureRegion(){

@@ -1,5 +1,5 @@
 package fluddokt.opsu.fake;
 
-public class ColorEffect {
+public class ColorEffect extends Effect {
 
 }

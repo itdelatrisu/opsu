@@ -91,31 +91,7 @@ public class MusicController {
 		lastOsu = osu;
 		
 		if (play) {
-			/*themePlaying = false;
-
-			// TODO: properly interrupt instead of using deprecated Thread.stop();
-			// interrupt the conversion/track loading
-			if (isTrackLoading()){
-				trackLoader.interrupt();
-				try {
-					trackLoader.join();
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}	
-			}
-			//	trackLoader.stop();
-			if(player!=null){
-				player.stop();
-			}
-			stop();
 			
-
-			if (wavFile != null)
-				wavFile.delete();
-
-			// releases all sources from previous tracks
-			destroyOpenAL();*/
 			reset();
 			System.gc();
 
@@ -356,10 +332,20 @@ public class MusicController {
 
 		// TODO: properly interrupt instead of using deprecated Thread.stop();
 		// interrupt the conversion/track loading
-		if (isTrackLoading())
-//			trackLoader.interrupt();
-			trackLoader.stop();
+		if (isTrackLoading()){
+			trackLoader.interrupt();
+			try {
+				trackLoader.join();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}	
+		}
 		trackLoader = null;
+
+		if(player!=null){
+			player.stop();
+		}
 
 		// delete temporary WAV file
 		if (wavFile != null) {

@@ -9,7 +9,7 @@ import com.badlogic.gdx.graphics.Texture;
 
 public class UnicodeFont {
 
-	LinkedList<ColorEffect> colorEffects = new LinkedList<ColorEffect>();
+	LinkedList<Effect> colorEffects = new LinkedList<Effect>();
 	public BitmapFont bitmap;
 	int padbottom=0, padtop=0;
 	public UnicodeFont(Font font) {
@@ -17,11 +17,12 @@ public class UnicodeFont {
 		FreeTypeFontGenerator generator = new FreeTypeFontGenerator(ResourceLoader.getFileHandle(font.name));
 		FreeTypeFontParameter parameter = new FreeTypeFontParameter();
 		parameter.size = (int) font.size;
+		//sizes smaller than 28 produces garbage so scale it up
 		while(parameter.size<28)
 			parameter.size*=2;
 			
 		parameter.kerning=true;
-		parameter.minFilter = Texture.TextureFilter.Nearest;
+		parameter.minFilter = Texture.TextureFilter.Linear;
 		parameter.magFilter = Texture.TextureFilter.Linear;
 		//parameter.characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ123456790:!@#$%^&";
 		generator.scaleForPixelHeight(parameter.size);
@@ -53,7 +54,7 @@ public class UnicodeFont {
 
 	}
 
-	public LinkedList<ColorEffect> getEffects() {
+	public LinkedList<Effect> getEffects() {
 		return colorEffects;
 	}
 

@@ -1,8 +1,5 @@
 package fluddokt.opsu.fake;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.AudioDevice;
 import com.badlogic.gdx.files.FileHandle;
@@ -14,12 +11,16 @@ public class MusicJL extends AbsMusic {
 
 	boolean setNextPosition = false;
 	float nextPosition;
+	float volume = 1f;
+	static Object ALLock = new Object();
 	
 	class PlayThread extends Thread{
 		boolean started = false;
 		boolean paused = true;
 		boolean toStop = false;
 		boolean toLoop;
+		boolean inited = false;
+		
 		float position;//in ms
 		
 		public void setPosition(float f){
@@ -37,18 +38,25 @@ public class MusicJL extends AbsMusic {
 		public boolean isPlaying() {
 			return !paused;
 		}
-		public void setVolume(float volume) {
-			//while(!started);
-			ad.setVolume(volume);
+		public void setVolume(float nvolume) {
+			volume = nvolume;
+			//if(ad!=null)
+			//	ad.setVolume(volume);
+			
 		}
 		public void stopPlaying(){
 			System.out.println("stopPlaying");
+			inited = false;
+			
 			toStop = true;
 			paused = true;
+			
 		}
 		public void pause(){
 			System.out.println("pause");
-				paused = true;
+			inited = false;
+		
+			paused = true;
 		}
 		public void resumePlaying(){
 			System.out.println("resumePlaying");
@@ -72,16 +80,20 @@ public class MusicJL extends AbsMusic {
 				);
 				position = 0;
 				started=true;
-				boolean inited = false;
 				while(!toStop){
 					if(paused){
+						if(ad!=null){
+							ad.dispose();
+							ad=null;
+						}
+						inited=false;
 						Thread.sleep(16);
 						continue;
 					}
 						
 					header = bitstream.readFrame();
 					if(setNextPosition){
-						System.out.println("Next Positioning: "+position+" "+nextPosition);
+						//System.out.println("Next Positioning: "+position+" "+nextPosition);
 						if(position > nextPosition){
 							decoder = new MP3Decoder();
 							bitstream = new Bitstream(
@@ -92,7 +104,7 @@ public class MusicJL extends AbsMusic {
 							header = bitstream.readFrame();
 						}
 						while(position < nextPosition){
-							System.out.println("Next Positioning2: "+position+" "+nextPosition);
+							//System.out.println("Next Positioning2: "+position+" "+nextPosition);
 							bitstream.closeFrame();
 							header = bitstream.readFrame();
 							position+=header.ms_per_frame();
@@ -113,16 +125,22 @@ public class MusicJL extends AbsMusic {
 						
 					}else{
 						if(!inited){
+							System.out.println("Music Init");
+							if(ad!=null){
+								ad.dispose();
+							}
 							ad = Gdx.audio.newAudioDevice(header.frequency(), header.mode()==Header.SINGLE_CHANNEL);
-							ad.setVolume(1);
+							
+								//ad.setVolume(volume);
 							buf = new OutputBuffer(header.mode()==Header.SINGLE_CHANNEL?1:2, false);
 							decoder = new MP3Decoder();
 							decoder.setOutputBuffer(buf);
 							inited = true;
 						}
-						if(header!=null){
+						if(header!=null && inited){
 							decoder.decodeFrame(header, bitstream);
 							int len = buf.reset()/2;
+							//ad.setVolume(volume+(float)(Math.random()*0.001));
 							ad.writeSamples(buf.buffer2, 0, len);//buf.channelPointer2[0]);
 							position+=header.ms_per_frame();
 							bitstream.closeFrame();
@@ -136,100 +154,6 @@ public class MusicJL extends AbsMusic {
 			toStop=true;
 			System.out.println("Done "+file.path());
 		}
-		public void run2(){
-			try {
-				header = bitstream.readFrame();
-			
-				ad = Gdx.audio.newAudioDevice(header.frequency(), header.mode()==Header.SINGLE_CHANNEL);
-				ad.setVolume(1);
-				buf = new OutputBuffer(header.mode()==Header.SINGLE_CHANNEL?1:2, false);
-				short[] sbuf = new short[OutputBuffer.BUFFERSIZE];
-				decoder = new MP3Decoder();
-				decoder.setOutputBuffer(buf);
-				decoder.decodeFrame(header, bitstream);
-				buf.reset();
-				int cnt = 0;
-				position+=header.ms_per_frame();
-				started=true;
-				while(header!=null && !toStop){
-					try {
-						if(setNextPosition){
-						System.out.println("Next Positioning: "+position+" "+nextPosition);
-						if(position > nextPosition){
-							decoder = new MP3Decoder();
-							bitstream = new Bitstream(
-								file.read()
-							);
-							decoder.setOutputBuffer(buf);
-							position = 0;
-							header = bitstream.readFrame();
-						}
-						while(position < nextPosition){
-							System.out.println("Next Positioning2: "+position+" "+nextPosition);
-								bitstream.closeFrame();
-								header = bitstream.readFrame();
-							
-							position+=header.ms_per_frame();
-							
-						}
-						bitstream.closeFrame();
-						header = bitstream.readFrame();
-						decoder.decodeFrame(header, bitstream);
-						buf.reset();
-						
-						setNextPosition=false;
-					}
-					} catch (BitstreamException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					} catch (DecoderException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-					if(!paused){
-						if(cnt++ > 500)
-							break;
-						/*
-						System.out.println(header+" "+header.frequency()
-								+" mode:"+header.mode_string()
-								+" mode:"+header.mode()
-								+" modee:"+header.mode_extension()
-								+" A:"+Header.STEREO+" "+Header.DUAL_CHANNEL+" "+Header.JOINT_STEREO+" "+Header.SINGLE_CHANNEL
-								+" SFreq:"+header.sample_frequency()
-								+" MSPf:"+header.ms_per_frame()
-								+" FrSz:"+header.framesize
-								+" CFrFz:"+header.calculate_framesize()
-								+" SyncHd:"+header.getSyncHeader()
-								+" Layer:"+header.layer_string()
-								+" nslots:"+header.nSlots
-								+" bitrate"+header.bitrate()
-								+" isb"+header.bitrate_instant()
-								);//*/
-						
-						decoder.decodeFrame(header, bitstream);
-						int len = buf.reset()/2;
-						ad.writeSamples(buf.buffer2, 0, len);//buf.channelPointer2[0]);
-						position+=header.ms_per_frame();
-						bitstream.closeFrame();
-						header = bitstream.readFrame();
-						if(Thread.interrupted()){
-							System.out.println("Interrupted");
-							return;
-						}
-					}
-				}
-			} catch (BitstreamException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (ArrayIndexOutOfBoundsException e){
-				e.printStackTrace();
-			} catch (DecoderException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			//while(header!=null);
-			System.out.println("Done");
-		}
 		
 	}
 	PlayThread playThread;
@@ -240,12 +164,13 @@ public class MusicJL extends AbsMusic {
 	OutputBuffer buf;
 	FileHandle file;
 	public MusicJL(String path) {
+		System.out.println("New Song "+path);
 		file = ResourceLoader.getFileHandle(path);
 		
 		if(playThread==null || playThread.toStop)
 			playThread = new PlayThread();
-		if(!playThread.started)
-			playThread.start();
+		//if(!playThread.started)
+		//	playThread.start();
 		
 		
 	}
@@ -266,14 +191,6 @@ public class MusicJL extends AbsMusic {
 	@Override
 	public void play() {
 		System.out.println("Play "+file.path());
-		/*if(playThread!=null){
-			playThread.stopPlaying();
-			try {
-				playThread.join();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		}*/
 		if(playThread.toStop)
 			playThread = new PlayThread();
 		playThread.play();
@@ -333,14 +250,14 @@ public class MusicJL extends AbsMusic {
 			lastTime = thisTime - ((long)(syncPosition*1000));
 		}
 		if((int)(dxPosition2*1000)!=0 && Math.abs(syncPosition - dxTime/1000f)>0){
-			System.out.println("Time Reset"+" "+syncPosition+" "+(dxTime/1000f) +" " +(syncPosition-(dxTime/1000f)) );
+			//System.out.println("Time Reset"+" "+syncPosition+" "+(dxTime/1000f) +" " +(syncPosition-(dxTime/1000f)) );
+			
 			lastTime = thisTime - ((long)(syncPosition*1000)+dxTime)/2;
 			
-			
-			System.out.println( "Synced:"+(syncPosition*1000)
+			/*System.out.println( "Synced:"+(syncPosition*1000)
 					+" dx:"+(syncPosition-lastTime)
 					+" "
-			);
+			);*/
 			
 			lastPosition = thisPosition;
 			
@@ -355,6 +272,26 @@ public class MusicJL extends AbsMusic {
 
 	@Override
 	public void dispose() {
+		System.out.println("dispose "+file.path());
+		try {
+			stop();
+			playThread.join();
+		} catch (InterruptedException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		if(ad!=null){
+			if(playThread.inited)
+				ad.dispose();
+		}
+		if(bitstream!=null){
+			try {
+				bitstream.close();
+			} catch (BitstreamException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 	}
 
 }
