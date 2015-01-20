@@ -169,7 +169,7 @@ public class SoundController {
 	 * @param s the sound effect
 	 */
 	public static void playSound(SoundComponent s) {
-		playClip(s.getClip(), Options.getEffectVolume());
+		playClip(s.getClip(), Options.getEffectVolume() * Options.getMasterVolume());
 	}
 
 	/**
@@ -180,7 +180,7 @@ public class SoundController {
 		if (hitSound < 0)
 			return;
 
-		float volume = Options.getHitSoundVolume() * sampleVolumeMultiplier;
+		float volume = Options.getHitSoundVolume() * sampleVolumeMultiplier * Options.getMasterVolume();
 		if (volume == 0f)
 			return;
 
@@ -202,7 +202,7 @@ public class SoundController {
 	 * @param s the hit sound
 	 */
 	public static void playHitSound(SoundComponent s) {
-		playClip(s.getClip(), Options.getHitSoundVolume() * sampleVolumeMultiplier);
+		playClip(s.getClip(), Options.getHitSoundVolume() * sampleVolumeMultiplier * Options.getMasterVolume());
 	}
 
 	/**

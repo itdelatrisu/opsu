@@ -133,7 +133,7 @@ public class MusicController {
 	 */
 	public static void playAt(final int position, final boolean loop) {
 		if (trackExists()) {
-			SoundStore.get().setMusicVolume(Options.getMusicVolume());
+			setVolume(Options.getMusicVolume() * Options.getMasterVolume());
 			player.setPosition(position / 1000f);
 			if (loop)
 				player.loop();
@@ -303,7 +303,8 @@ public class MusicController {
 	 * Toggles the volume dim state of the current track.
 	 */
 	public static void toggleTrackDimmed() {
-		setVolume((trackDimmed) ? Options.getMusicVolume() : Options.getMusicVolume() / 3f);
+		float volume = Options.getMusicVolume() * Options.getMasterVolume();
+		setVolume((trackDimmed) ? volume : volume / 3f);
 		trackDimmed = !trackDimmed;
 	}
 

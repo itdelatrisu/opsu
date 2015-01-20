@@ -43,6 +43,7 @@ import org.lwjgl.opengl.GL11;
 import org.newdawn.slick.Animation;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
+import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
@@ -111,6 +112,16 @@ public class Utils {
 	private static LinkedList<Integer>
 		cursorX = new LinkedList<Integer>(),
 		cursorY = new LinkedList<Integer>();
+
+	/**
+	 * Time to show volume image, in milliseconds.
+	 */
+	private static final int VOLUME_DISPLAY_TIME = 1500;
+
+	/**
+	 * Volume display elapsed time.
+	 */
+	private static int volumeDisplay = -1;
 
 	/**
 	 * Set of all Unicode strings already loaded.
@@ -515,6 +526,63 @@ public class Utils {
 				container.getHeight() * 0.997f - FONT_BOLD.getHeight("FPS"),
 				"FPS", Color.white
 		);
+	}
+
+	/**
+	 * Draws the volume bar on the middle right-hand side of the game container.
+	 * Only draws if the volume has recently been changed using with {@link #changeVolume(int)}.
+	 * @param g the graphics context
+	 */
+	public static void drawVolume(Graphics g) {
+		if (volumeDisplay == -1)
+			return;
+
+		int width = container.getWidth(), height = container.getHeight();
+		Image img = GameImage.VOLUME.getImage();
+
+		// move image in/out
+		float xOffset = 0;
+		float ratio = (float) volumeDisplay / VOLUME_DISPLAY_TIME;
+		if (ratio <= 0.1f)
+			xOffset = img.getWidth() * (1 - (ratio * 10f));
+		else if (ratio >= 0.9f)
+			xOffset = img.getWidth() * (1 - ((1 - ratio) * 10f));
+
+		img.drawCentered(width - img.getWidth() / 2f + xOffset, height / 2f);
+		float barHeight = img.getHeight() * 0.9f;
+		float volume = Options.getMasterVolume();
+		g.setColor(Color.white);
+		g.fillRoundRect(
+				width - (img.getWidth() * 0.368f) + xOffset,
+				(height / 2f) - (img.getHeight() * 0.47f) + (barHeight * (1 - volume)),
+				img.getWidth() * 0.15f, barHeight * volume, 3
+		);
+	}
+
+	/**
+	 * Updates volume display by a delta interval.
+	 * @param delta the delta interval since the last call
+	 */
+	public static void updateVolumeDisplay(int delta) {
+		if (volumeDisplay == -1)
+			return;
+
+		volumeDisplay += delta;
+		if (volumeDisplay > VOLUME_DISPLAY_TIME)
+			volumeDisplay = -1;
+	}
+
+	/**
+	 * Changes the master volume by a unit (positive or negative).
+	 * @param units the number of units
+	 */
+	public static void changeVolume(int units) {
+		final float UNIT_OFFSET = 0.05f;
+		Options.setMasterVolume(container, Utils.getBoundedValue(Options.getMasterVolume(), UNIT_OFFSET * units, 0f, 1f));
+		if (volumeDisplay == -1)
+			volumeDisplay = 0;
+		else if (volumeDisplay >= VOLUME_DISPLAY_TIME / 10)
+			volumeDisplay = VOLUME_DISPLAY_TIME / 10;
 	}
 
 	/**

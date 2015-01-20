@@ -208,6 +208,12 @@ public enum GameImage {
 	SCORE_X ("score-x", "png"),
 
 	// Non-Game Components
+	VOLUME ("volume-bg", "png", false, false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy((h * 0.3f) / img.getHeight());
+		}
+	},
 	MENU_BACK ("menu-back", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {

@@ -421,6 +421,7 @@ public class Game extends BasicGameState {
 			cursorCirclePulse.drawCentered(pausedMouseX, pausedMouseY);
 		}
 
+		Utils.drawVolume(g);
 		Utils.drawFPS();
 		Utils.drawCursor();
 	}
@@ -429,6 +430,7 @@ public class Game extends BasicGameState {
 	public void update(GameContainer container, StateBasedGame game, int delta)
 			throws SlickException {
 		Utils.updateCursor(delta);
+		Utils.updateVolumeDisplay(delta);
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
 		skipButton.hoverUpdate(delta, mouseX, mouseY);
 
@@ -705,6 +707,11 @@ public class Game extends BasicGameState {
 		// sliders
 		else if (hitObject.isSlider())
 			hitObjects[objectIndex].mousePressed(x, y);
+	}
+
+	@Override
+	public void mouseWheelMoved(int newValue) {
+		Utils.changeVolume((newValue < 0) ? -1 : 1);
 	}
 
 	@Override

@@ -107,6 +107,7 @@ public class MainMenuExit extends BasicGameState {
 				"2. No", Color.white
 		);
 
+		Utils.drawVolume(g);
 		Utils.drawFPS();
 		Utils.drawCursor();
 	}
@@ -115,6 +116,7 @@ public class MainMenuExit extends BasicGameState {
 	public void update(GameContainer container, StateBasedGame game, int delta)
 			throws SlickException {
 		Utils.updateCursor(delta);
+		Utils.updateVolumeDisplay(delta);
 
 		// move buttons to center
 		float yesX = yesButton.getX(), noX = noButton.getX();

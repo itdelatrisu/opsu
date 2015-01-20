@@ -343,6 +343,7 @@ public class SongMenu extends BasicGameState {
 		// back button
 		Utils.getBackButton().draw();
 
+		Utils.drawVolume(g);
 		Utils.drawFPS();
 		Utils.drawCursor();
 	}
@@ -351,6 +352,7 @@ public class SongMenu extends BasicGameState {
 	public void update(GameContainer container, StateBasedGame game, int delta)
 			throws SlickException {
 		Utils.updateCursor(delta);
+		Utils.updateVolumeDisplay(delta);
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
 		Utils.getBackButton().hoverUpdate(delta, mouseX, mouseY);
 		optionsButton.hoverUpdate(delta, mouseX, mouseY);

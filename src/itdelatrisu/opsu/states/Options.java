@@ -172,14 +172,24 @@ public class Options extends BasicGameState {
 				container.setVSync(getTargetFPS() == 60);
 			}
 		},
-		MUSIC_VOLUME ("Music Volume", "Global music volume.") {
+		MASTER_VOLUME ("Master Volume", "Global volume level.") {
+			@Override
+			public String getValueString() { return String.format("%d%%", masterVolume); }
+
+			@Override
+			public void drag(GameContainer container, int d) {
+				masterVolume = Utils.getBoundedValue(masterVolume, d, 0, 100);
+				container.setMusicVolume(getMasterVolume() * getMusicVolume());
+			}
+		},
+		MUSIC_VOLUME ("Music Volume", "Volume of music.") {
 			@Override
 			public String getValueString() { return String.format("%d%%", musicVolume); }
 
 			@Override
 			public void drag(GameContainer container, int d) {
 				musicVolume = Utils.getBoundedValue(musicVolume, d, 0, 100);
-				container.setMusicVolume(getMusicVolume());
+				container.setMusicVolume(getMasterVolume() * getMusicVolume());
 			}
 		},
 		EFFECT_VOLUME ("Effect Volume", "Volume of menu and game sounds.") {
@@ -480,6 +490,7 @@ public class Options extends BasicGameState {
 	 * Music options.
 	 */
 	private static final GameOption[] musicOptions = {
+		GameOption.MASTER_VOLUME,
 		GameOption.MUSIC_VOLUME,
 		GameOption.EFFECT_VOLUME,
 		GameOption.HITSOUND_VOLUME,
@@ -613,19 +624,24 @@ public class Options extends BasicGameState {
 	private static boolean showComboBursts = true;
 
 	/**
+	 * Global volume level.
+	 */
+	private static int masterVolume = 35;
+
+	/**
 	 * Default music volume.
 	 */
-	private static int musicVolume = 30;
+	private static int musicVolume = 80;
 
 	/**
 	 * Default sound effect volume.
 	 */
-	private static int effectVolume = 20;
+	private static int effectVolume = 70;
 
 	/**
 	 * Default hit sound volume.
 	 */
-	private static int hitSoundVolume = 20;
+	private static int hitSoundVolume = 70;
 
 	/**
 	 * Offset time, in milliseconds, for music position-related elements.
@@ -847,6 +863,7 @@ public class Options extends BasicGameState {
 			);
 		}
 
+		Utils.drawVolume(g);
 		Utils.drawFPS();
 		Utils.drawCursor();
 	}
@@ -855,6 +872,7 @@ public class Options extends BasicGameState {
 	public void update(GameContainer container, StateBasedGame game, int delta)
 			throws SlickException {
 		Utils.updateCursor(delta);
+		Utils.updateVolumeDisplay(delta);
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
 		Utils.getBackButton().hoverUpdate(delta, mouseX, mouseY);
 		for (GameMod mod : GameMod.values())
@@ -1043,6 +1061,24 @@ public class Options extends BasicGameState {
 	 * @return the target FPS
 	 */
 	public static int getTargetFPS() { return targetFPS[targetFPSindex]; }
+
+	/**
+	 * Returns the master volume level.
+	 * @return the volume [0, 1]
+	 */
+	public static float getMasterVolume() { return masterVolume / 100f; }
+
+	/**
+	 * Sets the master volume level (if within valid range).
+	 * @param container the game container
+	 * @param volume the volume [0, 1]
+	 */
+	public static void setMasterVolume(GameContainer container, float volume) {
+		if (volume >= 0f && volume <= 1f) {
+			masterVolume = (int) (volume * 100f);
+			container.setMusicVolume(getMasterVolume() * getMusicVolume());
+		}
+	}
 
 	/**
 	 * Returns the default music volume.
@@ -1417,6 +1453,11 @@ public class Options extends BasicGameState {
 				case "LoadVerbose":
 					loadVerbose = Boolean.parseBoolean(value);
 					break;
+				case "VolumeUniversal":
+					i = Integer.parseInt(value);
+					if (i >= 0 && i <= 100)
+						masterVolume = i;
+					break;
 				case "VolumeMusic":
 					i = Integer.parseInt(value);
 					if (i >= 0 && i <= 100)
@@ -1550,6 +1591,8 @@ public class Options extends BasicGameState {
 			writer.write(String.format("DynamicBackground = %b", dynamicBackground));
 			writer.newLine();
 			writer.write(String.format("LoadVerbose = %b", loadVerbose));
+			writer.newLine();
+			writer.write(String.format("VolumeUniversal = %d", masterVolume));
 			writer.newLine();
 			writer.write(String.format("VolumeMusic = %d", musicVolume));
 			writer.newLine();

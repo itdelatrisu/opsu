@@ -242,6 +242,7 @@ public class MainMenu extends BasicGameState {
 				new SimpleDateFormat("h:mm a").format(new Date())),
 				marginX, height - marginY - lineHeight);
 
+		Utils.drawVolume(g);
 		Utils.drawFPS();
 		Utils.drawCursor();
 	}
@@ -250,6 +251,7 @@ public class MainMenu extends BasicGameState {
 	public void update(GameContainer container, StateBasedGame game, int delta)
 			throws SlickException {
 		Utils.updateCursor(delta);
+		Utils.updateVolumeDisplay(delta);
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
 		logo.hoverUpdate(delta, mouseX, mouseY);
 		playButton.hoverUpdate(delta, mouseX, mouseY);
@@ -400,6 +402,11 @@ public class MainMenu extends BasicGameState {
 			} else if (exitButton.contains(x, y))
 				container.exit();
 		}
+	}
+
+	@Override
+	public void mouseWheelMoved(int newValue) {
+		Utils.changeVolume((newValue < 0) ? -1 : 1);
 	}
 
 	@Override
