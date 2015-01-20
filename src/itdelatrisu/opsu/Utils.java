@@ -23,7 +23,9 @@ import itdelatrisu.opsu.audio.SoundEffect;
 import itdelatrisu.opsu.states.Options;
 
 import java.awt.Font;
+import java.awt.image.BufferedImage;
 import java.io.File;
+import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -31,9 +33,13 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 
+import javax.imageio.ImageIO;
+
 import org.lwjgl.BufferUtils;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.input.Cursor;
+import org.lwjgl.opengl.Display;
+import org.lwjgl.opengl.GL11;
 import org.newdawn.slick.Animation;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
@@ -43,7 +49,6 @@ import org.newdawn.slick.SlickException;
 import org.newdawn.slick.UnicodeFont;
 import org.newdawn.slick.font.effects.ColorEffect;
 import org.newdawn.slick.font.effects.Effect;
-import org.newdawn.slick.imageout.ImageOut;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.util.Log;
 import org.newdawn.slick.util.ResourceLoader;
@@ -514,35 +519,53 @@ public class Utils {
 
 	/**
 	 * Takes a screenshot.
-	 * @return true if successful
+	 * @author http://wiki.lwjgl.org/index.php?title=Taking_Screen_Shots
 	 */
-	public static boolean takeScreenShot() {
-		// TODO: should this be threaded?
-		try {
-			// create the screenshot directory
-			File dir = Options.getScreenshotDir();
-			if (!dir.isDirectory()) {
-				if (!dir.mkdir())
-					return false;
+	public static void takeScreenShot() {
+		// create the screenshot directory
+		File dir = Options.getScreenshotDir();
+		if (!dir.isDirectory()) {
+			if (!dir.mkdir()) {
+				ErrorHandler.error("Failed to create screenshot directory.", null, false);
+				return;
 			}
-
-			// create file name
-			SimpleDateFormat date = new SimpleDateFormat("yyyyMMdd_HHmmss");
-			File file = new File(dir, String.format("screenshot_%s.%s",
-					date.format(new Date()), Options.getScreenshotFormat()));
-
-			SoundController.playSound(SoundEffect.SHUTTER);
-
-			// copy the screen
-			Image screen = new Image(container.getWidth(), container.getHeight());
-			container.getGraphics().copyArea(screen, 0, 0);
-			ImageOut.write(screen, file.getAbsolutePath(), false);
-			screen.destroy();
-		} catch (SlickException e) {
-			Log.warn("Failed to take a screenshot.", e);
-			return false;
 		}
-		return true;
+
+		// create file name
+		SimpleDateFormat date = new SimpleDateFormat("yyyyMMdd_HHmmss");
+		final File file = new File(dir, String.format("screenshot_%s.%s",
+				date.format(new Date()), Options.getScreenshotFormat()));
+
+		SoundController.playSound(SoundEffect.SHUTTER);
+
+		// copy the screen to file
+		final int width = Display.getWidth();
+		final int height = Display.getHeight();
+		final int bpp = 3;  // assuming a 32-bit display with a byte each for red, green, blue, and alpha
+		final ByteBuffer buffer = BufferUtils.createByteBuffer(width * height * bpp);
+		GL11.glReadBuffer(GL11.GL_FRONT);
+		GL11.glPixelStorei(GL11.GL_PACK_ALIGNMENT, 1);
+		GL11.glReadPixels(0, 0, width, height, GL11.GL_RGB, GL11.GL_UNSIGNED_BYTE, buffer);
+		new Thread() {
+			@Override
+			public void run() {
+				try {
+					BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+					for (int x = 0; x < width; x++) {
+						for (int y = 0; y < height; y++) {
+							int i = (x + (width * y)) * bpp;
+							int r = buffer.get(i) & 0xFF;
+							int g = buffer.get(i + 1) & 0xFF;
+							int b = buffer.get(i + 2) & 0xFF;
+							image.setRGB(x, height - (y + 1), (0xFF << 24) | (r << 16) | (g << 8) | b);
+						}
+					}
+					ImageIO.write(image, Options.getScreenshotFormat(), file);
+				} catch (Exception e) {
+					ErrorHandler.error("Failed to take a screenshot.", e, true);
+				}
+			}
+		}.start();
 	}
 
 	/**
