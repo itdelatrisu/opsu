@@ -208,11 +208,6 @@ public class GameScore {
 	private Image[] gradesLarge, gradesSmall;
 
 	/**
-	 * Lighting effects, displayed behind hit object results (optional).
-	 */
-	private Image lighting, lighting1;
-
-	/**
 	 * Container dimensions.
 	 */
 	private int width, height;
@@ -283,33 +278,6 @@ public class GameScore {
 			}
 		}
 		comboBurstImages = comboBurst.toArray(new Image[comboBurst.size()]);
-
-		// lighting image
-		if (lighting != null && !lighting.isDestroyed()) {
-			lighting.destroy();
-			lighting = null;
-		}
-		if (lighting1 != null && !lighting1.isDestroyed()) {
-			lighting1.destroy();
-			lighting1 = null;
-		}
-		File lightingFile = new File(dir, "lighting.png");
-		File lighting1File = new File(dir, "lighting1.png");
-		if (lightingFile.isFile()) {  // beatmap provides images
-			try {
-				lighting  = new Image(lightingFile.getAbsolutePath());
-				lighting1 = new Image(lighting1File.getAbsolutePath());
-			} catch (Exception e) {
-				// optional
-			}
-		} else {  // load default image
-			try {
-				lighting  = GameImage.LIGHTING.getImage();
-				lighting1 = GameImage.LIGHTING1.getImage();
-			} catch (Exception e) {
-				// optional
-			}
-		}
 
 		// default symbol images
 		defaultSymbols = new Image[10];
@@ -652,19 +620,15 @@ public class GameScore {
 				hitResults[hitResult.result].drawCentered(hitResult.x, hitResult.y);
 
 				// hit lighting
-				if (Options.isHitLightingEnabled() && lighting != null &&
-					hitResult.result != HIT_MISS && hitResult.result != HIT_SLIDER30 && hitResult.result != HIT_SLIDER10) {
+				if (Options.isHitLightingEnabled() && hitResult.result != HIT_MISS &&
+					hitResult.result != HIT_SLIDER30 && hitResult.result != HIT_SLIDER10) {
 					float scale = 1f + ((trackPosition - hitResult.time) / (float) fadeDelay);
-					Image scaledLighting  = lighting.getScaledCopy(scale);
+					Image scaledLighting  = GameImage.LIGHTING.getImage().getScaledCopy(scale);
+					Image scaledLighting1 = GameImage.LIGHTING1.getImage().getScaledCopy(scale);
 					scaledLighting.draw(hitResult.x - (scaledLighting.getWidth() / 2f),
-										hitResult.y - (scaledLighting.getHeight() / 2f),
-										hitResult.color);
-					if (lighting1 != null) {
-						Image scaledLighting1 = lighting1.getScaledCopy(scale);
-						scaledLighting1.draw(hitResult.x - (scaledLighting1.getWidth() / 2f),
-								hitResult.y - (scaledLighting1.getHeight() / 2f),
-								hitResult.color);
-					}
+							hitResult.y - (scaledLighting.getHeight() / 2f), hitResult.color);
+					scaledLighting1.draw(hitResult.x - (scaledLighting1.getWidth() / 2f),
+							hitResult.y - (scaledLighting1.getHeight() / 2f), hitResult.color);
 				}
 			} else
 				iter.remove();
