@@ -428,6 +428,12 @@ public class MainMenu extends BasicGameState {
 				game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 			}
 			break;
+		case Input.KEY_UP:
+			Utils.changeVolume(1);
+			break;
+		case Input.KEY_DOWN:
+			Utils.changeVolume(-1);
+			break;
 		case Input.KEY_F12:
 			Utils.takeScreenShot();
 			break;

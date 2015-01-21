@@ -152,7 +152,14 @@ public class OsuParser {
 						try {
 							switch (tokens[0]) {
 							case "AudioFilename":
-								osu.audioFilename = new File(file.getParent() + File.separator + tokens[1]);
+								File audioFileName = new File(file.getParent(), tokens[1]);
+								if (!osuFiles.isEmpty()) {
+									// if possible, reuse the same File object from another OsuFile in the group
+									File groupAudioFileName = osuFiles.get(0).audioFilename;
+									if (audioFileName.equals(groupAudioFileName))
+										audioFileName = groupAudioFileName;
+								}
+								osu.audioFilename = audioFileName;
 								break;
 							case "AudioLeadIn":
 								osu.audioLeadIn = Integer.parseInt(tokens[1]);

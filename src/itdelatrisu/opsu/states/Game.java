@@ -644,6 +644,12 @@ public class Game extends BasicGameState {
 				}
 			}
 			break;
+		case Input.KEY_UP:
+			Utils.changeVolume(1);
+			break;
+		case Input.KEY_DOWN:
+			Utils.changeVolume(-1);
+			break;
 		case Input.KEY_F12:
 			Utils.takeScreenShot();
 			break;
