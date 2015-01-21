@@ -848,74 +848,66 @@ public class Game extends BasicGameState {
 
 		// load other images...
 		((GamePauseMenu) game.getState(Opsu.STATE_GAMEPAUSEMENU)).loadImages();
-		try {
-			score.loadImages(osu.getFile().getParentFile());
-		} catch (Exception e) {
-			ErrorHandler.error("Failed to load GameScore images.", e, false);
-		}
+		score.loadImages(osu.getFile().getParentFile());
 	}
 
 	/**
 	 * Set map modifiers.
 	 */
 	private void setMapModifiers() {
-		try {
-			// map-based properties, re-initialized each game
-			float circleSize = osu.circleSize;
-			float approachRate = osu.approachRate;
-			float overallDifficulty = osu.overallDifficulty;
-			float HPDrainRate = osu.HPDrainRate;
+		// map-based properties, re-initialized each game
+		float circleSize = osu.circleSize;
+		float approachRate = osu.approachRate;
+		float overallDifficulty = osu.overallDifficulty;
+		float HPDrainRate = osu.HPDrainRate;
 
-			// "Hard Rock" modifiers
-			if (GameMod.HARD_ROCK.isActive()) {
-				circleSize = Math.min(circleSize * 1.4f, 10);
-				approachRate = Math.min(approachRate * 1.4f, 10);
-				overallDifficulty = Math.min(overallDifficulty * 1.4f, 10);
-				HPDrainRate = Math.min(HPDrainRate * 1.4f, 10);
-			}
-
-			// "Easy" modifiers
-			else if (GameMod.EASY.isActive()) {
-				circleSize /= 2f;
-				approachRate /= 2f;
-				overallDifficulty /= 2f;
-				HPDrainRate /= 2f;
-			}
-
-			// fixed difficulty overrides
-			if (Options.getFixedCS() > 0f)
-				circleSize = Options.getFixedCS();
-			if (Options.getFixedAR() > 0f)
-				approachRate = Options.getFixedAR();
-			if (Options.getFixedOD() > 0f)
-				overallDifficulty = Options.getFixedOD();
-			if (Options.getFixedHP() > 0f)
-				HPDrainRate = Options.getFixedHP();
-
-			// initialize objects
-			Circle.init(container, circleSize);
-			Slider.init(container, circleSize, osu);
-			Spinner.init(container);
-
-			// approachRate (hit object approach time)
-			if (approachRate < 5)
-				approachTime = (int) (1800 - (approachRate * 120));
-			else
-				approachTime = (int) (1200 - ((approachRate - 5) * 150));
-
-			// overallDifficulty (hit result time offsets)
-			hitResultOffset = new int[GameScore.HIT_MAX];
-			hitResultOffset[GameScore.HIT_300]  = (int) (78 - (overallDifficulty * 6));
-			hitResultOffset[GameScore.HIT_100]  = (int) (138 - (overallDifficulty * 8));
-			hitResultOffset[GameScore.HIT_50]   = (int) (198 - (overallDifficulty * 10));
-			hitResultOffset[GameScore.HIT_MISS] = (int) (500 - (overallDifficulty * 10));
-
-			// HPDrainRate (health change), overallDifficulty (scoring)
-			score.setDrainRate(HPDrainRate);
-			score.setDifficulty(overallDifficulty);
-		} catch (SlickException e) {
-			ErrorHandler.error("Error while setting map modifiers.", e, true);
+		// "Hard Rock" modifiers
+		if (GameMod.HARD_ROCK.isActive()) {
+			circleSize = Math.min(circleSize * 1.4f, 10);
+			approachRate = Math.min(approachRate * 1.4f, 10);
+			overallDifficulty = Math.min(overallDifficulty * 1.4f, 10);
+			HPDrainRate = Math.min(HPDrainRate * 1.4f, 10);
 		}
+
+		// "Easy" modifiers
+		else if (GameMod.EASY.isActive()) {
+			circleSize /= 2f;
+			approachRate /= 2f;
+			overallDifficulty /= 2f;
+			HPDrainRate /= 2f;
+		}
+
+		// fixed difficulty overrides
+		if (Options.getFixedCS() > 0f)
+			circleSize = Options.getFixedCS();
+		if (Options.getFixedAR() > 0f)
+			approachRate = Options.getFixedAR();
+		if (Options.getFixedOD() > 0f)
+			overallDifficulty = Options.getFixedOD();
+		if (Options.getFixedHP() > 0f)
+			HPDrainRate = Options.getFixedHP();
+
+		// initialize objects
+		Circle.init(container, circleSize);
+		Slider.init(container, circleSize, osu);
+		Spinner.init(container);
+
+		// approachRate (hit object approach time)
+		if (approachRate < 5)
+			approachTime = (int) (1800 - (approachRate * 120));
+		else
+			approachTime = (int) (1200 - ((approachRate - 5) * 150));
+
+		// overallDifficulty (hit result time offsets)
+		hitResultOffset = new int[GameScore.HIT_MAX];
+		hitResultOffset[GameScore.HIT_300]  = (int) (78 - (overallDifficulty * 6));
+		hitResultOffset[GameScore.HIT_100]  = (int) (138 - (overallDifficulty * 8));
+		hitResultOffset[GameScore.HIT_50]   = (int) (198 - (overallDifficulty * 10));
+		hitResultOffset[GameScore.HIT_MISS] = (int) (500 - (overallDifficulty * 10));
+
+		// HPDrainRate (health change), overallDifficulty (scoring)
+		score.setDrainRate(HPDrainRate);
+		score.setDifficulty(overallDifficulty);
 	}
 
 	/**

@@ -110,9 +110,24 @@ public enum GameImage {
 	SLIDER_TICK ("sliderscorepoint", "png"),
 
 	// Spinner
-	SPINNER_CIRCLE ("spinner-circle", "png"),
-	SPINNER_APPROACHCIRCLE ("spinner-approachcircle", "png"),
-	SPINNER_METRE ("spinner-metre", "png"),
+	SPINNER_CIRCLE ("spinner-circle", "png") {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy(h * 9 / 10, h * 9 / 10);
+		}
+	},
+	SPINNER_APPROACHCIRCLE ("spinner-approachcircle", "png") {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy(h * 9 / 10, h * 9 / 10);
+		}
+	},
+	SPINNER_METRE ("spinner-metre", "png") {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy(w, h);
+		}
+	},
 	SPINNER_SPIN ("spinner-spin", "png"),
 	SPINNER_CLEAR ("spinner-clear", "png"),
 	SPINNER_OSU ("spinner-osu", "png"),

@@ -29,7 +29,6 @@ import itdelatrisu.opsu.states.Game;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
-import org.newdawn.slick.SlickException;
 
 /**
  * Data type representing a circle object.
@@ -64,9 +63,8 @@ public class Circle implements HitObject {
 	 * Initializes the Circle data type with map modifiers, images, and dimensions.
 	 * @param container the game container
 	 * @param circleSize the map's circleSize value
-	 * @throws SlickException
 	 */
-	public static void init(GameContainer container, float circleSize) throws SlickException {
+	public static void init(GameContainer container, float circleSize) {
 		int diameter = (int) (96 - (circleSize * 8));
 		diameter = diameter * container.getWidth() / 640;  // convert from Osupixels (640x480)
 		GameImage.HITCIRCLE.setImage(GameImage.HITCIRCLE.getImage().getScaledCopy(diameter, diameter));

@@ -32,7 +32,6 @@ import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
-import org.newdawn.slick.SlickException;
 
 /**
  * Data type representing a slider object.
@@ -273,9 +272,8 @@ public class Slider implements HitObject {
 	 * @param container the game container
 	 * @param circleSize the map's circleSize value
 	 * @param osu the associated OsuFile object
-	 * @throws SlickException
 	 */
-	public static void init(GameContainer container, float circleSize, OsuFile osu) throws SlickException {
+	public static void init(GameContainer container, float circleSize, OsuFile osu) {
 		int diameter = (int) (96 - (circleSize * 8));
 		diameter = diameter * container.getWidth() / 640;  // convert from Osupixels (640x480)
 

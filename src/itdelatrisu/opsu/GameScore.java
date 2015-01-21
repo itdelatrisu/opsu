@@ -31,7 +31,6 @@ import java.util.LinkedList;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
-import org.newdawn.slick.SlickException;
 
 /**
  * Holds score data and renders all score-related elements.
@@ -245,9 +244,8 @@ public class GameScore {
 	/**
 	 * Loads all game score images.
 	 * @param dir the image directory
-	 * @throws SlickException
 	 */
-	public void loadImages(File dir) throws SlickException {
+	public void loadImages(File dir) {
 		// combo burst images
 		if (GameImage.COMBO_BURST.hasSkinImages() ||
 		    (!GameImage.COMBO_BURST.hasSkinImage() && GameImage.COMBO_BURST.getImages() != null))

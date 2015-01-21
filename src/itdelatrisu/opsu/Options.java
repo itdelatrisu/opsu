@@ -680,9 +680,8 @@ public class Options {
 	 * If the configured resolution is larger than the screen size, the smallest
 	 * available resolution will be used.
 	 * @param app the game container
-	 * @throws SlickException failure to set display mode
 	 */
-	public static void setDisplayMode(Container app) throws SlickException {
+	public static void setDisplayMode(Container app) {
 		int screenWidth = app.getScreenWidth();
 		int screenHeight = app.getScreenHeight();
 
@@ -690,7 +689,11 @@ public class Options {
 		if (screenWidth < resolution.getWidth() || screenHeight < resolution.getHeight())
 			resolution = Resolution.RES_800_600;
 
-		app.setDisplayMode(resolution.getWidth(), resolution.getHeight(), false);
+		try {
+			app.setDisplayMode(resolution.getWidth(), resolution.getHeight(), false);
+		} catch (SlickException e) {
+			ErrorHandler.error("Failed to set display mode.", e, true);
+		}
 
 		// set borderless window if dimensions match screen size
 		boolean borderless = (screenWidth == resolution.getWidth() && screenHeight == resolution.getHeight());
