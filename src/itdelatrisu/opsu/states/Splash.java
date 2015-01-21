@@ -113,30 +113,32 @@ public class Splash extends BasicGameState {
 		if (!init) {
 			init = true;
 
-			// load other resources in a new thread
-			final int width = container.getWidth();
-			final int height = container.getHeight();
-			thread = new Thread() {
-				@Override
-				public void run() {
-					// application restart: everything already loaded
-					if (OsuGroupList.get().size() < 1) {
+			if (OsuGroupList.get() != null) {
+				// resources already loaded (from application restart)
+				finished = true;
+			} else {
+				// load resources in a new thread
+				final int width = container.getWidth();
+				final int height = container.getHeight();
+				thread = new Thread() {
+					@Override
+					public void run() {
 						File beatmapDir = Options.getBeatmapDir();
 
 						// unpack all OSZ archives
 						OszUnpacker.unpackAllFiles(Options.getOSZDir(), beatmapDir);
-	
+
 						// parse song directory
 						OsuParser.parseAllFiles(beatmapDir, width, height);
 
 						// load sounds
 						SoundController.init();
-					}
 
-					finished = true;
-				}
-			};
-			thread.start();
+						finished = true;
+					}
+				};
+				thread.start();
+			}
 		}
 
 		// fade in logo

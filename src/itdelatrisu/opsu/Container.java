@@ -91,15 +91,15 @@ public class Container extends AppGameContainer {
 		// close server socket
 		Opsu.closeSocket();
 
-		// prevent loading tracks from re-initializing OpenAL
-		MusicController.reset();
-
 		// destroy images
 		InternalTextureLoader.get().clear();
-		
+
 		// reset image references
 		GameImage.clearReferences();
 		OsuFile.resetImageCache();
+
+		// prevent loading tracks from re-initializing OpenAL
+		MusicController.reset();
 	}
 
 	@Override

@@ -33,7 +33,7 @@ public class OsuGroupList {
 	/**
 	 * Song group structure (each group contains of an ArrayList of OsuFiles).
 	 */
-	private static OsuGroupList list = new OsuGroupList();
+	private static OsuGroupList list;
 
 	/**
 	 * Search pattern for conditional expressions.
@@ -68,6 +68,11 @@ public class OsuGroupList {
 	 * The last search query.
 	 */
 	private String lastQuery = "";
+
+	/**
+	 * Creates a new instance of this class (overwriting any previous instance).
+	 */
+	public static void create() { list = new OsuGroupList(); }
 
 	/**
 	 * Returns the single instance of this class.

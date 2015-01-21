@@ -83,9 +83,7 @@ public class MusicController {
 	 * Plays an audio file at the preview position.
 	 */
 	public static void play(final OsuFile osu, final boolean loop) {
-		boolean play = (lastOsu == null || !osu.audioFilename.equals(lastOsu.audioFilename));
-		lastOsu = osu;
-		if (play) {
+		if (lastOsu == null || !osu.audioFilename.equals(lastOsu.audioFilename)) {
 			reset();
 			System.gc();
 
@@ -114,6 +112,7 @@ public class MusicController {
 				break;
 			}
 		}
+		lastOsu = osu;
 	}
 
 	/**
@@ -335,6 +334,7 @@ public class MusicController {
 		}
 
 		// reset state
+		lastOsu = null;
 		themePlaying = false;
 		pauseTime = 0f;
 		trackDimmed = false;
