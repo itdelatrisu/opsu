@@ -43,7 +43,7 @@ import org.newdawn.slick.state.transition.EmptyTransition;
 import org.newdawn.slick.state.transition.FadeInTransition;
 
 /**
- * "Game OptionsMenu" state.
+ * "Game Options" state.
  */
 public class OptionsMenu extends BasicGameState {
 	/**

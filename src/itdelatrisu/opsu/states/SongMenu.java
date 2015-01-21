@@ -22,10 +22,12 @@ import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.GameMod;
 import itdelatrisu.opsu.MenuButton;
 import itdelatrisu.opsu.Opsu;
+import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.OsuFile;
 import itdelatrisu.opsu.OsuGroupList;
 import itdelatrisu.opsu.OsuGroupNode;
 import itdelatrisu.opsu.OsuParser;
+import itdelatrisu.opsu.OszUnpacker;
 import itdelatrisu.opsu.SongSort;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.HitSound;
@@ -33,6 +35,7 @@ import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
 
+import java.io.File;
 import java.util.Stack;
 
 import org.lwjgl.opengl.Display;
@@ -187,6 +190,11 @@ public class SongMenu extends BasicGameState {
 	 */
 	private boolean resetTrack = false;
 
+	/**
+	 * Beatmap reloading thread.
+	 */
+	private Thread reloadThread;
+
 	// game-related variables
 	private GameContainer container;
 	private StateBasedGame game;
@@ -339,8 +347,18 @@ public class SongMenu extends BasicGameState {
 			g.fillRoundRect(width - 10, scrollStartY + (scrollEndY * startNode.index / OsuGroupList.get().size()), 5, 20, 4);
 		}
 
+		// reloading beatmaps
+		if (reloadThread != null) {
+			// darken the screen
+			g.setColor(Utils.COLOR_BLACK_ALPHA);
+			g.fillRect(0, 0, width, height);
+
+			Utils.drawLoadingProgress(g);
+		}
+
 		// back button
-		Utils.getBackButton().draw();
+		else
+			Utils.getBackButton().draw();
 
 		Utils.drawVolume(g);
 		Utils.drawFPS();
@@ -445,6 +463,10 @@ public class SongMenu extends BasicGameState {
 		if (button != Input.MOUSE_LEFT_BUTTON)
 			return;
 
+		// block input during beatmap reloading
+		if (reloadThread != null)
+			return;
+
 		// back
 		if (Utils.getBackButton().contains(x, y)) {
 			SoundController.playSound(SoundEffect.MENUBACK);
@@ -456,7 +478,7 @@ public class SongMenu extends BasicGameState {
 		// options
 		if (optionsButton.contains(x, y)) {
 			SoundController.playSound(SoundEffect.MENUHIT);
-			game.enterState(Opsu.STATE_OPTIONS, new EmptyTransition(), new FadeInTransition(Color.black));
+			game.enterState(Opsu.STATE_OPTIONSMENU, new EmptyTransition(), new FadeInTransition(Color.black));
 			return;
 		}
 
@@ -520,19 +542,30 @@ public class SongMenu extends BasicGameState {
 
 	@Override
 	public void keyPressed(int key, char c) {
+		// block input during beatmap reloading
+		if (reloadThread != null && !(key == Input.KEY_ESCAPE || key == Input.KEY_F12))
+			return;
+
 		switch (key) {
 		case Input.KEY_ESCAPE:
-			if (!search.getText().isEmpty()) {
+			if (reloadThread != null) {
+				// beatmap reloading: stop parsing OsuFiles by sending interrupt to OsuParser
+				if (reloadThread != null)
+					reloadThread.interrupt();
+			} else if (!search.getText().isEmpty()) {
+				// clear search text
 				search.setText("");
 				searchTimer = SEARCH_DELAY;
 			} else {
+				// return to main menu
 				SoundController.playSound(SoundEffect.MENUBACK);
 				((MainMenu) game.getState(Opsu.STATE_MAINMENU)).reset();
 				game.enterState(Opsu.STATE_MAINMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 			}
 			break;
 		case Input.KEY_F1:
-			game.enterState(Opsu.STATE_OPTIONS, new EmptyTransition(), new FadeInTransition(Color.black));
+			SoundController.playSound(SoundEffect.MENUHIT);
+			game.enterState(Opsu.STATE_OPTIONSMENU, new EmptyTransition(), new FadeInTransition(Color.black));
 			break;
 		case Input.KEY_F2:
 			if (focusNode == null)
@@ -548,6 +581,42 @@ public class SongMenu extends BasicGameState {
 				randomStack.push(new SongNode(OsuGroupList.get().getBaseNode(focusNode.index), focusNode.osuFileIndex));
 				setFocus(OsuGroupList.get().getRandomNode(), -1, true);
 			}
+			break;
+		case Input.KEY_F5:
+			// TODO: osu! has a confirmation menu
+			SoundController.playSound(SoundEffect.MENUCLICK);
+
+			// reset state and node references
+			MusicController.reset();
+			startNode = focusNode = null;
+			oldFocusNode = null;
+			randomStack = new Stack<SongNode>();
+			songInfo = null;
+			hoverOffset = 0f;
+			hoverIndex = -1;
+			search.setText("");
+			searchTimer = SEARCH_DELAY;
+
+			// reload songs in new thread
+			reloadThread = new Thread() {
+				@Override
+				public void run() {
+					// invoke unpacker and parser
+					File beatmapDir = Options.getBeatmapDir();
+					OszUnpacker.unpackAllFiles(Options.getOSZDir(), beatmapDir);
+					OsuParser.parseAllFiles(beatmapDir, container.getWidth(), container.getHeight());
+
+					// initialize song list
+					if (OsuGroupList.get().size() > 0) {
+						OsuGroupList.get().init();
+						setFocus(OsuGroupList.get().getRandomNode(), -1, true);
+					} else if (Options.isThemSongEnabled())
+						MusicController.playThemeSong();
+
+					reloadThread = null;
+				}
+			};
+			reloadThread.start();
 			break;
 		case Input.KEY_F12:
 			Utils.takeScreenShot();
@@ -616,6 +685,10 @@ public class SongMenu extends BasicGameState {
 
 	@Override
 	public void mouseDragged(int oldx, int oldy, int newx, int newy) {
+		// block input during beatmap reloading
+		if (reloadThread != null)
+			return;
+
 		// check mouse button (right click scrolls faster)
 		int multiplier;
 		if (input.isMouseButtonDown(Input.MOUSE_RIGHT_BUTTON))
@@ -634,6 +707,10 @@ public class SongMenu extends BasicGameState {
 
 	@Override
 	public void mouseWheelMoved(int newValue) {
+		// block input during beatmap reloading
+		if (reloadThread != null)
+			return;
+
 		changeIndex((newValue < 0) ? 1 : -1);
 	}
 

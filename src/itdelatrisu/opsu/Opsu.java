@@ -63,7 +63,7 @@ public class Opsu extends StateBasedGame {
 		STATE_GAME          = 4,
 		STATE_GAMEPAUSEMENU = 5,
 		STATE_GAMERANKING   = 6,
-		STATE_OPTIONS       = 7;
+		STATE_OPTIONSMENU   = 7;
 
 	/**
 	 * Used to restrict the program to a single instance.
@@ -83,7 +83,7 @@ public class Opsu extends StateBasedGame {
 		addState(new Game(STATE_GAME));
 		addState(new GamePauseMenu(STATE_GAMEPAUSEMENU));
 		addState(new GameRanking(STATE_GAMERANKING));
-		addState(new OptionsMenu(STATE_OPTIONS));
+		addState(new OptionsMenu(STATE_OPTIONSMENU));
 	}
 
 	/**

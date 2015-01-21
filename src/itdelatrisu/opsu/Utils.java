@@ -588,6 +588,47 @@ public class Utils {
 	}
 
 	/**
+	 * Draws loading progress (OSZ unpacking, OsuFile parsing, sound loading)
+	 * at the bottom of the screen.
+	 */
+	public static void drawLoadingProgress(Graphics g) {
+		String text, file;
+		int progress;
+
+		// determine current action
+		if ((file = OszUnpacker.getCurrentFileName()) != null) {
+			text = "Unpacking new beatmaps...";
+			progress = OszUnpacker.getUnpackerProgress();
+		} else if ((file = OsuParser.getCurrentFileName()) != null) {
+			text = "Loading beatmaps...";
+			progress = OsuParser.getParserProgress();
+		} else if ((file = SoundController.getCurrentFileName()) != null) {
+			text = "Loading sounds...";
+			progress = SoundController.getLoadingProgress();
+		} else
+			return;
+
+		// draw loading info
+		float marginX = container.getWidth() * 0.02f, marginY = container.getHeight() * 0.02f;
+		float lineY = container.getHeight() - marginY;
+		int lineOffsetY = Utils.FONT_MEDIUM.getLineHeight();
+		if (Options.isLoadVerbose()) {
+			// verbose: display percentages and file names
+			Utils.FONT_MEDIUM.drawString(
+					marginX, lineY - (lineOffsetY * 2),
+					String.format("%s (%d%%)", text, progress), Color.white);
+			Utils.FONT_MEDIUM.drawString(marginX, lineY - lineOffsetY, file, Color.white);
+		} else {
+			// draw loading bar
+			Utils.FONT_MEDIUM.drawString(marginX, lineY - (lineOffsetY * 2), text, Color.white);
+			g.setColor(Color.white);
+			g.fillRoundRect(marginX, lineY - (lineOffsetY / 2f),
+					(container.getWidth() - (marginX * 2f)) * progress / 100f, lineOffsetY / 4f, 4
+			);
+		}
+	}
+
+	/**
 	 * Takes a screenshot.
 	 * @author http://wiki.lwjgl.org/index.php?title=Taking_Screen_Shots
 	 */
