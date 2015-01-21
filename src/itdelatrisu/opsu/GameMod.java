@@ -65,7 +65,7 @@ public enum GameMod {
 	private boolean active = false;
 
 	/**
-	 * The button containing the mod image (displayed in Options screen).
+	 * The button containing the mod image (displayed in OptionsMenu screen).
 	 */
 	private MenuButton button;
 

@@ -19,9 +19,9 @@
 package itdelatrisu.opsu.audio;
 
 import itdelatrisu.opsu.ErrorHandler;
+import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.OsuFile;
 import itdelatrisu.opsu.OsuParser;
-import itdelatrisu.opsu.states.Options;
 
 import java.io.File;
 import java.lang.reflect.Field;

@@ -16,18 +16,7 @@
  * along with opsu!.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package itdelatrisu.opsu.states;
-
-import itdelatrisu.opsu.Container;
-import itdelatrisu.opsu.ErrorHandler;
-import itdelatrisu.opsu.GameImage;
-import itdelatrisu.opsu.GameMod;
-import itdelatrisu.opsu.MenuButton;
-import itdelatrisu.opsu.Opsu;
-import itdelatrisu.opsu.OsuFile;
-import itdelatrisu.opsu.Utils;
-import itdelatrisu.opsu.audio.SoundController;
-import itdelatrisu.opsu.audio.SoundEffect;
+package itdelatrisu.opsu;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -44,22 +33,15 @@ import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 import org.lwjgl.input.Keyboard;
-import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
-import org.newdawn.slick.Graphics;
-import org.newdawn.slick.Image;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
-import org.newdawn.slick.state.BasicGameState;
-import org.newdawn.slick.state.StateBasedGame;
-import org.newdawn.slick.state.transition.EmptyTransition;
-import org.newdawn.slick.state.transition.FadeInTransition;
 import org.newdawn.slick.util.Log;
 
 /**
- * "Game Options" state.
+ * Handles all user options.
  */
-public class Options extends BasicGameState {
+public class Options {
 	/**
 	 * Temporary folder for file conversions, auto-deleted upon successful exit.
 	 */
@@ -137,7 +119,7 @@ public class Options extends BasicGameState {
 	/**
 	 * Game options.
 	 */
-	private static enum GameOption {
+	public static enum GameOption {
 		NULL (null, null),
 		SCREEN_RESOLUTION ("Screen Resolution", "Restart (Ctrl+Shift+F5) to apply resolution changes.") {
 			@Override
@@ -346,22 +328,10 @@ public class Options extends BasicGameState {
 		KEY_LEFT ("Left Game Key", "Select this option to input a key.") {
 			@Override
 			public String getValueString() { return Keyboard.getKeyName(getGameKeyLeft()); }
-
-			@Override
-			public void click(GameContainer container) {
-				keyEntryLeft = true;
-				keyEntryRight = false;
-			}
 		},
 		KEY_RIGHT ("Right Game Key", "Select this option to input a key.") {
 			@Override
 			public String getValueString() { return Keyboard.getKeyName(getGameKeyRight()); }
-
-			@Override
-			public void click(GameContainer container) {
-				keyEntryLeft = false;
-				keyEntryRight = true;
-			}
 		},
 		SHOW_UNICODE ("Prefer Non-English Metadata", "Where available, song titles will be shown in their native language.") {
 			@Override
@@ -440,96 +410,6 @@ public class Options extends BasicGameState {
 		 */
 		public void drag(GameContainer container, int d) {}
 	};
-
-	/**
-	 * Option tab constants.
-	 */
-	private static final int
-		TAB_DISPLAY  = 0,
-		TAB_MUSIC    = 1,
-		TAB_GAMEPLAY = 2,
-		TAB_CUSTOM   = 3,
-		TAB_MAX      = 4;  // not a tab
-
-	/**
-	 * Option tab names.
-	 */
-	private static final String[] TAB_NAMES = {
-		"Display",
-		"Music",
-		"Gameplay",
-		"Custom"
-	};
-
-	/**
-	 * Option tab buttons.
-	 */
-	private static MenuButton[] optionTabs = new MenuButton[TAB_MAX];
-
-	/**
-	 * Current tab.
-	 */
-	private static int currentTab;
-
-	/**
-	 * Display options.
-	 */
-	private static final GameOption[] displayOptions = {
-		GameOption.SCREEN_RESOLUTION,
-//		GameOption.FULLSCREEN,
-		GameOption.TARGET_FPS,
-		GameOption.SHOW_FPS,
-		GameOption.SHOW_UNICODE,
-		GameOption.SCREENSHOT_FORMAT,
-		GameOption.NEW_CURSOR,
-		GameOption.DYNAMIC_BACKGROUND,
-		GameOption.LOAD_VERBOSE
-	};
-
-	/**
-	 * Music options.
-	 */
-	private static final GameOption[] musicOptions = {
-		GameOption.MASTER_VOLUME,
-		GameOption.MUSIC_VOLUME,
-		GameOption.EFFECT_VOLUME,
-		GameOption.HITSOUND_VOLUME,
-		GameOption.MUSIC_OFFSET,
-		GameOption.DISABLE_SOUNDS,
-		GameOption.ENABLE_THEME_SONG
-	};
-
-	/**
-	 * Gameplay options.
-	 */
-	private static final GameOption[] gameplayOptions = {
-		GameOption.KEY_LEFT,
-		GameOption.KEY_RIGHT,
-		GameOption.BACKGROUND_DIM,
-		GameOption.FORCE_DEFAULT_PLAYFIELD,
-		GameOption.IGNORE_BEATMAP_SKINS,
-		GameOption.SHOW_HIT_LIGHTING,
-		GameOption.SHOW_COMBO_BURSTS,
-		GameOption.SHOW_PERFECT_HIT
-	};
-
-	/**
-	 * Custom options.
-	 */
-	private static final GameOption[] customOptions = {
-		GameOption.FIXED_CS,
-		GameOption.FIXED_HP,
-		GameOption.FIXED_AR,
-		GameOption.FIXED_OD,
-		GameOption.CHECKPOINT
-	};
-
-	/**
-	 * Max number of options displayed on one screen.
-	 */
-	private static int maxOptionsScreen = Math.max(
-			Math.max(displayOptions.length, musicOptions.length),
-			Math.max(gameplayOptions.length, customOptions.length));
 
 	/**
 	 * Screen resolutions.
@@ -736,334 +616,8 @@ public class Options extends BasicGameState {
 		keyLeft  = Keyboard.KEY_NONE,
 		keyRight = Keyboard.KEY_NONE;
 
-	/**
-	 * Key entry states.
-	 */
-	private static boolean keyEntryLeft = false, keyEntryRight = false;
-
-	/**
-	 * Game option coordinate modifiers (for drawing).
-	 */
-	private int textY, offsetY;
-
-	// game-related variables
-	private GameContainer container;
-	private StateBasedGame game;
-	private Input input;
-	private Graphics g;
-	private int state;
-
-	public Options(int state) {
-		this.state = state;
-	}
-
-	@Override
-	public void init(GameContainer container, StateBasedGame game)
-			throws SlickException {
-		this.container = container;
-		this.game = game;
-		this.input = container.getInput();
-		this.g = container.getGraphics();
-
-		int width = container.getWidth();
-		int height = container.getHeight();
-
-		// game option coordinate modifiers
-		textY = 20 + (Utils.FONT_XLARGE.getLineHeight() * 3 / 2);
-		offsetY = (int) (((height * 0.8f) - textY) / maxOptionsScreen);
-
-		// option tabs
-		Image tab = GameImage.MENU_TAB.getImage();
-		int subtextWidth = Utils.FONT_DEFAULT.getWidth("Click or drag an option to change it.");
-		float tabX = (width / 50) + (tab.getWidth() / 2f);
-		float tabY = 15 + Utils.FONT_XLARGE.getLineHeight() + (tab.getHeight() / 2f);
-		int tabOffset = Math.min(tab.getWidth(),
-				((width - subtextWidth - tab.getWidth()) / 2) / TAB_MAX);
-		for (int i = 0; i < optionTabs.length; i++)
-			optionTabs[i] = new MenuButton(tab, tabX + (i * tabOffset), tabY);
-	}
-
-	@Override
-	public void render(GameContainer container, StateBasedGame game, Graphics g)
-			throws SlickException {
-		g.setBackground(Utils.COLOR_BLACK_ALPHA);
-
-		int width = container.getWidth();
-		int height = container.getHeight();
-		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
-
-		// title
-		Utils.FONT_XLARGE.drawString(
-				(width / 2) - (Utils.FONT_XLARGE.getWidth("GAME OPTIONS") / 2), 10,
-				"GAME OPTIONS", Color.white
-		);
-		Utils.FONT_DEFAULT.drawString(
-				(width / 2) - (Utils.FONT_DEFAULT.getWidth("Click or drag an option to change it.") / 2),
-				10 + Utils.FONT_XLARGE.getLineHeight(),
-				"Click or drag an option to change it.", Color.white
-		);
-
-		// game options
-		g.setLineWidth(1f);
-		switch (currentTab) {
-		case TAB_DISPLAY:
-			for (int i = 0; i < displayOptions.length; i++)
-				drawOption(displayOptions[i], i);
-			break;
-		case TAB_MUSIC:
-			for (int i = 0; i < musicOptions.length; i++)
-				drawOption(musicOptions[i], i);
-			break;
-		case TAB_GAMEPLAY:
-			for (int i = 0; i < gameplayOptions.length; i++)
-				drawOption(gameplayOptions[i], i);
-			break;
-		case TAB_CUSTOM:
-			for (int i = 0; i < customOptions.length; i++)
-				drawOption(customOptions[i], i);
-			break;
-		}
-
-		// option tabs
-		int hoverTab = -1;
-		for (int i = 0; i < optionTabs.length; i++) {
-			if (optionTabs[i].contains(mouseX, mouseY)) {
-				hoverTab = i;
-				break;
-			}
-		}
-		for (int i = optionTabs.length - 1; i >= 0; i--) {
-			if (i != currentTab)
-				Utils.drawTab(optionTabs[i].getX(), optionTabs[i].getY(),
-						TAB_NAMES[i], false, i == hoverTab);
-		}
-		Utils.drawTab(optionTabs[currentTab].getX(), optionTabs[currentTab].getY(),
-				TAB_NAMES[currentTab], true, false);
-		g.setColor(Color.white);
-		g.setLineWidth(2f);
-		float lineY = optionTabs[0].getY() + (GameImage.MENU_TAB.getImage().getHeight() / 2f);
-		g.drawLine(0, lineY, width, lineY);
-		g.resetLineWidth();
-
-		// game mods
-		Utils.FONT_LARGE.drawString(width / 30, height * 0.8f, "Game Mods:", Color.white);
-		for (GameMod mod : GameMod.values())
-			mod.draw();
-
-		Utils.getBackButton().draw();
-
-		// key entry state
-		if (keyEntryLeft || keyEntryRight) {
-			g.setColor(Utils.COLOR_BLACK_ALPHA);
-			g.fillRect(0, 0, width, height);
-			g.setColor(Color.white);
-			Utils.FONT_LARGE.drawString(
-					(width / 2) - (Utils.FONT_LARGE.getWidth("Please enter a letter or digit.") / 2),
-					(height / 2) - Utils.FONT_LARGE.getLineHeight(), "Please enter a letter or digit."
-			);
-		}
-
-		Utils.drawVolume(g);
-		Utils.drawFPS();
-		Utils.drawCursor();
-	}
-
-	@Override
-	public void update(GameContainer container, StateBasedGame game, int delta)
-			throws SlickException {
-		Utils.updateCursor(delta);
-		Utils.updateVolumeDisplay(delta);
-		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
-		Utils.getBackButton().hoverUpdate(delta, mouseX, mouseY);
-		for (GameMod mod : GameMod.values())
-			mod.hoverUpdate(delta, mouseX, mouseY);
-	}
-
-	@Override
-	public int getID() { return state; }
-
-	@Override
-	public void mousePressed(int button, int x, int y) {
-		// key entry state
-		if (keyEntryLeft || keyEntryRight) {
-			keyEntryLeft = keyEntryRight = false;
-			return;
-		}
-
-		// check mouse button
-		if (button == Input.MOUSE_MIDDLE_BUTTON)
-			return;
-
-		// back
-		if (Utils.getBackButton().contains(x, y)) {
-			SoundController.playSound(SoundEffect.MENUBACK);
-			game.enterState(Opsu.STATE_SONGMENU, new EmptyTransition(), new FadeInTransition(Color.black));
-			return;
-		}
-
-		// option tabs
-		for (int i = 0; i < optionTabs.length; i++) {
-			if (optionTabs[i].contains(x, y)) {
-				if (i != currentTab) {
-					currentTab = i;
-					SoundController.playSound(SoundEffect.MENUCLICK);
-				}
-				return;
-			}
-		}
-
-		// game mods
-		for (GameMod mod : GameMod.values()) {
-			if (mod.contains(x, y)) {
-				boolean prevState = mod.isActive();
-				mod.toggle(true);
-				if (mod.isActive() != prevState)
-					SoundController.playSound(SoundEffect.MENUCLICK);
-				return;
-			}
-		}
-
-		// options (click only)
-		GameOption option = getClickedOption(y);
-		if (option != GameOption.NULL)
-			option.click(container);
-	}
-
-	@Override
-	public void mouseDragged(int oldx, int oldy, int newx, int newy) {
-		// key entry state
-		if (keyEntryLeft || keyEntryRight)
-			return;
-
-		// check mouse button (right click scrolls faster)
-		int multiplier;
-		if (input.isMouseButtonDown(Input.MOUSE_RIGHT_BUTTON))
-			multiplier = 4;
-		else if (input.isMouseButtonDown(Input.MOUSE_LEFT_BUTTON))
-			multiplier = 1;
-		else
-			return;
-
-		// get direction
-		int diff = newx - oldx;
-		if (diff == 0)
-			return;
-		diff = ((diff > 0) ? 1 : -1) * multiplier;
-
-		// options (drag only)
-		GameOption option = getClickedOption(oldy);
-		if (option != GameOption.NULL)
-			option.drag(container, diff);
-	}
-
-	@Override
-	public void keyPressed(int key, char c) {
-		// key entry state
-		if (keyEntryLeft || keyEntryRight) {
-			if (Character.isLetterOrDigit(c)) {
-				if (keyEntryLeft && keyRight != key)
-					keyLeft = key;
-				else if (keyEntryRight && keyLeft != key)
-					keyRight = key;
-			}
-			keyEntryLeft = keyEntryRight = false;
-			return;
-		}
-
-		switch (key) {
-		case Input.KEY_ESCAPE:
-			SoundController.playSound(SoundEffect.MENUBACK);
-			game.enterState(Opsu.STATE_SONGMENU, new EmptyTransition(), new FadeInTransition(Color.black));
-			break;
-		case Input.KEY_F5:
-			// restart application
-			if ((input.isKeyDown(Input.KEY_RCONTROL) || input.isKeyDown(Input.KEY_LCONTROL)) &&
-				(input.isKeyDown(Input.KEY_RSHIFT) || input.isKeyDown(Input.KEY_LSHIFT))) {
-				container.setForceExit(false);
-				container.exit();
-			}
-			break;
-		case Input.KEY_F12:
-			Utils.takeScreenShot();
-			break;
-		case Input.KEY_TAB:
-			// change tabs
-			int i = 1;
-			if (input.isKeyDown(Input.KEY_LSHIFT) || input.isKeyDown(Input.KEY_RSHIFT))
-				i = TAB_MAX - 1;
-			currentTab = (currentTab + i) % TAB_MAX;
-			SoundController.playSound(SoundEffect.MENUCLICK);
-			break;
-		default:
-			// check mod shortcut keys
-			for (GameMod mod : GameMod.values()) {
-				if (key == mod.getKey()) {
-					mod.toggle(true);
-					break;
-				}
-			}
-			break;
-		}
-	}
-
-	@Override
-	public void enter(GameContainer container, StateBasedGame game)
-			throws SlickException {
-		currentTab = TAB_DISPLAY;
-		Utils.getBackButton().setScale(1f);
-		for (GameMod mod : GameMod.values())
-			mod.setScale(1f);
-	}
-
-	/**
-	 * Draws a game option.
-	 * @param option the option (OPTION_* constant)
-	 * @param pos the position to draw at
-	 */
-	private void drawOption(GameOption option, int pos) {
-		int width = container.getWidth();
-		int textHeight = Utils.FONT_LARGE.getLineHeight();
-		float y = textY + (pos * offsetY);
-
-		Utils.FONT_LARGE.drawString(width / 30, y, option.getName(), Color.white);
-		Utils.FONT_LARGE.drawString(width / 2, y, option.getValueString(), Color.white);
-		Utils.FONT_SMALL.drawString(width / 30, y + textHeight, option.getDescription(), Color.white);
-		g.setColor(Utils.COLOR_WHITE_ALPHA);
-		g.drawLine(0, y + textHeight, width, y + textHeight);
-	}
-
-	/**
-	 * Returns the option clicked.
-	 * If no option clicked, -1 will be returned.
-	 * @param y the y coordinate
-	 * @return the option (OPTION_* constant)
-	 */
-	private GameOption getClickedOption(int y) {
-		GameOption option = GameOption.NULL;
-
-		if (y < textY || y > textY + (offsetY * maxOptionsScreen))
-			return option;
-
-		int index = (y - textY + Utils.FONT_LARGE.getLineHeight()) / offsetY;
-		switch (currentTab) {
-		case TAB_DISPLAY:
-			if (index < displayOptions.length)
-				option = displayOptions[index];
-			break;
-		case TAB_MUSIC:
-			if (index < musicOptions.length)
-				option = musicOptions[index];
-			break;
-		case TAB_GAMEPLAY:
-			if (index < gameplayOptions.length)
-				option = gameplayOptions[index];
-			break;
-		case TAB_CUSTOM:
-			if (index < customOptions.length)
-				option = customOptions[index];
-		}
-		return option;
-	}
+	// This class should not be instantiated.
+	private Options() {}
 
 	/**
 	 * Returns the target frame rate.
@@ -1295,6 +849,18 @@ public class Options extends BasicGameState {
 			keyRight = Input.KEY_X;
 		return keyRight;
 	}
+
+	/**
+	 * Sets the left game key.
+	 * @param key the keyboard key
+	 */
+	public static void setGameKeyLeft(int key) { keyLeft = key; }
+
+	/**
+	 * Sets the right game key.
+	 * @param key the keyboard key
+	 */
+	public static void setGameKeyRight(int key) { keyRight = key; }
 
 	/**
 	 * Returns the beatmap directory.

@@ -20,6 +20,7 @@ package itdelatrisu.opsu.states;
 
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.Opsu;
+import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.OsuGroupList;
 import itdelatrisu.opsu.OsuParser;
 import itdelatrisu.opsu.OszUnpacker;

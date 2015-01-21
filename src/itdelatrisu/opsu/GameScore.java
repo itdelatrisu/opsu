@@ -22,7 +22,6 @@ import itdelatrisu.opsu.audio.HitSound;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
-import itdelatrisu.opsu.states.Options;
 
 import java.io.File;
 import java.util.HashMap;

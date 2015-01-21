@@ -19,7 +19,6 @@
 package itdelatrisu.opsu;
 
 import itdelatrisu.opsu.audio.MusicController;
-import itdelatrisu.opsu.states.Options;
 
 import org.newdawn.slick.AppGameContainer;
 import org.newdawn.slick.Game;

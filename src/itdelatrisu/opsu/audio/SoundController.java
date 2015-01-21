@@ -19,9 +19,9 @@
 package itdelatrisu.opsu.audio;
 
 import itdelatrisu.opsu.ErrorHandler;
+import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.OsuHitObject;
 import itdelatrisu.opsu.audio.HitSound.SampleSet;
-import itdelatrisu.opsu.states.Options;
 
 import java.io.IOException;
 import java.net.URL;

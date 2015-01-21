@@ -18,8 +18,6 @@
 
 package itdelatrisu.opsu;
 
-import itdelatrisu.opsu.states.Options;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;

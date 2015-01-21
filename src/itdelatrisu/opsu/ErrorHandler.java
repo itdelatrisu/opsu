@@ -18,8 +18,6 @@
 
 package itdelatrisu.opsu;
 
-import itdelatrisu.opsu.states.Options;
-
 import java.awt.Cursor;
 import java.awt.Desktop;
 import java.io.PrintWriter;

@@ -24,6 +24,7 @@ import itdelatrisu.opsu.GameMod;
 import itdelatrisu.opsu.GameScore;
 import itdelatrisu.opsu.MenuButton;
 import itdelatrisu.opsu.Opsu;
+import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.OsuFile;
 import itdelatrisu.opsu.OsuHitObject;
 import itdelatrisu.opsu.OsuTimingPoint;

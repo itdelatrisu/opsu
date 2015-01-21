@@ -20,7 +20,6 @@ package itdelatrisu.opsu;
 
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
-import itdelatrisu.opsu.states.Options;
 
 import java.awt.Font;
 import java.awt.image.BufferedImage;
@@ -151,7 +150,7 @@ public class Utils {
 		// game settings
 		container.setTargetFrameRate(Options.getTargetFPS());
 		container.setVSync(Options.getTargetFPS() == 60);
-		container.setMusicVolume(Options.getMusicVolume());
+		container.setMusicVolume(Options.getMusicVolume() * Options.getMasterVolume());
 		container.setShowFPS(false);
 		container.getInput().enableKeyRepeat();
 		container.setAlwaysRender(true);

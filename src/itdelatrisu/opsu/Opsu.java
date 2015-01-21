@@ -23,7 +23,7 @@ import itdelatrisu.opsu.states.GamePauseMenu;
 import itdelatrisu.opsu.states.GameRanking;
 import itdelatrisu.opsu.states.MainMenu;
 import itdelatrisu.opsu.states.MainMenuExit;
-import itdelatrisu.opsu.states.Options;
+import itdelatrisu.opsu.states.OptionsMenu;
 import itdelatrisu.opsu.states.SongMenu;
 import itdelatrisu.opsu.states.Splash;
 
@@ -83,7 +83,7 @@ public class Opsu extends StateBasedGame {
 		addState(new Game(STATE_GAME));
 		addState(new GamePauseMenu(STATE_GAMEPAUSEMENU));
 		addState(new GameRanking(STATE_GAMERANKING));
-		addState(new Options(STATE_OPTIONS));
+		addState(new OptionsMenu(STATE_OPTIONS));
 	}
 
 	/**

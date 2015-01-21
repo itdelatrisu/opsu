@@ -22,6 +22,7 @@ import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.MenuButton;
 import itdelatrisu.opsu.Opsu;
+import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.OsuFile;
 import itdelatrisu.opsu.OsuGroupList;
 import itdelatrisu.opsu.OsuGroupNode;
