@@ -377,7 +377,7 @@ public class SongMenu extends BasicGameState {
 		// search
 		search.setFocus(true);
 		searchTimer += delta;
-		if (searchTimer >= SEARCH_DELAY) {
+		if (searchTimer >= SEARCH_DELAY && reloadThread == null) {
 			searchTimer = 0;
 
 			// store the start/focus nodes
@@ -596,6 +596,7 @@ public class SongMenu extends BasicGameState {
 			hoverIndex = -1;
 			search.setText("");
 			searchTimer = SEARCH_DELAY;
+			searchResultString = "Type to search!";
 
 			// reload songs in new thread
 			reloadThread = new Thread() {
