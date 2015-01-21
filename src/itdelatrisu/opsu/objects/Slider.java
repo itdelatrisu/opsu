@@ -27,8 +27,6 @@ import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.states.Game;
 
-import java.io.File;
-
 import org.newdawn.slick.Animation;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
@@ -282,33 +280,15 @@ public class Slider implements HitObject {
 		diameter = diameter * container.getWidth() / 640;  // convert from Osupixels (640x480)
 
 		// slider ball
-		if (sliderBall != null) {
-			for (int i = 0; i < sliderBall.getFrameCount(); i++) {
-				Image img = sliderBall.getImage(i);
-				if (!img.isDestroyed())
-					img.destroy();
-			}
-		}
-		sliderBall = new Animation();
-		String sliderFormat = "sliderb%d.png";
-		int sliderIndex = 0;
-		File dir = MusicController.getOsuFile().getFile().getParentFile();
-		File slider = new File(dir, String.format(sliderFormat, sliderIndex));
-		if (slider.isFile()) {
-			do {
-				sliderBall.addFrame(new Image(slider.getAbsolutePath()).getScaledCopy(diameter * 118 / 128, diameter * 118 / 128), 60);
-				slider = new File(dir, String.format(sliderFormat, ++sliderIndex));
-			} while (slider.isFile());
-		} else {
-			while (true) {
-				try {
-					Image sliderFrame = new Image(String.format(sliderFormat, sliderIndex++));
-					sliderBall.addFrame(sliderFrame.getScaledCopy(diameter * 118 / 128, diameter * 118 / 128), 60);
-				} catch (Exception e) {
-					break;
-				}
-			}
-		}
+		Image[] sliderBallImages;
+		if (GameImage.SLIDER_BALL.hasSkinImages() ||
+		    (!GameImage.SLIDER_BALL.hasSkinImage() && GameImage.SLIDER_BALL.getImages() != null))
+			sliderBallImages = GameImage.SLIDER_BALL.getImages();
+		else
+			sliderBallImages = new Image[]{ GameImage.SLIDER_BALL.getImage() };
+		for (int i = 0; i < sliderBallImages.length; i++)
+			sliderBallImages[i] = sliderBallImages[i].getScaledCopy(diameter * 118 / 128, diameter * 118 / 128);
+		sliderBall = new Animation(sliderBallImages, 60);
 
 		GameImage.SLIDER_FOLLOWCIRCLE.setImage(GameImage.SLIDER_FOLLOWCIRCLE.getImage().getScaledCopy(diameter * 259 / 128, diameter * 259 / 128));
 		GameImage.REVERSEARROW.setImage(GameImage.REVERSEARROW.getImage().getScaledCopy(diameter, diameter));

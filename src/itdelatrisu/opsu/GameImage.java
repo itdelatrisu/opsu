@@ -104,6 +104,7 @@ public enum GameImage {
 	APPROACHCIRCLE ("approachcircle", "png"),
 
 	// Slider
+	SLIDER_BALL ("sliderb", "sliderb%d", "png"),
 	SLIDER_FOLLOWCIRCLE ("sliderfollowcircle", "png"),
 	REVERSEARROW ("reversearrow", "png"),
 	SLIDER_TICK ("sliderscorepoint", "png"),
@@ -117,6 +118,7 @@ public enum GameImage {
 	SPINNER_OSU ("spinner-osu", "png"),
 
 	// Game Score
+	COMBO_BURST ("comboburst", "comboburst-%d", "png"),
 	SCOREBAR_BG ("scorebar-bg", "png") {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
@@ -396,6 +398,11 @@ public enum GameImage {
 	private String filename;
 
 	/**
+	 * The formatted file name string (for loading multiple images).
+	 */
+	private String filenameFormat;
+
+	/**
 	 * Image file type.
 	 */
 	private byte type;
@@ -417,9 +424,19 @@ public enum GameImage {
 	private Image defaultImage;
 
 	/**
+	 * The default image array.
+	 */
+	private Image[] defaultImages;
+
+	/**
 	 * The beatmap skin image (optional, temporary).
 	 */
 	private Image skinImage;
+
+	/**
+	 * The beatmap skin image array (optional, temporary).
+	 */
+	private Image[] skinImages;
 
 	/**
 	 * Container dimensions.
@@ -446,8 +463,10 @@ public enum GameImage {
 	 * This does NOT destroy images, so be careful of memory leaks!
 	 */
 	public static void clearReferences() {
-		for (GameImage img : GameImage.values())
+		for (GameImage img : GameImage.values()) {
 			img.defaultImage = img.skinImage = null;
+			img.defaultImages = img.skinImages = null;
+		}
 	}
 
 	/**
@@ -481,12 +500,39 @@ public enum GameImage {
 	}
 
 	/**
+	 * Returns a list of possible filenames (with extensions).
+	 * @return filename list
+	 */
+	private static List<String> getFileNames(String filename, byte type) {
+		List<String> list = new ArrayList<String>(2);
+		if ((type & IMG_PNG) != 0)
+			list.add(String.format("%s.png", filename));
+		if ((type & IMG_JPG) != 0)
+			list.add(String.format("%s.jpg", filename));
+		return list;
+	}
+
+	/**
 	 * Constructor for game-related images (skinnable and preloaded).
 	 * @param filename the image file name
 	 * @param type the file types (separated by '|')
 	 */
 	GameImage(String filename, String type) {
 		this.filename = filename;
+		this.type = getType(type);
+		this.skinnable = true;
+		this.preload = true;
+	}
+
+	/**
+	 * Constructor for an array of game-related images (skinnable and preloaded).
+	 * @param filename the image file name
+	 * @param filenameFormat the formatted file name string (for loading multiple images)
+	 * @param type the file types (separated by '|')
+	 */
+	GameImage(String filename, String filenameFormat, String type) {
+		this.filename = filename;
+		this.filenameFormat = filenameFormat;
 		this.type = getType(type);
 		this.skinnable = true;
 		this.preload = true;
@@ -523,9 +569,17 @@ public enum GameImage {
 	 * The skin image takes priority over the default image.
 	 */
 	public Image getImage() {
-		if (defaultImage == null)
-			setDefaultImage();
+		setDefaultImage();
 		return (skinImage != null) ? skinImage : defaultImage;
+	}
+
+	/**
+	 * Returns the image array associated with this resource.
+	 * The skin images takes priority over the default images.
+	 */
+	public Image[] getImages() {
+		setDefaultImage();
+		return (skinImages != null) ? skinImages : defaultImages;
 	}
 
 	/**
@@ -540,16 +594,17 @@ public enum GameImage {
 	}
 
 	/**
-	 * Returns a list of possible filenames (with extensions).
-	 * @return filename list
+	 * Sets an image associated with this resource to another image.
+	 * The skin image takes priority over the default image.
 	 */
-	private List<String> getFileNames() {
-		List<String> list = new ArrayList<String>(2);
-		if ((type & IMG_PNG) != 0)
-			list.add(String.format("%s.png", filename));
-		if ((type & IMG_JPG) != 0)
-			list.add(String.format("%s.jpg", filename));
-		return list;
+	public void setImage(Image img, int index) {
+		if (skinImages != null) {
+			if (index < skinImages.length)
+				this.skinImages[index] = img;
+		} else {
+			if (index < defaultImages.length)
+				this.defaultImages[index] = img;
+		}
 	}
 
 	/**
@@ -557,9 +612,40 @@ public enum GameImage {
 	 * If the default image has already been loaded, this will do nothing.
 	 */
 	public void setDefaultImage() {
-		if (defaultImage != null)
+		if (defaultImage != null || defaultImages != null)
 			return;
-		for (String name : getFileNames()) {
+
+		// load image array
+		if (filenameFormat != null) {
+			List<Image> list = new ArrayList<Image>();
+			int i = 0;
+			boolean loaded;
+			do {
+				loaded = false;
+				for (String name : getFileNames(String.format(filenameFormat, i), type)) {
+					try {
+						// try loading the image
+						Image img = new Image(name);
+		
+						// image successfully loaded
+						list.add(img);
+						loaded = true;
+						break;
+					} catch (SlickException | RuntimeException e) {
+						continue;
+					}
+				}
+				i++;
+			} while (loaded);
+			if (!list.isEmpty()) {
+				this.defaultImages = list.toArray(new Image[list.size()]);
+				process();
+				return;
+			}
+		}
+
+		// load single image
+		for (String name : getFileNames(filename, type)) {
 			try {
 				// try loading the image
 				Image img = new Image(name);
@@ -584,16 +670,49 @@ public enum GameImage {
 		if (dir == null)
 			return false;
 
-		// destroy the existing image, if any
+		// destroy the existing images, if any
 		destroySkinImage();
 
 		// beatmap skins disabled
 		if (Options.isBeatmapSkinIgnored())
 			return false;
 
+		// look for multiple skin images
+		if (filenameFormat != null) {
+			List<Image> list = new ArrayList<Image>();
+			int i = 0;
+			boolean loaded;
+			do {
+				loaded = false;
+				for (String name : getFileNames(String.format(filenameFormat, i), type)) {
+					File file = new File(dir, name);
+					if (!file.isFile())
+						continue;
+					try {
+						// try loading the image
+						Image img = new Image(file.getAbsolutePath());
+		
+						// image successfully loaded
+						list.add(img);
+						loaded = true;
+						break;
+					} catch (SlickException | RuntimeException e) {
+						continue;
+					}
+				}
+				i++;
+			} while (loaded);
+			if (!list.isEmpty()) {
+				this.skinImages = list.toArray(new Image[list.size()]);
+				process();
+				skinImageLoaded = true;
+				return true;
+			}
+		}
+
 		// look for a skin image
 		String errorFile = null;
-		for (String name : getFileNames()) {
+		for (String name : getFileNames(filename, type)) {
 			File file = new File(dir, name);
 			if (!file.isFile())
 				continue;
@@ -624,17 +743,32 @@ public enum GameImage {
 	public boolean hasSkinImage() { return (skinImage != null && !skinImage.isDestroyed()); }
 
 	/**
-	 * Destroys the associated skin image, if any.
+	 * Returns whether skin images are currently loaded.
+	 * @return true if any skin image exists
+	 */
+	public boolean hasSkinImages() { return (skinImages != null); }
+
+	/**
+	 * Destroys the associated skin image(s), if any.
 	 */
 	private void destroySkinImage() {
-		if (skinImage == null)
+		if (skinImage == null && skinImages == null)
 			return;
 		try {
-			if (!skinImage.isDestroyed())
-				skinImage.destroy();
-			skinImage = null;
+			if (skinImage != null) {
+				if (!skinImage.isDestroyed())
+					skinImage.destroy();
+				skinImage = null;
+			}
+			if (skinImages != null) {
+				for (int i = 0; i < skinImages.length; i++) {
+					if (!skinImages[i].isDestroyed())
+						skinImages[i].destroy();
+				}
+				skinImages = null;
+			}
 		} catch (SlickException e) {
-			ErrorHandler.error(String.format("Failed to destroy skin image for '%s'.", this.name()), e, true);
+			ErrorHandler.error(String.format("Failed to destroy skin images for '%s'.", this.name()), e, true);
 		}
 	}
 
@@ -653,6 +787,13 @@ public enum GameImage {
 	 * Performs individual post-loading actions on the image.
 	 */
 	private void process() {
-		setImage(process_sub(getImage(), containerWidth, containerHeight));
+		if (skinImages != null) {
+			for (int i = 0; i < skinImages.length; i++)
+				setImage(process_sub(getImages()[i], containerWidth, containerHeight), i);
+		} else if (defaultImages != null && skinImage == null) {
+			for (int i = 0; i < defaultImages.length; i++)
+				setImage(process_sub(getImages()[i], containerWidth, containerHeight), i);
+		} else
+			setImage(process_sub(getImage(), containerWidth, containerHeight));
 	}
 }

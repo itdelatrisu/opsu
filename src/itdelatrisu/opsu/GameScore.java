@@ -249,35 +249,11 @@ public class GameScore {
 	 */
 	public void loadImages(File dir) throws SlickException {
 		// combo burst images
-		if (comboBurstImages != null) {
-			for (int i = 0; i < comboBurstImages.length; i++) {
-				if (!comboBurstImages[i].isDestroyed())
-					comboBurstImages[i].destroy();
-			}
-		}
-		LinkedList<Image> comboBurst = new LinkedList<Image>();
-		String comboFormat = "comboburst-%d.png";
-		int comboIndex = 0;
-		File comboFile = new File(dir, "comboburst.png");
-		File comboFileN = new File(dir, String.format(comboFormat, comboIndex));
-		if (comboFileN.isFile()) {  // beatmap provides images
-			do {
-				comboBurst.add(new Image(comboFileN.getAbsolutePath()));
-				comboFileN = new File(dir, String.format(comboFormat, ++comboIndex));
-			} while (comboFileN.isFile());
-		} else if (comboFile.isFile())  // beatmap provides single image
-			comboBurst.add(new Image(comboFile.getAbsolutePath()));
-		else {  // load default images
-			while (true) {
-				try {
-					Image comboImage = new Image(String.format(comboFormat, comboIndex++));
-					comboBurst.add(comboImage);
-				} catch (Exception e) {
-					break;
-				}
-			}
-		}
-		comboBurstImages = comboBurst.toArray(new Image[comboBurst.size()]);
+		if (GameImage.COMBO_BURST.hasSkinImages() ||
+		    (!GameImage.COMBO_BURST.hasSkinImage() && GameImage.COMBO_BURST.getImages() != null))
+			comboBurstImages = GameImage.COMBO_BURST.getImages();
+		else
+			comboBurstImages = new Image[]{ GameImage.COMBO_BURST.getImage() };
 
 		// default symbol images
 		defaultSymbols = new Image[10];
