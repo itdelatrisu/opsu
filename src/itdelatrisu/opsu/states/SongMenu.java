@@ -209,7 +209,6 @@ public class SongMenu extends BasicGameState {
 
 		// song button background & graphics context
 		Image menuBackground = GameImage.MENU_BUTTON_BG.getImage();
-		OsuGroupNode.setBackground(menuBackground);
 
 		// song button coordinates
 		buttonX = width * 0.6f;
@@ -651,6 +650,13 @@ public class SongMenu extends BasicGameState {
 		if (MusicController.isThemePlaying() && focusNode != null)
 			MusicController.play(focusNode.osuFiles.get(focusNode.osuFileIndex), true);
 
+		// reset music track
+		else if (resetTrack) {
+			MusicController.pause();
+			MusicController.playAt(MusicController.getOsuFile().previewTime, true);
+			resetTrack = false;
+		}
+
 		// unpause track
 		else if (MusicController.isPaused())
 			MusicController.resume();
@@ -663,13 +669,6 @@ public class SongMenu extends BasicGameState {
 			((Game) game.getState(Opsu.STATE_GAME)).resetGameData();
 			GameImage.destroySkinImages();  // destroy skin images, if any
 			resetGame = false;
-		}
-
-		// reset music track
-		if (resetTrack) {
-			MusicController.pause();
-			MusicController.playAt(MusicController.getOsuFile().previewTime, true);
-			resetTrack = false;
 		}
 	}
 

@@ -73,6 +73,13 @@ public enum GameImage {
 	},
 	HITCIRCLE_SELECT ("hitcircleselect", "png"),
 	UNRANKED ("play-unranked", "png"),
+	PLAYFIELD ("playfield", "png|jpg", false, false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			img.setAlpha(0.7f);
+			return img.getScaledCopy(w, h);
+		}
+	},
 
 	// Game Pause/Fail
 	PAUSE_CONTINUE ("pause-continue", "png"),
@@ -206,6 +213,70 @@ public enum GameImage {
 	SCORE_DOT ("score-dot", "png"),
 	SCORE_PERCENT ("score-percent", "png"),
 	SCORE_X ("score-x", "png"),
+	LIGHTING ("lighting", "png"),
+	LIGHTING1 ("lighting1", "png"),
+
+	// Game Mods
+	MOD_EASY ("selection-mod-easy", "png", false, false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy((h * 0.12f) / img.getHeight());
+		}
+	},
+	MOD_NO_FAIL ("selection-mod-nofail", "png", false, false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy((h * 0.12f) / img.getHeight());
+		}
+	},
+	MOD_HARD_ROCK ("selection-mod-hardrock", "png", false, false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy((h * 0.12f) / img.getHeight());
+		}
+	},
+	MOD_SUDDEN_DEATH ("selection-mod-suddendeath", "png", false, false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy((h * 0.12f) / img.getHeight());
+		}
+	},
+	MOD_SPUN_OUT ("selection-mod-spunout", "png", false, false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy((h * 0.12f) / img.getHeight());
+		}
+	},
+	MOD_AUTO ("selection-mod-autoplay", "png", false, false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy((h * 0.12f) / img.getHeight());
+		}
+	},
+	MOD_HALF_TIME ("selection-mod-halftime", "png", false, false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy((h * 0.12f) / img.getHeight());
+		}
+	},
+	MOD_DOUBLE_TIME ("selection-mod-doubletime", "png", false, false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy((h * 0.12f) / img.getHeight());
+		}
+	},
+	MOD_HIDDEN ("selection-mod-hidden", "png", false, false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy((h * 0.12f) / img.getHeight());
+		}
+	},
+	MOD_FLASHLIGHT ("selection-mod-flashlight", "png", false, false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy((h * 0.12f) / img.getHeight());
+		}
+	},
 
 	// Non-Game Components
 	VOLUME ("volume-bg", "png", false, false) {
@@ -291,12 +362,10 @@ public enum GameImage {
 	},
 	MENU_BUTTON_LEFT ("button-left", "png", false, false),
 	MENU_BUTTON_RIGHT ("button-right", "png", false, false),
-
 	MUSIC_PLAY ("music-play", "png", false, false),
 	MUSIC_PAUSE ("music-pause", "png", false, false),
 	MUSIC_NEXT ("music-next", "png", false, false),
 	MUSIC_PREVIOUS ("music-previous", "png", false, false),
-
 	RANKING_RETRY ("ranking-retry", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
@@ -309,7 +378,6 @@ public enum GameImage {
 			return img.getScaledCopy((h * 0.15f) / img.getHeight());
 		}
 	},
-
 	REPOSITORY ("repo", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
@@ -373,6 +441,15 @@ public enum GameImage {
 	public static void init(int width, int height) {
 		containerWidth = width;
 		containerHeight = height;
+	}
+
+	/**
+	 * Clears all image references.
+	 * This does NOT destroy images, so be careful of memory leaks!
+	 */
+	public static void clearReferences() {
+		for (GameImage img : GameImage.values())
+			img.defaultImage = img.skinImage = null;
 	}
 
 	/**

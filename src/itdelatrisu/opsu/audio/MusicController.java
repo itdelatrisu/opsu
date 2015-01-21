@@ -135,6 +135,7 @@ public class MusicController {
 		if (trackExists()) {
 			setVolume(Options.getMusicVolume() * Options.getMasterVolume());
 			player.setPosition(position / 1000f);
+			pauseTime = 0f;
 			if (loop)
 				player.loop();
 			else
@@ -237,6 +238,8 @@ public class MusicController {
 	public static void stop() {
 		if (isPlaying())
 			player.stop();
+		if (trackExists())
+			pauseTime = 0f;
 	}
 
 	/**
@@ -400,7 +403,7 @@ public class MusicController {
 
 			player = null;
 		} catch (Exception e) {
-			ErrorHandler.error("Failed to destroy OpenAL.", e, false);
+			ErrorHandler.error("Failed to destroy OpenAL.", e, true);
 		}
 	}
 }

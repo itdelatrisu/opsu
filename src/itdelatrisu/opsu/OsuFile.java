@@ -22,9 +22,11 @@ import itdelatrisu.opsu.states.Options;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Image;
+import org.newdawn.slick.SlickException;
 import org.newdawn.slick.util.Log;
 
 /**
@@ -80,7 +82,7 @@ public class OsuFile implements Comparable<OsuFile> {
 	/* [Events] */
 	//Background and Video events (0)
 	public String bg;                           // background image path
-	private Image bgImage;                      // background image (created when needed)
+//	private Image bgImage;                      // background image (created when needed)
 //	public Video bgVideo;                       // background video (not implemented)
 	//Break Periods (2)
 	public ArrayList<Integer> breaks;           // break periods (start time, end time, ...)
@@ -99,6 +101,35 @@ public class OsuFile implements Comparable<OsuFile> {
 	public int hitObjectSlider = 0;             // number of sliders
 	public int hitObjectSpinner = 0;            // number of spinners
 	public int endTime = -1;                    // last object end time (in ms)
+
+	/**
+	 * Map of all loaded background images.
+	 */
+	private static HashMap<OsuFile, Image> bgImageMap = new HashMap<OsuFile, Image>();
+
+	/**
+	 * Destroys all cached background images and resets the cache.
+	 */
+	public static void clearImageCache() {
+		for (Image img : bgImageMap.values()) {
+			if (img != null && !img.isDestroyed()) {
+				try {
+					img.destroy();
+				} catch (SlickException e) {
+					Log.warn(String.format("Failed to destroy image '%s'.", img.getResourceReference()), e);
+				}
+			}
+		}
+		resetImageCache();
+	}
+
+	/**
+	 * Resets the image cache.
+	 * This does NOT destroy images, so be careful of memory leaks!
+	 */
+	public static void resetImageCache() {
+		bgImageMap = new HashMap<OsuFile, Image>();
+	}
 
 	/**
 	 * Constructor.
@@ -143,8 +174,11 @@ public class OsuFile implements Comparable<OsuFile> {
 		if (bg == null)
 			return false;
 		try {
-			if (bgImage == null)
+			Image bgImage = bgImageMap.get(this);
+			if (bgImage == null) {
 				bgImage = new Image(bg).getScaledCopy(width, height);
+				bgImageMap.put(this, bgImage);
+			}
 			bgImage.setAlpha(alpha);
 			bgImage.draw();
 		} catch (Exception e) {

@@ -166,12 +166,6 @@ public class Game extends BasicGameState {
 	private float pausePulse;
 
 	/**
-	 * Default playfield background (optional).
-	 * Overridden by song background unless "ForceDefaultPlayfield" option enabled.
-	 */
-	private Image playfield;
-
-	/**
 	 * Whether a checkpoint has been loaded during this game.
 	 */
 	private boolean checkpointLoaded = false;
@@ -214,13 +208,6 @@ public class Game extends BasicGameState {
 		// create the associated GameScore object
 		score = new GameScore(width, height);
 		((GameRanking) game.getState(Opsu.STATE_GAMERANKING)).setGameScore(score);
-
-		// playfield background
-		try {
-			playfield = new Image("playfield.png").getScaledCopy(width, height);
-		} catch (Exception e) {
-			// optional
-		}
 	}
 
 	@Override
@@ -232,10 +219,8 @@ public class Game extends BasicGameState {
 		// background
 		g.setBackground(Color.black);
 		float dimLevel = Options.getBackgroundDim();
-		if (Options.isDefaultPlayfieldForced() && playfield != null) {
-			playfield.setAlpha(dimLevel);
-			playfield.draw();
-		} else if (!osu.drawBG(width, height, dimLevel) && playfield != null) {
+		if (Options.isDefaultPlayfieldForced() || !osu.drawBG(width, height, dimLevel)) {
+			Image playfield = GameImage.PLAYFIELD.getImage();
 			playfield.setAlpha(dimLevel);
 			playfield.draw();
 		}

@@ -217,6 +217,9 @@ public class Utils {
 		for (SongSort sort : SongSort.values())
 			sort.init(width, height);
 
+		// initialize hit objects
+		OsuHitObject.init(width, height);
+
 		// back button
 		Image back = GameImage.MENU_BACK.getImage();
 		backButton = new MenuButton(back,
@@ -316,11 +319,11 @@ public class Utils {
 	 */
 	public static void loadCursor() throws SlickException {
 		// destroy old cursors, if they exist
-		if (cursor != null)
+		if (cursor != null && !cursor.isDestroyed())
 			cursor.destroy();
-		if (cursorTrail != null)
+		if (cursorTrail != null && !cursorTrail.isDestroyed())
 			cursorTrail.destroy();
-		if (cursorMiddle != null)
+		if (cursorMiddle != null && !cursorMiddle.isDestroyed())
 			cursorMiddle.destroy();
 		cursor = cursorTrail = cursorMiddle = null;
 

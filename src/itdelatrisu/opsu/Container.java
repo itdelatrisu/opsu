@@ -24,6 +24,7 @@ import itdelatrisu.opsu.states.Options;
 import org.newdawn.slick.AppGameContainer;
 import org.newdawn.slick.Game;
 import org.newdawn.slick.SlickException;
+import org.newdawn.slick.opengl.InternalTextureLoader;
 
 /**
  * AppGameContainer extension that sends critical errors to ErrorHandler.
@@ -65,8 +66,11 @@ public class Container extends AppGameContainer {
 			while (running())
 				gameLoop();
 		} finally {
-			MusicController.reset();  // prevent loading tracks from re-initializing OpenAL
+			// destroy the game container
+			close_sub();
 			destroy();
+
+			// report any critical errors
 			if (e != null) {
 				ErrorHandler.error(null, e, true);
 				e = null;
@@ -77,20 +81,34 @@ public class Container extends AppGameContainer {
 			System.exit(0);
 	}
 
+	/**
+	 * Actions to perform before destroying the game container.
+	 */
+	private void close_sub() {
+		// save user options
+		Options.saveOptions();
+
+		// close server socket
+		Opsu.closeSocket();
+
+		// prevent loading tracks from re-initializing OpenAL
+		MusicController.reset();
+
+		// destroy images
+		InternalTextureLoader.get().clear();
+		
+		// reset image references
+		GameImage.clearReferences();
+		OsuFile.resetImageCache();
+	}
+
 	@Override
 	protected void updateAndRender(int delta) throws SlickException {
 		try {
 			super.updateAndRender(delta);
 		} catch (SlickException e) {
-			this.e = e;
-			throw e;
+			this.e = e;  // store exception to display later
+			throw e;     // re-throw exception
 		}
-	}
-
-	@Override
-	public void exit() {
-		Options.saveOptions();
-		Opsu.closeSocket();
-		running = false;
 	}
 }

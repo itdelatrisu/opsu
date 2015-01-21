@@ -305,8 +305,8 @@ public class GameScore {
 			}
 		} else {  // load default image
 			try {
-				lighting  = new Image("lighting.png");
-				lighting1 = new Image("lighting1.png");
+				lighting  = GameImage.LIGHTING.getImage();
+				lighting1 = GameImage.LIGHTING1.getImage();
 			} catch (Exception e) {
 				// optional
 			}

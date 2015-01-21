@@ -18,7 +18,6 @@
 
 package itdelatrisu.opsu;
 
-import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.states.Game;
 import itdelatrisu.opsu.states.GamePauseMenu;
 import itdelatrisu.opsu.states.GameRanking;
@@ -138,16 +137,20 @@ public class Opsu extends StateBasedGame {
 		Options.TMP_DIR.deleteOnExit();
 
 		// start the game
-		Opsu opsu = new Opsu("opsu!");
 		try {
-			Container app = new Container(opsu);
+			// loop until force exit
+			while (true) {
+				Opsu opsu = new Opsu("opsu!");
+				Container app = new Container(opsu);
 
-			// basic game settings
-			Options.setDisplayMode(app);
-			String[] icons = { "icon16.png", "icon32.png" };
-			app.setIcons(icons);
+				// basic game settings
+				Options.setDisplayMode(app);
+				String[] icons = { "icon16.png", "icon32.png" };
+				app.setIcons(icons);
+				app.setForceExit(true);
 
-			app.start();
+				app.start();
+			}
 		} catch (SlickException e) {
 			// JARs will not run properly inside directories containing '!'
 			// http://bugs.java.com/view_bug.do?bug_id=4523159
@@ -172,10 +175,6 @@ public class Opsu extends StateBasedGame {
 			return false;
 		}
 
-		MusicController.reset();
-		Options.saveOptions();
-		((Container) this.getContainer()).destroy();
-		closeSocket();
 		return true;
 	}
 

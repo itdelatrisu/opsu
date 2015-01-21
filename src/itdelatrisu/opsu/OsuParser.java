@@ -67,9 +67,6 @@ public class OsuParser {
 	 * @param height the container height
 	 */
 	public static void parseAllFiles(File root, int width, int height) {
-		// initialize hit objects
-		OsuHitObject.init(width, height);
-
 		// progress tracking
 		File[] folders = root.listFiles();
 		currentDirectoryIndex = 0;

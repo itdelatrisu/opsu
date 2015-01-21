@@ -119,16 +119,19 @@ public class Splash extends BasicGameState {
 			thread = new Thread() {
 				@Override
 				public void run() {
-					File beatmapDir = Options.getBeatmapDir();
+					// application restart: everything already loaded
+					if (OsuGroupList.get().size() < 1) {
+						File beatmapDir = Options.getBeatmapDir();
 
-					// unpack all OSZ archives
-					OszUnpacker.unpackAllFiles(Options.getOSZDir(), beatmapDir);
+						// unpack all OSZ archives
+						OszUnpacker.unpackAllFiles(Options.getOSZDir(), beatmapDir);
+	
+						// parse song directory
+						OsuParser.parseAllFiles(beatmapDir, width, height);
 
-					// parse song directory
-					OsuParser.parseAllFiles(beatmapDir, width, height);
-
-					// load sounds
-					SoundController.init();
+						// load sounds
+						SoundController.init();
+					}
 
 					finished = true;
 				}

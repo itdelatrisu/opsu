@@ -139,7 +139,7 @@ public class Options extends BasicGameState {
 	 */
 	private static enum GameOption {
 		NULL (null, null),
-		SCREEN_RESOLUTION ("Screen Resolution", "Restart to apply resolution changes.") {
+		SCREEN_RESOLUTION ("Screen Resolution", "Restart (Ctrl+Shift+F5) to apply resolution changes.") {
 			@Override
 			public String getValueString() { return resolution.toString(); }
 
@@ -325,7 +325,7 @@ public class Options extends BasicGameState {
 			@Override
 			public void click(GameContainer container) { loadVerbose = !loadVerbose; }
 		},
-		CHECKPOINT ("Track Checkpoint", "Press CTRL+L while playing to load a checkpoint, and CTRL+S to set one.") {
+		CHECKPOINT ("Track Checkpoint", "Press Ctrl+L while playing to load a checkpoint, and Ctrl+S to set one.") {
 			@Override
 			public String getValueString() {
 				return (checkpoint == 0) ? "Disabled" : String.format("%02d:%02d",
@@ -975,10 +975,19 @@ public class Options extends BasicGameState {
 			SoundController.playSound(SoundEffect.MENUBACK);
 			game.enterState(Opsu.STATE_SONGMENU, new EmptyTransition(), new FadeInTransition(Color.black));
 			break;
+		case Input.KEY_F5:
+			// restart application
+			if ((input.isKeyDown(Input.KEY_RCONTROL) || input.isKeyDown(Input.KEY_LCONTROL)) &&
+				(input.isKeyDown(Input.KEY_RSHIFT) || input.isKeyDown(Input.KEY_LSHIFT))) {
+				container.setForceExit(false);
+				container.exit();
+			}
+			break;
 		case Input.KEY_F12:
 			Utils.takeScreenShot();
 			break;
 		case Input.KEY_TAB:
+			// change tabs
 			int i = 1;
 			if (input.isKeyDown(Input.KEY_LSHIFT) || input.isKeyDown(Input.KEY_RSHIFT))
 				i = TAB_MAX - 1;
@@ -1130,8 +1139,8 @@ public class Options extends BasicGameState {
 		app.setDisplayMode(resolution.getWidth(), resolution.getHeight(), false);
 
 		// set borderless window if dimensions match screen size
-		if (screenWidth == resolution.getWidth() && screenHeight == resolution.getHeight())
-			System.setProperty("org.lwjgl.opengl.Window.undecorated", "true");
+		boolean borderless = (screenWidth == resolution.getWidth() && screenHeight == resolution.getHeight());
+		System.setProperty("org.lwjgl.opengl.Window.undecorated", Boolean.toString(borderless));
 	}
 
 //	/**
