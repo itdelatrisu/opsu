@@ -57,54 +57,34 @@ import org.newdawn.slick.state.transition.FadeOutTransition;
  * </ul>
  */
 public class MainMenu extends BasicGameState {
-	/**
-	 * Idle time, in milliseconds, before returning the logo to its original position.
-	 */
+	/** Idle time, in milliseconds, before returning the logo to its original position. */
 	private static final short MOVE_DELAY = 5000;
 
-	/**
-	 * Logo button that reveals other buttons on click.
-	 */
+	/** Logo button that reveals other buttons on click. */
 	private MenuButton logo;
 
-	/**
-	 * Whether or not the logo has been clicked.
-	 */
+	/** Whether or not the logo has been clicked. */
 	private boolean logoClicked = false;
 
-	/**
-	 * Delay timer, in milliseconds, before starting to move the logo back to the center.
-	 */
+	/** Delay timer, in milliseconds, before starting to move the logo back to the center. */
 	private int logoTimer = 0;
 
-	/**
-	 * Main "Play" and "Exit" buttons.
-	 */
+	/** Main "Play" and "Exit" buttons. */
 	private MenuButton playButton, exitButton;
 
-	/**
-	 * Music control buttons.
-	 */
+	/** Music control buttons. */
 	private MenuButton musicPlay, musicPause, musicNext, musicPrevious;
 
-	/**
-	 * Button linking to repository.
-	 */
+	/** Button linking to repository. */
 	private MenuButton repoButton;
 
-	/**
-	 * Application start time, for drawing the total running time.
-	 */
+	/** Application start time, for drawing the total running time. */
 	private long osuStartTime;
 
-	/**
-	 * Indexes of previous songs.
-	 */
+	/** Indexes of previous songs. */
 	private Stack<Integer> previous;
 
-	/**
-	 * Background alpha level (for fade-in effect).
-	 */
+	/** Background alpha level (for fade-in effect). */
 	private float bgAlpha = 0f;
 
 	// game-related variables

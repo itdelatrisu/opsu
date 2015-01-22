@@ -42,43 +42,29 @@ import org.newdawn.slick.util.Log;
  * Handles all user options.
  */
 public class Options {
-	/**
-	 * Temporary folder for file conversions, auto-deleted upon successful exit.
-	 */
+	/** Temporary folder for file conversions, auto-deleted upon successful exit. */
 	public static final File TMP_DIR = new File(".opsu_tmp/");
 
-	/**
-	 * File for logging errors.
-	 */
+	/** File for logging errors. */
 	public static final File LOG_FILE = new File(".opsu.log");
 
-	/**
-	 * File for storing user options.
-	 */
+	/** File for storing user options. */
 	private static final File OPTIONS_FILE = new File(".opsu.cfg");
 
-	/**
-	 * Beatmap directories (where to search for files).
-	 */
+	/** Beatmap directories (where to search for files).  */
 	private static final String[] BEATMAP_DIRS = {
 		"C:/Program Files (x86)/osu!/Songs/",
 		"C:/Program Files/osu!/Songs/",
 		"Songs/"
 	};
 
-	/**
-	 * Font file name.
-	 */
+	/** Font file name. */
 	public static final String FONT_NAME = "kochi-gothic.ttf";
 
-	/**
-	 * Repository address.
-	 */
+	/** Repository address. */
 	public static URI REPOSITORY_URI;
 
-	/**
-	 * Issue reporting address.
-	 */
+	/** Issue reporting address. */
 	public static URI ISSUES_URI;
 
 	static {
@@ -90,36 +76,26 @@ public class Options {
 		}
 	}
 
-	/**
-	 * The beatmap directory.
-	 */
+	/** The beatmap directory. */
 	private static File beatmapDir;
 
-	/**
-	 * The OSZ archive directory.
-	 */
+	/** The OSZ archive directory. */
 	private static File oszDir;
 
-	/**
-	 * The screenshot directory (created when needed).
-	 */
+	/** The screenshot directory (created when needed). */
 	private static File screenshotDir;
 
-	/**
-	 * The current skin directory (for user skins).
-	 */
+	/** The current skin directory (for user skins). */
 	private static File skinDir;
 
 	/**
 	 * The theme song string:
-	 * filename, title, artist, length (ms)
+	 * {@code filename,title,artist,length(ms)}
 	 */
 	private static String themeString = "theme.ogg,welcome to osu!,nekodex,48000";
 
-	/**
-	 * Game options.
-	 */
-	public static enum GameOption {
+	/** Game options. */
+	public enum GameOption {
 		NULL (null, null),
 		SCREEN_RESOLUTION ("Screen Resolution", "Restart (Ctrl+Shift+F5) to apply resolution changes.") {
 			@Override
@@ -359,14 +335,10 @@ public class Options {
 			public void click(GameContainer container) { themeSongEnabled = !themeSongEnabled; }
 		};
 
-		/**
-		 * Option name.
-		 */
+		/** Option name. */
 		private String name;
 
-		/**
-		 * Option description.
-		 */
+		/** Option description. */
 		private String description;
 
 		/**
@@ -411,9 +383,7 @@ public class Options {
 		public void drag(GameContainer container, int d) {}
 	};
 
-	/**
-	 * Screen resolutions.
-	 */
+	/** Screen resolutions. */
 	private enum Resolution {
 		RES_800_600 (800, 600),
 		RES_1024_600 (1024, 600),
@@ -429,14 +399,10 @@ public class Options {
 		RES_2560_1440 (2560, 1440),
 		RES_2560_1600 (2560, 1600);
 
-		/**
-		 * Screen dimensions.
-		 */
+		/** Screen dimensions. */
 		private int width, height;
 
-		/**
-		 * Enum values.
-		 */
+		/** Enum values. */
 		private static Resolution[] values = Resolution.values();
 
 		/**
@@ -468,131 +434,81 @@ public class Options {
 		public String toString() { return String.format("%sx%s", width, height); }
 	}
 
-	/**
-	 * Index (row) in resolutions[][] array.
-	 */
+	/** Current screen resolution. */
 	private static Resolution resolution = Resolution.RES_1024_768;
 
-//	/**
-//	 * Whether or not the game should run in fullscreen mode.
-//	 */
+//	/** Whether or not the game should run in fullscreen mode. */
 //	private static boolean fullscreen = false;
 
-	/**
-	 * Frame limiters.
-	 */
+	/** Frame limiters. */
 	private static final int[] targetFPS = { 60, 120, 240 };
 
-	/**
-	 * Index in targetFPS[] array.
-	 */
+	/** Index in targetFPS[] array. */
 	private static int targetFPSindex = 0;
 
-	/**
-	 * Whether or not to show the FPS.
-	 */
+	/** Whether or not to show the FPS. */
 	private static boolean showFPS = false;
 
-	/**
-	 * Whether or not to show hit lighting effects.
-	 */
+	/** Whether or not to show hit lighting effects. */
 	private static boolean showHitLighting = true;
 
-	/**
-	 * Whether or not to show combo burst images.
-	 */
+	/** Whether or not to show combo burst images. */
 	private static boolean showComboBursts = true;
 
-	/**
-	 * Global volume level.
-	 */
+	/** Global volume level. */
 	private static int masterVolume = 35;
 
-	/**
-	 * Default music volume.
-	 */
+	/** Default music volume. */
 	private static int musicVolume = 80;
 
-	/**
-	 * Default sound effect volume.
-	 */
+	/** Default sound effect volume. */
 	private static int effectVolume = 70;
 
-	/**
-	 * Default hit sound volume.
-	 */
+	/** Default hit sound volume. */
 	private static int hitSoundVolume = 70;
 
-	/**
-	 * Offset time, in milliseconds, for music position-related elements.
-	 */
+	/** Offset time, in milliseconds, for music position-related elements. */
 	private static int musicOffset = -150;
 
-	/**
-	 * Screenshot file format.
-	 */
+	/** Screenshot file formats. */
 	private static String[] screenshotFormat = { "png", "jpg", "bmp" };
 
-	/**
-	 * Index in screenshotFormat[] array.
-	 */
+	/** Index in screenshotFormat[] array. */
 	private static int screenshotFormatIndex = 0;
 
-	/**
-	 * Port binding.
-	 */
+	/** Port binding. */
 	private static int port = 49250;
 
-	/**
-	 * Whether or not to use the new cursor type.
-	 */
+	/** Whether or not to use the new cursor type. */
 	private static boolean newCursor = true;
 
-	/**
-	 * Whether or not dynamic backgrounds are enabled.
-	 */
+	/** Whether or not dynamic backgrounds are enabled. */
 	private static boolean dynamicBackground = true;
 
-	/**
-	 * Whether or not to display perfect hit results.
-	 */
+	/** Whether or not to display perfect hit results. */
 	private static boolean showPerfectHit = true;
 
-	/**
-	 * Percentage to dim background images during gameplay.
-	 */
+	/** Percentage to dim background images during gameplay. */
 	private static int backgroundDim = 30;
 
-	/**
-	 * Whether or not to always display the default playfield background.
-	 */
+	/** Whether or not to always display the default playfield background. */
 	private static boolean forceDefaultPlayfield = false;
 
-	/**
-	 * Whether or not to ignore resources in the beatmap folders.
-	 */
+	/** Whether or not to ignore resources in the beatmap folders. */
 	private static boolean ignoreBeatmapSkins = false;
 
-	/**
-	 * Whether or not to play the theme song.
-	 */
+	/** Whether or not to play the theme song. */
 	private static boolean themeSongEnabled = true;
 
-	/**
-	 * Fixed difficulty overrides.
-	 */
+	/** Fixed difficulty overrides. */
 	private static float
 		fixedCS = 0f, fixedHP = 0f,
 		fixedAR = 0f, fixedOD = 0f;
 
-	/**
-	 * Whether or not to display the files being loaded in the splash screen.
-	 */
+	/** Whether or not to display the files being loaded in the splash screen. */
 	private static boolean loadVerbose = false;
 
-	/**
-	 * Track checkpoint time, in seconds.
-	 */
+	/** Track checkpoint time, in seconds. */
 	private static int checkpoint = 0;
 
 	/**
@@ -604,14 +520,10 @@ public class Options {
 	private static boolean disableSound =
 		(System.getProperty("os.name").toLowerCase().indexOf("linux") > -1);
 
-	/**
-	 * Whether or not to display non-English metadata.
-	 */
+	/** Whether or not to display non-English metadata. */
 	private static boolean showUnicode = false;
 
-	/**
-	 * Left and right game keys.
-	 */
+	/** Left and right game keys. */
 	private static int
 		keyLeft  = Keyboard.KEY_NONE,
 		keyRight = Keyboard.KEY_NONE;

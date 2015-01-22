@@ -37,24 +37,16 @@ import org.newdawn.slick.util.Log;
  * Parser for OSU files.
  */
 public class OsuParser {
-	/**
-	 * The current file being parsed.
-	 */
+	/** The current file being parsed. */
 	private static File currentFile;
 
-	/**
-	 * The current directory number while parsing.
-	 */
+	/** The current directory number while parsing. */
 	private static int currentDirectoryIndex = -1;
 
-	/**
-	 * The total number of directories to parse.
-	 */
+	/** The total number of directories to parse. */
 	private static int totalDirectories = -1;
 
-	/**
-	 * The string database.
-	 */
+	/** The string lookup database. */
 	private static HashMap<String, String> stringdb = new HashMap<String, String>();
 
 	// This class should not be instantiated.

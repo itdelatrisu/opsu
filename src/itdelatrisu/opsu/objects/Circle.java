@@ -34,29 +34,19 @@ import org.newdawn.slick.Graphics;
  * Data type representing a circle object.
  */
 public class Circle implements HitObject {
-	/**
-	 * The associated OsuHitObject.
-	 */
+	/** The associated OsuHitObject. */
 	private OsuHitObject hitObject;
 
-	/**
-	 * The associated Game object.
-	 */
+	/** The associated Game object. */
 	private Game game;
 
-	/**
-	 * The associated GameScore object.
-	 */
+	/** The associated GameScore object. */
 	private GameScore score;
 
-	/**
-	 * The color of this circle.
-	 */
+	/** The color of this circle. */
 	private Color color;
 
-	/**
-	 * Whether or not the circle result ends the combo streak.
-	 */
+	/** Whether or not the circle result ends the combo streak. */
 	private boolean comboEnd;
 
 	/**

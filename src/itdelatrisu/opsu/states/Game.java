@@ -59,9 +59,7 @@ import org.newdawn.slick.state.transition.FadeOutTransition;
  * "Game" state.
  */
 public class Game extends BasicGameState {
-	/**
-	 * Game restart states.
-	 */
+	/** Game restart states. */
 	public enum Restart {
 		FALSE,   // no restart
 		NEW,     // first time loading song
@@ -69,121 +67,75 @@ public class Game extends BasicGameState {
 		LOSE;    // health is zero: no-continue/force restart
 	}
 
-	/**
-	 * Minimum time before start of song, in milliseconds, to process skip-related actions.
-	 */
+	/** Minimum time before start of song, in milliseconds, to process skip-related actions. */
 	private static final int SKIP_OFFSET = 2000;
 
-	/**
-	 * The associated OsuFile object.
-	 */
+	/** The associated OsuFile object. */
 	private OsuFile osu;
 
-	/**
-	 * The associated GameScore object (holds all score data).
-	 */
+	/** The associated GameScore object (holds all score data). */
 	private GameScore score;
 
-	/**
-	 * Current hit object index in OsuHitObject[] array.
-	 */
+	/** Current hit object index in OsuHitObject[] array. */
 	private int objectIndex = 0;
 
-	/**
-	 * The map's HitObjects, indexed by objectIndex.
-	 */
+	/** The map's HitObjects, indexed by objectIndex. */
 	private HitObject[] hitObjects;
 
-	/**
-	 * Delay time, in milliseconds, before song starts.
-	 */
+	/** Delay time, in milliseconds, before song starts. */
 	private int leadInTime;
 
-	/**
-	 * Hit object approach time, in milliseconds.
-	 */
+	/** Hit object approach time, in milliseconds. */
 	private int approachTime;
 
-	/**
-	 * Time offsets for obtaining each hit result (indexed by HIT_* constants).
-	 */
+	/** Time offsets for obtaining each hit result (indexed by HIT_* constants). */
 	private int[] hitResultOffset;
 
-	/**
-	 * Current restart state.
-	 */
+	/** Current restart state. */
 	private Restart restart;
 
-	/**
-	 * Current break index in breaks ArrayList.
-	 */
+	/** Current break index in breaks ArrayList. */
 	private int breakIndex;
 
-	/**
-	 * Break start time (0 if not in break).
-	 */
+	/** Break start time (0 if not in break). */
 	private int breakTime = 0;
 
-	/**
-	 * Whether the break sound has been played.
-	 */
+	/** Whether the break sound has been played. */
 	private boolean breakSound;
 
-	/**
-	 * Skip button (displayed at song start, when necessary).
-	 */
+	/** Skip button (displayed at song start, when necessary). */
 	private MenuButton skipButton;
 
-	/**
-	 * Current timing point index in timingPoints ArrayList.
-	 */
+	/** Current timing point index in timingPoints ArrayList. */
 	private int timingPointIndex;
 
-	/**
-	 * Current beat lengths (base value and inherited value).
-	 */
+	/** Current beat lengths (base value and inherited value). */
 	private float beatLengthBase, beatLength;
 
-	/**
-	 * Whether the countdown sound has been played.
-	 */
+	/** Whether the countdown sound has been played. */
 	private boolean
 		countdownReadySound, countdown3Sound, countdown1Sound,
 		countdown2Sound, countdownGoSound;
 
-	/**
-	 * Mouse coordinates before game paused.
-	 */
+	/** Mouse coordinates before game paused. */
 	private int pausedMouseX = -1, pausedMouseY = -1;
 
-	/**
-	 * Track position when game paused.
-	 */
+	/** Track position when game paused. */
 	private int pauseTime = -1;
 
-	/**
-	 * Value for handling hitCircleSelect pulse effect (expanding, alpha level).
-	 */
+	/** Value for handling hitCircleSelect pulse effect (expanding, alpha level). */
 	private float pausePulse;
 
-	/**
-	 * Whether a checkpoint has been loaded during this game.
-	 */
+	/** Whether a checkpoint has been loaded during this game. */
 	private boolean checkpointLoaded = false;
 
-	/**
-	 * Number of deaths, used if "Easy" mod is enabled.
-	 */
+	/** Number of deaths, used if "Easy" mod is enabled. */
 	private byte deaths = 0;
 
-	/**
-	 * Track position at death, used if "Easy" mod is enabled.
-	 */
+	/** Track position at death, used if "Easy" mod is enabled. */
 	private int deathTime = -1;
 
-	/**
-	 * Number of retries.
-	 */
+	/** Number of retries. */
 	private int retries = 0;
 
 	// game-related variables

@@ -400,26 +400,18 @@ public enum GameImage {
 		}
 	};
 
-	/**
-	 * Image file types.
-	 */
+	/** Image file types. */
 	private static final byte
 		IMG_PNG = 1,
 		IMG_JPG = 2;
 
-	/**
-	 * The file name.
-	 */
+	/** The file name. */
 	private String filename;
 
-	/**
-	 * The formatted file name string (for loading multiple images).
-	 */
+	/** The formatted file name string (for loading multiple images). */
 	private String filenameFormat;
 
-	/**
-	 * Image file type.
-	 */
+	/** Image file type. */
 	private byte type;
 
 	/**
@@ -428,39 +420,25 @@ public enum GameImage {
 	 */
 	private boolean skinnable;
 
-	/**
-	 * Whether or not to preload the image when the program starts.
-	 */
+	/** Whether or not to preload the image when the program starts. */
 	private boolean preload;
 
-	/**
-	 * The default image.
-	 */
+	/** The default image. */
 	private Image defaultImage;
 
-	/**
-	 * The default image array.
-	 */
+	/** The default image array. */
 	private Image[] defaultImages;
 
-	/**
-	 * The beatmap skin image (optional, temporary).
-	 */
+	/** The beatmap skin image (optional, temporary). */
 	private Image skinImage;
 
-	/**
-	 * The beatmap skin image array (optional, temporary).
-	 */
+	/** The beatmap skin image array (optional, temporary). */
 	private Image[] skinImages;
 
-	/**
-	 * Container dimensions.
-	 */
+	/** Container dimensions. */
 	private static int containerWidth, containerHeight;
 
-	/**
-	 * Whether a skin image has been loaded.
-	 */
+	/** Whether a skin image has been loaded. */
 	private static boolean skinImageLoaded = false;
 
 	/**
@@ -641,7 +619,7 @@ public enum GameImage {
 					try {
 						// try loading the image
 						Image img = new Image(name);
-		
+
 						// image successfully loaded
 						list.add(img);
 						loaded = true;
@@ -706,7 +684,7 @@ public enum GameImage {
 					try {
 						// try loading the image
 						Image img = new Image(file.getAbsolutePath());
-		
+
 						// image successfully loaded
 						list.add(img);
 						loaded = true;

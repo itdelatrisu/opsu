@@ -18,9 +18,6 @@
 
 package itdelatrisu.opsu.states;
 
-import java.util.Arrays;
-import java.util.Collections;
-
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.GameMod;
 import itdelatrisu.opsu.MenuButton;
@@ -30,6 +27,9 @@ import itdelatrisu.opsu.Options.GameOption;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
+
+import java.util.Arrays;
+import java.util.Collections;
 
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
@@ -46,9 +46,7 @@ import org.newdawn.slick.state.transition.FadeInTransition;
  * "Game Options" state.
  */
 public class OptionsMenu extends BasicGameState {
-	/**
-	 * Option tabs.
-	 */
+	/** Option tabs. */
 	private enum OptionTab {
 		DISPLAY ("Display", new GameOption[] {
 			GameOption.SCREEN_RESOLUTION,
@@ -88,39 +86,26 @@ public class OptionsMenu extends BasicGameState {
 			GameOption.CHECKPOINT
 		});
 
-		/**
-		 * Total number of mods.
-		 */
-		public static final int SIZE = OptionTab.values().length;
+		/** Total number of tabs. */
+		public static final int SIZE = values().length;
 
-		/**
-		 * Enum values.
-		 */
-		private static OptionTab[] values = OptionTab.values();
-
-		/**
-		 * Returns an array of OptionTab objects in reverse order.
-		 * @return all tabs in reverse order
-		 */
-		public static OptionTab[] valuesReversed() {
-			OptionTab[] tabs = OptionTab.values();
-			Collections.reverse(Arrays.asList(tabs));
-			return tabs;
+		/** Array of OptionTab objects in reverse order. */
+		public static final OptionTab[] VALUES_REVERSED;
+		static {
+			VALUES_REVERSED = values();
+			Collections.reverse(Arrays.asList(VALUES_REVERSED));
 		}
 
-		/**
-		 * Tab name.
-		 */
+		/** Enum values. */
+		private static OptionTab[] values = values();
+
+		/** Tab name. */
 		private String name;
 
-		/**
-		 * Options array.
-		 */
+		/** Options array. */
 		public GameOption[] options;
 
-		/**
-		 * Associated tab button.
-		 */
+		/** Associated tab button. */
 		public MenuButton button;
 
 		/**
@@ -149,26 +134,18 @@ public class OptionsMenu extends BasicGameState {
 		public OptionTab prev() { return values[(this.ordinal() + (SIZE - 1)) % values.length]; }
 	}
 
-	/**
-	 * Current tab.
-	 */
+	/** Current tab. */
 	private OptionTab currentTab;
 
-	/**
-	 * Max number of options displayed on one screen.
-	 */
+	/** Max number of options displayed on one screen. */
 	private int maxOptionsScreen = Math.max(
 			Math.max(OptionTab.DISPLAY.options.length, OptionTab.MUSIC.options.length),
 			Math.max(OptionTab.GAMEPLAY.options.length, OptionTab.CUSTOM.options.length));
 
-	/**
-	 * Key entry states.
-	 */
+	/** Key entry states. */
 	private boolean keyEntryLeft = false, keyEntryRight = false;
 
-	/**
-	 * Game option coordinate modifiers (for drawing).
-	 */
+	/** Game option coordinate modifiers (for drawing). */
 	private int textY, offsetY;
 
 	// game-related variables
@@ -241,7 +218,7 @@ public class OptionsMenu extends BasicGameState {
 				break;
 			}
 		}
-		for (OptionTab tab : OptionTab.valuesReversed()) {
+		for (OptionTab tab : OptionTab.VALUES_REVERSED) {
 			if (tab != currentTab)
 				Utils.drawTab(tab.button.getX(), tab.button.getY(),
 						tab.getName(), false, tab == hoverTab);

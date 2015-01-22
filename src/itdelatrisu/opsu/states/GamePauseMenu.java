@@ -47,19 +47,13 @@ import org.newdawn.slick.state.transition.FadeOutTransition;
  * </ul>
  */
 public class GamePauseMenu extends BasicGameState {
-	/**
-	 * Music fade-out time, in milliseconds.
-	 */
+	/** Music fade-out time, in milliseconds. */
 	private static final int FADEOUT_TIME = 1000;
 
-	/**
-	 * Track position when the pause menu was loaded (for FADEOUT_TIME).
-	 */
+	/** Track position when the pause menu was loaded (for FADEOUT_TIME). */
 	private long pauseStartTime;
 
-	/**
-	 * "Continue", "Retry", and "Back" buttons.
-	 */
+	/** "Continue", "Retry", and "Back" buttons. */
 	private MenuButton continueButton, retryButton, backButton;
 
 	// game-related variables

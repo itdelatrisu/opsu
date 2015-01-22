@@ -45,19 +45,13 @@ import org.newdawn.slick.state.StateBasedGame;
  * Loads game resources and enters "Main Menu" state.
  */
 public class Splash extends BasicGameState {
-	/**
-	 * Whether or not loading has completed.
-	 */
+	/** Whether or not loading has completed. */
 	private boolean finished = false;
 
-	/**
-	 * Loading thread.
-	 */
+	/** Loading thread. */
 	private Thread thread;
 
-	/**
-	 * Number of times the ESC key has been pressed.
-	 */
+	/** Number of times the 'Esc' key has been pressed. */
 	private int escapeCount = 0;
 
 	// game-related variables

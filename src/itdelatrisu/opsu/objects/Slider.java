@@ -37,89 +37,55 @@ import org.newdawn.slick.Image;
  * Data type representing a slider object.
  */
 public class Slider implements HitObject {
-	/**
-	 * Slider ball animation.
-	 */
+	/** Slider ball animation. */
 	private static Animation sliderBall;
 
-	/**
-	 * Slider movement speed multiplier.
-	 */
+	/** Slider movement speed multiplier. */
 	private static float sliderMultiplier = 1.0f;
 
-	/**
-	 * Rate at which slider ticks are placed.
-	 */
+	/** Rate at which slider ticks are placed. */
 	private static float sliderTickRate = 1.0f;
 
-	/**
-	 * The associated OsuHitObject.
-	 */
+	/** The associated OsuHitObject. */
 	private OsuHitObject hitObject;
 
-	/**
-	 * The associated Game object.
-	 */
+	/** The associated Game object. */
 	private Game game;
 
-	/**
-	 * The associated GameScore object.
-	 */
+	/** The associated GameScore object. */
 	private GameScore score;
 
-	/**
-	 * The color of this slider.
-	 */
+	/** The color of this slider. */
 	private Color color;
 
-	/**
-	 * The underlying Bezier object.
-	 */
+	/** The underlying Bezier object. */
 	private Bezier bezier;
 
-	/**
-	 * The time duration of the slider, in milliseconds.
-	 */
+	/** The time duration of the slider, in milliseconds. */
 	private float sliderTime = 0f;
 
-	/**
-	 * The time duration of the slider including repeats, in milliseconds.
-	 */
+	/** The time duration of the slider including repeats, in milliseconds. */
 	private float sliderTimeTotal = 0f;
 
-	/**
-	 * Whether or not the result of the initial hit circle has been processed.
-	 */
+	/** Whether or not the result of the initial hit circle has been processed. */
 	private boolean sliderClicked = false;
 
-	/**
-	 * Whether or not to show the follow circle.
-	 */
+	/** Whether or not to show the follow circle. */
 	private boolean followCircleActive = false;
 
-	/**
-	 * Whether or not the slider result ends the combo streak.
-	 */
+	/** Whether or not the slider result ends the combo streak. */
 	private boolean comboEnd;
 
-	/**
-	 * The number of repeats that have passed so far.
-	 */
+	/** The number of repeats that have passed so far. */
 	private int currentRepeats = 0;
 
-	/**
-	 * The t values of the slider ticks.
-	 */
+	/** The t values of the slider ticks. */
 	private float[] ticksT;
 
-	/**
-	 * The tick index in the ticksT[] array.
-	 */
+	/** The tick index in the ticksT[] array. */
 	private int tickIndex = 0;
 
-	/**
-	 * Number of ticks hit and tick intervals so far.
-	 */
+	/** Number of ticks hit and tick intervals so far. */
 	private int ticksHit = 0, tickIntervals = 1;
 
 	/**
@@ -129,24 +95,16 @@ public class Slider implements HitObject {
 	 * @author pictuga (https://github.com/pictuga/osu-web)
 	 */
 	private class Bezier {
-		/**
-		 * The order of the Bezier curve.
-		 */
+		/** The order of the Bezier curve. */
 		private int order;
 
-		/**
-		 * The step size (used for drawing),
-		 */
+		/** The step size (used for drawing). */
 		private float step;
 
-		/**
-		 * The curve points for drawing with step size given by 'step'.
-		 */
+		/** The curve points for drawing with step size given by 'step'. */
 		private float[] curveX, curveY;
 
-		/**
-		 * The angles of the first and last control points.
-		 */
+		/** The angles of the first and last control points. */
 		private float startAngle, endAngle;
 
 		/**

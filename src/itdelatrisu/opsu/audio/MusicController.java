@@ -41,39 +41,25 @@ import org.newdawn.slick.openal.SoundStore;
  * Controller for all music.
  */
 public class MusicController {
-	/**
-	 * The current music track.
-	 */
+	/** The current music track. */
 	private static Music player;
 
-	/**
-	 * The last OsuFile passed to play().
-	 */
+	/** The last OsuFile passed to play(). */
 	private static OsuFile lastOsu;
 
-	/**
-	 * Temporary WAV file for file conversions (to be deleted).
-	 */
+	/** Temporary WAV file for file conversions (to be deleted). */
 	private static File wavFile;
 
-	/**
-	 * Thread for loading tracks.
-	 */
+	/** Thread for loading tracks. */
 	private static Thread trackLoader;
 
-	/**
-	 * Whether the theme song is currently playing.
-	 */
+	/** Whether the theme song is currently playing. */
 	private static boolean themePlaying = false;
 
-	/**
-	 * Track pause time.
-	 */
+	/** Track pause time. */
 	private static float pauseTime = 0f;
 
-	/**
-	 * Whether the current track volume is dimmed.
-	 */
+	/** Whether the current track volume is dimmed. */
 	private static boolean trackDimmed = false;
 
 	// This class should not be instantiated.

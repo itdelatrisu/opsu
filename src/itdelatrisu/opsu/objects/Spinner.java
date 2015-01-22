@@ -37,34 +37,22 @@ import org.newdawn.slick.Image;
  * Data type representing a spinner object.
  */
 public class Spinner implements HitObject {
-	/**
-	 * Container dimensions.
-	 */
+	/** Container dimensions. */
 	private static int width, height;
 
-	/**
-	 * The associated OsuHitObject.
-	 */
+	/** The associated OsuHitObject. */
 	private OsuHitObject hitObject;
 
-	/**
-	 * The associated GameScore object.
-	 */
+	/** The associated GameScore object. */
 	private GameScore score;
 
-	/**
-	 * The last rotation angle.
-	 */
+	/** The last rotation angle. */
 	private float lastAngle = -1f;
 
-	/**
-	 * The current number of rotations.
-	 */
+	/** The current number of rotations. */
 	private float rotations = 0f;
 
-	/**
-	 * The total number of rotations needed to clear the spinner.
-	 */
+	/** The total number of rotations needed to clear the spinner. */
 	private float rotationsNeeded;
 
 	/**

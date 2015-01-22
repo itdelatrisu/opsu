@@ -52,9 +52,7 @@ import org.newdawn.slick.util.ResourceLoader;
  * Creates game container, adds all other states, and initializes song data.
  */
 public class Opsu extends StateBasedGame {
-	/**
-	 * Game states.
-	 */
+	/** Game states. */
 	public static final int
 		STATE_SPLASH        = 0,
 		STATE_MAINMENU      = 1,
@@ -65,11 +63,13 @@ public class Opsu extends StateBasedGame {
 		STATE_GAMERANKING   = 6,
 		STATE_OPTIONSMENU   = 7;
 
-	/**
-	 * Used to restrict the program to a single instance.
-	 */
+	/** Server socket for restricting the program to a single instance. */
 	private static ServerSocket SERVER_SOCKET;
 
+	/**
+	 * Constructor.
+	 * @param name the program name
+	 */
 	public Opsu(String name) {
 		super(name);
 	}

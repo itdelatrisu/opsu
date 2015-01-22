@@ -34,43 +34,29 @@ public enum SongSort {
 	BPM     (3, "BPM",     new BPMOrder()),
 	LENGTH  (4, "Length",  new LengthOrder());
 
-	/**
-	 * The ID of the sort (used for tab positioning).
-	 */
+	/** The ID of the sort (used for tab positioning). */
 	private int id;
 
-	/**
-	 * The name of the sort.
-	 */
+	/** The name of the sort. */
 	private String name;
 
-	/**
-	 * The comparator for the sort.
-	 */
+	/** The comparator for the sort. */
 	private Comparator<OsuGroupNode> comparator;
 
-	/**
-	 * The tab associated with the sort (displayed in Song Menu screen).
-	 */
+	/** The tab associated with the sort (displayed in Song Menu screen). */
 	private MenuButton tab;
 
-	/**
-	 * Total number of sorts.
-	 */
-	private static final int SIZE = SongSort.values().length;
+	/** Total number of sorts. */
+	private static final int SIZE = values().length;
 
-	/**
-	 * Array of SongSort objects in reverse order.
-	 */
+	/** Array of SongSort objects in reverse order. */
 	public static final SongSort[] VALUES_REVERSED;
 	static {
-		VALUES_REVERSED = SongSort.values();
+		VALUES_REVERSED = values();
 		Collections.reverse(Arrays.asList(VALUES_REVERSED));
 	}
 
-	/**
-	 * Current sort.
-	 */
+	/** Current sort. */
 	private static SongSort currentSort = TITLE;
 
 	/**

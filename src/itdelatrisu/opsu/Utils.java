@@ -57,9 +57,7 @@ import org.newdawn.slick.util.ResourceLoader;
  * Contains miscellaneous utilities.
  */
 public class Utils {
-	/**
-	 * Game colors.
-	 */
+	/** Game colors. */
 	public static final Color
 		COLOR_BLACK_ALPHA     = new Color(0, 0, 0, 0.5f),
 		COLOR_WHITE_ALPHA     = new Color(255, 255, 255, 0.5f),
@@ -75,56 +73,38 @@ public class Utils {
 		COLOR_WHITE_FADE      = new Color(255, 255, 255, 1f),
 		COLOR_RED_HOVER       = new Color(255, 112, 112);
 
-	/**
-	 * The default map colors, used when a map does not provide custom colors.
-	 */
+	/** The default map colors, used when a map does not provide custom colors. */
 	public static final Color[] DEFAULT_COMBO = {
 		COLOR_GREEN_OBJECT, COLOR_BLUE_OBJECT,
 		COLOR_RED_OBJECT, COLOR_ORANGE_OBJECT
 	};
 
-	/**
-	 * Game fonts.
-	 */
+	/** Game fonts. */
 	public static UnicodeFont
 		FONT_DEFAULT, FONT_BOLD,
 		FONT_XLARGE, FONT_LARGE, FONT_MEDIUM, FONT_SMALL;
 
-	/**
-	 * Back button (shared by other states).
-	 */
+	/** Back button (shared by other states). */
 	private static MenuButton backButton;
 
-	/**
-	 * Cursor image and trail.
-	 */
+	/** Cursor image and trail. */
 	private static Image cursor, cursorTrail, cursorMiddle;
 
-	/**
-	 * Last cursor coordinates.
-	 */
+	/** Last cursor coordinates. */
 	private static int lastX = -1, lastY = -1;
 
-	/**
-	 * Stores all previous cursor locations to display a trail.
-	 */
+	/** Stores all previous cursor locations to display a trail. */
 	private static LinkedList<Integer>
 		cursorX = new LinkedList<Integer>(),
 		cursorY = new LinkedList<Integer>();
 
-	/**
-	 * Time to show volume image, in milliseconds.
-	 */
+	/** Time to show volume image, in milliseconds. */
 	private static final int VOLUME_DISPLAY_TIME = 1500;
 
-	/**
-	 * Volume display elapsed time.
-	 */
+	/** Volume display elapsed time. */
 	private static int volumeDisplay = -1;
 
-	/**
-	 * Set of all Unicode strings already loaded.
-	 */
+	/** Set of all Unicode strings already loaded. */
 	private static HashSet<String> loadedGlyphs = new HashSet<String>();
 
 	// game-related variables

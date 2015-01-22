@@ -31,79 +31,163 @@ import org.newdawn.slick.util.Log;
  * Data type storing parsed data from OSU files.
  */
 public class OsuFile implements Comparable<OsuFile> {
-	/**
-	 * The OSU File object associated with this OsuFile.
-	 */
+	/** Map of all loaded background images. */
+	private static HashMap<OsuFile, Image> bgImageMap = new HashMap<OsuFile, Image>();
+
+	/** The OSU File object associated with this OsuFile. */
 	private File file;
 
-	/* [General] */
-	public File audioFilename;                  // audio file object
-	public int audioLeadIn = 0;                 // delay before music starts (in ms)
-//	public String audioHash = "";               // audio hash (deprecated)
-	public int previewTime = -1;                // start position of music preview (in ms)
-	public byte countdown = 0;                  // countdown type (0:disabled, 1:normal, 2:half, 3:double)
-	public String sampleSet = "";               // sound samples ("None", "Normal", "Soft")
-	public float stackLeniency = 0.7f;          // how often closely placed hit objects will be stacked together
-	public byte mode = 0;                       // game mode (0:osu!, 1:taiko, 2:catch the beat, 3:osu!mania)
-	public boolean letterboxInBreaks = false;   // whether the letterbox (top/bottom black bars) appears during breaks
-	public boolean widescreenStoryboard = false;// whether the storyboard should be widescreen
-	public boolean epilepsyWarning = false;     // whether to show an epilepsy warning
+	/**
+	 * [General]
+	 */
 
-	/* [Editor] */
-	/* Not implemented. */
-//	public int[] bookmarks;                     // list of editor bookmarks (in ms)
-//	public float distanceSpacing = 0f;          // multiplier for "Distance Snap"
-//	public byte beatDivisor = 0;                // beat division
-//	public int gridSize = 0;                    // size of grid for "Grid Snap"
-//	public int timelineZoom = 0;                // zoom in the editor timeline
+	/** Audio file object. */
+	public File audioFilename;
 
-	/* [Metadata] */
-	public String title = "";                   // song title
-	public String titleUnicode = "";            // song title (unicode)
-	public String artist = "";                  // song artist
-	public String artistUnicode = "";           // song artist (unicode)
-	public String creator = "";                 // beatmap creator
-	public String version = "";                 // beatmap difficulty
-	public String source = "";                  // song source
-	public String tags = "";                    // song tags, for searching
-	public int beatmapID = 0;                   // beatmap ID
-	public int beatmapSetID = 0;                // beatmap set ID
+	/** Delay time before music starts (in ms). */
+	public int audioLeadIn = 0;
 
-	/* [Difficulty] */
-	public float HPDrainRate = 5f;              // HP drain (0:easy ~ 10:hard)
-	public float circleSize = 4f;               // size of circles
-	public float overallDifficulty = 5f;        // affects timing window, spinners, and approach speed (0:easy ~ 10:hard)
-	public float approachRate = -1f;            // how long circles stay on the screen (0:long ~ 10:short) **not in old format**
-	public float sliderMultiplier = 1f;         // slider movement speed multiplier
-	public float sliderTickRate = 1f;           // rate at which slider ticks are placed (x per beat)
+	/** Audio hash (deprecated). */
+//	public String audioHash = "";
 
-	/* [Events] */
-	//Background and Video events (0)
-	public String bg;                           // background image path
-//	private Image bgImage;                      // background image (created when needed)
-//	public Video bgVideo;                       // background video (not implemented)
-	//Break Periods (2)
-	public ArrayList<Integer> breaks;           // break periods (start time, end time, ...)
-	//Storyboard elements (not implemented)
+	/** Start position of music preview (in ms). */
+	public int previewTime = -1;
 
-	/* [TimingPoints] */
-	public ArrayList<OsuTimingPoint> timingPoints; // timing points
-	int bpmMin = 0, bpmMax = 0;                 // min and max BPM
+	/** Countdown type (0:disabled, 1:normal, 2:half, 3:double). */
+	public byte countdown = 0;
 
-	/* [Colours] */
-	public Color[] combo;                       // combo colors (R,G,B), max 5
+	/** Sound samples ("None", "Normal", "Soft"). */
+	public String sampleSet = "";
 
-	/* [HitObjects] */
-	public OsuHitObject[] objects;              // hit objects
-	public int hitObjectCircle = 0;             // number of circles
-	public int hitObjectSlider = 0;             // number of sliders
-	public int hitObjectSpinner = 0;            // number of spinners
-	public int endTime = -1;                    // last object end time (in ms)
+	/** How often closely placed hit objects will be stacked together. */
+	public float stackLeniency = 0.7f;
+
+	/** Game mode (0:osu!, 1:taiko, 2:catch the beat, 3:osu!mania). */
+	public byte mode = 0;
+
+	/** Whether the letterbox (top/bottom black bars) appears during breaks. */
+	public boolean letterboxInBreaks = false;
+
+	/** Whether the storyboard should be widescreen. */
+	public boolean widescreenStoryboard = false;
+
+	/** Whether to show an epilepsy warning. */
+	public boolean epilepsyWarning = false;
 
 	/**
-	 * Map of all loaded background images.
+	 * [Editor]
 	 */
-	private static HashMap<OsuFile, Image> bgImageMap = new HashMap<OsuFile, Image>();
+
+	/** List of editor bookmarks (in ms). */
+//	public int[] bookmarks;
+
+	/** Multiplier for "Distance Snap". */
+//	public float distanceSpacing = 0f;
+
+	/** Beat division. */
+//	public byte beatDivisor = 0;
+
+	/** Size of grid for "Grid Snap". */
+//	public int gridSize = 0;
+
+	/** Zoom in the editor timeline. */
+//	public int timelineZoom = 0;
+
+	/**
+	 * [Metadata]
+	 */
+
+	/** Song title. */
+	public String title = "", titleUnicode = "";
+
+	/** Song artist. */
+	public String artist = "", artistUnicode = "";
+
+	/** Beatmap creator. */
+	public String creator = "";
+
+	/** Beatmap difficulty. */
+	public String version = "";
+
+	/** Song source. */
+	public String source = "";
+
+	/** Song tags (for searching). */
+	public String tags = "";
+
+	/** Beatmap ID. */
+	public int beatmapID = 0;
+
+	/** Beatmap set ID. */
+	public int beatmapSetID = 0;
+
+	/**
+	 * [Difficulty]
+	 */
+
+	/** HP: Health drain rate (0:easy ~ 10:hard) */
+	public float HPDrainRate = 5f;
+
+	/** CS: Size of circles and sliders (0:large ~ 10:small). */
+	public float circleSize = 4f;
+
+	/** OD: Affects timing window, spinners, and approach speed (0:easy ~ 10:hard). */
+	public float overallDifficulty = 5f;
+
+	/** AR: How long circles stay on the screen (0:long ~ 10:short). */
+	public float approachRate = -1f;
+
+	/** Slider movement speed multiplier. */
+	public float sliderMultiplier = 1f;
+
+	/** Rate at which slider ticks are placed (x per beat). */
+	public float sliderTickRate = 1f;
+
+	/**
+	 * [Events]
+	 */
+
+	/** Background image file name. */
+	public String bg;
+
+	/** Background video file name. */
+//	public String video;
+
+	/** All break periods (start time, end time, ...). */
+	public ArrayList<Integer> breaks;
+
+	/**
+	 * [TimingPoints]
+	 */
+
+	/** All timing points. */
+	public ArrayList<OsuTimingPoint> timingPoints;
+
+	/** Song BPM range. */
+	int bpmMin = 0, bpmMax = 0;
+
+	/**
+	 * [Colours]
+	 */
+
+	/** Combo colors (max 8). */
+	public Color[] combo;
+
+	/**
+	 * [HitObjects]
+	 */
+
+	/** All hit objects. */
+	public OsuHitObject[] objects;
+
+	/** Number of individual objects. */
+	public int
+		hitObjectCircle = 0,
+		hitObjectSlider = 0,
+		hitObjectSpinner = 0;
+
+	/** Last object end time (in ms). */
+	public int endTime = -1;
 
 	/**
 	 * Destroys all cached background images and resets the cache.

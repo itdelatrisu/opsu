@@ -62,33 +62,21 @@ import org.newdawn.slick.state.transition.FadeOutTransition;
  * </ul>
  */
 public class SongMenu extends BasicGameState {
-	/**
-	 * The number of buttons to be shown on each screen.
-	 */
+	/** The number of buttons to be shown on each screen. */
 	private static final int MAX_BUTTONS = 6;
 
-	/**
-	 * Delay time, in milliseconds, between each search.
-	 */
+	/** Delay time, in milliseconds, between each search. */
 	private static final int SEARCH_DELAY = 500;
 
-	/**
-	 * Maximum x offset of song buttons for mouse hover, in pixels.
-	 */
+	/** Maximum x offset of song buttons for mouse hover, in pixels. */
 	private static final float MAX_HOVER_OFFSET = 30f;
 
-	/**
-	 * Song node class representing an OsuGroupNode and file index.
-	 */
+	/** Song node class representing an OsuGroupNode and file index. */
 	private static class SongNode {
-		/**
-		 * Song node.
-		 */
+		/** Song node. */
 		private OsuGroupNode node;
 
-		/**
-		 * File index.
-		 */
+		/** File index. */
 		private int index;
 
 		/**
@@ -112,56 +100,36 @@ public class SongMenu extends BasicGameState {
 		public int getIndex() { return index; }
 	}
 
-	/**
-	 * Current start node (topmost menu entry).
-	 */
+	/** Current start node (topmost menu entry). */
 	private OsuGroupNode startNode;
 
-	/**
-	 * Current focused (selected) node.
-	 */
+	/** Current focused (selected) node. */
 	private OsuGroupNode focusNode;
 
-	/**
-	 * The base node of the previous focus node.
-	 */
+	/** The base node of the previous focus node. */
 	private SongNode oldFocusNode = null;
 
-	/**
-	 * Stack of previous "random" (F2) focus nodes.
-	 */
+	/** Stack of previous "random" (F2) focus nodes. */
 	private Stack<SongNode> randomStack = new Stack<SongNode>();
 
-	/**
-	 * Current focus node's song information.
-	 */
+	/** Current focus node's song information. */
 	private String[] songInfo;
 
-	/**
-	 * Button coordinate values.
-	 */
+	/** Button coordinate values. */
 	private float
 		buttonX, buttonY, buttonOffset,
 		buttonWidth, buttonHeight;
 
-	/**
-	 * Current x offset of song buttons for mouse hover, in pixels.
-	 */
+	/** Current x offset of song buttons for mouse hover, in pixels. */
 	private float hoverOffset = 0f;
 
-	/**
-	 * Current index of hovered song button.
-	 */
+	/** Current index of hovered song button. */
 	private int hoverIndex = -1;
 
-	/**
-	 * The options button (to enter the "Game Options" menu).
-	 */
+	/** The options button (to enter the "Game Options" menu). */
 	private MenuButton optionsButton;
 
-	/**
-	 * The search textfield.
-	 */
+	/** The search textfield. */
 	private TextField search;
 
 	/**
@@ -170,29 +138,19 @@ public class SongMenu extends BasicGameState {
 	 */
 	private int searchTimer;
 
-	/**
-	 * Information text to display based on the search query.
-	 */
+	/** Information text to display based on the search query. */
 	private String searchResultString;
 
-	/**
-	 * Loader animation.
-	 */
+	/** Loader animation. */
 	private Animation loader;
 
-	/**
-	 * Whether or not to reset game data upon entering the state.
-	 */
+	/** Whether or not to reset game data upon entering the state. */
 	private boolean resetGame = false;
 
-	/**
-	 * Whether or not to reset music track upon entering the state.
-	 */
+	/** Whether or not to reset music track upon entering the state. */
 	private boolean resetTrack = false;
 
-	/**
-	 * Beatmap reloading thread.
-	 */
+	/** Beatmap reloading thread. */
 	private Thread reloadThread;
 
 	// game-related variables

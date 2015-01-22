@@ -42,14 +42,10 @@ import org.newdawn.slick.state.transition.FadeInTransition;
  * </ul>
  */
 public class MainMenuExit extends BasicGameState {
-	/**
-	 * "Yes" and "No" buttons.
-	 */
+	/** "Yes" and "No" buttons. */
 	private MenuButton yesButton, noButton;
 
-	/**
-	 * Initial x coordinate offsets left/right of center (for shifting animation).
-	 */
+	/** Initial x coordinate offsets left/right of center (for shifting animation). */
 	private float centerOffset;
 
 	// game-related variables

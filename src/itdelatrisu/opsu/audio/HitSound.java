@@ -34,29 +34,21 @@ public enum HitSound implements SoundController.SoundComponent {
 	SLIDERTICK ("slidertick"),
 	SLIDERWHISTLE ("sliderwhistle");
 
-	/**
-	 * Sound sample sets.
-	 */
-	public static enum SampleSet {
+	/** Sound sample sets. */
+	public enum SampleSet {
 		NORMAL ("normal", 1),
 		SOFT ("soft", 2),
 		DRUM ("drum", 3);
 //		TAIKO ("taiko", 4);
 
-		/**
-		 * The sample set name.
-		 */
+		/** The sample set name. */
 		private String name;
 
-		/**
-		 * The sample set index.
-		 */
+		/** The sample set index. */
 		private int index;
 
-		/**
-		 * Total number of sample sets.
-		 */
-		public static final int SIZE = SampleSet.values().length;
+		/** Total number of sample sets. */
+		public static final int SIZE = values().length;
 
 		/**
 		 * Constructor.
@@ -80,25 +72,17 @@ public enum HitSound implements SoundController.SoundComponent {
 		public int getIndex() { return index; }
 	}
 
-	/**
-	 * Current sample set.
-	 */
+	/** Current sample set. */
 	private static SampleSet currentSampleSet;
 
-	/**
-	 * The file name.
-	 */
+	/** The file name. */
 	private String filename;
 
-	/**
-	 * The Clip associated with the hit sound.
-	 */
+	/** The Clip associated with the hit sound. */
 	private HashMap<SampleSet, Clip> clips;
 
-	/**
-	 * Total number of hit sounds.
-	 */
-	public static final int SIZE = HitSound.values().length;
+	/** Total number of hit sounds. */
+	public static final int SIZE = values().length;
 
 	/**
 	 * Constructor.

@@ -36,9 +36,7 @@ import org.newdawn.slick.Image;
  * Holds score data and renders all score-related elements.
  */
 public class GameScore {
-	/**
-	 * Letter grades.
-	 */
+	/** Letter grades. */
 	public static final int
 		GRADE_SS  = 0,
 		GRADE_SSH = 1,   // silver
@@ -50,14 +48,10 @@ public class GameScore {
 		GRADE_D   = 7,
 		GRADE_MAX = 8;   // not a grade
 
-	/**
-	 * Delta multiplier for steady HP drain.
-	 */
+	/** Delta multiplier for steady HP drain. */
 	public static final float HP_DRAIN_MULTIPLIER = 1 / 200f;
 
-	/**
-	 * Hit result types.
-	 */
+	/** Hit result types. */
 	public static final int
 		HIT_MISS     = 0,
 		HIT_50       = 1,
@@ -70,34 +64,22 @@ public class GameScore {
 		HIT_SLIDER30 = 8,
 		HIT_MAX      = 9;   // not a hit result
 
-	/**
-	 * Hit result-related images (indexed by HIT_* constants).
-	 */
+	/** Hit result-related images (indexed by HIT_* constants). */
 	private Image[] hitResults;
 
-	/**
-	 * Counts of each hit result so far.
-	 */
+	/** Counts of each hit result so far. */
 	private int[] hitResultCount;
 
-	/**
-	 * Total number of hit objects so far, not including Katu/Geki (for calculating grade).
-	 */
+	/** Total number of hit objects so far, not including Katu/Geki (for calculating grade). */
 	private int objectCount;
 
-	/**
-	 * Total objects including slider hits/ticks (for determining Full Combo status).
-	 */
+	/** Total objects including slider hits/ticks (for determining Full Combo status). */
 	private int fullObjectCount;
 
-	/**
-	 * The current combo streak.
-	 */
+	/** The current combo streak. */
 	private int combo;
 
-	/**
-	 * The max combo streak obtained.
-	 */
+	/** The max combo streak obtained. */
 	private int comboMax;
 
 	/**
@@ -109,40 +91,39 @@ public class GameScore {
 	 */
 	private byte comboEnd;
 
-	/**
-	 * Combo burst images.
-	 */
+	/** Combo burst images. */
 	private Image[] comboBurstImages;
 
-	/**
-	 * Index of the current combo burst image.
-	 */
+	/** Index of the current combo burst image. */
 	private int comboBurstIndex;
 
-	/**
-	 * Alpha level of the current combo burst image (for fade out).
-	 */
+	/** Alpha level of the current combo burst image (for fade out). */
 	private float comboBurstAlpha;
 
-	/**
-	 * Current x coordinate of the combo burst image (for sliding animation).
-	 */
+	/** Current x coordinate of the combo burst image (for sliding animation). */
 	private int comboBurstX;
 
-	/**
-	 * List of hit result objects associated with hit objects.
-	 */
+	/** List of hit result objects associated with hit objects. */
 	private LinkedList<OsuHitObjectResult> hitResultList;
 
 	/**
 	 * Hit result helper class.
 	 */
 	private class OsuHitObjectResult {
-		public int time;                // object start time
-		public int result;              // hit result
-		public float x, y;              // object coordinates
-		public Color color;             // combo color
-		public float alpha = 1f;        // alpha level (for fade out)
+		/** Object start time. */
+		public int time;
+
+		/** Hit result. */
+		public int result;
+
+		/** Object coordinates. */
+		public float x, y;
+
+		/** Combo color. */
+		public Color color;
+
+		/** Alpha level (for fading out). */
+		public float alpha = 1f;
 
 		/**
 		 * Constructor.
@@ -161,54 +142,34 @@ public class GameScore {
 		}
 	}
 
-	/**
-	 * Current game score.
-	 */
+	/** Current game score. */
 	private long score;
 
-	/**
-	 * Displayed game score (for animation, slightly behind score).
-	 */
+	/** Displayed game score (for animation, slightly behind score). */
 	private long scoreDisplay;
 
-	/**
-	 * Current health bar percentage.
-	 */
+	/** Current health bar percentage. */
 	private float health;
 
-	/**
-	 * Displayed health (for animation, slightly behind health).
-	 */
+	/** Displayed health (for animation, slightly behind health). */
 	private float healthDisplay;
 
-	/**
-	 * Beatmap HPDrainRate value. (0:easy ~ 10:hard)
-	 */
+	/** Beatmap HPDrainRate value. (0:easy ~ 10:hard) */
 	private float drainRate = 5f;
 
-	/**
-	 * Beatmap OverallDifficulty value. (0:easy ~ 10:hard)
-	 */
+	/** Beatmap OverallDifficulty value. (0:easy ~ 10:hard) */
 	private float difficulty = 5f;
 
-	/**
-	 * Default text symbol images.
-	 */
+	/** Default text symbol images. */
 	private Image[] defaultSymbols;
 
-	/**
-	 * Score text symbol images.
-	 */
+	/** Score text symbol images. */
 	private HashMap<Character, Image> scoreSymbols;
 
-	/**
-	 * Letter grade images (large and small sizes).
-	 */
+	/** Letter grade images (large and small sizes). */
 	private Image[] gradesLarge, gradesSmall;
 
-	/**
-	 * Container dimensions.
-	 */
+	/** Container dimensions. */
 	private int width, height;
 
 	/**
@@ -440,7 +401,7 @@ public class GameScore {
 			int modWidth = GameMod.AUTO.getImage().getWidth();
 			float modX = (width * 0.98f) - modWidth;
 			int modCount = 0;
-			for (GameMod mod : GameMod.valuesReversed()) {
+			for (GameMod mod : GameMod.VALUES_REVERSED) {
 				if (mod.isActive()) {
 					mod.getImage().draw(
 							modX - (modCount * (modWidth / 2f)),

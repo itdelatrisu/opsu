@@ -24,49 +24,31 @@ import org.newdawn.slick.util.Log;
  * Data type representing a timing point.
  */
 public class OsuTimingPoint {
-	/**
-	 * Timing point start time/offset (in ms).
-	 */
+	/** Timing point start time/offset (in ms). */
 	private int time = 0;
 
-	/**
-	 * Time per beat (in ms). [NON-INHERITED]
-	 */
+	/** Time per beat (in ms). [NON-INHERITED] */
 	private float beatLength = 0f;
 
-	/**
-	 * Slider multiplier. [INHERITED]
-	 */
+	/** Slider multiplier. [INHERITED] */
 	private int velocity = 0;
 
-	/**
-	 * Beats per measure.
-	 */
+	/** Beats per measure. */
 	private int meter = 4;
 
-	/**
-	 * Sound sample type.
-	 */
+	/** Sound sample type. */
 	private byte sampleType = 1;
 
-	/**
-	 * Custom sound sample type.
-	 */
+	/** Custom sound sample type. */
 	private byte sampleTypeCustom = 0;
 
-	/**
-	 * Volume of samples. [0, 100]
-	 */
+	/** Volume of samples. [0, 100] */
 	private int sampleVolume = 100;
 
-	/**
-	 * Whether or not this timing point is inherited.
-	 */
+	/** Whether or not this timing point is inherited. */
 	private boolean inherited = false;
 
-	/**
-	 * Whether or not Kiai Mode is active.
-	 */
+	/** Whether or not Kiai Mode is active. */
 	private boolean kiai = false;
 
 	/**

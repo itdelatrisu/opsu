@@ -42,9 +42,7 @@ import org.newdawn.slick.util.ResourceLoader;
  * Note: Uses Java Sound because OpenAL lags too much for accurate hit sounds.
  */
 public class SoundController {
-	/**
-	 * Interface for all (non-music) sound components.
-	 */
+	/** Interface for all (non-music) sound components. */
 	public interface SoundComponent {
 		/**
 		 * Returns the Clip associated with the sound component.
@@ -53,19 +51,13 @@ public class SoundController {
 		public Clip getClip();
 	}
 
-	/**
-	 * Sample volume multiplier, from timing points [0, 1].
-	 */
+	/** Sample volume multiplier, from timing points [0, 1]. */
 	private static float sampleVolumeMultiplier = 1f;
 
-	/**
-	 * The name of the current sound file being loaded.
-	 */
+	/** The name of the current sound file being loaded. */
 	private static String currentFileName;
 
-	/**
-	 * The number of the current sound file being loaded.
-	 */
+	/** The number of the current sound file being loaded. */
 	private static int currentFileIndex = -1;
 
 	// This class should not be instantiated.

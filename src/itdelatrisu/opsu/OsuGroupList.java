@@ -30,43 +30,27 @@ import java.util.regex.Pattern;
  * Indexed, expanding, doubly-linked list data type for song groups.
  */
 public class OsuGroupList {
-	/**
-	 * Song group structure (each group contains of an ArrayList of OsuFiles).
-	 */
+	/** Song group structure (each group contains of an ArrayList of OsuFiles). */
 	private static OsuGroupList list;
 
-	/**
-	 * Search pattern for conditional expressions.
-	 */
+	/** Search pattern for conditional expressions. */
 	private static final Pattern SEARCH_CONDITION_PATTERN = Pattern.compile(
 		"(ar|cs|od|hp|bpm|length)(=|==|>|>=|<|<=)((\\d*\\.)?\\d+)"
 	);
 
-	/**
-	 * List containing all parsed nodes.
-	 */
+	/** List containing all parsed nodes. */
 	private ArrayList<OsuGroupNode> parsedNodes;
 
-	/**
-	 * Total number of maps (i.e. OsuFile objects).
-	 */
+	/** Total number of beatmaps (i.e. OsuFile objects). */
 	private int mapCount = 0;
 
-	/**
-	 * Current list of nodes.
-	 * (For searches; otherwise, a pointer to parsedNodes.)
-	 */
+	/** Current list of nodes (subset of parsedNodes, used for searches). */
 	private ArrayList<OsuGroupNode> nodes;
 
-	/**
-	 * Index of current expanded node.
-	 * If no node is expanded, the value will be -1.
-	 */
+	/** Index of current expanded node (-1 if no node is expanded). */
 	private int expandedIndex = -1;
 
-	/**
-	 * The last search query.
-	 */
+	/** The last search query. */
 	private String lastQuery = "";
 
 	/**

@@ -28,50 +28,35 @@ import org.newdawn.slick.Image;
  * Multi-part images and animations currently do not support hover updates.
  */
 public class MenuButton {
-	/**
-	 * The image associated with the button.
-	 */
+	/** The image associated with the button. */
 	private Image img;
 
-	/**
-	 * The left and right parts of the button (optional).
-	 */
+	/** The left and right parts of the button (optional). */
 	private Image imgL, imgR;
 
-	/**
-	 * The animation associated with the button.
-	 */
+	/** The animation associated with the button. */
 	private Animation anim;
 
-	/**
-	 * The center coordinates.
-	 */
+	/** The center coordinates. */
 	private float x, y;
 
-	/**
-	 * The x and y radius of the button (scaled).
-	 */
+	/** The x and y radius of the button (scaled). */
 	private float xRadius, yRadius;
 
-	/**
-	 * The current and max scale of the button (for hovering).
-	 */
+	/** The current and max scale of the button (for hovering). */
 	private float scale, hoverScale = 1.25f;
 
-	/**
-	 * The scaled expansion direction for the botton (for hovering).
-	 */
+	/** The scaled expansion direction for the button (for hovering). */
 	private Expand dir = Expand.CENTER;
 
-	/**
-	 * Scaled expansion directions (for hovering).
-	 */
-	public enum Expand {
-		CENTER, UP_RIGHT, UP_LEFT, DOWN_RIGHT, DOWN_LEFT;
-	}
+	/** Scaled expansion directions (for hovering). */
+	public enum Expand { CENTER, UP_RIGHT, UP_LEFT, DOWN_RIGHT, DOWN_LEFT; }
 
 	/**
 	 * Creates a new button from an Image.
+	 * @param img the image
+	 * @param x the center x coordinate
+	 * @param y the center y coordinate
 	 */
 	public MenuButton(Image img, float x, float y) {
 		this.img = img;
@@ -84,9 +69,13 @@ public class MenuButton {
 
 	/**
 	 * Creates a new button from a 3-part Image.
+	 * @param imgCenter the center image
+	 * @param imgLeft the left image
+	 * @param imgRight the right image
+	 * @param x the center x coordinate
+	 * @param y the center y coordinate
 	 */
-	public MenuButton(Image imgCenter, Image imgLeft, Image imgRight,
-			float x, float y) {
+	public MenuButton(Image imgCenter, Image imgLeft, Image imgRight, float x, float y) {
 		this.img  = imgCenter;
 		this.imgL = imgLeft;
 		this.imgR = imgRight;
@@ -99,6 +88,9 @@ public class MenuButton {
 
 	/**
 	 * Creates a new button from an Animation.
+	 * @param anim the animation
+	 * @param x the center x coordinate
+	 * @param y the center y coordinate
 	 */
 	public MenuButton(Animation anim, float x, float y) {
 		this.anim = anim;
@@ -110,17 +102,33 @@ public class MenuButton {
 	}
 
 	/**
-	 * Sets/returns new center coordinates.
+	 * Sets a new center x coordinate.
 	 */
 	public void setX(float x) { this.x = x; }
+
+	/**
+	 * Sets a new center y coordinate.
+	 */
 	public void setY(float y) { this.y = y; }
+
+	/**
+	 * Returns the center x coordinate.
+	 */
 	public float getX() { return x; }
+
+	/**
+	 * Returns the center y coordinate.
+	 */
 	public float getY() { return y; }
 
 	/**
-	 * Returns the associated image or animation.
+	 * Returns the associated image.
 	 */
 	public Image getImage() { return img; }
+
+	/**
+	 * Returns the associated animation.
+	 */
 	public Animation getAnimation() { return anim; }
 
 	/**
@@ -181,17 +189,13 @@ public class MenuButton {
 	 * Sets the maximum scale factor for the button (for hovering).
 	 * @param scale the maximum scale factor (default 1.25f)
 	 */
-	public void setHoverScale(float scale) {
-		this.hoverScale = scale;
-	}
+	public void setHoverScale(float scale) { this.hoverScale = scale; }
 
 	/**
 	 * Sets the expansion direction when hovering over the button.
 	 * @param dir the direction
 	 */
-	public void setHoverDir(Expand dir) {
-		this.dir = dir;
-	}
+	public void setHoverDir(Expand dir) { this.dir = dir; }
 
 	/**
 	 * Updates the scale of the button depending on whether or not the cursor

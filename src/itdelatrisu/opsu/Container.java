@@ -29,14 +29,12 @@ import org.newdawn.slick.opengl.InternalTextureLoader;
  * AppGameContainer extension that sends critical errors to ErrorHandler.
  */
 public class Container extends AppGameContainer {
-	/**
-	 * SlickException causing game failure.
-	 */
+	/** SlickException causing game failure. */
 	protected SlickException e = null;
 
 	/**
 	 * Create a new container wrapping a game
-	 * 
+	 *
 	 * @param game The game to be wrapped
 	 * @throws SlickException Indicates a failure to initialise the display
 	 */
@@ -46,7 +44,7 @@ public class Container extends AppGameContainer {
 
 	/**
 	 * Create a new container wrapping a game
-	 * 
+	 *
 	 * @param game The game to be wrapped
 	 * @param width The width of the display required
 	 * @param height The height of the display required

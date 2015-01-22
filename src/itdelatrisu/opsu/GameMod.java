@@ -39,55 +39,32 @@ public enum GameMod {
 //	HIDDEN        (, GameImage.MOD_HIDDEN, Input.KEY_F, 1.06f),
 //	FLASHLIGHT    (, GameImage.MOD_FLASHLIGHT, Input.KEY_G, 1.12f);
 
-	/**
-	 * The ID of the mod (used for positioning).
-	 */
+	/** The ID of the mod (used for positioning). */
 	private int id;
 
-	/**
-	 * The file name of the mod image.
-	 */
+	/** The file name of the mod image. */
 	private GameImage image;
 
-	/**
-	 * The shortcut key associated with the mod.
-	 */
+	/** The shortcut key associated with the mod. */
 	private int key;
 
-	/**
-	 * Score multiplier.
-	 */
+	/** The score multiplier. */
 	private float multiplier;
 
-	/**
-	 * Whether or not this mod is active.
-	 */
+	/** Whether or not this mod is active. */
 	private boolean active = false;
 
-	/**
-	 * The button containing the mod image (displayed in OptionsMenu screen).
-	 */
+	/** The button containing the mod image (displayed in OptionsMenu screen). */
 	private MenuButton button;
 
-	/**
-	 * Total number of mods.
-	 */
-	private static final int SIZE = GameMod.values().length;
+	/** Total number of mods. */
+	public static final int SIZE = values().length;
 
-	/**
-	 * Returns the total number of game mods.
-	 * @return the number of mods
-	 */
-	public static int size() { return SIZE; }
-
-	/**
-	 * Returns an array of GameMod objects in reverse order.
-	 * @return all game mods in reverse order
-	 */
-	public static GameMod[] valuesReversed() {
-		GameMod[] mods = GameMod.values();
-		Collections.reverse(Arrays.asList(mods));
-		return mods;
+	/** Array of GameMod objects in reverse order. */
+	public static final GameMod[] VALUES_REVERSED;
+	static {
+		VALUES_REVERSED = values();
+		Collections.reverse(Arrays.asList(VALUES_REVERSED));
 	}
 
 	/**

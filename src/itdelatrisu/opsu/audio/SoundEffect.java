@@ -43,20 +43,14 @@ public enum SoundEffect implements SoundController.SoundComponent {
 	SPINNEROSU ("spinner-osu"),
 	SPINNERSPIN ("spinnerspin");
 
-	/**
-	 * The file name.
-	 */
+	/** The file name. */
 	private String filename;
 
-	/**
-	 * The Clip associated with the sound effect.
-	 */
+	/** The Clip associated with the sound effect. */
 	private Clip clip;
 
-	/**
-	 * Total number of sound effects.
-	 */
-	public static final int SIZE = SoundEffect.values().length;
+	/** Total number of sound effects. */
+	public static final int SIZE = values().length;
 
 	/**
 	 * Constructor.
