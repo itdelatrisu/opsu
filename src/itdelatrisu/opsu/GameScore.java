@@ -36,20 +36,44 @@ import org.newdawn.slick.Image;
  * Holds score data and renders all score-related elements.
  */
 public class GameScore {
-	/** Letter grades. */
-	public static final int
-		GRADE_SS  = 0,
-		GRADE_SSH = 1,   // silver
-		GRADE_S   = 2,
-		GRADE_SH  = 3,   // silver
-		GRADE_A   = 4,
-		GRADE_B   = 5,
-		GRADE_C   = 6,
-		GRADE_D   = 7,
-		GRADE_MAX = 8;   // not a grade
-
 	/** Delta multiplier for steady HP drain. */
 	public static final float HP_DRAIN_MULTIPLIER = 1 / 200f;
+
+	/** Letter grades. */
+	private enum Grade {
+		NULL (null, null),
+		SS  (GameImage.RANKING_SS,  GameImage.RANKING_SS_SMALL),
+		SSH (GameImage.RANKING_SSH, GameImage.RANKING_SSH_SMALL), // silver
+		S   (GameImage.RANKING_S,   GameImage.RANKING_S_SMALL),
+		SH  (GameImage.RANKING_SH,  GameImage.RANKING_SH_SMALL),  // silver
+		A   (GameImage.RANKING_A,   GameImage.RANKING_A_SMALL),
+		B   (GameImage.RANKING_B,   GameImage.RANKING_B_SMALL),
+		C   (GameImage.RANKING_C,   GameImage.RANKING_C_SMALL),
+		D   (GameImage.RANKING_D,   GameImage.RANKING_D_SMALL);
+
+		/** GameImages associated with this grade (large and small sizes). */
+		private GameImage large, small;
+
+		/**
+		 * Constructor.
+		 * @param large the large size image
+		 * @param small the small size image
+		 */
+		Grade(GameImage large, GameImage small) {
+			this.large = large;
+			this.small = small;
+		}
+
+		/**
+		 * Returns the large size grade image.
+		 */
+		public Image getLargeImage() { return large.getImage(); }
+
+		/**
+		 * Returns the small size grade image.
+		 */
+		public Image getSmallImage() { return small.getImage(); }
+	}
 
 	/** Hit result types. */
 	public static final int
@@ -166,9 +190,6 @@ public class GameScore {
 	/** Score text symbol images. */
 	private HashMap<Character, Image> scoreSymbols;
 
-	/** Letter grade images (large and small sizes). */
-	private Image[] gradesLarge, gradesSmall;
-
 	/** Container dimensions. */
 	private int width, height;
 
@@ -255,26 +276,6 @@ public class GameScore {
 		hitResults[HIT_300G]     = GameImage.HIT_300G.getImage();
 		hitResults[HIT_SLIDER10] = GameImage.HIT_SLIDER10.getImage();
 		hitResults[HIT_SLIDER30] = GameImage.HIT_SLIDER30.getImage();
-
-		// letter grade images
-		gradesLarge = new Image[GRADE_MAX];
-		gradesSmall = new Image[GRADE_MAX];
-		gradesLarge[GRADE_SS] = GameImage.RANKING_SS.getImage();
-		gradesSmall[GRADE_SS] = GameImage.RANKING_SS_SMALL.getImage();
-		gradesLarge[GRADE_SSH] = GameImage.RANKING_SSH.getImage();
-		gradesSmall[GRADE_SSH] = GameImage.RANKING_SSH_SMALL.getImage();
-		gradesLarge[GRADE_S] = GameImage.RANKING_S.getImage();
-		gradesSmall[GRADE_S] = GameImage.RANKING_S_SMALL.getImage();
-		gradesLarge[GRADE_SH] = GameImage.RANKING_SH.getImage();
-		gradesSmall[GRADE_SH] = GameImage.RANKING_SH_SMALL.getImage();
-		gradesLarge[GRADE_A] = GameImage.RANKING_A.getImage();
-		gradesSmall[GRADE_A] = GameImage.RANKING_A_SMALL.getImage();
-		gradesLarge[GRADE_B] = GameImage.RANKING_B.getImage();
-		gradesSmall[GRADE_B] = GameImage.RANKING_B_SMALL.getImage();
-		gradesLarge[GRADE_C] = GameImage.RANKING_C.getImage();
-		gradesSmall[GRADE_C] = GameImage.RANKING_C_SMALL.getImage();
-		gradesLarge[GRADE_D] = GameImage.RANKING_D.getImage();
-		gradesSmall[GRADE_D] = GameImage.RANKING_D_SMALL.getImage();
 	}
 
 	/**
@@ -444,9 +445,9 @@ public class GameScore {
 				drawSymbolString(String.format("%dx", combo), 10, height - 10 - symbolHeight, 1.0f, false);
 		} else {
 			// grade
-			int grade = getGrade();
-			if (grade != -1) {
-				Image gradeImage = gradesSmall[grade];
+			Grade grade = getGrade();
+			if (grade != Grade.NULL) {
+				Image gradeImage = grade.getSmallImage();
 				float gradeScale = symbolHeight * 0.75f / gradeImage.getHeight();
 				gradeImage.getScaledCopy(gradeScale).draw(
 						circleX - gradeImage.getWidth(), symbolHeight
@@ -463,9 +464,9 @@ public class GameScore {
 	 */
 	public void drawRankingElements(Graphics g, int width, int height) {
 		// grade
-		int grade = getGrade();
-		if (grade != -1) {
-			Image gradeImage = gradesLarge[grade];
+		Grade grade = getGrade();
+		if (grade != Grade.NULL) {
+			Image gradeImage = grade.getLargeImage();
 			float gradeScale = (height * 0.5f) / gradeImage.getHeight();
 			gradeImage = gradeImage.getScaledCopy(gradeScale);
 			gradeImage.draw(width - gradeImage.getWidth(), height * 0.09f);
@@ -612,12 +613,13 @@ public class GameScore {
 	}
 
 	/**
-	 * Returns (current) letter grade.
-	 * If no objects have been processed, -1 will be returned.
+	 * Returns letter grade based on score data,
+	 * or Grade.NULL if no objects have been processed.
+	 * @return the current Grade
 	 */
-	private int getGrade() {
+	private Grade getGrade() {
 		if (objectCount < 1)  // avoid division by zero
-			return -1;
+			return Grade.NULL;
 
 		// TODO: silvers
 		float percent = getScorePercent();
@@ -625,17 +627,17 @@ public class GameScore {
 		float hit50ratio  = hitResultCount[HIT_50] * 100f / objectCount;
 		boolean noMiss    = (hitResultCount[HIT_MISS] == 0);
 		if (percent >= 100f)
-			return GRADE_SS;
+			return Grade.SS;
 		else if (hit300ratio >= 90f && hit50ratio < 1.0f && noMiss)
-			return GRADE_S;
+			return Grade.S;
 		else if ((hit300ratio >= 80f && noMiss) || hit300ratio >= 90f)
-			return GRADE_A;
+			return Grade.A;
 		else if ((hit300ratio >= 70f && noMiss) || hit300ratio >= 80f)
-			return GRADE_B;
+			return Grade.B;
 		else if (hit300ratio >= 60f)
-			return GRADE_C;
+			return Grade.C;
 		else
-			return GRADE_D;
+			return Grade.D;
 	}
 
 	/**
