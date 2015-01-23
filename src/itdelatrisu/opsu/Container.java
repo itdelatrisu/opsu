@@ -52,7 +52,7 @@ public class Container extends AppGameContainer {
 	 * @throws SlickException Indicates a failure to initialise the display
 	 */
 	public Container(Game game, int width, int height, boolean fullscreen) throws SlickException {
-		super(game);
+		super(game, width, height, fullscreen);
 	}
 
 	@Override
