@@ -22,6 +22,7 @@ import fluddokt.opsu.fake.*;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.MenuButton;
 import itdelatrisu.opsu.Opsu;
+import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
@@ -47,19 +48,13 @@ import org.newdawn.slick.state.transition.FadeOutTransition;*/
  * </ul>
  */
 public class GamePauseMenu extends BasicGameState {
-	/**
-	 * Music fade-out time, in milliseconds.
-	 */
+	/** Music fade-out time, in milliseconds. */
 	private static final int FADEOUT_TIME = 1000;
 
-	/**
-	 * Track position when the pause menu was loaded (for FADEOUT_TIME).
-	 */
+	/** Track position when the pause menu was loaded (for FADEOUT_TIME). */
 	private long pauseStartTime;
 
-	/**
-	 * "Continue", "Retry", and "Back" buttons.
-	 */
+	/** "Continue", "Retry", and "Back" buttons. */
 	private MenuButton continueButton, retryButton, backButton;
 
 	// game-related variables
@@ -104,6 +99,7 @@ public class GamePauseMenu extends BasicGameState {
 		retryButton.draw();
 		backButton.draw();
 
+		Utils.drawVolume(g);
 		Utils.drawFPS();
 		Utils.drawCursor();
 	}
@@ -112,6 +108,7 @@ public class GamePauseMenu extends BasicGameState {
 	public void update(GameContainer container, StateBasedGame game, int delta)
 			throws SlickException {
 		Utils.updateCursor(delta);
+		Utils.updateVolumeDisplay(delta);
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
 		continueButton.hoverUpdate(delta, mouseX, mouseY);
 		retryButton.hoverUpdate(delta, mouseX, mouseY);
@@ -136,9 +133,8 @@ public class GamePauseMenu extends BasicGameState {
 			// 'esc' will normally unpause, but will return to song menu if health is zero
 			if (gameState.getRestart() == Game.Restart.LOSE) {
 				SoundController.playSound(SoundEffect.MENUBACK);
-				SongMenu songMenu = (SongMenu) game.getState(Opsu.STATE_SONGMENU);
-				songMenu.resetGameDataOnLoad();
-				songMenu.resetTrackOnLoad();
+				((SongMenu) game.getState(Opsu.STATE_SONGMENU)).resetGameDataOnLoad();
+				MusicController.playAt(MusicController.getOsuFile().previewTime, true);
 				game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 			} else {
 				SoundController.playSound(SoundEffect.MENUBACK);
@@ -180,9 +176,11 @@ public class GamePauseMenu extends BasicGameState {
 			game.enterState(Opsu.STATE_GAME);
 		} else if (backButton.contains(x, y)) {
 			SoundController.playSound(SoundEffect.MENUBACK);
-			SongMenu songMenu = (SongMenu) game.getState(Opsu.STATE_SONGMENU);
-			songMenu.resetGameDataOnLoad();
-			songMenu.resetTrackOnLoad();
+			((SongMenu) game.getState(Opsu.STATE_SONGMENU)).resetGameDataOnLoad();
+			if (loseState)
+				MusicController.playAt(MusicController.getOsuFile().previewTime, true);
+			else
+				MusicController.resume();
 			game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 		}
 	}

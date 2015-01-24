@@ -22,23 +22,19 @@ package itdelatrisu.opsu;
  * Data type representing a hit object.
  */
 public class OsuHitObject {
-	/**
-	 * Hit object types (bits).
-	 */
+	/** Hit object types (bits). */
 	public static final int
 		TYPE_CIRCLE   = 1,
 		TYPE_SLIDER   = 2,
 		TYPE_NEWCOMBO = 4,  // not an object
 		TYPE_SPINNER  = 8;
 
-	/**
-	 * Hit sound types (bits).
-	 */
+	/** Hit sound types (bits). */
 	public static final byte
-		SOUND_NORMAL        = 0,
-		SOUND_WHISTLE       = 2,
-		SOUND_FINISH        = 4,
-		SOUND_CLAP          = 8;
+		SOUND_NORMAL  = 0,
+		SOUND_WHISTLE = 2,
+		SOUND_FINISH  = 4,
+		SOUND_CLAP    = 8;
 
 	/**
 	 * Slider curve types.
@@ -50,82 +46,54 @@ public class OsuHitObject {
 		SLIDER_LINEAR      = 'L',
 		SLIDER_PASSTHROUGH = 'P';
 
-	/**
-	 * Max hit object coordinates.
-	 */
+	/** Max hit object coordinates. */
 	private static final int
 		MAX_X = 512,
 		MAX_Y = 384;
 
-	/**
-	 * The x and y multipliers for hit object coordinates.
-	 */
+	/** The x and y multipliers for hit object coordinates. */
 	private static float xMultiplier, yMultiplier;
 
-	/**
-	 * The x and y offsets for hit object coordinates.
-	 */
+	/** The x and y offsets for hit object coordinates. */
 	private static int
 		xOffset,   // offset right of border
 		yOffset;   // offset below health bar
 
-	/**
-	 * Starting coordinates (scaled).
-	 */
+	/** Starting coordinates (scaled). */
 	private float x, y;
 
-	/**
-	 * Start time (in ms).
-	 */
+	/** Start time (in ms). */
 	private int time;
 
-	/**
-	 * Hit object type (TYPE_* bitmask).
-	 */
+	/** Hit object type (TYPE_* bitmask). */
 	private int type;
 
-	/**
-	 * Hit sound type (SOUND_* bitmask).
-	 */
+	/** Hit sound type (SOUND_* bitmask). */
 	private byte hitSound;
 
-	/**
-	 * Slider curve type (SLIDER_* constant).
-	 */
+	/** Slider curve type (SLIDER_* constant). */
 	private char sliderType;
 
-	/**
-	 * Slider coordinate lists (scaled).
-	 */
+	/** Slider coordinate lists (scaled). */
 	private float[] sliderX, sliderY;
 
-	/**
-	 * Slider repeat count.
-	 */
+	/** Slider repeat count. */
 	private int repeat;
 
-	/**
-	 * Slider pixel length.
-	 */
+	/** Slider pixel length. */
 	private float pixelLength;
 
-	/**
-	 * Spinner end time (in ms).
-	 */
+	/** Spinner end time (in ms). */
 	private int endTime;
 
 	// additional v10+ parameters not implemented...
 	// addition -> sampl:add:cust:vol:hitsound
 	// edge_hitsound, edge_addition (sliders only)
 
-	/**
-	 * Current index in combo color array.
-	 */
+	/** Current index in combo color array. */
 	private int comboIndex;
 
-	/**
-	 * Number to display in hit object.
-	 */
+	/** Number to display in hit object. */
 	private int comboNumber;
 
 	/**

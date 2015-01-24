@@ -42,24 +42,16 @@ import com.badlogic.gdx.Gdx;
  * Parser for OSU files.
  */
 public class OsuParser {
-	/**
-	 * The current file being parsed.
-	 */
+	/** The current file being parsed. */
 	private static File currentFile;
 
-	/**
-	 * The current directory number while parsing.
-	 */
+	/** The current directory number while parsing. */
 	private static int currentDirectoryIndex = -1;
 
-	/**
-	 * The total number of directories to parse.
-	 */
+	/** The total number of directories to parse. */
 	private static int totalDirectories = -1;
 
-	/**
-	 * The string database.
-	 */
+	/** The string lookup database. */
 	private static HashMap<String, String> stringdb = new HashMap<String, String>();
 
 	// This class should not be instantiated.
@@ -72,8 +64,8 @@ public class OsuParser {
 	 * @param height the container height
 	 */
 	public static void parseAllFiles(File root, int width, int height) {
-		// initialize hit objects
-		OsuHitObject.init(width, height);
+		// create a new OsuGroupList
+		OsuGroupList.create();
 
 		//FileHandle gh;
 		//gh.
@@ -190,7 +182,14 @@ public class OsuParser {
 						try {
 							switch (tokens[0]) {
 							case "AudioFilename":
-								osu.audioFilename = new File(file.getParent() + File.separator + tokens[1]);
+								File audioFileName = new File(file.getParent(), tokens[1]);
+								if (!osuFiles.isEmpty()) {
+									// if possible, reuse the same File object from another OsuFile in the group
+									File groupAudioFileName = osuFiles.get(0).audioFilename;
+									if (audioFileName.equals(groupAudioFileName))
+										audioFileName = groupAudioFileName;
+								}
+								osu.audioFilename = audioFileName;
 								break;
 							case "AudioLeadIn":
 								osu.audioLeadIn = Integer.parseInt(tokens[1]);

@@ -25,6 +25,7 @@ import itdelatrisu.opsu.GameMod;
 import itdelatrisu.opsu.GameScore;
 import itdelatrisu.opsu.MenuButton;
 import itdelatrisu.opsu.Opsu;
+import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.OsuFile;
 import itdelatrisu.opsu.OsuHitObject;
 import itdelatrisu.opsu.OsuTimingPoint;
@@ -61,9 +62,7 @@ import org.newdawn.slick.state.transition.FadeOutTransition;
  * "Game" state.
  */
 public class Game extends BasicGameState {
-	/**
-	 * Game restart states.
-	 */
+	/** Game restart states. */
 	public enum Restart {
 		FALSE,   // no restart
 		NEW,     // first time loading song
@@ -71,127 +70,75 @@ public class Game extends BasicGameState {
 		LOSE;    // health is zero: no-continue/force restart
 	}
 
-	/**
-	 * Minimum time before start of song, in milliseconds, to process skip-related actions.
-	 */
+	/** Minimum time before start of song, in milliseconds, to process skip-related actions. */
 	private static final int SKIP_OFFSET = 2000;
 
-	/**
-	 * The associated OsuFile object.
-	 */
+	/** The associated OsuFile object. */
 	private OsuFile osu;
 
-	/**
-	 * The associated GameScore object (holds all score data).
-	 */
+	/** The associated GameScore object (holds all score data). */
 	private GameScore score;
 
-	/**
-	 * Current hit object index in OsuHitObject[] array.
-	 */
+	/** Current hit object index in OsuHitObject[] array. */
 	private int objectIndex = 0;
 
-	/**
-	 * The map's HitObjects, indexed by objectIndex.
-	 */
+	/** The map's HitObjects, indexed by objectIndex. */
 	private HitObject[] hitObjects;
 
-	/**
-	 * Delay time, in milliseconds, before song starts.
-	 */
+	/** Delay time, in milliseconds, before song starts. */
 	private int leadInTime;
 
-	/**
-	 * Hit object approach time, in milliseconds.
-	 */
+	/** Hit object approach time, in milliseconds. */
 	private int approachTime;
 
-	/**
-	 * Time offsets for obtaining each hit result (indexed by HIT_* constants).
-	 */
+	/** Time offsets for obtaining each hit result (indexed by HIT_* constants). */
 	private int[] hitResultOffset;
 
-	/**
-	 * Current restart state.
-	 */
+	/** Current restart state. */
 	private Restart restart;
 
-	/**
-	 * Current break index in breaks ArrayList.
-	 */
+	/** Current break index in breaks ArrayList. */
 	private int breakIndex;
 
-	/**
-	 * Break start time (0 if not in break).
-	 */
+	/** Break start time (0 if not in break). */
 	private int breakTime = 0;
 
-	/**
-	 * Whether the break sound has been played.
-	 */
+	/** Whether the break sound has been played. */
 	private boolean breakSound;
 
-	/**
-	 * Skip button (displayed at song start, when necessary).
-	 */
+	/** Skip button (displayed at song start, when necessary). */
 	private MenuButton skipButton;
 
-	/**
-	 * Current timing point index in timingPoints ArrayList.
-	 */
+	/** Current timing point index in timingPoints ArrayList. */
 	private int timingPointIndex;
 
-	/**
-	 * Current beat lengths (base value and inherited value).
-	 */
+	/** Current beat lengths (base value and inherited value). */
 	private float beatLengthBase, beatLength;
 
-	/**
-	 * Whether the countdown sound has been played.
-	 */
+	/** Whether the countdown sound has been played. */
 	private boolean
 		countdownReadySound, countdown3Sound, countdown1Sound,
 		countdown2Sound, countdownGoSound;
 
-	/**
-	 * Mouse coordinates before game paused.
-	 */
+	/** Mouse coordinates before game paused. */
 	private int pausedMouseX = -1, pausedMouseY = -1;
 
-	/**
-	 * Track position when game paused.
-	 */
+	/** Track position when game paused. */
 	private int pauseTime = -1;
 
-	/**
-	 * Value for handling hitCircleSelect pulse effect (expanding, alpha level).
-	 */
+	/** Value for handling hitCircleSelect pulse effect (expanding, alpha level). */
 	private float pausePulse;
 
-	/**
-	 * Default playfield background (optional).
-	 * Overridden by song background unless "ForceDefaultPlayfield" option enabled.
-	 */
-	private Image playfield;
-
-	/**
-	 * Whether a checkpoint has been loaded during this game.
-	 */
+	/** Whether a checkpoint has been loaded during this game. */
 	private boolean checkpointLoaded = false;
 
-	/**
-	 * Number of deaths, used if "Easy" mod is enabled.
-	 */
+	/** Number of deaths, used if "Easy" mod is enabled. */
 	private byte deaths = 0;
 
-	/**
-	 * Track position at death, used if "Easy" mod is enabled.
-	 */
+	/** Track position at death, used if "Easy" mod is enabled. */
 	private int deathTime = -1;
 
-	/**
-	 * Number of retries.
-	 */
+	/** Number of retries. */
 	private int retries = 0;
 
 	// game-related variables
@@ -217,13 +164,6 @@ public class Game extends BasicGameState {
 		// create the associated GameScore object
 		score = new GameScore(width, height);
 		((GameRanking) game.getState(Opsu.STATE_GAMERANKING)).setGameScore(score);
-
-		// playfield background
-		try {
-			playfield = new Image("playfield.png").getScaledCopy(width, height);
-		} catch (Exception e) {
-			// optional
-		}
 	}
 
 	@Override
@@ -235,10 +175,8 @@ public class Game extends BasicGameState {
 		// background
 		g.setBackground(Color.black);
 		float dimLevel = Options.getBackgroundDim();
-		if (Options.isDefaultPlayfieldForced() && playfield != null) {
-			playfield.setAlpha(dimLevel);
-			playfield.draw();
-		} else if (!osu.drawBG(width, height, dimLevel) && playfield != null) {
+		if (Options.isDefaultPlayfieldForced() || !osu.drawBG(width, height, dimLevel)) {
+			Image playfield = GameImage.PLAYFIELD.getImage();
 			playfield.setAlpha(dimLevel);
 			playfield.draw();
 		}
@@ -424,6 +362,7 @@ public class Game extends BasicGameState {
 			cursorCirclePulse.drawCentered(pausedMouseX, pausedMouseY);
 		}
 
+		Utils.drawVolume(g);
 		Utils.drawFPS();
 		Utils.drawCursor();
 	}
@@ -432,6 +371,7 @@ public class Game extends BasicGameState {
 	public void update(GameContainer container, StateBasedGame game, int delta)
 			throws SlickException {
 		Utils.updateCursor(delta);
+		Utils.updateVolumeDisplay(delta);
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
 		skipButton.hoverUpdate(delta, mouseX, mouseY);
 
@@ -661,6 +601,12 @@ public class Game extends BasicGameState {
 				}
 			}
 			break;
+		case Input.KEY_UP:
+			Utils.changeVolume(1);
+			break;
+		case Input.KEY_DOWN:
+			Utils.changeVolume(-1);
+			break;
 		case Input.KEY_F12:
 			Utils.takeScreenShot();
 			break;
@@ -710,6 +656,11 @@ public class Game extends BasicGameState {
 		// sliders
 		else if (hitObject.isSlider())
 			hitObjects[objectIndex].mousePressed(x, y);
+	}
+
+	@Override
+	public void mouseWheelMoved(int newValue) {
+		Utils.changeVolume((newValue < 0) ? -1 : 1);
 	}
 
 	@Override
@@ -854,74 +805,66 @@ public class Game extends BasicGameState {
 
 		// load other images...
 		((GamePauseMenu) game.getState(Opsu.STATE_GAMEPAUSEMENU)).loadImages();
-		try {
-			score.loadImages(osu.getFile().getParentFile());
-		} catch (Exception e) {
-			ErrorHandler.error("Failed to load GameScore images.", e, false);
-		}
+		score.loadImages(osu.getFile().getParentFile());
 	}
 
 	/**
 	 * Set map modifiers.
 	 */
 	private void setMapModifiers() {
-		try {
-			// map-based properties, re-initialized each game
-			float circleSize = osu.circleSize;
-			float approachRate = osu.approachRate;
-			float overallDifficulty = osu.overallDifficulty;
-			float HPDrainRate = osu.HPDrainRate;
+		// map-based properties, re-initialized each game
+		float circleSize = osu.circleSize;
+		float approachRate = osu.approachRate;
+		float overallDifficulty = osu.overallDifficulty;
+		float HPDrainRate = osu.HPDrainRate;
 
-			// "Hard Rock" modifiers
-			if (GameMod.HARD_ROCK.isActive()) {
-				circleSize = Math.min(circleSize * 1.4f, 10);
-				approachRate = Math.min(approachRate * 1.4f, 10);
-				overallDifficulty = Math.min(overallDifficulty * 1.4f, 10);
-				HPDrainRate = Math.min(HPDrainRate * 1.4f, 10);
-			}
-
-			// "Easy" modifiers
-			else if (GameMod.EASY.isActive()) {
-				circleSize /= 2f;
-				approachRate /= 2f;
-				overallDifficulty /= 2f;
-				HPDrainRate /= 2f;
-			}
-
-			// fixed difficulty overrides
-			if (Options.getFixedCS() > 0f)
-				circleSize = Options.getFixedCS();
-			if (Options.getFixedAR() > 0f)
-				approachRate = Options.getFixedAR();
-			if (Options.getFixedOD() > 0f)
-				overallDifficulty = Options.getFixedOD();
-			if (Options.getFixedHP() > 0f)
-				HPDrainRate = Options.getFixedHP();
-
-			// initialize objects
-			Circle.init(container, circleSize);
-			Slider.init(container, circleSize, osu);
-			Spinner.init(container);
-
-			// approachRate (hit object approach time)
-			if (approachRate < 5)
-				approachTime = (int) (1800 - (approachRate * 120));
-			else
-				approachTime = (int) (1200 - ((approachRate - 5) * 150));
-
-			// overallDifficulty (hit result time offsets)
-			hitResultOffset = new int[GameScore.HIT_MAX];
-			hitResultOffset[GameScore.HIT_300]  = (int) (78 - (overallDifficulty * 6));
-			hitResultOffset[GameScore.HIT_100]  = (int) (138 - (overallDifficulty * 8));
-			hitResultOffset[GameScore.HIT_50]   = (int) (198 - (overallDifficulty * 10));
-			hitResultOffset[GameScore.HIT_MISS] = (int) (500 - (overallDifficulty * 10));
-
-			// HPDrainRate (health change), overallDifficulty (scoring)
-			score.setDrainRate(HPDrainRate);
-			score.setDifficulty(overallDifficulty);
-		} catch (SlickException e) {
-			ErrorHandler.error("Error while setting map modifiers.", e, true);
+		// "Hard Rock" modifiers
+		if (GameMod.HARD_ROCK.isActive()) {
+			circleSize = Math.min(circleSize * 1.4f, 10);
+			approachRate = Math.min(approachRate * 1.4f, 10);
+			overallDifficulty = Math.min(overallDifficulty * 1.4f, 10);
+			HPDrainRate = Math.min(HPDrainRate * 1.4f, 10);
 		}
+
+		// "Easy" modifiers
+		else if (GameMod.EASY.isActive()) {
+			circleSize /= 2f;
+			approachRate /= 2f;
+			overallDifficulty /= 2f;
+			HPDrainRate /= 2f;
+		}
+
+		// fixed difficulty overrides
+		if (Options.getFixedCS() > 0f)
+			circleSize = Options.getFixedCS();
+		if (Options.getFixedAR() > 0f)
+			approachRate = Options.getFixedAR();
+		if (Options.getFixedOD() > 0f)
+			overallDifficulty = Options.getFixedOD();
+		if (Options.getFixedHP() > 0f)
+			HPDrainRate = Options.getFixedHP();
+
+		// initialize objects
+		Circle.init(container, circleSize);
+		Slider.init(container, circleSize, osu);
+		Spinner.init(container);
+
+		// approachRate (hit object approach time)
+		if (approachRate < 5)
+			approachTime = (int) (1800 - (approachRate * 120));
+		else
+			approachTime = (int) (1200 - ((approachRate - 5) * 150));
+
+		// overallDifficulty (hit result time offsets)
+		hitResultOffset = new int[GameScore.HIT_MAX];
+		hitResultOffset[GameScore.HIT_300]  = (int) (78 - (overallDifficulty * 6));
+		hitResultOffset[GameScore.HIT_100]  = (int) (138 - (overallDifficulty * 8));
+		hitResultOffset[GameScore.HIT_50]   = (int) (198 - (overallDifficulty * 10));
+		hitResultOffset[GameScore.HIT_MISS] = (int) (500 - (overallDifficulty * 10));
+
+		// HPDrainRate (health change), overallDifficulty (scoring)
+		score.setDrainRate(HPDrainRate);
+		score.setDifficulty(overallDifficulty);
 	}
 
 	/**

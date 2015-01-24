@@ -23,7 +23,6 @@ import itdelatrisu.opsu.audio.HitSound;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
-import itdelatrisu.opsu.states.Options;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -38,28 +37,46 @@ import org.newdawn.slick.SlickException;*/
  * Holds score data and renders all score-related elements.
  */
 public class GameScore {
-	/**
-	 * Letter grades.
-	 */
-	public static final int
-		GRADE_SS  = 0,
-		GRADE_SSH = 1,   // silver
-		GRADE_S   = 2,
-		GRADE_SH  = 3,   // silver
-		GRADE_A   = 4,
-		GRADE_B   = 5,
-		GRADE_C   = 6,
-		GRADE_D   = 7,
-		GRADE_MAX = 8;   // not a grade
-
-	/**
-	 * Delta multiplier for steady HP drain.
-	 */
+	/** Delta multiplier for steady HP drain. */
 	public static final float HP_DRAIN_MULTIPLIER = 1 / 200f;
 
-	/**
-	 * Hit result types.
-	 */
+	/** Letter grades. */
+	private enum Grade {
+		NULL (null, null),
+		SS  (GameImage.RANKING_SS,  GameImage.RANKING_SS_SMALL),
+		SSH (GameImage.RANKING_SSH, GameImage.RANKING_SSH_SMALL), // silver
+		S   (GameImage.RANKING_S,   GameImage.RANKING_S_SMALL),
+		SH  (GameImage.RANKING_SH,  GameImage.RANKING_SH_SMALL),  // silver
+		A   (GameImage.RANKING_A,   GameImage.RANKING_A_SMALL),
+		B   (GameImage.RANKING_B,   GameImage.RANKING_B_SMALL),
+		C   (GameImage.RANKING_C,   GameImage.RANKING_C_SMALL),
+		D   (GameImage.RANKING_D,   GameImage.RANKING_D_SMALL);
+
+		/** GameImages associated with this grade (large and small sizes). */
+		private GameImage large, small;
+
+		/**
+		 * Constructor.
+		 * @param large the large size image
+		 * @param small the small size image
+		 */
+		Grade(GameImage large, GameImage small) {
+			this.large = large;
+			this.small = small;
+		}
+
+		/**
+		 * Returns the large size grade image.
+		 */
+		public Image getLargeImage() { return large.getImage(); }
+
+		/**
+		 * Returns the small size grade image.
+		 */
+		public Image getSmallImage() { return small.getImage(); }
+	}
+
+	/** Hit result types. */
 	public static final int
 		HIT_MISS     = 0,
 		HIT_50       = 1,
@@ -72,34 +89,22 @@ public class GameScore {
 		HIT_SLIDER30 = 8,
 		HIT_MAX      = 9;   // not a hit result
 
-	/**
-	 * Hit result-related images (indexed by HIT_* constants).
-	 */
+	/** Hit result-related images (indexed by HIT_* constants). */
 	private Image[] hitResults;
 
-	/**
-	 * Counts of each hit result so far.
-	 */
+	/** Counts of each hit result so far. */
 	private int[] hitResultCount;
 
-	/**
-	 * Total number of hit objects so far, not including Katu/Geki (for calculating grade).
-	 */
+	/** Total number of hit objects so far, not including Katu/Geki (for calculating grade). */
 	private int objectCount;
 
-	/**
-	 * Total objects including slider hits/ticks (for determining Full Combo status).
-	 */
+	/** Total objects including slider hits/ticks (for determining Full Combo status). */
 	private int fullObjectCount;
 
-	/**
-	 * The current combo streak.
-	 */
+	/** The current combo streak. */
 	private int combo;
 
-	/**
-	 * The max combo streak obtained.
-	 */
+	/** The max combo streak obtained. */
 	private int comboMax;
 
 	/**
@@ -111,40 +116,39 @@ public class GameScore {
 	 */
 	private byte comboEnd;
 
-	/**
-	 * Combo burst images.
-	 */
+	/** Combo burst images. */
 	private Image[] comboBurstImages;
 
-	/**
-	 * Index of the current combo burst image.
-	 */
+	/** Index of the current combo burst image. */
 	private int comboBurstIndex;
 
-	/**
-	 * Alpha level of the current combo burst image (for fade out).
-	 */
+	/** Alpha level of the current combo burst image (for fade out). */
 	private float comboBurstAlpha;
 
-	/**
-	 * Current x coordinate of the combo burst image (for sliding animation).
-	 */
+	/** Current x coordinate of the combo burst image (for sliding animation). */
 	private int comboBurstX;
 
-	/**
-	 * List of hit result objects associated with hit objects.
-	 */
+	/** List of hit result objects associated with hit objects. */
 	private LinkedList<OsuHitObjectResult> hitResultList;
 
 	/**
 	 * Hit result helper class.
 	 */
 	private class OsuHitObjectResult {
-		public int time;                // object start time
-		public int result;              // hit result
-		public float x, y;              // object coordinates
-		public Color color;             // combo color
-		public float alpha = 1f;        // alpha level (for fade out)
+		/** Object start time. */
+		public int time;
+
+		/** Hit result. */
+		public int result;
+
+		/** Object coordinates. */
+		public float x, y;
+
+		/** Combo color. */
+		public Color color;
+
+		/** Alpha level (for fading out). */
+		public float alpha = 1f;
 
 		/**
 		 * Constructor.
@@ -163,59 +167,31 @@ public class GameScore {
 		}
 	}
 
-	/**
-	 * Current game score.
-	 */
+	/** Current game score. */
 	private long score;
 
-	/**
-	 * Displayed game score (for animation, slightly behind score).
-	 */
+	/** Displayed game score (for animation, slightly behind score). */
 	private long scoreDisplay;
 
-	/**
-	 * Current health bar percentage.
-	 */
+	/** Current health bar percentage. */
 	private float health;
 
-	/**
-	 * Displayed health (for animation, slightly behind health).
-	 */
+	/** Displayed health (for animation, slightly behind health). */
 	private float healthDisplay;
 
-	/**
-	 * Beatmap HPDrainRate value. (0:easy ~ 10:hard)
-	 */
+	/** Beatmap HPDrainRate value. (0:easy ~ 10:hard) */
 	private float drainRate = 5f;
 
-	/**
-	 * Beatmap OverallDifficulty value. (0:easy ~ 10:hard)
-	 */
+	/** Beatmap OverallDifficulty value. (0:easy ~ 10:hard) */
 	private float difficulty = 5f;
 
-	/**
-	 * Default text symbol images.
-	 */
+	/** Default text symbol images. */
 	private Image[] defaultSymbols;
 
-	/**
-	 * Score text symbol images.
-	 */
+	/** Score text symbol images. */
 	private HashMap<Character, Image> scoreSymbols;
 
-	/**
-	 * Letter grade images (large and small sizes).
-	 */
-	private Image[] gradesLarge, gradesSmall;
-
-	/**
-	 * Lighting effects, displayed behind hit object results (optional).
-	 */
-	private Image lighting, lighting1;
-
-	/**
-	 * Container dimensions.
-	 */
+	/** Container dimensions. */
 	private int width, height;
 
 	/**
@@ -251,66 +227,14 @@ public class GameScore {
 	/**
 	 * Loads all game score images.
 	 * @param dir the image directory
-	 * @throws SlickException
 	 */
-	public void loadImages(File dir) throws SlickException {
+	public void loadImages(File dir) {
 		// combo burst images
-		if (comboBurstImages != null) {
-			for (int i = 0; i < comboBurstImages.length; i++) {
-				if (!comboBurstImages[i].isDestroyed())
-					comboBurstImages[i].destroy();
-			}
-		}
-		LinkedList<Image> comboBurst = new LinkedList<Image>();
-		String comboFormat = "comboburst-%d.png";
-		int comboIndex = 0;
-		File comboFile = new File(dir, "comboburst.png");
-		File comboFileN = new File(dir, String.format(comboFormat, comboIndex));
-		if (comboFileN.isFile()) {  // beatmap provides images
-			do {
-				comboBurst.add(new Image(comboFileN.getAbsolutePath()));
-				comboFileN = new File(dir, String.format(comboFormat, ++comboIndex));
-			} while (comboFileN.isFile());
-		} else if (comboFile.isFile())  // beatmap provides single image
-			comboBurst.add(new Image(comboFile.getAbsolutePath()));
-		else {  // load default images
-			while (true) {
-				try {
-					Image comboImage = new Image(String.format(comboFormat, comboIndex++));
-					comboBurst.add(comboImage);
-				} catch (Exception e) {
-					break;
-				}
-			}
-		}
-		comboBurstImages = comboBurst.toArray(new Image[comboBurst.size()]);
-
-		// lighting image
-		if (lighting != null && !lighting.isDestroyed()) {
-			lighting.destroy();
-			lighting = null;
-		}
-		if (lighting1 != null && !lighting1.isDestroyed()) {
-			lighting1.destroy();
-			lighting1 = null;
-		}
-		File lightingFile = new File(dir, "lighting.png");
-		File lighting1File = new File(dir, "lighting1.png");
-		if (lightingFile.isFile()) {  // beatmap provides images
-			try {
-				lighting  = new Image(lightingFile.getAbsolutePath());
-				lighting1 = new Image(lighting1File.getAbsolutePath());
-			} catch (Exception e) {
-				// optional
-			}
-		} else {  // load default image
-			try {
-				lighting  = new Image("lighting.png");
-				lighting1 = new Image("lighting1.png");
-			} catch (Exception e) {
-				// optional
-			}
-		}
+		if (GameImage.COMBO_BURST.hasSkinImages() ||
+		    (!GameImage.COMBO_BURST.hasSkinImage() && GameImage.COMBO_BURST.getImages() != null))
+			comboBurstImages = GameImage.COMBO_BURST.getImages();
+		else
+			comboBurstImages = new Image[]{ GameImage.COMBO_BURST.getImage() };
 
 		// default symbol images
 		defaultSymbols = new Image[10];
@@ -353,26 +277,6 @@ public class GameScore {
 		hitResults[HIT_300G]     = GameImage.HIT_300G.getImage();
 		hitResults[HIT_SLIDER10] = GameImage.HIT_SLIDER10.getImage();
 		hitResults[HIT_SLIDER30] = GameImage.HIT_SLIDER30.getImage();
-
-		// letter grade images
-		gradesLarge = new Image[GRADE_MAX];
-		gradesSmall = new Image[GRADE_MAX];
-		gradesLarge[GRADE_SS] = GameImage.RANKING_SS.getImage();
-		gradesSmall[GRADE_SS] = GameImage.RANKING_SS_SMALL.getImage();
-		gradesLarge[GRADE_SSH] = GameImage.RANKING_SSH.getImage();
-		gradesSmall[GRADE_SSH] = GameImage.RANKING_SSH_SMALL.getImage();
-		gradesLarge[GRADE_S] = GameImage.RANKING_S.getImage();
-		gradesSmall[GRADE_S] = GameImage.RANKING_S_SMALL.getImage();
-		gradesLarge[GRADE_SH] = GameImage.RANKING_SH.getImage();
-		gradesSmall[GRADE_SH] = GameImage.RANKING_SH_SMALL.getImage();
-		gradesLarge[GRADE_A] = GameImage.RANKING_A.getImage();
-		gradesSmall[GRADE_A] = GameImage.RANKING_A_SMALL.getImage();
-		gradesLarge[GRADE_B] = GameImage.RANKING_B.getImage();
-		gradesSmall[GRADE_B] = GameImage.RANKING_B_SMALL.getImage();
-		gradesLarge[GRADE_C] = GameImage.RANKING_C.getImage();
-		gradesSmall[GRADE_C] = GameImage.RANKING_C_SMALL.getImage();
-		gradesLarge[GRADE_D] = GameImage.RANKING_D.getImage();
-		gradesSmall[GRADE_D] = GameImage.RANKING_D_SMALL.getImage();
 	}
 
 	/**
@@ -499,7 +403,7 @@ public class GameScore {
 			int modWidth = GameMod.AUTO.getImage().getWidth();
 			float modX = (width * 0.98f) - modWidth;
 			int modCount = 0;
-			for (GameMod mod : GameMod.valuesReversed()) {
+			for (GameMod mod : GameMod.VALUES_REVERSED) {
 				if (mod.isActive()) {
 					mod.getImage().draw(
 							modX - (modCount * (modWidth / 2f)),
@@ -542,9 +446,9 @@ public class GameScore {
 				drawSymbolString(String.format("%dx", combo), 10, height - 10 - symbolHeight, 1.0f, false);
 		} else {
 			// grade
-			int grade = getGrade();
-			if (grade != -1) {
-				Image gradeImage = gradesSmall[grade];
+			Grade grade = getGrade();
+			if (grade != Grade.NULL) {
+				Image gradeImage = grade.getSmallImage();
 				float gradeScale = symbolHeight * 0.75f / gradeImage.getHeight();
 				gradeImage.getScaledCopy(gradeScale).draw(
 						circleX - gradeImage.getWidth(), symbolHeight
@@ -561,9 +465,9 @@ public class GameScore {
 	 */
 	public void drawRankingElements(Graphics g, int width, int height) {
 		// grade
-		int grade = getGrade();
-		if (grade != -1) {
-			Image gradeImage = gradesLarge[grade];
+		Grade grade = getGrade();
+		if (grade != Grade.NULL) {
+			Image gradeImage = grade.getLargeImage();
 			float gradeScale = (height * 0.5f) / gradeImage.getHeight();
 			gradeImage = gradeImage.getScaledCopy(gradeScale);
 			gradeImage.draw(width - gradeImage.getWidth(), height * 0.09f);
@@ -653,26 +557,15 @@ public class GameScore {
 				hitResults[hitResult.result].drawCentered(hitResult.x, hitResult.y);
 
 				// hit lighting
-				if (Options.isHitLightingEnabled() && lighting != null &&
-					hitResult.result != HIT_MISS && hitResult.result != HIT_SLIDER30 && hitResult.result != HIT_SLIDER10) {
+				if (Options.isHitLightingEnabled() && hitResult.result != HIT_MISS &&
+					hitResult.result != HIT_SLIDER30 && hitResult.result != HIT_SLIDER10) {
 					float scale = 1f + ((trackPosition - hitResult.time) / (float) fadeDelay)/2;
-					Image scaledLighting  = lighting.getScaledCopy(scale);
-					scaledLighting.setAlpha(0.4f);//1-(trackPosition - hitResult.time)/(float) fadeDelay);
-					/*scaledLighting.draw(hitResult.x - (scaledLighting.getWidth() / 2f),
-										hitResult.y - (scaledLighting.getHeight() / 2f),
-										hitResult.color);*/
-					/*if (lighting1 != null) {
-						Image scaledLighting1 = lighting1.getScaledCopy(scale);
-						scaledLighting1.setAlpha(1-(trackPosition - hitResult.time)/(float) fadeDelay);
-						scaledLighting1.draw(hitResult.x - (scaledLighting1.getWidth() / 2f),
-								hitResult.y - (scaledLighting1.getHeight() / 2f),
-								hitResult.color);
-					}*/
-					Image scaledHitCircle = GameImage.HITCIRCLE.getImage().getScaledCopy(scale);
-					scaledHitCircle.setAlpha(1-(trackPosition - hitResult.time)*2/(float) fadeDelay);
-					scaledHitCircle.draw(hitResult.x - (scaledHitCircle.getWidth() / 2f),
-							hitResult.y - (scaledHitCircle.getHeight() / 2f),
-							hitResult.color);
+					Image scaledLighting  = GameImage.LIGHTING.getImage().getScaledCopy(scale);
+					Image scaledLighting1 = GameImage.LIGHTING1.getImage().getScaledCopy(scale);
+					scaledLighting.draw(hitResult.x - (scaledLighting.getWidth() / 2f),
+							hitResult.y - (scaledLighting.getHeight() / 2f), hitResult.color);
+					scaledLighting1.draw(hitResult.x - (scaledLighting1.getWidth() / 2f),
+							hitResult.y - (scaledLighting1.getHeight() / 2f), hitResult.color);
 				}
 				
 				hitResults[hitResult.result].setAlpha(hitResult.alpha);
@@ -726,12 +619,13 @@ public class GameScore {
 	}
 
 	/**
-	 * Returns (current) letter grade.
-	 * If no objects have been processed, -1 will be returned.
+	 * Returns letter grade based on score data,
+	 * or Grade.NULL if no objects have been processed.
+	 * @return the current Grade
 	 */
-	private int getGrade() {
+	private Grade getGrade() {
 		if (objectCount < 1)  // avoid division by zero
-			return -1;
+			return Grade.NULL;
 
 		// TODO: silvers
 		float percent = getScorePercent();
@@ -739,17 +633,17 @@ public class GameScore {
 		float hit50ratio  = hitResultCount[HIT_50] * 100f / objectCount;
 		boolean noMiss    = (hitResultCount[HIT_MISS] == 0);
 		if (percent >= 100f)
-			return GRADE_SS;
+			return Grade.SS;
 		else if (hit300ratio >= 90f && hit50ratio < 1.0f && noMiss)
-			return GRADE_S;
+			return Grade.S;
 		else if ((hit300ratio >= 80f && noMiss) || hit300ratio >= 90f)
-			return GRADE_A;
+			return Grade.A;
 		else if ((hit300ratio >= 70f && noMiss) || hit300ratio >= 80f)
-			return GRADE_B;
+			return Grade.B;
 		else if (hit300ratio >= 60f)
-			return GRADE_C;
+			return Grade.C;
 		else
-			return GRADE_D;
+			return Grade.D;
 	}
 
 	/**

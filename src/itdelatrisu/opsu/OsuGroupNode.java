@@ -30,30 +30,16 @@ import org.newdawn.slick.Image;
  * Node in an OsuGroupList representing a group of OsuFile objects.
  */
 public class OsuGroupNode {
-	/**
-	 * Menu background image.
-	 */
-	private static Image bg;
-
-	/**
-	 * List of associated OsuFile objects.
-	 */
+	/** List of associated OsuFile objects. */
 	public ArrayList<OsuFile> osuFiles;
 
-	/**
-	 * Index of this OsuGroupNode.
-	 */
+	/** Index of this OsuGroupNode. */
 	public int index = 0;
 
-	/**
-	 * Index of selected osuFile.
-	 * If not focused, the value will be -1.
-	 */
+	/** Index of selected osuFile (-1 if not focused). */
 	public int osuFileIndex = -1;
 
-	/**
-	 * Links to other OsuGroupNode objects.
-	 */
+	/** Links to other OsuGroupNode objects. */
 	public OsuGroupNode prev, next;
 	
 	public int randNum = (int)(Math.random()*0xffffff);
@@ -67,11 +53,6 @@ public class OsuGroupNode {
 	}
 
 	/**
-	 * Sets a button background image.
-	 */
-	public static void setBackground(Image background) { bg = background; }
-
-	/**
 	 * Draws the button.
 	 * @param x the x coordinate
 	 * @param y the y coordinate
@@ -82,6 +63,7 @@ public class OsuGroupNode {
 		float xOffset = 0f;
 		OsuFile osu;
 		Color textColor = Color.lightGray;
+		Image bg = GameImage.MENU_BUTTON_BG.getImage();
 
 		if (expanded) {  // expanded
 			xOffset = bg.getWidth() / 10f;

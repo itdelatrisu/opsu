@@ -21,6 +21,7 @@ package itdelatrisu.opsu.states;
 import fluddokt.opsu.fake.*;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.Opsu;
+import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.OsuGroupList;
 import itdelatrisu.opsu.OsuParser;
 import itdelatrisu.opsu.OszUnpacker;
@@ -45,19 +46,13 @@ import org.newdawn.slick.state.StateBasedGame;
  * Loads game resources and enters "Main Menu" state.
  */
 public class Splash extends BasicGameState {
-	/**
-	 * Whether or not loading has completed.
-	 */
+	/** Whether or not loading has completed. */
 	private boolean finished = false;
 
-	/**
-	 * Loading thread.
-	 */
+	/** Loading thread. */
 	private Thread thread;
 
-	/**
-	 * Number of times the ESC key has been pressed.
-	 */
+	/** Number of times the 'Esc' key has been pressed. */
 	private int escapeCount = 0;
 
 	// game-related variables
@@ -85,27 +80,7 @@ public class Splash extends BasicGameState {
 			throws SlickException {
 		g.setBackground(Color.black);
 		GameImage.MENU_LOGO.getImage().drawCentered(container.getWidth() / 2, container.getHeight() / 2);
-
-		// display progress
-		String unpackedFile = OszUnpacker.getCurrentFileName();
-		String parsedFile = OsuParser.getCurrentFileName();
-		String soundFile = SoundController.getCurrentFileName();
-		if (unpackedFile != null) {
-			drawLoadProgress(
-					g, OszUnpacker.getUnpackerProgress(),
-					"Unpacking new beatmaps...", unpackedFile
-			);
-		} else if (parsedFile != null) {
-			drawLoadProgress(
-					g, OsuParser.getParserProgress(),
-					"Loading beatmaps...", parsedFile
-			);
-		} else if (soundFile != null) {
-			drawLoadProgress(
-					g, SoundController.getLoadingProgress(),
-					"Loading sounds...", soundFile
-			);
-		}
+		Utils.drawLoadingProgress(g);
 	}
 
 	@Override
@@ -114,27 +89,33 @@ public class Splash extends BasicGameState {
 		if (!init) {
 			init = true;
 
-			// load other resources in a new thread
-			final int width = container.getWidth();
-			final int height = container.getHeight();
-			thread = new Thread() {
-				@Override
-				public void run() {
-					File beatmapDir = Options.getBeatmapDir();
+			if (OsuGroupList.get() != null) {
+				// resources already loaded (from application restart)
+				finished = true;
+			} else {
+				// load resources in a new thread
+				final int width = container.getWidth();
+				final int height = container.getHeight();
+				thread = new Thread() {
+					@Override
+					public void run() {
+						File beatmapDir = Options.getBeatmapDir();
 
-					// unpack all OSZ archives
-					OszUnpacker.unpackAllFiles(Options.getOSZDir(), beatmapDir);
+						// unpack all OSZ archives
+						OszUnpacker.unpackAllFiles(Options.getOSZDir(), beatmapDir);
 
-					// parse song directory
-					OsuParser.parseAllFiles(beatmapDir, width, height);
+						// parse song directory
+						OsuParser.parseAllFiles(beatmapDir, width, height);
 
-					// load sounds
-					SoundController.init();
+						// load sounds
+						SoundController.init();
 
-					finished = true;
-				}
-			};
-			thread.start();
+						finished = true;
+						thread = null;
+					}
+				};
+				thread.start();
+			}
 		}
 
 		// fade in logo
@@ -146,8 +127,10 @@ public class Splash extends BasicGameState {
 		// change states when loading complete
 		if (finished && alpha >= 1f) {
 			// initialize song list
-			OsuGroupList.get().init();
-			((SongMenu) game.getState(Opsu.STATE_SONGMENU)).setFocus(OsuGroupList.get().getRandomNode(), -1, true);
+			if (OsuGroupList.get().size() > 0) {
+				OsuGroupList.get().init();
+				((SongMenu) game.getState(Opsu.STATE_SONGMENU)).setFocus(OsuGroupList.get().getRandomNode(), -1, true);
+			}
 
 			// play the theme song
 			if (Options.isThemSongEnabled())
@@ -169,30 +152,5 @@ public class Splash extends BasicGameState {
 		// stop parsing OsuFiles by sending interrupt to OsuParser
 		else if (key == Input.KEY_ESCAPE && thread != null)
 			thread.interrupt();
-	}
-
-	/**
-	 * Draws loading progress.
-	 * @param g the graphics context
-	 * @param progress the completion percentage
-	 * @param text the progress text
-	 * @param file the file being loaded
-	 */
-	private void drawLoadProgress(Graphics g, int progress, String text, String file) {
-		float marginX = container.getWidth() * 0.02f, marginY = container.getHeight() * 0.02f;
-		float lineY = container.getHeight() - marginY;
-		int lineOffsetY = Utils.FONT_MEDIUM.getLineHeight();
-		if (Options.isLoadVerbose()) {
-			Utils.FONT_MEDIUM.drawString(
-					marginX, lineY - (lineOffsetY * 2),
-					String.format("%s (%d%%)", text, progress), Color.white);
-			Utils.FONT_MEDIUM.drawString(marginX, lineY - lineOffsetY, file, Color.white);
-		} else {
-			Utils.FONT_MEDIUM.drawString(marginX, lineY - (lineOffsetY * 2), text, Color.white);
-			g.setColor(Color.white);
-			g.fillRoundRect(marginX, lineY - (lineOffsetY / 2f),
-					(container.getWidth() - (marginX * 2f)) * progress / 100f, lineOffsetY / 4f, 4
-			);
-		}
 	}
 }

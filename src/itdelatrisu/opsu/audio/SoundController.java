@@ -22,9 +22,9 @@ import fluddokt.opsu.fake.Clip;
 import fluddokt.opsu.fake.Log;
 import fluddokt.opsu.fake.ResourceLoader;
 import itdelatrisu.opsu.ErrorHandler;
+import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.OsuHitObject;
 import itdelatrisu.opsu.audio.HitSound.SampleSet;
-import itdelatrisu.opsu.states.Options;
 
 import java.io.IOException;
 import java.net.URL;
@@ -47,9 +47,7 @@ import org.newdawn.slick.util.ResourceLoader;*/
  * Note: Uses Java Sound because OpenAL lags too much for accurate hit sounds.
  */
 public class SoundController {
-	/**
-	 * Interface for all (non-music) sound components.
-	 */
+	/** Interface for all (non-music) sound components. */
 	public interface SoundComponent {
 		/**
 		 * Returns the Clip associated with the sound component.
@@ -58,19 +56,13 @@ public class SoundController {
 		public Clip getClip();
 	}
 
-	/**
-	 * Sample volume multiplier, from timing points [0, 1].
-	 */
+	/** Sample volume multiplier, from timing points [0, 1]. */
 	private static float sampleVolumeMultiplier = 1f;
 
-	/**
-	 * The name of the current sound file being loaded.
-	 */
+	/** The name of the current sound file being loaded. */
 	private static String currentFileName;
 
-	/**
-	 * The number of the current sound file being loaded.
-	 */
+	/** The number of the current sound file being loaded. */
 	private static int currentFileIndex = -1;
 
 	// This class should not be instantiated.
@@ -176,7 +168,7 @@ public class SoundController {
 	 * @param s the sound effect
 	 */
 	public static void playSound(SoundComponent s) {
-		playClip(s.getClip(), Options.getEffectVolume());
+		playClip(s.getClip(), Options.getEffectVolume() * Options.getMasterVolume());
 	}
 
 	/**
@@ -187,7 +179,7 @@ public class SoundController {
 		if (hitSound < 0)
 			return;
 
-		float volume = Options.getHitSoundVolume() * sampleVolumeMultiplier;
+		float volume = Options.getHitSoundVolume() * sampleVolumeMultiplier * Options.getMasterVolume();
 		if (volume == 0f)
 			return;
 
@@ -209,7 +201,7 @@ public class SoundController {
 	 * @param s the hit sound
 	 */
 	public static void playHitSound(SoundComponent s) {
-		playClip(s.getClip(), Options.getHitSoundVolume() * sampleVolumeMultiplier);
+		playClip(s.getClip(), Options.getHitSoundVolume() * sampleVolumeMultiplier * Options.getMasterVolume());
 	}
 
 	/**

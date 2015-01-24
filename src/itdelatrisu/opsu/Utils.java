@@ -21,13 +21,13 @@ package itdelatrisu.opsu;
 import fluddokt.opsu.fake.*;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
-import itdelatrisu.opsu.states.Options;
 
 
 
 
 //import java.awt.Font;
 //import java.io.File;
+import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -35,19 +35,23 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 
+import javax.imageio.ImageIO;
+
 /*import org.lwjgl.BufferUtils;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.input.Cursor;
+import org.lwjgl.opengl.Display;
+import org.lwjgl.opengl.GL11;
 import org.newdawn.slick.Animation;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
+import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.UnicodeFont;
 import org.newdawn.slick.font.effects.ColorEffect;
 import org.newdawn.slick.font.effects.Effect;
-import org.newdawn.slick.imageout.ImageOut;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.util.Log;
 import org.newdawn.slick.util.ResourceLoader;*/
@@ -56,9 +60,7 @@ import org.newdawn.slick.util.ResourceLoader;*/
  * Contains miscellaneous utilities.
  */
 public class Utils {
-	/**
-	 * Game colors.
-	 */
+	/** Game colors. */
 	public static final Color
 		COLOR_BLACK_ALPHA     = new Color(0, 0, 0, 0.5f),
 		COLOR_WHITE_ALPHA     = new Color(255, 255, 255, 0.5f),
@@ -74,46 +76,38 @@ public class Utils {
 		COLOR_WHITE_FADE      = new Color(255, 255, 255, 1f),
 		COLOR_RED_HOVER       = new Color(255, 112, 112);
 
-	/**
-	 * The default map colors, used when a map does not provide custom colors.
-	 */
+	/** The default map colors, used when a map does not provide custom colors. */
 	public static final Color[] DEFAULT_COMBO = {
 		COLOR_GREEN_OBJECT, COLOR_BLUE_OBJECT,
 		COLOR_RED_OBJECT, COLOR_ORANGE_OBJECT
 	};
 
-	/**
-	 * Game fonts.
-	 */
+	/** Game fonts. */
 	public static UnicodeFont
 		FONT_DEFAULT, FONT_BOLD,
 		FONT_XLARGE, FONT_LARGE, FONT_MEDIUM, FONT_SMALL;
 
-	/**
-	 * Back button (shared by other states).
-	 */
+	/** Back button (shared by other states). */
 	private static MenuButton backButton;
 
-	/**
-	 * Cursor image and trail.
-	 */
+	/** Cursor image and trail. */
 	private static Image cursor, cursorTrail, cursorMiddle;
 
-	/**
-	 * Last cursor coordinates.
-	 */
+	/** Last cursor coordinates. */
 	private static int lastX = -1, lastY = -1;
 
-	/**
-	 * Stores all previous cursor locations to display a trail.
-	 */
+	/** Stores all previous cursor locations to display a trail. */
 	private static LinkedList<Integer>
 		cursorX = new LinkedList<Integer>(),
 		cursorY = new LinkedList<Integer>();
 
-	/**
-	 * Set of all Unicode strings already loaded.
-	 */
+	/** Time to show volume image, in milliseconds. */
+	private static final int VOLUME_DISPLAY_TIME = 1500;
+
+	/** Volume display elapsed time. */
+	private static int volumeDisplay = -1;
+
+	/** Set of all Unicode strings already loaded. */
 	private static HashSet<String> loadedGlyphs = new HashSet<String>();
 
 	// game-related variables
@@ -139,7 +133,7 @@ public class Utils {
 		// game settings
 		container.setTargetFrameRate(Options.getTargetFPS());
 		container.setVSync(Options.getTargetFPS() == 60);
-		container.setMusicVolume(Options.getMusicVolume());
+		container.setMusicVolume(Options.getMusicVolume() * Options.getMasterVolume());
 		container.setShowFPS(false);
 		container.getInput().enableKeyRepeat();
 		container.setAlwaysRender(true);
@@ -208,6 +202,9 @@ public class Utils {
 		// initialize sorts
 		for (SongSort sort : SongSort.values())
 			sort.init(width, height);
+
+		// initialize hit objects
+		OsuHitObject.init(width, height);
 
 		// back button
 		Image back = GameImage.MENU_BACK.getImage();
@@ -308,11 +305,11 @@ public class Utils {
 	 */
 	public static void loadCursor() throws SlickException {
 		// destroy old cursors, if they exist
-		if (cursor != null)
+		if (cursor != null && !cursor.isDestroyed())
 			cursor.destroy();
-		if (cursorTrail != null)
+		if (cursorTrail != null && !cursorTrail.isDestroyed())
 			cursorTrail.destroy();
-		if (cursorMiddle != null)
+		if (cursorMiddle != null && !cursorMiddle.isDestroyed())
 			cursorMiddle.destroy();
 		cursor = cursorTrail = cursorMiddle = null;
 
@@ -521,36 +518,152 @@ public class Utils {
 	}
 
 	/**
-	 * Takes a screenshot.
-	 * @return true if successful
+	 * Draws the volume bar on the middle right-hand side of the game container.
+	 * Only draws if the volume has recently been changed using with {@link #changeVolume(int)}.
+	 * @param g the graphics context
 	 */
-	public static boolean takeScreenShot() {
-		// TODO: should this be threaded?
-		try {
-			// create the screenshot directory
-			File dir = Options.getScreenshotDir();
-			if (!dir.isDirectory()) {
-				if (!dir.mkdir())
-					return false;
-			}
+	public static void drawVolume(Graphics g) {
+		if (volumeDisplay == -1)
+			return;
 
-			// create file name
-			SimpleDateFormat date = new SimpleDateFormat("yyyyMMdd_HHmmss");
-			File file = new File(dir, String.format("screenshot_%s.%s",
-					date.format(new Date()), Options.getScreenshotFormat()));
+		int width = container.getWidth(), height = container.getHeight();
+		Image img = GameImage.VOLUME.getImage();
 
-			SoundController.playSound(SoundEffect.SHUTTER);
+		// move image in/out
+		float xOffset = 0;
+		float ratio = (float) volumeDisplay / VOLUME_DISPLAY_TIME;
+		if (ratio <= 0.1f)
+			xOffset = img.getWidth() * (1 - (ratio * 10f));
+		else if (ratio >= 0.9f)
+			xOffset = img.getWidth() * (1 - ((1 - ratio) * 10f));
 
-			// copy the screen
-			Image screen = new Image(container.getWidth(), container.getHeight());
-			container.getGraphics().copyArea(screen, 0, 0);
-			ImageOut.write(screen, file.getAbsolutePath(), false);
-			screen.destroy();
-		} catch (SlickException e) {
-			Log.warn("Failed to take a screenshot.", e);
-			return false;
+		img.drawCentered(width - img.getWidth() / 2f + xOffset, height / 2f);
+		float barHeight = img.getHeight() * 0.9f;
+		float volume = Options.getMasterVolume();
+		g.setColor(Color.white);
+		g.fillRoundRect(
+				width - (img.getWidth() * 0.368f) + xOffset,
+				(height / 2f) - (img.getHeight() * 0.47f) + (barHeight * (1 - volume)),
+				img.getWidth() * 0.15f, barHeight * volume, 3
+		);
+	}
+
+	/**
+	 * Updates volume display by a delta interval.
+	 * @param delta the delta interval since the last call
+	 */
+	public static void updateVolumeDisplay(int delta) {
+		if (volumeDisplay == -1)
+			return;
+
+		volumeDisplay += delta;
+		if (volumeDisplay > VOLUME_DISPLAY_TIME)
+			volumeDisplay = -1;
+	}
+
+	/**
+	 * Changes the master volume by a unit (positive or negative).
+	 * @param units the number of units
+	 */
+	public static void changeVolume(int units) {
+		final float UNIT_OFFSET = 0.05f;
+		Options.setMasterVolume(container, Utils.getBoundedValue(Options.getMasterVolume(), UNIT_OFFSET * units, 0f, 1f));
+		if (volumeDisplay == -1)
+			volumeDisplay = 0;
+		else if (volumeDisplay >= VOLUME_DISPLAY_TIME / 10)
+			volumeDisplay = VOLUME_DISPLAY_TIME / 10;
+	}
+
+	/**
+	 * Draws loading progress (OSZ unpacking, OsuFile parsing, sound loading)
+	 * at the bottom of the screen.
+	 */
+	public static void drawLoadingProgress(Graphics g) {
+		String text, file;
+		int progress;
+
+		// determine current action
+		if ((file = OszUnpacker.getCurrentFileName()) != null) {
+			text = "Unpacking new beatmaps...";
+			progress = OszUnpacker.getUnpackerProgress();
+		} else if ((file = OsuParser.getCurrentFileName()) != null) {
+			text = "Loading beatmaps...";
+			progress = OsuParser.getParserProgress();
+		} else if ((file = SoundController.getCurrentFileName()) != null) {
+			text = "Loading sounds...";
+			progress = SoundController.getLoadingProgress();
+		} else
+			return;
+
+		// draw loading info
+		float marginX = container.getWidth() * 0.02f, marginY = container.getHeight() * 0.02f;
+		float lineY = container.getHeight() - marginY;
+		int lineOffsetY = Utils.FONT_MEDIUM.getLineHeight();
+		if (Options.isLoadVerbose()) {
+			// verbose: display percentages and file names
+			Utils.FONT_MEDIUM.drawString(
+					marginX, lineY - (lineOffsetY * 2),
+					String.format("%s (%d%%)", text, progress), Color.white);
+			Utils.FONT_MEDIUM.drawString(marginX, lineY - lineOffsetY, file, Color.white);
+		} else {
+			// draw loading bar
+			Utils.FONT_MEDIUM.drawString(marginX, lineY - (lineOffsetY * 2), text, Color.white);
+			g.setColor(Color.white);
+			g.fillRoundRect(marginX, lineY - (lineOffsetY / 2f),
+					(container.getWidth() - (marginX * 2f)) * progress / 100f, lineOffsetY / 4f, 4
+			);
 		}
-		return true;
+	}
+
+	/**
+	 * Takes a screenshot.
+	 * @author http://wiki.lwjgl.org/index.php?title=Taking_Screen_Shots
+	 */
+	public static void takeScreenShot() {
+		// create the screenshot directory
+		File dir = Options.getScreenshotDir();
+		if (!dir.isDirectory()) {
+			if (!dir.mkdir()) {
+				ErrorHandler.error("Failed to create screenshot directory.", null, false);
+				return;
+			}
+		}
+
+		// create file name
+		SimpleDateFormat date = new SimpleDateFormat("yyyyMMdd_HHmmss");
+		final File file = new File(dir, String.format("screenshot_%s.%s",
+				date.format(new Date()), Options.getScreenshotFormat()));
+
+		SoundController.playSound(SoundEffect.SHUTTER);
+
+		// copy the screen to file
+		final int width = Display.getWidth();
+		final int height = Display.getHeight();
+		final int bpp = 3;  // assuming a 32-bit display with a byte each for red, green, blue, and alpha
+		final ByteBuffer buffer = BufferUtils.createByteBuffer(width * height * bpp);
+		GL11.glReadBuffer(GL11.GL_FRONT);
+		GL11.glPixelStorei(GL11.GL_PACK_ALIGNMENT, 1);
+		GL11.glReadPixels(0, 0, width, height, GL11.GL_RGB, GL11.GL_UNSIGNED_BYTE, buffer);
+		new Thread() {
+			@Override
+			public void run() {
+				try {
+					BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+					for (int x = 0; x < width; x++) {
+						for (int y = 0; y < height; y++) {
+							int i = (x + (width * y)) * bpp;
+							int r = buffer.get(i) & 0xFF;
+							int g = buffer.get(i + 1) & 0xFF;
+							int b = buffer.get(i + 2) & 0xFF;
+							image.setRGB(x, height - (y + 1), (0xFF << 24) | (r << 16) | (g << 8) | b);
+						}
+					}
+					ImageIO.write(image, Options.getScreenshotFormat(), file);
+				} catch (Exception e) {
+					ErrorHandler.error("Failed to take a screenshot.", e, true);
+				}
+			}
+		}.start();
 	}
 
 	/**

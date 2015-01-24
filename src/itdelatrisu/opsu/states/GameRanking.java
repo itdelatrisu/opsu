@@ -52,14 +52,10 @@ import org.newdawn.slick.state.transition.FadeOutTransition;*/
  * </ul>
  */
 public class GameRanking extends BasicGameState {
-	/**
-	 * Associated GameScore object.
-	 */
+	/** Associated GameScore object. */
 	private GameScore score;
 
-	/**
-	 * "Retry" and "Exit" buttons.
-	 */
+	/** "Retry" and "Exit" buttons. */
 	private MenuButton retryButton, exitButton;
 
 	// game-related variables
@@ -108,11 +104,11 @@ public class GameRanking extends BasicGameState {
 		score.drawRankingElements(g, width, height);
 
 		// game mods
-		for (GameMod mod : GameMod.valuesReversed()) {
+		for (GameMod mod : GameMod.VALUES_REVERSED) {
 			if (mod.isActive()) {
 				Image modImage = mod.getImage();
 				modImage.draw(
-						(width * 0.75f) + ((mod.getID() - (GameMod.size() / 2)) * modImage.getWidth() / 3f),
+						(width * 0.75f) + ((mod.getID() - (GameMod.SIZE / 2)) * modImage.getWidth() / 3f),
 						height / 2f
 				);
 			}
@@ -130,6 +126,7 @@ public class GameRanking extends BasicGameState {
 		exitButton.draw();
 		Utils.getBackButton().draw();
 
+		Utils.drawVolume(g);
 		Utils.drawFPS();
 		Utils.drawCursor();
 	}
@@ -138,6 +135,7 @@ public class GameRanking extends BasicGameState {
 	public void update(GameContainer container, StateBasedGame game, int delta)
 			throws SlickException {
 		Utils.updateCursor(delta);
+		Utils.updateVolumeDisplay(delta);
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
 		Utils.getBackButton().hoverUpdate(delta, mouseX, mouseY);
 	}

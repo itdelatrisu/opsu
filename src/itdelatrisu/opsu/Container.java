@@ -30,14 +30,12 @@ import itdelatrisu.opsu.states.Options;
  * AppGameContainer extension that sends critical errors to ErrorHandler.
  */
 public class Container extends AppGameContainer {
-	/**
-	 * SlickException causing game failure.
-	 */
+	/** SlickException causing game failure. */
 	protected SlickException e = null;
 
 	/**
 	 * Create a new container wrapping a game
-	 * 
+	 *
 	 * @param game The game to be wrapped
 	 * @throws SlickException Indicates a failure to initialise the display
 	 */
@@ -47,7 +45,7 @@ public class Container extends AppGameContainer {
 
 	/**
 	 * Create a new container wrapping a game
-	 * 
+	 *
 	 * @param game The game to be wrapped
 	 * @param width The width of the display required
 	 * @param height The height of the display required
@@ -55,7 +53,7 @@ public class Container extends AppGameContainer {
 	 * @throws SlickException Indicates a failure to initialise the display
 	 */
 	public Container(Game game, int width, int height, boolean fullscreen) throws SlickException {
-		super(game);
+		super(game, width, height, fullscreen);
 	}
 
 	@Override
@@ -66,8 +64,11 @@ public class Container extends AppGameContainer {
 			while (running())
 				gameLoop();
 		} finally {
-			MusicController.reset();  // prevent loading tracks from re-initializing OpenAL
+			// destroy the game container
+			close_sub();
 			destroy();
+
+			// report any critical errors
 			if (e != null) {
 				ErrorHandler.error(null, e, true);
 				e = null;
@@ -78,20 +79,34 @@ public class Container extends AppGameContainer {
 			System.exit(0);
 	}
 
+	/**
+	 * Actions to perform before destroying the game container.
+	 */
+	private void close_sub() {
+		// save user options
+		Options.saveOptions();
+
+		// close server socket
+		Opsu.closeSocket();
+
+		// destroy images
+		InternalTextureLoader.get().clear();
+
+		// reset image references
+		GameImage.clearReferences();
+		OsuFile.resetImageCache();
+
+		// prevent loading tracks from re-initializing OpenAL
+		MusicController.reset();
+	}
+
 	@Override
 	protected void updateAndRender(int delta) throws SlickException {
 		try {
 			super.updateAndRender(delta);
 		} catch (SlickException e) {
-			this.e = e;
-			throw e;
+			this.e = e;  // store exception to display later
+			throw e;     // re-throw exception
 		}
-	}
-
-	@Override
-	public void exit() {
-		Options.saveOptions();
-		Opsu.closeSocket();
-		running = false;
 	}
 }

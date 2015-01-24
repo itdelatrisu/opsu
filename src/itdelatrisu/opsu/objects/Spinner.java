@@ -33,56 +33,36 @@ import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
-import org.newdawn.slick.SlickException;
 */
 /**
  * Data type representing a spinner object.
  */
 public class Spinner implements HitObject {
-	/**
-	 * Container dimensions.
-	 */
+	/** Container dimensions. */
 	private static int width, height;
 
-	/**
-	 * The associated OsuHitObject.
-	 */
+	/** The associated OsuHitObject. */
 	private OsuHitObject hitObject;
 
-	/**
-	 * The associated GameScore object.
-	 */
+	/** The associated GameScore object. */
 	private GameScore score;
 
-	/**
-	 * The last rotation angle.
-	 */
+	/** The last rotation angle. */
 	private float lastAngle = -1f;
 
-	/**
-	 * The current number of rotations.
-	 */
+	/** The current number of rotations. */
 	private float rotations = 0f;
 
-	/**
-	 * The total number of rotations needed to clear the spinner.
-	 */
+	/** The total number of rotations needed to clear the spinner. */
 	private float rotationsNeeded;
 
 	/**
 	 * Initializes the Spinner data type with images and dimensions.
 	 * @param container the game container
-	 * @throws SlickException
 	 */
-	public static void init(GameContainer container) throws SlickException {
+	public static void init(GameContainer container) {
 		width  = container.getWidth();
 		height = container.getHeight();
-
-		Image spinnerCircle = GameImage.SPINNER_CIRCLE.getImage();
-		GameImage.SPINNER_CIRCLE.setImage(spinnerCircle.getScaledCopy(height * 9 / 10, height * 9 / 10));
-		GameImage.SPINNER_APPROACHCIRCLE.setImage(GameImage.SPINNER_APPROACHCIRCLE.getImage().getScaledCopy(
-				spinnerCircle.getWidth(), spinnerCircle.getHeight()));
-		GameImage.SPINNER_METRE.setImage(GameImage.SPINNER_METRE.getImage().getScaledCopy(width, height));
 	}
 
 	/**
@@ -110,7 +90,7 @@ public class Spinner implements HitObject {
 		boolean spinnerComplete = (rotations >= rotationsNeeded);
 
 		// TODO: draw "OSU!" image after spinner ends
-		//spinnerOsuImage.drawCentered(width / 2, height / 4);
+		//GameImage.SPINNER_OSU.getImage().drawCentered(width / 2, height / 4);
 
 		// darken screen
 		g.setColor(Utils.COLOR_BLACK_ALPHA);

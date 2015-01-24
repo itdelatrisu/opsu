@@ -23,6 +23,7 @@ import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.MenuButton;
 import itdelatrisu.opsu.Opsu;
+import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.OsuFile;
 import itdelatrisu.opsu.OsuGroupList;
 import itdelatrisu.opsu.OsuGroupNode;
@@ -60,54 +61,34 @@ import org.newdawn.slick.state.transition.FadeOutTransition;
  * </ul>
  */
 public class MainMenu extends BasicGameState {
-	/**
-	 * Idle time, in milliseconds, before returning the logo to its original position.
-	 */
+	/** Idle time, in milliseconds, before returning the logo to its original position. */
 	private static final short MOVE_DELAY = 5000;
 
-	/**
-	 * Logo button that reveals other buttons on click.
-	 */
+	/** Logo button that reveals other buttons on click. */
 	private MenuButton logo;
 
-	/**
-	 * Whether or not the logo has been clicked.
-	 */
+	/** Whether or not the logo has been clicked. */
 	private boolean logoClicked = false;
 
-	/**
-	 * Delay timer, in milliseconds, before starting to move the logo back to the center.
-	 */
+	/** Delay timer, in milliseconds, before starting to move the logo back to the center. */
 	private int logoTimer = 0;
 
-	/**
-	 * Main "Play" and "Exit" buttons.
-	 */
+	/** Main "Play" and "Exit" buttons. */
 	private MenuButton playButton, exitButton;
 
-	/**
-	 * Music control buttons.
-	 */
+	/** Music control buttons. */
 	private MenuButton musicPlay, musicPause, musicNext, musicPrevious;
 
-	/**
-	 * Button linking to repository.
-	 */
+	/** Button linking to repository. */
 	private MenuButton repoButton;
 
-	/**
-	 * Application start time, for drawing the total running time.
-	 */
+	/** Application start time, for drawing the total running time. */
 	private long osuStartTime;
 
-	/**
-	 * Indexes of previous songs.
-	 */
+	/** Indexes of previous songs. */
 	private Stack<Integer> previous;
 
-	/**
-	 * Background alpha level (for fade-in effect).
-	 */
+	/** Background alpha level (for fade-in effect). */
 	private float bgAlpha = 0f;
 
 	// game-related variables
@@ -246,6 +227,7 @@ public class MainMenu extends BasicGameState {
 				new SimpleDateFormat("h:mm a").format(new Date())),
 				marginX, height - marginY - lineHeight);
 
+		Utils.drawVolume(g);
 		Utils.drawFPS();
 		Utils.drawCursor();
 	}
@@ -254,6 +236,7 @@ public class MainMenu extends BasicGameState {
 	public void update(GameContainer container, StateBasedGame game, int delta)
 			throws SlickException {
 		Utils.updateCursor(delta);
+		Utils.updateVolumeDisplay(delta);
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
 		logo.hoverUpdate(delta, mouseX, mouseY);
 		playButton.hoverUpdate(delta, mouseX, mouseY);
@@ -409,6 +392,11 @@ public class MainMenu extends BasicGameState {
 	}
 
 	@Override
+	public void mouseWheelMoved(int newValue) {
+		Utils.changeVolume((newValue < 0) ? -1 : 1);
+	}
+
+	@Override
 	public void keyPressed(int key, char c) {
 		switch (key) {
 		case Input.KEY_ESCAPE:
@@ -427,6 +415,12 @@ public class MainMenu extends BasicGameState {
 				SoundController.playSound(SoundEffect.MENUHIT);
 				game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 			}
+			break;
+		case Input.KEY_UP:
+			Utils.changeVolume(1);
+			break;
+		case Input.KEY_DOWN:
+			Utils.changeVolume(-1);
 			break;
 		case Input.KEY_F12:
 			Utils.takeScreenShot();

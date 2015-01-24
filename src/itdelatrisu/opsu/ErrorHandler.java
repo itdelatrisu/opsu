@@ -37,28 +37,20 @@ import javax.swing.UIManager;
  * Error handler to log and display errors.
  */
 public class ErrorHandler {
-	/**
-	 * Error popup title.
-	 */ 
+	/** Error popup title. */
 	private static final String title = "Error";
 
-	/**
-	 * Error popup description text.
-	 */
+	/** Error popup description text. */
 	private static final String
-		desc = "opsu! has encountered an error.",
+		desc  = "opsu! has encountered an error.",
 		descR = "opsu! has encountered an error. Please report this!";
 
-	/**
-	 * Error popup button options.
-	 */
+	/** Error popup button options. */
 	private static final String[]
-		options = {"View Error Log", "Close"},
+		options  = {"View Error Log", "Close"},
 		optionsR = {"Send Report", "View Error Log", "Close"};
 
-	/**
-	 * Text area for Exception.
-	 */
+	/** Text area for Exception. */
 /*	private static final JTextArea textArea = new JTextArea(7, 30);
 	static {
 		textArea.setEditable(false);
@@ -68,14 +60,10 @@ public class ErrorHandler {
 		textArea.setLineWrap(true);
 	}
 */
-	/**
-	 * Scroll pane holding JTextArea.
-	 */
+	/** Scroll pane holding JTextArea. */
 	//private static final JScrollPane scroll = new JScrollPane(textArea);
 
-	/**
-	 * Error popup objects.
-	 */
+	/** Error popup objects. */
 	//private static final Object[]
 	//	message = { desc, scroll },
 	//	messageR = { descR, scroll };
@@ -132,7 +120,7 @@ public class ErrorHandler {
 					// don't report the error
 					int n = JOptionPane.showOptionDialog(null, message, title,
 							JOptionPane.DEFAULT_OPTION, JOptionPane.ERROR_MESSAGE,
-							null, options, optionsR[1]);
+							null, options, options[1]);
 					if (n == 0)
 						Desktop.getDesktop().open(Options.LOG_FILE.getIOFile());
 				}

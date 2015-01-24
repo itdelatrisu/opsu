@@ -32,14 +32,10 @@ import java.io.FilenameFilter;
  * Unpacker for OSZ (ZIP) archives.
  */
 public class OszUnpacker {
-	/**
-	 * The index of the current file being unpacked.
-	 */
+	/** The index of the current file being unpacked. */
 	private static int fileIndex = -1;
 
-	/**
-	 * The total number of directories to parse.
-	 */
+	/** The total number of directories to parse. */
 	private static File[] files;
 
 	// This class should not be instantiated.
@@ -74,8 +70,8 @@ public class OszUnpacker {
 			if (!songDir.isDirectory()) {
 				songDir.mkdir();
 				unzip(file, songDir);
+				file.delete();  // delete the OSZ when finished
 			}
-			file.delete();  // delete the OSZ when finished
 		}
 
 		fileIndex = -1;

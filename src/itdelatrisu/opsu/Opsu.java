@@ -25,7 +25,7 @@ import itdelatrisu.opsu.states.GamePauseMenu;
 import itdelatrisu.opsu.states.GameRanking;
 import itdelatrisu.opsu.states.MainMenu;
 import itdelatrisu.opsu.states.MainMenuExit;
-import itdelatrisu.opsu.states.Options;
+import itdelatrisu.opsu.states.OptionsMenu;
 import itdelatrisu.opsu.states.SongMenu;
 import itdelatrisu.opsu.states.Splash;
 
@@ -57,9 +57,7 @@ import org.newdawn.slick.util.ResourceLoader;
  * Creates game container, adds all other states, and initializes song data.
  */
 public class Opsu extends StateBasedGame {
-	/**
-	 * Game states.
-	 */
+	/** Game states. */
 	public static final int
 		STATE_SPLASH        = 0,
 		STATE_MAINMENU      = 1,
@@ -68,13 +66,15 @@ public class Opsu extends StateBasedGame {
 		STATE_GAME          = 4,
 		STATE_GAMEPAUSEMENU = 5,
 		STATE_GAMERANKING   = 6,
-		STATE_OPTIONS       = 7;
+		STATE_OPTIONSMENU   = 7;
 
-	/**
-	 * Used to restrict the program to a single instance.
-	 */
+	/** Server socket for restricting the program to a single instance. */
 	private static ServerSocket SERVER_SOCKET;
 
+	/**
+	 * Constructor.
+	 * @param name the program name
+	 */
 	public Opsu(String name) {
 		super(name);
 	}
@@ -88,7 +88,7 @@ public class Opsu extends StateBasedGame {
 		addState(new Game(STATE_GAME));
 		addState(new GamePauseMenu(STATE_GAMEPAUSEMENU));
 		addState(new GameRanking(STATE_GAMERANKING));
-		addState(new Options(STATE_OPTIONS));
+		addState(new OptionsMenu(STATE_OPTIONSMENU));
 	}
 
 	/**
@@ -146,14 +146,19 @@ public class Opsu extends StateBasedGame {
 		// start the game
 		//Opsu opsu = new Opsu("opsu!");
 		/*try {
-			Container app = new Container(opsu);
+			// loop until force exit
+			while (true) {
+				Opsu opsu = new Opsu("opsu!");
+				Container app = new Container(opsu);
 
-			// basic game settings
-			Options.setDisplayMode(app);
-			String[] icons = { "icon16.png", "icon32.png" };
-			app.setIcons(icons);
+				// basic game settings
+				Options.setDisplayMode(app);
+				String[] icons = { "icon16.png", "icon32.png" };
+				app.setIcons(icons);
+				app.setForceExit(true);
 
-			app.start();
+				app.start();
+			}
 		} catch (SlickException e) {
 			// JARs will not run properly inside directories containing '!'
 			// http://bugs.java.com/view_bug.do?bug_id=4523159
@@ -173,15 +178,15 @@ public class Opsu extends StateBasedGame {
 			// start playing track at preview position
 			SongMenu songMenu = (SongMenu) this.getState(Opsu.STATE_SONGMENU);
 			songMenu.resetGameDataOnLoad();
-			songMenu.resetTrackOnLoad();
+			if (id == STATE_GAME) {
+				MusicController.pause();
+				MusicController.resume();
+			} else
+				songMenu.resetTrackOnLoad();
 			this.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 			return false;
 		}
 
-		MusicController.reset();
-		Options.saveOptions();
-		((Container) this.getContainer()).destroy();
-		closeSocket();
 		return true;
 	}
 

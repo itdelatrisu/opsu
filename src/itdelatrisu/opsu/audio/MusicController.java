@@ -20,9 +20,9 @@ package itdelatrisu.opsu.audio;
 
 import fluddokt.opsu.fake.*;
 import itdelatrisu.opsu.ErrorHandler;
+import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.OsuFile;
 import itdelatrisu.opsu.OsuParser;
-import itdelatrisu.opsu.states.Options;
 
 /*
 import java.io.File;
@@ -44,39 +44,25 @@ import org.newdawn.slick.openal.SoundStore;
  * Controller for all music.
  */
 public class MusicController {
-	/**
-	 * The current music track.
-	 */
+	/** The current music track. */
 	private static Music player;
 
-	/**
-	 * The last OsuFile passed to play().
-	 */
+	/** The last OsuFile passed to play(). */
 	private static OsuFile lastOsu;
 
-	/**
-	 * Temporary WAV file for file conversions (to be deleted).
-	 */
+	/** Temporary WAV file for file conversions (to be deleted). */
 	private static File wavFile;
 
-	/**
-	 * Thread for loading tracks.
-	 */
+	/** Thread for loading tracks. */
 	private static Thread trackLoader;
 
-	/**
-	 * Whether the theme song is currently playing.
-	 */
+	/** Whether the theme song is currently playing. */
 	private static boolean themePlaying = false;
 
-	/**
-	 * Track pause time.
-	 */
+	/** Track pause time. */
 	private static float pauseTime = 0f;
 
-	/**
-	 * Whether the current track volume is dimmed.
-	 */
+	/** Whether the current track volume is dimmed. */
 	private static boolean trackDimmed = false;
 
 	// This class should not be instantiated.
@@ -122,6 +108,7 @@ public class MusicController {
 				break;
 			}
 		}
+		lastOsu = osu;
 	}
 
 	/**
@@ -143,8 +130,9 @@ public class MusicController {
 	 */
 	public static void playAt(final int position, final boolean loop) {
 		if (trackExists()) {
-			SoundStore.get().setMusicVolume(Options.getMusicVolume());
+			setVolume(Options.getMusicVolume() * Options.getMasterVolume());
 			player.setPosition(position / 1000f);
+			pauseTime = 0f;
 			if (loop)
 				player.loop();
 			else
@@ -316,7 +304,8 @@ public class MusicController {
 	 * Toggles the volume dim state of the current track.
 	 */
 	public static void toggleTrackDimmed() {
-		setVolume((trackDimmed) ? Options.getMusicVolume() : Options.getMusicVolume() / 3f);
+		float volume = Options.getMusicVolume() * Options.getMasterVolume();
+		setVolume((trackDimmed) ? volume : volume / 3f);
 		trackDimmed = !trackDimmed;
 	}
 
@@ -354,6 +343,7 @@ public class MusicController {
 		}
 
 		// reset state
+		lastOsu = null;
 		themePlaying = false;
 		pauseTime = 0f;
 		trackDimmed = false;
@@ -422,7 +412,7 @@ public class MusicController {
 
 			player = null;
 		} catch (Exception e) {
-			ErrorHandler.error("Failed to destroy OpenAL.", e, false);
+			ErrorHandler.error("Failed to destroy OpenAL.", e, true);
 		}*/
 	}
 }
