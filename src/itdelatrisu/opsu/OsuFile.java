@@ -262,12 +262,6 @@ public class OsuFile implements Comparable<OsuFile> {
 			
 			Image bgImage = bgImageMap.get(this);
 			if (bgImage == null) {
-				bgImage = new Image(bg).getScaledCopy(width, height);
-				bgImageMap.put(this, bgImage);
-			}
-			bgImage.setAlpha(alpha);
-			bgImage.draw();
-		/*	if (bgImage == null){
 				Image timg = new Image(bg);
 				int swidth = width;
 				int sheight = height;
@@ -278,12 +272,13 @@ public class OsuFile implements Comparable<OsuFile> {
 					swidth = (int)( height * timg.getWidth()/(float)timg.getHeight());
 				}
 				bgImage = timg.getScaledCopy(swidth, sheight);
-			}
+				//bgImage = new Image(bg).getScaledCopy(width, height);
 				bgImageMap.put(this, bgImage);
 			}
 			bgImage.setAlpha(alpha);
+			
+			//bgImage.draw();
 			bgImage.draw( (width-bgImage.getWidth())/2, (height-bgImage.getHeight())/2 );
-		*/
 		} catch (Exception e) {
 			Log.warn(String.format("Failed to get background image '%s'.", bg), e);
 			bg = null;  // don't try to load the file again until a restart
