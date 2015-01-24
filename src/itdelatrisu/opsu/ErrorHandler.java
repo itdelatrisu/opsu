@@ -19,7 +19,6 @@
 package itdelatrisu.opsu;
 
 import fluddokt.opsu.fake.Log;
-import itdelatrisu.opsu.states.Options;
 
 import java.awt.Cursor;
 import java.awt.Desktop;

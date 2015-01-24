@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 
 
 
+import java.io.BufferedWriter;
 import java.io.FileFilter;
 import java.io.FilenameFilter;
 
@@ -26,6 +27,9 @@ public class File {
 		fh = parent.fh.child(child);
 	}
 
+	public File(String parent, String child) {
+		this(new File(parent), child);
+	}
 	public boolean isFile() {
 		return fh.exists() && !fh.isDirectory();
 	}
@@ -123,6 +127,9 @@ public class File {
 
 	public String toString(){
 		return "File:"+getPath();
+	}
+	public BufferedWriter writer(String charset) {
+		return new BufferedWriter(fh.writer(false, charset));
 	}
 
 	

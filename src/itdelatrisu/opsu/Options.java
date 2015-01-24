@@ -20,7 +20,7 @@ package itdelatrisu.opsu;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.File;
+//import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
@@ -32,12 +32,15 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
+import fluddokt.opsu.fake.*;
+
+/*
 import org.lwjgl.input.Keyboard;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.util.Log;
-
+*/
 /**
  * Handles all user options.
  */
@@ -873,7 +876,7 @@ public class Options {
 			return;
 		}
 
-		try (BufferedReader in = new BufferedReader(new FileReader(OPTIONS_FILE))) {
+		try (BufferedReader in = OPTIONS_FILE.reader(0xfff)){//new BufferedReader(new FileReader(OPTIONS_FILE))) {
 			String line;
 			String name, value;
 			int i;
@@ -1039,8 +1042,11 @@ public class Options {
 	 * (Over)writes user options to a file.
 	 */
 	public static void saveOptions() {
-		try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(
-				new FileOutputStream(OPTIONS_FILE), "utf-8"))) {
+		try (BufferedWriter writer = 
+				OPTIONS_FILE.writer("utf-8")
+			//	new BufferedWriter(new OutputStreamWriter(
+			//	new FileOutputStream(OPTIONS_FILE), "utf-8"))
+		) {
 			// header
 			SimpleDateFormat dateFormat = new SimpleDateFormat("EEEE, MMMM dd, yyyy");
 			String date = dateFormat.format(new Date());

@@ -125,5 +125,9 @@ public class GameContainer {
 			}
 		}
 	}
+	public void setForceExit(boolean b) {
+		// TODO Auto-generated method stub
+		
+	}
 
 }

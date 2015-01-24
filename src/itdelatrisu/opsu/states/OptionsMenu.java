@@ -18,6 +18,8 @@
 
 package itdelatrisu.opsu.states;
 
+import fluddokt.opsu.fake.*;
+
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.GameMod;
 import itdelatrisu.opsu.MenuButton;
@@ -31,6 +33,7 @@ import itdelatrisu.opsu.audio.SoundEffect;
 import java.util.Arrays;
 import java.util.Collections;
 
+/*
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
@@ -41,7 +44,7 @@ import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.state.transition.EmptyTransition;
 import org.newdawn.slick.state.transition.FadeInTransition;
-
+*/
 /**
  * "Game Options" state.
  */

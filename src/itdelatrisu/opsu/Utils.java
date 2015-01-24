@@ -636,6 +636,7 @@ public class Utils {
 
 		SoundController.playSound(SoundEffect.SHUTTER);
 
+		/*
 		// copy the screen to file
 		final int width = Display.getWidth();
 		final int height = Display.getHeight();
@@ -663,7 +664,7 @@ public class Utils {
 					ErrorHandler.error("Failed to take a screenshot.", e, true);
 				}
 			}
-		}.start();
+		}.start();*/
 	}
 
 	/**

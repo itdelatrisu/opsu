@@ -17,13 +17,30 @@ public class Animation extends Image{
 		}
 	}
 	int curFrame;
+
+	public Animation() {
+	}
+	
 	public Animation(String filename) throws SlickException {
 		super(filename);
 		throw new Error("Not IMplemented");
 	}
 
-	public Animation() {
+	public Animation(SpriteSheet spr, int i) {
+		//TODO FIX ME
+		for(int y=0;y<spr.image.getHeight();y+=spr.height){
+			for(int x=0; x<spr.image.getWidth();x+=spr.width){
+				addFrame(new Image(spr.image,x,y,spr.width,spr.height),i);
+			}
+		}
 	}
+
+	public Animation(Image[] imgs, int dura) {
+		for(int i=0; i<imgs.length; i++){
+			addFrame(imgs[i], dura);
+		}
+	}
+
 
 	@Override
 	public int getHeight() {
@@ -44,14 +61,6 @@ public class Animation extends Image{
 	}
 
 
-	public Animation(SpriteSheet spr, int i) {
-		//TODO FIX ME
-		for(int y=0;y<spr.image.getHeight();y+=spr.height){
-			for(int x=0; x<spr.image.getWidth();x+=spr.width){
-				imgs.add(new ImageDura(new Image(spr.image,x,y,spr.width,spr.height),i));
-			}
-		}
-	}
 
 	public int getFrameCount() {
 		return imgs.size();
@@ -62,11 +71,10 @@ public class Animation extends Image{
 		return im.img;
 	}
 
-	public void addFrame(Image scaledCopy, int i) {
-		//System.out.println("add frame2 "+i+" "+scaledCopy.name);
-		//System.out.println("ADGDSGGL:"+imgs);
-		imgs.add(new ImageDura(scaledCopy.getScaledCopy(1f), i));
-		//System.out.println("ADGDSGG2L:"+imgs);
+	public void addFrame(Image img, int dura) {
+		imgs.add(new ImageDura(
+				img//.getScaledCopy(1f)
+				, dura));
 	}
 
 	long lastUpdate = System.currentTimeMillis();

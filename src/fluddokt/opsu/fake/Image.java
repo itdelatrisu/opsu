@@ -107,6 +107,9 @@ public class Image {
 		rotation+=f;
 		
 	}
+	public String getResourceReference() {
+		return name;
+	}
 
 	
 

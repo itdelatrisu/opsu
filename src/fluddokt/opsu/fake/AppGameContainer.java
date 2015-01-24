@@ -6,8 +6,12 @@ public class AppGameContainer extends GameContainer{
 		// TODO Auto-generated constructor stub
 	}
 
+	public AppGameContainer(Game game, int width, int height, boolean fullscreen) {
+		// TODO Auto-generated constructor stub
+	}
+
 	public void setDisplayMode(int containerWidth, int containerHeight,
-			boolean b) {
+			boolean b) throws SlickException{
 		// TODO Auto-generated method stub
 		
 	}
