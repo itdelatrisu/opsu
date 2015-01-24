@@ -45,6 +45,7 @@ public class Animation extends Image{
 
 
 	public Animation(SpriteSheet spr, int i) {
+		//TODO FIX ME
 		for(int y=0;y<spr.image.getHeight();y+=spr.height){
 			for(int x=0; x<spr.image.getWidth();x+=spr.width){
 				imgs.add(new ImageDura(new Image(spr.image,x,y,spr.width,spr.height),i));

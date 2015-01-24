@@ -107,13 +107,13 @@ public class MusicGdx extends AbsMusic{
 		//Whenever the time changes check the difference between that and our current time
 		//sync our time to song time
 		if((int)(dxPosition2*1000)!=0 && Math.abs(syncPosition - dxTime/1000f)>0){
-			System.out.println("Time Reset"+" "+syncPosition+" "+(dxTime/1000f) +" " +(syncPosition-(dxTime/1000f)) );
+			//System.out.println("Time Reset"+" "+syncPosition+" "+(dxTime/1000f) +" " +(syncPosition-(dxTime/1000f)) );
 			//dxTime = (pos*1000+dxtime)/2
 			//dxTime = (pos*1000+dxtime)/2
 			//lastTime = thisTime - (pos*1000+dxtime)/2
 			lastTime = thisTime - ((long)(syncPosition*1000)+dxTime)/2;
-			System.out.println( "ASDF:"+(syncPosition*1000)+" "+(syncPosition-lastTime)+" "
-			+((long)(syncPosition*1000)-(syncPosition-lastTime)));
+			//System.out.println( "ASDF:"+(syncPosition*1000)+" "+(syncPosition-lastTime)+" "
+			//+((long)(syncPosition*1000)-(syncPosition-lastTime)));
 			//lastTime = thisTime;
 			lastPosition = thisPosition;
 			//setPosition(thisPosition);

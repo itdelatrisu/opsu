@@ -4,15 +4,13 @@ public class SoundStore {
 
 	public static SoundStore single;
 	public static SoundStore get() {
-		// TODO Auto-generated method stub
 		if(single==null)
 			single = new SoundStore();
 		return single;
 	}
 
 	public void setMusicVolume(float musicVolume) {
-		// TODO Auto-generated method stub
-		
+		GameContainer.setMusicVolume(musicVolume);
 	}
 
 	public int getSourceCount() {

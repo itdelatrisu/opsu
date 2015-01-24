@@ -11,8 +11,9 @@ public class MusicJL extends AbsMusic {
 
 	boolean setNextPosition = false;
 	float nextPosition;
-	float volume = 1f;
+	float volume = 0.1f;
 	static Object ALLock = new Object();
+	boolean audioUsed = false;
 	
 	class PlayThread extends Thread{
 		boolean started = false;
@@ -22,6 +23,9 @@ public class MusicJL extends AbsMusic {
 		boolean inited = false;
 		
 		float position;//in ms
+		long posUpdateTime;
+		float latency;
+		int sampleRate=44100;
 		
 		public void setPosition(float f){
 			System.out.println("setPosition "+f);
@@ -33,8 +37,9 @@ public class MusicJL extends AbsMusic {
 			if(setNextPosition){
 				return nextPosition/1000f;
 			}
-			return position/1000f;
-		}
+			//return (position+(TimeUtils.millis()-posUpdateTime))/1000f;
+			return (position)/1000f-latency;
+			}
 		public boolean isPlaying() {
 			return !paused;
 		}
@@ -53,30 +58,32 @@ public class MusicJL extends AbsMusic {
 			
 		}
 		public void pause(){
-			System.out.println("pause");
+			System.out.println("MusicJL pause");
 			inited = false;
 		
 			paused = true;
 		}
 		public void resumePlaying(){
-			System.out.println("resumePlaying");
+			System.out.println("MusicJL resumePlaying");
 				paused = false;
 		}
-		public void loop(){
-			System.out.println("loop");
-				toLoop = true;
+		public void setLoop(boolean loop){
+			System.out.println("MusicJL loop "+loop);
+			toLoop = loop;
 		}
 		public void play(){
-			System.out.println("play");
+			System.out.println("MusicJL play");
 				paused = false;
 				toStop = false;
 		}
 		public void run(){
 			try {
-				System.out.println("Running Thread play "+file.path());
+				System.out.println("MusicJL Running Thread play "+file.path());
 				bitstream = new Bitstream(
 						//new FileInputStream(path));
-					file.read()
+					//new java.io.BufferedInputStream(
+							file.read()
+						//	)
 				);
 				position = 0;
 				started=true;
@@ -84,6 +91,7 @@ public class MusicJL extends AbsMusic {
 					if(paused){
 						if(ad!=null){
 							ad.dispose();
+							audioUsed = false;
 							ad=null;
 						}
 						inited=false;
@@ -113,35 +121,54 @@ public class MusicJL extends AbsMusic {
 						setNextPosition = false;
 					}
 					if(header == null){
-						System.out.println("Header is null "+bitstream.header_pos());
-						bitstream.closeFrame();
-						bitstream.close();
-						bitstream = new Bitstream(file.read());
-						header = bitstream.readFrame();
-						if(header == null){
-							System.out.println("Header is null still"+bitstream.header_pos());
-							break;
-						}
-						
-					}else{
-						if(!inited){
-							System.out.println("Music Init");
-							if(ad!=null){
-								ad.dispose();
-							}
-							ad = Gdx.audio.newAudioDevice(header.frequency(), header.mode()==Header.SINGLE_CHANNEL);
-							
-								//ad.setVolume(volume);
+						if(toLoop){
+							System.out.println("Header is null "+bitstream.header_pos());
+							bitstream.closeFrame();
+							bitstream.close();
+							bitstream = new Bitstream(file.read());
+							header = bitstream.readFrame();
+							position=0;
 							buf = new OutputBuffer(header.mode()==Header.SINGLE_CHANNEL?1:2, false);
 							decoder = new MP3Decoder();
 							decoder.setOutputBuffer(buf);
+							if(header == null){
+								System.out.println("MusicJL Header is null still"+bitstream.header_pos());
+								break;
+							}
+						}else{
+							toStop = true;
+						}
+					}else{
+						if(!inited){
 							inited = true;
+							System.out.println("MusicJL Music Init");
+							if(ad!=null && audioUsed){
+								ad.dispose();
+							}
+							audioUsed = false;
+							
+							buf = new OutputBuffer(header.mode()==Header.SINGLE_CHANNEL?1:2, false);
+							decoder = new MP3Decoder();
+							decoder.setOutputBuffer(buf);
+							
+							ad = Gdx.audio.newAudioDevice(header.frequency(), header.mode()==Header.SINGLE_CHANNEL);
+							
+							//write 0's to start with o get rid of garbage
+							ad.writeSamples(buf.buffer2, 0, 4096);
+							System.out.println("Latency: "+ad.getLatency());
+							latency = ad.getLatency()/(float)header.frequency();
 						}
 						if(header!=null && inited){
 							decoder.decodeFrame(header, bitstream);
 							int len = buf.reset()/2;
-							//ad.setVolume(volume+(float)(Math.random()*0.001));
+							
+							ad.setVolume(volume);
+							
+							posUpdateTime = TimeUtils.millis();
 							ad.writeSamples(buf.buffer2, 0, len);//buf.channelPointer2[0]);
+							audioUsed = true;
+							
+							//System.out.println("Info:"+header+" "+" "+len+" "+ad.getLatency()+" "+volume);
 							position+=header.ms_per_frame();
 							bitstream.closeFrame();
 						}
@@ -151,7 +178,12 @@ public class MusicJL extends AbsMusic {
 				e.printStackTrace();
 				System.out.println("ASDF");
 			}
+			if(ad!=null && audioUsed){
+				ad.dispose();
+				audioUsed = false;
+			}
 			toStop=true;
+			paused = true;
 			System.out.println("Done "+file.path());
 		}
 		
@@ -176,26 +208,29 @@ public class MusicJL extends AbsMusic {
 	}
 	@Override
 	public boolean setPosition(float f) {
-		
 		playThread.setPosition(f);
 		return true;
 	}
 
 	@Override
 	public void loop() {
-		// TODO Auto-generated method stub
-		playThread.loop();
-		play();
+		playThread.setLoop(true);
+		start();
 	}
 
 	@Override
 	public void play() {
 		System.out.println("Play "+file.path());
+		playThread.setLoop(false);
+		start();
+	}
+	private void start() {
 		if(playThread.toStop)
 			playThread = new PlayThread();
 		playThread.play();
 		if(!playThread.started)
 			playThread.start();
+		
 	}
 
 	@Override
@@ -246,13 +281,24 @@ public class MusicJL extends AbsMusic {
 		
 		//Whenever the time changes check the difference between that and our current time
 		//sync our time to song time
-		if(Math.abs(syncPosition - dxTime/1000f)>0.1){
+		if(Math.abs(syncPosition - dxTime/1000f)>1/10f){
+			System.out.println("Time HARD Reset"+" "+syncPosition+" "+(dxTime/1000f) 
+					+" " +(int)(syncPosition*1000-(dxTime)) 
+					+" " +(int)(syncPosition*1000-(thisTime - lastTime)) 
+					);
 			lastTime = thisTime - ((long)(syncPosition*1000));
-		}
-		if((int)(dxPosition2*1000)!=0 && Math.abs(syncPosition - dxTime/1000f)>0){
-			//System.out.println("Time Reset"+" "+syncPosition+" "+(dxTime/1000f) +" " +(syncPosition-(dxTime/1000f)) );
+			dxTime = thisTime - lastTime;
 			
-			lastTime = thisTime - ((long)(syncPosition*1000)+dxTime)/2;
+		}
+		if((int)(dxPosition2*1000)!=0 && Math.abs(syncPosition - dxTime/1000f)>1/30f){
+			//System.out.println("Time Reset"+" "+syncPosition+" "+(dxTime/1000f) +" " +(int)(syncPosition*1000-(dxTime)) );
+			
+			lastTime = thisTime - ((long)(syncPosition*1000)+dxTime*19)/20;
+			
+			System.out.println("Time Reset"+" "+syncPosition+" "+(dxTime/1000f) 
+					+" " +(int)(syncPosition*1000-(dxTime)) 
+					+" " +(int)(syncPosition*1000-(thisTime - lastTime)) 
+					);
 			
 			/*System.out.println( "Synced:"+(syncPosition*1000)
 					+" dx:"+(syncPosition-lastTime)
@@ -280,9 +326,15 @@ public class MusicJL extends AbsMusic {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-		if(ad!=null){
-			if(playThread.inited)
-				ad.dispose();
+		try {
+			if(ad!=null){
+				if(audioUsed)
+					ad.dispose();
+				
+			}
+		} catch (Exception e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
 		}
 		if(bitstream!=null){
 			try {

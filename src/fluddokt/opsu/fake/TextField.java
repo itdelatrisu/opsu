@@ -6,6 +6,7 @@ public class TextField {
 	int x,y,w,h;
 	String str="";
 	Color bgColor=Color.green,textColor=Color.blue, borderColor=Color.red;
+	GameContainer container;
 	
 	public TextField(GameContainer container, UnicodeFont font, int x,
 			int y, int w, int h) {
@@ -14,6 +15,7 @@ public class TextField {
 		this.w=w;
 		this.h=h;
 		this.font=font;
+		this.container = container;
 	}
 
 	public void setBackgroundColor(Color color) {

@@ -22,6 +22,7 @@ import fluddokt.opsu.fake.*;
 import itdelatrisu.opsu.states.Options;
 
 
+
 //import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -556,6 +557,19 @@ public enum GameImage {
 			skinImage = null;
 		} catch (SlickException e) {
 			ErrorHandler.error(String.format("Failed to destroy skin image for '%s'.", this.name()), e, true);
+		}
+	}
+	public void dispose() throws SlickException{
+		if (skinImage != null){
+			if (!skinImage.isDestroyed())
+				skinImage.destroy();
+			skinImage = null;
+		}
+		
+		if (defaultImage != null){
+			if (!defaultImage.isDestroyed())
+				defaultImage.destroy();
+			defaultImage = null;
 		}
 	}
 

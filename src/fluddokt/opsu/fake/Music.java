@@ -4,8 +4,10 @@ public class Music {
 
 	AbsMusic music;
 	public Music(String path){
-		//music = new MusicGdx(path);
-		music = new MusicJL(path);
+		if(path.toLowerCase().endsWith(".mp3"))
+			music = new MusicJL(path);
+		else
+			music = new MusicGdx(path);
 		GameContainer.setMusic(this);
 	}
 
@@ -23,7 +25,7 @@ public class Music {
 
 	public void resume(){music.resume();}
 
-	public void setVolume(float volume){music.setVolume(volume);}
+	public void setVolume(float volume){}
 
 	public void stop(){music.stop();}
 
@@ -34,5 +36,9 @@ public class Music {
 	
 
 	public void dispose(){music.dispose();}
+
+	public void setMusicVolume(float musvolume) {
+		music.setVolume(musvolume);
+	}
 
 }

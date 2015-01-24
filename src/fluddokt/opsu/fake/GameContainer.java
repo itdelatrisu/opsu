@@ -1,12 +1,14 @@
 package fluddokt.opsu.fake;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Application.ApplicationType;
 
 public class GameContainer {
 
 	public int width = 800;
 	public int height = 600;
 	public boolean hasFocus = true;
+	Input input = new Input();
 	
 	protected boolean running;
 	protected boolean forceExit;
@@ -28,12 +30,13 @@ public class GameContainer {
 	}
 
 	public void exit() {
+		if(music != null)
+			music.stop();
 		Gdx.app.exit();
 	}
 
 	public Input getInput() {
-		// TODO Auto-generated method stub
-		return new Input();
+		return input;
 	}
 
 	public boolean hasFocus() {
@@ -46,10 +49,10 @@ public class GameContainer {
 	}
 
 	static float musvolume;
-	public void setMusicVolume(float musicVolume) {
+	public static void setMusicVolume(float musicVolume) {
 		musvolume = musicVolume;
 		if(music!=null)
-			music.setVolume(musvolume);
+			music.setMusicVolume(musvolume);
 	}
 
 	public void setShowFPS(boolean b) {
@@ -96,11 +99,31 @@ public class GameContainer {
 	
 	static Music music;
 	public static void setMusic(Music imusic) {
-		// TODO Auto-generated method stub
 		if(music!=null)
 			music.dispose();
 		music = imusic;
 		music.setVolume(musvolume);
+	}
+	boolean musicWasPlaying = false;
+	public void loseFocus() {
+		hasFocus = false;
+		
+	}
+	public void lostFocus() {
+		if(music!=null){
+			musicWasPlaying = music.playing();
+			if(Gdx.app.getType() == ApplicationType.Android){
+				music.pause();
+			}
+		}
+	}
+	public void focus() {
+		hasFocus = true;
+		if(music!=null && musicWasPlaying){
+			if(Gdx.app.getType() == ApplicationType.Android){
+				music.resume();
+			}
+		}
 	}
 
 }

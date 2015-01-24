@@ -79,7 +79,7 @@ public class Slider implements HitObject {
 	/**
 	 * The underlying Bezier object.
 	 */
-	private Bezier bezier;
+	private Curve bezier;
 
 	/**
 	 * The time duration of the slider, in milliseconds.
@@ -126,13 +126,176 @@ public class Slider implements HitObject {
 	 */
 	private int ticksHit = 0, tickIntervals = 1;
 
+	private class Curve{
+		public float[] pointAt(float t) {
+			return null;
+		}
+
+		public void draw() {
+			// TODO Auto-generated method stub
+			
+		}
+
+		public float getEndAngle() {
+			// TODO Auto-generated method stub
+			return 0;
+		}
+
+		public float getStartAngle() {
+			// TODO Auto-generated method stub
+			return 0;
+		}
+	}
+	private class Vec2f{
+		float x, y;
+		public Vec2f(float nx, float ny) {
+			x=nx;
+			y=ny;
+		}
+		public Vec2f midPoint(Vec2f o){
+			return new Vec2f((x+o.x)/2, (y+o.y)/2);
+		}
+		public Vec2f sub(Vec2f o){
+			x-=o.x;
+			y-=o.y;
+			return this;
+		}
+		public Vec2f nor(){
+			float nx = -y, ny =x;
+			x=nx;
+			y=ny;
+			return this;
+		}
+		public Vec2f cpy(){
+			return new Vec2f(x, y);
+		}
+		public Vec2f add(float nx, float ny) {
+			x+=nx;
+			y+=ny;
+			return this;
+		}
+		public float len() {
+			return (float) Math.sqrt(x*x + y*y);
+		}
+		
+	}
+	//finds a circle that intersects all three points
+	//http://en.wikipedia.org/wiki/Circumscribed_circle
+	private class CircumscribedCircle extends Curve{
+		Vec2f circleCenter; 
+		Vec2f start ,mid ,end;
+		float startAng,endAng,midAng;
+		float drawStartAngle,drawEndAngle;
+		float radius;
+		final float twopi = (float) (2*Math.PI);
+		final float halfpi = (float) (Math.PI/2);
+		private float step;
+		
+		public CircumscribedCircle(){
+			this.step = hitObject.getPixelLength() / 5;
+			 start = new Vec2f(getX(0), getY(0));
+			 mid = new Vec2f(getX(1), getY(1));
+			 end = new Vec2f(getX(2), getY(2));
+			
+			Vec2f mida = start.midPoint(mid);
+			Vec2f midb = end.midPoint(mid);
+			Vec2f nora = mid.cpy().sub(start).nor();
+			Vec2f norb = mid.cpy().sub(end).nor();
+			
+			circleCenter = intersect(mida, nora, midb, norb);
+			Vec2f startAngPoint = start.cpy().sub(circleCenter);
+			Vec2f midAngPoint = mid.cpy().sub(circleCenter);
+			Vec2f endAngPoint = end.cpy().sub(circleCenter);
+			
+			startAng = (float) Math.atan2(startAngPoint.y, startAngPoint.x);
+			midAng = (float) Math.atan2(midAngPoint.y, midAngPoint.x);
+			endAng = (float) Math.atan2(endAngPoint.y, endAngPoint.x);
+			
+			
+			//find angles that passes thru midAng
+			if(!isIn(startAng,midAng,endAng)){
+				if(Math.abs(startAng+twopi-endAng)<twopi && isIn(startAng+(twopi),midAng,endAng)){
+					startAng+=twopi;
+				}else if(Math.abs(startAng-(endAng+twopi))<twopi && isIn(startAng,midAng,endAng+(twopi))){
+					endAng+=twopi;
+				}else if(Math.abs(startAng-twopi-endAng)<twopi && isIn(startAng-(twopi),midAng,endAng)){
+					startAng-=twopi;
+				}else if(Math.abs(startAng-(endAng-twopi))<twopi && isIn(startAng,midAng,endAng-(twopi))){
+					endAng-=twopi;
+				}else{
+					throw new Error("Cannot find Angles between midAng "+startAng+" "+midAng+" "+endAng);
+				}
+
+			}
+			
+			drawEndAngle = (float) ((endAng+(startAng>endAng?halfpi:-halfpi)) * 180 / Math.PI);
+			drawStartAngle = (float) ((startAng+(startAng>endAng?-halfpi:halfpi)) * 180 / Math.PI);
+			
+			
+			radius = startAngPoint.len();
+		}
+		private boolean isIn(float a,float b,float c){
+			return (b>a && b<c) || (b<a && b>c);
+		}
+		//http://gamedev.stackexchange.com/questions/44720/line-intersection-from-parametric-equation
+		private Vec2f intersect(Vec2f a, Vec2f ta, Vec2f b, Vec2f tb) {
+			// xy = a + ta * t = b + tb * u
+			// t =(b + tb*u -a)/ta
+			//t(x) == t(y)
+			//(b.x + tb.x*u -a.x)/ta.x = (b.y + tb.y*u -a.y)/ta.y
+			// b.x*ta.y + tb.x*u*ta.y -a.x*ta.y = b.y*ta.x + tb.y*u*ta.x -a.y*ta.x
+			// tb.x*u*ta.y - tb.y*u*ta.x= b.y*ta.x  -a.y*ta.x -b.x*ta.y +a.x*ta.y 
+			//u *(tb.x*ta.y - tb.y*ta.x) = (b.y-a.y)ta.x +(a.x-b.x)ta.y
+			//u = ((b.y-a.y)ta.x +(a.x-b.x)ta.y) / (tb.x*ta.y - tb.y*ta.x);
+			
+			float des = tb.x*ta.y - tb.y*ta.x;
+			if(Math.abs(des)<0.00001f){
+				throw new Error("parallel ");
+			}
+			float u = ((b.y-a.y)*ta.x + (a.x-b.x)*ta.y) / des;
+			return b.cpy().add(tb.x*u,tb.y*u);
+		}
+		public float[] pointAt(float t) {
+			float ang = lerp(startAng, endAng, t);
+			return new float[]{(float) (Math.cos(ang)*radius+circleCenter.x),(float) (Math.sin(ang)*radius+circleCenter.y)};
+		}
+		public void draw() {
+			Image hitCircle = GameImage.HITCIRCLE.getImage();
+			Image hitCircleOverlay = GameImage.HITCIRCLE_OVERLAY.getImage();
+			Utils.drawCentered(hitCircleOverlay, start.x, start.y, Utils.COLOR_WHITE_FADE);
+			Utils.drawCentered(hitCircleOverlay, mid.x, mid.y, Utils.COLOR_WHITE_FADE);
+			Utils.drawCentered(hitCircleOverlay, end.x, end.y, Utils.COLOR_WHITE_FADE);
+			//Utils.drawCentered(hitCircleOverlay, circleCenter.x, circleCenter.y, Utils.COLOR_WHITE_FADE);
+			for(int i=0; i<step; i++){
+				float[] xy = pointAt(i/step);
+				Utils.drawCentered(hitCircleOverlay, xy[0], xy[1], Utils.COLOR_WHITE_FADE);
+			}
+			for(int i=0; i<step; i++){
+				float[] xy = pointAt(i/step);
+				Utils.drawCentered(hitCircle, xy[0], xy[1], color);
+			}
+			// draw overlay and hit circle
+			//for (int i = curveX.length - 1; i >= 0; i--)
+			//	Utils.drawCentered(hitCircleOverlay, curveX[i], curveY[i], Utils.COLOR_WHITE_FADE);
+			//for (int i = curveX.length - 1; i >= 0; i--)
+			//	Utils.drawCentered(hitCircle, curveX[i], curveY[i], color);
+		}
+		@Override
+		public float getEndAngle() {
+			return drawEndAngle;
+		}
+		@Override
+		public float getStartAngle() {
+			return drawStartAngle;
+		}
+	}
 	/**
 	 * Representation of a Bezier curve, the main component of a slider.
 	 *
 	 * @author Alex Gheorghiu (http://html5tutorial.com/how-to-draw-n-grade-bezier-curve-with-canvas-api/)
 	 * @author pictuga (https://github.com/pictuga/osu-web)
 	 */
-	private class Bezier {
+	private class Bezier extends Curve{
 		/**
 		 * The order of the Bezier curve.
 		 */
@@ -184,29 +347,19 @@ public class Slider implements HitObject {
 			}
 		}
 
-		/**
-		 * Returns the x coordinate of the control point at index i.
-		 */
-		private float getX(int i) {
-			return (i == 0) ? hitObject.getX() : hitObject.getSliderX()[i - 1];
-		}
-
-		/**
-		 * Returns the y coordinate of the control point at index i.
-		 */
-		private float getY(int i) {
-			return (i == 0) ? hitObject.getY() : hitObject.getSliderY()[i - 1];
-		}
+		
 
 		/**
 		 * Returns the angle of the first control point.
 		 */
-		private float getStartAngle() { return startAngle; }
+		@Override
+		public float getStartAngle() { return startAngle; }
 
 		/**
 		 * Returns the angle of the last control point.
 		 */
-		private float getEndAngle() { return endAngle; }
+		@Override
+		public float getEndAngle() { return endAngle; }
 
 		/**
 		 * Calculates the factorial of a number.
@@ -236,11 +389,22 @@ public class Slider implements HitObject {
 		public float[] pointAt(float t) {
 			float[] c = { 0f, 0f };
 			int n = order - 1;
-			if (n < 4) {  // normal curve
+			if (n < 9) {  // normal curve
+				//*
 				for (int i = 0; i <= n; i++) {
 					c[0] += getX(i) * bernstein(i, n, t);
 					c[1] += getY(i) * bernstein(i, n, t);
 				}
+				/*/
+				float[] x = new float[order];
+				float[] y = new float[order];
+				for(int i=0;i<x.length;i++){
+					x[i] = getX(i);
+					y[i] = getY(i);
+				}
+				c[0] = deCasteljau(x,0,n,t);
+				c[1] = deCasteljau(y,0,n,t);
+				//*/
 			} else {  // split curve into path
 				// TODO: this is probably wrong...
 				int segmentCount = (n / 3) + 1;
@@ -255,6 +419,9 @@ public class Slider implements HitObject {
 			}
 			return c;
 		}
+		
+		
+		
 
 		/**
 		 * Draws the full Bezier curve to the graphics context.
@@ -270,7 +437,28 @@ public class Slider implements HitObject {
 				Utils.drawCentered(hitCircle, curveX[i], curveY[i], color);
 		}
 	}
+	private float lerp(float a, float b, float t){
+		return a*(1-t) + b*t;
+	}
+	//http://en.wikipedia.org/wiki/De_Casteljau%27s_algorithm
+	private float deCasteljau (float[] a, int i, int order, float t){
+		if(order==0)
+			return a[i];
+		return lerp( deCasteljau(a,i,order-1,t), deCasteljau(a,i+1,order-1,t), t);
+	}
+	/**
+	 * Returns the x coordinate of the control point at index i.
+	 */
+	private float getX(int i) {
+		return (i == 0) ? hitObject.getX() : hitObject.getSliderX()[i - 1];
+	}
 
+	/**
+	 * Returns the y coordinate of the control point at index i.
+	 */
+	private float getY(int i) {
+		return (i == 0) ? hitObject.getY() : hitObject.getSliderY()[i - 1];
+	}
 	/**
 	 * Initializes the Slider data type with images and dimensions.
 	 * @param container the game container
@@ -335,8 +523,12 @@ public class Slider implements HitObject {
 		this.score = score;
 		this.color = color;
 		this.comboEnd = comboEnd;
+		if(hitObject.getSliderType() == 'P' && hitObject.getSliderX().length==2){
+			this.bezier = new CircumscribedCircle();
+		}else {
+			this.bezier = new Bezier();
+		}
 
-		this.bezier = new Bezier();
 	}
 
 	@Override
@@ -374,12 +566,12 @@ public class Slider implements HitObject {
 
 		// end circle
 		int lastIndex = sliderX.length - 1;
-		Utils.drawCentered(hitCircleOverlay, sliderX[lastIndex], sliderY[lastIndex], Utils.COLOR_WHITE_FADE);
 		Utils.drawCentered(hitCircle, sliderX[lastIndex], sliderY[lastIndex], color);
-
+		Utils.drawCentered(hitCircleOverlay, sliderX[lastIndex], sliderY[lastIndex], Utils.COLOR_WHITE_FADE);
+		
 		// start circle
-		Utils.drawCentered(hitCircleOverlay, x, y, Utils.COLOR_WHITE_FADE);
 		Utils.drawCentered(hitCircle, x, y, color);
+		Utils.drawCentered(hitCircleOverlay, x, y, Utils.COLOR_WHITE_FADE);
 		if (sliderClicked)
 			;  // don't draw current combo number if already clicked
 		else
@@ -390,18 +582,25 @@ public class Slider implements HitObject {
 		Utils.COLOR_WHITE_FADE.a = oldAlphaFade;
 
 		// repeats
-		if (hitObject.getRepeatCount() - 1 > currentRepeats) {
-			Image arrow = GameImage.REVERSEARROW.getImage();
-			arrow.setAlpha(alpha);
-			if (currentRepeats % 2 == 0) {  // last circle
-				arrow.setRotation(bezier.getEndAngle());
-				arrow.drawCentered(sliderX[lastIndex], sliderY[lastIndex]);
-			} else {  // first circle
-				arrow.setRotation(bezier.getStartAngle());
-				arrow.drawCentered(x, y);
+		for(int tcurRepeat = currentRepeats; tcurRepeat<=currentRepeats+1; tcurRepeat++){
+			if (hitObject.getRepeatCount() - 1 > tcurRepeat) {
+				Image arrow = GameImage.REVERSEARROW.getImage();
+				if(tcurRepeat != currentRepeats){
+					float t = getT(trackPosition, true);
+					arrow.setAlpha((float) (t-Math.floor(t)));
+				}else{
+					arrow.setAlpha(1f);
+				}
+				if (tcurRepeat % 2 == 0) {  // last circle
+					arrow.setRotation(bezier.getEndAngle());
+					arrow.drawCentered(sliderX[lastIndex], sliderY[lastIndex]);
+				} else {  // first circle
+					arrow.setRotation(bezier.getStartAngle());
+					arrow.drawCentered(x, y);
+				}
 			}
-			arrow.setAlpha(1f);
 		}
+		
 
 		if (timeDiff >= 0) {
 			// approach circle

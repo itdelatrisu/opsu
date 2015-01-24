@@ -25,6 +25,7 @@ public class Graphics {
 		batch = new SpriteBatch();
 		shapeRender = new ShapeRenderer();
 		shapeRender.setAutoShapeType(true);
+		mode = 0;
 	}
 	public static void resize(int wid,int hei){
 		width = wid;
@@ -101,6 +102,8 @@ public class Graphics {
 			float h, float start, float end) {
 		checkMode(SHAPEFILLED);
 		//System.out.println("Arc :"+(start+" "+end));
+		if(w!=h)
+			throw new Error("fillArc Not implemented for w!=h");
 		start = -(start-end);
 		while(start<0)
 			start+=360;
@@ -123,9 +126,9 @@ public class Graphics {
 	}
 
 
-	public void drawLine(float i, float lowerBound, float width, float lowerBound2) {
-		// TODO Auto-generated method stub
-		
+	public void drawLine(float x1, float y1, float x2, float y2) {
+		checkMode(SHAPELINE);
+		shapeRender.line(x1, height-y1, x2, height-y2);
 	}
 
 	public void resetLineWidth() {

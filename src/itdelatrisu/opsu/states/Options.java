@@ -885,6 +885,7 @@ public class Options extends BasicGameState {
 		// back
 		if (Utils.getBackButton().contains(x, y)) {
 			SoundController.playSound(SoundEffect.MENUBACK);
+			saveOptions();
 			game.enterState(Opsu.STATE_SONGMENU, new EmptyTransition(), new FadeInTransition(Color.black));
 			return;
 		}

@@ -18,11 +18,11 @@ public class Image {
 		height = tex.getRegionHeight();
 		name=filename;
 	}
-	public Image(Image copy, float nscalex, float nscaley) {
+	public Image(Image copy, float wid, float hei) {
 		tex = copy.tex;
-		name = copy.name+" s "+nscalex+" "+nscaley;
-		width = nscalex;
-		height = nscaley;
+		name = copy.name+" s "+wid+" "+hei;
+		width = wid;
+		height = hei;
 	}
 	public Image(Image copy, int x, int y,int wid,int hei) {
 		tex = new TextureRegion(copy.tex, x, y, wid, hei);

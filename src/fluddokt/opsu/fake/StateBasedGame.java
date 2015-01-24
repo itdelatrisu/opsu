@@ -62,11 +62,11 @@ public abstract class StateBasedGame implements InputProcessor{
 		//gs.init(gc, this);
 	}
 	public void render() throws SlickException{
-		enterNextState();
 		if(currentState != null){
-			currentState.update(gc, this, 1000/60);
+			currentState.update(gc, this, (int)( Gdx.graphics.getDeltaTime()*1000));
 			currentState.render(gc, this, Graphics.getGraphics());
 		}
+		enterNextState();
 	}
 
 	public void init() throws SlickException {

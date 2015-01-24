@@ -528,7 +528,7 @@ public final class Bitstream {
 
 		if (sum <= 32) {
 			// all bits contained in *wordpointer
-			returnvalue = framebuffer[wordpointer] >>> 32 - sum & bitmask[number_of_bits];
+			returnvalue = (framebuffer[wordpointer] >>> (32 - sum)) & bitmask[number_of_bits];
 			// returnvalue = (wordpointer[0] >> (32 - sum)) & bitmask[number_of_bits];
 			if ((bitindex += number_of_bits) == 32) {
 				bitindex = 0;

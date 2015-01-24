@@ -87,14 +87,12 @@ public class Input {
 	public int getMouseY() {
 		return Gdx.input.getY();
 	}
-
-	public boolean isKeyDown(int key) {
-		// TODO Auto-generated method stub
-		return Gdx.input.isKeyPressed(key);
-	}
-
+	
 	public int getMouseX() {
 		return Gdx.input.getX();
+	}
+	public boolean isKeyDown(int key) {
+		return Gdx.input.isKeyPressed(key);
 	}
 
 	public void enableKeyRepeat() {
@@ -103,7 +101,6 @@ public class Input {
 	}
 
 	public boolean isMouseButtonDown(int button) {
-		// TODO Auto-generated method stub
 		return Gdx.input.isButtonPressed(button);
 	}
 

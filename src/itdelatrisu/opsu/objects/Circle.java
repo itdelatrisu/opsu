@@ -70,7 +70,7 @@ public class Circle implements HitObject {
 	 * @throws SlickException
 	 */
 	public static void init(GameContainer container, float circleSize) throws SlickException {
-		int diameter = (int) (96 - (circleSize * 8));
+		int diameter = (int) (104 - (circleSize * 8));
 		int swidth = container.getWidth();
 		int sheight = container.getHeight();
 		if(swidth*3>sheight*4){
@@ -113,8 +113,8 @@ public class Circle implements HitObject {
 			float alpha = MathUtils.clamp((1 - scale)*2, 0, 1);//= (approachScale > 3.3f) ? 0f : 1f - (approachScale - 1f) / 2.7f;
 			color.a = 1f;//alpha;//alpha;
 			Utils.COLOR_WHITE_FADE.a = alpha;
-			Utils.drawCentered(GameImage.HITCIRCLE_OVERLAY.getImage(), x, y, Utils.COLOR_WHITE_FADE);
 			Utils.drawCentered(GameImage.HITCIRCLE.getImage(), x, y, color);
+			Utils.drawCentered(GameImage.HITCIRCLE_OVERLAY.getImage(), x, y, Utils.COLOR_WHITE_FADE);
 			color.a = 1f;
 			Utils.COLOR_WHITE_FADE.a = 1f;
 			score.drawSymbolNumber(hitObject.getComboNumber(), x, y,

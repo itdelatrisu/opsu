@@ -1,5 +1,6 @@
 package fluddokt.opsu.fake;
 
+import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.Opsu;
 
 import com.badlogic.gdx.Gdx;
@@ -9,44 +10,42 @@ import com.badlogic.gdx.graphics.GL20;
 
 public class GameOpsu  extends com.badlogic.gdx.Game {
 
+	StateBasedGame sbg;
+	
+	
 	@Override
 	public void pause() {
-		// TODO Auto-generated method stub
+		System.out.println("Game pause");
 		super.pause();
-		sbg.gc.hasFocus=false;
-		sbg.gc.music.pause();
+		sbg.gc.loseFocus();
+		try {
+			sbg.render();
+		} catch (SlickException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		sbg.gc.lostFocus();
 	}
 
 	@Override
 	public void resume() {
-		// TODO Auto-generated method stub
+		System.out.println("Game resume");
 		super.resume();
-		sbg.gc.hasFocus=true;
+		sbg.gc.focus();
 	}
-
-	//GameContainer gc = new GameContainer();
-	StateBasedGame sbg;
 	
-	/*private void addState(BasicGameState gs) throws SlickException {
-		sbg.addState(gs);
-		
-	}*/
-
-
-	@Override
-	public void setScreen(Screen screen) {
-		// TODO Auto-generated method stub
-		super.setScreen(screen);
-	}
-
-	@Override
-	public Screen getScreen() {
-		// TODO Auto-generated method stub
-		return super.getScreen();
-	}
 	@Override
 	public void dispose() {
+		System.out.println("Game Dispose");
 		super.dispose();
+		for (GameImage img : GameImage.values()) {
+			try {
+				img.dispose();
+			} catch (SlickException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 	}
 
 	@Override
@@ -68,6 +67,8 @@ public class GameOpsu  extends com.badlogic.gdx.Game {
 	@Override
 	public void resize(int width, int height) {
 		// TODO Auto-generated method stub
+		System.out.println("Game resize"+width+" "+height);
+		
 		super.resize(width, height);
 		Graphics.resize(width, height);
 		sbg.gc.width = width;
@@ -77,7 +78,9 @@ public class GameOpsu  extends com.badlogic.gdx.Game {
 
 	@Override
 	public void create() {
-		
+		Gdx.graphics.setVSync(false);
+		//Gdx.graphics.
+		System.out.println("Game create");
 		FileHandle aedsf;
 		aedsf = Gdx.files.local("./res");
 		System.out.println(" local "+aedsf+" "+aedsf.exists()+" "+aedsf.length()+" "+aedsf.lastModified());

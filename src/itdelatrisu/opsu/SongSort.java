@@ -142,7 +142,7 @@ public enum SongSort {
 	private static class BPMOrder implements Comparator<OsuGroupNode> {
 		@Override
 		public int compare(OsuGroupNode v, OsuGroupNode w) {
-			return Integer.compare(v.osuFiles.get(0).bpmMax, w.osuFiles.get(0).bpmMax);
+			return Integer2.compare(v.osuFiles.get(0).bpmMax, w.osuFiles.get(0).bpmMax);
 		}
 	}
 
@@ -162,7 +162,7 @@ public enum SongSort {
 				if (osu.endTime > wMax)
 					wMax = osu.endTime;
 			}
-			return Integer.compare(vMax, wMax);
+			return Integer2.compare(vMax, wMax);
 		}
 	}
 	/**
