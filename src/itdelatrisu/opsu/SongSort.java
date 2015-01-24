@@ -218,3 +218,4 @@ public enum SongSort {
 		Utils.drawTab(tab.getX(), tab.getY(), name, selected, isHover);
 	}
 }
+

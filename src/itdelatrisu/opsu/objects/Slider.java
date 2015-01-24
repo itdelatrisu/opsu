@@ -771,3 +771,4 @@ public class Slider implements HitObject {
 		}
 	}
 }
+

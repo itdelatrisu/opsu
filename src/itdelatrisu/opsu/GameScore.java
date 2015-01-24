@@ -557,7 +557,7 @@ public class GameScore {
 				hitResults[hitResult.result].drawCentered(hitResult.x, hitResult.y);
 
 				// hit lighting
-				if (Options.isHitLightingEnabled() && hitResult.result != HIT_MISS &&
+				/*if (Options.isHitLightingEnabled() && hitResult.result != HIT_MISS &&
 					hitResult.result != HIT_SLIDER30 && hitResult.result != HIT_SLIDER10) {
 					float scale = 1f + ((trackPosition - hitResult.time) / (float) fadeDelay)/2;
 					Image scaledLighting  = GameImage.LIGHTING.getImage().getScaledCopy(scale);
@@ -566,12 +566,14 @@ public class GameScore {
 							hitResult.y - (scaledLighting.getHeight() / 2f), hitResult.color);
 					scaledLighting1.draw(hitResult.x - (scaledLighting1.getWidth() / 2f),
 							hitResult.y - (scaledLighting1.getHeight() / 2f), hitResult.color);
-				}
-				
-				hitResults[hitResult.result].setAlpha(hitResult.alpha);
-				hitResult.alpha = 1 - ((float) (trackPosition - hitResult.time) / fadeDelay);
-				hitResults[hitResult.result].drawCentered(hitResult.x, hitResult.y);
-
+				}*/
+				float scale = 1f + ((trackPosition - hitResult.time) / (float) fadeDelay)/2;
+				Image scaledHitCircle = GameImage.HITCIRCLE.getImage().getScaledCopy(scale);
+					scaledHitCircle.setAlpha(1-(trackPosition - hitResult.time)*2/(float) fadeDelay);
+					scaledHitCircle.draw(hitResult.x - (scaledHitCircle.getWidth() / 2f),
+							hitResult.y - (scaledHitCircle.getHeight() / 2f),
+							hitResult.color);
+		
 			} else
 				iter.remove();
 		}
