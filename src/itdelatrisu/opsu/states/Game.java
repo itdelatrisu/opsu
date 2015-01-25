@@ -41,6 +41,8 @@ import itdelatrisu.opsu.objects.Spinner;
 
 
 
+
+
 //import java.io.File;
 import java.util.Stack;
 import java.util.concurrent.TimeUnit;
@@ -615,7 +617,7 @@ public class Game extends BasicGameState {
 
 	@Override
 	public void mousePressed(int button, int x, int y) {
-		System.out.println("gameMousePressed"+" "+x+" "+y+" "+button);
+		//System.out.println("gameMousePressed"+" "+x+" "+y+" "+button);
 		if (button == Input.MOUSE_MIDDLE_BUTTON)
 			return;
 
@@ -654,8 +656,13 @@ public class Game extends BasicGameState {
 			objectIndex++;  // circle hit
 
 		// sliders
-		else if (hitObject.isSlider())
-			hitObjects[objectIndex].mousePressed(x, y);
+		else if (hitObject.isSlider() && hitObjects[objectIndex].mousePressed(x, y)){
+			
+		}
+
+		//Nothing hit
+		else
+			score.addMouseMissPoint(MusicController.getPosition(), x,y,button);
 	}
 
 	@Override
@@ -865,6 +872,7 @@ public class Game extends BasicGameState {
 		// HPDrainRate (health change), overallDifficulty (scoring)
 		score.setDrainRate(HPDrainRate);
 		score.setDifficulty(overallDifficulty);
+		score.setHitResultOffset(hitResultOffset);
 	}
 
 	/**

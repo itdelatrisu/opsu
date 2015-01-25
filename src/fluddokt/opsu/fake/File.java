@@ -132,6 +132,8 @@ public class File {
 		return new BufferedWriter(fh.writer(false, charset));
 	}
 
-	
+	public boolean equals(File f){
+		return this.fh.path().equals(f.fh.path());
+	}
 
 }

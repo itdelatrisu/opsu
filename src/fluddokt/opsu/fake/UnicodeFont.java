@@ -22,11 +22,14 @@ public class UnicodeFont {
 		System.out.println(font+" "+font.name);
 		this.font = font;
 		
-		String initialList = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890:!@#$%^&";
+		//String initialList = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890:!@#$%^&";
 		
-		chars.append(initialList);
-		for(int i=0;i<initialList.length();i++){
-			set.add(initialList.charAt(i));
+		//chars.append(initialList);
+		//for(int i=0;i<initialList.length();i++){
+		//	set.add(initialList.charAt(i));
+		//}
+		for(int i=0;i<255;i++){
+			addGlyphs((char)i+"");
 		}
 		
 		regenBitmap();
@@ -51,11 +54,11 @@ public class UnicodeFont {
 	}
 
 	public int getHeight(String str) {
-		return (int) bitmap.getBounds(str).height;
+		return (int) bitmap.getBounds(str).height+padtop+padbottom;
 	}
 
 	public int getLineHeight() {
-		return (int)bitmap.getLineHeight();
+		return (int)bitmap.getLineHeight()+padtop+padbottom;
 	}
 
 	public int getWidth(String str) {

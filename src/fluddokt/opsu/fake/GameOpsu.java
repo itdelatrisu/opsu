@@ -13,6 +13,9 @@ public class GameOpsu  extends com.badlogic.gdx.Game {
 	StateBasedGame sbg;
 	
 	
+	public GameOpsu() {
+	}
+
 	@Override
 	public void pause() {
 		System.out.println("Game pause");
@@ -66,7 +69,6 @@ public class GameOpsu  extends com.badlogic.gdx.Game {
 
 	@Override
 	public void resize(int width, int height) {
-		// TODO Auto-generated method stub
 		System.out.println("Game resize"+width+" "+height);
 		
 		super.resize(width, height);
@@ -79,7 +81,7 @@ public class GameOpsu  extends com.badlogic.gdx.Game {
 	@Override
 	public void create() {
 		Gdx.graphics.setVSync(false);
-		//Gdx.graphics.
+		
 		System.out.println("Game create");
 		FileHandle aedsf;
 		aedsf = Gdx.files.local("./res");
@@ -93,7 +95,7 @@ public class GameOpsu  extends com.badlogic.gdx.Game {
 		Graphics.init();
 		
 		Opsu.main(new String[0]);
-		sbg = new Opsu("fkopsu!");
+		sbg = Opsu.opsu;//new Opsu("fkopsu!");
 		try {
 			sbg.init();
 		} catch (SlickException e) {

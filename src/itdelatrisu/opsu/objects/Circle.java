@@ -116,9 +116,8 @@ public class Circle implements HitObject {
 	 * @param time the hit object time (difference between track time)
 	 * @return the hit result (GameScore.HIT_* constants)
 	 */
-	private int hitResult(int time) {
-		int trackPosition = MusicController.getPosition();
-		int timeDiff = Math.abs(trackPosition - time);
+	private int hitResult(int timeDiff) {
+		timeDiff = Math.abs(timeDiff);
 
 		int[] hitResultOffset = game.getHitResultOffsets();
 		int result = -1;
@@ -140,8 +139,12 @@ public class Circle implements HitObject {
 		double distance = Math.hypot(hitObject.getX() - x, hitObject.getY() - y);
 		int circleRadius = GameImage.HITCIRCLE.getImage().getWidth() / 2;
 		if (distance < circleRadius) {
-			int result = hitResult(hitObject.getTime());
+			int trackPosition = MusicController.getPosition();
+			int timeDiff = trackPosition - hitObject.getTime();
+			int result = hitResult(timeDiff);
+			
 			if (result > -1) {
+				score.addErrorRate(hitObject.getTime(), x, y, timeDiff);
 				score.hitResult(
 						hitObject.getTime(), result,
 						hitObject.getX(), hitObject.getY(),

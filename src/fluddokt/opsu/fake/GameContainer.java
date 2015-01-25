@@ -19,10 +19,8 @@ public class GameContainer {
 	protected boolean running(){return false;}
 	protected void gameLoop(){}
 	
-	
-	
 	public int getWidth() {
-			return width;
+		return width;
 	}
 
 	public int getHeight() {
@@ -30,11 +28,16 @@ public class GameContainer {
 	}
 
 	public void exit() {
+		close_sub();
 		if(music != null)
 			music.stop();
 		Gdx.app.exit();
 	}
 
+	public void close_sub() {
+		// TODO Auto-generated method stub
+		
+	}
 	public Input getInput() {
 		return input;
 	}
@@ -66,7 +69,6 @@ public class GameContainer {
 	}
 
 	public int getFPS() {
-		// TODO Auto-generated method stub
 		return Gdx.graphics.getFramesPerSecond();
 	}
 
@@ -75,16 +77,15 @@ public class GameContainer {
 	}
 
 	public int getScreenWidth() {
-		return width;
+		return Gdx.graphics.getDesktopDisplayMode().width;
 	}
 
 	public int getScreenHeight() {
-		return height;
+		return Gdx.graphics.getDesktopDisplayMode().height;
 	}
 
 	public void setVSync(boolean b) {
-		// TODO Auto-generated method stub
-		
+		Gdx.graphics.setVSync(b);
 	}
 
 	public void start() throws SlickException {

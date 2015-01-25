@@ -169,7 +169,7 @@ public class MusicJL extends AbsMusic {
 							audioUsed = true;
 							
 							//System.out.println("Info:"+header+" "+" "+len+" "+ad.getLatency()+" "+volume);
-							position+=header.ms_per_frame();
+							position+= len/2*1000f/header.frequency();//header.ms_per_frame();
 							bitstream.closeFrame();
 						}
 					}
@@ -246,6 +246,7 @@ public class MusicJL extends AbsMusic {
 	@Override
 	public void resume() {
 		playThread.resumePlaying();
+		start();
 	}
 
 	@Override
@@ -269,6 +270,7 @@ public class MusicJL extends AbsMusic {
 	float lastUpdatePosition = 0;
 	long lastTime = TimeUtils.millis();
 	float deltaTime=0;
+	float avgDiff;
 	@Override
 	public float getPosition() {
 		float thisPosition = playThread.getPosition(); // 1/8
@@ -278,6 +280,8 @@ public class MusicJL extends AbsMusic {
 		
 		float syncPosition = (thisPosition);//;
 		long dxTime = thisTime - lastTime;
+		
+		
 		
 		//Whenever the time changes check the difference between that and our current time
 		//sync our time to song time
@@ -290,11 +294,19 @@ public class MusicJL extends AbsMusic {
 			dxTime = thisTime - lastTime;
 			
 		}
+		if((int)(dxPosition2*1000)!=0){
+			float diff = thisPosition*1000-(dxTime);
+			avgDiff = (diff+avgDiff*9)/10;
+			//System.out.println("getPosition: mpos:"+thisPosition+"\t "+(dxTime/1000f)+"\t "+(int)(thisPosition*1000-(dxTime))+"\t "+(int)avgDiff+"\t "+lastTime);
+			lastTime-=(int)(avgDiff/4);
+			dxTime = thisTime - lastTime;
+				
+		}
 		if((int)(dxPosition2*1000)!=0 && Math.abs(syncPosition - dxTime/1000f)>1/30f){
 			//System.out.println("Time Reset"+" "+syncPosition+" "+(dxTime/1000f) +" " +(int)(syncPosition*1000-(dxTime)) );
 			
-			lastTime = thisTime - ((long)(syncPosition*1000)+dxTime*19)/20;
-			
+			lastTime = thisTime - ((long)(syncPosition*1000)+dxTime*9)/10;
+			dxTime = thisTime - lastTime;
 			System.out.println("Time Reset"+" "+syncPosition+" "+(dxTime/1000f) 
 					+" " +(int)(syncPosition*1000-(dxTime)) 
 					+" " +(int)(syncPosition*1000-(thisTime - lastTime)) 
@@ -308,9 +320,7 @@ public class MusicJL extends AbsMusic {
 			lastPosition = thisPosition;
 			
 		}
-		dxTime = thisTime - lastTime;
 		lastUpdatePosition = thisPosition;
-		//System.out.println("getPosition: mpos:"+thisPosition+" "+(dxTime/1000f));
 		
 		return dxTime/1000f;
 		//return playThread.getPosition();

@@ -5,9 +5,9 @@ import java.util.HashMap;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
 
-public abstract class StateBasedGame implements InputProcessor{
+public abstract class StateBasedGame extends Game implements InputProcessor{
 
-	public GameContainer gc = new GameContainer();
+	public GameContainer gc;
 	BasicGameState currentState = new BasicGameState(){};
 	BasicGameState nextState = null;
 	HashMap<Integer,BasicGameState> bgs = new HashMap<Integer,BasicGameState>();
@@ -15,8 +15,8 @@ public abstract class StateBasedGame implements InputProcessor{
 	public StateBasedGame(String name){
 		this.title = name;
 		Display.setTitle(name);
-		gc.width = Gdx.graphics.getWidth();
-		gc.height = Gdx.graphics.getHeight();
+		//gc.width = Gdx.graphics.getWidth();
+		//gc.height = Gdx.graphics.getHeight();
 	}
 	public BasicGameState getState(int stateSongmenu) {
 		return bgs.get(stateSongmenu);
@@ -80,7 +80,7 @@ public abstract class StateBasedGame implements InputProcessor{
 	}
 	@Override
 	public boolean keyDown(int keycode) {
-		System.out.println("Key:"+keycode);
+		//System.out.println("Key:"+keycode);
 		currentState.keyPressed(keycode, com.badlogic.gdx.Input.Keys.toString(keycode).charAt(0));
 		
 		return false;
@@ -129,8 +129,10 @@ public abstract class StateBasedGame implements InputProcessor{
 		return false;
 	}
 	public abstract void initStatesList(GameContainer container) throws SlickException ;
-	public AppGameContainer getContainer() {
-		// TODO Auto-generated method stub
-		return null;
+	public GameContainer getContainer() {
+		return gc;
+	}
+	public void setContainer(AppGameContainer appGameContainer) {
+		gc = appGameContainer;
 	}
 }

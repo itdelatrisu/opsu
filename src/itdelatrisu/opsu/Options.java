@@ -612,6 +612,7 @@ public class Options {
 
 		// set borderless window if dimensions match screen size
 		boolean borderless = (screenWidth == resolution.getWidth() && screenHeight == resolution.getHeight());
+		System.out.println("Borderless:"+borderless);//TODO needs to be set before window is created
 		System.setProperty("org.lwjgl.opengl.Window.undecorated", Boolean.toString(borderless));
 	}
 

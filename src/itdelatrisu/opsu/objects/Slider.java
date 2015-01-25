@@ -608,6 +608,7 @@ public class Slider implements HitObject {
 			//else not a hit
 
 			if (result > -1) {
+				score.addErrorRate(hitObject.getTime(), x,y,timeDiff);
 				sliderClicked = true;
 				score.sliderTickResult(hitObject.getTime(), result,
 						hitObject.getX(), hitObject.getY(), hitObject.getHitSoundType());

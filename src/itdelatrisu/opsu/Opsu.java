@@ -94,6 +94,7 @@ public class Opsu extends StateBasedGame {
 	/**
 	 * Launches opsu!.
 	 */
+	public static Opsu opsu;
 	public static void main(String[] args) {
 		// log all errors to a file
 		Log.setVerbose(false);
@@ -114,6 +115,7 @@ public class Opsu extends StateBasedGame {
 		// parse configuration file
 		Options.parseOptions();
 
+		/*
 		// only allow a single instance
 		try {
 			SERVER_SOCKET = new ServerSocket(Options.getPort());
@@ -121,6 +123,7 @@ public class Opsu extends StateBasedGame {
 			ErrorHandler.error(String.format("Another program is already running on port %d.", Options.getPort()), e, false);
 			//System.exit(1);
 		}
+		*/
 
 		// set path for lwjgl natives - NOT NEEDED if using JarSplice
 		//File nativeDir = new File("./target/natives/");
@@ -145,10 +148,12 @@ public class Opsu extends StateBasedGame {
 
 		// start the game
 		//Opsu opsu = new Opsu("opsu!");
-		/*try {
+		//*
+		try {
+		
 			// loop until force exit
-			while (true) {
-				Opsu opsu = new Opsu("opsu!");
+		//	while (true) {
+				opsu = new Opsu("opsu!");
 				Container app = new Container(opsu);
 
 				// basic game settings
@@ -158,7 +163,7 @@ public class Opsu extends StateBasedGame {
 				app.setForceExit(true);
 
 				app.start();
-			}
+		//	}
 		} catch (SlickException e) {
 			// JARs will not run properly inside directories containing '!'
 			// http://bugs.java.com/view_bug.do?bug_id=4523159
@@ -166,7 +171,7 @@ public class Opsu extends StateBasedGame {
 				ErrorHandler.error("Cannot run JAR from path containing '!'.", null, false);
 			else
 				ErrorHandler.error("Error while creating game container.", e, true);
-		}*/
+		}//*/
 	}
 
 	@Override

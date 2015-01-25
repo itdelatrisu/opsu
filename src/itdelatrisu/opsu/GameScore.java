@@ -131,6 +131,21 @@ public class GameScore {
 	/** List of hit result objects associated with hit objects. */
 	private LinkedList<OsuHitObjectResult> hitResultList;
 
+	
+	class ErrorInfo{
+		int time, x, y, timeDiff;
+			public ErrorInfo(int time, int x, int y, int timeDiff) {
+			super();
+			this.time = time;
+			this.x = x;
+			this.y = y;
+			this.timeDiff = timeDiff;
+		}
+
+	}
+	private LinkedList<ErrorInfo> errorRateList = new LinkedList<GameScore.ErrorInfo>();
+	private LinkedList<ErrorInfo> mouseMissList = new LinkedList<GameScore.ErrorInfo>();
+
 	/**
 	 * Hit result helper class.
 	 */
@@ -194,6 +209,8 @@ public class GameScore {
 	/** Container dimensions. */
 	private int width, height;
 
+	private int[] hitResultOffset;
+
 	/**
 	 * Constructor.
 	 * @param width container width
@@ -216,6 +233,9 @@ public class GameScore {
 		healthDisplay = 100f;
 		hitResultCount = new int[HIT_MAX];
 		hitResultList = new LinkedList<OsuHitObjectResult>();
+		errorRateList.clear();
+		mouseMissList.clear();
+		
 		objectCount = 0;
 		fullObjectCount = 0;
 		combo = 0;
@@ -297,6 +317,8 @@ public class GameScore {
 	public void setDifficulty(float difficulty) { this.difficulty = difficulty; }
 	public float getDifficulty() { return difficulty; }
 
+	public void setHitResultOffset(int[] hitResultOffset) {this.hitResultOffset = hitResultOffset; }
+	
 	/**
 	 * Draws a number with defaultSymbols.
 	 * @param n the number to draw
@@ -455,6 +477,44 @@ public class GameScore {
 				);
 			}
 		}
+		
+
+		//*
+		//Draw Error bar
+		final int fadeDelay = 10000;
+		Iterator<ErrorInfo> iter2 = errorRateList.iterator();
+		g.setColor(Color.red.multAlpha(0.7f));
+		g.fillRect(width/2f-3-hitResultOffset[GameScore.HIT_50], height-marginX-40-3,hitResultOffset[GameScore.HIT_50]*2,6);
+		g.setColor(Color.green.multAlpha(0.7f));
+		g.fillRect(width/2f-3-hitResultOffset[GameScore.HIT_100], height-marginX-40-3,hitResultOffset[GameScore.HIT_100]*2,6);
+		g.setColor(Color.blue.multAlpha(0.7f));
+		g.fillRect(width/2f-3-hitResultOffset[GameScore.HIT_300], height-marginX-40-3,hitResultOffset[GameScore.HIT_300]*2,6);
+		g.setColor(Color.white);
+		g.drawRect(width/2f-3, height-marginX-40-10, 6, 20);
+		while (iter2.hasNext()) {
+			ErrorInfo info = iter2.next();
+			int time = info.time;
+			if (time + fadeDelay > trackPosition) {
+				float alpha = 1 - ((float) (trackPosition - time) / fadeDelay);
+				g.setColor(Color.white.multAlpha(alpha));
+				g.fillRect(width/2 - info.timeDiff-1, height-marginX-40-5, 2, 10);
+			}else{
+				iter2.remove();
+			}
+		}
+		
+		iter2 = mouseMissList.iterator();
+		while (iter2.hasNext()) {
+			ErrorInfo info = iter2.next();
+			int time = info.time;
+			if (time + fadeDelay > trackPosition) {
+				float alpha = 1 - ((float) (trackPosition - time) / fadeDelay);
+				g.setColor(Color.green.multAlpha(alpha));
+				g.fillRect(info.x-5, info.y-5, 10, 10);
+			}else{
+				iter2.remove();
+			}
+		}//*/
 	}
 
 	/**
@@ -570,16 +630,24 @@ public class GameScore {
 				}
 				/*/
 				float scale = 1f + ((trackPosition - hitResult.time) / (float) fadeDelay)/2;
+				float alpha = 1-(trackPosition - hitResult.time)*2f/(float) fadeDelay;
 				Image scaledHitCircle = GameImage.HITCIRCLE.getImage().getScaledCopy(scale);
-					scaledHitCircle.setAlpha(1-(trackPosition - hitResult.time)*2/(float) fadeDelay);
-					scaledHitCircle.draw(hitResult.x - (scaledHitCircle.getWidth() / 2f),
-							hitResult.y - (scaledHitCircle.getHeight() / 2f),
-							hitResult.color!=null?hitResult.color:Color.white
-							);
+				scaledHitCircle.setAlpha(alpha);
+				scaledHitCircle.draw(hitResult.x - (scaledHitCircle.getWidth() / 2f),
+						hitResult.y - (scaledHitCircle.getHeight() / 2f),
+						hitResult.color!=null?hitResult.color:Color.white
+						);
+				/*Image scaledHitCircleOverlay = GameImage.HITCIRCLE_OVERLAY.getImage().getScaledCopy(scale);
+				scaledHitCircleOverlay.setAlpha(alpha);
+				scaledHitCircleOverlay.draw(hitResult.x - (scaledHitCircleOverlay.getWidth() / 2f),
+						hitResult.y - (scaledHitCircleOverlay.getHeight() / 2f),
+						Color.white
+						);*/
 				//*/
 			} else
 				iter.remove();
 		}
+		
 	}
 
 	/**
@@ -861,4 +929,15 @@ public class GameScore {
 		else
 			hitResultList.add(new OsuHitObjectResult(time, result, x, y, color));
 	}
+
+	public void addMouseMissPoint(int time, int x, int y, int button) {
+		System.out.println("addMouseMissPoint "+x+" "+y+" "+button);
+		mouseMissList.add(new ErrorInfo(time, x, y, 0));
+	}
+
+	public void addErrorRate(int time, int x, int y, int timeDiff) {
+		errorRateList.add(new ErrorInfo(time, x, y, timeDiff));
+	}
+
+	
 }

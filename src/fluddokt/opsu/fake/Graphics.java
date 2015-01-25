@@ -82,7 +82,7 @@ public class Graphics {
 		
 	}
 	
-	public void fillRect(int x, float y, float w, float h) {
+	public void fillRect(float x, float y, float w, float h) {
 		checkMode(SHAPEFILLED);
 		shapeRender.rect(x, height-y-h, w, h);
 	}

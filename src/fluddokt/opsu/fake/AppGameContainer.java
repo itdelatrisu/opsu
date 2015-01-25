@@ -1,8 +1,16 @@
 package fluddokt.opsu.fake;
 
+import com.badlogic.gdx.Gdx;
+
 public class AppGameContainer extends GameContainer{
 
+	public static StateBasedGame sbg;
+	public static int containerWidth, containerHeight;
+	
+	
 	public AppGameContainer(Game game) {
+		sbg =(StateBasedGame)game;
+		sbg.setContainer(this);
 		// TODO Auto-generated constructor stub
 	}
 
@@ -12,6 +20,15 @@ public class AppGameContainer extends GameContainer{
 
 	public void setDisplayMode(int containerWidth, int containerHeight,
 			boolean b) throws SlickException{
+		System.out.println("setDisplayMode :"+containerWidth+" "+containerHeight);
+		AppGameContainer.containerWidth = containerWidth;
+		AppGameContainer.containerHeight = containerHeight;
+		
+		Gdx.graphics.setDisplayMode(containerWidth, containerHeight, b);
+		width = Gdx.graphics.getWidth();
+		height = Gdx.graphics.getHeight();
+	}
+	public void setIcons(String[] icons) {
 		// TODO Auto-generated method stub
 		
 	}

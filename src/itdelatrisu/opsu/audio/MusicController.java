@@ -73,7 +73,7 @@ public class MusicController {
 	 */
 	public static void play(final OsuFile osu, final boolean loop) {
 		boolean play = (lastOsu == null || !osu.audioFilename.equals(lastOsu.audioFilename));
-		System.out.println("play "+play+" "+osu.audioFilename+" Last:"+(lastOsu!=null?lastOsu.audioFilename:"NULL")+" "+player);
+		//System.out.println("play "+play+"\n\t "+osu.audioFilename+osu+" \nLast:\t"+(lastOsu!=null?lastOsu.audioFilename:"NULL")+lastOsu+"\n "+player);
 		lastOsu = osu;
 		
 		if (play) {
