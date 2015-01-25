@@ -169,13 +169,13 @@ public enum GameImage {
 	SCOREBAR_BG ("scorebar-bg", "png") {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy(w / 2, img.getHeight());
+			return img.getScaledCopy((w * 0.565f) / img.getWidth());
 		}
 	},
-	SCOREBAR_COLOUR ("scorebar-colour", "png") {
+	SCOREBAR_COLOUR ("scorebar-colour", "scorebar-colour-%d", "png") {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy(w / 2, img.getHeight());
+			return img.getScaledCopy((w * 0.521f) / img.getWidth());
 		}
 	},
 	SCOREBAR_KI ("scorebar-ki", "png"),

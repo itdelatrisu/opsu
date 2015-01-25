@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 
+import org.newdawn.slick.Animation;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
@@ -190,6 +191,9 @@ public class GameScore {
 	/** Score text symbol images. */
 	private HashMap<Character, Image> scoreSymbols;
 
+	/** Scorebar animation. */
+	private Animation scorebarColour;
+
 	/** Container dimensions. */
 	private int width, height;
 
@@ -234,6 +238,10 @@ public class GameScore {
 			comboBurstImages = GameImage.COMBO_BURST.getImages();
 		else
 			comboBurstImages = new Image[]{ GameImage.COMBO_BURST.getImage() };
+
+		// scorebar-colour animation
+		Image[] scorebar = GameImage.SCOREBAR_COLOUR.getImages();
+		scorebarColour = (scorebar != null) ? new Animation(scorebar, 60) : null;
 
 		// default symbol images
 		defaultSymbols = new Image[10];
@@ -415,15 +423,21 @@ public class GameScore {
 
 		if (!breakPeriod) {
 			// scorebar
+			// TODO: these might need to be scaled by cropping the empty (transparent) space around the images...
 			float healthRatio = healthDisplay / 100f;
 			if (firstObject) {  // gradually move ki before map begins
 				if (firstObjectTime >= 1500 && trackPosition < firstObjectTime - 500)
 					healthRatio = (float) trackPosition / (firstObjectTime - 500);
 			}
-			GameImage.SCOREBAR_BG.getImage().draw(0, 0);
-			Image colour = GameImage.SCOREBAR_COLOUR.getImage();
+			Image scorebar = GameImage.SCOREBAR_BG.getImage();
+			Image colour = (scorebarColour != null) ?
+					scorebarColour.getCurrentFrame() :
+					GameImage.SCOREBAR_COLOUR.getImage();
+			float colourX = scorebar.getWidth() * 0.017f, colourY = scorebar.getHeight() * 0.3f;
+			scorebar.draw(0, 0);
 			Image colourCropped = colour.getSubImage(0, 0, (int) (colour.getWidth() * healthRatio), colour.getHeight());
-			colourCropped.draw(0, GameImage.SCOREBAR_BG.getImage().getHeight() / 4f);
+			colourCropped.draw(colourX, colourY);
+
 			Image ki = null;
 			if (health >= 50f)
 				ki = GameImage.SCOREBAR_KI.getImage();
@@ -431,7 +445,7 @@ public class GameScore {
 				ki = GameImage.SCOREBAR_KI_DANGER.getImage();
 			else
 				ki = GameImage.SCOREBAR_KI_DANGER2.getImage();
-			ki.drawCentered(colourCropped.getWidth(), ki.getHeight() / 2f);
+			ki.drawCentered(colourX + colourCropped.getWidth(), ki.getHeight() / 2f);
 
 			// combo burst
 			if (comboBurstIndex != -1 && comboBurstAlpha > 0f) {
