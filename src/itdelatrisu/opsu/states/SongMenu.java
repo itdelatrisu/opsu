@@ -703,7 +703,11 @@ public class SongMenu extends BasicGameState {
 		// reset game data
 		if (resetGame) {
 			((Game) game.getState(Opsu.STATE_GAME)).resetGameData();
-			GameImage.destroySkinImages();  // destroy skin images, if any
+			// destroy skin images, if any
+			for (GameImage img : GameImage.values()) {
+				if (img.isSkinnable())
+					img.destroySkinImage();
+			}
 			resetGame = false;
 		}
 	}

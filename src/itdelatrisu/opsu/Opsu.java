@@ -176,6 +176,7 @@ public class Opsu extends StateBasedGame {
 				MusicController.resume();
 			} else
 				songMenu.resetTrackOnLoad();
+			Utils.resetCursor();
 			this.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 			return false;
 		}

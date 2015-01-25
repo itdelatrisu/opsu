@@ -29,6 +29,38 @@ import org.newdawn.slick.SlickException;
  * Game images.
  */
 public enum GameImage {
+	// Cursor
+	CURSOR ("cursor", "png") {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy(1 + ((h - 600) / 1000f));
+		}
+	},
+	CURSOR_MIDDLE ("cursormiddle", "png") {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy(1 + ((h - 600) / 1000f));
+		}
+	},
+	CURSOR_TRAIL ("cursortrail", "png") {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy(1 + ((h - 600) / 1000f));
+		}
+	},
+	CURSOR_OLD ("cursor2", "png", false, false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy(1 + ((h - 600) / 1000f));
+		}
+	},
+	CURSOR_TRAIL_OLD ("cursortrail2", "png", false, false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy(1 + ((h - 600) / 1000f));
+		}
+	},
+
 	// Game
 	SECTION_PASS ("section-pass", "png"),
 	SECTION_FAIL ("section-fail", "png"),
@@ -438,9 +470,6 @@ public enum GameImage {
 	/** Container dimensions. */
 	private static int containerWidth, containerHeight;
 
-	/** Whether a skin image has been loaded. */
-	private static boolean skinImageLoaded = false;
-
 	/**
 	 * Initializes the GameImage class with container dimensions.
 	 * @param width the container width
@@ -459,19 +488,6 @@ public enum GameImage {
 		for (GameImage img : GameImage.values()) {
 			img.defaultImage = img.skinImage = null;
 			img.defaultImages = img.skinImages = null;
-		}
-	}
-
-	/**
-	 * Destroys all skin images, if any have been loaded.
-	 */
-	public static void destroySkinImages() {
-		if (skinImageLoaded) {
-			for (GameImage img : GameImage.values()) {
-				if (img.isSkinnable())
-					img.destroySkinImage();
-			}
-			skinImageLoaded = false;
 		}
 	}
 
@@ -698,7 +714,6 @@ public enum GameImage {
 			if (!list.isEmpty()) {
 				this.skinImages = list.toArray(new Image[list.size()]);
 				process();
-				skinImageLoaded = true;
 				return true;
 			}
 		}
@@ -716,7 +731,6 @@ public enum GameImage {
 				// image successfully loaded
 				this.skinImage = img;
 				process();
-				skinImageLoaded = true;
 				return true;
 			} catch (SlickException | RuntimeException e) {
 				errorFile = file.getAbsolutePath();
@@ -744,7 +758,7 @@ public enum GameImage {
 	/**
 	 * Destroys the associated skin image(s), if any.
 	 */
-	private void destroySkinImage() {
+	public void destroySkinImage() {
 		if (skinImage == null && skinImages == null)
 			return;
 		try {

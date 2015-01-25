@@ -87,11 +87,11 @@ public class Utils {
 	/** Back button (shared by other states). */
 	private static MenuButton backButton;
 
-	/** Cursor image and trail. */
-	private static Image cursor, cursorTrail, cursorMiddle;
-
 	/** Last cursor coordinates. */
 	private static int lastX = -1, lastY = -1;
+
+	/** Cursor rotation angle. */
+	private static float cursorAngle = 0f;
 
 	/** Stores all previous cursor locations to display a trail. */
 	private static LinkedList<Integer>
@@ -148,7 +148,6 @@ public class Utils {
 		} catch (LWJGLException e) {
 			ErrorHandler.error("Failed to set the cursor.", e, true);
 		}
-		loadCursor();
 
 		// create fonts
 		float fontBase;
@@ -293,83 +292,45 @@ public class Utils {
 	}
 
 	/**
-	 * Loads the cursor images.
-	 * @throws SlickException
-	 */
-	public static void loadCursor() throws SlickException {
-		// destroy old cursors, if they exist
-		if (cursor != null && !cursor.isDestroyed())
-			cursor.destroy();
-		if (cursorTrail != null && !cursorTrail.isDestroyed())
-			cursorTrail.destroy();
-		if (cursorMiddle != null && !cursorMiddle.isDestroyed())
-			cursorMiddle.destroy();
-		cursor = cursorTrail = cursorMiddle = null;
-
-		// TODO: cleanup
-		boolean skinCursor = new File(Options.getSkinDir(), "cursor.png").isFile();
-		if (Options.isNewCursorEnabled()) {
-			// load new cursor type
-			// if skin cursor exists but middle part does not, don't load default middle
-			if (skinCursor && !new File(Options.getSkinDir(), "cursormiddle.png").isFile())
-				;
-			else {
-				cursorMiddle = new Image("cursormiddle.png");
-				cursor = new Image("cursor.png");
-				cursorTrail = new Image("cursortrail.png");
-			}
-		}
-		if (cursorMiddle == null) {
-			// load old cursor type
-			// default is stored as *2.png, but load skin cursor if it exists
-			if (skinCursor)
-				cursor = new Image("cursor.png");
-			else
-				cursor = new Image("cursor2.png");
-			if (new File(Options.getSkinDir(), "cursortrail.png").isFile())
-				cursorTrail = new Image("cursortrail.png");
-			else
-				cursorTrail = new Image("cursortrail2.png");
-		}
-
-		// scale the cursor
-		float scale = 1 + ((container.getHeight() - 600) / 1000f);
-		cursor = cursor.getScaledCopy(scale);
-		cursorTrail = cursorTrail.getScaledCopy(scale);
-		if (cursorMiddle != null)
-			cursorMiddle = cursorMiddle.getScaledCopy(scale);
-	}
-
-	/**
 	 * Draws the cursor.
 	 */
 	public static void drawCursor() {
-		// TODO: use an image buffer
+		// determine correct cursor image
+		// TODO: most beatmaps don't skin CURSOR_MIDDLE, so how to determine style?
+		Image cursor = null, cursorMiddle = null, cursorTrail = null;
+		boolean skinned = GameImage.CURSOR.hasSkinImage();
+		boolean newStyle = (skinned) ? true : Options.isNewCursorEnabled();
+		if (skinned || newStyle) {
+			cursor = GameImage.CURSOR.getImage();
+			cursorTrail = GameImage.CURSOR_TRAIL.getImage();
+		} else {
+			cursor = GameImage.CURSOR_OLD.getImage();
+			cursorTrail = GameImage.CURSOR_TRAIL_OLD.getImage();
+		}
+		if (newStyle)
+			cursorMiddle = GameImage.CURSOR_MIDDLE.getImage();
 
-		int x = input.getMouseX();
-		int y = input.getMouseY();
-
+		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
 		int removeCount = 0;
 		int FPSmod = (Options.getTargetFPS() / 60);
 
-		// if middle exists, add all points between cursor movements
-		if (cursorMiddle != null) {
+		// TODO: use an image buffer
+		if (newStyle) {
+			// new style: add all points between cursor movements
 			if (lastX < 0) {
-				lastX = x;
-				lastY = y;
+				lastX = mouseX;
+				lastY = mouseY;
 				return;
 			}
-			addCursorPoints(lastX, lastY, x, y);
-			lastX = x;
-			lastY = y;
+			addCursorPoints(lastX, lastY, mouseX, mouseY);
+			lastX = mouseX;
+			lastY = mouseY;
 
 			removeCount = (cursorX.size() / (6 * FPSmod)) + 1;
-		}
-
-		// else, sample one point at a time
-		else {
-			cursorX.add(x);
-			cursorY.add(y);
+		} else {
+			// old style: sample one point at a time
+			cursorX.add(mouseX);
+			cursorY.add(mouseY);
 
 			int max = 10 * FPSmod;
 			if (cursorX.size() > max)
@@ -395,24 +356,24 @@ public class Utils {
 //			if (cx != x || cy != y)
 				cursorTrail.drawCentered(cx, cy);
 		}
-		cursorTrail.drawCentered(x, y);
+		cursorTrail.drawCentered(mouseX, mouseY);
 
 		// increase the cursor size if pressed
+		final float scale = 1.25f;
 		int state = game.getCurrentStateID();
-		float scale = 1f;
 		if (((state == Opsu.STATE_GAME || state == Opsu.STATE_GAMEPAUSEMENU) && isGameKeyPressed()) ||
-			(input.isMouseButtonDown(Input.MOUSE_LEFT_BUTTON) || input.isMouseButtonDown(Input.MOUSE_RIGHT_BUTTON)))
-			scale = 1.25f;
+		    (input.isMouseButtonDown(Input.MOUSE_LEFT_BUTTON) || input.isMouseButtonDown(Input.MOUSE_RIGHT_BUTTON))) {
+			cursor = cursor.getScaledCopy(scale);
+			if (newStyle)
+				cursorMiddle = cursorMiddle.getScaledCopy(scale);
+		}
 
 		// draw the other components
-		Image cursorScaled = cursor.getScaledCopy(scale);
-		cursorScaled.setRotation(cursor.getRotation());
-		cursorScaled.drawCentered(x, y);
-		if (cursorMiddle != null) {
-			Image cursorMiddleScaled = cursorMiddle.getScaledCopy(scale);
-			cursorMiddleScaled.setRotation(cursorMiddle.getRotation());
-			cursorMiddleScaled.drawCentered(x, y);
-		}
+		if (newStyle)
+			cursor.setRotation(cursorAngle);
+		cursor.drawCentered(mouseX, mouseY);
+		if (newStyle)
+			cursorMiddle.drawCentered(mouseX, mouseY);
 	}
 
 	/**
@@ -472,10 +433,22 @@ public class Utils {
 	 * @param delta the delta interval since the last call
 	 */
 	public static void updateCursor(int delta) {
-		if (cursorMiddle == null)
-			return;
+		cursorAngle += delta / 40f;
+		cursorAngle %= 360;
+	}
 
-		cursor.rotate(delta / 40f);
+	/**
+	 * Resets all cursor data and skins.
+	 */
+	public static void resetCursor() {
+		GameImage.CURSOR.destroySkinImage();
+		GameImage.CURSOR_MIDDLE.destroySkinImage();
+		GameImage.CURSOR_TRAIL.destroySkinImage();
+		cursorAngle = 0f;
+		lastX = lastY = -1;
+		cursorX.clear();
+		cursorY.clear();
+		GameImage.CURSOR.getImage().setRotation(0f);
 	}
 
 	/**

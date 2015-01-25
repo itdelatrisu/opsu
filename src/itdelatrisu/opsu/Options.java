@@ -213,11 +213,7 @@ public class Options {
 			@Override
 			public void click(GameContainer container) {
 				newCursor = !newCursor;
-				try {
-					Utils.loadCursor();
-				} catch (SlickException e) {
-					ErrorHandler.error("Failed to load cursor.", e, true);
-				}
+				Utils.resetCursor();
 			}
 		},
 		DYNAMIC_BACKGROUND ("Enable Dynamic Backgrounds", "The song background will be used as the main menu background.") {

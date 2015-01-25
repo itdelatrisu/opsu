@@ -150,6 +150,7 @@ public class GameRanking extends BasicGameState {
 			SongMenu songMenu = (SongMenu) game.getState(Opsu.STATE_SONGMENU);
 			songMenu.resetGameDataOnLoad();
 			songMenu.resetTrackOnLoad();
+			Utils.resetCursor();
 			game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 			break;
 		case Input.KEY_F12:
@@ -174,12 +175,14 @@ public class GameRanking extends BasicGameState {
 			SoundController.playSound(SoundEffect.MENUBACK);
 			((MainMenu) game.getState(Opsu.STATE_MAINMENU)).reset();
 			((SongMenu) game.getState(Opsu.STATE_SONGMENU)).resetGameDataOnLoad();
+			Utils.resetCursor();
 			game.enterState(Opsu.STATE_MAINMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 		} else if (Utils.getBackButton().contains(x, y)) {
 			SoundController.playSound(SoundEffect.MENUBACK);
 			SongMenu songMenu = (SongMenu) game.getState(Opsu.STATE_SONGMENU);
 			songMenu.resetGameDataOnLoad();
 			songMenu.resetTrackOnLoad();
+			Utils.resetCursor();
 			game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 		}
 	}
