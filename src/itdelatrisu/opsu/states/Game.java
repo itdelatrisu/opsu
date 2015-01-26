@@ -684,7 +684,6 @@ public class Game extends BasicGameState {
 
 			// reset game data
 			resetGameData();
-			MusicController.setPosition(0);
 			MusicController.pause();
 
 			// initialize object maps

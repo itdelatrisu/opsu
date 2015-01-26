@@ -21,34 +21,17 @@ package itdelatrisu.opsu.audio;
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.OsuFile;
-import itdelatrisu.opsu.OsuParser;
-
-import java.io.File;
-import java.lang.reflect.Field;
-import java.nio.IntBuffer;
-
-import javazoom.jl.converter.Converter;
-
-import org.lwjgl.BufferUtils;
-import org.lwjgl.openal.AL;
-import org.lwjgl.openal.AL10;
-import org.newdawn.slick.Music;
-import org.newdawn.slick.SlickException;
-import org.newdawn.slick.openal.Audio;
-import org.newdawn.slick.openal.SoundStore;
+import itdelatrisu.opsu.Utils;
 
 /**
  * Controller for all music.
  */
 public class MusicController {
 	/** The current music track. */
-	private static Music player;
+	private static MusicPlayer player;
 
 	/** The last OsuFile passed to play(). */
 	private static OsuFile lastOsu;
-
-	/** Temporary WAV file for file conversions (to be deleted). */
-	private static File wavFile;
 
 	/** Thread for loading tracks. */
 	private static Thread trackLoader;
@@ -73,44 +56,31 @@ public class MusicController {
 			reset();
 			System.gc();
 
-			switch (OsuParser.getExtension(osu.audioFilename.getName())) {
-			case "ogg":
-				trackLoader = new Thread() {
-					@Override
-					public void run() {
-						loadTrack(osu.audioFilename, osu.previewTime, loop);
+			trackLoader = new Thread() {
+				@Override
+				public void run() {
+					try {
+						switch (Utils.getExtension(osu.audioFilename.getName())) {
+						case "ogg":
+							player = new SlickPlayer(osu.audioFilename);
+							break;
+						case "mp3":
+							player = new BeadsPlayer(osu.audioFilename);
+							break;
+						default:
+							throw new RuntimeException("Unknown music type!");
+						}
+						playAt((osu.previewTime > 0) ? osu.previewTime : 0, loop);
+					} catch (Exception e) {
+						ErrorHandler.error(String.format("Failed to load track '%s'.", osu.getFile().getPath()), e, true);
+					} finally {
+						trackLoader = null;
 					}
-				};
-				trackLoader.start();
-				break;
-			case "mp3":
-				trackLoader = new Thread() {
-					@Override
-					public void run() {
-						convertMp3(osu.audioFilename);
-//						if (!Thread.currentThread().isInterrupted())
-							loadTrack(wavFile, osu.previewTime, loop);
-					}
-				};
-				trackLoader.start();
-				break;
-			default:
-				break;
-			}
+				}
+			};
+			trackLoader.start();
 		}
 		lastOsu = osu;
-	}
-
-	/**
-	 * Loads a track and plays it.
-	 */
-	private static void loadTrack(File file, int previewTime, boolean loop) {
-		try {   // create a new player
-			player = new Music(file.getPath());
-			playAt((previewTime > 0) ? previewTime : 0, loop);
-		} catch (Exception e) {
-			ErrorHandler.error(String.format("Could not play track '%s'.", file.getName()), e, false);
-		}
 	}
 
 	/**
@@ -119,30 +89,13 @@ public class MusicController {
 	public static void playAt(final int position, final boolean loop) {
 		if (trackExists()) {
 			setVolume(Options.getMusicVolume() * Options.getMasterVolume());
-			player.setPosition(position / 1000f);
+			setPosition(position);
 			pauseTime = 0f;
 			if (loop)
 				player.loop();
 			else
 				player.play();
 		}
-	}
-
-	/**
-	 * Converts an MP3 file to a temporary WAV file.
-	 */
-	private static File convertMp3(File file) {
-		try {
-			wavFile = File.createTempFile(".osu", ".wav", Options.TMP_DIR);
-			wavFile.deleteOnExit();
-
-			Converter converter = new Converter();
-			converter.convert(file.getPath(), wavFile.getPath());
-			return wavFile;
-		} catch (Exception e) {
-			ErrorHandler.error(String.format("Failed to play file '%s'.", file.getAbsolutePath()), e, false);
-		}
-		return wavFile;
 	}
 
 	/**
@@ -186,7 +139,7 @@ public class MusicController {
 	 * Returns true if the current track is playing.
 	 */
 	public static boolean isPlaying() {
-		return (trackExists() && player.playing());
+		return (trackExists() && player.isPlaying());
 	}
 
 	/**
@@ -213,7 +166,6 @@ public class MusicController {
 		if (trackExists()) {
 			pauseTime = 0f;
 			player.resume();
-			player.setVolume(1.0f);
 		}
 	}
 
@@ -232,7 +184,7 @@ public class MusicController {
 	 */
 	public static void fadeOut(int duration) {
 		if (isPlaying())
-			player.fade(duration, 0f, true);
+			player.fadeOut(duration);
 	}
 
 	/**
@@ -241,9 +193,9 @@ public class MusicController {
 	 */
 	public static int getPosition() {
 		if (isPlaying())
-			return Math.max((int) (player.getPosition() * 1000 + Options.getMusicOffset()), 0);
+			return Math.max((int) (player.getPosition() + Options.getMusicOffset()), 0);
 		else if (isPaused())
-			return Math.max((int) (pauseTime * 1000 + Options.getMusicOffset()), 0);
+			return Math.max((int) (pauseTime + Options.getMusicOffset()), 0);
 		else
 			return 0;
 	}
@@ -251,8 +203,9 @@ public class MusicController {
 	/**
 	 * Seeks to a position in the current track.
 	 */
-	public static boolean setPosition(int position) {
-		return (trackExists() && player.setPosition(position / 1000f));
+	public static void setPosition(int position) {
+		if (trackExists())
+			player.setPosition(position);
 	}
 
 	/**
@@ -260,7 +213,8 @@ public class MusicController {
 	 * @param volume [0, 1]
 	 */
 	public static void setVolume(float volume) {
-		SoundStore.get().setMusicVolume(volume);
+		if (trackExists())
+			player.setVolume(volume);
 	}
 
 	/**
@@ -313,10 +267,9 @@ public class MusicController {
 			trackLoader.stop();
 		trackLoader = null;
 
-		// delete temporary WAV file
-		if (wavFile != null) {
-			wavFile.delete();
-			wavFile = null;
+		if (trackExists()) {
+			player.close();
+			player = null;
 		}
 
 		// reset state
@@ -324,72 +277,5 @@ public class MusicController {
 		themePlaying = false;
 		pauseTime = 0f;
 		trackDimmed = false;
-
-		// releases all sources from previous tracks
-		destroyOpenAL();
-	}
-
-	/**
-	 * Stops and releases all sources, clears each of the specified Audio
-	 * buffers, destroys the OpenAL context, and resets SoundStore for future use.
-	 *
-	 * Calling SoundStore.get().init() will re-initialize the OpenAL context
-	 * after a call to destroyOpenAL (Note: AudioLoader.getXXX calls init for you).
-	 *
-	 * @author davedes (http://slick.ninjacave.com/forum/viewtopic.php?t=3920)
-	 */
-	private static void destroyOpenAL() {
-		if (!trackExists())
-			return;
-		stop();
-
-		try {
-			// get Music object's (private) Audio object reference
-			Field sound = player.getClass().getDeclaredField("sound");
-			sound.setAccessible(true);
-			Audio audio = (Audio) (sound.get(player));
-
-			// first clear the sources allocated by SoundStore
-			int max = SoundStore.get().getSourceCount();
-			IntBuffer buf = BufferUtils.createIntBuffer(max);
-			for (int i = 0; i < max; i++) {
-				int source = SoundStore.get().getSource(i);
-				buf.put(source);
-
-				// stop and detach any buffers at this source
-				AL10.alSourceStop(source);
-				AL10.alSourcei(source, AL10.AL_BUFFER, 0);
-			}
-			buf.flip();
-			AL10.alDeleteSources(buf);
-			int exc = AL10.alGetError();
-			if (exc != AL10.AL_NO_ERROR) {
-				throw new SlickException(
-						"Could not clear SoundStore sources, err: " + exc);
-			}
-
-			// delete any buffer data stored in memory, too...
-			if (audio != null && audio.getBufferID() != 0) {
-				buf = BufferUtils.createIntBuffer(1).put(audio.getBufferID());
-				buf.flip();
-				AL10.alDeleteBuffers(buf);
-				exc = AL10.alGetError();
-				if (exc != AL10.AL_NO_ERROR) {
-					throw new SlickException("Could not clear buffer "
-							+ audio.getBufferID()
-							+ ", err: "+exc);
-				}
-			}
-
-			// clear OpenAL
-			AL.destroy();
-
-			// reset SoundStore so that next time we create a Sound/Music, it will reinit
-			SoundStore.get().clear();
-
-			player = null;
-		} catch (Exception e) {
-			ErrorHandler.error("Failed to destroy OpenAL.", e, true);
-		}
 	}
 }

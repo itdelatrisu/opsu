@@ -292,6 +292,15 @@ public class Utils {
 	}
 
 	/**
+	 * Returns the file extension of a file.
+	 * @return the file extension, or an empty string if none found
+	 */
+	public static String getExtension(String file) {
+		int i = file.lastIndexOf('.');
+		return (i != -1) ? file.substring(i + 1).toLowerCase() : "";
+	}
+
+	/**
 	 * Draws the cursor.
 	 */
 	public static void drawCursor() {

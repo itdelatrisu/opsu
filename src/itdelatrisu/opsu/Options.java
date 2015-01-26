@@ -18,6 +18,8 @@
 
 package itdelatrisu.opsu;
 
+import itdelatrisu.opsu.audio.MusicController;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -137,7 +139,7 @@ public class Options {
 			@Override
 			public void drag(GameContainer container, int d) {
 				masterVolume = Utils.getBoundedValue(masterVolume, d, 0, 100);
-				container.setMusicVolume(getMasterVolume() * getMusicVolume());
+				MusicController.setVolume(getMasterVolume() * getMusicVolume());
 			}
 		},
 		MUSIC_VOLUME ("Music Volume", "Volume of music.") {
@@ -147,7 +149,7 @@ public class Options {
 			@Override
 			public void drag(GameContainer container, int d) {
 				musicVolume = Utils.getBoundedValue(musicVolume, d, 0, 100);
-				container.setMusicVolume(getMasterVolume() * getMusicVolume());
+				MusicController.setVolume(getMasterVolume() * getMusicVolume());
 			}
 		},
 		EFFECT_VOLUME ("Effect Volume", "Volume of menu and game sounds.") {
@@ -547,7 +549,7 @@ public class Options {
 	public static void setMasterVolume(GameContainer container, float volume) {
 		if (volume >= 0f && volume <= 1f) {
 			masterVolume = (int) (volume * 100f);
-			container.setMusicVolume(getMasterVolume() * getMusicVolume());
+			MusicController.setVolume(getMasterVolume() * getMusicVolume());
 		}
 	}
 

@@ -332,7 +332,7 @@ public class OsuParser {
 						switch (tokens[0]) {
 						case "0":  // background
 							tokens[2] = tokens[2].replaceAll("^\"|\"$", "");
-							String ext = OsuParser.getExtension(tokens[2]);
+							String ext = Utils.getExtension(tokens[2]);
 							if (ext.equals("jpg") || ext.equals("png"))
 								osu.bg = getDBString(file.getParent() + File.separator + tokens[2]);
 							break;
@@ -575,14 +575,6 @@ public class OsuParser {
 		tokens[0] = line.substring(0, index).trim();
 		tokens[1] = line.substring(index + 1).trim();
 		return tokens;
-	}
-
-	/**
-	 * Returns the file extension of a file.
-	 */
-	public static String getExtension(String file) {
-		int i = file.lastIndexOf('.');
-		return (i != -1) ? file.substring(i + 1).toLowerCase() : "";
 	}
 
 	/**
