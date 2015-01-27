@@ -144,12 +144,14 @@ public class Splash extends BasicGameState {
 
 	@Override
 	public void keyPressed(int key, char c) {
-		// close program
-		if (++escapeCount >= 3)
-			container.exit();
-
-		// stop parsing OsuFiles by sending interrupt to OsuParser
-		else if (key == Input.KEY_ESCAPE && thread != null)
-			thread.interrupt();
+		if (key == Input.KEY_ESCAPE) {
+			// close program
+			if (++escapeCount >= 3)
+				container.exit();
+	
+			// stop parsing OsuFiles by sending interrupt to OsuParser
+			else if (thread != null)
+				thread.interrupt();
+		}
 	}
 }
