@@ -74,8 +74,10 @@ public class Container extends AppGameContainer {
 			}
 		}
 
-		if (forceExit)
+		if (forceExit) {
+			Opsu.closeSocket();
 			System.exit(0);
+		}
 	}
 
 	/**
@@ -84,9 +86,6 @@ public class Container extends AppGameContainer {
 	private void close_sub() {
 		// save user options
 		Options.saveOptions();
-
-		// close server socket
-		Opsu.closeSocket();
 
 		// destroy images
 		InternalTextureLoader.get().clear();

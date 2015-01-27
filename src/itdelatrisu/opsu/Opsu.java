@@ -160,6 +160,9 @@ public class Opsu extends StateBasedGame {
 			else
 				ErrorHandler.error("Error while creating game container.", e, true);
 		}
+
+		// close server socket
+		closeSocket();
 	}
 
 	@Override
