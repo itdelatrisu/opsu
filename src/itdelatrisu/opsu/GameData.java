@@ -34,9 +34,9 @@ import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
 
 /**
- * Holds score data and renders all score-related elements.
+ * Holds game data and renders all related elements.
  */
-public class GameScore {
+public class GameData {
 	/** Delta multiplier for steady HP drain. */
 	public static final float HP_DRAIN_MULTIPLIER = 1 / 200f;
 
@@ -202,7 +202,7 @@ public class GameScore {
 	 * @param width container width
 	 * @param height container height
 	 */
-	public GameScore(int width, int height) {
+	public GameData(int width, int height) {
 		this.width = width;
 		this.height = height;
 

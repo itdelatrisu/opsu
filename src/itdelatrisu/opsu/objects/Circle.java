@@ -20,7 +20,7 @@ package itdelatrisu.opsu.objects;
 
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.GameMod;
-import itdelatrisu.opsu.GameScore;
+import itdelatrisu.opsu.GameData;
 import itdelatrisu.opsu.OsuHitObject;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.MusicController;
@@ -40,8 +40,8 @@ public class Circle implements HitObject {
 	/** The associated Game object. */
 	private Game game;
 
-	/** The associated GameScore object. */
-	private GameScore score;
+	/** The associated GameData object. */
+	private GameData data;
 
 	/** The color of this circle. */
 	private Color color;
@@ -66,14 +66,14 @@ public class Circle implements HitObject {
 	 * Constructor.
 	 * @param hitObject the associated OsuHitObject
 	 * @param game the associated Game object
-	 * @param score the associated GameScore object
+	 * @param data the associated GameData object
 	 * @param color the color of this circle
 	 * @param comboEnd true if this is the last hit object in the combo
 	 */
-	public Circle(OsuHitObject hitObject, Game game, GameScore score, Color color, boolean comboEnd) {
+	public Circle(OsuHitObject hitObject, Game game, GameData data, Color color, boolean comboEnd) {
 		this.hitObject = hitObject;
 		this.game = game;
-		this.score = score;
+		this.data = data;
 		this.color = color;
 		this.comboEnd = comboEnd;
 	}
@@ -94,15 +94,15 @@ public class Circle implements HitObject {
 			Utils.drawCentered(GameImage.HITCIRCLE.getImage(), x, y, color);
 			color.a = oldAlpha;
 			Utils.COLOR_WHITE_FADE.a = 1f;
-			score.drawSymbolNumber(hitObject.getComboNumber(), x, y,
-					GameImage.HITCIRCLE.getImage().getWidth() * 0.40f / score.getDefaultSymbolImage(0).getHeight());
+			data.drawSymbolNumber(hitObject.getComboNumber(), x, y,
+					GameImage.HITCIRCLE.getImage().getWidth() * 0.40f / data.getDefaultSymbolImage(0).getHeight());
 		}
 	}
 
 	/**
 	 * Calculates the circle hit result.
 	 * @param time the hit object time (difference between track time)
-	 * @return the hit result (GameScore.HIT_* constants)
+	 * @return the hit result (GameData.HIT_* constants)
 	 */
 	private int hitResult(int time) {
 		int trackPosition = MusicController.getPosition();
@@ -110,14 +110,14 @@ public class Circle implements HitObject {
 
 		int[] hitResultOffset = game.getHitResultOffsets();
 		int result = -1;
-		if (timeDiff < hitResultOffset[GameScore.HIT_300])
-			result = GameScore.HIT_300;
-		else if (timeDiff < hitResultOffset[GameScore.HIT_100])
-			result = GameScore.HIT_100;
-		else if (timeDiff < hitResultOffset[GameScore.HIT_50])
-			result = GameScore.HIT_50;
-		else if (timeDiff < hitResultOffset[GameScore.HIT_MISS])
-			result = GameScore.HIT_MISS;
+		if (timeDiff < hitResultOffset[GameData.HIT_300])
+			result = GameData.HIT_300;
+		else if (timeDiff < hitResultOffset[GameData.HIT_100])
+			result = GameData.HIT_100;
+		else if (timeDiff < hitResultOffset[GameData.HIT_50])
+			result = GameData.HIT_50;
+		else if (timeDiff < hitResultOffset[GameData.HIT_MISS])
+			result = GameData.HIT_MISS;
 		//else not a hit
 
 		return result;
@@ -130,7 +130,7 @@ public class Circle implements HitObject {
 		if (distance < circleRadius) {
 			int result = hitResult(hitObject.getTime());
 			if (result > -1) {
-				score.hitResult(
+				data.hitResult(
 						hitObject.getTime(), result,
 						hitObject.getX(), hitObject.getY(),
 						color, comboEnd, hitObject.getHitSoundType()
@@ -151,19 +151,19 @@ public class Circle implements HitObject {
 		int[] hitResultOffset = game.getHitResultOffsets();
 		boolean isAutoMod = GameMod.AUTO.isActive();
 
-		if (overlap || trackPosition > time + hitResultOffset[GameScore.HIT_50]) {
+		if (overlap || trackPosition > time + hitResultOffset[GameData.HIT_50]) {
 			if (isAutoMod)  // "auto" mod: catch any missed notes due to lag
-				score.hitResult(time, GameScore.HIT_300, x, y, color, comboEnd, hitSound);
+				data.hitResult(time, GameData.HIT_300, x, y, color, comboEnd, hitSound);
 
 			else  // no more points can be scored, so send a miss
-				score.hitResult(time, GameScore.HIT_MISS, x, y, null, comboEnd, hitSound);
+				data.hitResult(time, GameData.HIT_MISS, x, y, null, comboEnd, hitSound);
 			return true;
 		}
 
 		// "auto" mod: send a perfect hit result
 		else if (isAutoMod) {
-			if (Math.abs(trackPosition - time) < hitResultOffset[GameScore.HIT_300]) {
-				score.hitResult(time, GameScore.HIT_300, x, y, color, comboEnd, hitSound);
+			if (Math.abs(trackPosition - time) < hitResultOffset[GameData.HIT_300]) {
+				data.hitResult(time, GameData.HIT_300, x, y, color, comboEnd, hitSound);
 				return true;
 			}
 		}

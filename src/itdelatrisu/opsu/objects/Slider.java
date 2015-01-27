@@ -20,7 +20,7 @@ package itdelatrisu.opsu.objects;
 
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.GameMod;
-import itdelatrisu.opsu.GameScore;
+import itdelatrisu.opsu.GameData;
 import itdelatrisu.opsu.OsuFile;
 import itdelatrisu.opsu.OsuHitObject;
 import itdelatrisu.opsu.Utils;
@@ -52,8 +52,8 @@ public class Slider implements HitObject {
 	/** The associated Game object. */
 	private Game game;
 
-	/** The associated GameScore object. */
-	private GameScore score;
+	/** The associated GameData object. */
+	private GameData data;
 
 	/** The color of this slider. */
 	private Color color;
@@ -258,14 +258,14 @@ public class Slider implements HitObject {
 	 * Constructor.
 	 * @param hitObject the associated OsuHitObject
 	 * @param game the associated Game object
-	 * @param score the associated GameScore object
+	 * @param data the associated GameData object
 	 * @param color the color of this circle
 	 * @param comboEnd true if this is the last hit object in the combo
 	 */
-	public Slider(OsuHitObject hitObject, Game game, GameScore score, Color color, boolean comboEnd) {
+	public Slider(OsuHitObject hitObject, Game game, GameData data, Color color, boolean comboEnd) {
 		this.hitObject = hitObject;
 		this.game = game;
-		this.score = score;
+		this.data = data;
 		this.color = color;
 		this.comboEnd = comboEnd;
 
@@ -311,8 +311,8 @@ public class Slider implements HitObject {
 		if (sliderClicked)
 			;  // don't draw current combo number if already clicked
 		else
-			score.drawSymbolNumber(hitObject.getComboNumber(), x, y,
-					hitCircle.getWidth() * 0.40f / score.getDefaultSymbolImage(0).getHeight());
+			data.drawSymbolNumber(hitObject.getComboNumber(), x, y,
+					hitCircle.getWidth() * 0.40f / data.getDefaultSymbolImage(0).getHeight());
 
 		color.a = oldAlpha;
 		Utils.COLOR_WHITE_FADE.a = oldAlphaFade;
@@ -350,7 +350,7 @@ public class Slider implements HitObject {
 	 * Calculates the slider hit result.
 	 * @param time the hit object time (difference between track time)
 	 * @param lastCircleHit true if the cursor was held within the last circle
-	 * @return the hit result (GameScore.HIT_* constants)
+	 * @return the hit result (GameData.HIT_* constants)
 	 */
 	private int hitResult() {
 		int lastIndex = hitObject.getSliderX().length - 1;
@@ -358,20 +358,20 @@ public class Slider implements HitObject {
 
 		int result;
 		if (tickRatio >= 1.0f)
-			result = GameScore.HIT_300;
+			result = GameData.HIT_300;
 		else if (tickRatio >= 0.5f)
-			result = GameScore.HIT_100;
+			result = GameData.HIT_100;
 		else if (tickRatio > 0f)
-			result = GameScore.HIT_50;
+			result = GameData.HIT_50;
 		else
-			result = GameScore.HIT_MISS;
+			result = GameData.HIT_MISS;
 
 		if (currentRepeats % 2 == 0)  // last circle
-			score.hitResult(hitObject.getTime() + (int) sliderTimeTotal, result,
+			data.hitResult(hitObject.getTime() + (int) sliderTimeTotal, result,
 					hitObject.getSliderX()[lastIndex], hitObject.getSliderY()[lastIndex],
 					color, comboEnd, hitObject.getHitSoundType());
 		else  // first circle
-			score.hitResult(hitObject.getTime() + (int) sliderTimeTotal, result,
+			data.hitResult(hitObject.getTime() + (int) sliderTimeTotal, result,
 					hitObject.getX(), hitObject.getY(), color, comboEnd, hitObject.getHitSoundType());
 
 		return result;
@@ -390,16 +390,16 @@ public class Slider implements HitObject {
 			int[] hitResultOffset = game.getHitResultOffsets();
 
 			int result = -1;
-			if (timeDiff < hitResultOffset[GameScore.HIT_50]) {
-				result = GameScore.HIT_SLIDER30;
+			if (timeDiff < hitResultOffset[GameData.HIT_50]) {
+				result = GameData.HIT_SLIDER30;
 				ticksHit++;
-			} else if (timeDiff < hitResultOffset[GameScore.HIT_MISS])
-				result = GameScore.HIT_MISS;
+			} else if (timeDiff < hitResultOffset[GameData.HIT_MISS])
+				result = GameData.HIT_MISS;
 			//else not a hit
 
 			if (result > -1) {
 				sliderClicked = true;
-				score.sliderTickResult(hitObject.getTime(), result,
+				data.sliderTickResult(hitObject.getTime(), result,
 						hitObject.getX(), hitObject.getY(), hitObject.getHitSoundType());
 				return true;
 			}
@@ -439,23 +439,23 @@ public class Slider implements HitObject {
 			int time = hitObject.getTime();
 
 			// start circle time passed
-			if (trackPosition > time + hitResultOffset[GameScore.HIT_50]) {
+			if (trackPosition > time + hitResultOffset[GameData.HIT_50]) {
 				sliderClicked = true;
 				if (isAutoMod) {  // "auto" mod: catch any missed notes due to lag
 					ticksHit++;
-					score.sliderTickResult(time, GameScore.HIT_SLIDER30,
+					data.sliderTickResult(time, GameData.HIT_SLIDER30,
 							hitObject.getX(), hitObject.getY(), hitSound);
 				} else
-					score.sliderTickResult(time, GameScore.HIT_MISS,
+					data.sliderTickResult(time, GameData.HIT_MISS,
 							hitObject.getX(), hitObject.getY(), hitSound);
 			}
 
 			// "auto" mod: send a perfect hit result
 			else if (isAutoMod) {
-				if (Math.abs(trackPosition - time) < hitResultOffset[GameScore.HIT_300]) {
+				if (Math.abs(trackPosition - time) < hitResultOffset[GameData.HIT_300]) {
 					ticksHit++;
 					sliderClicked = true;
-					score.sliderTickResult(time, GameScore.HIT_SLIDER30,
+					data.sliderTickResult(time, GameData.HIT_SLIDER30,
 							hitObject.getX(), hitObject.getY(), hitSound);
 				}
 			}
@@ -514,32 +514,32 @@ public class Slider implements HitObject {
 		if ((Utils.isGameKeyPressed() && distance < followCircleRadius) || isAutoMod) {
 			// mouse pressed and within follow circle
 			followCircleActive = true;
-			score.changeHealth(delta * GameScore.HP_DRAIN_MULTIPLIER);
+			data.changeHealth(delta * GameData.HP_DRAIN_MULTIPLIER);
 
 			// held during new repeat
 			if (isNewRepeat) {
 				ticksHit++;
 				if (currentRepeats % 2 > 0)  // last circle
-					score.sliderTickResult(trackPosition, GameScore.HIT_SLIDER30,
+					data.sliderTickResult(trackPosition, GameData.HIT_SLIDER30,
 							hitObject.getSliderX()[lastIndex], hitObject.getSliderY()[lastIndex], hitSound);
 				else  // first circle
-					score.sliderTickResult(trackPosition, GameScore.HIT_SLIDER30,
+					data.sliderTickResult(trackPosition, GameData.HIT_SLIDER30,
 							c[0], c[1], hitSound);
 			}
 
 			// held during new tick
 			if (isNewTick) {
 				ticksHit++;
-				score.sliderTickResult(trackPosition, GameScore.HIT_SLIDER10,
+				data.sliderTickResult(trackPosition, GameData.HIT_SLIDER10,
 						c[0], c[1], (byte) -1);
 			}
 		} else {
 			followCircleActive = false;
 
 			if (isNewRepeat)
-				score.sliderTickResult(trackPosition, GameScore.HIT_MISS, 0, 0, (byte) -1);
+				data.sliderTickResult(trackPosition, GameData.HIT_MISS, 0, 0, (byte) -1);
 			if (isNewTick)
-				score.sliderTickResult(trackPosition, GameScore.HIT_MISS, 0, 0, (byte) -1);
+				data.sliderTickResult(trackPosition, GameData.HIT_MISS, 0, 0, (byte) -1);
 		}
 
 		return false;

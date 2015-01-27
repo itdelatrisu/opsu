@@ -20,7 +20,7 @@ package itdelatrisu.opsu.objects;
 
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.GameMod;
-import itdelatrisu.opsu.GameScore;
+import itdelatrisu.opsu.GameData;
 import itdelatrisu.opsu.OsuHitObject;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.MusicController;
@@ -43,8 +43,8 @@ public class Spinner implements HitObject {
 	/** The associated OsuHitObject. */
 	private OsuHitObject hitObject;
 
-	/** The associated GameScore object. */
-	private GameScore score;
+	/** The associated GameData object. */
+	private GameData data;
 
 	/** The last rotation angle. */
 	private float lastAngle = -1f;
@@ -68,14 +68,14 @@ public class Spinner implements HitObject {
 	 * Constructor.
 	 * @param hitObject the associated OsuHitObject
 	 * @param game the associated Game object
-	 * @param score the associated GameScore object
+	 * @param data the associated GameData object
 	 */
-	public Spinner(OsuHitObject hitObject, Game game, GameScore score) {
+	public Spinner(OsuHitObject hitObject, Game game, GameData data) {
 		this.hitObject = hitObject;
-		this.score = score;
+		this.data = data;
 
 		// calculate rotations needed
-		float spinsPerMinute = 100 + (score.getDifficulty() * 15);
+		float spinsPerMinute = 100 + (data.getDifficulty() * 15);
 		rotationsNeeded = spinsPerMinute * (hitObject.getEndTime() - hitObject.getTime()) / 60000f;
 	}
 
@@ -117,13 +117,13 @@ public class Spinner implements HitObject {
 			GameImage.SPINNER_CLEAR.getImage().drawCentered(width / 2, height / 4);
 			int extraRotations = (int) (rotations - rotationsNeeded);
 			if (extraRotations > 0)
-				score.drawSymbolNumber(extraRotations * 1000, width / 2, height * 2 / 3, 1.0f);
+				data.drawSymbolNumber(extraRotations * 1000, width / 2, height * 2 / 3, 1.0f);
 		}
 	}
 
 	/**
 	 * Calculates and sends the spinner hit result.
-	 * @return the hit result (GameScore.HIT_* constants)
+	 * @return the hit result (GameData.HIT_* constants)
 	 */
 	private int hitResult() {
 		// TODO: verify ratios
@@ -132,16 +132,16 @@ public class Spinner implements HitObject {
 		float ratio = rotations / rotationsNeeded;
 		if (ratio >= 1.0f ||
 			GameMod.AUTO.isActive() || GameMod.SPUN_OUT.isActive()) {
-			result = GameScore.HIT_300;
+			result = GameData.HIT_300;
 			SoundController.playSound(SoundEffect.SPINNEROSU);
 		} else if (ratio >= 0.8f)
-			result = GameScore.HIT_100;
+			result = GameData.HIT_100;
 		else if (ratio >= 0.5f)
-			result = GameScore.HIT_50;
+			result = GameData.HIT_50;
 		else
-			result = GameScore.HIT_MISS;
+			result = GameData.HIT_MISS;
 
-		score.hitResult(hitObject.getEndTime(), result, width / 2, height / 2,
+		data.hitResult(hitObject.getEndTime(), result, width / 2, height / 2,
 				Color.transparent, true, (byte) -1);
 		return result;
 	}
@@ -164,12 +164,12 @@ public class Spinner implements HitObject {
 		// spin automatically (TODO: correct rotation angles)
 		if (GameMod.AUTO.isActive()) {
 			// "auto" mod (fast)
-			score.changeHealth(delta * GameScore.HP_DRAIN_MULTIPLIER);
+			data.changeHealth(delta * GameData.HP_DRAIN_MULTIPLIER);
 			rotate(delta / 20f);
 			return false;
 		} else if (GameMod.SPUN_OUT.isActive()) {
 			// "spun out" mod (slow)
-			score.changeHealth(delta * GameScore.HP_DRAIN_MULTIPLIER);
+			data.changeHealth(delta * GameData.HP_DRAIN_MULTIPLIER);
 			rotate(delta / 32f);
 			return false;
 		}
@@ -188,7 +188,7 @@ public class Spinner implements HitObject {
 		if (lastAngle >= 0f) {  // skip initial clicks
 			float angleDiff = Math.abs(lastAngle - angle);
 			if (angleDiff < Math.PI / 2) {  // skip huge angle changes...
-				score.changeHealth(delta * GameScore.HP_DRAIN_MULTIPLIER);
+				data.changeHealth(delta * GameData.HP_DRAIN_MULTIPLIER);
 				rotate(angleDiff);
 			}
 		}
@@ -207,10 +207,10 @@ public class Spinner implements HitObject {
 		// added one whole rotation...
 		if (Math.floor(newRotations) > rotations) {
 			if (newRotations > rotationsNeeded) {  // extra rotations
-				score.changeScore(1000);
+				data.changeScore(1000);
 				SoundController.playSound(SoundEffect.SPINNERBONUS);
 			} else {
-				score.changeScore(100);
+				data.changeScore(100);
 				SoundController.playSound(SoundEffect.SPINNERSPIN);
 			}
 		}

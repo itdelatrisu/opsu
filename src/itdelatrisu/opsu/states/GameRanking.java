@@ -20,7 +20,7 @@ package itdelatrisu.opsu.states;
 
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.GameMod;
-import itdelatrisu.opsu.GameScore;
+import itdelatrisu.opsu.GameData;
 import itdelatrisu.opsu.MenuButton;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.OsuFile;
@@ -50,8 +50,8 @@ import org.newdawn.slick.state.transition.FadeOutTransition;
  * </ul>
  */
 public class GameRanking extends BasicGameState {
-	/** Associated GameScore object. */
-	private GameScore score;
+	/** Associated GameData object. */
+	private GameData data;
 
 	/** "Retry" and "Exit" buttons. */
 	private MenuButton retryButton, exitButton;
@@ -100,7 +100,7 @@ public class GameRanking extends BasicGameState {
 			g.setBackground(Utils.COLOR_BLACK_ALPHA);
 
 		// ranking screen elements
-		score.drawRankingElements(g, width, height);
+		data.drawRankingElements(g, width, height);
 
 		// game mods
 		for (GameMod mod : GameMod.VALUES_REVERSED) {
@@ -196,10 +196,10 @@ public class GameRanking extends BasicGameState {
 	}
 
 	/**
-	 * Sets the associated GameScore object.
-	 * @param score the GameScore
+	 * Sets the associated GameData object.
+	 * @param data the GameData
 	 */
-	public void setGameScore(GameScore score) {
-		this.score = score;
+	public void setGameData(GameData data) {
+		this.data = data;
 	}
 }
