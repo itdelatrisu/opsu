@@ -34,9 +34,11 @@ public abstract class StateBasedGame extends Game implements InputProcessor{
 	}
 	private void enterNextState() throws SlickException{
 		if(nextState!=null){
+			if(gc == null){
+				throw new Error("");
+			}
 			currentState = nextState;
 			nextState = null;
-			//currentState.init(gc, this);
 			if(!currentState.inited){
 				currentState.init(gc, this);
 				currentState.inited=true;
@@ -55,10 +57,9 @@ public abstract class StateBasedGame extends Game implements InputProcessor{
 	}
 
 	public void addState(BasicGameState gs) throws SlickException {
-		// TODO Auto-generated method stub
 		bgs.put(gs.getID(),gs);
 		if(gs.getID()==0)
-			currentState=gs;
+			enterState(0);
 		//gs.init(gc, this);
 	}
 	public void render() throws SlickException{

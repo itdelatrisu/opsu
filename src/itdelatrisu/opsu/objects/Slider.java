@@ -18,6 +18,9 @@
 
 package itdelatrisu.opsu.objects;
 
+import java.util.Iterator;
+import java.util.LinkedList;
+
 import fluddokt.opsu.fake.*;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.GameMod;
@@ -92,31 +95,23 @@ public class Slider implements HitObject {
 	/** Number of ticks hit and tick intervals so far. */
 	private int ticksHit = 0, tickIntervals = 1;
 
-	private class Curve{
-		public float[] pointAt(float t) {
-			return null;
-		}
+	private abstract class Curve{
+		public abstract float[] pointAt(float t);
 
-		public void draw() {
-			// TODO Auto-generated method stub
-			
-		}
+		public abstract void draw();
 
-		public float getEndAngle() {
-			// TODO Auto-generated method stub
-			return 0;
-		}
+		public abstract float getEndAngle();
 
-		public float getStartAngle() {
-			// TODO Auto-generated method stub
-			return 0;
-		}
+		public abstract float getStartAngle();
 	}
 	private class Vec2f{
 		float x, y;
 		public Vec2f(float nx, float ny) {
 			x=nx;
 			y=ny;
+		}
+		public Vec2f() {
+			// TODO Auto-generated constructor stub
 		}
 		public Vec2f midPoint(Vec2f o){
 			return new Vec2f((x+o.x)/2, (y+o.y)/2);
@@ -142,6 +137,10 @@ public class Slider implements HitObject {
 		}
 		public float len() {
 			return (float) Math.sqrt(x*x + y*y);
+		}
+		public boolean equals(Vec2f o){
+			System.out.println("Vec2f equals "+x+" "+y+" "+o.x+" "+o.y);
+			return x==o.x && y==o.y;
 		}
 		
 	}
@@ -228,10 +227,11 @@ public class Slider implements HitObject {
 		public void draw() {
 			Image hitCircle = GameImage.HITCIRCLE.getImage();
 			Image hitCircleOverlay = GameImage.HITCIRCLE_OVERLAY.getImage();
-			Utils.drawCentered(hitCircleOverlay, start.x, start.y, Utils.COLOR_WHITE_FADE);
-			Utils.drawCentered(hitCircleOverlay, mid.x, mid.y, Utils.COLOR_WHITE_FADE);
-			Utils.drawCentered(hitCircleOverlay, end.x, end.y, Utils.COLOR_WHITE_FADE);
+			//Utils.drawCentered(hitCircleOverlay, start.x, start.y, Utils.COLOR_WHITE_FADE);
+			//Utils.drawCentered(hitCircleOverlay, mid.x, mid.y, Utils.COLOR_WHITE_FADE);
+			//Utils.drawCentered(hitCircleOverlay, end.x, end.y, Utils.COLOR_WHITE_FADE);
 			//Utils.drawCentered(hitCircleOverlay, circleCenter.x, circleCenter.y, Utils.COLOR_WHITE_FADE);
+			// draw overlay and hit circle
 			for(int i=0; i<step; i++){
 				float[] xy = pointAt(i/step);
 				Utils.drawCentered(hitCircleOverlay, xy[0], xy[1], Utils.COLOR_WHITE_FADE);
@@ -240,11 +240,6 @@ public class Slider implements HitObject {
 				float[] xy = pointAt(i/step);
 				Utils.drawCentered(hitCircle, xy[0], xy[1], color);
 			}
-			// draw overlay and hit circle
-			//for (int i = curveX.length - 1; i >= 0; i--)
-			//	Utils.drawCentered(hitCircleOverlay, curveX[i], curveY[i], Utils.COLOR_WHITE_FADE);
-			//for (int i = curveX.length - 1; i >= 0; i--)
-			//	Utils.drawCentered(hitCircle, curveX[i], curveY[i], color);
 		}
 		@Override
 		public float getEndAngle() {
@@ -273,6 +268,8 @@ public class Slider implements HitObject {
 
 		/** The angles of the first and last control points. */
 		private float startAngle, endAngle;
+		
+		
 
 		/**
 		 * Constructor.
@@ -347,7 +344,7 @@ public class Slider implements HitObject {
 		public float[] pointAt(float t) {
 			float[] c = { 0f, 0f };
 			int n = order - 1;
-			if (n < 9) {  // normal curve
+			if (n < 20) {  // normal curve
 				//*
 				for (int i = 0; i <= n; i++) {
 					c[0] += getX(i) * bernstein(i, n, t);
@@ -378,9 +375,6 @@ public class Slider implements HitObject {
 			return c;
 		}
 		
-		
-		
-
 		/**
 		 * Draws the full Bezier curve to the graphics context.
 		 */
@@ -393,6 +387,197 @@ public class Slider implements HitObject {
 				Utils.drawCentered(hitCircleOverlay, curveX[i], curveY[i], Utils.COLOR_WHITE_FADE);
 			for (int i = curveX.length - 1; i >= 0; i--)
 				Utils.drawCentered(hitCircle, curveX[i], curveY[i], color);
+		}
+	}
+	
+	//Linear(ish)  Bezier curve
+	//http://pomax.github.io/bezierinfo/#tracing
+	private class LinearBezier extends Curve{
+		/** The angles of the first and last control points. */
+		private float startAngle, endAngle;
+		LinkedList<Bezier2> beziers = new LinkedList<Bezier2>();
+		Vec2f[] curve;
+		int ncurve;
+		public LinearBezier(){
+			//splits points into different beziers if has the same points(Red points)
+			
+			int npoints =  hitObject.getSliderX().length + 1;
+			LinkedList<Vec2f> points = new LinkedList<Vec2f>();
+			Vec2f lastPoi = null;
+			for(int i=0; i<npoints; i++){
+				Vec2f tpoi = new Vec2f(getX(i), getY(i));
+				if(lastPoi!=null && tpoi.equals(lastPoi)){
+					beziers.add(new Bezier2(points.toArray(new Vec2f[0])));
+					points.clear();
+				}
+				points.add(tpoi);
+				lastPoi = tpoi;
+				
+			}
+			if(points.size()<2){
+				throw new Error("trying to continue Beziers with less than 2 points");
+			}else{
+				beziers.add(new Bezier2(points.toArray(new Vec2f[0])));
+				points.clear();
+			}
+			
+			//find the length of all beziers
+			int totalDistance = 0;
+			for(Bezier2 bez : beziers){
+				totalDistance += bez.totalDistance();
+			}
+			
+			
+			//now try to creates points the are equal distance to eachother
+			ncurve = (int) (hitObject.getPixelLength()/5f);
+			curve = new Vec2f[ncurve+1];
+			
+			float distanceAt = 0;
+			Iterator<Bezier2> ita = beziers.iterator();
+			
+			int curPoint=0;
+			Bezier2 curBezier=ita.next();
+			
+			Vec2f lastCurve = curBezier.curve[0];
+			float lastDistanceAt = 0;
+			//length of Bezier should equal pixel length (in 640x480)
+			float pixelLength = hitObject.getPixelLength()*OsuHitObject.xMultiplier;
+			for(int i=0;i<ncurve+1;i++){
+				int prefDistance = (int) (i*pixelLength/ncurve);
+				while(distanceAt<prefDistance){
+					lastDistanceAt = distanceAt;
+					lastCurve = curBezier.curve[curPoint]; 
+					distanceAt+=curBezier.curveDis[curPoint++];
+					
+					if(curPoint >= curBezier.ncurve){
+						if(ita.hasNext()){
+							curBezier = ita.next();
+							curPoint = 0;
+						}else{
+							curPoint = curBezier.ncurve -1;
+						}
+					}
+				}
+				Vec2f thisCurve = curBezier.curve[curPoint];
+				//interpolate the point between the two closest distances
+				if(distanceAt-lastDistanceAt > 1){
+					float t = (prefDistance-lastDistanceAt)/(float)(distanceAt-lastDistanceAt);
+					curve[i] = new Vec2f(	lerp(lastCurve.x,thisCurve.x,t), lerp(lastCurve.y,thisCurve.y,t));
+					System.out.println("Dis "+i+" "+prefDistance+" "+lastDistanceAt+" "+distanceAt+" "+curPoint+" "+t);
+					
+				}else{
+					curve[i] = thisCurve;
+				}
+			}
+			if (hitObject.getRepeatCount() > 1) {
+				Vec2f c1 = curve[0];
+				Vec2f c2 = curve[1];
+				startAngle = (float) (Math.atan2(c2.y - c1.y, c2.x - c1.x) * 180 / Math.PI);
+				c1 = curve[ncurve-1];
+				c2 = curve[ncurve-2];
+				endAngle = (float) (Math.atan2(c2.y - c1.y, c2.x - c1.x) * 180 / Math.PI);
+			}
+			System.out.println("Total Distance: "+totalDistance+" "+distanceAt+" "+beziers.size()+" "+hitObject.getPixelLength()+" "+hitObject.xMultiplier);
+		}
+		@Override
+		public float[] pointAt(float t) {
+			
+			float index = t * ncurve;
+			
+			if((int)index>=ncurve){
+				Vec2f poi = curve[ncurve-1];
+				return new float[]{poi.x, poi.y};
+			}
+			
+			Vec2f poi = curve[(int)index];
+			float t2 = index - (int)index;
+			Vec2f poi2 = curve[(int)index+1];
+			return new float[]{lerp(poi.x,poi2.x,t2),lerp(poi.y,poi2.y,t2)};
+		}
+		@Override
+		public void draw() {
+			Image hitCircle = GameImage.HITCIRCLE.getImage();
+			Image hitCircleOverlay = GameImage.HITCIRCLE_OVERLAY.getImage();
+
+			// draw overlay and hit circle
+			for (int i = curve.length - 2; i >= 0; i--)
+				Utils.drawCentered(hitCircleOverlay, curve[i].x, curve[i].y, Utils.COLOR_WHITE_FADE);
+			for (int i = curve.length - 2; i >= 0; i--)
+				Utils.drawCentered(hitCircle, curve[i].x, curve[i].y, color);
+		}
+		@Override
+		public float getEndAngle() {
+			return endAngle;
+		}
+		@Override
+		public float getStartAngle() {
+			return startAngle;
+		}
+	}
+	private class Bezier2{
+		Vec2f[] points;
+		Vec2f[] curve;
+		float[] curveDis;
+		int ncurve;
+		float totalDistance;
+		
+		public Bezier2(Vec2f[] points) {
+			
+			this.points = points;
+			//approximate by finding the length of all points(which should be the max possible length of the curve)
+			float approxlength = 0;
+			for(int i=0;i<points.length-1;i++){
+				approxlength+= points[i].cpy().sub(points[i+1]).len();
+			}
+			
+			//subdivide the curve
+			ncurve= (int)(approxlength/4);
+			curve = new Vec2f[ncurve];
+			for(int i=0; i<ncurve; i++){
+				curve[i] = pointAt(i/(float)ncurve);
+			}
+			
+			//find the distance of each subdivision
+			curveDis= new float[ncurve];
+			for(int i=0; i<ncurve; i++){
+				if(i==0)
+					curveDis[i] = 0;
+				else
+					curveDis[i] = curve[i].cpy().sub(curve[i-1]).len();
+				totalDistance+=curveDis[i];
+			}
+			
+			//System.out.println("New Bezier2 "+points.length+" "+approxlength+" "+totalDistance());
+			
+		}
+		public float totalDistance(){
+			return totalDistance;
+		}
+		public Vec2f pointAt(float t) {
+			Vec2f c = new Vec2f();
+			int n =  points.length-1;
+			for (int i = 0; i <= n; i++) {
+				c.x += points[i].x * bernstein(i, n, t);
+				c.y += points[i].y * bernstein(i, n, t);
+			}
+			return c;
+		}
+		/**
+		 * Calculates the factorial of a number.
+		 */
+		private long factorial(int n) {
+			return (n <= 1 || n > 20) ? 1 : n * factorial(n - 1);
+		}
+
+		/**
+		 * Calculates the Bernstein polynomial.
+		 * @param i the index
+		 * @param n the degree of the polynomial (i.e. number of points)
+		 * @param t the t value [0, 1]
+		 */
+		private double bernstein(int i, int n, float t) {
+			return factorial(n) / (factorial(i) * factorial(n-i)) *
+					Math.pow(t, i) * Math.pow(1-t, n-i);
 		}
 	}
 	private float lerp(float a, float b, float t){
@@ -463,7 +648,7 @@ public class Slider implements HitObject {
 		if(hitObject.getSliderType() == 'P' && hitObject.getSliderX().length==2){
 			this.bezier = new CircumscribedCircle();
 		}else {
-			this.bezier = new Bezier();
+			this.bezier = new LinearBezier();
 		}
 
 	}
@@ -502,9 +687,10 @@ public class Slider implements HitObject {
 		Image hitCircle = GameImage.HITCIRCLE.getImage();
 
 		// end circle
-		int lastIndex = sliderX.length - 1;
-		Utils.drawCentered(hitCircle, sliderX[lastIndex], sliderY[lastIndex], color);
-		Utils.drawCentered(hitCircleOverlay, sliderX[lastIndex], sliderY[lastIndex], Utils.COLOR_WHITE_FADE);
+		//int lastIndex = sliderX.length - 1;
+		float[] endPos = bezier.pointAt(1);
+		Utils.drawCentered(hitCircle, endPos[0], endPos[1], color);
+		Utils.drawCentered(hitCircleOverlay, endPos[0], endPos[1], Utils.COLOR_WHITE_FADE);
 		
 		// start circle
 		Utils.drawCentered(hitCircle, x, y, color);
@@ -530,7 +716,7 @@ public class Slider implements HitObject {
 				}
 				if (tcurRepeat % 2 == 0) {  // last circle
 					arrow.setRotation(bezier.getEndAngle());
-					arrow.drawCentered(sliderX[lastIndex], sliderY[lastIndex]);
+					arrow.drawCentered(endPos[0], endPos[1]);
 				} else {  // first circle
 					arrow.setRotation(bezier.getStartAngle());
 					arrow.drawCentered(x, y);
@@ -576,11 +762,13 @@ public class Slider implements HitObject {
 		else
 			result = GameScore.HIT_MISS;
 
-		if (currentRepeats % 2 == 0)  // last circle
+		if (currentRepeats % 2 == 0)  {// last circle
+			float[] lastPos = bezier.pointAt(1);
 			score.hitResult(hitObject.getTime() + (int) sliderTimeTotal, result,
-					hitObject.getSliderX()[lastIndex], hitObject.getSliderY()[lastIndex],
+					//hitObject.getSliderX()[lastIndex], hitObject.getSliderY()[lastIndex],
+					lastPos[0],lastPos[1],
 					color, comboEnd, hitObject.getHitSoundType());
-		else  // first circle
+		}else  // first circle
 			score.hitResult(hitObject.getTime() + (int) sliderTimeTotal, result,
 					hitObject.getX(), hitObject.getY(), color, comboEnd, hitObject.getHitSoundType());
 

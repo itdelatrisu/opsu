@@ -25,9 +25,11 @@ public class Image {
 		height = hei;
 	}
 	public Image(Image copy, int x, int y,int wid,int hei) {
-		tex = new TextureRegion(copy.tex, x, y, wid, hei);
-		width=wid;
-		height=hei;
+		float dx = copy.tex.getRegionWidth()/(float)copy.width;
+		float dy = copy.tex.getRegionHeight()/(float)copy.height;
+		tex = new TextureRegion(copy.tex, (int)(x*dy), (int)(y*dy), (int)(wid*dx), (int)(hei*dy));
+		width=(int)(tex.getRegionWidth()/dx);
+		height=(int)(tex.getRegionHeight()/dy);
 		name = copy.name+" r "+x+" "+y+" "+wid+" "+hei;
 	}
 	public Image() {
@@ -96,7 +98,9 @@ public class Image {
 	
 
 	public Image getSubImage(int x, int y, int w, int h) {
-		return new Image(this,x,y,w,h);
+		Image img = new Image(this,x,y,w,h);
+		
+		return img;
 	}
 
 	public float getRotation() {

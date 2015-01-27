@@ -482,22 +482,25 @@ public class GameScore {
 		//*
 		//Draw Error bar
 		final int fadeDelay = 10000;
+		int hitErrorY = 30;
 		Iterator<ErrorInfo> iter2 = errorRateList.iterator();
-		g.setColor(Color.red.multAlpha(0.7f));
-		g.fillRect(width/2f-3-hitResultOffset[GameScore.HIT_50], height-marginX-40-3,hitResultOffset[GameScore.HIT_50]*2,6);
-		g.setColor(Color.green.multAlpha(0.7f));
-		g.fillRect(width/2f-3-hitResultOffset[GameScore.HIT_100], height-marginX-40-3,hitResultOffset[GameScore.HIT_100]*2,6);
-		g.setColor(Color.blue.multAlpha(0.7f));
-		g.fillRect(width/2f-3-hitResultOffset[GameScore.HIT_300], height-marginX-40-3,hitResultOffset[GameScore.HIT_300]*2,6);
+		g.setColor(Color.black);
+		g.fillRect(width/2f-3-hitResultOffset[GameScore.HIT_50], height-marginX-hitErrorY-10,hitResultOffset[GameScore.HIT_50]*2,20);
+		g.setColor(Color.lightorange);
+		g.fillRect(width/2f-3-hitResultOffset[GameScore.HIT_50], height-marginX-hitErrorY-3,hitResultOffset[GameScore.HIT_50]*2,6);
+		g.setColor(Color.lightgreen);
+		g.fillRect(width/2f-3-hitResultOffset[GameScore.HIT_100], height-marginX-hitErrorY-3,hitResultOffset[GameScore.HIT_100]*2,6);
+		g.setColor(Color.lightblue);
+		g.fillRect(width/2f-3-hitResultOffset[GameScore.HIT_300], height-marginX-hitErrorY-3,hitResultOffset[GameScore.HIT_300]*2,6);
 		g.setColor(Color.white);
-		g.drawRect(width/2f-3, height-marginX-40-10, 6, 20);
+		g.drawRect(width/2f-3, height-marginX-hitErrorY-10, 6, 20);
 		while (iter2.hasNext()) {
 			ErrorInfo info = iter2.next();
 			int time = info.time;
 			if (time + fadeDelay > trackPosition) {
 				float alpha = 1 - ((float) (trackPosition - time) / fadeDelay);
 				g.setColor(Color.white.multAlpha(alpha));
-				g.fillRect(width/2 - info.timeDiff-1, height-marginX-40-5, 2, 10);
+				g.fillRect(width/2 - info.timeDiff-1, height-marginX-hitErrorY-10, 2, 20);
 			}else{
 				iter2.remove();
 			}

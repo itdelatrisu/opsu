@@ -59,7 +59,7 @@ public class Circle implements HitObject {
 	 * @param circleSize the map's circleSize value
 	 */
 	public static void init(GameContainer container, float circleSize) {
-		int diameter = (int) (104 - (circleSize * 8));
+		int diameter = (int) (108 - (circleSize * 8));
 		int swidth = container.getWidth();
 		int sheight = container.getHeight();
 		if(swidth*3>sheight*4){

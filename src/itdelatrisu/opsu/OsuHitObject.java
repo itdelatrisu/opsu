@@ -52,7 +52,7 @@ public class OsuHitObject {
 		MAX_Y = 384;
 
 	/** The x and y multipliers for hit object coordinates. */
-	private static float xMultiplier, yMultiplier;
+	public static float xMultiplier, yMultiplier;
 
 	/** The x and y offsets for hit object coordinates. */
 	private static int

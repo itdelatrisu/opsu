@@ -3,7 +3,7 @@ package fluddokt.opsu.fake;
 public class Font {
 
 	public static final String PLAIN = "PLAIN";
-	public static final String BOLD = null;
+	public static final String BOLD = "BOLD";
 	String name;
 	String style;
 	float size;

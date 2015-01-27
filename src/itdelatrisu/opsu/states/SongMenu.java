@@ -65,7 +65,7 @@ import org.newdawn.slick.state.transition.FadeOutTransition;
  */
 public class SongMenu extends BasicGameState {
 	/** The number of buttons to be shown on each screen. */
-	private static final int MAX_BUTTONS = 6;
+	private static final int MAX_BUTTONS = 9;
 
 	/** Delay time, in milliseconds, between each search. */
 	private static final int SEARCH_DELAY = 500;
