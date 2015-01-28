@@ -139,7 +139,6 @@ public class Slider implements HitObject {
 			return (float) Math.sqrt(x*x + y*y);
 		}
 		public boolean equals(Vec2f o){
-			System.out.println("Vec2f equals "+x+" "+y+" "+o.x+" "+o.y);
 			return x==o.x && y==o.y;
 		}
 		
@@ -168,6 +167,8 @@ public class Slider implements HitObject {
 			Vec2f norb = mid.cpy().sub(end).nor();
 			
 			circleCenter = intersect(mida, nora, midb, norb);
+			
+			
 			Vec2f startAngPoint = start.cpy().sub(circleCenter);
 			Vec2f midAngPoint = mid.cpy().sub(circleCenter);
 			Vec2f endAngPoint = end.cpy().sub(circleCenter);
@@ -193,11 +194,23 @@ public class Slider implements HitObject {
 
 			}
 			
+			radius = startAngPoint.len();
+			float pixelLength = hitObject.getPixelLength() * OsuHitObject.getMultiplier();
+			float arcAng = pixelLength / radius; //len = theta * r  /  theta = len/r
+					
+			//float orgArcLen = (startAng-endAng)*radius;
+			//System.out.println("ArgLen:"+pixelLength+" "+orgArcLen);
+			
+			if(endAng>startAng){
+				endAng=startAng+arcAng;
+			}else{
+				endAng=startAng-arcAng;
+			}
+			
+			
 			drawEndAngle = (float) ((endAng+(startAng>endAng?halfpi:-halfpi)) * 180 / Math.PI);
 			drawStartAngle = (float) ((startAng+(startAng>endAng?-halfpi:halfpi)) * 180 / Math.PI);
-			
-			
-			radius = startAngPoint.len();
+		
 		}
 		private boolean isIn(float a,float b,float c){
 			return (b>a && b<c) || (b<a && b>c);
@@ -422,10 +435,10 @@ public class Slider implements HitObject {
 			}
 			
 			//find the length of all beziers
-			int totalDistance = 0;
-			for(Bezier2 bez : beziers){
-				totalDistance += bez.totalDistance();
-			}
+			//int totalDistance = 0;
+			//for(Bezier2 bez : beziers){
+			//	totalDistance += bez.totalDistance();
+			//}
 			
 			
 			//now try to creates points the are equal distance to eachother
@@ -441,7 +454,7 @@ public class Slider implements HitObject {
 			Vec2f lastCurve = curBezier.curve[0];
 			float lastDistanceAt = 0;
 			//length of Bezier should equal pixel length (in 640x480)
-			float pixelLength = hitObject.getPixelLength()*OsuHitObject.xMultiplier;
+			float pixelLength = hitObject.getPixelLength()*OsuHitObject.getMultiplier();
 			for(int i=0;i<ncurve+1;i++){
 				int prefDistance = (int) (i*pixelLength/ncurve);
 				while(distanceAt<prefDistance){
@@ -463,21 +476,21 @@ public class Slider implements HitObject {
 				if(distanceAt-lastDistanceAt > 1){
 					float t = (prefDistance-lastDistanceAt)/(float)(distanceAt-lastDistanceAt);
 					curve[i] = new Vec2f(	lerp(lastCurve.x,thisCurve.x,t), lerp(lastCurve.y,thisCurve.y,t));
-					System.out.println("Dis "+i+" "+prefDistance+" "+lastDistanceAt+" "+distanceAt+" "+curPoint+" "+t);
+					//System.out.println("Dis "+i+" "+prefDistance+" "+lastDistanceAt+" "+distanceAt+" "+curPoint+" "+t);
 					
 				}else{
 					curve[i] = thisCurve;
 				}
 			}
-			if (hitObject.getRepeatCount() > 1) {
+			//if (hitObject.getRepeatCount() > 1) {
 				Vec2f c1 = curve[0];
 				Vec2f c2 = curve[1];
 				startAngle = (float) (Math.atan2(c2.y - c1.y, c2.x - c1.x) * 180 / Math.PI);
 				c1 = curve[ncurve-1];
 				c2 = curve[ncurve-2];
 				endAngle = (float) (Math.atan2(c2.y - c1.y, c2.x - c1.x) * 180 / Math.PI);
-			}
-			System.out.println("Total Distance: "+totalDistance+" "+distanceAt+" "+beziers.size()+" "+hitObject.getPixelLength()+" "+hitObject.xMultiplier);
+			//}
+			//System.out.println("Total Distance: "+totalDistance+" "+distanceAt+" "+beziers.size()+" "+hitObject.getPixelLength()+" "+hitObject.xMultiplier);
 		}
 		@Override
 		public float[] pointAt(float t) {
@@ -656,7 +669,6 @@ public class Slider implements HitObject {
 	@Override
 	public void draw(int trackPosition, boolean currentObject, Graphics g) {
 		float x = hitObject.getX(), y = hitObject.getY();
-		float[] sliderX = hitObject.getSliderX(), sliderY = hitObject.getSliderY();
 		int timeDiff = hitObject.getTime() - trackPosition;
 
 		float approachScale = (timeDiff >= 0) ? 1 + (timeDiff * 3f / game.getApproachTime()) : 1f;
@@ -723,7 +735,6 @@ public class Slider implements HitObject {
 				}
 			}
 		}
-		
 
 		if (timeDiff >= 0) {
 			// approach circle
@@ -749,7 +760,6 @@ public class Slider implements HitObject {
 	 * @return the hit result (GameScore.HIT_* constants)
 	 */
 	private int hitResult() {
-		int lastIndex = hitObject.getSliderX().length - 1;
 		float tickRatio = (float) ticksHit / tickIntervals;
 
 		int result;
@@ -765,7 +775,6 @@ public class Slider implements HitObject {
 		if (currentRepeats % 2 == 0)  {// last circle
 			float[] lastPos = bezier.pointAt(1);
 			score.hitResult(hitObject.getTime() + (int) sliderTimeTotal, result,
-					//hitObject.getSliderX()[lastIndex], hitObject.getSliderY()[lastIndex],
 					lastPos[0],lastPos[1],
 					color, comboEnd, hitObject.getHitSoundType());
 		}else  // first circle
@@ -796,7 +805,7 @@ public class Slider implements HitObject {
 			//else not a hit
 
 			if (result > -1) {
-				score.addErrorRate(hitObject.getTime(), x,y,timeDiff);
+				score.addErrorRate(hitObject.getTime(), x,y,trackPosition - hitObject.getTime());
 				sliderClicked = true;
 				score.sliderTickResult(hitObject.getTime(), result,
 						hitObject.getX(), hitObject.getY(), hitObject.getHitSoundType());

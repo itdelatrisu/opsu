@@ -500,7 +500,7 @@ public class GameScore {
 			if (time + fadeDelay > trackPosition) {
 				float alpha = 1 - ((float) (trackPosition - time) / fadeDelay);
 				g.setColor(Color.white.multAlpha(alpha));
-				g.fillRect(width/2 - info.timeDiff-1, height-marginX-hitErrorY-10, 2, 20);
+				g.fillRect(width/2 + info.timeDiff-1, height-marginX-hitErrorY-10, 2, 20);
 			}else{
 				iter2.remove();
 			}
