@@ -102,10 +102,17 @@ public class OsuHitObject {
 	 * @param height the container height
 	 */
 	public static void init(int width, int height) {
-		xMultiplier = (width * 0.6f) / MAX_X;
-		yMultiplier = (height * 0.6f) / MAX_Y;
-		xOffset = width / 5;
-		yOffset = height / 5;
+		int swidth = width;
+		int sheight = height;
+		if(swidth*3>sheight*4){
+			swidth = sheight*4/3;
+		}else{
+			sheight = swidth*3/4;
+		}
+		xMultiplier = swidth / 640f; //(width * 1f) / MAX_X; // width * MAX_X/800f / MAX_X
+		yMultiplier = sheight / 480f;//(height * 1f) / MAX_Y;
+		xOffset = (int)(width - MAX_X * xMultiplier)/2 ;//width / 5; 800-512/2
+		yOffset = (int)(height - MAX_Y * yMultiplier)/2 ;//height / 5;
 	}
 
 	/**
@@ -280,4 +287,8 @@ public class OsuHitObject {
 	 * @return true if new combo
 	 */
 	public boolean isNewCombo() { return (type & TYPE_NEWCOMBO) > 0; }
+
+	public static float getMultiplier() {
+		return xMultiplier;
+	}
 }
