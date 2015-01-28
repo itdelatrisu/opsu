@@ -28,6 +28,9 @@ import itdelatrisu.opsu.OsuGroupList;
 import itdelatrisu.opsu.OsuGroupNode;
 import itdelatrisu.opsu.OsuParser;
 import itdelatrisu.opsu.OszUnpacker;
+import itdelatrisu.opsu.Scores;
+import itdelatrisu.opsu.GameData.Grade;
+import itdelatrisu.opsu.Scores.ScoreData;
 import itdelatrisu.opsu.SongSort;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.HitSound;
@@ -36,6 +39,7 @@ import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
 
 import java.io.File;
+import java.util.Map;
 import java.util.Stack;
 
 import org.lwjgl.opengl.Display;
@@ -153,6 +157,9 @@ public class SongMenu extends BasicGameState {
 	/** Beatmap reloading thread. */
 	private Thread reloadThread;
 
+	/** Current map of scores (Version, ScoreData[]). */
+	private Map<String, ScoreData[]> scoreMap;
+
 	// game-related variables
 	private GameContainer container;
 	private StateBasedGame game;
@@ -261,8 +268,16 @@ public class SongMenu extends BasicGameState {
 		// song buttons
 		OsuGroupNode node = startNode;
 		for (int i = 0; i < MAX_BUTTONS && node != null; i++, node = node.next) {
+			// draw the node
 			float offset = (i == hoverIndex) ? hoverOffset : 0f;
-			node.draw(buttonX - offset, buttonY + (i*buttonOffset), (node == focusNode));
+			ScoreData[] scores = getScoreDataForNode(node);
+			node.draw(
+					buttonX - offset, buttonY + (i*buttonOffset),
+					(scores == null) ? Grade.NULL : scores[0].getGrade(),
+					(node == focusNode)
+			);
+
+			// load glyphs
 			Utils.loadGlyphs(node.osuFiles.get(0));
 		}
 
@@ -703,11 +718,17 @@ public class SongMenu extends BasicGameState {
 		// reset game data
 		if (resetGame) {
 			((Game) game.getState(Opsu.STATE_GAME)).resetGameData();
+
 			// destroy skin images, if any
 			for (GameImage img : GameImage.values()) {
 				if (img.isSkinnable())
 					img.destroySkinImage();
 			}
+
+			// reload scores
+			if (focusNode != null)
+				scoreMap = Scores.getMapSetScores(focusNode.osuFiles.get(focusNode.osuFileIndex));
+
 			resetGame = false;
 		}
 	}
@@ -798,6 +819,9 @@ public class SongMenu extends BasicGameState {
 		MusicController.play(osu, true);
 		Utils.loadGlyphs(osu);
 
+		// load scores
+		scoreMap = Scores.getMapSetScores(osu);
+
 		// check startNode bounds
 		while (startNode.index >= OsuGroupList.get().size() + length - MAX_BUTTONS && startNode.prev != null)
 			startNode = startNode.prev;
@@ -834,6 +858,30 @@ public class SongMenu extends BasicGameState {
 	 * Triggers a reset of the music track upon entering this state.
 	 */
 	public void resetTrackOnLoad() { resetTrack = true; }
+
+	/**
+	 * Returns all the score data for an OsuGroupNode from scoreMap.
+	 * If no score data is available for the node, return null.
+	 * @param node the OsuGroupNode
+	 * @return the ScoreData array
+	 */
+	private ScoreData[] getScoreDataForNode(OsuGroupNode node) {
+		if (scoreMap == null || node.osuFileIndex == -1)  // node not expanded
+			return null;
+
+		OsuFile osu = node.osuFiles.get(node.osuFileIndex);
+		ScoreData[] scores = scoreMap.get(osu.version);
+		if (scores == null || scores.length < 1)  // no scores
+			return null;
+
+		ScoreData s = scores[0];
+		if (osu.beatmapID == s.MID && osu.beatmapSetID == s.MSID &&
+		    osu.title.equals(s.title) && osu.artist.equals(s.artist) &&
+		    osu.creator.equals(s.creator))
+			return scores;
+		else
+			return null;  // incorrect map
+	}
 
 	/**
 	 * Starts the game.

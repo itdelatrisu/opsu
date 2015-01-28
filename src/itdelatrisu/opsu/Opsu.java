@@ -137,6 +137,9 @@ public class Opsu extends StateBasedGame {
 		}
 		Options.TMP_DIR.deleteOnExit();
 
+		// initialize score database
+		Scores.init();
+
 		// start the game
 		try {
 			// loop until force exit
@@ -161,8 +164,7 @@ public class Opsu extends StateBasedGame {
 				ErrorHandler.error("Error while creating game container.", e, true);
 		}
 
-		// close server socket
-		closeSocket();
+		Opsu.exit();
 	}
 
 	@Override
@@ -188,9 +190,13 @@ public class Opsu extends StateBasedGame {
 	}
 
 	/**
-	 * Closes the server socket.
+	 * Closes all resources and exits the application.
 	 */
-	public static void closeSocket() {
+	public static void exit() {
+		// close scores database
+		Scores.closeConnection();
+
+		// close server socket
 		if (SERVER_SOCKET != null) {
 			try {
 				SERVER_SOCKET.close();
@@ -198,5 +204,7 @@ public class Opsu extends StateBasedGame {
 				ErrorHandler.error("Failed to close server socket.", e, false);
 			}
 		}
+
+		System.exit(0);
 	}
 }

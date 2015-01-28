@@ -18,6 +18,8 @@
 
 package itdelatrisu.opsu;
 
+import itdelatrisu.opsu.GameData.Grade;
+
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
@@ -52,9 +54,10 @@ public class OsuGroupNode {
 	 * Draws the button.
 	 * @param x the x coordinate
 	 * @param y the y coordinate
+	 * @param grade the highest grade, if any
 	 * @param focus true if this is the focused node
 	 */
-	public void draw(float x, float y, boolean focus) {
+	public void draw(float x, float y, Grade grade, boolean focus) {
 		boolean expanded = (osuFileIndex > -1);
 		float xOffset = 0f;
 		OsuFile osu;
@@ -76,6 +79,13 @@ public class OsuGroupNode {
 
 		float cx = x + (bg.getWidth() * 0.05f) - xOffset;
 		float cy = y + (bg.getHeight() * 0.2f) - 3;
+
+		if (grade != Grade.NULL) {
+			Image gradeImg = grade.getSmallImage();
+			gradeImg = gradeImg.getScaledCopy((bg.getHeight() * 0.45f) / gradeImg.getHeight());
+			gradeImg.drawCentered(cx - bg.getWidth() * 0.01f + gradeImg.getWidth() / 2f, y + bg.getHeight() / 2.2f);
+			cx += gradeImg.getWidth();
+		}
 
 		Utils.FONT_MEDIUM.drawString(cx, cy, osu.getTitle(), textColor);
 		Utils.FONT_DEFAULT.drawString(cx, cy + Utils.FONT_MEDIUM.getLineHeight() - 4,

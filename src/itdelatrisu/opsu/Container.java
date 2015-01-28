@@ -74,10 +74,8 @@ public class Container extends AppGameContainer {
 			}
 		}
 
-		if (forceExit) {
-			Opsu.closeSocket();
-			System.exit(0);
-		}
+		if (forceExit)
+			Opsu.exit();
 	}
 
 	/**

@@ -58,6 +58,9 @@ public class Options {
 		"Songs/"
 	};
 
+	/** Score database name. */
+	public static final String SCORE_DB = ".opsu_scores.db";
+
 	/** Font file name. */
 	public static final String FONT_NAME = "kochi-gothic.ttf";
 

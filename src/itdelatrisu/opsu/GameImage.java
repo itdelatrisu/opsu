@@ -164,7 +164,7 @@ public enum GameImage {
 	SPINNER_CLEAR ("spinner-clear", "png"),
 	SPINNER_OSU ("spinner-osu", "png"),
 
-	// Game Score
+	// Score Data
 	COMBO_BURST ("comboburst", "comboburst-%d", "png"),
 	SCOREBAR_BG ("scorebar-bg", "png") {
 		@Override

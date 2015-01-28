@@ -18,12 +18,12 @@
 
 package itdelatrisu.opsu;
 
+import itdelatrisu.opsu.Scores.ScoreData;
 import itdelatrisu.opsu.audio.HitSound;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -41,7 +41,7 @@ public class GameData {
 	public static final float HP_DRAIN_MULTIPLIER = 1 / 200f;
 
 	/** Letter grades. */
-	private enum Grade {
+	public enum Grade {
 		NULL (null, null),
 		SS  (GameImage.RANKING_SS,  GameImage.RANKING_SS_SMALL),
 		SSH (GameImage.RANKING_SSH, GameImage.RANKING_SSH_SMALL), // silver
@@ -94,9 +94,6 @@ public class GameData {
 
 	/** Counts of each hit result so far. */
 	private int[] hitResultCount;
-
-	/** Total number of hit objects so far, not including Katu/Geki (for calculating grade). */
-	private int objectCount;
 
 	/** Total objects including slider hits/ticks (for determining Full Combo status). */
 	private int fullObjectCount;
@@ -194,19 +191,55 @@ public class GameData {
 	/** Scorebar animation. */
 	private Animation scorebarColour;
 
+	/** The associated score data. */
+	private ScoreData scoreData;
+
+	/** Whether this object is used for gameplay (true) or score viewing (false). */
+	private boolean gameplay;
+
 	/** Container dimensions. */
 	private int width, height;
 
 	/**
-	 * Constructor.
+	 * Constructor for gameplay.
 	 * @param width container width
 	 * @param height container height
 	 */
 	public GameData(int width, int height) {
 		this.width = width;
 		this.height = height;
+		this.gameplay = true;
 
 		clear();
+	}
+
+	/**
+	 * Constructor for score viewing.
+	 * This will initialize all parameters and images needed for the
+	 * {@link #drawRankingElements(Graphics, int, int)} method.
+	 * @param s the ScoreData object
+	 * @param width container width
+	 * @param height container height
+	 */
+	public GameData(ScoreData s, int width, int height) {
+		this.width = width;
+		this.height = height;
+		this.gameplay = false;
+
+		this.scoreData = s;
+		this.score = s.score;
+		this.comboMax = s.combo;
+		this.fullObjectCount = (s.perfect) ? s.combo : -1;
+		this.hitResultCount = new int[HIT_MAX];
+		hitResultCount[HIT_300] = s.hit300;
+		hitResultCount[HIT_100] = s.hit100;
+		hitResultCount[HIT_50] = s.hit50;
+		hitResultCount[HIT_300G] = s.geki;
+		hitResultCount[HIT_300K] = 0;
+		hitResultCount[HIT_100K] = s.katu;
+		hitResultCount[HIT_MISS] = s.miss;
+
+		loadImages();
 	}
 
 	/**
@@ -219,42 +252,44 @@ public class GameData {
 		healthDisplay = 100f;
 		hitResultCount = new int[HIT_MAX];
 		hitResultList = new LinkedList<OsuHitObjectResult>();
-		objectCount = 0;
 		fullObjectCount = 0;
 		combo = 0;
 		comboMax = 0;
 		comboEnd = 0;
 		comboBurstIndex = -1;
+		scoreData = null;
 	}
 
 	/**
 	 * Loads all game score images.
-	 * @param dir the image directory
 	 */
-	public void loadImages(File dir) {
-		// combo burst images
-		if (GameImage.COMBO_BURST.hasSkinImages() ||
-		    (!GameImage.COMBO_BURST.hasSkinImage() && GameImage.COMBO_BURST.getImages() != null))
-			comboBurstImages = GameImage.COMBO_BURST.getImages();
-		else
-			comboBurstImages = new Image[]{ GameImage.COMBO_BURST.getImage() };
-
-		// scorebar-colour animation
-		Image[] scorebar = GameImage.SCOREBAR_COLOUR.getImages();
-		scorebarColour = (scorebar != null) ? new Animation(scorebar, 60) : null;
-
-		// default symbol images
-		defaultSymbols = new Image[10];
-		defaultSymbols[0] = GameImage.DEFAULT_0.getImage();
-		defaultSymbols[1] = GameImage.DEFAULT_1.getImage();
-		defaultSymbols[2] = GameImage.DEFAULT_2.getImage();
-		defaultSymbols[3] = GameImage.DEFAULT_3.getImage();
-		defaultSymbols[4] = GameImage.DEFAULT_4.getImage();
-		defaultSymbols[5] = GameImage.DEFAULT_5.getImage();
-		defaultSymbols[6] = GameImage.DEFAULT_6.getImage();
-		defaultSymbols[7] = GameImage.DEFAULT_7.getImage();
-		defaultSymbols[8] = GameImage.DEFAULT_8.getImage();
-		defaultSymbols[9] = GameImage.DEFAULT_9.getImage();
+	public void loadImages() {
+		// gameplay-specific images
+		if (isGameplay()) {
+			// combo burst images
+			if (GameImage.COMBO_BURST.hasSkinImages() ||
+			    (!GameImage.COMBO_BURST.hasSkinImage() && GameImage.COMBO_BURST.getImages() != null))
+				comboBurstImages = GameImage.COMBO_BURST.getImages();
+			else
+				comboBurstImages = new Image[]{ GameImage.COMBO_BURST.getImage() };
+	
+			// scorebar-colour animation
+			Image[] scorebar = GameImage.SCOREBAR_COLOUR.getImages();
+			scorebarColour = (scorebar != null) ? new Animation(scorebar, 60) : null;
+	
+			// default symbol images
+			defaultSymbols = new Image[10];
+			defaultSymbols[0] = GameImage.DEFAULT_0.getImage();
+			defaultSymbols[1] = GameImage.DEFAULT_1.getImage();
+			defaultSymbols[2] = GameImage.DEFAULT_2.getImage();
+			defaultSymbols[3] = GameImage.DEFAULT_3.getImage();
+			defaultSymbols[4] = GameImage.DEFAULT_4.getImage();
+			defaultSymbols[5] = GameImage.DEFAULT_5.getImage();
+			defaultSymbols[6] = GameImage.DEFAULT_6.getImage();
+			defaultSymbols[7] = GameImage.DEFAULT_7.getImage();
+			defaultSymbols[8] = GameImage.DEFAULT_8.getImage();
+			defaultSymbols[9] = GameImage.DEFAULT_9.getImage();
+		}
 
 		// score symbol images
 		scoreSymbols = new HashMap<Character, Image>(14);
@@ -471,12 +506,11 @@ public class GameData {
 	}
 
 	/**
-	 * Draws ranking elements: score, results, ranking.
+	 * Draws ranking elements: score, results, ranking, game mods.
 	 * @param g the graphics context
-	 * @param width the width of the container
-	 * @param height the height of the container
+	 * @param osu the OsuFile
 	 */
-	public void drawRankingElements(Graphics g, int width, int height) {
+	public void drawRankingElements(Graphics g, OsuFile osu) {
 		// grade
 		Grade grade = getGrade();
 		if (grade != Grade.NULL) {
@@ -492,6 +526,14 @@ public class GameData {
 		g.setColor(Utils.COLOR_BLACK_ALPHA);
 		g.fillRect(0, 0, width, rankingHeight);
 		rankingTitle.draw((width * 0.97f) - rankingTitle.getWidth(), 0);
+		float marginX = width * 0.01f, marginY = height * 0.01f;
+		Utils.FONT_LARGE.drawString(marginX, marginY,
+				String.format("%s - %s [%s]", osu.getArtist(), osu.getTitle(), osu.version), Color.white);
+		Utils.FONT_MEDIUM.drawString(marginX, marginY + Utils.FONT_LARGE.getLineHeight() - 6,
+				String.format("Beatmap by %s", osu.creator), Color.white);
+		Utils.FONT_MEDIUM.drawString(
+				marginX, marginY + Utils.FONT_LARGE.getLineHeight() + Utils.FONT_MEDIUM.getLineHeight() - 10,
+				String.format("Played on %s.", scoreData.getTimeString()), Color.white);
 
 		// ranking panel
 		Image rankingPanel = GameImage.RANKING_PANEL.getImage();
@@ -546,11 +588,22 @@ public class GameData {
 				(int) (rankingPanelWidth / 2f + numbersX), (int) numbersY, symbolTextScale, false);
 
 		// full combo
-		if (combo == fullObjectCount) {
+		if (comboMax == fullObjectCount) {
 			GameImage.RANKING_PERFECT.getImage().draw(
 					width * 0.08f,
 					(height * 0.99f) - GameImage.RANKING_PERFECT.getImage().getHeight()
 			);
+		}
+
+		// mod icons
+		int modWidth = GameMod.AUTO.getImage().getWidth();
+		float modX = (width * 0.98f) - modWidth;
+		int modCount = 0;
+		for (GameMod mod : GameMod.VALUES_REVERSED) {
+			if ((mod.getBit() & scoreData.mods) > 0) {
+				mod.getImage().draw(modX - (modCount * (modWidth / 2f)), height / 2f);
+				modCount++;
+			}
 		}
 	}
 
@@ -616,30 +669,50 @@ public class GameData {
 	public void changeScore(int value) { score += value; }
 
 	/**
-	 * Returns score percentage (raw score only).
+	 * Returns the raw score percentage.
+	 * @param hit300 the number of 300s
+	 * @param hit100 the number of 100s
+	 * @param hit50 the number of 50s
+	 * @param miss the number of misses
+	 * @return the percentage
+	 */
+	public static float getScorePercent(int hit300, int hit100, int hit50, int miss) {
+		float percent = 0;
+		int objectCount = hit300 + hit100 + hit50 + miss;
+		if (objectCount > 0)
+			percent = (hit300 * 300 + hit100 * 100 + hit50 * 50) / (objectCount * 300f) * 100f;
+		return percent;
+	}
+
+	/**
+	 * Returns the raw score percentage.
 	 */
 	private float getScorePercent() {
-		float percent = 0;
-		if (objectCount > 0)
-			percent = ((hitResultCount[HIT_50] * 50) + (hitResultCount[HIT_100] * 100)
-					+ (hitResultCount[HIT_300] * 300)) / (objectCount * 300f) * 100f;
-		return percent;
+		return getScorePercent(
+			hitResultCount[HIT_300], hitResultCount[HIT_100],
+			hitResultCount[HIT_50], hitResultCount[HIT_MISS]
+		);
 	}
 
 	/**
 	 * Returns letter grade based on score data,
 	 * or Grade.NULL if no objects have been processed.
+	 * @param hit300 the number of 300s
+	 * @param hit100 the number of 100s
+	 * @param hit50 the number of 50s
+	 * @param miss the number of misses
 	 * @return the current Grade
 	 */
-	private Grade getGrade() {
+	public static Grade getGrade(int hit300, int hit100, int hit50, int miss) {
+		int objectCount = hit300 + hit100 + hit50 + miss;
 		if (objectCount < 1)  // avoid division by zero
 			return Grade.NULL;
 
 		// TODO: silvers
-		float percent = getScorePercent();
-		float hit300ratio = hitResultCount[HIT_300] * 100f / objectCount;
-		float hit50ratio  = hitResultCount[HIT_50] * 100f / objectCount;
-		boolean noMiss    = (hitResultCount[HIT_MISS] == 0);
+		float percent = getScorePercent(hit300, hit100, hit50, miss);
+		float hit300ratio = hit300 * 100f / objectCount;
+		float hit50ratio  = hit50 * 100f / objectCount;
+		boolean noMiss    = (miss == 0);
 		if (percent >= 100f)
 			return Grade.SS;
 		else if (hit300ratio >= 90f && hit50ratio < 1.0f && noMiss)
@@ -652,6 +725,17 @@ public class GameData {
 			return Grade.C;
 		else
 			return Grade.D;
+	}
+
+	/**
+	 * Returns letter grade based on score data,
+	 * or Grade.NULL if no objects have been processed.
+	 */
+	private Grade getGrade() {
+		return getGrade(
+			hitResultCount[HIT_300], hitResultCount[HIT_100],
+			hitResultCount[HIT_50], hitResultCount[HIT_MISS]
+		);
 	}
 
 	/**
@@ -792,25 +876,21 @@ public class GameData {
 			perfectHit = true;
 			hitValue = 300;
 			changeHealth(5f);
-			objectCount++;
 			break;
 		case HIT_100:
 			hitValue = 100;
 			changeHealth(2f);
 			comboEnd |= 1;
-			objectCount++;
 			break;
 		case HIT_50:
 			hitValue = 50;
 			comboEnd |= 2;
-			objectCount++;
 			break;
 		case HIT_MISS:
 			hitValue = 0;
 			changeHealth(-10f);
 			comboEnd |= 2;
 			resetComboStreak();
-			objectCount++;
 			break;
 		default:
 			return;
@@ -864,4 +944,47 @@ public class GameData {
 		else
 			hitResultList.add(new OsuHitObjectResult(time, result, x, y, color));
 	}
+
+	/**
+	 * Returns a ScoreData object encapsulating all game data.
+	 * If score data already exists, the existing object will be returned
+	 * (i.e. this will not overwrite existing data).
+	 * @param osu the OsuFile
+	 * @return the ScoreData object
+	 */
+	public ScoreData getScoreData(OsuFile osu) {
+		if (scoreData != null)
+			return scoreData;
+
+		scoreData = new ScoreData();
+		scoreData.timestamp = System.currentTimeMillis() / 1000L;
+		scoreData.MID = osu.beatmapID;
+		scoreData.MSID = osu.beatmapSetID;
+		scoreData.title = osu.title;
+		scoreData.artist = osu.artist;
+		scoreData.creator = osu.creator;
+		scoreData.version = osu.version;
+		scoreData.hit300 = hitResultCount[HIT_300];
+		scoreData.hit100 = hitResultCount[HIT_100];
+		scoreData.hit50 = hitResultCount[HIT_50];
+		scoreData.geki = hitResultCount[HIT_300G];
+		scoreData.katu = hitResultCount[HIT_300K] + hitResultCount[HIT_100K];
+		scoreData.miss = hitResultCount[HIT_MISS];
+		scoreData.score = score;
+		scoreData.combo = comboMax;
+		scoreData.perfect = (comboMax == fullObjectCount);
+		int mods = 0;
+		for (GameMod mod : GameMod.values()) {
+			if (mod.isActive())
+				mods |= mod.getBit();
+		}
+		scoreData.mods = mods;
+		return scoreData;
+	}
+
+	/**
+	 * Returns whether or not this object is used for gameplay.
+	 * @return true if gameplay, false if score viewing
+	 */
+	public boolean isGameplay() { return gameplay; }
 }

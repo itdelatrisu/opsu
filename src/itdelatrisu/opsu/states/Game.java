@@ -28,6 +28,7 @@ import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.OsuFile;
 import itdelatrisu.opsu.OsuHitObject;
 import itdelatrisu.opsu.OsuTimingPoint;
+import itdelatrisu.opsu.Scores;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.HitSound;
 import itdelatrisu.opsu.audio.MusicController;
@@ -160,7 +161,6 @@ public class Game extends BasicGameState {
 
 		// create the associated GameData object
 		data = new GameData(width, height);
-		((GameRanking) game.getState(Opsu.STATE_GAMERANKING)).setGameData(data);
 	}
 
 	@Override
@@ -419,8 +419,12 @@ public class Game extends BasicGameState {
 		if (objectIndex >= osu.objects.length) {
 			if (checkpointLoaded)  // if checkpoint used, skip ranking screen
 				game.closeRequested();
-			else  // go to ranking screen
+			else {  // go to ranking screen
+				((GameRanking) game.getState(Opsu.STATE_GAMERANKING)).setGameData(data);
+				if (!GameMod.AUTO.isActive())
+					Scores.addScore(data.getScoreData(osu));
 				game.enterState(Opsu.STATE_GAMERANKING, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
+			}
 			return;
 		}
 
@@ -800,7 +804,7 @@ public class Game extends BasicGameState {
 
 		// load other images...
 		((GamePauseMenu) game.getState(Opsu.STATE_GAMEPAUSEMENU)).loadImages();
-		data.loadImages(osu.getFile().getParentFile());
+		data.loadImages();
 	}
 
 	/**
