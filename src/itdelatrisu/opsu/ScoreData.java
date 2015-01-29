@@ -59,6 +59,9 @@ public class ScoreData implements Comparable<ScoreData> {
 	/** Game mod bitmask. */
 	public int mods;
 
+	/** Time since the score was achieved. */
+	private String timeSince;
+
 	/** The grade. */
 	private Grade grade;
 
@@ -192,6 +195,26 @@ public class ScoreData implements Comparable<ScoreData> {
 	}
 
 	/**
+	 * Returns the time since achieving the score, or null if over 24 hours.
+	 * This value will not change after the first call.
+	 * @return a string: {number}{s|m|h}
+	 */
+	public String getTimeSince() {
+		if (timeSince == null) {
+			long seconds = (System.currentTimeMillis() / 1000L) - timestamp;
+			if (seconds < 60)
+				timeSince = String.format("%ds", seconds);
+			else if (seconds < 3600)
+				timeSince = String.format("%dm", seconds / 60L);
+			else if (seconds < 86400)
+				timeSince = String.format("%dh", seconds / 3600L);
+			else
+				timeSince = "";
+		}
+		return (timeSince.isEmpty()) ? null : timeSince;
+	}
+
+	/**
 	 * Draws the score data as a rectangular button.
 	 * @param g the graphics context
 	 * @param index the index (to offset the button from the topmost button)
@@ -201,8 +224,10 @@ public class ScoreData implements Comparable<ScoreData> {
 	 */
 	public void draw(Graphics g, int index, int rank, long prevScore, boolean focus) {
 		Image img = getGrade().getMenuImage();
+		float textX = baseX + buttonWidth * 0.24f;
+		float edgeX = baseX + buttonWidth * 0.98f;
 		float y = baseY + index * (buttonOffset);
-		float textX = baseX + buttonWidth * 0.24f, edgeX = baseX + buttonWidth * 0.98f;
+		float midY = y + buttonHeight / 2f;
 		float marginY = Utils.FONT_DEFAULT.getLineHeight() * 0.01f;
 
 		// rectangle outline
@@ -219,7 +244,7 @@ public class ScoreData implements Comparable<ScoreData> {
 		}
 
 		// grade image
-		img.drawCentered(baseX + buttonWidth * 0.15f, y + buttonHeight / 2f);
+		img.drawCentered(baseX + buttonWidth * 0.15f, midY);
 
 		// score
 		float textOffset = (buttonHeight - Utils.FONT_MEDIUM.getLineHeight() - Utils.FONT_SMALL.getLineHeight()) / 2f;
@@ -269,6 +294,17 @@ public class ScoreData implements Comparable<ScoreData> {
 				y + marginY + Utils.FONT_DEFAULT.getLineHeight() * 2,
 				diff, Color.white
 		);
+
+		// time since
+		if (getTimeSince() != null) {
+			Image clock = GameImage.HISTORY.getImage();
+			clock.drawCentered(baseX + buttonWidth * 1.02f + clock.getWidth() / 2f, midY);
+			Utils.FONT_DEFAULT.drawString(
+					baseX + buttonWidth * 1.03f + clock.getWidth(),
+					midY - Utils.FONT_DEFAULT.getLineHeight() / 2f,
+					getTimeSince(), Color.white
+			);
+		}
 	}
 
 	@Override

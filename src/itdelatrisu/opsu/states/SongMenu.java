@@ -280,7 +280,7 @@ public class SongMenu extends BasicGameState {
 		for (int i = 0; i < MAX_SONG_BUTTONS && node != null; i++, node = node.next) {
 			// draw the node
 			float offset = (i == hoverIndex) ? hoverOffset : 0f;
-			ScoreData[] scores = getScoreDataForNode(node);
+			ScoreData[] scores = getScoreDataForNode(node, false);
 			node.draw(
 					buttonX - offset, buttonY + (i*buttonOffset),
 					(scores == null) ? Grade.NULL : scores[0].getGrade(),
@@ -797,7 +797,7 @@ public class SongMenu extends BasicGameState {
 			// reload scores
 			if (focusNode != null) {
 				scoreMap = ScoreDB.getMapSetScores(focusNode.osuFiles.get(focusNode.osuFileIndex));
-				focusScores = getScoreDataForNode(focusNode);
+				focusScores = getScoreDataForNode(focusNode, true);
 			}
 
 			resetGame = false;
@@ -892,7 +892,7 @@ public class SongMenu extends BasicGameState {
 
 		// load scores
 		scoreMap = ScoreDB.getMapSetScores(osu);
-		focusScores = getScoreDataForNode(focusNode);
+		focusScores = getScoreDataForNode(focusNode, true);
 		startScore = 0;
 
 		// check startNode bounds
@@ -936,9 +936,10 @@ public class SongMenu extends BasicGameState {
 	 * Returns all the score data for an OsuGroupNode from scoreMap.
 	 * If no score data is available for the node, return null.
 	 * @param node the OsuGroupNode
+	 * @param setTimeSince whether or not to set the "time since" field for the scores
 	 * @return the ScoreData array
 	 */
-	private ScoreData[] getScoreDataForNode(OsuGroupNode node) {
+	private ScoreData[] getScoreDataForNode(OsuGroupNode node, boolean setTimeSince) {
 		if (scoreMap == null || scoreMap.isEmpty() || node.osuFileIndex == -1)  // node not expanded
 			return null;
 
@@ -950,9 +951,13 @@ public class SongMenu extends BasicGameState {
 		ScoreData s = scores[0];
 		if (osu.beatmapID == s.MID && osu.beatmapSetID == s.MSID &&
 		    osu.title.equals(s.title) && osu.artist.equals(s.artist) &&
-		    osu.creator.equals(s.creator))
+		    osu.creator.equals(s.creator)) {
+			if (setTimeSince) {
+				for (int i = 0; i < scores.length; i++)
+					scores[i].getTimeSince();
+			}
 			return scores;
-		else
+		} else
 			return null;  // incorrect map
 	}
 
