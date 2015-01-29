@@ -275,11 +275,9 @@ public class MusicController {
 	}
 
 	/**
-	 * Returns whether or not the current track, if any, is the theme song.
+	 * Returns whether or not the theme song is playing.
 	 */
-	public static boolean isThemePlaying() {
-		return (themePlaying && trackExists());
-	}
+	public static boolean isThemePlaying() { return themePlaying; }
 
 	/**
 	 * Returns whether or not the volume of the current track, if any,
