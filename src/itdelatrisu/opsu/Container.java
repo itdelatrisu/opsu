@@ -90,6 +90,7 @@ public class Container extends AppGameContainer {
 
 		// reset image references
 		GameImage.clearReferences();
+		GameData.Grade.clearReferences();
 		OsuFile.resetImageCache();
 
 		// prevent loading tracks from re-initializing OpenAL

@@ -171,7 +171,8 @@ public class GameRanking extends BasicGameState {
 			throws SlickException {
 		Display.setTitle(game.getTitle());
 		Utils.getBackButton().setScale(1f);
-		SoundController.playSound(SoundEffect.APPLAUSE);
+		if (data.isGameplay())
+			SoundController.playSound(SoundEffect.APPLAUSE);
 	}
 
 	@Override

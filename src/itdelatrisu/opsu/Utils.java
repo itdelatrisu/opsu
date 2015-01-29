@@ -18,6 +18,7 @@
 
 package itdelatrisu.opsu;
 
+import itdelatrisu.opsu.Scores.ScoreData;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
 
@@ -197,6 +198,9 @@ public class Utils {
 
 		// initialize hit objects
 		OsuHitObject.init(width, height);
+
+		// initialize score data buttons
+		ScoreData.init(width, height);
 
 		// back button
 		Image back = GameImage.MENU_BACK.getImage();

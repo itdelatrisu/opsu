@@ -19,6 +19,7 @@
 package itdelatrisu.opsu;
 
 import itdelatrisu.opsu.GameData.Grade;
+import itdelatrisu.opsu.states.SongMenu;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -26,6 +27,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -34,6 +36,10 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.newdawn.slick.Color;
+import org.newdawn.slick.Graphics;
+import org.newdawn.slick.Image;
 
 /**
  * Handles game score data.
@@ -64,6 +70,80 @@ public class Scores {
 
 		/** Game mod bitmask. */
 		public int mods;
+
+		/** The grade. */
+		private Grade grade;
+
+		/** The score percent. */
+		private float scorePercent = -1f;
+
+		/** Drawing values. */
+		private static float baseX, baseY, buttonWidth, buttonHeight, buttonOffset;
+
+		/** Container dimensions. */
+		private static int containerWidth, containerHeight;
+
+		/** Button background colors. */
+		private static final Color
+			BG_NORMAL = new Color(0, 0, 0, 0.25f),
+			BG_FOCUS  = new Color(0, 0, 0, 0.75f);
+
+		/**
+		 * Initializes the base coordinates for drawing.
+		 * @param width the container width
+		 * @param height the container height
+		 */
+		public static void init(int width, int height) {
+			containerWidth = width;
+			containerHeight = height;
+
+			baseX = width * 0.01f;
+			baseY = height * 0.16f;
+			buttonWidth = width * 0.4f;
+			float gradeHeight = GameImage.MENU_BUTTON_BG.getImage().getHeight() * 0.45f;
+			buttonHeight = Math.max(gradeHeight, Utils.FONT_DEFAULT.getLineHeight() * 3.03f);
+			buttonOffset = buttonHeight + gradeHeight / 10f;
+		}
+
+		/**
+		 * Returns true if the coordinates are within the bounds of the
+		 * button at the given index.
+		 * @param cx the x coordinate
+		 * @param cy the y coordinate
+		 * @param index the index (to offset the button from the topmost button)
+		 */
+		public static boolean buttonContains(float cx, float cy, int index) {
+			float y = baseY + (index * buttonOffset);
+			return ((cx >= 0 && cx < baseX + buttonWidth) &&
+			        (cy > y && cy < y + buttonHeight));
+		}
+
+		/**
+		 * Returns true if the coordinates are within the bounds of the
+		 * score button area.
+		 * @param cx the x coordinate
+		 * @param cy the y coordinate
+		 */
+		public static boolean areaContains(float cx, float cy) {
+			return ((cx >= 0 && cx < baseX + buttonWidth) &&
+			        (cy > baseY && cy < baseY + buttonOffset * SongMenu.MAX_SCORE_BUTTONS));
+		}
+
+		/**
+		 * Draws the scroll bar for the score buttons.
+		 * @param g the graphics context
+		 * @param index the start button index
+		 * @param total the total number of buttons
+		 */
+		public static void drawScrollbar(Graphics g, int index, int total) {
+			float scorebarWidth = containerWidth * 0.00347f;
+			float heightRatio = 0.0016f * (total * total) - 0.0705f * total + 0.9965f;
+			float scorebarHeight = containerHeight * heightRatio;
+			float heightDiff = buttonHeight + buttonOffset * (SongMenu.MAX_SCORE_BUTTONS - 1) - scorebarHeight;
+			float offsetY = heightDiff * ((float) index / (total - SongMenu.MAX_SCORE_BUTTONS));
+			g.setColor(Color.white);
+			g.fillRect(0, baseY + offsetY, scorebarWidth, scorebarHeight);
+		}
 
 		/**
 		 * Empty constructor.
@@ -103,12 +183,104 @@ public class Scores {
 		}
 
 		/**
+		 * Returns the raw score percentage based on score data.
+		 * @see GameData#getScorePercent(int, int, int, int)
+		 */
+		private float getScorePercent() {
+			if (scorePercent < 0f)
+				scorePercent = GameData.getScorePercent(hit300, hit100, hit50, miss);
+			return scorePercent;
+		}
+
+		/**
 		 * Returns letter grade based on score data,
 		 * or Grade.NULL if no objects have been processed.
 		 * @see GameData#getGrade(int, int, int, int)
 		 */
 		public Grade getGrade() {
-			return GameData.getGrade(hit300, hit100, hit50, miss);
+			if (grade == null)
+				grade = GameData.getGrade(hit300, hit100, hit50, miss);
+			return grade;
+		}
+
+		/**
+		 * Draws the score data as a rectangular button.
+		 * @param g the graphics context
+		 * @param index the index (to offset the button from the topmost button)
+		 * @param rank the score rank
+		 * @param prevScore the previous (lower) score, or -1 if none
+		 * @param focus whether the button is focused
+		 */
+		public void draw(Graphics g, int index, int rank, long prevScore, boolean focus) {
+			Image img = getGrade().getMenuImage();
+			float y = baseY + index * (buttonOffset);
+			float textX = baseX + buttonWidth * 0.24f, edgeX = baseX + buttonWidth * 0.98f;
+			float marginY = Utils.FONT_DEFAULT.getLineHeight() * 0.01f;
+
+			// rectangle outline
+			g.setColor((focus) ? BG_FOCUS : BG_NORMAL);
+			g.fillRect(baseX, y, buttonWidth, buttonHeight);
+
+			// rank
+			if (focus) {
+				Utils.FONT_LARGE.drawString(
+						baseX + buttonWidth * 0.04f,
+						y + (buttonHeight - Utils.FONT_LARGE.getLineHeight()) / 2f,
+						Integer.toString(rank + 1), Color.white
+				);
+			}
+
+			// grade image
+			img.drawCentered(baseX + buttonWidth * 0.15f, y + buttonHeight / 2f);
+
+			// score
+			float textOffset = (buttonHeight - Utils.FONT_MEDIUM.getLineHeight() - Utils.FONT_SMALL.getLineHeight()) / 2f;
+			Utils.FONT_MEDIUM.drawString(
+					textX, y + textOffset,
+					String.format("Score: %s (%dx)", NumberFormat.getNumberInstance().format(score), combo),
+					Color.white
+			);
+
+			// hit counts (custom: osu! shows user instead, above score)
+			Utils.FONT_SMALL.drawString(
+					textX, y + textOffset + Utils.FONT_MEDIUM.getLineHeight(),
+					String.format("300:%d  100:%d  50:%d  Miss:%d", hit300, hit100, hit50, miss),
+					Color.white
+			);
+
+			// mods
+			StringBuilder sb = new StringBuilder();
+			for (GameMod mod : GameMod.values()) {
+				if ((mod.getBit() & mods) > 0) {
+					sb.append(mod.getAbbreviation());
+					sb.append(',');
+				}
+			}
+			if (sb.length() > 0) {
+				sb.setLength(sb.length() - 1);
+				String modString = sb.toString();
+				Utils.FONT_DEFAULT.drawString(
+						edgeX - Utils.FONT_DEFAULT.getWidth(modString),
+						y + marginY, modString, Color.white
+				);
+			}
+
+			// accuracy
+			String accuracy = String.format("%.2f%%", getScorePercent());
+			Utils.FONT_DEFAULT.drawString(
+					edgeX - Utils.FONT_DEFAULT.getWidth(accuracy),
+					y + marginY + Utils.FONT_DEFAULT.getLineHeight(),
+					accuracy, Color.white
+			);
+
+			// score difference
+			String diff = (prevScore < 0 || score < prevScore) ?
+					"-" : String.format("+%s", NumberFormat.getNumberInstance().format(score - prevScore));
+			Utils.FONT_DEFAULT.drawString(
+					edgeX - Utils.FONT_DEFAULT.getWidth(diff),
+					y + marginY + Utils.FONT_DEFAULT.getLineHeight() * 2,
+					diff, Color.white
+			);
 		}
 
 		@Override

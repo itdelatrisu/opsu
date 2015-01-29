@@ -55,6 +55,18 @@ public class GameData {
 		/** GameImages associated with this grade (large and small sizes). */
 		private GameImage large, small;
 
+		/** Large-size image scaled for use in song menu. */
+		private Image menuImage;
+
+		/**
+		 * Clears all image references.
+		 * This does NOT destroy images, so be careful of memory leaks!
+		 */
+		public static void clearReferences() {
+			for (Grade grade : Grade.values())
+				grade.menuImage = null;
+		}
+
 		/**
 		 * Constructor.
 		 * @param large the large size image
@@ -74,6 +86,20 @@ public class GameData {
 		 * Returns the small size grade image.
 		 */
 		public Image getSmallImage() { return small.getImage(); }
+
+		/**
+		 * Returns the large size grade image scaled for song menu use.
+		 */
+		public Image getMenuImage() {
+			if (menuImage != null)
+				return menuImage;
+
+			Image img = getSmallImage();
+			img = img.getScaledCopy((GameImage.MENU_BUTTON_BG.getImage().getHeight() * 0.45f) / img.getHeight());
+			if (!small.hasSkinImage())  // save default image only
+				this.menuImage = img;
+			return img;
+		}
 	}
 
 	/** Hit result types. */

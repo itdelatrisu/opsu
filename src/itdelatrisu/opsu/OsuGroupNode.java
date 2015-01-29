@@ -81,8 +81,7 @@ public class OsuGroupNode {
 		float cy = y + (bg.getHeight() * 0.2f) - 3;
 
 		if (grade != Grade.NULL) {
-			Image gradeImg = grade.getSmallImage();
-			gradeImg = gradeImg.getScaledCopy((bg.getHeight() * 0.45f) / gradeImg.getHeight());
+			Image gradeImg = grade.getMenuImage();
 			gradeImg.drawCentered(cx - bg.getWidth() * 0.01f + gradeImg.getWidth() / 2f, y + bg.getHeight() / 2.2f);
 			cx += gradeImg.getWidth();
 		}
