@@ -28,7 +28,7 @@ import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.OsuFile;
 import itdelatrisu.opsu.OsuHitObject;
 import itdelatrisu.opsu.OsuTimingPoint;
-import itdelatrisu.opsu.Scores;
+import itdelatrisu.opsu.ScoreDB;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.HitSound;
 import itdelatrisu.opsu.audio.MusicController;
@@ -422,7 +422,7 @@ public class Game extends BasicGameState {
 			else {  // go to ranking screen
 				((GameRanking) game.getState(Opsu.STATE_GAMERANKING)).setGameData(data);
 				if (!GameMod.AUTO.isActive())
-					Scores.addScore(data.getScoreData(osu));
+					ScoreDB.addScore(data.getScoreData(osu));
 				game.enterState(Opsu.STATE_GAMERANKING, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 			}
 			return;

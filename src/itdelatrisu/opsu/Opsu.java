@@ -138,7 +138,7 @@ public class Opsu extends StateBasedGame {
 		Options.TMP_DIR.deleteOnExit();
 
 		// initialize score database
-		Scores.init();
+		ScoreDB.init();
 
 		// start the game
 		try {
@@ -202,7 +202,7 @@ public class Opsu extends StateBasedGame {
 	 */
 	public static void exit() {
 		// close scores database
-		Scores.closeConnection();
+		ScoreDB.closeConnection();
 
 		// close server socket
 		if (SERVER_SOCKET != null) {

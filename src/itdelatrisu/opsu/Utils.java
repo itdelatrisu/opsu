@@ -18,7 +18,6 @@
 
 package itdelatrisu.opsu;
 
-import itdelatrisu.opsu.Scores.ScoreData;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
 

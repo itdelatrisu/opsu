@@ -30,8 +30,8 @@ import itdelatrisu.opsu.OsuGroupList;
 import itdelatrisu.opsu.OsuGroupNode;
 import itdelatrisu.opsu.OsuParser;
 import itdelatrisu.opsu.OszUnpacker;
-import itdelatrisu.opsu.Scores;
-import itdelatrisu.opsu.Scores.ScoreData;
+import itdelatrisu.opsu.ScoreData;
+import itdelatrisu.opsu.ScoreDB;
 import itdelatrisu.opsu.SongSort;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.HitSound;
@@ -796,7 +796,7 @@ public class SongMenu extends BasicGameState {
 
 			// reload scores
 			if (focusNode != null) {
-				scoreMap = Scores.getMapSetScores(focusNode.osuFiles.get(focusNode.osuFileIndex));
+				scoreMap = ScoreDB.getMapSetScores(focusNode.osuFiles.get(focusNode.osuFileIndex));
 				focusScores = getScoreDataForNode(focusNode);
 			}
 
@@ -891,7 +891,7 @@ public class SongMenu extends BasicGameState {
 		Utils.loadGlyphs(osu);
 
 		// load scores
-		scoreMap = Scores.getMapSetScores(osu);
+		scoreMap = ScoreDB.getMapSetScores(osu);
 		focusScores = getScoreDataForNode(focusNode);
 		startScore = 0;
 
