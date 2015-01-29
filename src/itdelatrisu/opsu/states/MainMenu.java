@@ -249,7 +249,7 @@ public class MainMenu extends BasicGameState {
 		// window focus change: increase/decrease theme song volume
 		if (MusicController.isThemePlaying() &&
 		    MusicController.isTrackDimmed() == container.hasFocus())
-				MusicController.toggleTrackDimmed();
+				MusicController.toggleTrackDimmed(0.33f);
 
 		// fade in background
 		if (bgAlpha < 0.9f) {

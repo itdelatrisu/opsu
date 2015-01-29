@@ -777,6 +777,10 @@ public class SongMenu extends BasicGameState {
 		else if (MusicController.isPaused())
 			MusicController.resume();
 
+		// undim track
+		if (MusicController.isTrackDimmed())
+			MusicController.toggleTrackDimmed(1f);
+
 		// reset song stack
 		randomStack = new Stack<SongNode>();
 

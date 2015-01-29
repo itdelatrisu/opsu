@@ -171,7 +171,10 @@ public class GameRanking extends BasicGameState {
 			throws SlickException {
 		Display.setTitle(game.getTitle());
 		Utils.getBackButton().setScale(1f);
-		if (data.isGameplay())
+		if (!data.isGameplay()) {
+			if (!MusicController.isTrackDimmed())
+				MusicController.toggleTrackDimmed(0.5f);
+		} else
 			SoundController.playSound(SoundEffect.APPLAUSE);
 	}
 
@@ -199,7 +202,10 @@ public class GameRanking extends BasicGameState {
 	 * Sets the associated GameData object.
 	 * @param data the GameData
 	 */
-	public void setGameData(GameData data) {
-		this.data = data;
-	}
+	public void setGameData(GameData data) { this.data = data; }
+
+	/**
+	 * Returns the current GameData object (usually null unless state active).
+	 */
+	public GameData getGameData() { return data; }
 }

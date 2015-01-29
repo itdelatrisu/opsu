@@ -289,10 +289,11 @@ public class MusicController {
 
 	/**
 	 * Toggles the volume dim state of the current track.
+	 * @param multiplier the volume multiplier when the track is dimmed
 	 */
-	public static void toggleTrackDimmed() {
+	public static void toggleTrackDimmed(float multiplier) {
 		float volume = Options.getMusicVolume() * Options.getMasterVolume();
-		setVolume((trackDimmed) ? volume : volume / 3f);
+		setVolume((trackDimmed) ? volume : volume * multiplier);
 		trackDimmed = !trackDimmed;
 	}
 

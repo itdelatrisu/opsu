@@ -95,6 +95,10 @@ public class Container extends AppGameContainer {
 
 		// prevent loading tracks from re-initializing OpenAL
 		MusicController.reset();
+
+		// reset OsuGroupList data
+		if (OsuGroupList.get() != null)
+			OsuGroupList.get().reset();
 	}
 
 	@Override
