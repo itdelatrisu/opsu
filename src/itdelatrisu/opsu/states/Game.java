@@ -484,7 +484,7 @@ public class Game extends BasicGameState {
 		data.changeHealth(delta * -1 * GameData.HP_DRAIN_MULTIPLIER);
 		if (!data.isAlive()) {
 			// "Easy" mod
-			if (GameMod.EASY.isActive()) {
+			if (GameMod.EASY.isActive() && !GameMod.SUDDEN_DEATH.isActive()) {
 				deaths++;
 				if (deaths < 3) {
 					deathTime = trackPosition;

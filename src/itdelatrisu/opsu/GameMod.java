@@ -125,9 +125,11 @@ public enum GameMod {
 		float y = (height * 0.8f) + (img.getHeight() / 2);
 
 		// create button
-		img.setAlpha(0.5f);
 		this.button = new MenuButton(img, x + (offsetX * id), y);
 		this.button.setHoverScale(1.15f);
+
+		// reset state
+		this.active = false;
 	}
 
 	/**
@@ -160,7 +162,6 @@ public enum GameMod {
 	 * @param checkInverse if true, perform checks for mutual exclusivity
 	 */
 	public void toggle(boolean checkInverse) {
-		button.getImage().setAlpha(active ? 0.5f : 1.0f);
 		active = !active;
 
 		if (checkInverse) {
@@ -205,7 +206,12 @@ public enum GameMod {
 	/**
 	 * Draws the game mod.
 	 */
-	public void draw() { button.draw(); }
+	public void draw() {
+		if (!active)
+			button.getImage().setAlpha(0.5f);
+		button.draw();
+		button.getImage().setAlpha(1.0f);
+	}
 
 	/**
 	 * Checks if the coordinates are within the image bounds.

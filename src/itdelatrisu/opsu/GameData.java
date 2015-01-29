@@ -538,12 +538,8 @@ public class GameData {
 	public void drawRankingElements(Graphics g, OsuFile osu) {
 		// grade
 		Grade grade = getGrade();
-		if (grade != Grade.NULL) {
-			Image gradeImage = grade.getLargeImage();
-			float gradeScale = (height * 0.5f) / gradeImage.getHeight();
-			gradeImage = gradeImage.getScaledCopy(gradeScale);
-			gradeImage.draw(width - gradeImage.getWidth(), height * 0.09f);
-		}
+		if (grade != Grade.NULL)
+			grade.getLargeImage().draw(width * 0.985f - grade.getLargeImage().getWidth(), height * 0.09f);
 
 		// header & "Ranking" text
 		Image rankingTitle = GameImage.RANKING_TITLE.getImage();

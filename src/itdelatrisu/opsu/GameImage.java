@@ -190,21 +190,61 @@ public enum GameImage {
 	HIT_300G ("hit300g", "png"),
 	HIT_SLIDER10 ("sliderpoint10", "png"),
 	HIT_SLIDER30 ("sliderpoint30", "png"),
-	RANKING_SS ("ranking-X", "png"),
+	RANKING_SS ("ranking-X", "png") {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy((h / 2f) / img.getHeight());
+		}
+	},
 	RANKING_SS_SMALL ("ranking-X-small", "png"),
-	RANKING_SSH ("ranking-XH", "png"),
+	RANKING_SSH ("ranking-XH", "png") {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy((h / 2f) / img.getHeight());
+		}
+	},
 	RANKING_SSH_SMALL ("ranking-XH-small", "png"),
-	RANKING_S ("ranking-S", "png"),
+	RANKING_S ("ranking-S", "png") {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy((h / 2f) / img.getHeight());
+		}
+	},
 	RANKING_S_SMALL ("ranking-S-small", "png"),
-	RANKING_SH ("ranking-SH", "png"),
+	RANKING_SH ("ranking-SH", "png") {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy((h / 2f) / img.getHeight());
+		}
+	},
 	RANKING_SH_SMALL ("ranking-SH-small", "png"),
-	RANKING_A ("ranking-A", "png"),
+	RANKING_A ("ranking-A", "png") {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy((h / 2f) / img.getHeight());
+		}
+	},
 	RANKING_A_SMALL ("ranking-A-small", "png"),
-	RANKING_B ("ranking-B", "png"),
+	RANKING_B ("ranking-B", "png") {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy((h / 2f) / img.getHeight());
+		}
+	},
 	RANKING_B_SMALL ("ranking-B-small", "png"),
-	RANKING_C ("ranking-C", "png"),
+	RANKING_C ("ranking-C", "png") {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy((h / 2f) / img.getHeight());
+		}
+	},
 	RANKING_C_SMALL ("ranking-C-small", "png"),
-	RANKING_D ("ranking-D", "png"),
+	RANKING_D ("ranking-D", "png") {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy((h / 2f) / img.getHeight());
+		}
+	},
 	RANKING_D_SMALL ("ranking-D-small", "png"),
 	RANKING_PANEL ("ranking-panel", "png") {
 		@Override
