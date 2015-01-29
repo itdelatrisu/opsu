@@ -521,7 +521,9 @@ public class Slider implements HitObject {
 			for(int i=0; i<npoints; i++){
 				Vec2f tpoi = new Vec2f(getX(i), getY(i));
 				if(lastPoi!=null && tpoi.equals(lastPoi)){
-					beziers.add(new Bezier2(points.toArray(new Vec2f[0])));
+					if(points.size()>=2){
+						beziers.add(new Bezier2(points.toArray(new Vec2f[0])));
+					}
 					points.clear();
 				}
 				points.add(tpoi);
@@ -588,10 +590,18 @@ public class Slider implements HitObject {
 			}
 			//if (hitObject.getRepeatCount() > 1) {
 				Vec2f c1 = curve[0];
-				Vec2f c2 = curve[1];
+				int cnt = 1;
+				Vec2f c2 = curve[cnt++];
+				while(c2.cpy().sub(c1).len()<1){
+					c2 = curve[cnt++];
+				}
 				startAngle = (float) (Math.atan2(c2.y - c1.y, c2.x - c1.x) * 180 / Math.PI);
 				c1 = curve[ncurve-1];
-				c2 = curve[ncurve-2];
+				cnt= ncurve-2;
+				c2 = curve[cnt];
+				while(c2.cpy().sub(c1).len()<1){
+					c2 = curve[cnt--];
+				}
 				endAngle = (float) (Math.atan2(c2.y - c1.y, c2.x - c1.x) * 180 / Math.PI);
 			//}
 			//System.out.println("Total Distance: "+totalDistance+" "+distanceAt+" "+beziers.size()+" "+hitObject.getPixelLength()+" "+hitObject.xMultiplier);
