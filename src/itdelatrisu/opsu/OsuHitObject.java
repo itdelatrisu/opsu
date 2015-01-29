@@ -287,7 +287,10 @@ public class OsuHitObject {
 	 * @return true if new combo
 	 */
 	public boolean isNewCombo() { return (type & TYPE_NEWCOMBO) > 0; }
-
+	/**
+	 * Returns the multiplier for coordinates
+	 * @return
+	 */
 	public static float getMultiplier() {
 		return xMultiplier;
 	}

@@ -92,71 +92,154 @@ public class Slider implements HitObject {
 	private int ticksHit = 0, tickIntervals = 1;
 
 	private abstract class Curve{
+		/**
+		 * Returns the point on the curve at a value t.
+		 * @param t the t value [0, 1]
+		 * @return the point [x, y]
+		 */
 		public abstract float[] pointAt(float t);
 
+		/**
+		 * Draws the full Bezier curve to the graphics context.
+		 */
 		public abstract void draw();
 
+		/**
+		 * Returns the angle of the first control point.
+		 */
 		public abstract float getEndAngle();
-
+		
+		/**
+		 * Returns the angle of the last control point.
+		 */
 		public abstract float getStartAngle();
 	}
+	
+	/**
+	 * A two dimensional vector
+	 */
 	private class Vec2f{
 		float x, y;
+		
+		/**
+		 * Constructor of the (nx, ny) Vector
+		 * @param nx
+		 * @param ny
+		 */
 		public Vec2f(float nx, float ny) {
 			x=nx;
 			y=ny;
 		}
+		/**
+		 * Constructor of the (0,0) Vector
+		 */
 		public Vec2f() {
-			// TODO Auto-generated constructor stub
 		}
+		
+		/**
+		 * Finds the midpoint between this Vector and "o" Vector
+		 * @param o the other Vector
+		 * @return midpoint vector
+		 */
 		public Vec2f midPoint(Vec2f o){
 			return new Vec2f((x+o.x)/2, (y+o.y)/2);
 		}
+		/**
+		 * Subtracts the "o" vector from this vector
+		 * @param o the other Vector
+		 * @return itself for chaining
+		 */
 		public Vec2f sub(Vec2f o){
 			x-=o.x;
 			y-=o.y;
 			return this;
 		}
+		/**
+		 * Sets this Vector to the normal of this Vector
+		 * @return itself for chaining
+		 */
 		public Vec2f nor(){
 			float nx = -y, ny =x;
 			x=nx;
 			y=ny;
 			return this;
 		}
+		/**
+		 * Makes a new Vector that is a copy of this Vector
+		 * @return a copy of this Vector
+		 */
 		public Vec2f cpy(){
 			return new Vec2f(x, y);
 		}
+		/**
+		 * Adds nx to the x component and ny to the y component of this Vector
+		 * @param nx
+		 * @param ny
+		 * @return
+		 */
 		public Vec2f add(float nx, float ny) {
 			x+=nx;
 			y+=ny;
 			return this;
 		}
+		
+		/**
+		 * Finds the length of this Vector
+		 * @return the length of this Vector
+		 */
 		public float len() {
 			return (float) Math.sqrt(x*x + y*y);
 		}
+		/**
+		 * Compares this vector to another Vector
+		 * @param o the Other Vector
+		 * @return true if the two Vector are numerically equal
+		 */
 		public boolean equals(Vec2f o){
 			return x==o.x && y==o.y;
 		}
 		
 	}
-	//finds a circle that intersects all three points
-	//http://en.wikipedia.org/wiki/Circumscribed_circle
+	/**
+	 * Representation of a curve along a Circumscribed Circle of three points.
+	 * http://en.wikipedia.org/wiki/Circumscribed_circle
+	 */
 	private class CircumscribedCircle extends Curve{
+		/** The center of the Circumscribed Circle */
 		Vec2f circleCenter; 
-		Vec2f start ,mid ,end;
-		float startAng,endAng,midAng;
-		float drawStartAngle,drawEndAngle;
+		
+		/** The radius of the Circumscribed Circle  */
 		float radius;
-		final float twopi = (float) (2*Math.PI);
-		final float halfpi = (float) (Math.PI/2);
+			
+		/** * The three points to create the Circumscribed Circle from */
+		Vec2f start ,mid ,end;
+		
+		/**  The three angles relative to the circle center */
+		float startAng,endAng,midAng;
+		
+		/** The start and end angles for drawing */
+		float drawStartAngle,drawEndAngle;
+		
+		/** Two times Pi   or  one full circle in radians */
+		final float TWO_PI = (float) (2*Math.PI);
+		/** Pi divided by two   or  a quarter of a circle in radians */
+		final float HALF_PI = (float) (Math.PI/2);
+		
+		/** The number of steps in the curve to draw */
 		private float step;
 		
+		/**
+		 * Constructor
+		 */
 		public CircumscribedCircle(){
 			this.step = hitObject.getPixelLength() / 5;
-			 start = new Vec2f(getX(0), getY(0));
-			 mid = new Vec2f(getX(1), getY(1));
-			 end = new Vec2f(getX(2), getY(2));
 			
+			//construct the three points
+			start = new Vec2f(getX(0), getY(0));
+			mid = new Vec2f(getX(1), getY(1));
+			end = new Vec2f(getX(2), getY(2));
+			
+			//find the circle center
 			Vec2f mida = start.midPoint(mid);
 			Vec2f midb = end.midPoint(mid);
 			Vec2f nora = mid.cpy().sub(start).nor();
@@ -164,7 +247,7 @@ public class Slider implements HitObject {
 			
 			circleCenter = intersect(mida, nora, midb, norb);
 			
-			
+			//find the angles relative to the circle center
 			Vec2f startAngPoint = start.cpy().sub(circleCenter);
 			Vec2f midAngPoint = mid.cpy().sub(circleCenter);
 			Vec2f endAngPoint = end.cpy().sub(circleCenter);
@@ -176,42 +259,56 @@ public class Slider implements HitObject {
 			
 			//find angles that passes thru midAng
 			if(!isIn(startAng,midAng,endAng)){
-				if(Math.abs(startAng+twopi-endAng)<twopi && isIn(startAng+(twopi),midAng,endAng)){
-					startAng+=twopi;
-				}else if(Math.abs(startAng-(endAng+twopi))<twopi && isIn(startAng,midAng,endAng+(twopi))){
-					endAng+=twopi;
-				}else if(Math.abs(startAng-twopi-endAng)<twopi && isIn(startAng-(twopi),midAng,endAng)){
-					startAng-=twopi;
-				}else if(Math.abs(startAng-(endAng-twopi))<twopi && isIn(startAng,midAng,endAng-(twopi))){
-					endAng-=twopi;
+				if(Math.abs(startAng+TWO_PI-endAng)<TWO_PI && isIn(startAng+(TWO_PI),midAng,endAng)){
+					startAng+=TWO_PI;
+				}else if(Math.abs(startAng-(endAng+TWO_PI))<TWO_PI && isIn(startAng,midAng,endAng+(TWO_PI))){
+					endAng+=TWO_PI;
+				}else if(Math.abs(startAng-TWO_PI-endAng)<TWO_PI && isIn(startAng-(TWO_PI),midAng,endAng)){
+					startAng-=TWO_PI;
+				}else if(Math.abs(startAng-(endAng-TWO_PI))<TWO_PI && isIn(startAng,midAng,endAng-(TWO_PI))){
+					endAng-=TWO_PI;
 				}else{
 					throw new Error("Cannot find Angles between midAng "+startAng+" "+midAng+" "+endAng);
 				}
 
 			}
 			
+			//Find an angle with an arc length of pixellength along this cirlce
 			radius = startAngPoint.len();
 			float pixelLength = hitObject.getPixelLength() * OsuHitObject.getMultiplier();
 			float arcAng = pixelLength / radius; //len = theta * r  /  theta = len/r
-					
-			//float orgArcLen = (startAng-endAng)*radius;
-			//System.out.println("ArgLen:"+pixelLength+" "+orgArcLen);
 			
+			//now use it for our new end angle 
 			if(endAng>startAng){
 				endAng=startAng+arcAng;
 			}else{
 				endAng=startAng-arcAng;
 			}
 			
-			
-			drawEndAngle = (float) ((endAng+(startAng>endAng?halfpi:-halfpi)) * 180 / Math.PI);
-			drawStartAngle = (float) ((startAng+(startAng>endAng?-halfpi:halfpi)) * 180 / Math.PI);
+			//finds the angles to draw for repeats
+			drawEndAngle = (float) ((endAng+(startAng>endAng?HALF_PI:-HALF_PI)) * 180 / Math.PI);
+			drawStartAngle = (float) ((startAng+(startAng>endAng?-HALF_PI:HALF_PI)) * 180 / Math.PI);
 		
 		}
+		/**
+		 * Checks to see if "b" is between "a" and "c"
+		 * @param a
+		 * @param b
+		 * @param c
+		 * @return true if b is between a and c
+		 */
 		private boolean isIn(float a,float b,float c){
 			return (b>a && b<c) || (b<a && b>c);
 		}
-		//http://gamedev.stackexchange.com/questions/44720/line-intersection-from-parametric-equation
+		/**
+		 * Finds the point of intersection between two parametric lines of  A = a + ta*t  and B = b + tb*u
+		 * http://gamedev.stackexchange.com/questions/44720/line-intersection-from-parametric-equation
+		 * @param a  the initial position of the line A
+		 * @param ta the direction of the line A
+		 * @param b  the initial position of the line B
+		 * @param tb the direction of the line B
+		 * @return the point at which the two lines interssect
+		 */
 		private Vec2f intersect(Vec2f a, Vec2f ta, Vec2f b, Vec2f tb) {
 			// xy = a + ta * t = b + tb * u
 			// t =(b + tb*u -a)/ta
@@ -229,17 +326,16 @@ public class Slider implements HitObject {
 			float u = ((b.y-a.y)*ta.x + (a.x-b.x)*ta.y) / des;
 			return b.cpy().add(tb.x*u,tb.y*u);
 		}
+		
+		@Override
 		public float[] pointAt(float t) {
 			float ang = lerp(startAng, endAng, t);
 			return new float[]{(float) (Math.cos(ang)*radius+circleCenter.x),(float) (Math.sin(ang)*radius+circleCenter.y)};
 		}
+		@Override
 		public void draw() {
 			Image hitCircle = GameImage.HITCIRCLE.getImage();
 			Image hitCircleOverlay = GameImage.HITCIRCLE_OVERLAY.getImage();
-			//Utils.drawCentered(hitCircleOverlay, start.x, start.y, Utils.COLOR_WHITE_FADE);
-			//Utils.drawCentered(hitCircleOverlay, mid.x, mid.y, Utils.COLOR_WHITE_FADE);
-			//Utils.drawCentered(hitCircleOverlay, end.x, end.y, Utils.COLOR_WHITE_FADE);
-			//Utils.drawCentered(hitCircleOverlay, circleCenter.x, circleCenter.y, Utils.COLOR_WHITE_FADE);
 			// draw overlay and hit circle
 			for(int i=0; i<step; i++){
 				float[] xy = pointAt(i/step);
@@ -396,19 +492,31 @@ public class Slider implements HitObject {
 		}
 	}
 	
-	//Linear(ish)  Bezier curve
-	//http://pomax.github.io/bezierinfo/#tracing
+	/**
+	 * Representation of a Bezier curve with equal distant points.
+	 * http://pomax.github.io/bezierinfo/#tracing
+	 */
 	private class LinearBezier extends Curve{
-		/** The angles of the first and last control points. */
+		/** The angles of the first and last control points for drawing. */
 		private float startAngle, endAngle;
+		
+		/** List of Bezier curves in the set of points */
 		LinkedList<Bezier2> beziers = new LinkedList<Bezier2>();
+		
+		/** Points along the curve at equal distance. */
 		Vec2f[] curve;
+		
+		/** The number of points along the curve */
 		int ncurve;
+		
+		/**
+		 * Constructor
+		 */
 		public LinearBezier(){
 			//splits points into different beziers if has the same points(Red points)
 			
-			int npoints =  hitObject.getSliderX().length + 1;
-			LinkedList<Vec2f> points = new LinkedList<Vec2f>();
+			int npoints =  hitObject.getSliderX().length + 1;	//The number of control points
+			LinkedList<Vec2f> points = new LinkedList<Vec2f>();	// a temporary list of points to separete different bezier curves
 			Vec2f lastPoi = null;
 			for(int i=0; i<npoints; i++){
 				Vec2f tpoi = new Vec2f(getX(i), getY(i));
@@ -421,7 +529,8 @@ public class Slider implements HitObject {
 				
 			}
 			if(points.size()<2){
-				throw new Error("trying to continue Beziers with less than 2 points");
+				//Ending on a red point (probably) just ignore
+				//throw new Error("trying to continue Beziers with less than 2 points");
 			}else{
 				beziers.add(new Bezier2(points.toArray(new Vec2f[0])));
 				points.clear();
@@ -448,6 +557,8 @@ public class Slider implements HitObject {
 			float lastDistanceAt = 0;
 			//length of Bezier should equal pixel length (in 640x480)
 			float pixelLength = hitObject.getPixelLength()*OsuHitObject.getMultiplier();
+
+			//For each distance, try to get in between the two points that is between it.
 			for(int i=0;i<ncurve+1;i++){
 				int prefDistance = (int) (i*pixelLength/ncurve);
 				while(distanceAt<prefDistance){
@@ -520,13 +631,28 @@ public class Slider implements HitObject {
 			return startAngle;
 		}
 	}
+	/**
+	 * Representation of a Bezier curve with the distance between each point calculated.
+	 */
 	private class Bezier2{
+		/** The control points of the Bezier curve */
 		Vec2f[] points;
+		
+		/** Points along the curve of the Bezier curve */
 		Vec2f[] curve;
+		
+		/** distance between this point of the curve and the last point */
 		float[] curveDis;
+		
+		/** The number of points along the curve */
 		int ncurve;
+		
+		/** The total distances of this Bezier */
 		float totalDistance;
 		
+		/*
+		 * Constructor
+		 */
 		public Bezier2(Vec2f[] points) {
 			
 			this.points = points;
@@ -543,7 +669,7 @@ public class Slider implements HitObject {
 				curve[i] = pointAt(i/(float)ncurve);
 			}
 			
-			//find the distance of each subdivision
+			//find the distance of each point from the previous point
 			curveDis= new float[ncurve];
 			for(int i=0; i<ncurve; i++){
 				if(i==0)
@@ -556,9 +682,19 @@ public class Slider implements HitObject {
 			//System.out.println("New Bezier2 "+points.length+" "+approxlength+" "+totalDistance());
 			
 		}
+		/**
+		 * Returns the total Distances of this Bezier Curve
+		 */
 		public float totalDistance(){
 			return totalDistance;
 		}
+		
+		
+		/**
+		 * Returns the point on the Bezier curve at a value t.
+		 * @param t the t value [0, 1]
+		 * @return the point [x, y]
+		 */
 		public Vec2f pointAt(float t) {
 			Vec2f c = new Vec2f();
 			int n =  points.length-1;
@@ -586,10 +722,20 @@ public class Slider implements HitObject {
 					Math.pow(t, i) * Math.pow(1-t, n-i);
 		}
 	}
+	/**
+	 * Linear interpolation of a and b at t
+	 * @param a
+	 * @param b
+	 * @param t
+	 * @return
+	 */
 	private float lerp(float a, float b, float t){
 		return a*(1-t) + b*t;
 	}
-	//http://en.wikipedia.org/wiki/De_Casteljau%27s_algorithm
+	/**
+	 * "a recursive method to evaluate polynomials in Bernstein form or Bezier curves"
+	 * http://en.wikipedia.org/wiki/De_Casteljau%27s_algorithm
+	 */
 	private float deCasteljau (float[] a, int i, int order, float t){
 		if(order==0)
 			return a[i];
