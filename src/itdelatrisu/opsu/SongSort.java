@@ -145,7 +145,6 @@ public enum SongSort {
 
 	/**
 	 * Initializes the sort tab.
-	 * @param img the tab image
 	 * @param width the container width
 	 * @param height the container height
 	 */

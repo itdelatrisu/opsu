@@ -114,25 +114,25 @@ public class ScoreDB {
 	 * Adds the game score to the database.
 	 * @param data the GameData object
 	 */
-	public static void addScore(ScoreData score) {
+	public static void addScore(ScoreData data) {
 		try {
-			insertStmt.setLong(1, score.timestamp);
-			insertStmt.setInt(2, score.MID);
-			insertStmt.setInt(3, score.MSID);
-			insertStmt.setString(4, score.title);
-			insertStmt.setString(5, score.artist);
-			insertStmt.setString(6, score.creator);
-			insertStmt.setString(7, score.version);
-			insertStmt.setInt(8, score.hit300);
-			insertStmt.setInt(9, score.hit100);
-			insertStmt.setInt(10, score.hit50);
-			insertStmt.setInt(11, score.geki);
-			insertStmt.setInt(12, score.katu);
-			insertStmt.setInt(13, score.miss);
-			insertStmt.setLong(14, score.score);
-			insertStmt.setInt(15, score.combo);
-			insertStmt.setBoolean(16, score.perfect);
-			insertStmt.setInt(17, score.mods);
+			insertStmt.setLong(1, data.timestamp);
+			insertStmt.setInt(2, data.MID);
+			insertStmt.setInt(3, data.MSID);
+			insertStmt.setString(4, data.title);
+			insertStmt.setString(5, data.artist);
+			insertStmt.setString(6, data.creator);
+			insertStmt.setString(7, data.version);
+			insertStmt.setInt(8, data.hit300);
+			insertStmt.setInt(9, data.hit100);
+			insertStmt.setInt(10, data.hit50);
+			insertStmt.setInt(11, data.geki);
+			insertStmt.setInt(12, data.katu);
+			insertStmt.setInt(13, data.miss);
+			insertStmt.setLong(14, data.score);
+			insertStmt.setInt(15, data.combo);
+			insertStmt.setBoolean(16, data.perfect);
+			insertStmt.setInt(17, data.mods);
 			insertStmt.executeUpdate();
 		} catch (SQLException e) {
 			ErrorHandler.error("Failed to save score to database.", e, true);

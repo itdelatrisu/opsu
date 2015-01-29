@@ -348,8 +348,6 @@ public class Slider implements HitObject {
 
 	/**
 	 * Calculates the slider hit result.
-	 * @param time the hit object time (difference between track time)
-	 * @param lastCircleHit true if the cursor was held within the last circle
 	 * @return the hit result (GameData.HIT_* constants)
 	 */
 	private int hitResult() {

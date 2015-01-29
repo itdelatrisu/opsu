@@ -241,7 +241,7 @@ public class GameData {
 	/**
 	 * Constructor for score viewing.
 	 * This will initialize all parameters and images needed for the
-	 * {@link #drawRankingElements(Graphics, int, int)} method.
+	 * {@link #drawRankingElements(Graphics, OsuFile)} method.
 	 * @param s the ScoreData object
 	 * @param width container width
 	 * @param height container height

@@ -963,7 +963,6 @@ public class SongMenu extends BasicGameState {
 
 	/**
 	 * Starts the game.
-	 * @param osu the OsuFile to send to the game
 	 */
 	private void startGame() {
 		if (MusicController.isTrackLoading())
