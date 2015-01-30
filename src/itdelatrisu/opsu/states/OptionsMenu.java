@@ -196,11 +196,11 @@ public class OptionsMenu extends BasicGameState {
 
 		// title
 		Utils.FONT_XLARGE.drawString(
-				(width / 2) - (Utils.FONT_XLARGE.getWidth("GAME OPTIONS") / 2), 10,
+				(width - Utils.FONT_XLARGE.getWidth("GAME OPTIONS")) / 2, 10,
 				"GAME OPTIONS", Color.white
 		);
 		Utils.FONT_DEFAULT.drawString(
-				(width / 2) - (Utils.FONT_DEFAULT.getWidth("Click or drag an option to change it.") / 2),
+				(width - Utils.FONT_DEFAULT.getWidth("Click or drag an option to change it.")) / 2,
 				10 + Utils.FONT_XLARGE.getLineHeight(),
 				"Click or drag an option to change it.", Color.white
 		);
@@ -233,8 +233,18 @@ public class OptionsMenu extends BasicGameState {
 
 		// game mods
 		Utils.FONT_LARGE.drawString(width / 30, height * 0.8f, "Game Mods:", Color.white);
-		for (GameMod mod : GameMod.values())
+		boolean descDrawn = false;
+		for (GameMod mod : GameMod.values()) {
 			mod.draw();
+			if (!descDrawn && mod.contains(mouseX, mouseY)) {
+				Utils.FONT_DEFAULT.drawString(
+						(width - Utils.FONT_DEFAULT.getWidth(mod.getDescription())) / 2,
+						height * 0.975f - Utils.FONT_DEFAULT.getLineHeight(),
+						mod.getDescription(), Color.white
+				);
+				descDrawn = true;
+			}
+		}
 
 		Utils.getBackButton().draw();
 

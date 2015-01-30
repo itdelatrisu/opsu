@@ -28,16 +28,26 @@ import org.newdawn.slick.Input;
  * Game mods.
  */
 public enum GameMod {
-	EASY          (0, GameImage.MOD_EASY, "EZ", 2, Input.KEY_Q, 0.5f),
-	NO_FAIL       (1, GameImage.MOD_NO_FAIL, "NF", 1, Input.KEY_W, 0.5f),
-	HARD_ROCK     (2, GameImage.MOD_HARD_ROCK, "HR", 16, Input.KEY_A, 1.06f),
-	SUDDEN_DEATH  (3, GameImage.MOD_SUDDEN_DEATH, "SD", 32, Input.KEY_S),
-	SPUN_OUT      (4, GameImage.MOD_SPUN_OUT, "SO", 4096, Input.KEY_V, 0.9f),
-	AUTO          (5, GameImage.MOD_AUTO, "", 2048, Input.KEY_B);
-//	HALF_TIME     (, GameImage.MOD_HALF_TIME, "HT", 256, Input.KEY_E, 0.3f),
-//	DOUBLE_TIME   (, GameImage.MOD_DOUBLE_TIME, "DT", 64, Input.KEY_D, 1.12f),
-//	HIDDEN        (, GameImage.MOD_HIDDEN, "HD", 8, Input.KEY_F, 1.06f),
-//	FLASHLIGHT    (, GameImage.MOD_FLASHLIGHT, "FL", 1024, Input.KEY_G, 1.12f);
+	EASY          (0, GameImage.MOD_EASY, "EZ", 2, Input.KEY_Q, 0.5f,
+	              "Reduces overall difficulty - larger circles, more forgiving HP drain, less accuracy required."),
+	NO_FAIL       (1, GameImage.MOD_NO_FAIL, "NF", 1, Input.KEY_W, 0.5f,
+	              "You can't fail.  No matter what."),
+	HARD_ROCK     (2, GameImage.MOD_HARD_ROCK, "HR", 16, Input.KEY_A, 1.06f,
+	              "Everything just got a bit harder..."),
+	SUDDEN_DEATH  (3, GameImage.MOD_SUDDEN_DEATH, "SD", 32, Input.KEY_S,
+	              "Miss a note and fail."),
+	SPUN_OUT      (4, GameImage.MOD_SPUN_OUT, "SO", 4096, Input.KEY_V, 0.9f,
+	              "Spinners will be automatically completed."),
+	AUTO          (5, GameImage.MOD_AUTO, "", 2048, Input.KEY_B,
+	              "Watch a perfect automated play through the song.");
+//	HALF_TIME     (6, GameImage.MOD_HALF_TIME, "HT", 256, Input.KEY_E, 0.3f,
+//	              "Less zoom."),
+//	DOUBLE_TIME   (7, GameImage.MOD_DOUBLE_TIME, "DT", 64, Input.KEY_D, 1.12f,
+//	              "Zoooooooooom."),
+//	HIDDEN        (8, GameImage.MOD_HIDDEN, "HD", 8, Input.KEY_F, 1.06f,
+//	              "Play with no approach circles and fading notes for a slight score advantage."),
+//	FLASHLIGHT    (9, GameImage.MOD_FLASHLIGHT, "FL", 1024, Input.KEY_G, 1.12f,
+//	              "Restricted view area.");
 
 	/** The ID of the mod (used for positioning). */
 	private int id;
@@ -59,6 +69,9 @@ public enum GameMod {
 
 	/** The score multiplier. */
 	private float multiplier;
+
+	/** The description of the mod. */
+	private String description;
 
 	/** Whether or not this mod is active. */
 	private boolean active = false;
@@ -83,14 +96,16 @@ public enum GameMod {
 	 * @param abbrev the two-letter abbreviation
 	 * @param bit the bit
 	 * @param key the shortcut key
+	 * @param description the description
 	 */
-	GameMod(int id, GameImage image, String abbrev, int bit, int key) {
+	GameMod(int id, GameImage image, String abbrev, int bit, int key, String description) {
 		this.id = id;
 		this.image = image;
 		this.abbrev = abbrev;
 		this.bit = bit;
 		this.key = key;
 		this.multiplier = 1f;
+		this.description = description;
 	}
 
 	/**
@@ -101,14 +116,16 @@ public enum GameMod {
 	 * @param bit the bit
 	 * @param key the shortcut key
 	 * @param multiplier the score multiplier
+	 * @param description the description
 	 */
-	GameMod(int id, GameImage image, String abbrev, int bit, int key, float multiplier) {
+	GameMod(int id, GameImage image, String abbrev, int bit, int key, float multiplier, String description) {
 		this.id = id;
 		this.image = image;
 		this.abbrev = abbrev;
 		this.bit = bit;
 		this.key = key;
 		this.multiplier = multiplier;
+		this.description = description;
 	}
 
 	/**
@@ -156,6 +173,12 @@ public enum GameMod {
 	 * @return the multiplier
 	 */
 	public float getMultiplier() { return multiplier; }
+
+	/**
+	 * Returns a description of the mod.
+	 * @return the description
+	 */
+	public String getDescription() { return description; }
 
 	/**
 	 * Toggles the active status of the mod.
