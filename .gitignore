@@ -5,6 +5,7 @@
 /Songs/
 /.opsu.log
 /.opsu.cfg
+/.opsu_scores.db
 
 # Eclipse
 /.settings/

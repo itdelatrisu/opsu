@@ -78,7 +78,7 @@ public class Container extends AppGameContainer {
 		}
 
 		if (forceExit)
-			System.exit(0);
+			Opsu.exit();
 	}
 
 	/**
@@ -89,18 +89,20 @@ public class Container extends AppGameContainer {
 		// save user options
 		Options.saveOptions();
 
-		// close server socket
-		Opsu.closeSocket();
-
 		// destroy images
 		InternalTextureLoader.get().clear();
 
 		// reset image references
 		GameImage.clearReferences();
+		GameData.Grade.clearReferences();
 		OsuFile.resetImageCache();
 
 		// prevent loading tracks from re-initializing OpenAL
 		MusicController.reset();
+
+		// reset OsuGroupList data
+		if (OsuGroupList.get() != null)
+			OsuGroupList.get().reset();
 	}
 
 	@Override

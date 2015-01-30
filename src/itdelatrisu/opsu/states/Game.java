@@ -19,16 +19,19 @@
 package itdelatrisu.opsu.states;
 
 import fluddokt.opsu.fake.*;
+
 import itdelatrisu.opsu.ErrorHandler;
+import itdelatrisu.opsu.GameData;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.GameMod;
-import itdelatrisu.opsu.GameScore;
 import itdelatrisu.opsu.MenuButton;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.OsuFile;
 import itdelatrisu.opsu.OsuHitObject;
 import itdelatrisu.opsu.OsuTimingPoint;
+import itdelatrisu.opsu.ScoreDB;
+import itdelatrisu.opsu.ScoreData;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.HitSound;
 import itdelatrisu.opsu.audio.MusicController;
@@ -78,8 +81,8 @@ public class Game extends BasicGameState {
 	/** The associated OsuFile object. */
 	private OsuFile osu;
 
-	/** The associated GameScore object (holds all score data). */
-	private GameScore score;
+	/** The associated GameData object. */
+	private GameData data;
 
 	/** Current hit object index in OsuHitObject[] array. */
 	private int objectIndex = 0;
@@ -163,9 +166,8 @@ public class Game extends BasicGameState {
 		int width = container.getWidth();
 		int height = container.getHeight();
 
-		// create the associated GameScore object
-		score = new GameScore(width, height);
-		((GameRanking) game.getState(Opsu.STATE_GAMERANKING)).setGameScore(score);
+		// create the associated GameData object
+		data = new GameData(width, height);
 	}
 
 	@Override
@@ -220,13 +222,13 @@ public class Game extends BasicGameState {
 					g.fillRect(0, height * 0.875f, width, height * 0.125f);
 				}
 
-				score.drawGameElements(g, true, objectIndex == 0);
+				data.drawGameElements(g, true, objectIndex == 0);
 
 				if (breakLength >= 8000 &&
 					trackPosition - breakTime > 2000 &&
 					trackPosition - breakTime < 5000) {
 					// show break start
-					if (score.getHealth() >= 50) {
+					if (data.getHealth() >= 50) {
 						GameImage.SECTION_PASS.getImage().drawCentered(width / 2f, height / 2f);
 						if (!breakSound) {
 							SoundController.playSound(SoundEffect.SECTIONPASS);
@@ -263,7 +265,7 @@ public class Game extends BasicGameState {
 		}
 
 		// game elements
-		score.drawGameElements(g, false, objectIndex == 0);
+		data.drawGameElements(g, false, objectIndex == 0);
 
 		// skip beginning
 		if (objectIndex == 0 &&
@@ -343,7 +345,7 @@ public class Game extends BasicGameState {
 			hitObjects[stack.pop()].draw(trackPosition, stack.isEmpty(), g);
 
 		// draw OsuHitObjectResult objects
-		score.drawHitResults(trackPosition);
+		data.drawHitResults(trackPosition);
 
 		if (GameMod.AUTO.isActive())
 			GameImage.UNRANKED.getImage().drawCentered(width / 2, height * 0.077f);
@@ -410,22 +412,27 @@ public class Game extends BasicGameState {
 
 		// "Easy" mod: multiple "lives"
 		if (GameMod.EASY.isActive() && deathTime > -1) {
-			if (score.getHealth() < 99f)
-				score.changeHealth(delta / 10f);
+			if (data.getHealth() < 99f)
+				data.changeHealth(delta / 10f);
 			else {
 				MusicController.resume();
 				deathTime = -1;
 			}
 		}
 
-		score.updateDisplays(delta);
+		data.updateDisplays(delta);
 
 		// map complete!
 		if (objectIndex >= osu.objects.length) {
 			if (checkpointLoaded)  // if checkpoint used, skip ranking screen
 				game.closeRequested();
-			else  // go to ranking screen
+			else {  // go to ranking screen
+				((GameRanking) game.getState(Opsu.STATE_GAMERANKING)).setGameData(data);
+				ScoreData score = data.getScoreData(osu);
+				if (!GameMod.AUTO.isActive())
+					ScoreDB.addScore(score);
 				game.enterState(Opsu.STATE_GAMERANKING, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
+			}
 			return;
 		}
 
@@ -482,10 +489,10 @@ public class Game extends BasicGameState {
 		}
 
 		// drain health
-		score.changeHealth(delta * -1 * GameScore.HP_DRAIN_MULTIPLIER);
-		if (!score.isAlive()) {
+		data.changeHealth(delta * -1 * GameData.HP_DRAIN_MULTIPLIER);
+		if (!data.isAlive()) {
 			// "Easy" mod
-			if (GameMod.EASY.isActive()) {
+			if (GameMod.EASY.isActive() && !GameMod.SUDDEN_DEATH.isActive()) {
 				deaths++;
 				if (deaths < 3) {
 					deathTime = trackPosition;
@@ -503,7 +510,7 @@ public class Game extends BasicGameState {
 		while (objectIndex < osu.objects.length && trackPosition > osu.objects[objectIndex].getTime()) {
 			// check if we've already passed the next object's start time
 			boolean overlap = (objectIndex + 1 < osu.objects.length &&
-					trackPosition > osu.objects[objectIndex + 1].getTime() - hitResultOffset[GameScore.HIT_300]);
+					trackPosition > osu.objects[objectIndex + 1].getTime() - hitResultOffset[GameData.HIT_300]);
 
 			// update hit object and check completion status
 			if (hitObjects[objectIndex].update(overlap, delta, mouseX, mouseY))
@@ -710,11 +717,11 @@ public class Game extends BasicGameState {
 
 				Color color = osu.combo[hitObject.getComboIndex()];
 				if (hitObject.isCircle())
-					hitObjects[i] = new Circle(hitObject, this, score, color, comboEnd);
+					hitObjects[i] = new Circle(hitObject, this, data, color, comboEnd);
 				else if (hitObject.isSlider())
-					hitObjects[i] = new Slider(hitObject, this, score, color, comboEnd);
+					hitObjects[i] = new Slider(hitObject, this, data, color, comboEnd);
 				else if (hitObject.isSpinner())
-					hitObjects[i] = new Spinner(hitObject, this, score);
+					hitObjects[i] = new Spinner(hitObject, this, data);
 			}
 
 			// load the first timingPoint
@@ -746,7 +753,7 @@ public class Game extends BasicGameState {
 	 */
 	public void resetGameData() {
 		hitObjects = new HitObject[osu.objects.length];
-		score.clear();
+		data.clear();
 		objectIndex = 0;
 		breakIndex = 0;
 		breakTime = 0;
@@ -812,7 +819,7 @@ public class Game extends BasicGameState {
 
 		// load other images...
 		((GamePauseMenu) game.getState(Opsu.STATE_GAMEPAUSEMENU)).loadImages();
-		score.loadImages(osu.getFile().getParentFile());
+		data.loadImages();
 	}
 
 	/**
@@ -863,15 +870,15 @@ public class Game extends BasicGameState {
 			approachTime = (int) (1200 - ((approachRate - 5) * 150));
 
 		// overallDifficulty (hit result time offsets)
-		hitResultOffset = new int[GameScore.HIT_MAX];
-		hitResultOffset[GameScore.HIT_300]  = (int) (78 - (overallDifficulty * 6));
-		hitResultOffset[GameScore.HIT_100]  = (int) (138 - (overallDifficulty * 8));
-		hitResultOffset[GameScore.HIT_50]   = (int) (198 - (overallDifficulty * 10));
-		hitResultOffset[GameScore.HIT_MISS] = (int) (500 - (overallDifficulty * 10));
+		hitResultOffset = new int[GameData.HIT_MAX];
+		hitResultOffset[GameData.HIT_300]  = (int) (78 - (overallDifficulty * 6));
+		hitResultOffset[GameData.HIT_100]  = (int) (138 - (overallDifficulty * 8));
+		hitResultOffset[GameData.HIT_50]   = (int) (198 - (overallDifficulty * 10));
+		hitResultOffset[GameData.HIT_MISS] = (int) (500 - (overallDifficulty * 10));
 
 		// HPDrainRate (health change), overallDifficulty (scoring)
-		score.setDrainRate(HPDrainRate);
-		score.setDifficulty(overallDifficulty);
+		data.setDrainRate(HPDrainRate);
+		data.setDifficulty(overallDifficulty);
 		score.setHitResultOffset(hitResultOffset);
 	}
 
@@ -892,7 +899,7 @@ public class Game extends BasicGameState {
 	public int getApproachTime() { return approachTime; }
 
 	/**
-	 * Returns an array of hit result offset times, in milliseconds (indexed by GameScore.HIT_* constants).
+	 * Returns an array of hit result offset times, in milliseconds (indexed by GameData.HIT_* constants).
 	 */
 	public int[] getHitResultOffsets() { return hitResultOffset; }
 

@@ -18,7 +18,6 @@
 
 package itdelatrisu.opsu;
 
-import fluddokt.opsu.fake.*;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.states.Game;
 import itdelatrisu.opsu.states.GamePauseMenu;
@@ -198,9 +197,13 @@ public class Opsu extends StateBasedGame {
 	
 
 	/**
-	 * Closes the server socket.
+	 * Closes all resources and exits the application.
 	 */
-	public static void closeSocket() {
+	public static void exit() {
+		// close scores database
+		ScoreDB.closeConnection();
+
+		// close server socket
 		if (SERVER_SOCKET != null) {
 			try {
 				SERVER_SOCKET.close();
@@ -208,8 +211,8 @@ public class Opsu extends StateBasedGame {
 				ErrorHandler.error("Failed to close server socket.", e, false);
 			}
 		}
-		
-		
+
+		System.exit(0);
 	}
 
 }

@@ -31,16 +31,16 @@ import org.newdawn.slick.util.Log;*/
  * Game mods.
  */
 public enum GameMod {
-	EASY          (0, GameImage.MOD_EASY, Input.KEY_Q, 0.5f),
-	NO_FAIL       (1, GameImage.MOD_NO_FAIL, Input.KEY_W, 0.5f),
-	HARD_ROCK     (2, GameImage.MOD_HARD_ROCK, Input.KEY_A, 1.06f),
-	SUDDEN_DEATH  (3, GameImage.MOD_SUDDEN_DEATH, Input.KEY_S),
-	SPUN_OUT      (4, GameImage.MOD_SPUN_OUT, Input.KEY_V, 0.9f),
-	AUTO          (5, GameImage.MOD_AUTO, Input.KEY_B);
-//	HALF_TIME     (, GameImage.MOD_HALF_TIME, Input.KEY_E, 0.3f),
-//	DOUBLE_TIME   (, GameImage.MOD_DOUBLE_TIME, Input.KEY_D, 1.12f),
-//	HIDDEN        (, GameImage.MOD_HIDDEN, Input.KEY_F, 1.06f),
-//	FLASHLIGHT    (, GameImage.MOD_FLASHLIGHT, Input.KEY_G, 1.12f);
+	EASY          (0, GameImage.MOD_EASY, "EZ", 2, Input.KEY_Q, 0.5f),
+	NO_FAIL       (1, GameImage.MOD_NO_FAIL, "NF", 1, Input.KEY_W, 0.5f),
+	HARD_ROCK     (2, GameImage.MOD_HARD_ROCK, "HR", 16, Input.KEY_A, 1.06f),
+	SUDDEN_DEATH  (3, GameImage.MOD_SUDDEN_DEATH, "SD", 32, Input.KEY_S),
+	SPUN_OUT      (4, GameImage.MOD_SPUN_OUT, "SO", 4096, Input.KEY_V, 0.9f),
+	AUTO          (5, GameImage.MOD_AUTO, "", 2048, Input.KEY_B);
+//	HALF_TIME     (, GameImage.MOD_HALF_TIME, "HT", 256, Input.KEY_E, 0.3f),
+//	DOUBLE_TIME   (, GameImage.MOD_DOUBLE_TIME, "DT", 64, Input.KEY_D, 1.12f),
+//	HIDDEN        (, GameImage.MOD_HIDDEN, "HD", 8, Input.KEY_F, 1.06f),
+//	FLASHLIGHT    (, GameImage.MOD_FLASHLIGHT, "FL", 1024, Input.KEY_G, 1.12f);
 
 	/** The ID of the mod (used for positioning). */
 	private int id;
@@ -48,7 +48,16 @@ public enum GameMod {
 	/** The file name of the mod image. */
 	private GameImage image;
 
-	/** The shortcut key associated with the mod. */
+	/** The abbreviation for the mod. */
+	private String abbrev;
+
+	/** Bit value associated with the mod. */
+	private int bit;
+
+	/**
+	 * The shortcut key associated with the mod.
+	 * See the osu! API: https://github.com/peppy/osu-api/wiki#mods
+	 */
 	private int key;
 
 	/** The score multiplier. */
@@ -74,11 +83,15 @@ public enum GameMod {
 	 * Constructor.
 	 * @param id the ID of the mod (for positioning).
 	 * @param image the GameImage
+	 * @param abbrev the two-letter abbreviation
+	 * @param bit the bit
 	 * @param key the shortcut key
 	 */
-	GameMod(int id, GameImage image, int key) {
+	GameMod(int id, GameImage image, String abbrev, int bit, int key) {
 		this.id = id;
 		this.image = image;
+		this.abbrev = abbrev;
+		this.bit = bit;
 		this.key = key;
 		this.multiplier = 1f;
 	}
@@ -87,12 +100,16 @@ public enum GameMod {
 	 * Constructor.
 	 * @param id the ID of the mod (for positioning).
 	 * @param image the GameImage
+	 * @param abbrev the two-letter abbreviation
+	 * @param bit the bit
 	 * @param key the shortcut key
 	 * @param multiplier the score multiplier
 	 */
-	GameMod(int id, GameImage image, int key, float multiplier) {
+	GameMod(int id, GameImage image, String abbrev, int bit, int key, float multiplier) {
 		this.id = id;
 		this.image = image;
+		this.abbrev = abbrev;
+		this.bit = bit;
 		this.key = key;
 		this.multiplier = multiplier;
 	}
@@ -111,10 +128,24 @@ public enum GameMod {
 		float y = (height * 0.8f) + (img.getHeight() / 2);
 
 		// create button
-		img.setAlpha(0.5f);
 		this.button = new MenuButton(img, x + (offsetX * id), y);
 		this.button.setHoverScale(1.15f);
+
+		// reset state
+		this.active = false;
 	}
+
+	/**
+	 * Returns the abbreviated name of the mod.
+	 * @return the two-letter abbreviation
+	 */
+	public String getAbbreviation() { return abbrev; }
+
+	/**
+	 * Returns the bit associated with the mod.
+	 * @return the bit
+	 */
+	public int getBit() { return bit; }
 
 	/**
 	 * Returns the shortcut key for the mod.
@@ -134,7 +165,6 @@ public enum GameMod {
 	 * @param checkInverse if true, perform checks for mutual exclusivity
 	 */
 	public void toggle(boolean checkInverse) {
-		button.getImage().setAlpha(active ? 0.5f : 1.0f);
 		active = !active;
 
 		if (checkInverse) {
@@ -177,15 +207,14 @@ public enum GameMod {
 	public Image getImage() { return image.getImage(); }
 
 	/**
-	 * Returns the mod ID.
-	 * @return the mod ID
-	 */
-	public int getID() { return id; }
-
-	/**
 	 * Draws the game mod.
 	 */
-	public void draw() { button.draw(); }
+	public void draw() {
+		if (!active)
+			button.getImage().setAlpha(0.5f);
+		button.draw();
+		button.getImage().setAlpha(1.0f);
+	}
 
 	/**
 	 * Checks if the coordinates are within the image bounds.

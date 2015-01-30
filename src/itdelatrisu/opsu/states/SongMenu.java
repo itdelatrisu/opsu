@@ -19,6 +19,9 @@
 package itdelatrisu.opsu.states;
 
 import fluddokt.opsu.fake.*;
+
+import itdelatrisu.opsu.GameData;
+import itdelatrisu.opsu.GameData.Grade;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.GameMod;
 import itdelatrisu.opsu.MenuButton;
@@ -29,6 +32,8 @@ import itdelatrisu.opsu.OsuGroupList;
 import itdelatrisu.opsu.OsuGroupNode;
 import itdelatrisu.opsu.OsuParser;
 import itdelatrisu.opsu.OszUnpacker;
+import itdelatrisu.opsu.ScoreDB;
+import itdelatrisu.opsu.ScoreData;
 import itdelatrisu.opsu.SongSort;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.HitSound;
@@ -37,6 +42,7 @@ import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
 
 //import java.io.File;
+import java.util.Map;
 import java.util.Stack; 
 
 /*
@@ -64,8 +70,11 @@ import org.newdawn.slick.state.transition.FadeOutTransition;
  * </ul>
  */
 public class SongMenu extends BasicGameState {
-	/** The number of buttons to be shown on each screen. */
-	private static final int MAX_BUTTONS = 9;
+	/** The max number of song buttons to be shown on each screen. */
+	private static final int MAX_SONG_BUTTONS = 6;
+
+	/** The max number of score buttons to be shown at a time. */
+	public static final int MAX_SCORE_BUTTONS = 7;
 
 	/** Delay time, in milliseconds, between each search. */
 	private static final int SEARCH_DELAY = 500;
@@ -155,6 +164,15 @@ public class SongMenu extends BasicGameState {
 	/** Beatmap reloading thread. */
 	private Thread reloadThread;
 
+	/** Current map of scores (Version, ScoreData[]). */
+	private Map<String, ScoreData[]> scoreMap;
+
+	/** Scores for the current focus node. */
+	private ScoreData[] focusScores;
+
+	/** Current start score (topmost score entry). */
+	private int startScore = 0;
+
 	// game-related variables
 	private GameContainer container;
 	private StateBasedGame game;
@@ -183,7 +201,7 @@ public class SongMenu extends BasicGameState {
 		buttonY = height * 0.16f;
 		buttonWidth = menuBackground.getWidth();
 		buttonHeight = menuBackground.getHeight();
-		buttonOffset = (height * 0.8f) / MAX_BUTTONS;
+		buttonOffset = (height * 0.8f) / MAX_SONG_BUTTONS;
 
 		// search
 		searchTimer = 0;
@@ -262,10 +280,34 @@ public class SongMenu extends BasicGameState {
 
 		// song buttons
 		OsuGroupNode node = startNode;
-		for (int i = 0; i < MAX_BUTTONS && node != null; i++, node = node.next) {
+		for (int i = 0; i < MAX_SONG_BUTTONS && node != null; i++, node = node.next) {
+			// draw the node
 			float offset = (i == hoverIndex) ? hoverOffset : 0f;
-			node.draw(buttonX - offset, buttonY + (i*buttonOffset), (node == focusNode));
+			ScoreData[] scores = getScoreDataForNode(node, false);
+			node.draw(
+					buttonX - offset, buttonY + (i*buttonOffset),
+					(scores == null) ? Grade.NULL : scores[0].getGrade(),
+					(node == focusNode)
+			);
+
+			// load glyphs
 			Utils.loadGlyphs(node.osuFiles.get(0));
+		}
+
+		// score buttons
+		if (focusScores != null) {
+			for (int i = 0; i < MAX_SCORE_BUTTONS; i++) {
+				int rank = startScore + i;
+				if (rank >= focusScores.length)
+					break;
+				long prevScore = (rank + 1 < focusScores.length) ?
+						focusScores[rank + 1].score : -1;
+				focusScores[rank].draw(g, i, rank, prevScore, ScoreData.buttonContains(mouseX, mouseY, i));
+			}
+
+			// scroll bar
+			if (focusScores.length > MAX_SCORE_BUTTONS && ScoreData.areaContains(mouseX, mouseY))
+				ScoreData.drawScrollbar(g, startScore, focusScores.length);
 		}
 
 		// options button
@@ -390,7 +432,7 @@ public class SongMenu extends BasicGameState {
 		// mouse hover
 		OsuGroupNode node = startNode;
 		boolean isHover = false;
-		for (int i = 0; i < MAX_BUTTONS && node != null; i++, node = node.next) {
+		for (int i = 0; i < MAX_SONG_BUTTONS && node != null; i++, node = node.next) {
 			float cx = (node.index == OsuGroupList.get().getExpandedIndex()) ? buttonX * 0.9f : buttonX;
 			if ((mouseX > cx && mouseX < cx + buttonWidth) &&
 				(mouseY > buttonY + (i * buttonOffset) && mouseY < buttonY + (i * buttonOffset) + buttonHeight)) {
@@ -464,7 +506,7 @@ public class SongMenu extends BasicGameState {
 		// song buttons
 		int expandedIndex = OsuGroupList.get().getExpandedIndex();
 		OsuGroupNode node = startNode;
-		for (int i = 0; i < MAX_BUTTONS && node != null; i++, node = node.next) {
+		for (int i = 0; i < MAX_SONG_BUTTONS && node != null; i++, node = node.next) {
 			// is button at this index clicked?
 			float cx = (node.index == expandedIndex) ? buttonX * 0.9f : buttonX;
 			if ((x > cx && x < cx + buttonWidth) &&
@@ -495,7 +537,23 @@ public class SongMenu extends BasicGameState {
 				hoverOffset = oldHoverOffset;
 				hoverIndex = oldHoverIndex;
 
-				break;
+				return;
+			}
+		}
+
+		// score buttons
+		if (focusScores != null && ScoreData.areaContains(x, y)) {
+			for (int i = 0; i < MAX_SCORE_BUTTONS; i++) {
+				int rank = startScore + i;
+				if (rank >= focusScores.length)
+					break;
+				if (ScoreData.buttonContains(x, y, i)) {
+					// view score
+					GameData data = new GameData(focusScores[rank], container.getWidth(), container.getHeight());
+					((GameRanking) game.getState(Opsu.STATE_GAMERANKING)).setGameData(data);
+					game.enterState(Opsu.STATE_GAMERANKING, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
+					return;
+				}
 			}
 		}
 	}
@@ -632,10 +690,10 @@ public class SongMenu extends BasicGameState {
 			}
 			break;
 		case Input.KEY_NEXT:
-			changeIndex(MAX_BUTTONS);
+			changeIndex(MAX_SONG_BUTTONS);
 			break;
 		case Input.KEY_PRIOR:
-			changeIndex(-MAX_BUTTONS);
+			changeIndex(-MAX_SONG_BUTTONS);
 			break;
 		default:
 			// wait for user to finish typing
@@ -651,7 +709,12 @@ public class SongMenu extends BasicGameState {
 		if (reloadThread != null)
 			return;
 
-		// check mouse button (right click scrolls faster)
+		int diff = newy - oldy;
+		if (diff == 0)
+			return;
+		int shift = (diff < 0) ? 1 : -1;
+
+		// check mouse button (right click scrolls faster on songs)
 		int multiplier;
 		if (input.isMouseButtonDown(Input.MOUSE_RIGHT_BUTTON))
 			multiplier = 4;
@@ -660,11 +723,16 @@ public class SongMenu extends BasicGameState {
 		else
 			return;
 
-		int diff = newy - oldy;
-		if (diff != 0) {
-			diff = ((diff < 0) ? 1 : -1) * multiplier;
-			changeIndex(diff);
+		// score buttons
+		if (focusScores != null && focusScores.length >= MAX_SCORE_BUTTONS && ScoreData.areaContains(oldx, oldy)) {
+			int newStartScore = startScore + shift;
+			if (newStartScore >= 0 && newStartScore + MAX_SCORE_BUTTONS <= focusScores.length)
+				startScore = newStartScore;
 		}
+
+		// song buttons
+		else
+			changeIndex(shift * multiplier);
 	}
 
 	@Override
@@ -673,7 +741,19 @@ public class SongMenu extends BasicGameState {
 		if (reloadThread != null)
 			return;
 
-		changeIndex((newValue < 0) ? 1 : -1);
+		int shift = (newValue < 0) ? 1 : -1;
+		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
+
+		// score buttons
+		if (focusScores != null && focusScores.length >= MAX_SCORE_BUTTONS && ScoreData.areaContains(mouseX, mouseY)) {
+			int newStartScore = startScore + shift;
+			if (newStartScore >= 0 && newStartScore + MAX_SCORE_BUTTONS <= focusScores.length)
+				startScore = newStartScore;
+		}
+
+		// song buttons
+		else
+			changeIndex(shift);
 	}
 
 	@Override
@@ -684,6 +764,7 @@ public class SongMenu extends BasicGameState {
 		optionsButton.setScale(1f);
 		hoverOffset = 0f;
 		hoverIndex = -1;
+		startScore = 0;
 
 		// stop playing the theme song
 		if (MusicController.isThemePlaying() && focusNode != null)
@@ -700,13 +781,29 @@ public class SongMenu extends BasicGameState {
 		else if (MusicController.isPaused())
 			MusicController.resume();
 
+		// undim track
+		if (MusicController.isTrackDimmed())
+			MusicController.toggleTrackDimmed(1f);
+
 		// reset song stack
 		randomStack = new Stack<SongNode>();
 
 		// reset game data
 		if (resetGame) {
 			((Game) game.getState(Opsu.STATE_GAME)).resetGameData();
-			GameImage.destroySkinImages();  // destroy skin images, if any
+
+			// destroy skin images, if any
+			for (GameImage img : GameImage.values()) {
+				if (img.isSkinnable())
+					img.destroySkinImage();
+			}
+
+			// reload scores
+			if (focusNode != null) {
+				scoreMap = ScoreDB.getMapSetScores(focusNode.osuFiles.get(focusNode.osuFileIndex));
+				focusScores = getScoreDataForNode(focusNode, true);
+			}
+
 			resetGame = false;
 		}
 	}
@@ -741,7 +838,7 @@ public class SongMenu extends BasicGameState {
 				n++;
 				shifted = true;
 			} else if (n > 0 && startNode.next != null &&
-			           OsuGroupList.get().getNode(startNode, MAX_BUTTONS) != null) {
+			           OsuGroupList.get().getNode(startNode, MAX_SONG_BUTTONS) != null) {
 				startNode = startNode.next;
 				buttonY -= buttonOffset / 4;
 				if (buttonY < height * 0.14f)
@@ -797,12 +894,17 @@ public class SongMenu extends BasicGameState {
 		MusicController.play(osu, true);
 		Utils.loadGlyphs(osu);
 
+		// load scores
+		scoreMap = ScoreDB.getMapSetScores(osu);
+		focusScores = getScoreDataForNode(focusNode, true);
+		startScore = 0;
+
 		// check startNode bounds
-		while (startNode.index >= OsuGroupList.get().size() + length - MAX_BUTTONS && startNode.prev != null)
+		while (startNode.index >= OsuGroupList.get().size() + length - MAX_SONG_BUTTONS && startNode.prev != null)
 			startNode = startNode.prev;
 
 		// make sure focusNode is on the screen (TODO: cleanup...)
-		int val = focusNode.index + focusNode.osuFileIndex - (startNode.index + MAX_BUTTONS) + 1;
+		int val = focusNode.index + focusNode.osuFileIndex - (startNode.index + MAX_SONG_BUTTONS) + 1;
 		if (val > 0)  // below screen
 			changeIndex(val);
 		else {  // above screen
@@ -835,8 +937,36 @@ public class SongMenu extends BasicGameState {
 	public void resetTrackOnLoad() { resetTrack = true; }
 
 	/**
+	 * Returns all the score data for an OsuGroupNode from scoreMap.
+	 * If no score data is available for the node, return null.
+	 * @param node the OsuGroupNode
+	 * @param setTimeSince whether or not to set the "time since" field for the scores
+	 * @return the ScoreData array
+	 */
+	private ScoreData[] getScoreDataForNode(OsuGroupNode node, boolean setTimeSince) {
+		if (scoreMap == null || scoreMap.isEmpty() || node.osuFileIndex == -1)  // node not expanded
+			return null;
+
+		OsuFile osu = node.osuFiles.get(node.osuFileIndex);
+		ScoreData[] scores = scoreMap.get(osu.version);
+		if (scores == null || scores.length < 1)  // no scores
+			return null;
+
+		ScoreData s = scores[0];
+		if (osu.beatmapID == s.MID && osu.beatmapSetID == s.MSID &&
+		    osu.title.equals(s.title) && osu.artist.equals(s.artist) &&
+		    osu.creator.equals(s.creator)) {
+			if (setTimeSince) {
+				for (int i = 0; i < scores.length; i++)
+					scores[i].getTimeSince();
+			}
+			return scores;
+		} else
+			return null;  // incorrect map
+	}
+
+	/**
 	 * Starts the game.
-	 * @param osu the OsuFile to send to the game
 	 */
 	private void startGame() {
 		if (MusicController.isTrackLoading())

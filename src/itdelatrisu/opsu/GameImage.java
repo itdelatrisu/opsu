@@ -31,6 +31,38 @@ import org.newdawn.slick.SlickException;
  * Game images.
  */
 public enum GameImage {
+	// Cursor
+	CURSOR ("cursor", "png") {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy(1 + ((h - 600) / 1000f));
+		}
+	},
+	CURSOR_MIDDLE ("cursormiddle", "png") {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy(1 + ((h - 600) / 1000f));
+		}
+	},
+	CURSOR_TRAIL ("cursortrail", "png") {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy(1 + ((h - 600) / 1000f));
+		}
+	},
+	CURSOR_OLD ("cursor2", "png", false, false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy(1 + ((h - 600) / 1000f));
+		}
+	},
+	CURSOR_TRAIL_OLD ("cursortrail2", "png", false, false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy(1 + ((h - 600) / 1000f));
+		}
+	},
+
 	// Game
 	SECTION_PASS ("section-pass", "png"),
 	SECTION_FAIL ("section-fail", "png"),
@@ -134,18 +166,18 @@ public enum GameImage {
 	SPINNER_CLEAR ("spinner-clear", "png"),
 	SPINNER_OSU ("spinner-osu", "png"),
 
-	// Game Score
+	// Score Data
 	COMBO_BURST ("comboburst", "comboburst-%d", "png"),
 	SCOREBAR_BG ("scorebar-bg", "png") {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy(w / 2, img.getHeight());
+			return img.getScaledCopy((w * 0.565f) / img.getWidth());
 		}
 	},
-	SCOREBAR_COLOUR ("scorebar-colour", "png") {
+	SCOREBAR_COLOUR ("scorebar-colour", "scorebar-colour-%d", "png") {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy(w / 2, img.getHeight());
+			return img.getScaledCopy((w * 0.521f) / img.getWidth());
 		}
 	},
 	SCOREBAR_KI ("scorebar-ki", "png"),
@@ -160,21 +192,61 @@ public enum GameImage {
 	HIT_300G ("hit300g", "png"),
 	HIT_SLIDER10 ("sliderpoint10", "png"),
 	HIT_SLIDER30 ("sliderpoint30", "png"),
-	RANKING_SS ("ranking-X", "png"),
+	RANKING_SS ("ranking-X", "png") {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy((h / 2f) / img.getHeight());
+		}
+	},
 	RANKING_SS_SMALL ("ranking-X-small", "png"),
-	RANKING_SSH ("ranking-XH", "png"),
+	RANKING_SSH ("ranking-XH", "png") {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy((h / 2f) / img.getHeight());
+		}
+	},
 	RANKING_SSH_SMALL ("ranking-XH-small", "png"),
-	RANKING_S ("ranking-S", "png"),
+	RANKING_S ("ranking-S", "png") {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy((h / 2f) / img.getHeight());
+		}
+	},
 	RANKING_S_SMALL ("ranking-S-small", "png"),
-	RANKING_SH ("ranking-SH", "png"),
+	RANKING_SH ("ranking-SH", "png") {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy((h / 2f) / img.getHeight());
+		}
+	},
 	RANKING_SH_SMALL ("ranking-SH-small", "png"),
-	RANKING_A ("ranking-A", "png"),
+	RANKING_A ("ranking-A", "png") {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy((h / 2f) / img.getHeight());
+		}
+	},
 	RANKING_A_SMALL ("ranking-A-small", "png"),
-	RANKING_B ("ranking-B", "png"),
+	RANKING_B ("ranking-B", "png") {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy((h / 2f) / img.getHeight());
+		}
+	},
 	RANKING_B_SMALL ("ranking-B-small", "png"),
-	RANKING_C ("ranking-C", "png"),
+	RANKING_C ("ranking-C", "png") {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy((h / 2f) / img.getHeight());
+		}
+	},
 	RANKING_C_SMALL ("ranking-C-small", "png"),
-	RANKING_D ("ranking-D", "png"),
+	RANKING_D ("ranking-D", "png") {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy((h / 2f) / img.getHeight());
+		}
+	},
 	RANKING_D_SMALL ("ranking-D-small", "png"),
 	RANKING_PANEL ("ranking-panel", "png") {
 		@Override
@@ -395,6 +467,12 @@ public enum GameImage {
 			return img.getScaledCopy((h * 0.15f) / img.getHeight());
 		}
 	},
+	HISTORY ("history", "png", false, false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy((h * 0.0278f) / img.getHeight());
+		}
+	},
 	REPOSITORY ("repo", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
@@ -440,9 +518,6 @@ public enum GameImage {
 	/** Container dimensions. */
 	private static int containerWidth, containerHeight;
 
-	/** Whether a skin image has been loaded. */
-	private static boolean skinImageLoaded = false;
-
 	/**
 	 * Initializes the GameImage class with container dimensions.
 	 * @param width the container width
@@ -461,19 +536,6 @@ public enum GameImage {
 		for (GameImage img : GameImage.values()) {
 			img.defaultImage = img.skinImage = null;
 			img.defaultImages = img.skinImages = null;
-		}
-	}
-
-	/**
-	 * Destroys all skin images, if any have been loaded.
-	 */
-	public static void destroySkinImages() {
-		if (skinImageLoaded) {
-			for (GameImage img : GameImage.values()) {
-				if (img.isSkinnable())
-					img.destroySkinImage();
-			}
-			skinImageLoaded = false;
 		}
 	}
 
@@ -700,7 +762,6 @@ public enum GameImage {
 			if (!list.isEmpty()) {
 				this.skinImages = list.toArray(new Image[list.size()]);
 				process();
-				skinImageLoaded = true;
 				return true;
 			}
 		}
@@ -718,7 +779,6 @@ public enum GameImage {
 				// image successfully loaded
 				this.skinImage = img;
 				process();
-				skinImageLoaded = true;
 				return true;
 			} catch (SlickException | RuntimeException e) {
 				errorFile = file.getAbsolutePath();
@@ -746,7 +806,7 @@ public enum GameImage {
 	/**
 	 * Destroys the associated skin image(s), if any.
 	 */
-	private void destroySkinImage() {
+	public void destroySkinImage() {
 		if (skinImage == null && skinImages == null)
 			return;
 		try {

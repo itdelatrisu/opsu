@@ -48,10 +48,10 @@ public class OsuGroupList {
 	private ArrayList<OsuGroupNode> nodes;
 
 	/** Index of current expanded node (-1 if no node is expanded). */
-	private int expandedIndex = -1;
+	private int expandedIndex;
 
 	/** The last search query. */
-	private String lastQuery = "";
+	private String lastQuery;
 
 	/**
 	 * Creates a new instance of this class (overwriting any previous instance).
@@ -68,7 +68,17 @@ public class OsuGroupList {
 	 */
 	private OsuGroupList() {
 		parsedNodes = new ArrayList<OsuGroupNode>();
+		reset();
+	}
+
+	/**
+	 * Resets the list's fields.
+	 * This does not erase any parsed nodes.
+	 */
+	public void reset() {
 		nodes = parsedNodes;
+		expandedIndex = -1;
+		lastQuery = "";
 	}
 
 	/**

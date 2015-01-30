@@ -19,9 +19,9 @@
 package itdelatrisu.opsu.states;
 
 import fluddokt.opsu.fake.*;
+
+import itdelatrisu.opsu.GameData;
 import itdelatrisu.opsu.GameImage;
-import itdelatrisu.opsu.GameMod;
-import itdelatrisu.opsu.GameScore;
 import itdelatrisu.opsu.MenuButton;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.OsuFile;
@@ -52,8 +52,8 @@ import org.newdawn.slick.state.transition.FadeOutTransition;*/
  * </ul>
  */
 public class GameRanking extends BasicGameState {
-	/** Associated GameScore object. */
-	private GameScore score;
+	/** Associated GameData object. */
+	private GameData data;
 
 	/** "Retry" and "Exit" buttons. */
 	private MenuButton retryButton, exitButton;
@@ -101,29 +101,13 @@ public class GameRanking extends BasicGameState {
 			g.setBackground(Utils.COLOR_BLACK_ALPHA);
 
 		// ranking screen elements
-		score.drawRankingElements(g, width, height);
-
-		// game mods
-		for (GameMod mod : GameMod.VALUES_REVERSED) {
-			if (mod.isActive()) {
-				Image modImage = mod.getImage();
-				modImage.draw(
-						(width * 0.75f) + ((mod.getID() - (GameMod.SIZE / 2)) * modImage.getWidth() / 3f),
-						height / 2f
-				);
-			}
-		}
-
-		// header text
-		float marginX = width * 0.01f, marginY = height * 0.01f;
-		Utils.FONT_LARGE.drawString(marginX, marginY,
-				String.format("%s - %s [%s]", osu.getArtist(), osu.getTitle(), osu.version), Color.white);
-		Utils.FONT_MEDIUM.drawString(marginX, marginY + Utils.FONT_LARGE.getLineHeight() - 6,
-				String.format("Beatmap by %s", osu.creator), Color.white);
+		data.drawRankingElements(g, osu);
 
 		// buttons
-		retryButton.draw();
-		exitButton.draw();
+		if (data.isGameplay()) {
+			retryButton.draw();
+			exitButton.draw();
+		}
 		Utils.getBackButton().draw();
 
 		Utils.drawVolume(g);
@@ -147,11 +131,7 @@ public class GameRanking extends BasicGameState {
 	public void keyPressed(int key, char c) {
 		switch (key) {
 		case Input.KEY_ESCAPE:
-			SoundController.playSound(SoundEffect.MENUBACK);
-			SongMenu songMenu = (SongMenu) game.getState(Opsu.STATE_SONGMENU);
-			songMenu.resetGameDataOnLoad();
-			songMenu.resetTrackOnLoad();
-			game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
+			returnToSongMenu();
 			break;
 		case Input.KEY_F12:
 			Utils.takeScreenShot();
@@ -165,23 +145,26 @@ public class GameRanking extends BasicGameState {
 		if (button != Input.MOUSE_LEFT_BUTTON)
 			return;
 
-		if (retryButton.contains(x, y)) {
-			OsuFile osu = MusicController.getOsuFile();
-			Display.setTitle(String.format("%s - %s", game.getTitle(), osu.toString()));
-			((Game) game.getState(Opsu.STATE_GAME)).setRestart(Game.Restart.MANUAL);
-			SoundController.playSound(SoundEffect.MENUHIT);
-			game.enterState(Opsu.STATE_GAME, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
-		} else if (exitButton.contains(x, y)) {
-			SoundController.playSound(SoundEffect.MENUBACK);
-			((MainMenu) game.getState(Opsu.STATE_MAINMENU)).reset();
-			((SongMenu) game.getState(Opsu.STATE_SONGMENU)).resetGameDataOnLoad();
-			game.enterState(Opsu.STATE_MAINMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
-		} else if (Utils.getBackButton().contains(x, y)) {
-			SoundController.playSound(SoundEffect.MENUBACK);
-			SongMenu songMenu = (SongMenu) game.getState(Opsu.STATE_SONGMENU);
-			songMenu.resetGameDataOnLoad();
-			songMenu.resetTrackOnLoad();
-			game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
+		if (data.isGameplay()) {
+			if (retryButton.contains(x, y)) {
+				OsuFile osu = MusicController.getOsuFile();
+				Display.setTitle(String.format("%s - %s", game.getTitle(), osu.toString()));
+				((Game) game.getState(Opsu.STATE_GAME)).setRestart(Game.Restart.MANUAL);
+				SoundController.playSound(SoundEffect.MENUHIT);
+				game.enterState(Opsu.STATE_GAME, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
+				return;
+			} else if (exitButton.contains(x, y)) {
+				SoundController.playSound(SoundEffect.MENUBACK);
+				((MainMenu) game.getState(Opsu.STATE_MAINMENU)).reset();
+				((SongMenu) game.getState(Opsu.STATE_SONGMENU)).resetGameDataOnLoad();
+				Utils.resetCursor();
+				game.enterState(Opsu.STATE_MAINMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
+				return;
+			}
+		}
+		if (Utils.getBackButton().contains(x, y)) {
+			returnToSongMenu();
+			return;
 		}
 	}
 
@@ -189,14 +172,41 @@ public class GameRanking extends BasicGameState {
 	public void enter(GameContainer container, StateBasedGame game) {
 		Display.setTitle(game.getTitle());
 		Utils.getBackButton().setScale(1f);
-		SoundController.playSound(SoundEffect.APPLAUSE);
+		if (!data.isGameplay()) {
+			if (!MusicController.isTrackDimmed())
+				MusicController.toggleTrackDimmed(0.5f);
+		} else
+			SoundController.playSound(SoundEffect.APPLAUSE);
+	}
+
+	@Override
+	public void leave(GameContainer container, StateBasedGame game)
+			throws SlickException {
+		this.data = null;
 	}
 
 	/**
-	 * Sets the associated GameScore object.
-	 * @param score the GameScore
+	 * Returns to the song menu.
 	 */
-	public void setGameScore(GameScore score) {
-		this.score = score;
+	private void returnToSongMenu() {
+		SoundController.playSound(SoundEffect.MENUBACK);
+		if (data.isGameplay()) {
+			SongMenu songMenu = (SongMenu) game.getState(Opsu.STATE_SONGMENU);
+			songMenu.resetGameDataOnLoad();
+			songMenu.resetTrackOnLoad();
+		}
+		Utils.resetCursor();
+		game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 	}
+
+	/**
+	 * Sets the associated GameData object.
+	 * @param data the GameData
+	 */
+	public void setGameData(GameData data) { this.data = data; }
+
+	/**
+	 * Returns the current GameData object (usually null unless state active).
+	 */
+	public GameData getGameData() { return data; }
 }
