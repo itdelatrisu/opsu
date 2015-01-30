@@ -33,6 +33,7 @@ import org.lwjgl.BufferUtils;
 import org.lwjgl.openal.AL;
 import org.lwjgl.openal.AL10;
 import org.newdawn.slick.Music;
+import org.newdawn.slick.MusicListener;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.openal.Audio;
 import org.newdawn.slick.openal.SoundStore;
@@ -52,6 +53,9 @@ public class MusicController {
 
 	/** Thread for loading tracks. */
 	private static Thread trackLoader;
+
+	/** Whether or not the current track has ended. */
+	private static boolean trackEnded;
 
 	/** Whether the theme song is currently playing. */
 	private static boolean themePlaying = false;
@@ -107,6 +111,13 @@ public class MusicController {
 	private static void loadTrack(File file, int previewTime, boolean loop) {
 		try {   // create a new player
 			player = new Music(file.getPath());
+			player.addListener(new MusicListener() {
+				@Override
+				public void musicEnded(Music music) { trackEnded = true; }
+
+				@Override
+				public void musicSwapped(Music music, Music newMusic) {}
+			});
 			playAt((previewTime > 0) ? previewTime : 0, loop);
 		} catch (Exception e) {
 			ErrorHandler.error(String.format("Could not play track '%s'.", file.getName()), e, false);
@@ -120,6 +131,7 @@ public class MusicController {
 		if (trackExists()) {
 			setVolume(Options.getMusicVolume() * Options.getMasterVolume());
 			player.setPosition(position / 1000f);
+			trackEnded = false;
 			pauseTime = 0f;
 			if (loop)
 				player.loop();
@@ -264,6 +276,11 @@ public class MusicController {
 	}
 
 	/**
+	 * Returns whether or not the current track has ended.
+	 */
+	public static boolean trackEnded() { return trackEnded; }
+
+	/**
 	 * Plays the theme song.
 	 */
 	public static void playThemeSong() {
@@ -320,6 +337,7 @@ public class MusicController {
 
 		// reset state
 		lastOsu = null;
+		trackEnded = false;
 		themePlaying = false;
 		pauseTime = 0f;
 		trackDimmed = false;

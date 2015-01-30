@@ -332,7 +332,7 @@ public class Game extends BasicGameState {
 
 		// draw hit objects in reverse order, or else overlapping objects are unreadable
 		Stack<Integer> stack = new Stack<Integer>();
-		for (int i = objectIndex; i < osu.objects.length && osu.objects[i].getTime() < trackPosition + approachTime; i++)
+		for (int i = objectIndex; i < hitObjects.length && osu.objects[i].getTime() < trackPosition + approachTime; i++)
 			stack.add(i);
 
 		while (!stack.isEmpty())
@@ -417,7 +417,11 @@ public class Game extends BasicGameState {
 		data.updateDisplays(delta);
 
 		// map complete!
-		if (objectIndex >= osu.objects.length) {
+		if (objectIndex >= hitObjects.length || (MusicController.trackEnded() && objectIndex > 0)) {
+			// track ended before last object was processed: force a hit result
+			if (MusicController.trackEnded() && objectIndex < hitObjects.length)
+				hitObjects[objectIndex].update(true, delta, mouseX, mouseY);
+
 			if (checkpointLoaded)  // if checkpoint used, skip ranking screen
 				game.closeRequested();
 			else {  // go to ranking screen
@@ -501,9 +505,9 @@ public class Game extends BasicGameState {
 		}
 
 		// update objects (loop in unlikely event of any skipped indexes)
-		while (objectIndex < osu.objects.length && trackPosition > osu.objects[objectIndex].getTime()) {
+		while (objectIndex < hitObjects.length && trackPosition > osu.objects[objectIndex].getTime()) {
 			// check if we've already passed the next object's start time
-			boolean overlap = (objectIndex + 1 < osu.objects.length &&
+			boolean overlap = (objectIndex + 1 < hitObjects.length &&
 					trackPosition > osu.objects[objectIndex + 1].getTime() - hitResultOffset[GameData.HIT_300]);
 
 			// update hit object and check completion status
@@ -594,7 +598,7 @@ public class Game extends BasicGameState {
 
 					// skip to checkpoint
 					MusicController.setPosition(checkpoint);
-					while (objectIndex < osu.objects.length &&
+					while (objectIndex < hitObjects.length &&
 							osu.objects[objectIndex++].getTime() <= checkpoint)
 						;
 					objectIndex--;
@@ -635,7 +639,7 @@ public class Game extends BasicGameState {
 			return;
 		}
 
-		if (objectIndex >= osu.objects.length)  // nothing left to do here
+		if (objectIndex >= hitObjects.length)  // nothing left to do here
 			return;
 
 		OsuHitObject hitObject = osu.objects[objectIndex];

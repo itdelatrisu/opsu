@@ -152,11 +152,9 @@ public class Spinner implements HitObject {
 	@Override
 	public boolean update(boolean overlap, int delta, int mouseX, int mouseY) {
 		int trackPosition = MusicController.getPosition();
-		if (overlap)
-			return true;
 
 		// end of spinner
-		if (trackPosition > hitObject.getEndTime()) {
+		if (overlap || trackPosition > hitObject.getEndTime()) {
 			hitResult();
 			return true;
 		}
