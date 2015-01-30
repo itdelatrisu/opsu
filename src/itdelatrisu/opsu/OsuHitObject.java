@@ -104,16 +104,25 @@ public class OsuHitObject {
 	public static void init(int width, int height) {
 		int swidth = width;
 		int sheight = height;
-		if(swidth*3>sheight*4){
-			swidth = sheight*4/3;
-		}else{
-			sheight = swidth*3/4;
-		}
-		xMultiplier = swidth / 640f; //(width * 1f) / MAX_X; // width * MAX_X/800f / MAX_X
-		yMultiplier = sheight / 480f;//(height * 1f) / MAX_Y;
-		xOffset = (int)(width - MAX_X * xMultiplier)/2 ;//width / 5; 800-512/2
-		yOffset = (int)(height - MAX_Y * yMultiplier)/2 ;//height / 5;
+		if (swidth * 3 > sheight * 4)
+			swidth = sheight * 4 / 3;
+		else
+			sheight = swidth * 3 / 4;
+		xMultiplier = swidth / 640f;
+		yMultiplier = sheight / 480f;
+		xOffset = (int) (width - MAX_X * xMultiplier) / 2;
+		yOffset = (int) (height - MAX_Y * yMultiplier) / 2;
 	}
+
+	/**
+	 * Returns the X multiplier for coordinates.
+	 */
+	public static float getXMultiplier() { return xMultiplier; }
+
+	/**
+	 * Returns the Y multiplier for coordinates.
+	 */
+	public static float getYMultiplier() { return yMultiplier; }
 
 	/**
 	 * Constructor.
@@ -287,11 +296,4 @@ public class OsuHitObject {
 	 * @return true if new combo
 	 */
 	public boolean isNewCombo() { return (type & TYPE_NEWCOMBO) > 0; }
-	/**
-	 * Returns the multiplier for coordinates
-	 * @return
-	 */
-	public static float getMultiplier() {
-		return xMultiplier;
-	}
 }

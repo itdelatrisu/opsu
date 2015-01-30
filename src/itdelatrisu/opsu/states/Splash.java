@@ -148,7 +148,7 @@ public class Splash extends BasicGameState {
 			// close program
 			if (++escapeCount >= 3)
 				container.exit();
-	
+
 			// stop parsing OsuFiles by sending interrupt to OsuParser
 			else if (thread != null)
 				thread.interrupt();

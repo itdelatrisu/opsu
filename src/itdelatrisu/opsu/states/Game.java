@@ -19,9 +19,9 @@
 package itdelatrisu.opsu.states;
 
 import itdelatrisu.opsu.ErrorHandler;
+import itdelatrisu.opsu.GameData;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.GameMod;
-import itdelatrisu.opsu.GameData;
 import itdelatrisu.opsu.MenuButton;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.Options;
@@ -29,6 +29,7 @@ import itdelatrisu.opsu.OsuFile;
 import itdelatrisu.opsu.OsuHitObject;
 import itdelatrisu.opsu.OsuTimingPoint;
 import itdelatrisu.opsu.ScoreDB;
+import itdelatrisu.opsu.ScoreData;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.HitSound;
 import itdelatrisu.opsu.audio.MusicController;
@@ -421,8 +422,9 @@ public class Game extends BasicGameState {
 				game.closeRequested();
 			else {  // go to ranking screen
 				((GameRanking) game.getState(Opsu.STATE_GAMERANKING)).setGameData(data);
+				ScoreData score = data.getScoreData(osu);
 				if (!GameMod.AUTO.isActive())
-					ScoreDB.addScore(data.getScoreData(osu));
+					ScoreDB.addScore(score);
 				game.enterState(Opsu.STATE_GAMERANKING, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 			}
 			return;
