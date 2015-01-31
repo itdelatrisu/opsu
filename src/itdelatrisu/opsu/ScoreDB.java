@@ -31,7 +31,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.sqlite.JDBC;
+import org.sqldroid.SQLDroidDriver;
+
+import fluddokt.opsu.fake.File;
 /**
  * Handles connections and queries with the scores database.
  */
@@ -54,15 +56,20 @@ public class ScoreDB {
 	public static void init() {
 		// load the sqlite-JDBC driver using the current class loader
 		try {
-			Class t = org.sqlite.JDBC.class;
-			Class.forName("org.sqlite.JDBC");
+			//Class t = org.sqlite.JDBC.class;
+			if(com.badlogic.gdx.Gdx.app.getType() == com.badlogic.gdx.Application.ApplicationType.Android)
+				 Class.forName("org.sqldroid.SQLDroidDriver");
+			else
+				Class.forName("org.sqlite.JDBC");
+			
+			
 		} catch (ClassNotFoundException e) {
 			ErrorHandler.error("Could not load sqlite-JDBC driver.", e, true);
 		}
 
 		// create a database connection
 		try {
-			connection = DriverManager.getConnection(String.format("jdbc:sqlite:%s", Options.SCORE_DB));
+			connection = DriverManager.getConnection(String.format("jdbc:sqlite:"+ com.badlogic.gdx.Gdx.files.getExternalStoragePath()+(Options.SCORE_DB)));
 		} catch (SQLException e) {
 			// if the error message is "out of memory", it probably means no database file is found
 			ErrorHandler.error("Could not connect to score database.", e, true);
