@@ -23,8 +23,12 @@ import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.OsuHitObject;
 import itdelatrisu.opsu.Utils;
 
+/*
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Image;
+*/
+import fluddokt.opsu.fake.*;
+
 
 /**
  * Representation of a curve along a Circumscribed Circle of three points.

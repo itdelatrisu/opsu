@@ -20,7 +20,11 @@ package itdelatrisu.opsu.objects.curves;
 
 import itdelatrisu.opsu.OsuHitObject;
 
+/*
 import org.newdawn.slick.Color;
+*/
+import fluddokt.opsu.fake.*;
+
 
 /**
  * Representation of a curve.

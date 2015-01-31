@@ -25,8 +25,11 @@ import itdelatrisu.opsu.Utils;
 import java.util.Iterator;
 import java.util.LinkedList;
 
+/*
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Image;
+*/
+import fluddokt.opsu.fake.*;
 
 /**
  * Representation of a Bezier curve with equidistant points.

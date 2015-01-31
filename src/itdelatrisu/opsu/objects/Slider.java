@@ -282,7 +282,7 @@ public class Slider implements HitObject {
 			//else not a hit
 
 			if (result > -1) {
-				score.addErrorRate(hitObject.getTime(), x,y,trackPosition - hitObject.getTime());
+				data.addErrorRate(hitObject.getTime(), x,y,trackPosition - hitObject.getTime());
 				sliderClicked = true;
 				data.sliderTickResult(hitObject.getTime(), result,
 						hitObject.getX(), hitObject.getY(), hitObject.getHitSoundType());

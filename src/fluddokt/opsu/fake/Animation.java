@@ -87,6 +87,10 @@ public class Animation extends Image{
 		//System.out.println("curFrame Anim:"+curFrame);
 		return getImage(curFrame).tex;
 	}
+
+	public Image getCurrentFrame() {
+		return getImage(curFrame);
+	}
 	
 
 }

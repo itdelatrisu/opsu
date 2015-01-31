@@ -31,6 +31,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.sqlite.JDBC;
 /**
  * Handles connections and queries with the scores database.
  */
@@ -53,6 +54,7 @@ public class ScoreDB {
 	public static void init() {
 		// load the sqlite-JDBC driver using the current class loader
 		try {
+			Class t = org.sqlite.JDBC.class;
 			Class.forName("org.sqlite.JDBC");
 		} catch (ClassNotFoundException e) {
 			ErrorHandler.error("Could not load sqlite-JDBC driver.", e, true);

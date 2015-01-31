@@ -18,6 +18,8 @@
 
 package itdelatrisu.opsu;
 
+import fluddokt.opsu.fake.*;
+
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.states.Game;
 import itdelatrisu.opsu.states.GamePauseMenu;
@@ -145,9 +147,11 @@ public class Opsu extends StateBasedGame {
 		//}
 		//Options.TMP_DIR.deleteOnExit();
 
-		// start the game
-		//Opsu opsu = new Opsu("opsu!");
+		// initialize score database
+		ScoreDB.init();
+		
 		//*
+		// start the game
 		try {
 		
 			// loop until force exit
@@ -171,6 +175,8 @@ public class Opsu extends StateBasedGame {
 			else
 				ErrorHandler.error("Error while creating game container.", e, true);
 		}//*/
+		
+		//Opsu.exit();
 	}
 
 	@Override
@@ -181,12 +187,21 @@ public class Opsu extends StateBasedGame {
 		if (id == STATE_GAME || id == STATE_GAMEPAUSEMENU || id == STATE_GAMERANKING) {
 			// start playing track at preview position
 			SongMenu songMenu = (SongMenu) this.getState(Opsu.STATE_SONGMENU);
-			songMenu.resetGameDataOnLoad();
-			if (id == STATE_GAME) {
-				MusicController.pause();
-				MusicController.resume();
-			} else
-				songMenu.resetTrackOnLoad();
+			if (id == STATE_GAMERANKING) {
+				GameData data = ((GameRanking) this.getState(Opsu.STATE_GAMERANKING)).getGameData();
+				if (data != null && data.isGameplay()) {
+					songMenu.resetGameDataOnLoad();
+					songMenu.resetTrackOnLoad();
+				}
+			} else {
+				songMenu.resetGameDataOnLoad();
+				if (id == STATE_GAME) {
+					MusicController.pause();
+					MusicController.resume();
+				} else
+					songMenu.resetTrackOnLoad();
+			}
+			Utils.resetCursor();
 			this.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 			return false;
 		}

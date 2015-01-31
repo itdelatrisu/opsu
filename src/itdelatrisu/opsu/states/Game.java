@@ -669,7 +669,7 @@ public class Game extends BasicGameState {
 
 		//Nothing hit
 		else
-			score.addMouseMissPoint(MusicController.getPosition(), x,y,button);
+			data.addMouseMissPoint(MusicController.getPosition(), x,y,button);
 	}
 
 	@Override
@@ -879,7 +879,7 @@ public class Game extends BasicGameState {
 		// HPDrainRate (health change), overallDifficulty (scoring)
 		data.setDrainRate(HPDrainRate);
 		data.setDifficulty(overallDifficulty);
-		score.setHitResultOffset(hitResultOffset);
+		data.setHitResultOffset(hitResultOffset);
 	}
 
 	/**
