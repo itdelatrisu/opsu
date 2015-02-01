@@ -21,6 +21,7 @@ package itdelatrisu.opsu.states;
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.MenuButton;
+import itdelatrisu.opsu.MenuButton.Expand;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.OsuFile;
@@ -74,6 +75,9 @@ public class MainMenu extends BasicGameState {
 
 	/** Music control buttons. */
 	private MenuButton musicPlay, musicPause, musicNext, musicPrevious;
+
+	/** Button linking to Downloads menu. */
+	private MenuButton downloadsButton;
 
 	/** Button linking to repository. */
 	private MenuButton repoButton;
@@ -138,6 +142,12 @@ public class MainMenu extends BasicGameState {
 		musicNext.setHoverScale(1.5f);
 		musicPrevious.setHoverScale(1.5f);
 
+		// initialize downloads button
+		Image dlImg = GameImage.DOWNLOADS.getImage();
+		downloadsButton = new MenuButton(dlImg, width - dlImg.getWidth() / 2f, height / 2f);
+		downloadsButton.setHoverDir(Expand.LEFT);
+		downloadsButton.setHoverScale(1.05f);
+
 		// initialize repository button
 		if (Desktop.isDesktopSupported()) {  // only if a webpage can be opened
 			Image repoImg = GameImage.REPOSITORY.getImage();
@@ -172,6 +182,9 @@ public class MainMenu extends BasicGameState {
 		g.fillRect(0, 0, width, height / 9f);
 		g.fillRect(0, height * 8 / 9f, width, height / 9f);
 		Utils.COLOR_BLACK_ALPHA.a = oldAlpha;
+
+		// draw downloads button
+		downloadsButton.draw();
 
 		// draw buttons
 		if (logoTimer > 0) {
@@ -239,6 +252,7 @@ public class MainMenu extends BasicGameState {
 		exitButton.hoverUpdate(delta, mouseX, mouseY);
 		if (repoButton != null)
 			repoButton.hoverUpdate(delta, mouseX, mouseY);
+		downloadsButton.hoverUpdate(delta, mouseX, mouseY);
 		musicPlay.hoverUpdate(delta, mouseX, mouseY);
 		musicPause.hoverUpdate(delta, mouseX, mouseY);
 		if (musicPlay.contains(mouseX, mouseY))
@@ -319,6 +333,8 @@ public class MainMenu extends BasicGameState {
 			musicPrevious.setScale(1f);
 		if (repoButton != null && !repoButton.contains(mouseX, mouseY))
 			repoButton.setScale(1f);
+		if (!downloadsButton.contains(mouseX, mouseY))
+			downloadsButton.setScale(1f);
 	}
 
 	@Override
@@ -353,6 +369,12 @@ public class MainMenu extends BasicGameState {
 					bgAlpha = 0f;
 			} else
 				MusicController.setPosition(0);
+		}
+
+		// downloads button actions
+		else if (downloadsButton.contains(x, y)) {
+			SoundController.playSound(SoundEffect.MENUHIT);
+			game.enterState(Opsu.STATE_DOWNLOADSMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 		}
 
 		// repository button actions
@@ -437,5 +459,6 @@ public class MainMenu extends BasicGameState {
 		musicPause.setScale(1f);
 		musicNext.setScale(1f);
 		musicPrevious.setScale(1f);
+		downloadsButton.setScale(1f);
 	}
 }

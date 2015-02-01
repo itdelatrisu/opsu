@@ -55,10 +55,8 @@ public class OsuParser {
 	/**
 	 * Invokes parser for each OSU file in a root directory.
 	 * @param root the root directory (search has depth 1)
-	 * @param width the container width
-	 * @param height the container height
 	 */
-	public static void parseAllFiles(File root, int width, int height) {
+	public static void parseAllFiles(File root) {
 		// create a new OsuGroupList
 		OsuGroupList.create();
 

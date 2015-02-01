@@ -465,6 +465,26 @@ public enum GameImage {
 			return img.getScaledCopy((h * 0.15f) / img.getHeight());
 		}
 	},
+	DOWNLOADS ("downloads", "png", false, false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy((h * 0.45f) / img.getHeight());
+		}
+	},
+	SEARCH_BG ("search-background", "png|jpg", false, true) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			img.setAlpha(0.8f);
+			return img.getScaledCopy(w, h);
+		}
+	},
+	DELETE ("delete", "png", false, false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			int lineHeight = Utils.FONT_DEFAULT.getLineHeight();
+			return img.getScaledCopy(lineHeight, lineHeight);
+		}
+	},
 	HISTORY ("history", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
@@ -573,10 +593,7 @@ public enum GameImage {
 	 * @param type the file types (separated by '|')
 	 */
 	GameImage(String filename, String type) {
-		this.filename = filename;
-		this.type = getType(type);
-		this.skinnable = true;
-		this.preload = true;
+		this(filename, type, true, true);
 	}
 
 	/**
@@ -586,11 +603,8 @@ public enum GameImage {
 	 * @param type the file types (separated by '|')
 	 */
 	GameImage(String filename, String filenameFormat, String type) {
-		this.filename = filename;
+		this(filename, type, true, true);
 		this.filenameFormat = filenameFormat;
-		this.type = getType(type);
-		this.skinnable = true;
-		this.preload = true;
 	}
 
 	/**

@@ -19,6 +19,7 @@
 package itdelatrisu.opsu;
 
 import itdelatrisu.opsu.audio.MusicController;
+import itdelatrisu.opsu.downloads.DownloadList;
 
 import org.newdawn.slick.AppGameContainer;
 import org.newdawn.slick.Game;
@@ -109,5 +110,14 @@ public class Container extends AppGameContainer {
 			this.e = e;  // store exception to display later
 			throw e;     // re-throw exception
 		}
+	}
+
+	@Override
+	public void exit() {
+		// show confirmation dialog if any downloads are active
+		if (DownloadList.get().hasActiveDownloads() && DownloadList.showExitConfirmation())
+			return;
+
+		super.exit();
 	}
 }

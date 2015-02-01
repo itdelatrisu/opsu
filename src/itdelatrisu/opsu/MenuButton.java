@@ -50,7 +50,7 @@ public class MenuButton {
 	private Expand dir = Expand.CENTER;
 
 	/** Scaled expansion directions (for hovering). */
-	public enum Expand { CENTER, UP_RIGHT, UP_LEFT, DOWN_RIGHT, DOWN_LEFT; }
+	public enum Expand { CENTER, UP, RIGHT, LEFT, DOWN, UP_RIGHT, UP_LEFT, DOWN_RIGHT, DOWN_LEFT; }
 
 	/**
 	 * Creates a new button from an Image.
@@ -137,7 +137,7 @@ public class MenuButton {
 	public void draw() {
 		if (img != null) {
 			if (imgL == null) {
-				Image imgScaled = img.getScaledCopy(scale);
+				Image imgScaled = (scale == 1f) ? img : img.getScaledCopy(scale);
 				imgScaled.setAlpha(img.getAlpha());
 				imgScaled.draw(x - xRadius, y - yRadius);
 			} else {
@@ -229,9 +229,13 @@ public class MenuButton {
 			// offset by difference between normal/scaled image dimensions
 			xOffset = (int) ((scale - 1f) * img.getWidth());
 			yOffset = (int) ((scale - 1f) * img.getHeight());
-			if (dir == Expand.DOWN_RIGHT || dir == Expand.UP_RIGHT)
+			if (dir == Expand.UP || dir == Expand.DOWN)
+				xOffset = 0;    // no horizontal offset
+			if (dir == Expand.RIGHT || dir == Expand.LEFT)
+				yOffset = 0;    // no vertical offset
+			if (dir == Expand.RIGHT || dir == Expand.DOWN_RIGHT || dir == Expand.UP_RIGHT)
 				xOffset *= -1;  // flip x for right
-			if (dir == Expand.DOWN_LEFT || dir == Expand.DOWN_RIGHT)
+			if (dir == Expand.DOWN ||  dir == Expand.DOWN_LEFT || dir == Expand.DOWN_RIGHT)
 				yOffset *= -1;  // flip y for down
 		}
 		this.xRadius = ((img.getWidth() * scale) + xOffset) / 2f;

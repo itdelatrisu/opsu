@@ -20,6 +20,7 @@ package itdelatrisu.opsu;
 
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
+import itdelatrisu.opsu.downloads.DownloadNode;
 
 import java.awt.Font;
 import java.awt.image.BufferedImage;
@@ -71,7 +72,8 @@ public class Utils {
 		COLOR_ORANGE_OBJECT   = new Color(255, 200, 32),
 		COLOR_YELLOW_ALPHA    = new Color(255, 255, 0, 0.4f),
 		COLOR_WHITE_FADE      = new Color(255, 255, 255, 1f),
-		COLOR_RED_HOVER       = new Color(255, 112, 112);
+		COLOR_RED_HOVER       = new Color(255, 112, 112),
+		COLOR_GREEN           = new Color(137, 201, 79);
 
 	/** The default map colors, used when a map does not provide custom colors. */
 	public static final Color[] DEFAULT_COMBO = {
@@ -200,6 +202,9 @@ public class Utils {
 
 		// initialize score data buttons
 		ScoreData.init(width, height);
+
+		// initialize download nodes
+		DownloadNode.init(width, height);
 
 		// back button
 		Image back = GameImage.MENU_BACK.getImage();
@@ -684,5 +689,19 @@ public class Utils {
 				Log.warn("Failed to load glyphs.", e);
 			}
 		}
+	}
+
+	/**
+	 * Returns a human-readable representation of a given number of bytes.
+	 * @param bytes the number of bytes
+	 * @return the string representation
+	 * @author aioobe (http://stackoverflow.com/a/3758880)
+	 */
+	public static String bytesToString(long bytes) {
+		if (bytes < 1024)
+			return bytes + " B";
+		int exp = (int) (Math.log(bytes) / Math.log(1024));
+		char pre = "KMGTPE".charAt(exp - 1);
+		return String.format("%.1f %cB", bytes / Math.pow(1024, exp), pre);
 	}
 }

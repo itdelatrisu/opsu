@@ -93,8 +93,6 @@ public class Splash extends BasicGameState {
 				finished = true;
 			} else {
 				// load resources in a new thread
-				final int width = container.getWidth();
-				final int height = container.getHeight();
 				thread = new Thread() {
 					@Override
 					public void run() {
@@ -104,7 +102,7 @@ public class Splash extends BasicGameState {
 						OszUnpacker.unpackAllFiles(Options.getOSZDir(), beatmapDir);
 
 						// parse song directory
-						OsuParser.parseAllFiles(beatmapDir, width, height);
+						OsuParser.parseAllFiles(beatmapDir);
 
 						// load sounds
 						SoundController.init();

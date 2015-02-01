@@ -16,9 +16,10 @@ The Java Runtime Environment (JRE) must be installed in order to run opsu!.
 The download page is located [here](https://www.java.com/en/download/).
 
 ### Beatmaps
-opsu! also requires beatmaps to run, which are available for download on the
+opsu! requires beatmaps to run, which are available for download on the
 [osu! website](https://osu.ppy.sh/p/beatmaplist) and mirror sites such as
 [osu!Mirror](https://osu.yas-online.net/) or [Bloodcat](http://bloodcat.com/osu/).
+Beatmaps can also be downloaded directly through opsu! in the downloads menu.
 
 If osu! is already installed, this application will attempt to load songs
 directly from the osu! program folder.  Otherwise, place songs in the generated

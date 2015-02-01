@@ -620,7 +620,7 @@ public class SongMenu extends BasicGameState {
 					// invoke unpacker and parser
 					File beatmapDir = Options.getBeatmapDir();
 					OszUnpacker.unpackAllFiles(Options.getOSZDir(), beatmapDir);
-					OsuParser.parseAllFiles(beatmapDir, container.getWidth(), container.getHeight());
+					OsuParser.parseAllFiles(beatmapDir);
 
 					// initialize song list
 					if (OsuGroupList.get().size() > 0) {
