@@ -156,30 +156,6 @@ public class DownloadNode {
 	}
 
 	/**
-	 * Returns true if the coordinates are within the bounds of the
-	 * previous page icon.
-	 * @param cx the x coordinate
-	 * @param cy the y coordinate
-	 */
-	public static boolean prevPageContains(float cx, float cy) {
-		Image img = GameImage.MUSIC_PREVIOUS.getImage();
-		return ((cx > buttonBaseX && cx < buttonBaseX + img.getWidth()) &&
-		        (cy > buttonBaseY - img.getHeight() && cy < buttonBaseY));
-	}
-
-	/**
-	 * Returns true if the coordinates are within the bounds of the
-	 * next page icon.
-	 * @param cx the x coordinate
-	 * @param cy the y coordinate
-	 */
-	public static boolean nextPageContains(float cx, float cy) {
-		Image img = GameImage.MUSIC_NEXT.getImage();
-		return ((cx > buttonBaseX + buttonWidth - img.getWidth() && cx < buttonBaseX + buttonWidth) &&
-		        (cy > buttonBaseY - img.getHeight() && cy < buttonBaseY));
-	}
-
-	/**
 	 * Draws the scroll bar for the download result buttons.
 	 * @param g the graphics context
 	 * @param index the start button index
@@ -213,27 +189,6 @@ public class DownloadNode {
 		g.fillRect(infoBaseX + infoWidth - scrollbarWidth, infoBaseY, scrollbarWidth, infoHeight * DownloadsMenu.MAX_DOWNLOADS_SHOWN);
 		g.setColor(Color.white);
 		g.fillRect(infoBaseX + infoWidth - scrollbarWidth, infoBaseY + offsetY, scrollbarWidth, scrollbarHeight);
-	}
-
-	/**
-	 * Draws the page number text and previous/next page icons.
-	 * @param page the current page number
-	 * @param prev whether to draw the previous page icon
-	 * @param next whether to draw the next page icon
-	 */
-	public static void drawPageIcons(int page, boolean prev, boolean next) {
-		String pageText = String.format("Page %d", page);
-		Utils.FONT_BOLD.drawString(
-				buttonBaseX + (buttonWidth - Utils.FONT_BOLD.getWidth("Page 1")) / 2f,
-				buttonBaseY - Utils.FONT_BOLD.getLineHeight() * 1.3f, pageText, Color.white);
-		if (prev) {
-			Image prevImg = GameImage.MUSIC_PREVIOUS.getImage();
-			prevImg.draw(buttonBaseX, buttonBaseY - prevImg.getHeight());
-		}
-		if (next) {
-			Image nextImg = GameImage.MUSIC_NEXT.getImage();
-			nextImg.draw(buttonBaseX + buttonWidth - nextImg.getWidth(), buttonBaseY - nextImg.getHeight());
-		}
 	}
 
 	/**

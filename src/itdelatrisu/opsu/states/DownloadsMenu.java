@@ -19,6 +19,7 @@
 package itdelatrisu.opsu.states;
 
 import itdelatrisu.opsu.GameImage;
+import itdelatrisu.opsu.MenuButton;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.SoundController;
@@ -34,6 +35,7 @@ import java.io.IOException;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
+import org.newdawn.slick.Image;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.gui.TextField;
@@ -124,6 +126,9 @@ public class DownloadsMenu extends BasicGameState {
 	/** Number of active requests. */
 	private int activeRequests = 0;
 
+	/** Previous and next page buttons. */
+	private MenuButton prevPage, nextPage;
+
 	/** "Ranked only?" checkbox coordinates. */
 	private float rankedBoxX, rankedBoxY, rankedBoxLength;
 
@@ -144,13 +149,14 @@ public class DownloadsMenu extends BasicGameState {
 
 		int width = container.getWidth();
 		int height = container.getHeight();
+		float baseX = width * 0.024f;
 
 		// search
 		searchTimer = SEARCH_DELAY;
 		searchResultString = "Type to search!";
 		search = new TextField(
 				container, Utils.FONT_DEFAULT,
-				(int) (width * 0.024f), (int) (height * 0.05f) + Utils.FONT_LARGE.getLineHeight(),
+				(int) baseX, (int) (height * 0.05f) + Utils.FONT_LARGE.getLineHeight(),
 				(int) (width * 0.35f), Utils.FONT_MEDIUM.getLineHeight()
 		);
 		search.setBackgroundColor(DownloadNode.BG_NORMAL);
@@ -163,6 +169,18 @@ public class DownloadsMenu extends BasicGameState {
 		rankedBoxX = search.getX() + search.getWidth() * 1.2f;
 		rankedBoxY = search.getY();
 		rankedBoxLength = search.getHeight();
+
+		// page buttons
+		float buttonY = height * 0.2f;
+		float buttonWidth = width * 0.7f;
+		Image prevImg = GameImage.MUSIC_PREVIOUS.getImage();
+		Image nextImg = GameImage.MUSIC_NEXT.getImage();
+		prevPage = new MenuButton(prevImg, baseX + prevImg.getWidth() / 2f,
+				buttonY - prevImg.getHeight() / 2f);
+		nextPage = new MenuButton(nextImg, baseX + buttonWidth - nextImg.getWidth() / 2f,
+				buttonY - nextImg.getHeight() / 2f);
+		prevPage.setHoverScale(1.5f);
+		nextPage.setHoverScale(1.5f);
 	}
 
 	@Override
@@ -208,8 +226,20 @@ public class DownloadsMenu extends BasicGameState {
 				DownloadNode.drawResultScrollbar(g, startResult, nodes.length);
 
 			// pages
-			if (nodes.length > 0)
-				DownloadNode.drawPageIcons(page, (page > 1), (pageResultTotal < totalResults));
+			if (nodes.length > 0) {
+				float baseX = width * 0.024f;
+				float buttonY = height * 0.2f;
+				float buttonWidth = width * 0.7f;
+				Utils.FONT_BOLD.drawString(
+						baseX + (buttonWidth - Utils.FONT_BOLD.getWidth("Page 1")) / 2f,
+						buttonY - Utils.FONT_BOLD.getLineHeight() * 1.3f,
+						String.format("Page %d", page), Color.white
+				);
+				if (page > 1)
+					prevPage.draw();
+				if (pageResultTotal < totalResults)
+					nextPage.draw();
+			}
 		}
 
 		// downloads
@@ -245,6 +275,8 @@ public class DownloadsMenu extends BasicGameState {
 		Utils.updateVolumeDisplay(delta);
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
 		Utils.getBackButton().hoverUpdate(delta, mouseX, mouseY);
+		prevPage.hoverUpdate(delta, mouseX, mouseY);
+		nextPage.hoverUpdate(delta, mouseX, mouseY);
 
 		// focus timer
 		if (focusResult != -1 && focusTimer < FOCUS_DELAY)
@@ -388,7 +420,7 @@ public class DownloadsMenu extends BasicGameState {
 
 			// pages
 			if (nodes.length > 0) {
-				if (page > 1 && DownloadNode.prevPageContains(x, y)) {
+				if (page > 1 && prevPage.contains(x, y)) {
 					if (lastQueryDir == Page.PREVIOUS && queryThread != null && queryThread.isAlive())
 						;  // don't send consecutive requests
 					else {
@@ -398,7 +430,7 @@ public class DownloadsMenu extends BasicGameState {
 					}
 					return;
 				}
-				if (pageResultTotal < totalResults && DownloadNode.nextPageContains(x, y)) {
+				if (pageResultTotal < totalResults && nextPage.contains(x, y)) {
 					if (lastQueryDir == Page.NEXT && queryThread != null && queryThread.isAlive())
 						;  // don't send consecutive requests
 					else {
@@ -503,6 +535,8 @@ public class DownloadsMenu extends BasicGameState {
 	public void enter(GameContainer container, StateBasedGame game)
 			throws SlickException {
 		Utils.getBackButton().setScale(1f);
+		prevPage.setScale(1f);
+		nextPage.setScale(1f);
 		focusResult = -1;
 		startResult = 0;
 		startDownloadIndex = 0;

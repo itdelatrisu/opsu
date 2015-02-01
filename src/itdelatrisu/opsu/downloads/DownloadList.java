@@ -18,6 +18,8 @@
 
 package itdelatrisu.opsu.downloads;
 
+import itdelatrisu.opsu.ErrorHandler;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -25,8 +27,6 @@ import java.util.Map;
 
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
-
-import org.newdawn.slick.util.Log;
 
 /**
  * Maintains the current downloads list.
@@ -134,7 +134,7 @@ public class DownloadList {
 		try {
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		} catch (Exception e) {
-			Log.error("Could not set system look and feel for Container.", e);
+			ErrorHandler.error("Could not set system look and feel for DownloadList.", e, true);
 		}
 		int n = JOptionPane.showConfirmDialog(null,
 				"Beatmap downloads are in progress.\nAre you sure you want to quit opsu!?",
