@@ -21,6 +21,11 @@ package itdelatrisu.opsu.states;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.MenuButton;
 import itdelatrisu.opsu.Opsu;
+import itdelatrisu.opsu.Options;
+import itdelatrisu.opsu.OsuGroupList;
+import itdelatrisu.opsu.OsuGroupNode;
+import itdelatrisu.opsu.OsuParser;
+import itdelatrisu.opsu.OszUnpacker;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
@@ -30,6 +35,7 @@ import itdelatrisu.opsu.downloads.DownloadList;
 import itdelatrisu.opsu.downloads.DownloadNode;
 import itdelatrisu.opsu.downloads.DownloadServer;
 
+import java.io.File;
 import java.io.IOException;
 
 import org.newdawn.slick.Color;
@@ -48,12 +54,6 @@ import org.newdawn.slick.state.transition.FadeOutTransition;
  * Downloads menu.
  */
 public class DownloadsMenu extends BasicGameState {
-	/** The max number of search result buttons to be shown at a time. */
-	public static final int MAX_RESULT_BUTTONS = 10;
-
-	/** The max number of downloads to be shown at a time. */
-	public static final int MAX_DOWNLOADS_SHOWN = 11;
-
 	/** Delay time, in milliseconds, between each search. */
 	private static final int SEARCH_DELAY = 700;
 
@@ -129,8 +129,11 @@ public class DownloadsMenu extends BasicGameState {
 	/** Previous and next page buttons. */
 	private MenuButton prevPage, nextPage;
 
-	/** "Ranked only?" checkbox coordinates. */
-	private float rankedBoxX, rankedBoxY, rankedBoxLength;
+	/** Buttons. */
+	private MenuButton clearButton, importButton, resetButton, rankedButton;
+
+	/** Beatmap importing thread. */
+	private Thread importThread;
 
 	// game-related variables
 	private StateBasedGame game;
@@ -150,14 +153,15 @@ public class DownloadsMenu extends BasicGameState {
 		int width = container.getWidth();
 		int height = container.getHeight();
 		float baseX = width * 0.024f;
+		float searchY = (height * 0.05f) + Utils.FONT_LARGE.getLineHeight();
+		float searchWidth = width * 0.35f;
 
 		// search
 		searchTimer = SEARCH_DELAY;
 		searchResultString = "Type to search!";
 		search = new TextField(
-				container, Utils.FONT_DEFAULT,
-				(int) baseX, (int) (height * 0.05f) + Utils.FONT_LARGE.getLineHeight(),
-				(int) (width * 0.35f), Utils.FONT_MEDIUM.getLineHeight()
+				container, Utils.FONT_DEFAULT, (int) baseX, (int) searchY,
+				(int) searchWidth, Utils.FONT_MEDIUM.getLineHeight()
 		);
 		search.setBackgroundColor(DownloadNode.BG_NORMAL);
 		search.setBorderColor(Color.white);
@@ -165,22 +169,46 @@ public class DownloadsMenu extends BasicGameState {
 		search.setConsumeEvents(false);
 		search.setMaxLength(255);
 
-		// ranked only?
-		rankedBoxX = search.getX() + search.getWidth() * 1.2f;
-		rankedBoxY = search.getY();
-		rankedBoxLength = search.getHeight();
-
 		// page buttons
-		float buttonY = height * 0.2f;
-		float buttonWidth = width * 0.7f;
+		float pageButtonY = height * 0.2f;
+		float pageButtonWidth = width * 0.7f;
 		Image prevImg = GameImage.MUSIC_PREVIOUS.getImage();
 		Image nextImg = GameImage.MUSIC_NEXT.getImage();
 		prevPage = new MenuButton(prevImg, baseX + prevImg.getWidth() / 2f,
-				buttonY - prevImg.getHeight() / 2f);
-		nextPage = new MenuButton(nextImg, baseX + buttonWidth - nextImg.getWidth() / 2f,
-				buttonY - nextImg.getHeight() / 2f);
-		prevPage.setHoverScale(1.5f);
-		nextPage.setHoverScale(1.5f);
+				pageButtonY - prevImg.getHeight() / 2f);
+		nextPage = new MenuButton(nextImg, baseX + pageButtonWidth - nextImg.getWidth() / 2f,
+				pageButtonY - nextImg.getHeight() / 2f);
+		prevPage.setHoverExpand(1.5f);
+		nextPage.setHoverExpand(1.5f);
+
+		// buttons
+		float buttonWidth = width * 0.12f;
+		float buttonMarginX = width * 0.004f;
+		float buttonHeight = height * 0.038f;
+		float topButtonY = searchY + Utils.FONT_MEDIUM.getLineHeight() / 2f;
+		float lowerButtonY = height * 0.995f - searchY - buttonHeight / 2f;
+		Image button = GameImage.MENU_BUTTON_MID.getImage();
+		Image buttonL = GameImage.MENU_BUTTON_LEFT.getImage();
+		Image buttonR = GameImage.MENU_BUTTON_RIGHT.getImage();
+		buttonL = buttonL.getScaledCopy(buttonHeight / buttonL.getHeight());
+		buttonR = buttonR.getScaledCopy(buttonHeight / buttonR.getHeight());
+		button = button.getScaledCopy((int) buttonWidth - buttonL.getWidth() - buttonR.getWidth(), (int) buttonHeight);
+		float fullButtonWidth = button.getWidth() + buttonL.getWidth() + buttonR.getWidth();
+		clearButton = new MenuButton(button, buttonL, buttonR,
+				width * 0.75f + buttonMarginX + fullButtonWidth / 2f, lowerButtonY);
+		importButton = new MenuButton(button, buttonL, buttonR,
+				width - buttonMarginX - fullButtonWidth / 2f, lowerButtonY);
+		resetButton = new MenuButton(button, buttonL, buttonR,
+				baseX + searchWidth + buttonMarginX + fullButtonWidth / 2f, topButtonY);
+		rankedButton = new MenuButton(button, buttonL, buttonR,
+				baseX + searchWidth + buttonMarginX * 2f + fullButtonWidth * 3 / 2f, topButtonY);
+		clearButton.setText("Clear", Utils.FONT_MEDIUM, Color.white);
+		importButton.setText("Import All", Utils.FONT_MEDIUM, Color.white);
+		resetButton.setText("Reset Search", Utils.FONT_MEDIUM, Color.white);
+		clearButton.setHoverFade();
+		importButton.setHoverFade();
+		resetButton.setHoverFade();
+		rankedButton.setHoverFade();
 	}
 
 	@Override
@@ -204,17 +232,11 @@ public class DownloadsMenu extends BasicGameState {
 				searchResultString, Color.white
 		);
 
-		// ranked only?
-		if (rankedOnly)
-			g.fillRect(rankedBoxX, rankedBoxY, rankedBoxLength, rankedBoxLength);
-		else
-			g.drawRect(rankedBoxX, rankedBoxY, rankedBoxLength, rankedBoxLength);
-		Utils.FONT_MEDIUM.drawString(rankedBoxX + rankedBoxLength * 1.5f, rankedBoxY, "Show ranked maps only?", Color.white);
-
 		// search results
 		DownloadNode[] nodes = resultList;
 		if (nodes != null) {
-			for (int i = 0; i < MAX_RESULT_BUTTONS; i++) {
+			int maxResultsShown = DownloadNode.maxResultsShown();
+			for (int i = 0; i < maxResultsShown; i++) {
 				int index = startResult + i;
 				if (index >= nodes.length)
 					break;
@@ -222,7 +244,7 @@ public class DownloadsMenu extends BasicGameState {
 			}
 
 			// scroll bar
-			if (nodes.length > MAX_RESULT_BUTTONS)
+			if (nodes.length > maxResultsShown)
 				DownloadNode.drawResultScrollbar(g, startResult, nodes.length);
 
 			// pages
@@ -250,7 +272,8 @@ public class DownloadsMenu extends BasicGameState {
 		Utils.FONT_LARGE.drawString(downloadsX + width * 0.015f, downloadsY + height * 0.015f, "Downloads", Color.white);
 		int downloadsSize = DownloadList.get().size();
 		if (downloadsSize > 0) {
-			for (int i = 0; i < MAX_DOWNLOADS_SHOWN; i++) {
+			int maxDownloadsShown = DownloadNode.maxDownloadsShown();
+			for (int i = 0; i < maxDownloadsShown; i++) {
 				int index = startDownloadIndex + i;
 				if (index >= downloadsSize)
 					break;
@@ -258,11 +281,30 @@ public class DownloadsMenu extends BasicGameState {
 			}
 
 			// scroll bar
-			if (downloadsSize > MAX_DOWNLOADS_SHOWN)
+			if (downloadsSize > maxDownloadsShown)
 				DownloadNode.drawDownloadScrollbar(g, startDownloadIndex, downloadsSize);
 		}
 
-		Utils.getBackButton().draw();
+		// buttons
+		clearButton.draw(Color.gray);
+		importButton.draw(Color.orange);
+		resetButton.draw(Color.red);
+		rankedButton.setText((rankedOnly) ? "Show Unranked" : "Hide Unranked", Utils.FONT_MEDIUM, Color.white);
+		rankedButton.draw(Color.magenta);
+
+		// importing beatmaps
+		if (importThread != null) {
+			// darken the screen
+			g.setColor(Utils.COLOR_BLACK_ALPHA);
+			g.fillRect(0, 0, width, height);
+
+			Utils.drawLoadingProgress(g);
+		}
+
+		// back button
+		else
+			Utils.getBackButton().draw();
+
 		Utils.drawVolume(g);
 		Utils.drawFPS();
 		Utils.drawCursor();
@@ -277,6 +319,10 @@ public class DownloadsMenu extends BasicGameState {
 		Utils.getBackButton().hoverUpdate(delta, mouseX, mouseY);
 		prevPage.hoverUpdate(delta, mouseX, mouseY);
 		nextPage.hoverUpdate(delta, mouseX, mouseY);
+		clearButton.hoverUpdate(delta, mouseX, mouseY);
+		importButton.hoverUpdate(delta, mouseX, mouseY);
+		resetButton.hoverUpdate(delta, mouseX, mouseY);
+		rankedButton.hoverUpdate(delta, mouseX, mouseY);
 
 		// focus timer
 		if (focusResult != -1 && focusTimer < FOCUS_DELAY)
@@ -285,7 +331,7 @@ public class DownloadsMenu extends BasicGameState {
 		// search
 		search.setFocus(true);
 		searchTimer += delta;
-		if (searchTimer >= SEARCH_DELAY) {
+		if (searchTimer >= SEARCH_DELAY && importThread == null) {
 			searchTimer = 0;
 			searchTimerReset = false;
 
@@ -367,6 +413,10 @@ public class DownloadsMenu extends BasicGameState {
 		if (button != Input.MOUSE_LEFT_BUTTON)
 			return;
 
+		// block input during beatmap importing
+		if (importThread != null)
+			return;
+
 		// back
 		if (Utils.getBackButton().contains(x, y)) {
 			SoundController.playSound(SoundEffect.MENUBACK);
@@ -375,25 +425,17 @@ public class DownloadsMenu extends BasicGameState {
 			return;
 		}
 
-		// ranked only?
-		if ((x > rankedBoxX && x < rankedBoxX + rankedBoxLength) &&
-		    (y > rankedBoxY && y < rankedBoxY + rankedBoxLength)) {
-			rankedOnly = !rankedOnly;
-			lastQuery = null;
-			pageDir = Page.CURRENT;
-			resetSearchTimer();
-			return;
-		}
-
 		// search results
 		DownloadNode[] nodes = resultList;
 		if (nodes != null) {
 			if (DownloadNode.resultAreaContains(x, y)) {
-				for (int i = 0; i < MAX_RESULT_BUTTONS; i++) {
+				int maxResultsShown = DownloadNode.maxResultsShown();
+				for (int i = 0; i < maxResultsShown; i++) {
 					int index = startResult + i;
 					if (index >= nodes.length)
 						break;
 					if (DownloadNode.resultContains(x, y, i)) {
+						SoundController.playSound(SoundEffect.MENUCLICK);
 						if (index == focusResult) {
 							if (focusTimer >= FOCUS_DELAY) {
 								// too slow for double-click
@@ -424,6 +466,7 @@ public class DownloadsMenu extends BasicGameState {
 					if (lastQueryDir == Page.PREVIOUS && queryThread != null && queryThread.isAlive())
 						;  // don't send consecutive requests
 					else {
+						SoundController.playSound(SoundEffect.MENUCLICK);
 						pageDir = Page.PREVIOUS;
 						lastQuery = null;
 						resetSearchTimer();
@@ -434,6 +477,7 @@ public class DownloadsMenu extends BasicGameState {
 					if (lastQueryDir == Page.NEXT && queryThread != null && queryThread.isAlive())
 						;  // don't send consecutive requests
 					else {
+						SoundController.playSound(SoundEffect.MENUCLICK);
 						pageDir = Page.NEXT;
 						lastQuery = null;
 						resetSearchTimer();
@@ -443,9 +487,58 @@ public class DownloadsMenu extends BasicGameState {
 			}
 		}
 
+		// buttons
+		if (clearButton.contains(x, y)) {
+			SoundController.playSound(SoundEffect.MENUCLICK);
+			DownloadList.get().clearInactiveDownloads();
+			return;
+		}
+		if (importButton.contains(x, y)) {
+			SoundController.playSound(SoundEffect.MENUCLICK);
+
+			// import songs in new thread
+			importThread = new Thread() {
+				@Override
+				public void run() {
+					// invoke unpacker and parser
+					File[] dirs = OszUnpacker.unpackAllFiles(Options.getOSZDir(), Options.getBeatmapDir());
+					if (dirs != null && dirs.length > 0) {
+						OsuGroupNode node = OsuParser.parseDirectories(dirs);
+						if (node != null) {
+							// initialize song list
+							OsuGroupList.get().reset();
+							OsuGroupList.get().init();
+							((SongMenu) game.getState(Opsu.STATE_SONGMENU)).setFocus(node, -1, true);
+						}
+					}
+
+					importThread = null;
+				}
+			};
+			importThread.start();
+			return;
+		}
+		if (resetButton.contains(x, y)) {
+			SoundController.playSound(SoundEffect.MENUCLICK);
+			search.setText("");
+			lastQuery = null;
+			pageDir = Page.RESET;
+			resetSearchTimer();
+			return;
+		}
+		if (rankedButton.contains(x, y)) {
+			SoundController.playSound(SoundEffect.MENUCLICK);
+			rankedOnly = !rankedOnly;
+			lastQuery = null;
+			pageDir = Page.CURRENT;
+			resetSearchTimer();
+			return;
+		}
+
 		// downloads
 		if (!DownloadList.get().isEmpty() && DownloadNode.downloadAreaContains(x, y)) {
-			for (int i = 0, n = DownloadList.get().size(); i < MAX_DOWNLOADS_SHOWN; i++) {
+			int maxDownloadsShown = DownloadNode.maxDownloadsShown();
+			for (int i = 0, n = DownloadList.get().size(); i < maxDownloadsShown; i++) {
 				int index = startDownloadIndex + i;
 				if (index >= n)
 					break;
@@ -472,6 +565,10 @@ public class DownloadsMenu extends BasicGameState {
 
 	@Override
 	public void mouseWheelMoved(int newValue) {
+		// block input during beatmap importing
+		if (importThread != null)
+			return;
+
 		int shift = (newValue < 0) ? 1 : -1;
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
 		scrollLists(mouseX, mouseY, shift);
@@ -479,6 +576,10 @@ public class DownloadsMenu extends BasicGameState {
 
 	@Override
 	public void mouseDragged(int oldx, int oldy, int newx, int newy) {
+		// block input during beatmap importing
+		if (importThread != null)
+			return;
+
 		// check mouse button
 		if (!input.isMouseButtonDown(Input.MOUSE_RIGHT_BUTTON) &&
 			!input.isMouseButtonDown(Input.MOUSE_LEFT_BUTTON))
@@ -493,9 +594,16 @@ public class DownloadsMenu extends BasicGameState {
 
 	@Override
 	public void keyPressed(int key, char c) {
+		// block input during beatmap importing
+		if (importThread != null && !(key == Input.KEY_ESCAPE || key == Input.KEY_F12))
+			return;
+
 		switch (key) {
 		case Input.KEY_ESCAPE:
-			if (!search.getText().isEmpty()) {
+			if (importThread != null) {
+				// beatmap importing: stop parsing OsuFiles by sending interrupt to OsuParser
+				importThread.interrupt();
+			} else if (!search.getText().isEmpty()) {
 				// clear search text
 				search.setText("");
 				pageDir = Page.RESET;
@@ -514,6 +622,7 @@ public class DownloadsMenu extends BasicGameState {
 			}
 			break;
 		case Input.KEY_F5:
+			SoundController.playSound(SoundEffect.MENUCLICK);
 			lastQuery = null;
 			pageDir = Page.CURRENT;
 			resetSearchTimer();
@@ -534,9 +643,13 @@ public class DownloadsMenu extends BasicGameState {
 	@Override
 	public void enter(GameContainer container, StateBasedGame game)
 			throws SlickException {
-		Utils.getBackButton().setScale(1f);
-		prevPage.setScale(1f);
-		nextPage.setScale(1f);
+		Utils.getBackButton().resetHover();
+		prevPage.resetHover();
+		nextPage.resetHover();
+		clearButton.resetHover();
+		importButton.resetHover();
+		resetButton.resetHover();
+		rankedButton.resetHover();
 		focusResult = -1;
 		startResult = 0;
 		startDownloadIndex = 0;
@@ -567,18 +680,18 @@ public class DownloadsMenu extends BasicGameState {
 		// search results
 		if (DownloadNode.resultAreaContains(cx, cy)) {
 			DownloadNode[] nodes = resultList;
-			if (nodes != null && nodes.length >= MAX_RESULT_BUTTONS) {
+			if (nodes != null && nodes.length >= DownloadNode.maxResultsShown()) {
 				int newStartResult = startResult + shift;
-				if (newStartResult >= 0 && newStartResult + MAX_RESULT_BUTTONS <= nodes.length)
+				if (newStartResult >= 0 && newStartResult + DownloadNode.maxResultsShown() <= nodes.length)
 					startResult = newStartResult;
 			}
 		}
 
 		// downloads
 		else if (DownloadNode.downloadAreaContains(cx, cy)) {
-			if (DownloadList.get().size() >= MAX_DOWNLOADS_SHOWN) {
+			if (DownloadList.get().size() >= DownloadNode.maxDownloadsShown()) {
 				int newStartDownloadIndex = startDownloadIndex + shift;
-				if (newStartDownloadIndex >= 0 && newStartDownloadIndex + MAX_DOWNLOADS_SHOWN <= DownloadList.get().size())
+				if (newStartDownloadIndex >= 0 && newStartDownloadIndex + DownloadNode.maxDownloadsShown() <= DownloadList.get().size())
 					startDownloadIndex = newStartDownloadIndex;
 			}
 		}

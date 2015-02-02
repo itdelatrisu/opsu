@@ -126,9 +126,9 @@ public class MainMenu extends BasicGameState {
 		exitButton = new MenuButton(exitImg,
 				width * 0.75f - exitOffset, (height / 2) + (exitImg.getHeight() / 2f)
 		);
-		logo.setHoverScale(1.05f);
-		playButton.setHoverScale(1.05f);
-		exitButton.setHoverScale(1.05f);
+		logo.setHoverExpand(1.05f);
+		playButton.setHoverExpand(1.05f);
+		exitButton.setHoverExpand(1.05f);
 
 		// initialize music buttons
 		int musicWidth  = 48;
@@ -137,16 +137,15 @@ public class MainMenu extends BasicGameState {
 		musicPause    = new MenuButton(GameImage.MUSIC_PAUSE.getImage(), width - (2 * musicWidth), musicHeight);
 		musicNext     = new MenuButton(GameImage.MUSIC_NEXT.getImage(), width - musicWidth, musicHeight);
 		musicPrevious = new MenuButton(GameImage.MUSIC_PREVIOUS.getImage(), width - (3 * musicWidth), musicHeight);
-		musicPlay.setHoverScale(1.5f);
-		musicPause.setHoverScale(1.5f);
-		musicNext.setHoverScale(1.5f);
-		musicPrevious.setHoverScale(1.5f);
+		musicPlay.setHoverExpand(1.5f);
+		musicPause.setHoverExpand(1.5f);
+		musicNext.setHoverExpand(1.5f);
+		musicPrevious.setHoverExpand(1.5f);
 
 		// initialize downloads button
 		Image dlImg = GameImage.DOWNLOADS.getImage();
 		downloadsButton = new MenuButton(dlImg, width - dlImg.getWidth() / 2f, height / 2f);
-		downloadsButton.setHoverDir(Expand.LEFT);
-		downloadsButton.setHoverScale(1.05f);
+		downloadsButton.setHoverExpand(1.03f, Expand.LEFT);
 
 		// initialize repository button
 		if (Desktop.isDesktopSupported()) {  // only if a webpage can be opened
@@ -154,6 +153,7 @@ public class MainMenu extends BasicGameState {
 			repoButton = new MenuButton(repoImg,
 					(width * 0.997f) - repoImg.getWidth(), (height * 0.997f) - repoImg.getHeight()
 			);
+			repoButton.setHoverExpand();
 		}
 
 		reset();
@@ -318,23 +318,23 @@ public class MainMenu extends BasicGameState {
 		// reset button hover states if mouse is not currently hovering over the button
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
 		if (!logo.contains(mouseX, mouseY))
-			logo.setScale(1f);
+			logo.resetHover();
 		if (!playButton.contains(mouseX, mouseY))
-			playButton.setScale(1f);
+			playButton.resetHover();
 		if (!exitButton.contains(mouseX, mouseY))
-			exitButton.setScale(1f);
+			exitButton.resetHover();
 		if (!musicPlay.contains(mouseX, mouseY))
-			musicPlay.setScale(1f);
+			musicPlay.resetHover();
 		if (!musicPause.contains(mouseX, mouseY))
-			musicPause.setScale(1f);
+			musicPause.resetHover();
 		if (!musicNext.contains(mouseX, mouseY))
-			musicNext.setScale(1f);
+			musicNext.resetHover();
 		if (!musicPrevious.contains(mouseX, mouseY))
-			musicPrevious.setScale(1f);
+			musicPrevious.resetHover();
 		if (repoButton != null && !repoButton.contains(mouseX, mouseY))
-			repoButton.setScale(1f);
+			repoButton.resetHover();
 		if (!downloadsButton.contains(mouseX, mouseY))
-			downloadsButton.setScale(1f);
+			downloadsButton.resetHover();
 	}
 
 	@Override
@@ -452,13 +452,13 @@ public class MainMenu extends BasicGameState {
 		logoClicked = false;
 		logoTimer = 0;
 
-		logo.setScale(1f);
-		playButton.setScale(1f);
-		exitButton.setScale(1f);
-		musicPlay.setScale(1f);
-		musicPause.setScale(1f);
-		musicNext.setScale(1f);
-		musicPrevious.setScale(1f);
-		downloadsButton.setScale(1f);
+		logo.resetHover();
+		playButton.resetHover();
+		exitButton.resetHover();
+		musicPlay.resetHover();
+		musicPause.resetHover();
+		musicNext.resetHover();
+		musicPrevious.resetHover();
+		downloadsButton.resetHover();
 	}
 }

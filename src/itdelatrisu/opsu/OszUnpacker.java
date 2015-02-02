@@ -20,6 +20,8 @@ package itdelatrisu.opsu;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.util.ArrayList;
+import java.util.List;
 
 import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
@@ -41,8 +43,13 @@ public class OszUnpacker {
 	 * Invokes the unpacker for each OSZ archive in a root directory.
 	 * @param root the root directory
 	 * @param dest the destination directory
+	 * @return an array containing the new (unpacked) directories, or null
+	 *         if no OSZs found
 	 */
-	public static void unpackAllFiles(File root, File dest) {
+	public static File[] unpackAllFiles(File root, File dest) {
+		List<File> dirs = new ArrayList<File>();
+
+		// find all OSZ files
 		files = root.listFiles(new FilenameFilter() {
 			@Override
 			public boolean accept(File dir, String name) {
@@ -51,9 +58,10 @@ public class OszUnpacker {
 		});
 		if (files.length < 1) {
 			files = null;
-			return;
+			return new File[0];
 		}
 
+		// unpack OSZs
 		for (File file : files) {
 			fileIndex++;
 			String dirName = file.getName().substring(0, file.getName().lastIndexOf('.'));
@@ -62,11 +70,13 @@ public class OszUnpacker {
 				songDir.mkdir();
 				unzip(file, songDir);
 				file.delete();  // delete the OSZ when finished
+				dirs.add(songDir);
 			}
 		}
 
 		fileIndex = -1;
 		files = null;
+		return dirs.toArray(new File[dirs.size()]);
 	}
 
 	/**

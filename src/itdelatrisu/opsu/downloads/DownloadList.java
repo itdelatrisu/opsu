@@ -22,6 +22,7 @@ import itdelatrisu.opsu.ErrorHandler;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -123,6 +124,21 @@ public class DownloadList {
 			Download dl = node.getDownload();
 			if (dl != null && dl.isActive())
 				dl.cancel();
+		}
+	}
+
+	/**
+	 * Removes all inactive downloads from the list.
+	 */
+	public void clearInactiveDownloads() {
+		Iterator<DownloadNode> iter = nodes.iterator();
+		while (iter.hasNext()) {
+			DownloadNode node = iter.next();
+			Download dl = node.getDownload();
+			if (dl != null && !dl.isActive()) {
+				iter.remove();
+				map.remove(node.getID());
+			}
 		}
 	}
 

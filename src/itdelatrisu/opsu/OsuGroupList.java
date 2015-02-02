@@ -89,10 +89,13 @@ public class OsuGroupList {
 	/**
 	 * Adds a song group.
 	 * @param osuFiles the list of OsuFile objects in the group
+	 * @return the new OsuGroupNode
 	 */
-	public void addSongGroup(ArrayList<OsuFile> osuFiles) {
-		parsedNodes.add(new OsuGroupNode(osuFiles));
+	public OsuGroupNode addSongGroup(ArrayList<OsuFile> osuFiles) {
+		OsuGroupNode node = new OsuGroupNode(osuFiles);
+		parsedNodes.add(node);
 		mapCount += osuFiles.size();
+		return node;
 	}
 
 	/**

@@ -730,7 +730,7 @@ public class Game extends BasicGameState {
 			restart = Restart.FALSE;
 		}
 
-		skipButton.setScale(1f);
+		skipButton.resetHover();
 	}
 
 //	@Override
@@ -806,7 +806,7 @@ public class Game extends BasicGameState {
 		skipButton = new MenuButton(skip,
 				width - (skip.getWidth() / 2f),
 				height - (skip.getHeight() / 2f));
-		skipButton.setHoverDir(MenuButton.Expand.UP_LEFT);
+		skipButton.setHoverExpand(MenuButton.Expand.UP_LEFT);
 
 		// load other images...
 		((GamePauseMenu) game.getState(Opsu.STATE_GAMEPAUSEMENU)).loadImages();

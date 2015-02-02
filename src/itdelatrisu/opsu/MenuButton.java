@@ -20,6 +20,7 @@ package itdelatrisu.opsu;
 
 import org.newdawn.slick.Animation;
 import org.newdawn.slick.Color;
+import org.newdawn.slick.Font;
 import org.newdawn.slick.Image;
 
 /**
@@ -43,8 +44,26 @@ public class MenuButton {
 	/** The x and y radius of the button (scaled). */
 	private float xRadius, yRadius;
 
+	/** The text to draw on the button. */
+	private String text;
+
+	/** The font to draw the text with. */
+	private Font font;
+
+	/** The color to draw the text with. */
+	private Color color;
+
+	/** Hover action types. */
+	private enum HoverAction { NONE, EXPAND, FADE };
+
+	/** The hover action for this button. */
+	private HoverAction hoverAction = HoverAction.NONE;
+
 	/** The current and max scale of the button (for hovering). */
-	private float scale, hoverScale = 1.25f;
+	private float scale = 1f, hoverScale = 1.25f;
+
+	/** The current and base alpha level of the button (for hovering). */
+	private float alpha = 1f, baseAlpha = 0.75f;
 
 	/** The scaled expansion direction for the button (for hovering). */
 	private Expand dir = Expand.CENTER;
@@ -64,7 +83,6 @@ public class MenuButton {
 		this.y = y;
 		this.xRadius = img.getWidth() / 2f;
 		this.yRadius = img.getHeight() / 2f;
-		this.scale = 1f;
 	}
 
 	/**
@@ -83,7 +101,6 @@ public class MenuButton {
 		this.y  = y;
 		this.xRadius = (img.getWidth() + imgL.getWidth() + imgR.getWidth()) / 2f;
 		this.yRadius = img.getHeight() / 2f;
-		this.scale = 1f;
 	}
 
 	/**
@@ -98,7 +115,6 @@ public class MenuButton {
 		this.y = y;
 		this.xRadius = anim.getWidth() / 2f;
 		this.yRadius = anim.getHeight() / 2f;
-		this.scale = 1f;
 	}
 
 	/**
@@ -122,6 +138,18 @@ public class MenuButton {
 	public float getY() { return y; }
 
 	/**
+	 * Sets text to draw in the middle of the button.
+	 * @param text the text to draw
+	 * @param font the font to use when drawing
+	 * @color the color to draw the text
+	 */
+	public void setText(String text, Font font, Color color) {
+		this.text = text;
+		this.font = font;
+		this.color = color;
+	}
+
+	/**
 	 * Returns the associated image.
 	 */
 	public Image getImage() { return img; }
@@ -137,16 +165,39 @@ public class MenuButton {
 	public void draw() {
 		if (img != null) {
 			if (imgL == null) {
-				Image imgScaled = (scale == 1f) ? img : img.getScaledCopy(scale);
-				imgScaled.setAlpha(img.getAlpha());
-				imgScaled.draw(x - xRadius, y - yRadius);
+				if (hoverAction == HoverAction.EXPAND) {
+					Image imgScaled = (scale == 1f) ? img : img.getScaledCopy(scale);
+					imgScaled.setAlpha(img.getAlpha());
+					imgScaled.draw(x - xRadius, y - yRadius);
+				} else if (hoverAction == HoverAction.FADE) {
+					float a = img.getAlpha();
+					img.setAlpha(alpha);
+					img.draw(x - xRadius, y - yRadius);
+					img.setAlpha(a);
+				} else
+					img.draw(x - xRadius, y - yRadius);
 			} else {
-				img.draw(x - xRadius + imgL.getWidth(), y - yRadius);
-				imgL.draw(x - xRadius, y - yRadius);
-				imgR.draw(x + xRadius - imgR.getWidth(), y - yRadius);
+				if (hoverAction == HoverAction.FADE) {
+					float a = img.getAlpha(), aL = imgL.getAlpha(), aR = imgR.getAlpha();
+					img.setAlpha(alpha);
+					imgL.setAlpha(alpha);
+					imgR.setAlpha(alpha);
+					img.draw(x - xRadius + imgL.getWidth(), y - yRadius);
+					imgL.draw(x - xRadius, y - yRadius);
+					imgR.draw(x + xRadius - imgR.getWidth(), y - yRadius);
+					img.setAlpha(a);
+					imgL.setAlpha(aL);
+					imgR.setAlpha(aR);
+				} else {
+					img.draw(x - xRadius + imgL.getWidth(), y - yRadius);
+					imgL.draw(x - xRadius, y - yRadius);
+					imgR.draw(x + xRadius - imgR.getWidth(), y - yRadius);
+				}
 			}
 		} else
 			anim.draw(x - xRadius, y - yRadius);
+		if (text != null)
+			font.drawString(x - font.getWidth(text) / 2f, y - font.getLineHeight() / 2f, text, color);
 	}
 
 	/**
@@ -155,15 +206,40 @@ public class MenuButton {
 	 */
 	public void draw(Color filter) {
 		if (img != null) {
-			if (imgL == null)
-				img.getScaledCopy(scale).draw(x - xRadius, y - yRadius, filter);
-			else {
-				img.draw(x - xRadius + imgL.getWidth(), y - yRadius, filter);
-				imgL.draw(x - xRadius, y - yRadius, filter);
-				imgR.draw(x + xRadius - imgR.getWidth(), y - yRadius, filter);
+			if (imgL == null) {
+				if (hoverAction == HoverAction.EXPAND) {
+					Image imgScaled = (scale == 1f) ? img : img.getScaledCopy(scale);
+					imgScaled.setAlpha(img.getAlpha());
+					imgScaled.draw(x - xRadius, y - yRadius, filter);
+				} else if (hoverAction == HoverAction.FADE) {
+					float a = img.getAlpha();
+					img.setAlpha(alpha);
+					img.draw(x - xRadius, y - yRadius, filter);
+					img.setAlpha(a);
+				} else
+					img.draw(x - xRadius, y - yRadius, filter);
+			} else {
+				if (hoverAction == HoverAction.FADE) {
+					float a = img.getAlpha(), aL = imgL.getAlpha(), aR = imgR.getAlpha();
+					img.setAlpha(alpha);
+					imgL.setAlpha(alpha);
+					imgR.setAlpha(alpha);
+					img.draw(x - xRadius + imgL.getWidth(), y - yRadius, filter);
+					imgL.draw(x - xRadius, y - yRadius, filter);
+					imgR.draw(x + xRadius - imgR.getWidth(), y - yRadius, filter);
+					img.setAlpha(a);
+					imgL.setAlpha(aL);
+					imgR.setAlpha(aR);
+				} else {
+					img.draw(x - xRadius + imgL.getWidth(), y - yRadius, filter);
+					imgL.draw(x - xRadius, y - yRadius, filter);
+					imgR.draw(x + xRadius - imgR.getWidth(), y - yRadius, filter);
+				}
 			}
 		} else
 			anim.draw(x - xRadius, y - yRadius, filter);
+		if (text != null)
+			font.drawString(x - font.getWidth(text) / 2f, y - font.getLineHeight() / 2f, text, color);
 	}
 
 	/**
@@ -177,45 +253,91 @@ public class MenuButton {
 	}
 
 	/**
-	 * Sets the current button scale (for hovering).
-	 * @param scale the new scale (default 1.0f)
+	 * Resets the hover fields for the button.
 	 */
-	public void setScale(float scale) {
-		this.scale = scale;
-		setHoverRadius();
+	public void resetHover() {
+		if (hoverAction == HoverAction.EXPAND) {
+			this.scale = 1f;
+			setHoverRadius();
+		} else if (hoverAction == HoverAction.FADE)
+			this.alpha = baseAlpha;
 	}
 
 	/**
-	 * Sets the maximum scale factor for the button (for hovering).
+	 * Sets the hover action to "expand".
+	 */
+	public void setHoverExpand() { this.hoverAction = HoverAction.EXPAND; }
+
+	/**
+	 * Sets the hover action to "expand".
 	 * @param scale the maximum scale factor (default 1.25f)
 	 */
-	public void setHoverScale(float scale) { this.hoverScale = scale; }
+	public void setHoverExpand(float scale) { setHoverExpand(scale, this.dir); }
 
 	/**
-	 * Sets the expansion direction when hovering over the button.
-	 * @param dir the direction
+	 * Sets the hover action to "expand".
+	 * @param dir the expansion direction
 	 */
-	public void setHoverDir(Expand dir) { this.dir = dir; }
+	public void setHoverExpand(Expand dir) { setHoverExpand(this.hoverScale, dir); }
 
 	/**
-	 * Updates the scale of the button depending on whether or not the cursor
+	 * Sets the hover action to "expand".
+	 * @param scale the maximum scale factor (default 1.25f)
+	 * @param dir the expansion direction
+	 */
+	public void setHoverExpand(float scale, Expand dir) {
+		this.hoverAction = HoverAction.EXPAND;
+		this.hoverScale = scale;
+		this.dir = dir;
+	}
+
+	/**
+	 * Sets the hover action to "fade".
+	 */
+	public void setHoverFade() { this.hoverAction = HoverAction.FADE; }
+
+	/**
+	 * Sets the hover action to "fade".
+	 * @param baseAlpha the base alpha level to fade in from (default 0.7f)
+	 */
+	public void setHoverFade(float baseAlpha) {
+		this.hoverAction = HoverAction.FADE;
+		this.baseAlpha = baseAlpha;
+	}
+
+	/**
+	 * Processes a hover action depending on whether or not the cursor
 	 * is hovering over the button.
 	 * @param delta the delta interval
 	 * @param cx the x coordinate
 	 * @param cy the y coordinate
 	 */
 	public void hoverUpdate(int delta, float cx, float cy) {
+		if (hoverAction == HoverAction.NONE)
+			return;
+
 		boolean isHover = contains(cx, cy);
-		if (isHover && scale < hoverScale) {
-			scale += (hoverScale - 1f) * delta / 100f;
-			if (scale > hoverScale)
-				scale = hoverScale;
+		if (hoverAction == HoverAction.EXPAND) {
+			// scale the button
+			int sign;
+			if (isHover && scale < hoverScale)
+				sign = 1;
+			else if (!isHover && scale > 1f)
+				sign = -1;
+			else
+				return;
+			scale = Utils.getBoundedValue(scale, sign * (hoverScale - 1f) * delta / 100f, 1, hoverScale);
 			setHoverRadius();
-		} else if (!isHover && scale > 1f) {
-			scale -= (hoverScale - 1f) * delta / 100f;
-			if (scale < 1f)
-				scale = 1f;
-			setHoverRadius();
+		} else {
+			// fade the button
+			int sign;
+			if (isHover && alpha < 1f)
+				sign = 1;
+			else if (!isHover && alpha > baseAlpha)
+				sign = -1;
+			else
+				return;
+			alpha = Utils.getBoundedValue(alpha, sign * (1f - baseAlpha) * delta / 200f, baseAlpha, 1f);
 		}
 	}
 

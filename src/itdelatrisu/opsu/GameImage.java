@@ -441,12 +441,7 @@ public enum GameImage {
 			return img.getScaledCopy(MENU_LOGO.getImage().getWidth() * 0.66f / img.getWidth());
 		}
 	},
-	MENU_BUTTON_MID ("button-middle", "png", false, false) {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy(w / 2, img.getHeight());
-		}
-	},
+	MENU_BUTTON_MID ("button-middle", "png", false, false),
 	MENU_BUTTON_LEFT ("button-left", "png", false, false),
 	MENU_BUTTON_RIGHT ("button-right", "png", false, false),
 	MUSIC_PLAY ("music-play", "png", false, false),

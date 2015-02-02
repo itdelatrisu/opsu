@@ -51,6 +51,7 @@ public class MainMenuExit extends BasicGameState {
 	// game-related variables
 	private GameContainer container;
 	private StateBasedGame game;
+	private Input input;
 	private int state;
 
 	public MainMenuExit(int state) {
@@ -62,6 +63,7 @@ public class MainMenuExit extends BasicGameState {
 			throws SlickException {
 		this.container = container;
 		this.game = game;
+		this.input = container.getInput();
 
 		int width = container.getWidth();
 		int height = container.getHeight();
@@ -70,14 +72,19 @@ public class MainMenuExit extends BasicGameState {
 
 		// initialize buttons
 		Image button = GameImage.MENU_BUTTON_MID.getImage();
+		button = button.getScaledCopy(width / 2, button.getHeight());
 		Image buttonL = GameImage.MENU_BUTTON_LEFT.getImage();
 		Image buttonR = GameImage.MENU_BUTTON_RIGHT.getImage();
 		yesButton = new MenuButton(button, buttonL, buttonR,
 				width / 2f + centerOffset, height * 0.2f
 		);
+		yesButton.setText("1. Yes", Utils.FONT_XLARGE, Color.white);
 		noButton = new MenuButton(button, buttonL, buttonR,
 				width / 2f - centerOffset, height * 0.2f + (button.getHeight() * 1.25f)
 		);
+		noButton.setText("2. No", Utils.FONT_XLARGE, Color.white);
+		yesButton.setHoverFade();
+		noButton.setHoverFade();
 	}
 
 	@Override
@@ -92,16 +99,6 @@ public class MainMenuExit extends BasicGameState {
 		// draw buttons
 		yesButton.draw(Color.green);
 		noButton.draw(Color.red);
-		Utils.FONT_XLARGE.drawString(
-				yesButton.getX() - (Utils.FONT_XLARGE.getWidth("1. Yes") / 2f),
-				yesButton.getY() - (Utils.FONT_XLARGE.getLineHeight() / 2f),
-				"1. Yes", Color.white
-		);
-		Utils.FONT_XLARGE.drawString(
-				noButton.getX() - (Utils.FONT_XLARGE.getWidth("2. No") / 2f),
-				noButton.getY() - (Utils.FONT_XLARGE.getLineHeight() / 2f),
-				"2. No", Color.white
-		);
 
 		Utils.drawVolume(g);
 		Utils.drawFPS();
@@ -113,6 +110,9 @@ public class MainMenuExit extends BasicGameState {
 			throws SlickException {
 		Utils.updateCursor(delta);
 		Utils.updateVolumeDisplay(delta);
+		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
+		yesButton.hoverUpdate(delta, mouseX, mouseY);
+		noButton.hoverUpdate(delta, mouseX, mouseY);
 
 		// move buttons to center
 		float yesX = yesButton.getX(), noX = noButton.getX();
@@ -160,5 +160,7 @@ public class MainMenuExit extends BasicGameState {
 		float center = container.getWidth() / 2f;
 		yesButton.setX(center - centerOffset);
 		noButton.setX(center + centerOffset);
+		yesButton.resetHover();
+		noButton.resetHover();
 	}
 }

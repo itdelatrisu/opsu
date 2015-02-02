@@ -415,9 +415,9 @@ public class OptionsMenu extends BasicGameState {
 	public void enter(GameContainer container, StateBasedGame game)
 			throws SlickException {
 		currentTab = OptionTab.DISPLAY;
-		Utils.getBackButton().setScale(1f);
+		Utils.getBackButton().resetHover();
 		for (GameMod mod : GameMod.values())
-			mod.setScale(1f);
+			mod.resetHover();
 	}
 
 	/**

@@ -53,23 +53,38 @@ public class OsuParser {
 	private OsuParser() {}
 
 	/**
-	 * Invokes parser for each OSU file in a root directory.
+	 * Invokes parser for each OSU file in a root directory and
+	 * adds the OsuFiles to a new OsuGroupList.
 	 * @param root the root directory (search has depth 1)
 	 */
 	public static void parseAllFiles(File root) {
 		// create a new OsuGroupList
 		OsuGroupList.create();
 
-		// progress tracking
-		File[] folders = root.listFiles();
-		currentDirectoryIndex = 0;
-		totalDirectories = folders.length;
+		// parse all directories
+		parseDirectories(root.listFiles());
+	}
 
-		for (File folder : folders) {
+	/**
+	 * Invokes parser for each directory in the given array and
+	 * adds the OsuFiles to the existing OsuGroupList.
+	 * @param dirs the array of directories to parse
+	 * @return the last OsuGroupNode parsed
+	 */
+	public static OsuGroupNode parseDirectories(File[] dirs) {
+		// progress tracking
+		currentDirectoryIndex = 0;
+		totalDirectories = dirs.length;
+
+		// parse directories
+		OsuGroupNode lastNode = null;
+		for (File dir : dirs) {
 			currentDirectoryIndex++;
-			if (!folder.isDirectory())
+			if (!dir.isDirectory())
 				continue;
-			File[] files = folder.listFiles(new FilenameFilter() {
+
+			// find all OSU files
+			File[] files = dir.listFiles(new FilenameFilter() {
 				@Override
 				public boolean accept(File dir, String name) {
 					return name.toLowerCase().endsWith(".osu");
@@ -90,10 +105,10 @@ public class OsuParser {
 			if (!osuFiles.isEmpty()) {  // add entry if non-empty
 				osuFiles.trimToSize();
 				Collections.sort(osuFiles);
-				OsuGroupList.get().addSongGroup(osuFiles);
+				lastNode = OsuGroupList.get().addSongGroup(osuFiles);
 			}
 
-			// stop parsing files (interrupt sent by Splash)
+			// stop parsing files (interrupted)
 			if (Thread.interrupted())
 				break;
 		}
@@ -104,6 +119,7 @@ public class OsuParser {
 		currentFile = null;
 		currentDirectoryIndex = -1;
 		totalDirectories = -1;
+		return lastNode;
 	}
 
 	/**

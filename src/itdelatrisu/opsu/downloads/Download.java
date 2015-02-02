@@ -19,6 +19,7 @@
 package itdelatrisu.opsu.downloads;
 
 import itdelatrisu.opsu.ErrorHandler;
+import itdelatrisu.opsu.Utils;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -155,8 +156,9 @@ public class Download {
 						rbc.close();
 						fos.close();
 						if (rename != null) {
+							String cleanedName = Utils.cleanFileName(rename, '-');
 							Path source = new File(localPath).toPath();
-							Files.move(source, source.resolveSibling(rename), StandardCopyOption.REPLACE_EXISTING);
+							Files.move(source, source.resolveSibling(cleanedName), StandardCopyOption.REPLACE_EXISTING);
 						}
 					}
 				} catch (Exception e) {

@@ -143,7 +143,7 @@ public enum GameMod {
 
 		// create button
 		this.button = new MenuButton(img, x + (offsetX * id), y);
-		this.button.setHoverScale(1.15f);
+		this.button.setHoverExpand(1.15f);
 
 		// reset state
 		this.active = false;
@@ -245,10 +245,9 @@ public enum GameMod {
 	public boolean contains(float x, float y) { return button.contains(x, y); }
 
 	/**
-	 * Sets the current button scale (for hovering).
-	 * @param scale the new scale (default 1.0f)
+	 * Resets the hover fields for the button.
 	 */
-	public void setScale(float scale) { button.setScale(scale); }
+	public void resetHover() { button.resetHover(); }
 
 	/**
 	 * Updates the scale of the button depending on whether or not the cursor

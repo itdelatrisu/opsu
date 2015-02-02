@@ -23,7 +23,6 @@ import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.downloads.Download.Status;
-import itdelatrisu.opsu.states.DownloadsMenu;
 
 import java.io.File;
 
@@ -59,6 +58,9 @@ public class DownloadNode {
 	/** Information drawing values. */
 	private static float infoBaseX, infoBaseY, infoWidth, infoHeight;
 
+	/** Maximum number of results and downloads to display on one screen. */
+	private static int maxResultsShown, maxDownloadsShown;
+
 	/** Container dimensions. */
 	private static int containerWidth, containerHeight;
 
@@ -89,7 +91,22 @@ public class DownloadNode {
 		infoBaseY = height * 0.07f + Utils.FONT_LARGE.getLineHeight() * 2f;
 		infoWidth = width * 0.25f;
 		infoHeight = Utils.FONT_DEFAULT.getLineHeight() * 2.4f;
+
+		float searchY = (height * 0.05f) + Utils.FONT_LARGE.getLineHeight();
+		float buttonHeight = height * 0.038f;
+		maxResultsShown = (int) ((height - buttonBaseY - searchY) / buttonOffset);
+		maxDownloadsShown = (int) ((height - infoBaseY - searchY - buttonHeight) / infoHeight);
 	}
+
+	/**
+	 * Returns the max number of search result buttons to be shown at a time.
+	 */
+	public static int maxResultsShown() { return maxResultsShown; }
+
+	/**
+	 * Returns the max number of downloads to be shown at a time.
+	 */
+	public static int maxDownloadsShown() { return maxDownloadsShown; }
 
 	/**
 	 * Returns true if the coordinates are within the bounds of the
@@ -112,7 +129,7 @@ public class DownloadNode {
 	 */
 	public static boolean resultAreaContains(float cx, float cy) {
 		return ((cx > buttonBaseX && cx < buttonBaseX + buttonWidth) &&
-		        (cy > buttonBaseY && cy < buttonBaseY + buttonOffset * DownloadsMenu.MAX_RESULT_BUTTONS));
+		        (cy > buttonBaseY && cy < buttonBaseY + buttonOffset * maxResultsShown));
 	}
 
 	/**
@@ -152,7 +169,7 @@ public class DownloadNode {
 	 */
 	public static boolean downloadAreaContains(float cx, float cy) {
 		return ((cx > infoBaseX && cx <= containerWidth) &&
-		        (cy > infoBaseY && cy < infoBaseY + infoHeight * DownloadsMenu.MAX_DOWNLOADS_SHOWN));
+		        (cy > infoBaseY && cy < infoBaseY + infoHeight * maxDownloadsShown));
 	}
 
 	/**
@@ -165,10 +182,10 @@ public class DownloadNode {
 		float scrollbarWidth = containerWidth * 0.00347f;
 		float heightRatio = 0.0016f * (total * total) - 0.0705f * total + 0.9965f;
 		float scrollbarHeight = containerHeight * heightRatio;
-		float heightDiff = buttonHeight + buttonOffset * (DownloadsMenu.MAX_RESULT_BUTTONS - 1) - scrollbarHeight;
-		float offsetY = heightDiff * ((float) index / (total - DownloadsMenu.MAX_RESULT_BUTTONS));
+		float heightDiff = buttonHeight + buttonOffset * (maxResultsShown - 1) - scrollbarHeight;
+		float offsetY = heightDiff * ((float) index / (total - maxResultsShown));
 		g.setColor(BG_NORMAL);
-		g.fillRect(buttonBaseX + buttonWidth * 1.005f, buttonBaseY, scrollbarWidth, buttonOffset * DownloadsMenu.MAX_RESULT_BUTTONS);
+		g.fillRect(buttonBaseX + buttonWidth * 1.005f, buttonBaseY, scrollbarWidth, buttonOffset * maxResultsShown);
 		g.setColor(Color.white);
 		g.fillRect(buttonBaseX + buttonWidth * 1.005f, buttonBaseY + offsetY, scrollbarWidth, scrollbarHeight);
 	}
@@ -183,10 +200,10 @@ public class DownloadNode {
 		float scrollbarWidth = containerWidth * 0.00347f;
 		float heightRatio = 0.0016f * (total * total) - 0.0705f * total + 0.9965f;
 		float scrollbarHeight = containerHeight * heightRatio;
-		float heightDiff = infoHeight + infoHeight * (DownloadsMenu.MAX_DOWNLOADS_SHOWN - 1) - scrollbarHeight;
-		float offsetY = heightDiff * ((float) index / (total - DownloadsMenu.MAX_DOWNLOADS_SHOWN));
+		float heightDiff = infoHeight + infoHeight * (maxDownloadsShown - 1) - scrollbarHeight;
+		float offsetY = heightDiff * ((float) index / (total - maxDownloadsShown));
 		g.setColor(BG_NORMAL);
-		g.fillRect(infoBaseX + infoWidth - scrollbarWidth, infoBaseY, scrollbarWidth, infoHeight * DownloadsMenu.MAX_DOWNLOADS_SHOWN);
+		g.fillRect(infoBaseX + infoWidth - scrollbarWidth, infoBaseY, scrollbarWidth, infoHeight * maxDownloadsShown);
 		g.setColor(Color.white);
 		g.fillRect(infoBaseX + infoWidth - scrollbarWidth, infoBaseY + offsetY, scrollbarWidth, scrollbarHeight);
 	}

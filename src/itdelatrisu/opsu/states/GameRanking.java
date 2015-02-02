@@ -170,7 +170,7 @@ public class GameRanking extends BasicGameState {
 	public void enter(GameContainer container, StateBasedGame game)
 			throws SlickException {
 		Display.setTitle(game.getTitle());
-		Utils.getBackButton().setScale(1f);
+		Utils.getBackButton().resetHover();
 		if (!data.isGameplay()) {
 			if (!MusicController.isTrackDimmed())
 				MusicController.toggleTrackDimmed(0.5f);

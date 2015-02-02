@@ -115,7 +115,7 @@ public class Container extends AppGameContainer {
 	@Override
 	public void exit() {
 		// show confirmation dialog if any downloads are active
-		if (DownloadList.get().hasActiveDownloads() && DownloadList.showExitConfirmation())
+		if (forceExit && DownloadList.get().hasActiveDownloads() && DownloadList.showExitConfirmation())
 			return;
 
 		super.exit();

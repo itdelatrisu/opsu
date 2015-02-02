@@ -126,11 +126,14 @@ public class Splash extends BasicGameState {
 			// initialize song list
 			if (OsuGroupList.get().size() > 0) {
 				OsuGroupList.get().init();
-				((SongMenu) game.getState(Opsu.STATE_SONGMENU)).setFocus(OsuGroupList.get().getRandomNode(), -1, true);
+				if (Options.isThemSongEnabled())
+					MusicController.playThemeSong();
+				else
+					((SongMenu) game.getState(Opsu.STATE_SONGMENU)).setFocus(OsuGroupList.get().getRandomNode(), -1, true);
 			}
 
 			// play the theme song
-			if (Options.isThemSongEnabled())
+			else
 				MusicController.playThemeSong();
 
 			game.enterState(Opsu.STATE_MAINMENU);
