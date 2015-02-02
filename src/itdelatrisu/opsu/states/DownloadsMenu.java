@@ -182,9 +182,10 @@ public class DownloadsMenu extends BasicGameState {
 		nextPage.setHoverExpand(1.5f);
 
 		// buttons
-		float buttonWidth = width * 0.12f;
 		float buttonMarginX = width * 0.004f;
 		float buttonHeight = height * 0.038f;
+		float topButtonWidth = width * 0.14f;
+		float lowerButtonWidth = width * 0.12f;
 		float topButtonY = searchY + Utils.FONT_MEDIUM.getLineHeight() / 2f;
 		float lowerButtonY = height * 0.995f - searchY - buttonHeight / 2f;
 		Image button = GameImage.MENU_BUTTON_MID.getImage();
@@ -192,16 +193,18 @@ public class DownloadsMenu extends BasicGameState {
 		Image buttonR = GameImage.MENU_BUTTON_RIGHT.getImage();
 		buttonL = buttonL.getScaledCopy(buttonHeight / buttonL.getHeight());
 		buttonR = buttonR.getScaledCopy(buttonHeight / buttonR.getHeight());
-		button = button.getScaledCopy((int) buttonWidth - buttonL.getWidth() - buttonR.getWidth(), (int) buttonHeight);
-		float fullButtonWidth = button.getWidth() + buttonL.getWidth() + buttonR.getWidth();
-		clearButton = new MenuButton(button, buttonL, buttonR,
-				width * 0.75f + buttonMarginX + fullButtonWidth / 2f, lowerButtonY);
-		importButton = new MenuButton(button, buttonL, buttonR,
-				width - buttonMarginX - fullButtonWidth / 2f, lowerButtonY);
-		resetButton = new MenuButton(button, buttonL, buttonR,
-				baseX + searchWidth + buttonMarginX + fullButtonWidth / 2f, topButtonY);
-		rankedButton = new MenuButton(button, buttonL, buttonR,
-				baseX + searchWidth + buttonMarginX * 2f + fullButtonWidth * 3 / 2f, topButtonY);
+		Image topButton = button.getScaledCopy((int) topButtonWidth - buttonL.getWidth() - buttonR.getWidth(), (int) buttonHeight);
+		Image lowerButton = button.getScaledCopy((int) lowerButtonWidth - buttonL.getWidth() - buttonR.getWidth(), (int) buttonHeight);
+		float fullTopButtonWidth = topButton.getWidth() + buttonL.getWidth() + buttonR.getWidth();
+		float fullLowerButtonWidth = lowerButton.getWidth() + buttonL.getWidth() + buttonR.getWidth();
+		clearButton = new MenuButton(lowerButton, buttonL, buttonR,
+				width * 0.75f + buttonMarginX + fullLowerButtonWidth / 2f, lowerButtonY);
+		importButton = new MenuButton(lowerButton, buttonL, buttonR,
+				width - buttonMarginX - fullLowerButtonWidth / 2f, lowerButtonY);
+		resetButton = new MenuButton(topButton, buttonL, buttonR,
+				baseX + searchWidth + buttonMarginX + fullTopButtonWidth / 2f, topButtonY);
+		rankedButton = new MenuButton(topButton, buttonL, buttonR,
+				baseX + searchWidth + buttonMarginX * 2f + fullTopButtonWidth * 3 / 2f, topButtonY);
 		clearButton.setText("Clear", Utils.FONT_MEDIUM, Color.white);
 		importButton.setText("Import All", Utils.FONT_MEDIUM, Color.white);
 		resetButton.setText("Reset Search", Utils.FONT_MEDIUM, Color.white);
@@ -543,6 +546,7 @@ public class DownloadsMenu extends BasicGameState {
 				if (index >= n)
 					break;
 				if (DownloadNode.downloadIconContains(x, y, i)) {
+					SoundController.playSound(SoundEffect.MENUCLICK);
 					DownloadNode node = DownloadList.get().getNode(index);
 					Download dl = node.getDownload();
 					switch (dl.getStatus()) {

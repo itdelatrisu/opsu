@@ -337,7 +337,7 @@ public class DownloadNode {
 		float marginY = infoHeight * 0.04f;
 
 		// rectangle outline
-		g.setColor((id % 2 == 0) ? BG_FOCUS : BG_NORMAL);
+		g.setColor((id % 2 == 0) ? BG_HOVER : BG_NORMAL);
 		g.fillRect(infoBaseX, y, infoWidth, infoHeight);
 
 		// text

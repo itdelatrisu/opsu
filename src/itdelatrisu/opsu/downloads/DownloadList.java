@@ -136,6 +136,7 @@ public class DownloadList {
 			DownloadNode node = iter.next();
 			Download dl = node.getDownload();
 			if (dl != null && !dl.isActive()) {
+				node.clearDownload();
 				iter.remove();
 				map.remove(node.getID());
 			}
