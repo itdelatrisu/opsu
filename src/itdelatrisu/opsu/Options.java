@@ -95,7 +95,7 @@ public class Options {
 	 * The theme song string:
 	 * {@code filename,title,artist,length(ms)}
 	 */
-	private static String themeString = "theme.ogg,welcome to osu!,nekodex,48000";
+	private static String themeString = "theme.ogg,On the Bach,Jingle Punks,66000";
 
 	/** Game options. */
 	public enum GameOption {
