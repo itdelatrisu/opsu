@@ -61,15 +61,8 @@ public class Circle implements HitObject {
 	 * @param circleSize the map's circleSize value
 	 */
 	public static void init(GameContainer container, float circleSize) {
-		int diameter = (int) (108 - (circleSize * 8));
-		int swidth = container.getWidth();
-		int sheight = container.getHeight();
-		if(swidth*3>sheight*4){
-			swidth = sheight*4/3;
-		}else{
-			sheight = swidth*3/4;
-		}
-		diameter = diameter * swidth / 640;  // convert from Osupixels (640x480)
+		int diameter = (int) (104 - (circleSize * 8));
+		diameter = (int) (diameter * OsuHitObject.getXMultiplier());  // convert from Osupixels (640x480)
 		GameImage.HITCIRCLE.setImage(GameImage.HITCIRCLE.getImage().getScaledCopy(diameter, diameter));
 		GameImage.HITCIRCLE_OVERLAY.setImage(GameImage.HITCIRCLE_OVERLAY.getImage().getScaledCopy(diameter, diameter));
 		GameImage.APPROACHCIRCLE.setImage(GameImage.APPROACHCIRCLE.getImage().getScaledCopy(diameter, diameter));

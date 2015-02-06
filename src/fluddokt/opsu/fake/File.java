@@ -9,6 +9,7 @@ import java.io.FileFilter;
 import java.io.FilenameFilter;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Files.FileType;
 import com.badlogic.gdx.files.FileHandle;
 
 public class File {
@@ -18,6 +19,12 @@ public class File {
 
 	public File(String name) {
 		fh = Gdx.files.external(name);
+		
+		if(!fh.exists())
+			fh = Gdx.files.absolute(name);
+		if(!fh.exists())
+			fh = Gdx.files.local(name);
+		//System.out.println("New File: "+name+" "+fh.type());
 	}
 	private File(FileHandle nfh) {
 		this.fh = nfh;
@@ -36,6 +43,18 @@ public class File {
 
 	public String getAbsolutePath() {
 		return fh.path();
+	}
+	public String getFullPath(){
+		String par;
+		if(fh.type() == FileType.Local)
+			par = Gdx.files.getLocalStoragePath();
+		else if(fh.type() == FileType.External)
+			par = Gdx.files.getExternalStoragePath();
+		//else if(fh.type() == FileType.Internal)
+		//	par = Gdx.files.g
+		else
+			par = "";
+		return par+fh.path();
 	}
 
 	public static File internal(String name) {

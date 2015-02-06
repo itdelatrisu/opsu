@@ -89,6 +89,10 @@ public class Animation extends Image{
 	}
 
 	public Image getCurrentFrame() {
+		while(System.currentTimeMillis()-lastUpdate>imgs.get(curFrame).duration){
+			lastUpdate=System.currentTimeMillis();
+			curFrame = (curFrame+1)%getFrameCount();
+		}
 		return getImage(curFrame);
 	}
 	

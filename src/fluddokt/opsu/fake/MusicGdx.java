@@ -14,8 +14,6 @@ public class MusicGdx extends AbsMusic{
 
 	public boolean setPosition(float f) {
 		music.setPosition(f);
-		lastPosition = music.getPosition();
-		lastTime = TimeUtils.millis()-(long)(lastPosition*1000);
 		return true;
 	}
 
@@ -24,9 +22,7 @@ public class MusicGdx extends AbsMusic{
 			music.stop();
 		music.setLooping(true);
 		music.play();
-		lastPosition = music.getPosition();
-		lastTime = TimeUtils.millis();
-		//music.
+
 	}
 
 	public void play() {
@@ -34,8 +30,6 @@ public class MusicGdx extends AbsMusic{
 			music.stop();
 		music.setLooping(false);
 		music.play();
-		lastPosition = music.getPosition();
-		lastTime = TimeUtils.millis();
 	}
 
 	public boolean playing() {
@@ -89,11 +83,8 @@ public class MusicGdx extends AbsMusic{
 		music.stop();
 	}
 
-	float lastPosition = 0;//music.getPosition();
-	float lastUpdatePosition = 0;
-	long lastTime = TimeUtils.millis();
-	float deltaTime=0;
-	public float getPosition() {
+/*	
+	public float getPosition2() {
 		float thisPosition = music.getPosition(); // 1/8
 		//System.out.println("getPosition: mpos:"+thisPosition);
 		long thisTime = TimeUtils.millis();
@@ -130,7 +121,12 @@ public class MusicGdx extends AbsMusic{
 		//return music.getPosition();
 		
 	}
-
+*/
+	@Override
+	public float getPosition() {
+		return music.getPosition();
+	}
+	
 	public void dispose() {
 		music.dispose();
 	}

@@ -19,6 +19,7 @@
 package itdelatrisu.opsu;
 
 import fluddokt.opsu.fake.*;
+import itdelatrisu.opsu.states.SongMenu;
 
 //import java.io.File;
 import java.util.ArrayList;
@@ -383,7 +384,7 @@ public enum GameImage {
 	MENU_BUTTON_BG ("menu-button-background", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy(w / 2, h / 9);
+			return img.getScaledCopy(w / 2, h / SongMenu.MAX_SONG_BUTTONS);
 		}
 	},
 	MENU_TAB ("selection-tab", "png", false, false) {

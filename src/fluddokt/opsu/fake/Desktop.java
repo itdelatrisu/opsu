@@ -9,11 +9,11 @@ import com.badlogic.gdx.Gdx;
 public class Desktop {
 
 	public static boolean isDesktopSupported() {
-		if(Gdx.app.getType() == ApplicationType.Desktop){
-			return java.awt.Desktop.isDesktopSupported();
-		}
-		
-		return false;
+		//if(Gdx.app.getType() == ApplicationType.Desktop){
+		//	return java.awt.Desktop.isDesktopSupported();
+		//}
+		//else
+			return true;
 	}
 
 	static Desktop single;
@@ -23,10 +23,12 @@ public class Desktop {
 		return single;
 	}
 
-	public void browse(URI rEPOSITORY_URI) throws IOException {
-		if(Gdx.app.getType() == ApplicationType.Desktop){
-			java.awt.Desktop.getDesktop().browse(rEPOSITORY_URI);
-		}
+	public void browse(URI uri) throws IOException {
+		//if(Gdx.app.getType() == ApplicationType.Desktop){
+		//	java.awt.Desktop.getDesktop().browse(uri);
+		//} else {
+			Gdx.net.openURI(uri.toString());
+		//}
 	}
 
 }

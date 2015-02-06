@@ -22,6 +22,7 @@ public class Graphics {
 	public static Color bgcolor = Color.black;
 	static Color fgcolor = Color.white;
 	public static void init(){
+		Image.texmap.clear();
 		batch = new SpriteBatch();
 		shapeRender = new ShapeRenderer();
 		shapeRender.setAutoShapeType(true);
@@ -52,8 +53,11 @@ public class Graphics {
 		if(str==null)
 			return;
 		checkMode(SPRITE);
-		font.bitmap.setColor(fgcolor.r, fgcolor.g, fgcolor.b, fgcolor.a);
-		font.bitmap.draw(batch, str, x, height-y);
+		//font.bitmap.setColor(fgcolor.r, fgcolor.g, fgcolor.b, fgcolor.a);
+		//font.bitmap.draw(batch, str, x, height-y);
+		//batch.enableBlending();
+		//setColor(Color.red);
+		font.dynFont.draw(batch, str, x, height-y);
 		
 	}
 

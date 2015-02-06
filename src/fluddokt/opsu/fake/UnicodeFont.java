@@ -1,8 +1,10 @@
 package fluddokt.opsu.fake;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedList;
 
+import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator.FreeTypeFontParameter;
@@ -13,12 +15,14 @@ public class UnicodeFont {
 	LinkedList<Effect> colorEffects = new LinkedList<Effect>();
 	public BitmapFont bitmap;
 	int padbottom=0, padtop=0;
-	Font font;
 	StringBuilder chars = new StringBuilder();
 	HashSet<Character> set = new HashSet<Character>();
 	boolean glythsAdded = false;
 	
+	DynamicFreeType dynFont;
+	Font font;
 	public UnicodeFont(Font font) {
+		dynFont = new DynamicFreeType(font.file,font);
 		System.out.println(font+" "+font.name);
 		this.font = font;
 		
@@ -28,11 +32,11 @@ public class UnicodeFont {
 		//for(int i=0;i<initialList.length();i++){
 		//	set.add(initialList.charAt(i));
 		//}
-		for(int i=0;i<255;i++){
-			addGlyphs((char)i+"");
-		}
+		//for(int i=0;i<255;i++){
+		//	addGlyphs((char)i+"");
+		//}
 		
-		regenBitmap();
+		//regenBitmap();
 	}
 
 	public void addAsciiGlyphs() {
@@ -40,7 +44,7 @@ public class UnicodeFont {
 
 	}
 	public void drawString(float x, float y, String string) {
-		//checkString(string);
+		checkString(string);
 		Graphics.getGraphics().drawString(this, string, x, y+padtop);
 	}
 	public void drawString(float x, float y, String string, Color textColor) {
@@ -54,15 +58,18 @@ public class UnicodeFont {
 	}
 
 	public int getHeight(String str) {
-		return (int) bitmap.getBounds(str).height+padtop+padbottom;
+		return dynFont.getHeight(str)+padtop+padbottom;
+		//return (int) bitmap.getBounds(str).height+padtop+padbottom;
 	}
 
 	public int getLineHeight() {
-		return (int)bitmap.getLineHeight()+padtop+padbottom;
+		return dynFont.getLineHeight()+padtop+padbottom;
+		//return (int)bitmap.getLineHeight()+padtop+padbottom;
 	}
 
 	public int getWidth(String str) {
-		return (int) bitmap.getBounds(str).width;
+		return dynFont.getWidth(str);
+		//return (int) bitmap.getBounds(str).width;
 	}
 	public void addGlyphs(String string) {
 		checkString(string);
@@ -78,16 +85,17 @@ public class UnicodeFont {
 		}
 	}
 	public void loadGlyphs() throws SlickException {
-		if(glythsAdded)
-			regenBitmap();
+		//if(glythsAdded)
+		//	regenBitmap();
 	}
+	/*
 	private void regenBitmap() {
 		//System.out.println("Regen Bitmap "+font.name+" "+chars.toString());
-		FreeTypeFontGenerator generator = new FreeTypeFontGenerator(ResourceLoader.getFileHandle(font.name));
+		FreeTypeFontGenerator generator = new FreeTypeFontGenerator(font.file);
 		FreeTypeFontParameter parameter = new FreeTypeFontParameter();
 		parameter.size = (int) font.size;
 		//sizes smaller than 28 produces garbage so scale it up
-		while(parameter.size<28)
+		while(parameter.size<22)
 			parameter.size*=2;
 			
 		parameter.kerning=true;
@@ -104,6 +112,7 @@ public class UnicodeFont {
 		generator.dispose(); // don't forget to dispose to avoid memory leaks!
 		
 	}
+	//*/
 
 	public void setPaddingBottom(int padding) {
 		padbottom = padding;

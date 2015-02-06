@@ -148,8 +148,8 @@ public class OsuHitObject {
 		String tokens[] = line.split(",");
 
 		// common fields
-		this.x = Integer.parseInt(tokens[0]) * xMultiplier + xOffset;
-		this.y = Integer.parseInt(tokens[1]) * yMultiplier + yOffset;
+		this.x = Float.parseFloat(tokens[0]) * xMultiplier + xOffset;
+		this.y = Float.parseFloat(tokens[1]) * yMultiplier + yOffset;
 		this.time = Integer.parseInt(tokens[2]);
 		this.type = Integer.parseInt(tokens[3]);
 		this.hitSound = Byte.parseByte(tokens[4]);

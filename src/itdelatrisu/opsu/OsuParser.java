@@ -84,7 +84,7 @@ public class OsuParser {
 		
 		
 		File songsFile;// = Gdx.files.external("Songs");
-		songsFile = File.local("Songs");
+		/*songsFile = File.local("Songs");
 		System.out.println("parseAllFiles: local"+songsFile+" "+songsFile.exists()+" "+songsFile.getPath());
 		if(!songsFile.exists()){
 			songsFile = File.external("Songs");
@@ -93,9 +93,9 @@ public class OsuParser {
 		if(!songsFile.exists()){
 			songsFile = File.internal("Songs");
 			System.out.println("parseAllFiles: internal"+songsFile+" "+songsFile.exists()+" "+songsFile.getPath());
-		}
+		}*/
 		
-		File[] folders = songsFile.listFiles();
+		File[] folders = root.listFiles();
 		currentDirectoryIndex = 0;
 		if(folders == null){
 			System.out.println("parseAllFiles folders are null");
@@ -103,9 +103,9 @@ public class OsuParser {
 		}
 		totalDirectories = folders.length;
 
-		System.out.println("OsuParser TotalDir:"+totalDirectories+" exists:"+songsFile.exists()+" isDir"+songsFile.isDirectory()+" "+songsFile.listFiles()+" "+songsFile.getPath()+" "+songsFile.getName());
+		//System.out.println("OsuParser TotalDir:"+totalDirectories+" exists:"+songsFile.exists()+" isDir"+songsFile.isDirectory()+" "+songsFile.listFiles()+" "+songsFile.getPath()+" "+songsFile.getName());
 		for (File folder : folders) {
-			System.out.println("OsuParser Folder:"+folder);
+			//System.out.println("OsuParser Folder:"+folder);
 			currentDirectoryIndex++;
 			if (!folder.isDirectory())
 				continue;

@@ -26,4 +26,9 @@ public class AbsMusic {
 	
 
 	public void dispose(){}
+
+	public String getName() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

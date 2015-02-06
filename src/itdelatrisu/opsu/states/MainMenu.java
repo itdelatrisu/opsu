@@ -249,8 +249,6 @@ public class MainMenu extends BasicGameState {
 			mouseX = mouseY = -1;  // ensure only one button is in hover state at once
 		musicNext.hoverUpdate(delta, mouseX, mouseY);
 		musicPrevious.hoverUpdate(delta, mouseX, mouseY);
-		if (repoButton != null)
-			repoButton.hoverUpdate(delta, mouseX, mouseY);
 
 		// window focus change: increase/decrease theme song volume
 		if (MusicController.isThemePlaying() &&

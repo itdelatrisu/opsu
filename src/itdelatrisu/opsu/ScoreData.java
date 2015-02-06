@@ -28,6 +28,7 @@ import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+
 /*
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
@@ -324,8 +325,8 @@ public class ScoreData implements Comparable<ScoreData> {
 	@Override
 	public int compareTo(ScoreData that) {
 		if (this.score != that.score)
-			return Long.compare(this.score, that.score);
+			return Long2.compare(this.score, that.score);
 		else
-			return Long.compare(this.timestamp, that.timestamp);
+			return Long2.compare(this.timestamp, that.timestamp);
 	}
 }

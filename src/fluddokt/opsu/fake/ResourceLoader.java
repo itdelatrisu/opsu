@@ -18,7 +18,7 @@ public class ResourceLoader {
 	public static FileHandle getFileHandle(String file) {
 		if(file == null)
 			throw new Error("null file name");
-		System.out.print("getFileHandle:"+file+" ");
+		System.out.print("ResourceLoader: getFileHandle:"+file+" ");
 		FileHandle fh = Gdx.files.absolute(file);
 		if(fh.exists()){
 			System.out.println("QFOUNDED");
