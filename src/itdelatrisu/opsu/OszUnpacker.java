@@ -1,6 +1,6 @@
 /*
  * opsu! - an open-source osu! client
- * Copyright (C) 2014 Jeffrey Han
+ * Copyright (C) 2014, 2015 Jeffrey Han
  *
  * opsu! is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,6 +22,8 @@ import fluddokt.opsu.fake.File;
 
 //import java.io.File;
 import java.io.FilenameFilter;
+import java.util.ArrayList;
+import java.util.List;
 
 //import net.lingala.zip4j.core.ZipFile;
 //import net.lingala.zip4j.exception.ZipException;
@@ -45,8 +47,13 @@ public class OszUnpacker {
 	 * Invokes the unpacker for each OSZ archive in a root directory.
 	 * @param root the root directory
 	 * @param dest the destination directory
+	 * @return an array containing the new (unpacked) directories, or null
+	 *         if no OSZs found
 	 */
-	public static void unpackAllFiles(File root, File dest) {
+	public static File[] unpackAllFiles(File root, File dest) {
+		List<File> dirs = new ArrayList<File>();
+
+		// find all OSZ files
 		if(root == null || dest == null){
 			System.out.println("root or dest null "+root+" "+dest );
 		}
@@ -60,9 +67,10 @@ public class OszUnpacker {
 		if (files == null || files.length < 1) {
 			System.out.println("unpackAllFiles "+files );
 			files = null;
-			return;
+			return new File[0];
 		}
 
+		// unpack OSZs
 		for (File file : files) {
 			fileIndex++;
 			String dirName = file.getName().substring(0, file.getName().lastIndexOf('.'));
@@ -71,11 +79,13 @@ public class OszUnpacker {
 				songDir.mkdir();
 				unzip(file, songDir);
 				file.delete();  // delete the OSZ when finished
+				dirs.add(songDir);
 			}
 		}
 
 		fileIndex = -1;
 		files = null;
+		return dirs.toArray(new File[dirs.size()]);
 	}
 
 	/**

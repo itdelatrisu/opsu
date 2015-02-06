@@ -444,12 +444,7 @@ public enum GameImage {
 			return img.getScaledCopy(MENU_LOGO.getImage().getWidth() * 0.66f / img.getWidth());
 		}
 	},
-	MENU_BUTTON_MID ("button-middle", "png", false, false) {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy(w / 2, img.getHeight());
-		}
-	},
+	MENU_BUTTON_MID ("button-middle", "png", false, false),
 	MENU_BUTTON_LEFT ("button-left", "png", false, false),
 	MENU_BUTTON_RIGHT ("button-right", "png", false, false),
 	MUSIC_PLAY ("music-play", "png", false, false),
@@ -466,6 +461,26 @@ public enum GameImage {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
 			return img.getScaledCopy((h * 0.15f) / img.getHeight());
+		}
+	},
+	DOWNLOADS ("downloads", "png", false, false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy((h * 0.45f) / img.getHeight());
+		}
+	},
+	SEARCH_BG ("search-background", "png|jpg", false, true) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			img.setAlpha(0.8f);
+			return img.getScaledCopy(w, h);
+		}
+	},
+	DELETE ("delete", "png", false, false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			int lineHeight = Utils.FONT_DEFAULT.getLineHeight();
+			return img.getScaledCopy(lineHeight, lineHeight);
 		}
 	},
 	HISTORY ("history", "png", false, false) {
@@ -576,10 +591,7 @@ public enum GameImage {
 	 * @param type the file types (separated by '|')
 	 */
 	GameImage(String filename, String type) {
-		this.filename = filename;
-		this.type = getType(type);
-		this.skinnable = true;
-		this.preload = true;
+		this(filename, type, true, true);
 	}
 
 	/**
@@ -589,11 +601,8 @@ public enum GameImage {
 	 * @param type the file types (separated by '|')
 	 */
 	GameImage(String filename, String filenameFormat, String type) {
-		this.filename = filename;
+		this(filename, type, true, true);
 		this.filenameFormat = filenameFormat;
-		this.type = getType(type);
-		this.skinnable = true;
-		this.preload = true;
 	}
 
 	/**

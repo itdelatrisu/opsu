@@ -196,9 +196,9 @@ public class GamePauseMenu extends BasicGameState {
 			SoundController.playSound(SoundEffect.FAIL);
 		} else
 			MusicController.pause();
-		continueButton.setScale(1f);
-		retryButton.setScale(1f);
-		backButton.setScale(1f);
+		continueButton.resetHover();
+		retryButton.resetHover();
+		backButton.resetHover();
 	}
 
 	/**
@@ -212,5 +212,8 @@ public class GamePauseMenu extends BasicGameState {
 		continueButton = new MenuButton(GameImage.PAUSE_CONTINUE.getImage(), width / 2f, height * 0.25f);
 		retryButton = new MenuButton(GameImage.PAUSE_RETRY.getImage(), width / 2f, height * 0.5f);
 		backButton = new MenuButton(GameImage.PAUSE_BACK.getImage(), width / 2f, height * 0.75f);
+		continueButton.setHoverExpand();
+		retryButton.setHoverExpand();
+		backButton.setHoverExpand();
 	}
 }

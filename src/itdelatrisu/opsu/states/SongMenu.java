@@ -223,7 +223,7 @@ public class SongMenu extends BasicGameState {
 		// options button
 		Image optionsIcon = GameImage.MENU_OPTIONS.getImage();
 		optionsButton = new MenuButton(optionsIcon, search.getX() - (optionsIcon.getWidth() * 1.5f), search.getY());
-		optionsButton.setHoverScale(1.75f);
+		optionsButton.setHoverExpand(1.75f);
 
 		// loader
 		int loaderDim = GameImage.MENU_MUSICNOTE.getImage().getWidth();
@@ -569,8 +569,7 @@ public class SongMenu extends BasicGameState {
 		case Input.KEY_ESCAPE:
 			if (reloadThread != null) {
 				// beatmap reloading: stop parsing OsuFiles by sending interrupt to OsuParser
-				if (reloadThread != null)
-					reloadThread.interrupt();
+				reloadThread.interrupt();
 			} else if (!search.getText().isEmpty()) {
 				// clear search text
 				search.setText("");
@@ -624,13 +623,13 @@ public class SongMenu extends BasicGameState {
 					// invoke unpacker and parser
 					File beatmapDir = Options.getBeatmapDir();
 					OszUnpacker.unpackAllFiles(Options.getOSZDir(), beatmapDir);
-					OsuParser.parseAllFiles(beatmapDir, container.getWidth(), container.getHeight());
+					OsuParser.parseAllFiles(beatmapDir);
 
 					// initialize song list
 					if (OsuGroupList.get().size() > 0) {
 						OsuGroupList.get().init();
 						setFocus(OsuGroupList.get().getRandomNode(), -1, true);
-					} else if (Options.isThemSongEnabled())
+					} else
 						MusicController.playThemeSong();
 
 					reloadThread = null;
@@ -760,15 +759,15 @@ public class SongMenu extends BasicGameState {
 	public void enter(GameContainer container, StateBasedGame game)
 			throws SlickException {
 		Display.setTitle(game.getTitle());
-		Utils.getBackButton().setScale(1f);
-		optionsButton.setScale(1f);
+		Utils.getBackButton().resetHover();
+		optionsButton.resetHover();
 		hoverOffset = 0f;
 		hoverIndex = -1;
 		startScore = 0;
 
-		// stop playing the theme song
-		if (MusicController.isThemePlaying() && focusNode != null)
-			MusicController.play(focusNode.osuFiles.get(focusNode.osuFileIndex), true);
+		// set focus node if not set (e.g. theme song playing)
+		if (focusNode == null && OsuGroupList.get().size() > 0)
+			setFocus(OsuGroupList.get().getRandomNode(), -1, true);
 
 		// reset music track
 		else if (resetTrack) {

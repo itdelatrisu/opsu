@@ -21,6 +21,8 @@ package itdelatrisu.opsu;
 import fluddokt.opsu.fake.*;
 
 import itdelatrisu.opsu.audio.MusicController;
+import itdelatrisu.opsu.downloads.DownloadList;
+import itdelatrisu.opsu.states.DownloadsMenu;
 import itdelatrisu.opsu.states.Game;
 import itdelatrisu.opsu.states.GamePauseMenu;
 import itdelatrisu.opsu.states.GameRanking;
@@ -67,7 +69,8 @@ public class Opsu extends StateBasedGame {
 		STATE_GAME          = 4,
 		STATE_GAMEPAUSEMENU = 5,
 		STATE_GAMERANKING   = 6,
-		STATE_OPTIONSMENU   = 7;
+		STATE_OPTIONSMENU   = 7,
+		STATE_DOWNLOADSMENU = 8;
 
 	/** Server socket for restricting the program to a single instance. */
 	private static ServerSocket SERVER_SOCKET;
@@ -90,6 +93,7 @@ public class Opsu extends StateBasedGame {
 		addState(new GamePauseMenu(STATE_GAMEPAUSEMENU));
 		addState(new GameRanking(STATE_GAMERANKING));
 		addState(new OptionsMenu(STATE_OPTIONSMENU));
+		addState(new DownloadsMenu(STATE_DOWNLOADSMENU));
 	}
 
 	/**
@@ -206,6 +210,10 @@ public class Opsu extends StateBasedGame {
 			return false;
 		}
 
+		// show confirmation dialog if any downloads are active
+		if (DownloadList.get().hasActiveDownloads() && DownloadList.showExitConfirmation())
+			return false;
+
 		return true;
 	}
 
@@ -217,6 +225,9 @@ public class Opsu extends StateBasedGame {
 	public static void exit() {
 		// close scores database
 		ScoreDB.closeConnection();
+
+		// cancel all downloads
+		DownloadList.get().cancelAllDownloads();
 
 		// close server socket
 		if (SERVER_SOCKET != null) {

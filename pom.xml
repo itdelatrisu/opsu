@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>itdelatrisu</groupId>
 	<artifactId>opsu</artifactId>
-	<version>0.4.0</version>
+	<version>0.5.0</version>
 
 	<build>
 		<sourceDirectory>src</sourceDirectory>
@@ -137,6 +137,11 @@
 			<groupId>org.xerial</groupId>
 			<artifactId>sqlite-jdbc</artifactId>
 			<version>3.8.7</version>
+		</dependency>
+		<dependency>
+			<groupId>org.json</groupId>
+			<artifactId>json</artifactId>
+			<version>20140107</version>
 		</dependency>
 	</dependencies>
 </project>

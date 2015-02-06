@@ -20,6 +20,7 @@ package itdelatrisu.opsu;
 
 import fluddokt.opsu.fake.*;
 import itdelatrisu.opsu.audio.MusicController;
+import itdelatrisu.opsu.downloads.DownloadList;
 
 /*
 import org.newdawn.slick.AppGameContainer;
@@ -116,4 +117,13 @@ public class Container extends AppGameContainer {
 	}
 
 
+
+	@Override
+	public void exit() {
+		// show confirmation dialog if any downloads are active
+		if (forceExit && DownloadList.get().hasActiveDownloads() && DownloadList.showExitConfirmation())
+			return;
+
+		super.exit();
+	}
 }

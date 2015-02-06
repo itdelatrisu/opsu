@@ -171,7 +171,7 @@ public class GameRanking extends BasicGameState {
 	@Override
 	public void enter(GameContainer container, StateBasedGame game) {
 		Display.setTitle(game.getTitle());
-		Utils.getBackButton().setScale(1f);
+		Utils.getBackButton().resetHover();
 		if (!data.isGameplay()) {
 			if (!MusicController.isTrackDimmed())
 				MusicController.toggleTrackDimmed(0.5f);
