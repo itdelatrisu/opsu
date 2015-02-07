@@ -4,17 +4,16 @@ import com.badlogic.gdx.Gdx;
 
 public class AppGameContainer extends GameContainer{
 
-	public static StateBasedGame sbg;
 	public static int containerWidth, containerHeight;
 	
 	
 	public AppGameContainer(Game game) {
-		sbg =(StateBasedGame)game;
-		sbg.setContainer(this);
+		super((StateBasedGame)game);
 		// TODO Auto-generated constructor stub
 	}
 
 	public AppGameContainer(Game game, int width, int height, boolean fullscreen) {
+		super((StateBasedGame)game);
 		// TODO Auto-generated constructor stub
 	}
 

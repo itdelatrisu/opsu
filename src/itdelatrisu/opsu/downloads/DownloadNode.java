@@ -22,6 +22,7 @@ package itdelatrisu.opsu.downloads;
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.Options;
+import itdelatrisu.opsu.OsuParser;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.downloads.Download.Status;
 
@@ -307,12 +308,18 @@ public class DownloadNode {
 				g.fillRect(buttonBaseX, y, buttonWidth * progress / 100f, buttonHeight);
 			}
 		}
+		
+		if (OsuParser.allBeatMapSetID.contains(getID())) {
+			g.setColor(Utils.COLOR_YELLOW_ALPHA);
+			g.fillRect(buttonBaseX, y, buttonWidth * 100 / 100f, buttonHeight);
+		}
+		
 
 		// text
 		Utils.FONT_BOLD.drawString(
 				textX, y + marginY,
 				String.format("%s - %s%s", getArtist(), getTitle(),
-						(dl != null) ? String.format(" [%s]", dl.getStatus().getName()) : ""), Color.white);
+						(dl != null) ? String.format(" [%s] %s", dl.getStatus().getName(),download.ETA()) : ""), Color.white);
 		Utils.FONT_DEFAULT.drawString(
 				textX, y + marginY + Utils.FONT_BOLD.getLineHeight(),
 				String.format("Last updated: %s", date), Color.white);

@@ -1,9 +1,11 @@
 package fluddokt.opsu.fake;
 
 import java.util.HashMap;
+import java.util.LinkedList;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
+import com.badlogic.gdx.utils.OrderedSet;
 
 public abstract class StateBasedGame extends Game implements InputProcessor{
 
@@ -12,6 +14,7 @@ public abstract class StateBasedGame extends Game implements InputProcessor{
 	BasicGameState nextState = null;
 	HashMap<Integer,BasicGameState> bgs = new HashMap<Integer,BasicGameState>();
 	String title;
+	OrderedSet<InputListener> keyListeners = new OrderedSet<InputListener>();
 	public StateBasedGame(String name){
 		this.title = name;
 		Display.setTitle(name);
@@ -37,6 +40,7 @@ public abstract class StateBasedGame extends Game implements InputProcessor{
 			if(gc == null){
 				throw new Error("");
 			}
+			currentState.leave(gc, this);
 			currentState = nextState;
 			nextState = null;
 			if(!currentState.inited){
@@ -82,32 +86,57 @@ public abstract class StateBasedGame extends Game implements InputProcessor{
 	@Override
 	public boolean keyDown(int keycode) {
 		//System.out.println("Key:"+keycode);
+		for(InputListener keylis : keyListeners){
+			keylis.keyDown(keycode);
+		}
 		currentState.keyPressed(keycode, com.badlogic.gdx.Input.Keys.toString(keycode).charAt(0));
 		
 		return false;
 	}
 	@Override
 	public boolean keyUp(int keycode) {
+		for(InputListener keylis : keyListeners){
+			keylis.keyUp(keycode);
+		}
 		currentState.keyReleased(keycode, com.badlogic.gdx.Input.Keys.toString(keycode).charAt(0));
 		
 		return false;
 	}
 	@Override
 	public boolean keyTyped(char character) {
+		for(InputListener keylis : keyListeners){
+			keylis.keyType(character);
+		}
 		return false;
 	}
 	@Override
 	public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+		for(InputListener keylis : keyListeners){
+			keylis.touchDown(screenX, screenY, pointer, button);
+		}
 		currentState.mousePressed(button, screenX,screenY);
+		oldx = screenX;
+		oldy = screenY;
+		
 		return false;
 	}
 	@Override
 	public boolean touchUp(int screenX, int screenY, int pointer, int button) {
+		for(InputListener keylis : keyListeners){
+			keylis.touchUp(screenX, screenY, pointer, button);
+		}
 		currentState.mouseReleased(button, screenX, screenY);
+		oldx = screenX;
+		oldy = screenY;
+		
 		return false;
 	}
 	@Override
 	public boolean touchDragged(int screenX, int screenY, int pointer) {
+		for(InputListener keylis : keyListeners){
+			keylis.touchDragged(screenX, screenY, pointer);
+		}
+		
 		currentState.mouseDragged(oldx, oldy, screenX, screenY);
 		oldx = screenX;
 		oldy = screenY;
@@ -133,7 +162,14 @@ public abstract class StateBasedGame extends Game implements InputProcessor{
 	public GameContainer getContainer() {
 		return gc;
 	}
-	public void setContainer(AppGameContainer appGameContainer) {
-		gc = appGameContainer;
+	public void setContainer(GameContainer gameContainer) {
+		gc = gameContainer;
+	}
+	public void addKeyListener(InputListener listener) {
+		keyListeners.add(listener);
+		
+	}
+	public void removeKeyListener(InputListener listener) {
+		keyListeners.remove(listener);
 	}
 }

@@ -662,7 +662,11 @@ public class DownloadsMenu extends BasicGameState {
 		startDownloadIndex = 0;
 		pageDir = Page.RESET;
 	}
-
+	@Override
+	public void leave(GameContainer container, StateBasedGame game)
+			throws SlickException {
+		search.setFocus(false);
+	}
 	/**
 	 * Resets the search timer, but respects the minimum request interval.
 	 */

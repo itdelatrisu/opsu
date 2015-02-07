@@ -4,7 +4,8 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Application.ApplicationType;
 
 public class GameContainer {
-
+	public static StateBasedGame sbg;
+	
 	public int width = 800;
 	public int height = 600;
 	public boolean hasFocus = true;
@@ -13,6 +14,10 @@ public class GameContainer {
 	protected boolean running;
 	protected boolean forceExit;
 	
+	public GameContainer(StateBasedGame game) {
+		sbg =(StateBasedGame)game;
+		sbg.setContainer(this);
+	}
 	protected void setup(){}
 	protected void getDelta(){}
 	
@@ -128,6 +133,13 @@ public class GameContainer {
 	}
 	public void setForceExit(boolean b) {
 		// TODO Auto-generated method stub
+		
+	}
+	public void addInputListener(InputListener listener) {
+		sbg.addKeyListener(listener);
+	}
+	public void removeInputListener(InputListener listener) {
+		sbg.removeKeyListener(listener);
 		
 	}
 

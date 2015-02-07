@@ -154,11 +154,14 @@ public class OsuGroupNode {
 
 		// search: title, artist, creator, source, version, tags (first OsuFile)
 		if (osu.title.toLowerCase().contains(query) ||
+			osu.titleUnicode.toLowerCase().contains(query) ||
 			osu.artist.toLowerCase().contains(query) ||
+			osu.artistUnicode.toLowerCase().contains(query) ||
 			osu.creator.toLowerCase().contains(query) ||
 			osu.source.toLowerCase().contains(query) ||
 			osu.version.toLowerCase().contains(query) ||
-			osu.tags.contains(query))
+			osu.tags.contains(query)
+			)
 			return true;
 
 		// search: version, tags (remaining OsuFiles)

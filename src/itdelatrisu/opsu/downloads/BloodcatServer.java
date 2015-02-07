@@ -30,6 +30,7 @@ import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.Iterator;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -79,6 +80,14 @@ public class BloodcatServer implements DownloadServer {
 					item.getString("artist"), item.isNull("artistUnicode") ? null : item.getString("artistUnicode"),
 					item.getString("creator")
 				);
+				/*
+				Iterator<String> ita = item.keys();
+				while(ita.hasNext()){
+					String t = ita.next();
+					System.out.print(t+":"+(item.isNull(t)?"Null":item.getString(t))+" ");
+				}
+				System.out.println();
+				*/
 			}
 
 			// store total result count

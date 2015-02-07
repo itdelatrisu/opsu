@@ -31,9 +31,8 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
-
-import com.badlogic.gdx.Gdx;
 
 //import org.newdawn.slick.Color;
 //import org.newdawn.slick.util.Log;
@@ -53,7 +52,11 @@ public class OsuParser {
 
 	/** The string lookup database. */
 	private static HashMap<String, String> stringdb = new HashMap<String, String>();
+	
+	
+	public static HashSet<Integer> allBeatMapSetID = new HashSet<Integer>();
 
+	
 	// This class should not be instantiated.
 	private OsuParser() {}
 
@@ -327,6 +330,7 @@ public class OsuParser {
 								break;
 							case "BeatmapSetID":
 								osu.beatmapSetID = Integer.parseInt(tokens[1]);
+								allBeatMapSetID.add(osu.beatmapSetID);
 								break;
 							}
 						} catch (Exception e) {

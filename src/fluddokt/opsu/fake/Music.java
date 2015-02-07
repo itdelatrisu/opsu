@@ -77,8 +77,8 @@ public class Music {
 			float diff = thisPosition*1000-(dxTime);
 			avgDiff = (diff+avgDiff*9)/10;
 			lastTime-=(int)(avgDiff/4);
-			if((int)(avgDiff/4)>=1)
-				System.out.println("getPosition: mpos:"+thisPosition+"\t "+(dxTime/1000f)+"\t "+(int)(thisPosition*1000-(dxTime))+"\t "+(int)avgDiff+"\t "+lastTime);
+			//if((int)(avgDiff/4)>=1)
+			//	System.out.println("getPosition: mpos:"+thisPosition+"\t "+(dxTime/1000f)+"\t "+(int)(thisPosition*1000-(dxTime))+"\t "+(int)avgDiff+"\t "+lastTime);
 			dxTime = thisTime - lastTime;
 			lastUpdatePosition = thisPosition;
 			lastUpdateTime = thisTime;

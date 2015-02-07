@@ -32,6 +32,7 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
@@ -95,6 +96,11 @@ public class Download {
 	/** The download status. */
 	private Status status = Status.WAITING;
 
+	Thread dlThread;
+	
+	private long lastUpdateETA;
+	private long lastReadSoFar;
+	String ETAstr = "Start";
 	/**
 	 * Constructor.
 	 * @param remoteURL the download URL
@@ -129,7 +135,7 @@ public class Download {
 		if (status != Status.WAITING)
 			return;
 
-		new Thread() {
+		dlThread = new Thread() {
 			@Override
 			public void run() {
 				// open connection, get content length
@@ -154,11 +160,26 @@ public class Download {
 				) {
 					rbc = new ReadableByteChannelWrapper(readableByteChannel);
 					fos = fileOutputStream;
+					FileChannel foschannel = fos.getChannel();
 					status = Status.DOWNLOADING;
 					int total = 0;
-					while( fos.getChannel().isOpen() && total < contentLength){
-						total += fos.getChannel().transferFrom(rbc, total, Math.min(8192, contentLength-total));
+					
+					
+					/*
+					ByteBuffer buf = ByteBuffer.allocate(8192*32);
+					long len = 0;
+					while(status == Status.DOWNLOADING && (len = rbc.read(buf)) != -1) {
+						buf.flip();
+						fos.getChannel().write(buf);
+						buf.clear();
 					}
+					/*/
+					while(status == Status.DOWNLOADING && total < contentLength){
+						long readed = foschannel.transferFrom(rbc, total, Math.min(2048, contentLength-total));
+						total += readed;
+						//System.out.println("readed "+readed);
+					}
+					//*/
 					if (status == Status.DOWNLOADING) {  // not interrupted
 						status = Status.COMPLETE;
 						rbc.close();
@@ -169,6 +190,8 @@ public class Download {
 							//Path source = localFile.toPath();
 							//Files.move(source, source.resolveSibling(cleanedName), StandardCopyOption.REPLACE_EXISTING);
 						}
+					}else{
+						status = Status.CANCELLED;
 					}
 				} catch (Exception e) {
 					status = Status.ERROR;
@@ -191,9 +214,10 @@ public class Download {
 			        if (outChannel != null)
 			            outChannel.close();
 			    }
-			    dst.delete();
+			    src.delete();
 			}
-		}.start();
+		};
+		dlThread.start();
 	}
 
 	/**
@@ -260,6 +284,29 @@ public class Download {
 			return 0;
 		}
 	}
+	
+	public String ETA(){
+		if(lastUpdateETA<=0){
+			lastUpdateETA = System.currentTimeMillis();
+			lastReadSoFar = readSoFar();
+		}
+		if(System.currentTimeMillis() > lastUpdateETA + 1000){
+			long thisReadSoFar = readSoFar();
+			long thisUpdateETA = System.currentTimeMillis();
+			long dlspeed = (thisReadSoFar-lastReadSoFar)*1000/(thisUpdateETA-lastUpdateETA);
+			if(dlspeed>0)
+				ETAstr = Utils.bytesToString(dlspeed)+"/s "+ (timeStr((contentLength-thisReadSoFar)/dlspeed));
+			else
+				ETAstr = "";
+			lastUpdateETA = thisUpdateETA;
+			lastReadSoFar = thisReadSoFar;
+		}
+		return ETAstr;
+	}
+	public String timeStr(long t){
+		//t/=1000;
+		return t/60+"m"+t%60+"s";
+	}
 
 	/**
 	 * Cancels the download, if running.
@@ -268,6 +315,13 @@ public class Download {
 		try {
 			this.status = Status.CANCELLED;
 			boolean transferring = isTransferring();
+			dlThread.interrupt();
+			try {
+				dlThread.join();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			if (rbc != null && rbc.isOpen())
 				rbc.close();
 			if (fos != null && fos.getChannel().isOpen())

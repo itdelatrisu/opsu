@@ -66,7 +66,7 @@ public class OszUnpacker {
 		});
 		
 		if (files == null || files.length < 1) {
-			System.out.println("unpackAllFiles "+files );
+			System.out.println("unpackAllFiles failed "+files.length );
 			files = null;
 			return new File[0];
 		}
