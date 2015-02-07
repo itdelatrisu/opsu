@@ -49,7 +49,7 @@ public class Graphics {
 	public void drawString(String str, float x, float y) {
 		drawString(curFont,str,x,y);
 	}
-	public void drawString(UnicodeFont font, String str, float x, float y) {
+	public void drawString(Font font, String str, float x, float y) {
 		if(str==null)
 			return;
 		checkMode(SPRITE);

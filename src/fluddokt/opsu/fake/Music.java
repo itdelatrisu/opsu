@@ -1,5 +1,6 @@
 package fluddokt.opsu.fake;
 
+
 import com.badlogic.gdx.utils.TimeUtils;
 
 public class Music {
@@ -91,6 +92,11 @@ public class Music {
 
 	public void setMusicVolume(float musvolume) {
 		music.setVolume(musvolume);
+	}
+
+	public void addListener(MusicListener musicListener) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

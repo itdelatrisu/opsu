@@ -35,9 +35,12 @@ import itdelatrisu.opsu.downloads.DownloadList;
 import itdelatrisu.opsu.downloads.DownloadNode;
 import itdelatrisu.opsu.downloads.DownloadServer;
 
-import java.io.File;
+//import java.io.File;
 import java.io.IOException;
 
+import fluddokt.opsu.fake.*;
+
+/*
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
@@ -49,7 +52,7 @@ import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.state.transition.FadeInTransition;
 import org.newdawn.slick.state.transition.FadeOutTransition;
-
+*/
 /**
  * Downloads menu.
  */

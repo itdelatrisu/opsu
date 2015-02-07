@@ -18,15 +18,15 @@
 
 package itdelatrisu.opsu;
 
-import fluddokt.opsu.fake.File;
+import fluddokt.opsu.fake.*;
 
 //import java.io.File;
 import java.io.FilenameFilter;
 import java.util.ArrayList;
 import java.util.List;
 
-//import net.lingala.zip4j.core.ZipFile;
-//import net.lingala.zip4j.exception.ZipException;
+import net.lingala.zip4j.core.ZipFile;
+import net.lingala.zip4j.exception.ZipException;
 
 //import org.newdawn.slick.util.Log;
 
@@ -53,6 +53,7 @@ public class OszUnpacker {
 	public static File[] unpackAllFiles(File root, File dest) {
 		List<File> dirs = new ArrayList<File>();
 
+		System.out.println("OSZ unpackfiles "+root.getAbsolutePath()+" "+dest.getAbsolutePath());
 		// find all OSZ files
 		if(root == null || dest == null){
 			System.out.println("root or dest null "+root+" "+dest );
@@ -75,6 +76,7 @@ public class OszUnpacker {
 			fileIndex++;
 			String dirName = file.getName().substring(0, file.getName().lastIndexOf('.'));
 			File songDir = new File(dest, dirName);
+			System.out.println("OSZ unpack :"+dirName+" "+songDir+" notExist:"+!songDir.isDirectory());
 			if (!songDir.isDirectory()) {
 				songDir.mkdir();
 				unzip(file, songDir);
@@ -94,13 +96,13 @@ public class OszUnpacker {
 	 * @param dest the destination directory
 	 */
 	private static void unzip(File file, File dest) {
-		/*try {
-			ZipFile zipFile = new ZipFile(file);
+		try {
+			ZipFile zipFile = new ZipFile(file.getIOFile());
 			zipFile.extractAll(dest.getAbsolutePath());
 		} catch (ZipException e) {
 			Log.error(String.format("Failed to unzip file %s to dest %s.",
 					file.getAbsolutePath(), dest.getAbsolutePath()), e);
-		}*/
+		}
 	}
 
 	/**

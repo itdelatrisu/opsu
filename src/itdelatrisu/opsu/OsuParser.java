@@ -106,10 +106,10 @@ public class OsuParser {
 		}*/
 		
 		currentDirectoryIndex = 0;
-		if(folders == null){
+		/*if(folders == null){
 			System.out.println("parseAllFiles folders are null");
 			return;
-		}
+		}*/
 		totalDirectories = dirs.length;
 
 		//System.out.println("OsuParser TotalDir:"+totalDirectories+" exists:"+songsFile.exists()+" isDir"+songsFile.isDirectory()+" "+songsFile.listFiles()+" "+songsFile.getPath()+" "+songsFile.getName());

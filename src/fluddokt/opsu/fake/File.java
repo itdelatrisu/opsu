@@ -5,8 +5,19 @@ import java.io.BufferedReader;
 
 
 import java.io.BufferedWriter;
+//import java.io.File;
 import java.io.FileFilter;
 import java.io.FilenameFilter;
+import java.io.IOException;
+import java.net.URI;
+import java.nio.file.FileSystem;
+import java.nio.file.LinkOption;
+import java.nio.file.Path;
+import java.nio.file.WatchKey;
+import java.nio.file.WatchService;
+import java.nio.file.WatchEvent.Kind;
+import java.nio.file.WatchEvent.Modifier;
+import java.util.Iterator;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Files.FileType;
@@ -19,11 +30,15 @@ public class File {
 
 	public File(String name) {
 		fh = Gdx.files.external(name);
-		
-		if(!fh.exists())
+		if(!fh.exists()){
 			fh = Gdx.files.absolute(name);
-		if(!fh.exists())
-			fh = Gdx.files.local(name);
+			if(!fh.exists()){
+				fh = Gdx.files.local(name);
+				if(!fh.exists()){
+					fh = Gdx.files.external(name);
+				}
+			}
+		}
 		//System.out.println("New File: "+name+" "+fh.type());
 	}
 	private File(FileHandle nfh) {
@@ -42,7 +57,7 @@ public class File {
 	}
 
 	public String getAbsolutePath() {
-		return fh.path();
+		return getFullPath();
 	}
 	public String getFullPath(){
 		String par;
@@ -117,6 +132,7 @@ public class File {
 	}
 
 	public void delete() {
+		fh.delete();
 		// TODO Auto-generated method stub
 		
 	}
@@ -133,7 +149,8 @@ public class File {
 
 	public boolean mkdir() {
 		// TODO Auto-generated method stub
-		return false;
+		fh.mkdirs();
+		return true;
 	}
 
 	public boolean exists() {
@@ -141,11 +158,11 @@ public class File {
 	}
 
 	public java.io.File getIOFile() {
-		return new java.io.File(fh.path());
+		return fh.file();
 	}
 
 	public String toString(){
-		return "File:"+getPath();
+		return getPath();
 	}
 	public BufferedWriter writer(String charset) {
 		return new BufferedWriter(fh.writer(false, charset));
@@ -154,5 +171,6 @@ public class File {
 	public boolean equals(File f){
 		return this.fh.path().equals(f.fh.path());
 	}
+
 
 }

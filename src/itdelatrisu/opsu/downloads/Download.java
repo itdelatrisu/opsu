@@ -18,10 +18,14 @@
 
 package itdelatrisu.opsu.downloads;
 
+
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.Utils;
+import fluddokt.opsu.fake.*;
 
-import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+//import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,6 +33,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.channels.Channels;
+import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -70,7 +75,7 @@ public class Download {
 	}
 
 	/** The local path. */
-	private String localPath;
+	private File localFile;
 
 	/** The local path to rename the file to when finished. */
 	private String rename;
@@ -95,17 +100,17 @@ public class Download {
 	 * @param remoteURL the download URL
 	 * @param localPath the path to save the download
 	 */
-	public Download(String remoteURL, String localPath) {
+	public Download(String remoteURL, File localPath) {
 		this(remoteURL, localPath, null);
 	}
 
 	/**
 	 * Constructor.
 	 * @param remoteURL the download URL
-	 * @param localPath the path to save the download
+	 * @param file the path to save the download
 	 * @param rename the file name to rename the download to when complete
 	 */
-	public Download(String remoteURL, String localPath, String rename) {
+	public Download(String remoteURL, File file, String rename) {
 		try {
 			this.url = new URL(remoteURL);
 		} catch (MalformedURLException e) {
@@ -113,7 +118,7 @@ public class Download {
 			ErrorHandler.error(String.format("Bad download URL: '%s'", remoteURL), e, true);
 			return;
 		}
-		this.localPath = localPath;
+		this.localFile = file;
 		this.rename = rename;
 	}
 
@@ -145,26 +150,48 @@ public class Download {
 				try (
 					InputStream in = conn.getInputStream();
 					ReadableByteChannel readableByteChannel = Channels.newChannel(in);
-					FileOutputStream fileOutputStream = new FileOutputStream(localPath);
+					FileOutputStream fileOutputStream = new FileOutputStream(localFile.getIOFile());
 				) {
 					rbc = new ReadableByteChannelWrapper(readableByteChannel);
 					fos = fileOutputStream;
 					status = Status.DOWNLOADING;
-					fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+					int total = 0;
+					while( fos.getChannel().isOpen() && total < contentLength){
+						total += fos.getChannel().transferFrom(rbc, total, Math.min(8192, contentLength-total));
+					}
 					if (status == Status.DOWNLOADING) {  // not interrupted
 						status = Status.COMPLETE;
 						rbc.close();
 						fos.close();
 						if (rename != null) {
 							String cleanedName = Utils.cleanFileName(rename, '-');
-							Path source = new File(localPath).toPath();
-							Files.move(source, source.resolveSibling(cleanedName), StandardCopyOption.REPLACE_EXISTING);
+							move(localFile, new File(localFile.getParentFile(),cleanedName));
+							//Path source = localFile.toPath();
+							//Files.move(source, source.resolveSibling(cleanedName), StandardCopyOption.REPLACE_EXISTING);
 						}
 					}
 				} catch (Exception e) {
 					status = Status.ERROR;
 					ErrorHandler.error("Failed to start download.", e, false);
 				}
+			}
+
+			//http://stackoverflow.com/questions/4770004/how-to-move-rename-file-from-internal-app-storage-to-external-storage-on-android
+			private void move(File src, File dst) throws IOException {
+				FileChannel inChannel = new FileInputStream(src.getIOFile()).getChannel();
+			    FileChannel outChannel = new FileOutputStream(dst.getIOFile()).getChannel();
+			    try
+			    {
+			        inChannel.transferTo(0, inChannel.size(), outChannel);
+			    }
+			    finally
+			    {
+			        if (inChannel != null)
+			            inChannel.close();
+			        if (outChannel != null)
+			            outChannel.close();
+			    }
+			    dst.delete();
 			}
 		}.start();
 	}
@@ -246,7 +273,7 @@ public class Download {
 			if (fos != null && fos.getChannel().isOpen())
 				fos.close();
 			if (transferring) {
-				File f = new File(localPath);
+				File f = localFile;
 				if (f.isFile())
 					f.delete();
 			}

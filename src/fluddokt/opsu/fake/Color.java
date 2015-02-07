@@ -2,18 +2,20 @@ package fluddokt.opsu.fake;
 
 public class Color {
 
-	public static final Color black = new Color(0f,0f,0f);
-	public static final Color white = new Color(1f,1f,1f);
-	public static final Color transparent = new Color(0f,0f,0f,0.5f);
-	public static final Color lightGray = new Color(0.8f,0.8f,0.8f,0.7f);
-	public static final Color green = new Color(0f,1f,0f);
-	public static final Color red = new Color(1f,0f,0f);
-	public static final Color orange = new Color(1f,0.5f,0f);
-	public static final	Color blue = new Color(0f,0f,1f);
-	public static final Color lightgreen = new Color(0.5f,1f,0.5f);
-	public static final Color lightred = new Color(1f,0.5f,0.5f);
-	public static final Color lightorange = new Color(1f,0.75f,0.5f);
-	public static final	Color lightblue = new Color(0.5f,0.5f,1f);
+	public static final Color black = new Color(0f, 0f, 0f);
+	public static final Color white = new Color(1f, 1f, 1f);
+	public static final Color transparent = new Color(0f, 0f,0f ,0.5f);
+	public static final Color lightGray = new Color(0.8f, 0.8f, 0.8f, 0.7f);
+	public static final Color green = new Color(0f, 1f, 0f);
+	public static final Color red = new Color(1f, 0f, 0f);
+	public static final Color orange = new Color(1f, 0.5f, 0f);
+	public static final	Color blue = new Color(0f, 0f, 1f);
+	public static final Color lightgreen = new Color(0.5f, 1f, 0.5f);
+	public static final Color lightred = new Color(1f, 0.5f, 0.5f);
+	public static final Color lightorange = new Color(1f, 0.75f, 0.5f);
+	public static final	Color lightblue = new Color(0.5f, 0.5f, 1f);
+	public static final Color gray = new Color(0.5f, 0.5f, 0.5f);
+	public static final Color magenta = new Color(1f, 0f, 1f);
 	public float r,g,b,a;
 
 	public Color(float r, float g, float b) {

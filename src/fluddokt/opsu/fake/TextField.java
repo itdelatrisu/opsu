@@ -70,4 +70,12 @@ public class TextField {
 		str = string;
 	}
 
+	public float getWidth() {
+		return w;
+	}
+
+	public float getHeight() {
+		return h;
+	}
+
 }
