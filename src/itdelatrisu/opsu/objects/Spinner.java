@@ -38,8 +38,8 @@ import org.newdawn.slick.Image;
  */
 public class Spinner implements HitObject {
 
-	/** The rate at which the spinner slows down in rotations/second^2. */
-	private static final float angularDrag = 20f;
+	/** The rate at which the spinner slows down in radians/second^2. */
+	private static final float angularDrag = 500f;
 
 	/** Container dimensions. */
 	private static int width, height;
@@ -59,7 +59,7 @@ public class Spinner implements HitObject {
 	/** The total number of rotations needed to clear the spinner. */
 	private float rotationsNeeded;
 	
-	/** The current angular velocity of the spinner in rotations/second. */
+	/** The current angular velocity of the spinner in radians/second. */
 	private float angularVelocity;
 
 	/**
@@ -126,10 +126,6 @@ public class Spinner implements HitObject {
 			if (extraRotations > 0)
 				data.drawSymbolNumber(extraRotations * 1000, width / 2, height * 2 / 3, 1.0f);
 		}
-                
-                // rotations per minute
-                g.setColor(new Color(0,0,0));
-                g.drawString(String.format("RPM: %d", Math.round(angularVelocity * 60)), 100, 100);
 	}
 
 	/**
@@ -183,11 +179,9 @@ public class Spinner implements HitObject {
 			return false;
 		}
 
-		// not spinning: spinner slows down
+		// not spinning: nothing to do
 		if (!Utils.isGameKeyPressed()) {
 			lastAngle = -1f;
-			angularVelocity = Math.max(0, angularVelocity - angularDrag * delta / 1000);
-			rotate(angularVelocity * (float)Math.PI * 2 * delta / 1000);
 			return false;
 		}
 
@@ -199,10 +193,10 @@ public class Spinner implements HitObject {
 		if (lastAngle >= 0f) {  // skip initial clicks
 			float angleDiff = Math.abs(lastAngle - angle);
 			if (angleDiff < Math.PI / 2) {  // skip huge angle changes...
-				angularVelocity = (float)Math.max(angularVelocity - angularDrag * delta / 1000,
+				angularVelocity = Math.max(angularVelocity - angularDrag * delta / 1000,
 						angleDiff / (Math.PI * 2) / ((float)delta / 1000));
 				data.changeHealth(delta * GameData.HP_DRAIN_MULTIPLIER);
-				rotate(angularVelocity * (float)Math.PI * 2 * delta / 1000);
+				rotate(angularVelocity * delta / 1000);
 			}
 		}
 
