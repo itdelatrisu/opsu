@@ -42,24 +42,58 @@ import org.newdawn.slick.util.Log;
  * Handles all user options.
  */
 public class Options {
-	/** Temporary folder for file conversions, auto-deleted upon successful exit. */
-	public static final File TMP_DIR = new File(".opsu_tmp/");
+	
+	public static String Seperator = System.getProperty("file.separator"); 
+	private static String OS = System.getProperty("os.name").toLowerCase();
+	public static String ConfigDir = getDefaultConfigDir();
+	public static String DataDir = getDefaultDataDir();
+	
+	public static String getDefaultDataDir() {
+            String rootPath = System.getenv("XDG_DATA_HOME");
+            if (rootPath == null) {
+                	rootPath = System.getProperty("user.home")	+
+                        Seperator					+
+                        ".local"					+
+                        Seperator					+
+                	"share";
+            	}
+
+        	File opsu = new File(rootPath + Seperator + "opsu");
+        	opsu.mkdir();
+		return rootPath + Seperator + "opsu" + Seperator;
+	}
+	
+	public static String getDefaultConfigDir() {
+    		String rootPath = System.getenv("XDG_CONFIG_HOME");
+
+		 if(rootPath == null) {
+	   		rootPath = System.getProperty("user.home") 	+
+	     		Seperator					+ 
+	     		".config";
+		 }
+		 
+	 	File opsu = new File(rootPath + Seperator + "opsu");
+		opsu.mkdir();
+	   	return rootPath + Seperator + "opsu" + Seperator;
+    	}
+	
+	public static final File TMP_DIR = new File(ConfigDir + "opsu_tmp" + Seperator);
 
 	/** File for logging errors. */
-	public static final File LOG_FILE = new File(".opsu.log");
+	public static final File LOG_FILE = new File(ConfigDir + "opsu.log");
 
 	/** File for storing user options. */
-	private static final File OPTIONS_FILE = new File(".opsu.cfg");
+	private static final File OPTIONS_FILE = new File(ConfigDir +"opsu.cfg");
 
 	/** Beatmap directories (where to search for files).  */
 	private static final String[] BEATMAP_DIRS = {
 		"C:/Program Files (x86)/osu!/Songs/",
 		"C:/Program Files/osu!/Songs/",
-		"Songs/"
+		DataDir + "Songs" + Seperator
 	};
 
 	/** Score database name. */
-	public static final String SCORE_DB = ".opsu_scores.db";
+	public static final String SCORE_DB = DataDir + "opsu_scores.db";
 
 	/** Font file name. */
 	public static final String FONT_NAME = "kochi-gothic.ttf";
@@ -805,7 +839,7 @@ public class Options {
 		if (oszDir != null && oszDir.isDirectory())
 			return oszDir;
 
-		oszDir = new File("SongPacks/");
+		oszDir = new File(DataDir + "SongPacks" + Seperator);
 		oszDir.mkdir();
 		return oszDir;
 	}
@@ -819,7 +853,7 @@ public class Options {
 		if (screenshotDir != null && screenshotDir.isDirectory())
 			return screenshotDir;
 
-		screenshotDir = new File("Screenshots/");
+		screenshotDir = new File(DataDir + "Screenshots" + Seperator);
 		return screenshotDir;
 	}
 
@@ -831,8 +865,7 @@ public class Options {
 	public static File getSkinDir() {
 		if (skinDir != null && skinDir.isDirectory())
 			return skinDir;
-
-		skinDir = new File("Skins/");
+		skinDir = new File(DataDir + "Skins" + Seperator;
 		skinDir.mkdir();
 		return skinDir;
 	}
