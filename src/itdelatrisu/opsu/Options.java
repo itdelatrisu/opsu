@@ -42,47 +42,47 @@ public class Options {
 	public static String ConfigDir = getDefaultConfigDir();
 	public static String DataDir = getDefaultDataDir();
 
-    public static boolean isUnix() {
-        return (OS.contains("nix") || OS.contains("nux") || OS.indexOf("aix") > 0 );
-    }
+	public static boolean isUnix() {
+	  	return (OS.contains("nix") || OS.contains("nux") || OS.indexOf("aix") > 0 );
+    	}
 
 	public static String getDefaultDataDir() {
-        if (Options.isUnix()) {
-            String rootPath = System.getenv("XDG_DATA_HOME");
-            if (rootPath == null) {
-                rootPath = System.getProperty("user.home") +
-                        SEPARATOR +
-                        ".local" +
-                        SEPARATOR +
-                        "share";
-            }
+        	if (Options.isUnix()) {
+            		String rootPath = System.getenv("XDG_DATA_HOME");
+            		if (rootPath == null) {
+                		rootPath = System.getProperty("user.home") +
+                        	SEPARATOR +
+                        	".local" +
+                        	SEPARATOR +
+                        	"share";
+            		}
 
-            File opsu = new File(rootPath + SEPARATOR + "opsu");
-            opsu.mkdir();
-            return rootPath + SEPARATOR + "opsu" + SEPARATOR;
-        } else {
-            return Options.SEPARATOR;
-        }
+        	File opsu = new File(rootPath + SEPARATOR + "opsu");
+            	opsu.mkdir();
+            	return rootPath + SEPARATOR + "opsu" + SEPARATOR;
+        	} else {
+            		return Options.SEPARATOR;
+        	}
 	}
 	
 	public static String getDefaultConfigDir() {
-        if (Options.isUnix()) {
+		if (Options.isUnix()) {
 
-            String rootPath = System.getenv("XDG_CONFIG_HOME");
+            	String rootPath = System.getenv("XDG_CONFIG_HOME");
 
-            if (rootPath == null) {
-                rootPath = System.getProperty("user.home") +
+            	if (rootPath == null) {
+                	rootPath = System.getProperty("user.home") +
                         SEPARATOR +
                         ".config";
-            }
+        	 }
 
-            File opsu = new File(rootPath + SEPARATOR + "opsu");
-            opsu.mkdir();
-            return rootPath + SEPARATOR + "opsu" + SEPARATOR;
-        } else {
-            return Options.SEPARATOR;
-        }
-    }
+            	File opsu = new File(rootPath + SEPARATOR + "opsu");
+            	opsu.mkdir();
+            	return rootPath + SEPARATOR + "opsu" + SEPARATOR;
+        	} else {
+            		return Options.SEPARATOR;
+        	}
+    	}
 	
 	public static final File TMP_DIR = new File(ConfigDir + "opsu_tmp" + SEPARATOR);
 
