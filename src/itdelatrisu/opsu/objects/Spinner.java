@@ -37,6 +37,10 @@ import org.newdawn.slick.Image;
  * Data type representing a spinner object.
  */
 public class Spinner implements HitObject {
+
+	/** The rate at which the spinner slows down in radians/second^2. */
+	private static final float angularDrag = 500f;
+
 	/** Container dimensions. */
 	private static int width, height;
 
@@ -54,6 +58,9 @@ public class Spinner implements HitObject {
 
 	/** The total number of rotations needed to clear the spinner. */
 	private float rotationsNeeded;
+	
+	/** The current angular velocity of the spinner in radians/second. */
+	private float angularVelocity;
 
 	/**
 	 * Initializes the Spinner data type with images and dimensions.
@@ -186,8 +193,10 @@ public class Spinner implements HitObject {
 		if (lastAngle >= 0f) {  // skip initial clicks
 			float angleDiff = Math.abs(lastAngle - angle);
 			if (angleDiff < Math.PI / 2) {  // skip huge angle changes...
+				angularVelocity = Math.max(angularVelocity - angularDrag * delta / 1000,
+						angleDiff / (Math.PI * 2) / ((float)delta / 1000));
 				data.changeHealth(delta * GameData.HP_DRAIN_MULTIPLIER);
-				rotate(angleDiff);
+				rotate(angularVelocity * delta / 1000);
 			}
 		}
 
@@ -196,11 +205,11 @@ public class Spinner implements HitObject {
 	}
 
 	/**
-	 * Rotates the spinner by a number of degrees.
-	 * @param degrees the angle to rotate (in radians)
+	 * Rotates the spinner by a number of radians.
+	 * @param angle the angle to rotate (in radians)
 	 */
-	private void rotate(float degrees) {
-		float newRotations = rotations + (degrees / (float) (2 * Math.PI));
+	private void rotate(float angle) {
+		float newRotations = rotations + (angle / (float) (2 * Math.PI));
 
 		// added one whole rotation...
 		if (Math.floor(newRotations) > rotations) {
