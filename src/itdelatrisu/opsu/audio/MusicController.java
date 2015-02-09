@@ -79,21 +79,24 @@ public class MusicController {
 
 			switch (OsuParser.getExtension(osu.audioFilename.getName())) {
 			case "ogg":
-				trackLoader = new Thread() {
-					@Override
-					public void run() {
+				//trackLoader = new Thread() {
+				//	@Override
+				//	public void run() {
+						//Loading ogg async seems to screw up
+						//So does mp3, but much less
 						loadTrack(osu.audioFilename, osu.previewTime, loop);
-					}
-				};
-				trackLoader.start();
+				//	}
+				//};
+				//trackLoader.start();
 				break;
 			case "mp3":
 				trackLoader = new Thread() {
 					@Override
 					public void run() {
-						convertMp3(osu.audioFilename);
+						loadTrack(osu.audioFilename, osu.previewTime, loop);
+						//convertMp3(osu.audioFilename);
 //						if (!Thread.currentThread().isInterrupted())
-							loadTrack(wavFile, osu.previewTime, loop);
+						//	loadTrack(wavFile, osu.previewTime, loop);
 					}
 				};
 				trackLoader.start();
@@ -110,7 +113,7 @@ public class MusicController {
 	 */
 	private static void loadTrack(File file, int previewTime, boolean loop) {
 		try {   // create a new player
-			player = new Music(file.getPath());
+			player = new Music(file.getPath(),true);
 			player.addListener(new MusicListener() {
 				@Override
 				public void musicEnded(Music music) { trackEnded = true; }
@@ -253,7 +256,7 @@ public class MusicController {
 	 */
 	public static int getPosition() {
 		if (isPlaying())
-			return Math.max((int) (player.getPosition() * 1000 + Options.getMusicOffset()), 0);
+			return (int) (player.getPosition() * 1000 + Options.getMusicOffset());
 		else if (isPaused())
 			return Math.max((int) (pauseTime * 1000 + Options.getMusicOffset()), 0);
 		else
@@ -265,6 +268,17 @@ public class MusicController {
 	 */
 	public static boolean setPosition(int position) {
 		return (trackExists() && player.setPosition(position / 1000f));
+	}
+	
+	/**
+	 * Plays the current track.
+	 */
+	public static boolean play() {
+		if (trackExists()){
+			player.play();
+			return true;
+		}
+		return false;
 	}
 
 	/**
@@ -381,8 +395,9 @@ public class MusicController {
 			AL10.alDeleteSources(buf);
 			int exc = AL10.alGetError();
 			if (exc != AL10.AL_NO_ERROR) {
-				throw new SlickException(
-						"Could not clear SoundStore sources, err: " + exc);
+				//Seems It can't delete mp3 source?
+				//throw new SlickException(
+				//		"Could not clear SoundStore sources, err: " + exc);
 			}
 
 			// delete any buffer data stored in memory, too...
