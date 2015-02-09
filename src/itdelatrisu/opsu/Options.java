@@ -18,13 +18,13 @@
 
 package itdelatrisu.opsu;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
+import org.lwjgl.input.Keyboard;
+import org.newdawn.slick.GameContainer;
+import org.newdawn.slick.Input;
+import org.newdawn.slick.SlickException;
+import org.newdawn.slick.util.Log;
+
+import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
@@ -32,52 +32,59 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
-import org.lwjgl.input.Keyboard;
-import org.newdawn.slick.GameContainer;
-import org.newdawn.slick.Input;
-import org.newdawn.slick.SlickException;
-import org.newdawn.slick.util.Log;
-
 /**
  * Handles all user options.
  */
 public class Options {
 	
-	public static String Seperator = System.getProperty("file.separator"); 
+	public static String SEPARATOR = System.getProperty("file.separator");
 	private static String OS = System.getProperty("os.name").toLowerCase();
 	public static String ConfigDir = getDefaultConfigDir();
 	public static String DataDir = getDefaultDataDir();
-	
+
+    public static boolean isUnix() {
+        return (OS.contains("nix") || OS.contains("nux") || OS.indexOf("aix") > 0 );
+    }
+
 	public static String getDefaultDataDir() {
+        if (Options.isUnix()) {
             String rootPath = System.getenv("XDG_DATA_HOME");
             if (rootPath == null) {
-                	rootPath = System.getProperty("user.home")	+
-                        Seperator					+
-                        ".local"					+
-                        Seperator					+
-                	"share";
-            	}
+                rootPath = System.getProperty("user.home") +
+                        SEPARATOR +
+                        ".local" +
+                        SEPARATOR +
+                        "share";
+            }
 
-        	File opsu = new File(rootPath + Seperator + "opsu");
-        	opsu.mkdir();
-		return rootPath + Seperator + "opsu" + Seperator;
+            File opsu = new File(rootPath + SEPARATOR + "opsu");
+            opsu.mkdir();
+            return rootPath + SEPARATOR + "opsu" + SEPARATOR;
+        } else {
+            return Options.SEPARATOR;
+        }
 	}
 	
 	public static String getDefaultConfigDir() {
-    		String rootPath = System.getenv("XDG_CONFIG_HOME");
+        if (Options.isUnix()) {
 
-		 if(rootPath == null) {
-	   		rootPath = System.getProperty("user.home") 	+
-	     		Seperator					+ 
-	     		".config";
-		 }
-		 
-	 	File opsu = new File(rootPath + Seperator + "opsu");
-		opsu.mkdir();
-	   	return rootPath + Seperator + "opsu" + Seperator;
-    	}
+            String rootPath = System.getenv("XDG_CONFIG_HOME");
+
+            if (rootPath == null) {
+                rootPath = System.getProperty("user.home") +
+                        SEPARATOR +
+                        ".config";
+            }
+
+            File opsu = new File(rootPath + SEPARATOR + "opsu");
+            opsu.mkdir();
+            return rootPath + SEPARATOR + "opsu" + SEPARATOR;
+        } else {
+            return Options.SEPARATOR;
+        }
+    }
 	
-	public static final File TMP_DIR = new File(ConfigDir + "opsu_tmp" + Seperator);
+	public static final File TMP_DIR = new File(ConfigDir + "opsu_tmp" + SEPARATOR);
 
 	/** File for logging errors. */
 	public static final File LOG_FILE = new File(ConfigDir + "opsu.log");
@@ -89,7 +96,7 @@ public class Options {
 	private static final String[] BEATMAP_DIRS = {
 		"C:/Program Files (x86)/osu!/Songs/",
 		"C:/Program Files/osu!/Songs/",
-		DataDir + "Songs" + Seperator
+		DataDir + "Songs" + SEPARATOR
 	};
 
 	/** Score database name. */
@@ -839,7 +846,7 @@ public class Options {
 		if (oszDir != null && oszDir.isDirectory())
 			return oszDir;
 
-		oszDir = new File(DataDir + "SongPacks" + Seperator);
+		oszDir = new File(DataDir + "SongPacks" + SEPARATOR);
 		oszDir.mkdir();
 		return oszDir;
 	}
@@ -853,7 +860,7 @@ public class Options {
 		if (screenshotDir != null && screenshotDir.isDirectory())
 			return screenshotDir;
 
-		screenshotDir = new File(DataDir + "Screenshots" + Seperator);
+		screenshotDir = new File(DataDir + "Screenshots" + SEPARATOR);
 		return screenshotDir;
 	}
 
@@ -865,7 +872,7 @@ public class Options {
 	public static File getSkinDir() {
 		if (skinDir != null && skinDir.isDirectory())
 			return skinDir;
-		skinDir = new File(DataDir + "Skins" + Seperator;
+		skinDir = new File(DataDir + "Skins" + SEPARATOR);
 		skinDir.mkdir();
 		return skinDir;
 	}
