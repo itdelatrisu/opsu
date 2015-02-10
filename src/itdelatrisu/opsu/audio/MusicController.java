@@ -79,15 +79,15 @@ public class MusicController {
 
 			switch (OsuParser.getExtension(osu.audioFilename.getName())) {
 			case "ogg":
-				//trackLoader = new Thread() {
-				//	@Override
-				//	public void run() {
+				trackLoader = new Thread() {
+					@Override
+					public void run() {
 						//Loading ogg async seems to screw up
 						//So does mp3, but much less
 						loadTrack(osu.audioFilename, osu.previewTime, loop);
-				//	}
-				//};
-				//trackLoader.start();
+					}
+				};
+				trackLoader.start();
 				break;
 			case "mp3":
 				trackLoader = new Thread() {
@@ -95,7 +95,7 @@ public class MusicController {
 					public void run() {
 						loadTrack(osu.audioFilename, osu.previewTime, loop);
 						//convertMp3(osu.audioFilename);
-//						if (!Thread.currentThread().isInterrupted())
+						//if (!Thread.currentThread().isInterrupted())
 						//	loadTrack(wavFile, osu.previewTime, loop);
 					}
 				};
@@ -133,13 +133,14 @@ public class MusicController {
 	public static void playAt(final int position, final boolean loop) {
 		if (trackExists()) {
 			setVolume(Options.getMusicVolume() * Options.getMasterVolume());
-			player.setPosition(position / 1000f);
 			trackEnded = false;
 			pauseTime = 0f;
 			if (loop)
 				player.loop();
 			else
 				player.play();
+			player.setPosition(position / 1000f);
+			
 		}
 	}
 
@@ -339,8 +340,14 @@ public class MusicController {
 		// TODO: properly interrupt instead of using deprecated Thread.stop();
 		// interrupt the conversion/track loading
 		if (isTrackLoading())
+			try {
+				trackLoader.join();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 //			trackLoader.interrupt();
-			trackLoader.stop();
+			//trackLoader.stop();
 		trackLoader = null;
 
 		// delete temporary WAV file

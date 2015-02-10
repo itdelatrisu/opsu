@@ -150,7 +150,7 @@ public class OpenALStreamPlayer {
 	/**
 	 * Clean up the buffers applied to the sound source
 	 */
-	private void removeBuffers() {
+	private synchronized void removeBuffers() {
 		IntBuffer buffer = BufferUtils.createIntBuffer(1);
 		//int queued = AL10.alGetSourcei(source, AL10.AL_BUFFERS_QUEUED);
 		
@@ -213,7 +213,7 @@ public class OpenALStreamPlayer {
 	 * 
 	 * Most of the time this should be reasonably quick
 	 */
-	public void update() {
+	public synchronized void update() {
 		if (done) {
 			return;
 		}
@@ -259,7 +259,7 @@ public class OpenALStreamPlayer {
 	 * @param bufferId The ID of the buffer to fill
 	 * @return True if another section was available
 	 */
-	public boolean stream(int bufferId) {
+	public synchronized boolean stream(int bufferId) {
 		//Thread.dumpStack();
 		try {
 			int count = audio.read(buffer);
@@ -303,13 +303,14 @@ public class OpenALStreamPlayer {
 	 * @param position Position in seconds.
 	 * @return True if the setting of the position was successful
 	 */
-	public boolean setPosition(float position) {
+	public synchronized boolean setPosition(float position) {
 		try {
 			//int state = AL10.alGetSourcei(source, AL10.AL_SOURCE_STATE);
 			//AL10.alSourceStop(source);
 			
 			long samplePos = (long) (position*sampleRate)*sampleSize;
 			
+			//System.out.println("offset:"+samplePos%sampleSize);
 			if(streamPos > samplePos){//(getPosition() > position) {
 				initStreams();
 			}
@@ -334,6 +335,8 @@ public class OpenALStreamPlayer {
 					return false;
 				}
 			}
+			//System.out.println("offset2:"+samplePos%sampleSize);
+			
 			/*while(streamPos%sampleSize!=0){
 				audio.read();
 				streamPos++;

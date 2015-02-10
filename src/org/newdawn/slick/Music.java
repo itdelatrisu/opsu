@@ -278,14 +278,14 @@ public class Music {
 			currentMusic.fireMusicSwapped(this);
 		}
 		
-		playing = true;
-		currentMusic = this;
 		if (volume < 0.0f)
 			volume = 0.0f;
 		if (volume > 1.0f)
 			volume = 1.0f;
 
 		sound.playAsMusic(pitch, volume, loop);
+		playing = true;
+		currentMusic = this;
 		setVolume(volume);
 		if (requiredPosition != -1) {
 			setPosition(requiredPosition);
