@@ -173,7 +173,7 @@ public class Game extends BasicGameState {
 		// background
 		g.setBackground(Color.black);
 		float dimLevel = Options.getBackgroundDim();
-		if (Options.isDefaultPlayfieldForced() || !osu.drawBG(width, height, dimLevel)) {
+		if (Options.isDefaultPlayfieldForced() || !osu.drawBG(width, height, dimLevel, false)) {
 			Image playfield = GameImage.PLAYFIELD.getImage();
 			playfield.setAlpha(dimLevel);
 			playfield.draw();

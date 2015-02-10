@@ -348,9 +348,13 @@ public class DownloadNode {
 			info = status.getName();
 		else if (status == Download.Status.WAITING)
 			info = String.format("%s...", status.getName());
-		else
-			info = String.format("%s: %.1f%% (%s/%s)", status.getName(), progress,
-					Utils.bytesToString(download.readSoFar()), Utils.bytesToString(download.contentLength()));
+		else {
+			if (hover)
+				info = String.format("%s: %s left (%s)", status.getName(), download.getTimeRemaining(), download.getDownloadSpeed());
+			else
+				info = String.format("%s: %.1f%% (%s/%s)", status.getName(), progress,
+						Utils.bytesToString(download.readSoFar()), Utils.bytesToString(download.contentLength()));
+		}
 		Utils.FONT_BOLD.drawString(textX, y + marginY, getTitle(), Color.white);
 		Utils.FONT_DEFAULT.drawString(textX, y + marginY + Utils.FONT_BOLD.getLineHeight(), info, Color.white);
 

@@ -44,6 +44,9 @@ public class Download {
 	/** Read timeout, in ms. */
 	public static final int READ_TIMEOUT = 10000;
 
+	/** Time between download speed and ETA updates, in ms. */
+	private static final int UPDATE_INTERVAL = 1000;
+
 	/** Download statuses. */
 	public enum Status {
 		WAITING ("Waiting"),
@@ -89,6 +92,18 @@ public class Download {
 
 	/** The download status. */
 	private Status status = Status.WAITING;
+
+	/** Time when lastReadSoFar was updated. */
+	private long lastReadSoFarTime = -1;
+
+	/** Last readSoFar amount. */
+	private long lastReadSoFar = -1;
+
+	/** Last calculated download speed string. */
+	private String lastDownloadSpeed;
+
+	/** Last calculated ETA string. */
+	private String lastTimeRemaining;
 
 	/**
 	 * Constructor.
@@ -231,6 +246,60 @@ public class Download {
 		case ERROR:
 		default:
 			return 0;
+		}
+	}
+
+	/**
+	 * Returns the last calculated download speed, or null if not downloading.
+	 */
+	public String getDownloadSpeed() {
+		updateReadSoFar();
+		return lastDownloadSpeed;
+	}
+
+	/**
+	 * Returns the last calculated ETA, or null if not downloading.
+	 */
+	public String getTimeRemaining() {
+		updateReadSoFar();
+		return lastTimeRemaining;
+	}
+
+	/**
+	 * Updates the last readSoFar and related fields.
+	 */
+	private void updateReadSoFar() {
+		// only update while downloading
+		if (status != Status.DOWNLOADING) {
+			this.lastDownloadSpeed = null;
+			this.lastTimeRemaining = null;
+			return;
+		}
+
+		// update download speed and ETA
+		if (System.currentTimeMillis() > lastReadSoFarTime + UPDATE_INTERVAL) {
+			long readSoFar = readSoFar();
+			long readSoFarTime = System.currentTimeMillis();
+			long dlspeed = (readSoFar - lastReadSoFar) * 1000 / (readSoFarTime - lastReadSoFarTime);
+			if (dlspeed > 0) {
+				this.lastDownloadSpeed = String.format("%s/s", Utils.bytesToString(dlspeed));
+				long t = (contentLength - readSoFar) / dlspeed;
+				if (t >= 3600)
+					this.lastTimeRemaining = String.format("%dh%dm%ds", t / 3600, (t / 60) % 60, t % 60);
+				else
+					this.lastTimeRemaining = String.format("%dm%ds", t / 60, t % 60);
+			} else {
+				this.lastDownloadSpeed = String.format("%s/s", Utils.bytesToString(0));
+				this.lastTimeRemaining = "?";
+			}
+			this.lastReadSoFarTime = readSoFarTime;
+			this.lastReadSoFar = readSoFar;
+		}
+
+		// first call
+		else if (lastReadSoFarTime <= 0) {
+			this.lastReadSoFar = readSoFar();
+			this.lastReadSoFarTime = System.currentTimeMillis();
 		}
 	}
 

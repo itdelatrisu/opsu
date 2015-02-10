@@ -168,7 +168,7 @@ public class MainMenu extends BasicGameState {
 		// draw background
 		OsuFile osu = MusicController.getOsuFile();
 		if (Options.isDynamicBackgroundEnabled() &&
-			osu != null && osu.drawBG(width, height, bgAlpha))
+			osu != null && osu.drawBG(width, height, bgAlpha, true))
 				;
 		else {
 			Image bg = GameImage.MENU_BG.getImage();

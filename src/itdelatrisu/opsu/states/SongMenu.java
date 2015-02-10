@@ -68,7 +68,7 @@ import org.newdawn.slick.state.transition.FadeOutTransition;
  */
 public class SongMenu extends BasicGameState {
 	/** The max number of song buttons to be shown on each screen. */
-	private static final int MAX_SONG_BUTTONS = 6;
+	public static final int MAX_SONG_BUTTONS = 6;
 
 	/** The max number of score buttons to be shown at a time. */
 	public static final int MAX_SCORE_BUTTONS = 7;
@@ -239,7 +239,7 @@ public class SongMenu extends BasicGameState {
 
 		// background
 		if (focusNode != null)
-			focusNode.osuFiles.get(focusNode.osuFileIndex).drawBG(width, height, 1.0f);
+			focusNode.osuFiles.get(focusNode.osuFileIndex).drawBG(width, height, 1.0f, true);
 
 		// header setup
 		float lowerBound = height * 0.15f;

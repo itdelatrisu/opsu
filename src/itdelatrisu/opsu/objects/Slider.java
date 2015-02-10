@@ -99,7 +99,7 @@ public class Slider implements HitObject {
 	 */
 	public static void init(GameContainer container, float circleSize, OsuFile osu) {
 		int diameter = (int) (96 - (circleSize * 8));
-		diameter = diameter * container.getWidth() / 640;  // convert from Osupixels (640x480)
+		diameter = (int) (diameter * OsuHitObject.getXMultiplier());  // convert from Osupixels (640x480)
 
 		// slider ball
 		Image[] sliderBallImages;
@@ -211,9 +211,13 @@ public class Slider implements HitObject {
 			Utils.drawCentered(GameImage.APPROACHCIRCLE.getImage().getScaledCopy(approachScale), x, y, color);
 		} else {
 			float[] c = curve.pointAt(getT(trackPosition, false));
+			float[] c2 = curve.pointAt(getT(trackPosition, false) + 0.01f);
 
 			// slider ball
-			Utils.drawCentered(sliderBall, c[0], c[1]);
+			Image sliderBallFrame = sliderBall.getCurrentFrame();
+			float angle = (float) (Math.atan2(c2[1] - c[1], c2[0] - c[0]) * 180 / Math.PI);
+			sliderBallFrame.setRotation(angle);
+			sliderBallFrame.drawCentered(c[0], c[1]);
 
 			// follow circle
 			if (followCircleActive)
