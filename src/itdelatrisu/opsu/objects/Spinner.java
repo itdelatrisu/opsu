@@ -109,6 +109,7 @@ public class Spinner implements HitObject {
 
 		// main spinner elements
 		float approachScale = 1 - ((float) timeDiff / (hitObject.getTime() - hitObject.getEndTime()));
+		GameImage.SPINNER_CIRCLE.getImage().setRotation(rotations * 360f);
 		GameImage.SPINNER_CIRCLE.getImage().drawCentered(width / 2, height / 2);
 		GameImage.SPINNER_APPROACHCIRCLE.getImage().getScaledCopy(approachScale).drawCentered(width / 2, height / 2);
 		GameImage.SPINNER_SPIN.getImage().drawCentered(width / 2, height * 3 / 4);
