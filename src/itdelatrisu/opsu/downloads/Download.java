@@ -165,6 +165,7 @@ public class Download {
 					rbc = new ReadableByteChannelWrapper(readableByteChannel);
 					fos = fileOutputStream;
 					status = Status.DOWNLOADING;
+					updateReadSoFar();
 					fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
 					if (status == Status.DOWNLOADING) {  // not interrupted
 						status = Status.COMPLETE;

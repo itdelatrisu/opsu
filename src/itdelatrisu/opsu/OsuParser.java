@@ -37,6 +37,12 @@ import org.newdawn.slick.util.Log;
  * Parser for OSU files.
  */
 public class OsuParser {
+	/** The string lookup database. */
+	private static HashMap<String, String> stringdb = new HashMap<String, String>();
+
+	/** The expected pattern for beatmap directories, used to find beatmap set IDs. */
+	private static final String DIR_MSID_PATTERN = "^\\d+ .*";
+
 	/** The current file being parsed. */
 	private static File currentFile;
 
@@ -45,9 +51,6 @@ public class OsuParser {
 
 	/** The total number of directories to parse. */
 	private static int totalDirectories = -1;
-
-	/** The string lookup database. */
-	private static HashMap<String, String> stringdb = new HashMap<String, String>();
 
 	// This class should not be instantiated.
 	private OsuParser() {}
@@ -100,7 +103,7 @@ public class OsuParser {
 
 				// Parse hit objects only when needed to save time/memory.
 				// Change boolean to 'true' to parse them immediately.
-				parseFile(file, osuFiles, false);
+				parseFile(file, dir, osuFiles, false);
 			}
 			if (!osuFiles.isEmpty()) {  // add entry if non-empty
 				osuFiles.trimToSize();
@@ -125,11 +128,12 @@ public class OsuParser {
 	/**
 	 * Parses an OSU file.
 	 * @param file the file to parse
+	 * @param dir the directory containing the beatmap
 	 * @param osuFiles the song group
 	 * @param parseObjects if true, hit objects will be fully parsed now
 	 * @return the new OsuFile object
 	 */
-	public static OsuFile parseFile(File file, ArrayList<OsuFile> osuFiles, boolean parseObjects) {
+	private static OsuFile parseFile(File file, File dir, ArrayList<OsuFile> osuFiles, boolean parseObjects) {
 		OsuFile osu = new OsuFile(file);
 
 		try (BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF-8"))) {
@@ -294,6 +298,13 @@ public class OsuParser {
 						} catch (Exception e) {
 							Log.warn(String.format("Failed to read metadata '%s' for file '%s'.",
 									line, file.getAbsolutePath()), e);
+						}
+						if (osu.beatmapSetID <= 0) {  // try to determine MSID from directory name
+							if (dir != null && dir.isDirectory()) {
+								String dirName = dir.getName();
+								if (!dirName.isEmpty() && dirName.matches(DIR_MSID_PATTERN))
+									osu.beatmapSetID = Integer.parseInt(dirName.substring(0, dirName.indexOf(' ')));
+							}
 						}
 					}
 					break;

@@ -21,6 +21,7 @@ package itdelatrisu.opsu;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.regex.Matcher;
@@ -47,6 +48,9 @@ public class OsuGroupList {
 	/** Current list of nodes (subset of parsedNodes, used for searches). */
 	private ArrayList<OsuGroupNode> nodes;
 
+	/** Set of all beatmap set IDs for the parsed beatmaps. */
+	private HashSet<Integer> MSIDdb;
+
 	/** Index of current expanded node (-1 if no node is expanded). */
 	private int expandedIndex;
 
@@ -68,6 +72,7 @@ public class OsuGroupList {
 	 */
 	private OsuGroupList() {
 		parsedNodes = new ArrayList<OsuGroupNode>();
+		MSIDdb = new HashSet<Integer>();
 		reset();
 	}
 
@@ -95,6 +100,12 @@ public class OsuGroupList {
 		OsuGroupNode node = new OsuGroupNode(osuFiles);
 		parsedNodes.add(node);
 		mapCount += osuFiles.size();
+
+		// add beatmap set ID to set
+		int msid = osuFiles.get(0).beatmapSetID;
+		if (msid > 0)
+			MSIDdb.add(msid);
+
 		return node;
 	}
 
@@ -335,4 +346,14 @@ public class OsuGroupList {
 
 		return true;
 	}
+
+	/**
+	 * Returns whether or not the list contains the given beatmap set ID.
+	 * <p>
+	 * Note that IDs for older maps might have been improperly parsed, so
+	 * there is no guarantee that this method will return an accurate value.
+	 * @param id the beatmap set ID to check
+	 * @return true if id is in the list
+	 */
+	public boolean containsBeatmapSetID(int id) { return MSIDdb.contains(id); }
 }

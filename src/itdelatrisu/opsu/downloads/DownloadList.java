@@ -19,6 +19,7 @@
 package itdelatrisu.opsu.downloads;
 
 import itdelatrisu.opsu.ErrorHandler;
+import itdelatrisu.opsu.downloads.Download.Status;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -136,6 +137,23 @@ public class DownloadList {
 			DownloadNode node = iter.next();
 			Download dl = node.getDownload();
 			if (dl != null && !dl.isActive()) {
+				node.clearDownload();
+				iter.remove();
+				map.remove(node.getID());
+			}
+		}
+	}
+
+	/**
+	 * Removes all downloads with the given status from the list.
+	 * @param status the download status
+	 */
+	public void clearDownloads(Status status) {
+		Iterator<DownloadNode> iter = nodes.iterator();
+		while (iter.hasNext()) {
+			DownloadNode node = iter.next();
+			Download dl = node.getDownload();
+			if (dl != null && dl.getStatus() == status) {
 				node.clearDownload();
 				iter.remove();
 				map.remove(node.getID());
