@@ -238,8 +238,11 @@ public class SongMenu extends BasicGameState {
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
 
 		// background
-		if (focusNode != null)
-			focusNode.osuFiles.get(focusNode.osuFileIndex).drawBG(width, height, 1.0f, true);
+		if (focusNode != null) {
+			OsuFile focusNodeOsu = focusNode.osuFiles.get(focusNode.osuFileIndex);
+			if (!focusNodeOsu.drawBG(width, height, 1.0f, true))
+				GameImage.PLAYFIELD.getImage().draw();
+		}
 
 		// header setup
 		float lowerBound = height * 0.15f;

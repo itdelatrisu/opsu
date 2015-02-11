@@ -20,6 +20,8 @@ package itdelatrisu.opsu.objects.curves;
 
 /**
  * Representation of a Bezier curve with the distance between each point calculated.
+ *
+ * @author fluddokt (https://github.com/fluddokt)
  */
 public class Bezier2 {
 	/** The control points of the Bezier curve. */

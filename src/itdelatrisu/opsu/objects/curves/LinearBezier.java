@@ -31,6 +31,8 @@ import org.newdawn.slick.Image;
 /**
  * Representation of a Bezier curve with equidistant points.
  * http://pomax.github.io/bezierinfo/#tracing
+ *
+ * @author fluddokt (https://github.com/fluddokt)
  */
 public class LinearBezier extends Curve {
 	/** The angles of the first and last control points for drawing. */

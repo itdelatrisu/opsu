@@ -44,6 +44,9 @@ public class ScoreDB {
 	/** Score select statement. */
 	private static PreparedStatement selectMapStmt, selectMapSetStmt;
 
+	/** Score deletion statement. */
+	private static PreparedStatement deleteStmt;
+
 	// This class should not be instantiated.
 	private ScoreDB() {}
 
@@ -81,6 +84,10 @@ public class ScoreDB {
 			selectMapSetStmt = connection.prepareStatement(
 				"SELECT * FROM scores WHERE " +
 				"MSID = ? AND title = ? AND artist = ? AND creator = ? ORDER BY version DESC"
+			);
+			deleteStmt = connection.prepareStatement(
+				"DELETE FROM scores WHERE " +
+				"MID = ? AND title = ? AND artist = ? AND creator = ? AND version = ?"
 			);
 		} catch (SQLException e) {
 			ErrorHandler.error("Failed to prepare score insertion statement.", e, true);
@@ -136,6 +143,23 @@ public class ScoreDB {
 			insertStmt.executeUpdate();
 		} catch (SQLException e) {
 			ErrorHandler.error("Failed to save score to database.", e, true);
+		}
+	}
+
+	/**
+	 * Deletes all the scores for the given beatmap from the database.
+	 * @param osu the OsuFile object
+	 */
+	public static void deleteScore(OsuFile osu) {
+		try {
+			deleteStmt.setInt(1, osu.beatmapID);
+			deleteStmt.setString(2, osu.title);
+			deleteStmt.setString(3, osu.artist);
+			deleteStmt.setString(4, osu.creator);
+			deleteStmt.setString(5, osu.version);
+			deleteStmt.executeUpdate();
+		} catch (SQLException e) {
+			ErrorHandler.error("Failed to delete score from database.", e, true);
 		}
 	}
 

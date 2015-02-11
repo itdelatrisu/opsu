@@ -177,6 +177,7 @@ public class Game extends BasicGameState {
 			Image playfield = GameImage.PLAYFIELD.getImage();
 			playfield.setAlpha(dimLevel);
 			playfield.draw();
+			playfield.setAlpha(1f);
 		}
 
 		int trackPosition = MusicController.getPosition();
