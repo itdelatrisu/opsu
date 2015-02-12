@@ -19,11 +19,8 @@ import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 
-import javax.sound.midi.SysexMessage;
-
 import org.lwjgl.BufferUtils;
 import org.lwjgl.openal.AL10;
-import org.lwjgl.openal.AL11;
 import org.lwjgl.openal.OpenALException;
 import org.newdawn.slick.util.Log;
 import org.newdawn.slick.util.ResourceLoader;
@@ -38,7 +35,7 @@ import org.newdawn.slick.util.ResourceLoader;
  */
 public class OpenALStreamPlayer {
 	/** The number of buffers to maintain */
-	public static final int BUFFER_COUNT = 9;
+	public static final int BUFFER_COUNT = 20;
 	/** The size of the sections to stream from the stream */
 	private static final int sectionSize = 4096;
 	
@@ -151,20 +148,15 @@ public class OpenALStreamPlayer {
 	 * Clean up the buffers applied to the sound source
 	 */
 	private synchronized void removeBuffers() {
+		AL10.alSourceStop(source);
 		IntBuffer buffer = BufferUtils.createIntBuffer(1);
-		//int queued = AL10.alGetSourcei(source, AL10.AL_BUFFERS_QUEUED);
 		
-		/*while (queued > 0)
-		{
-			AL10.alSourceUnqueueBuffers(source, buffer);
-			queued--;
-		}/*/
 		
 		while (AL10.alGetSourcei(source, AL10.AL_BUFFERS_QUEUED) > 0)
 		{
 			AL10.alSourceUnqueueBuffers(source, buffer);
 			buffer.clear();
-		}//*/
+		}
 		
 	}
 	
@@ -175,17 +167,14 @@ public class OpenALStreamPlayer {
 	 * @throws IOException Indicates a failure to read from the stream
 	 */
 	public void play(boolean loop) throws IOException {
-		//System.out.println("play "+loop);
 		this.loop = loop;
 		initStreams();
 		
 		done = false;
 
 		AL10.alSourceStop(source);
-		//removeBuffers();
 		
 		startPlayback();
-		//AL10.alSourcePlay(source);
 	}
 	
 	/**
@@ -225,32 +214,30 @@ public class OpenALStreamPlayer {
 			
 			int bufferIndex = unqueued.get(0);
 			
-			//float bufferLength = (AL10.alGetBufferi(bufferIndex, AL10.AL_SIZE) / sampleSize) / sampleRate;
 			int bufferLength = AL10.alGetBufferi(bufferIndex, AL10.AL_SIZE);
-			//positionOffset += bufferLength;
+
 			playedPos += bufferLength;
+			lastUpdateTime = System.currentTimeMillis();
+
 			if(musicLength>0 && playedPos>musicLength)
 				playedPos -= musicLength;
 			
-			unqueued.clear();
-			unqueued.put(bufferIndex);
-			unqueued.flip();
-	        if (stream(bufferIndex)) {		
-	        	AL10.alSourceQueueBuffers(source, unqueued);
-	        } else {
-	        	remainingBufferCount--;
-	        	if (remainingBufferCount == 0) {
-	        		done = true;
-	        	}
-	        }
-	        processed--;
+			if (stream(bufferIndex)) {		
+				AL10.alSourceQueueBuffers(source, unqueued);
+			} else {
+				remainingBufferCount--;
+				if (remainingBufferCount == 0) {
+					done = true;
+				}
+			}
+			processed--;
 		}
 		
 		int state = AL10.alGetSourcei(source, AL10.AL_SOURCE_STATE);
-	    
-	    if (state != AL10.AL_PLAYING) {
-	    	AL10.alSourcePlay(source);
-	    }
+		
+		if (state != AL10.AL_PLAYING) {
+			AL10.alSourcePlay(source);
+		}
 	}
 	
 	/**
@@ -260,13 +247,11 @@ public class OpenALStreamPlayer {
 	 * @return True if another section was available
 	 */
 	public synchronized boolean stream(int bufferId) {
-		//Thread.dumpStack();
 		try {
 			int count = audio.read(buffer);
 			if (count != -1) {
-				lastUpdateTime = System.currentTimeMillis();
 				streamPos += count;
-				//bufferData = BufferUtils.createByteBuffer(sectionSize);
+
 				bufferData.clear();
 				bufferData.put(buffer,0,count);
 				bufferData.flip();
@@ -291,7 +276,6 @@ public class OpenALStreamPlayer {
 			
 			return true;
 		} catch (IOException e) {
-			e.printStackTrace();
 			Log.error(e);
 			return false;
 		}
@@ -305,23 +289,20 @@ public class OpenALStreamPlayer {
 	 */
 	public synchronized boolean setPosition(float position) {
 		try {
-			//int state = AL10.alGetSourcei(source, AL10.AL_SOURCE_STATE);
-			//AL10.alSourceStop(source);
 			
 			long samplePos = (long) (position*sampleRate)*sampleSize;
 			
-			//System.out.println("offset:"+samplePos%sampleSize);
-			if(streamPos > samplePos){//(getPosition() > position) {
+			if(streamPos > samplePos){
 				initStreams();
 			}
-			//if(audio instanceof Mp3InputStream){
-				long skiped = audio.skip(samplePos - streamPos);
-				if(skiped>=0)
-					streamPos+=skiped;
-				else{
-					System.out.println("Failed to skip?");
-				}
-			//}
+			
+			long skiped = audio.skip(samplePos - streamPos);
+			if(skiped>=0)
+				streamPos+=skiped;
+			else{
+				System.out.println("Failed to skip?");
+			}
+		
 			while(streamPos+buffer.length < samplePos){
 				int count = audio.read(buffer);
 				if (count != -1) {
@@ -335,18 +316,10 @@ public class OpenALStreamPlayer {
 					return false;
 				}
 			}
-			//System.out.println("offset2:"+samplePos%sampleSize);
 			
-			/*while(streamPos%sampleSize!=0){
-				audio.read();
-				streamPos++;
-			}*/
 			playedPos = streamPos;
 			
 			startPlayback(); 
-			//if (state != AL10.AL_PLAYING) {
-		   // 	AL10.alSourcePlay(source);
-		    //}
 
 			return true;
 		} catch (IOException e) {
@@ -371,6 +344,8 @@ public class OpenALStreamPlayer {
 
 		AL10.alSourceQueueBuffers(source, bufferNames);
 		AL10.alSourcePlay(source);
+		lastUpdateTime = System.currentTimeMillis();
+			
 	}
 
 	/**
@@ -379,20 +354,20 @@ public class OpenALStreamPlayer {
 	 * @return The current position in seconds.
 	 */
 	public float getPosition() {
-		float time = ((float)playedPos/(float)sampleSize)/(float)sampleRate;
-		float timePosition = time + (System.currentTimeMillis()-lastUpdateTime)/1000f;
-		//System.out.println(playedPos +" "+streamPos+" "+AL10.alGetSourcef(source, AL11.AL_SAMPLE_OFFSET)+" "+System.currentTimeMillis()+" "+time+" "+sampleRate+" "+sampleSize+" "+timePosition);
-		return timePosition;//AL10.alGetSourcef(source, AL11.AL_SEC_OFFSET);
+		float playedTime = ((float)playedPos/(float)sampleSize)/(float)sampleRate;
+		float timePosition = playedTime 
+				+ (System.currentTimeMillis()-lastUpdateTime)/1000f;
+				//+ AL10.alGetSourcef(source, AL11.AL_SEC_OFFSET);
+		return timePosition;
 	}
 
+	long offsetTime = 0;
 	public void pausing() {
-		//System.out.println("Pasuing ");
-		
+		offsetTime = System.currentTimeMillis()-lastUpdateTime;
 	}
 
 	public void resuming() {
-		//System.out.println("Resuming  ");
-		lastUpdateTime = System.currentTimeMillis();
+		lastUpdateTime = System.currentTimeMillis()-offsetTime;
 	}
 }
 

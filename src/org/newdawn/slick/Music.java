@@ -283,9 +283,9 @@ public class Music {
 		if (volume > 1.0f)
 			volume = 1.0f;
 
-		sound.playAsMusic(pitch, volume, loop);
 		playing = true;
 		currentMusic = this;
+		sound.playAsMusic(pitch, volume, loop);
 		setVolume(volume);
 		if (requiredPosition != -1) {
 			setPosition(requiredPosition);

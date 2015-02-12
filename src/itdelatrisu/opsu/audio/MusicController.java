@@ -82,8 +82,6 @@ public class MusicController {
 				trackLoader = new Thread() {
 					@Override
 					public void run() {
-						//Loading ogg async seems to screw up
-						//So does mp3, but much less
 						loadTrack(osu.audioFilename, osu.previewTime, loop);
 					}
 				};
@@ -94,9 +92,6 @@ public class MusicController {
 					@Override
 					public void run() {
 						loadTrack(osu.audioFilename, osu.previewTime, loop);
-						//convertMp3(osu.audioFilename);
-						//if (!Thread.currentThread().isInterrupted())
-						//	loadTrack(wavFile, osu.previewTime, loop);
 					}
 				};
 				trackLoader.start();
@@ -339,15 +334,18 @@ public class MusicController {
 
 		// TODO: properly interrupt instead of using deprecated Thread.stop();
 		// interrupt the conversion/track loading
-		if (isTrackLoading())
+		// Not sure if the interrupt does anything
+		// And the join kind of defeats the purpose of threading it.
+		// But is needed since bad things happen when OpenALStreamPlayer source is released asynchronously I think.
+		if (isTrackLoading()){
+			//trackLoader.stop();
+			trackLoader.interrupt();
 			try {
 				trackLoader.join();
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-//			trackLoader.interrupt();
-			//trackLoader.stop();
+		}
 		trackLoader = null;
 
 		// delete temporary WAV file
@@ -402,9 +400,8 @@ public class MusicController {
 			AL10.alDeleteSources(buf);
 			int exc = AL10.alGetError();
 			if (exc != AL10.AL_NO_ERROR) {
-				//Seems It can't delete mp3 source?
-				//throw new SlickException(
-				//		"Could not clear SoundStore sources, err: " + exc);
+				throw new SlickException(
+						"Could not clear SoundStore sources, err: " + exc);
 			}
 
 			// delete any buffer data stored in memory, too...
