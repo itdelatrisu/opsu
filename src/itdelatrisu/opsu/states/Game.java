@@ -286,7 +286,7 @@ public class Game extends BasicGameState {
 		}
 
 		if (isLeadIn())
-			trackPosition = leadInTime * -1;  // render approach circles during song lead-in
+			trackPosition = (leadInTime - Options.getMusicOffset()) * -1;  // render approach circles during song lead-in
 
 		// countdown
 		if (osu.countdown > 0) {  // TODO: implement half/double rate settings
@@ -377,7 +377,7 @@ public class Game extends BasicGameState {
 		if (isLeadIn()) {  // stop updating during song lead-in
 			leadInTime -= delta;
 			if (!isLeadIn())
-				MusicController.playAt(0, false);
+				MusicController.resume();
 			return;
 		}
 
@@ -695,6 +695,10 @@ public class Game extends BasicGameState {
 
 			// reset game data
 			resetGameData();
+			
+			//needs to play before we can set position
+			//so we can resume without lag later
+			MusicController.play();
 			MusicController.setPosition(0);
 			MusicController.pause();
 

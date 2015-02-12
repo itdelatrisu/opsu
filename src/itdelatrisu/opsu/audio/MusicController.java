@@ -91,9 +91,7 @@ public class MusicController {
 				trackLoader = new Thread() {
 					@Override
 					public void run() {
-						convertMp3(osu.audioFilename);
-//						if (!Thread.currentThread().isInterrupted())
-							loadTrack(wavFile, osu.previewTime, loop);
+						loadTrack(osu.audioFilename, osu.previewTime, loop);
 					}
 				};
 				trackLoader.start();
@@ -110,7 +108,7 @@ public class MusicController {
 	 */
 	private static void loadTrack(File file, int previewTime, boolean loop) {
 		try {   // create a new player
-			player = new Music(file.getPath());
+			player = new Music(file.getPath(),true);
 			player.addListener(new MusicListener() {
 				@Override
 				public void musicEnded(Music music) { trackEnded = true; }
@@ -130,13 +128,14 @@ public class MusicController {
 	public static void playAt(final int position, final boolean loop) {
 		if (trackExists()) {
 			setVolume(Options.getMusicVolume() * Options.getMasterVolume());
-			player.setPosition(position / 1000f);
 			trackEnded = false;
 			pauseTime = 0f;
 			if (loop)
 				player.loop();
 			else
 				player.play();
+			player.setPosition(position / 1000f);
+			
 		}
 	}
 
@@ -253,7 +252,7 @@ public class MusicController {
 	 */
 	public static int getPosition() {
 		if (isPlaying())
-			return Math.max((int) (player.getPosition() * 1000 + Options.getMusicOffset()), 0);
+			return (int) (player.getPosition() * 1000 + Options.getMusicOffset());
 		else if (isPaused())
 			return Math.max((int) (pauseTime * 1000 + Options.getMusicOffset()), 0);
 		else
@@ -265,6 +264,17 @@ public class MusicController {
 	 */
 	public static boolean setPosition(int position) {
 		return (trackExists() && player.setPosition(position / 1000f));
+	}
+	
+	/**
+	 * Plays the current track.
+	 */
+	public static boolean play() {
+		if (trackExists()){
+			player.play();
+			return true;
+		}
+		return false;
 	}
 
 	/**
@@ -324,9 +334,18 @@ public class MusicController {
 
 		// TODO: properly interrupt instead of using deprecated Thread.stop();
 		// interrupt the conversion/track loading
-		if (isTrackLoading())
-//			trackLoader.interrupt();
-			trackLoader.stop();
+		// Not sure if the interrupt does anything
+		// And the join kind of defeats the purpose of threading it.
+		// But is needed since bad things happen when OpenALStreamPlayer source is released asynchronously I think.
+		if (isTrackLoading()){
+			//trackLoader.stop();
+			trackLoader.interrupt();
+			try {
+				trackLoader.join();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
 		trackLoader = null;
 
 		// delete temporary WAV file
