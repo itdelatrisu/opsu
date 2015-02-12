@@ -37,7 +37,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class Options {
 	
-	public static String SEPARATOR = System.getProperty("file.separator");
+	public static String SEPARATOR = File.separator;
 	private static String OS = System.getProperty("os.name").toLowerCase();
 	public static String ConfigDir = getDefaultConfigDir();
 	public static String DataDir = getDefaultDataDir();
