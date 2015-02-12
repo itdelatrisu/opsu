@@ -42,9 +42,6 @@ import org.newdawn.slick.util.Log;
  * Handles all user options.
  */
 public class Options {
-	/** Temporary folder for file conversions, auto-deleted upon successful exit. */
-	public static final File TMP_DIR = new File(".opsu_tmp/");
-
 	/** File for logging errors. */
 	public static final File LOG_FILE = new File(".opsu.log");
 

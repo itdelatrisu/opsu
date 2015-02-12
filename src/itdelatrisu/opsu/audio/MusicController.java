@@ -27,8 +27,6 @@ import java.io.File;
 import java.lang.reflect.Field;
 import java.nio.IntBuffer;
 
-import javazoom.jl.converter.Converter;
-
 import org.lwjgl.BufferUtils;
 import org.lwjgl.openal.AL;
 import org.lwjgl.openal.AL10;
@@ -47,9 +45,6 @@ public class MusicController {
 
 	/** The last OsuFile passed to play(). */
 	private static OsuFile lastOsu;
-
-	/** Temporary WAV file for file conversions (to be deleted). */
-	private static File wavFile;
 
 	/** Thread for loading tracks. */
 	private static Thread trackLoader;
@@ -79,14 +74,6 @@ public class MusicController {
 
 			switch (OsuParser.getExtension(osu.audioFilename.getName())) {
 			case "ogg":
-				trackLoader = new Thread() {
-					@Override
-					public void run() {
-						loadTrack(osu.audioFilename, osu.previewTime, loop);
-					}
-				};
-				trackLoader.start();
-				break;
 			case "mp3":
 				trackLoader = new Thread() {
 					@Override
@@ -108,7 +95,7 @@ public class MusicController {
 	 */
 	private static void loadTrack(File file, int previewTime, boolean loop) {
 		try {   // create a new player
-			player = new Music(file.getPath(),true);
+			player = new Music(file.getPath(), true);
 			player.addListener(new MusicListener() {
 				@Override
 				public void musicEnded(Music music) { trackEnded = true; }
@@ -135,25 +122,7 @@ public class MusicController {
 			else
 				player.play();
 			player.setPosition(position / 1000f);
-			
 		}
-	}
-
-	/**
-	 * Converts an MP3 file to a temporary WAV file.
-	 */
-	private static File convertMp3(File file) {
-		try {
-			wavFile = File.createTempFile(".osu", ".wav", Options.TMP_DIR);
-			wavFile.deleteOnExit();
-
-			Converter converter = new Converter();
-			converter.convert(file.getPath(), wavFile.getPath());
-			return wavFile;
-		} catch (Exception e) {
-			ErrorHandler.error(String.format("Failed to play file '%s'.", file.getAbsolutePath()), e, false);
-		}
-		return wavFile;
 	}
 
 	/**
@@ -269,12 +238,9 @@ public class MusicController {
 	/**
 	 * Plays the current track.
 	 */
-	public static boolean play() {
-		if (trackExists()){
+	public static void play() {
+		if (trackExists())
 			player.play();
-			return true;
-		}
-		return false;
 	}
 
 	/**
@@ -328,17 +294,14 @@ public class MusicController {
 	 * Stops the current track, cancels track conversions, erases
 	 * temporary files, releases OpenAL sources, and resets state.
 	 */
-	@SuppressWarnings("deprecation")
 	public static void reset() {
 		stop();
 
-		// TODO: properly interrupt instead of using deprecated Thread.stop();
-		// interrupt the conversion/track loading
-		// Not sure if the interrupt does anything
-		// And the join kind of defeats the purpose of threading it.
-		// But is needed since bad things happen when OpenALStreamPlayer source is released asynchronously I think.
+		// interrupt the track loading
+		// TODO: Not sure if the interrupt does anything, and the join kind of
+		// defeats the purpose of threading it, but it is needed since bad things
+		// likely happen when OpenALStreamPlayer source is released asynchronously.
 		if (isTrackLoading()){
-			//trackLoader.stop();
 			trackLoader.interrupt();
 			try {
 				trackLoader.join();
@@ -347,12 +310,6 @@ public class MusicController {
 			}
 		}
 		trackLoader = null;
-
-		// delete temporary WAV file
-		if (wavFile != null) {
-			wavFile.delete();
-			wavFile = null;
-		}
 
 		// reset state
 		lastOsu = null;

@@ -134,13 +134,6 @@ public class Opsu extends StateBasedGame {
 		ResourceLoader.addResourceLocation(new FileSystemLocation(new File(".")));
 		ResourceLoader.addResourceLocation(new FileSystemLocation(new File("./res/")));
 
-		// clear the cache
-		if (!Options.TMP_DIR.mkdir()) {
-			for (File tmp : Options.TMP_DIR.listFiles())
-				tmp.delete();
-		}
-		Options.TMP_DIR.deleteOnExit();
-
 		// initialize score database
 		ScoreDB.init();
 

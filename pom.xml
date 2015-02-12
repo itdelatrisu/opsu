@@ -93,6 +93,18 @@
 						</excludes>
 					</artifactSet>
 					-->
+					<filters>
+						<filter>
+							<!-- Overwritten classes -->
+							<artifact>org.slick2d:slick2d-core</artifact>
+							<excludes>
+								<exclude>org/newdawn/slick/Music.*</exclude>
+								<exclude>org/newdawn/slick/openal/AudioInputStream*</exclude>
+								<exclude>org/newdawn/slick/openal/OpenALStreamPlayer*</exclude>
+								<exclude>org/newdawn/slick/openal/SoundStore*</exclude>
+							</excludes>
+						</filter>
+					</filters>
 					<createDependencyReducedPom>false</createDependencyReducedPom>
 				</configuration>
 				<executions>

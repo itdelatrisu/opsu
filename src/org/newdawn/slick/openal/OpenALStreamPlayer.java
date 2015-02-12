@@ -1,15 +1,29 @@
 /*
-Copyright (c) 2013, Slick2D
-
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
-
-* Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-* Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
-* Neither the name of the Slick2D nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS gAS ISh AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * Copyright (c) 2013, Slick2D
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * - Redistributions of source code must retain the above copyright notice,
+ *   this list of conditions and the following disclaimer.
+ * - Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ * - Neither the name of the Slick2D nor the names of its contributors may be
+ *   used to endorse or promote products derived from this software without
+ *   specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
 */
 
 package org.newdawn.slick.openal;
@@ -35,9 +49,9 @@ import org.newdawn.slick.util.ResourceLoader;
  */
 public class OpenALStreamPlayer {
 	/** The number of buffers to maintain */
-	public static final int BUFFER_COUNT = 20;
+	public static final int BUFFER_COUNT = 20;  // 3
 	/** The size of the sections to stream from the stream */
-	private static final int sectionSize = 4096;
+	private static final int sectionSize = 4096;  // 4096 * 20
 	
 	/** The buffer read from the data stream */
 	private byte[] buffer = new byte[sectionSize];
@@ -64,16 +78,29 @@ public class OpenALStreamPlayer {
 	/** The pitch of the music */
 	private float pitch;
 	/** Position in seconds of the previously played buffers */
-	//private float positionOffset;
-	
+//	private float positionOffset;
+
+	/** The stream position. */
 	long streamPos = 0;
+
+	/** The sample rate. */
 	int sampleRate;
+
+	/** The sample size. */
 	int sampleSize;
+
+	/** The play position. */
 	long playedPos;
-	
+
+	/** The music length. */
 	long musicLength = -1;
-	
+
+	/** The time of the last update, in ms. */
 	long lastUpdateTime = System.currentTimeMillis();
+
+	/** The offset time. */
+	long offsetTime = 0;
+
 	/**
 	 * Create a new player to work on an audio stream
 	 * 
@@ -111,13 +138,13 @@ public class OpenALStreamPlayer {
 		if (audio != null) {
 			audio.close();
 		}
-		
+
 		AudioInputStream audio;
-		
+
 		if (url != null) {
 			audio = new OggInputStream(url.openStream());
 		} else {
-			if(ref.toLowerCase().endsWith(".mp3"))
+			if (ref.toLowerCase().endsWith(".mp3"))
 				audio = new Mp3InputStream(ResourceLoader.getResourceAsStream(ref));
 			else
 				audio = new OggInputStream(ResourceLoader.getResourceAsStream(ref));
@@ -125,12 +152,11 @@ public class OpenALStreamPlayer {
 		
 		this.audio = audio;
 		sampleRate = audio.getRate();
-		if (audio.getChannels() > 1) {
+		if (audio.getChannels() > 1)
 			sampleSize = 4; // AL10.AL_FORMAT_STEREO16
-		} else {
+		else
 			sampleSize = 2; // AL10.AL_FORMAT_MONO16
-		}
-		//positionOffset = 0;
+//		positionOffset = 0;
 		streamPos = 0;
 		
 	}
@@ -150,14 +176,11 @@ public class OpenALStreamPlayer {
 	private synchronized void removeBuffers() {
 		AL10.alSourceStop(source);
 		IntBuffer buffer = BufferUtils.createIntBuffer(1);
-		
-		
-		while (AL10.alGetSourcei(source, AL10.AL_BUFFERS_QUEUED) > 0)
-		{
+
+		while (AL10.alGetSourcei(source, AL10.AL_BUFFERS_QUEUED) > 0) {
 			AL10.alSourceUnqueueBuffers(source, buffer);
 			buffer.clear();
 		}
-		
 	}
 	
 	/**
@@ -213,16 +236,16 @@ public class OpenALStreamPlayer {
 			AL10.alSourceUnqueueBuffers(source, unqueued);
 			
 			int bufferIndex = unqueued.get(0);
-			
+
 			int bufferLength = AL10.alGetBufferi(bufferIndex, AL10.AL_SIZE);
 
 			playedPos += bufferLength;
 			lastUpdateTime = System.currentTimeMillis();
 
-			if(musicLength>0 && playedPos>musicLength)
+			if (musicLength > 0 && playedPos > musicLength)
 				playedPos -= musicLength;
-			
-			if (stream(bufferIndex)) {		
+
+			if (stream(bufferIndex)) {
 				AL10.alSourceQueueBuffers(source, unqueued);
 			} else {
 				remainingBufferCount--;
@@ -289,21 +312,18 @@ public class OpenALStreamPlayer {
 	 */
 	public synchronized boolean setPosition(float position) {
 		try {
-			
-			long samplePos = (long) (position*sampleRate)*sampleSize;
-			
-			if(streamPos > samplePos){
+			long samplePos = (long) (position * sampleRate) * sampleSize;
+
+			if (streamPos > samplePos)
 				initStreams();
-			}
-			
-			long skiped = audio.skip(samplePos - streamPos);
-			if(skiped>=0)
-				streamPos+=skiped;
-			else{
-				System.out.println("Failed to skip?");
-			}
-		
-			while(streamPos+buffer.length < samplePos){
+
+			long skipped = audio.skip(samplePos - streamPos);
+			if (skipped >= 0)
+				streamPos += skipped;
+			else
+				Log.warn("OpenALStreamPlayer: setPosition: failed to skip.");
+
+			while (streamPos + buffer.length < samplePos) {
 				int count = audio.read(buffer);
 				if (count != -1) {
 					streamPos += count;
@@ -316,9 +336,9 @@ public class OpenALStreamPlayer {
 					return false;
 				}
 			}
-			
+
 			playedPos = streamPos;
-			
+
 			startPlayback(); 
 
 			return true;
@@ -345,7 +365,6 @@ public class OpenALStreamPlayer {
 		AL10.alSourceQueueBuffers(source, bufferNames);
 		AL10.alSourcePlay(source);
 		lastUpdateTime = System.currentTimeMillis();
-			
 	}
 
 	/**
@@ -354,20 +373,24 @@ public class OpenALStreamPlayer {
 	 * @return The current position in seconds.
 	 */
 	public float getPosition() {
-		float playedTime = ((float)playedPos/(float)sampleSize)/(float)sampleRate;
-		float timePosition = playedTime 
-				+ (System.currentTimeMillis()-lastUpdateTime)/1000f;
-				//+ AL10.alGetSourcef(source, AL11.AL_SEC_OFFSET);
+		float playedTime = ((float) playedPos / (float) sampleSize) / sampleRate;
+		float timePosition = playedTime + (System.currentTimeMillis() - lastUpdateTime) / 1000f;
+//		 + AL10.alGetSourcef(source, AL11.AL_SEC_OFFSET);
 		return timePosition;
 	}
 
-	long offsetTime = 0;
+	/**
+	 * Processes a track pause.
+	 */
 	public void pausing() {
-		offsetTime = System.currentTimeMillis()-lastUpdateTime;
+		offsetTime = System.currentTimeMillis() - lastUpdateTime;
 	}
 
+	/**
+	 * Processes a track resume.
+	 */
 	public void resuming() {
-		lastUpdateTime = System.currentTimeMillis()-offsetTime;
+		lastUpdateTime = System.currentTimeMillis() - offsetTime;
 	}
 }
 

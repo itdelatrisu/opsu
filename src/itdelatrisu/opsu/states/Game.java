@@ -696,8 +696,7 @@ public class Game extends BasicGameState {
 			// reset game data
 			resetGameData();
 			
-			//needs to play before we can set position
-			//so we can resume without lag later
+			// needs to play before setting position to resume without lag later
 			MusicController.play();
 			MusicController.setPosition(0);
 			MusicController.pause();
