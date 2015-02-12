@@ -396,6 +396,8 @@ public class SongMenu extends BasicGameState {
 
 				// search produced new list: re-initialize it
 				startNode = focusNode = null;
+				scoreMap = null;
+				focusScores = null;
 				if (OsuGroupList.get().size() > 0) {
 					OsuGroupList.get().init();
 					if (search.getText().isEmpty()) {  // cleared search
@@ -606,6 +608,8 @@ public class SongMenu extends BasicGameState {
 			// reset state and node references
 			MusicController.reset();
 			startNode = focusNode = null;
+			scoreMap = null;
+			focusScores = null;
 			oldFocusNode = null;
 			randomStack = new Stack<SongNode>();
 			songInfo = null;

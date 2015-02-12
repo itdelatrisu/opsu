@@ -262,9 +262,9 @@ public class OsuFile implements Comparable<OsuFile> {
 		try {
 			Image bgImage = bgImageMap.get(this);
 			if (bgImage == null) {
-				bgImage = new Image(bg);
 				if (bgImageMap.size() > MAX_CACHE_SIZE)
 					clearImageCache();
+				bgImage = new Image(bg);
 				bgImageMap.put(this, bgImage);
 			}
 

@@ -18,6 +18,10 @@
 
 package itdelatrisu.opsu;
 
+import itdelatrisu.opsu.audio.MusicController;
+
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -54,6 +58,9 @@ public class OsuGroupList {
 	/** Index of current expanded node (-1 if no node is expanded). */
 	private int expandedIndex;
 
+	/** Start and end nodes of expanded group. */
+	private OsuGroupNode expandedStartNode, expandedEndNode;
+
 	/** The last search query. */
 	private String lastQuery;
 
@@ -83,6 +90,7 @@ public class OsuGroupList {
 	public void reset() {
 		nodes = parsedNodes;
 		expandedIndex = -1;
+		expandedStartNode = expandedEndNode = null;
 		lastQuery = "";
 	}
 
@@ -107,6 +115,123 @@ public class OsuGroupList {
 			MSIDdb.add(msid);
 
 		return node;
+	}
+
+	/**
+	 * Deletes a song group from the list, and also deletes the beatmap
+	 * directory associated with the node.
+	 * @param node the node containing the song group to delete
+	 * @return true if the song group was deleted, false otherwise
+	 */
+	public boolean deleteSongGroup(OsuGroupNode node) {
+		if (node == null)
+			return false;
+
+		// re-link base nodes
+		int index = node.index;
+		OsuGroupNode ePrev = getBaseNode(index - 1), eCur = getBaseNode(index), eNext = getBaseNode(index + 1);
+		if (ePrev != null) {
+			if (ePrev.index == expandedIndex)
+				expandedEndNode.next = eNext;
+			else if (eNext != null && eNext.index == expandedIndex)
+				ePrev.next = expandedStartNode;
+			else
+				ePrev.next = eNext;
+		}
+		if (eNext != null) {
+			if (eNext.index == expandedIndex)
+				expandedStartNode.prev = ePrev;
+			else if (ePrev != null && ePrev.index == expandedIndex)
+				eNext.prev = expandedEndNode;
+			else
+				eNext.prev = ePrev;
+		}
+
+		// remove all node references
+		OsuFile osu = node.osuFiles.get(0);
+		nodes.remove(index);
+		parsedNodes.remove(eCur);
+		mapCount -= node.osuFiles.size();
+		if (osu.beatmapSetID > 0)
+			MSIDdb.remove(osu.beatmapSetID);
+
+		// reset indices
+		for (int i = index, size = size(); i < size; i++)
+			nodes.get(i).index = i;
+		if (index == expandedIndex) {
+			expandedIndex = -1;
+			expandedStartNode = expandedEndNode = null;
+		} else if (expandedIndex > index) {
+			expandedIndex--;
+			OsuGroupNode expandedNode = expandedStartNode;
+			for (int i = 0, size = expandedNode.osuFiles.size();
+			     i < size && expandedNode != null;
+			     i++, expandedNode = expandedNode.next)
+				expandedNode.index = expandedIndex;
+		}
+
+		// stop playing the track
+		File dir = osu.getFile().getParentFile();
+		if (MusicController.trackExists() || MusicController.isTrackLoading()) {
+			File audioFile = MusicController.getOsuFile().audioFilename;
+			if (audioFile != null && audioFile.equals(osu.audioFilename)) {
+				MusicController.reset();
+				System.gc();  // TODO: why can't files be deleted without calling this?
+			}
+		}
+
+		// delete the associated directory
+		try {
+			Utils.deleteToTrash(dir);
+		} catch (IOException e) {
+			ErrorHandler.error("Could not delete song group.", e, true);
+		}
+
+		return true;
+	}
+
+	/**
+	 * Deletes a song from a song group, and also deletes the beatmap file.
+	 * If this causes the song group to be empty, then the song group and
+	 * beatmap directory will be deleted altogether.
+	 * @param node the node containing the song group to delete (expanded only)
+	 * @return true if the song or song group was deleted, false otherwise
+	 * @see #deleteSongGroup(OsuGroupNode)
+	 */
+	public boolean deleteSong(OsuGroupNode node) {
+		if (node == null || node.osuFileIndex == -1 || node.index != expandedIndex)
+			return false;
+
+		// last song in group?
+		int size = node.osuFiles.size();
+		if (node.osuFiles.size() == 1)
+			return deleteSongGroup(node);
+
+		// reset indices
+		OsuGroupNode expandedNode = node.next;
+		for (int i = node.osuFileIndex + 1;
+		     i < size && expandedNode != null && expandedNode.index == node.index;
+		     i++, expandedNode = expandedNode.next)
+			expandedNode.osuFileIndex--;
+
+		// remove song reference
+		OsuFile osu = node.osuFiles.remove(node.osuFileIndex);
+		mapCount--;
+
+		// re-link nodes
+		if (node.prev != null)
+			node.prev.next = node.next;
+		if (node.next != null)
+			node.next.prev = node.prev;
+
+		// delete the associated file
+		try {
+			Utils.deleteToTrash(osu.getFile());
+		} catch (IOException e) {
+			ErrorHandler.error("Could not delete song.", e, true);
+		}
+
+		return true;
 	}
 
 	/**
@@ -169,13 +294,13 @@ public class OsuGroupList {
 		if (node == null)
 			return null;
 
-		OsuGroupNode firstInserted = null;
+		expandedStartNode = expandedEndNode = null;
 
 		// create new nodes
 		ArrayList<OsuFile> osuFiles = node.osuFiles;
 		OsuGroupNode prevNode = node.prev;
 		OsuGroupNode nextNode = node.next;
-		for (int i = 0; i < node.osuFiles.size(); i++) {
+		for (int i = 0, size = node.osuFiles.size(); i < size; i++) {
 			OsuGroupNode newNode = new OsuGroupNode(osuFiles);
 			newNode.index = index;
 			newNode.osuFileIndex = i;
@@ -183,7 +308,7 @@ public class OsuGroupList {
 
 			// unlink the group node
 			if (i == 0) {
-				firstInserted = newNode;
+				expandedStartNode = newNode;
 				newNode.prev = prevNode;
 				if (prevNode != null)
 					prevNode.next = newNode;
@@ -196,9 +321,10 @@ public class OsuGroupList {
 			node.next = nextNode;
 			nextNode.prev = node;
 		}
+		expandedEndNode = node;
 
 		expandedIndex = index;
-		return firstInserted;
+		return expandedStartNode;
 	}
 
 	/**
@@ -222,6 +348,7 @@ public class OsuGroupList {
 			eNext.prev = eCur;
 
 		expandedIndex = -1;
+		expandedStartNode = expandedEndNode = null;
 		return;
 	}
 
@@ -235,6 +362,7 @@ public class OsuGroupList {
 		// sort the list
 		Collections.sort(nodes, SongSort.getSort().getComparator());
 		expandedIndex = -1;
+		expandedStartNode = expandedEndNode = null;
 
 		// create links
 		OsuGroupNode lastNode = nodes.get(0);

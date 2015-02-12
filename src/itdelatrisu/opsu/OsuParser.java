@@ -72,9 +72,12 @@ public class OsuParser {
 	 * Invokes parser for each directory in the given array and
 	 * adds the OsuFiles to the existing OsuGroupList.
 	 * @param dirs the array of directories to parse
-	 * @return the last OsuGroupNode parsed
+	 * @return the last OsuGroupNode parsed, or null if none
 	 */
 	public static OsuGroupNode parseDirectories(File[] dirs) {
+		if (dirs == null)
+			return null;
+
 		// progress tracking
 		currentDirectoryIndex = 0;
 		totalDirectories = dirs.length;

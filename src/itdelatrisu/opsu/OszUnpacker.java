@@ -56,7 +56,7 @@ public class OszUnpacker {
 				return name.toLowerCase().endsWith(".osz");
 			}
 		});
-		if (files.length < 1) {
+		if (files == null || files.length < 1) {
 			files = null;
 			return new File[0];
 		}
