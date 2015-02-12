@@ -66,8 +66,10 @@ public class MusicController {
 
 	/**
 	 * Plays an audio file at the preview position.
+	 * If the audio file is already playing, then nothing will happen.
 	 */
 	public static void play(final OsuFile osu, final boolean loop) {
+		// new track: load and play
 		if (lastOsu == null || !osu.audioFilename.equals(lastOsu.audioFilename)) {
 			reset();
 			System.gc();
@@ -87,14 +89,22 @@ public class MusicController {
 				break;
 			}
 		}
+
+		// new track position: play at position
+		else if (osu.previewTime != lastOsu.previewTime)
+			playAt(osu.previewTime, loop);
+
 		lastOsu = osu;
 	}
 
 	/**
 	 * Loads a track and plays it.
+	 * @param file the audio file
+	 * @param position the track position (in ms)
+	 * @param loop whether or not to loop the track
 	 */
-	private static void loadTrack(File file, int previewTime, boolean loop) {
-		try {   // create a new player
+	private static void loadTrack(File file, int position, boolean loop) {
+		try {
 			player = new Music(file.getPath(), true);
 			player.addListener(new MusicListener() {
 				@Override
@@ -103,7 +113,7 @@ public class MusicController {
 				@Override
 				public void musicSwapped(Music music, Music newMusic) {}
 			});
-			playAt((previewTime > 0) ? previewTime : 0, loop);
+			playAt(position, loop);
 		} catch (Exception e) {
 			ErrorHandler.error(String.format("Could not play track '%s'.", file.getName()), e, false);
 		}
@@ -111,6 +121,8 @@ public class MusicController {
 
 	/**
 	 * Plays the current track at the given position.
+	 * @param position the track position (in ms)
+	 * @param loop whether or not to loop the track
 	 */
 	public static void playAt(final int position, final boolean loop) {
 		if (trackExists()) {
@@ -121,7 +133,8 @@ public class MusicController {
 				player.loop();
 			else
 				player.play();
-			player.setPosition(position / 1000f);
+			if (position >= 0)
+				player.setPosition(position / 1000f);
 		}
 	}
 
@@ -135,9 +148,7 @@ public class MusicController {
 	/**
 	 * Returns true if a track is loaded.
 	 */
-	public static boolean trackExists() {
-		return (player != null);
-	}
+	public static boolean trackExists() { return (player != null); }
 
 	/**
 	 * Returns the OsuFile associated with the current track.
@@ -232,7 +243,7 @@ public class MusicController {
 	 * Seeks to a position in the current track.
 	 */
 	public static boolean setPosition(int position) {
-		return (trackExists() && player.setPosition(position / 1000f));
+		return (trackExists() && position >= 0 && player.setPosition(position / 1000f));
 	}
 	
 	/**
