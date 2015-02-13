@@ -65,10 +65,6 @@ public class Spinner implements HitObject {
 	/** The current angular velocity of the spinner in rotations/second. */
 	private float angularVelocity;
 	
-	private float cv;
-	private float mv;
-	private int limitUpdate = 0;
-	
 	/** True if the mouse cursor is pressed. */
 	private boolean isSpinning;
 
@@ -136,16 +132,6 @@ public class Spinner implements HitObject {
 			if (extraRotations > 0)
 				data.drawSymbolNumber(extraRotations * 1000, width / 2, height * 2 / 3, 1.0f);
 		}
-                
-                // rotations per minute
-                g.setColor(new Color(255,255,255));
-		g.drawString(String.format("RPM: %d", Math.abs(Math.round(angularVelocity * 60))), 100, 100);
-		
-		// debug stuff
-		g.drawString("key down: " + Utils.isGameKeyPressed(), 200, 100);
-		g.drawString("momentum velocity: " + mv, 100, 200);
-		g.drawString("cursor velocity: " + cv, 100, 300);
-		g.drawString("angular velocity: " + angularVelocity, 100, 400);
 	}
 
 	/**
@@ -231,10 +217,6 @@ public class Spinner implements HitObject {
 		float momentumVelocity = (angularVelocity > 0) ?
 			Math.max(0, angularVelocity - ANGULAR_DRAG * delta / 1000) :
 			Math.min(0, angularVelocity + ANGULAR_DRAG * delta / 1000);
-
-		//debug stuff
-		cv = cursorVelocity;
-		mv = momentumVelocity;
 
 		//sets the new angular velocity of the spinner
 		if (momentumVelocity > 0 && cursorVelocity < 0 ||
