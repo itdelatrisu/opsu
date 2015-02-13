@@ -76,6 +76,8 @@
 								<argument>-Dinput=opsu-${project.version}.jar</argument>
 								<argument>-Dmain=itdelatrisu.opsu.Opsu</argument>
 								<argument>-Doutput=opsu-${project.version}-runnable.jar</argument>
+								<!-- uncomment the line below to use XDG base directories in Unix -->
+								<!--<argument>-Dparams=-DXDG=true</argument>-->
 								<argument>${basedir}/tools/JarSplicePlus.jar</argument>
 							</arguments>
 						</configuration>

@@ -42,21 +42,27 @@ import org.newdawn.slick.util.Log;
  * Handles all user options.
  */
 public class Options {
+	/** The config directory. */
+	private static final File CONFIG_DIR = getXDGBaseDir("XDG_CONFIG_HOME", ".config");
+
+	/** The data directory. */
+	private static final File DATA_DIR = getXDGBaseDir("XDG_DATA_HOME", ".local/share");
+
 	/** File for logging errors. */
-	public static final File LOG_FILE = new File(".opsu.log");
+	public static final File LOG_FILE = new File(CONFIG_DIR, ".opsu.log");
 
 	/** File for storing user options. */
-	private static final File OPTIONS_FILE = new File(".opsu.cfg");
+	private static final File OPTIONS_FILE = new File(CONFIG_DIR, ".opsu.cfg");
 
 	/** Beatmap directories (where to search for files).  */
 	private static final String[] BEATMAP_DIRS = {
 		"C:/Program Files (x86)/osu!/Songs/",
 		"C:/Program Files/osu!/Songs/",
-		"Songs/"
+		new File(DATA_DIR, "Songs/").getPath()
 	};
 
 	/** Score database name. */
-	public static final String SCORE_DB = ".opsu_scores.db";
+	public static final File SCORE_DB = new File(DATA_DIR, ".opsu_scores.db");
 
 	/** Font file name. */
 	public static final String FONT_NAME = "kochi-gothic.ttf";
@@ -87,6 +93,34 @@ public class Options {
 
 	/** The current skin directory (for user skins). */
 	private static File skinDir;
+
+	/**
+	 * Returns the directory based on the XDG base directory specification for
+	 * Unix-like operating systems, only if the system property "XDG" has been defined.
+	 * @param env the environment variable to check (XDG_*_*)
+	 * @param fallback the fallback directory relative to ~home
+	 * @return the XDG base directory, or the working directory if unavailable
+	 */
+	private static File getXDGBaseDir(String env, String fallback) {
+		if (System.getProperty("XDG") == null)
+			return new File("./");
+
+		String OS = System.getProperty("os.name").toLowerCase();
+		if (OS.indexOf("nix") >= 0 || OS.indexOf("nux") >= 0 || OS.indexOf("aix") > 0) {
+			String rootPath = System.getenv(env);
+			if (rootPath == null) {
+				String home = System.getProperty("user.home");
+				if (home == null)
+					return new File("./");
+				rootPath = String.format("%s/%s", home, fallback);
+			}
+			File dir = new File(rootPath, "opsu");
+			if (!dir.isDirectory())
+				dir.mkdir();
+			return dir;
+		} else
+			return new File("./");
+	}
 
 	/**
 	 * The theme song string:
@@ -803,7 +837,7 @@ public class Options {
 		if (oszDir != null && oszDir.isDirectory())
 			return oszDir;
 
-		oszDir = new File("SongPacks/");
+		oszDir = new File(DATA_DIR, "SongPacks/");
 		oszDir.mkdir();
 		return oszDir;
 	}
@@ -817,7 +851,7 @@ public class Options {
 		if (screenshotDir != null && screenshotDir.isDirectory())
 			return screenshotDir;
 
-		screenshotDir = new File("Screenshots/");
+		screenshotDir = new File(DATA_DIR, "Screenshots/");
 		return screenshotDir;
 	}
 
@@ -830,7 +864,7 @@ public class Options {
 		if (skinDir != null && skinDir.isDirectory())
 			return skinDir;
 
-		skinDir = new File("Skins/");
+		skinDir = new File(DATA_DIR, "Skins/");
 		skinDir.mkdir();
 		return skinDir;
 	}

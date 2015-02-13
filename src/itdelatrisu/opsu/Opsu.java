@@ -105,9 +105,7 @@ public class Opsu extends StateBasedGame {
 		Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
 			@Override
 			public void uncaughtException(Thread t, Throwable e) {
-				if (!(e instanceof ThreadDeath)) {  // TODO: see MusicController
-					ErrorHandler.error("** Uncaught Exception! **", e, true);
-				}
+				ErrorHandler.error("** Uncaught Exception! **", e, true);
 			}
 		});
 
