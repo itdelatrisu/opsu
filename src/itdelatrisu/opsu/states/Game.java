@@ -63,10 +63,14 @@ import org.newdawn.slick.state.transition.FadeOutTransition;
 public class Game extends BasicGameState {
 	/** Game restart states. */
 	public enum Restart {
-		FALSE,   // no restart
-		NEW,     // first time loading song
-		MANUAL,  // retry
-		LOSE;    // health is zero: no-continue/force restart
+		/** No restart. */
+		FALSE,
+		/** First time loading the song. */
+		NEW,
+		/** Manual retry. */
+		MANUAL,
+		/** Health is zero: no-continue/force restart. */
+		LOSE;
 	}
 
 	/** Minimum time before start of song, in milliseconds, to process skip-related actions. */

@@ -45,7 +45,7 @@ public class ScoreDB {
 	private static PreparedStatement selectMapStmt, selectMapSetStmt;
 
 	/** Score deletion statement. */
-	private static PreparedStatement deleteStmt;
+	private static PreparedStatement deleteSongStmt, deleteScoreStmt;
 
 	// This class should not be instantiated.
 	private ScoreDB() {}
@@ -85,9 +85,15 @@ public class ScoreDB {
 				"SELECT * FROM scores WHERE " +
 				"MSID = ? AND title = ? AND artist = ? AND creator = ? ORDER BY version DESC"
 			);
-			deleteStmt = connection.prepareStatement(
+			deleteSongStmt = connection.prepareStatement(
 				"DELETE FROM scores WHERE " +
 				"MID = ? AND title = ? AND artist = ? AND creator = ? AND version = ?"
+			);
+			deleteScoreStmt = connection.prepareStatement(
+				"DELETE FROM scores WHERE " +
+				"timestamp = ? AND MID = ? AND MSID = ? AND title = ? AND artist = ? AND " +
+				"creator = ? AND version = ? AND hit300 = ? AND hit100 = ? AND hit50 = ? AND " +
+				"geki = ? AND katu = ? AND miss = ? AND score = ? AND combo = ? AND perfect = ? AND mods = ?"
 			);
 		} catch (SQLException e) {
 			ErrorHandler.error("Failed to prepare score insertion statement.", e, true);
@@ -123,26 +129,23 @@ public class ScoreDB {
 	 */
 	public static void addScore(ScoreData data) {
 		try {
-			insertStmt.setLong(1, data.timestamp);
-			insertStmt.setInt(2, data.MID);
-			insertStmt.setInt(3, data.MSID);
-			insertStmt.setString(4, data.title);
-			insertStmt.setString(5, data.artist);
-			insertStmt.setString(6, data.creator);
-			insertStmt.setString(7, data.version);
-			insertStmt.setInt(8, data.hit300);
-			insertStmt.setInt(9, data.hit100);
-			insertStmt.setInt(10, data.hit50);
-			insertStmt.setInt(11, data.geki);
-			insertStmt.setInt(12, data.katu);
-			insertStmt.setInt(13, data.miss);
-			insertStmt.setLong(14, data.score);
-			insertStmt.setInt(15, data.combo);
-			insertStmt.setBoolean(16, data.perfect);
-			insertStmt.setInt(17, data.mods);
+			setStatementFields(insertStmt, data);
 			insertStmt.executeUpdate();
 		} catch (SQLException e) {
 			ErrorHandler.error("Failed to save score to database.", e, true);
+		}
+	}
+
+	/**
+	 * Deletes the given score from the database.
+	 * @param data the score to delete
+	 */
+	public static void deleteScore(ScoreData data) {
+		try {
+			setStatementFields(deleteScoreStmt, data);
+			deleteScoreStmt.executeUpdate();
+		} catch (SQLException e) {
+			ErrorHandler.error("Failed to delete score from database.", e, true);
 		}
 	}
 
@@ -152,15 +155,42 @@ public class ScoreDB {
 	 */
 	public static void deleteScore(OsuFile osu) {
 		try {
-			deleteStmt.setInt(1, osu.beatmapID);
-			deleteStmt.setString(2, osu.title);
-			deleteStmt.setString(3, osu.artist);
-			deleteStmt.setString(4, osu.creator);
-			deleteStmt.setString(5, osu.version);
-			deleteStmt.executeUpdate();
+			deleteSongStmt.setInt(1, osu.beatmapID);
+			deleteSongStmt.setString(2, osu.title);
+			deleteSongStmt.setString(3, osu.artist);
+			deleteSongStmt.setString(4, osu.creator);
+			deleteSongStmt.setString(5, osu.version);
+			deleteSongStmt.executeUpdate();
 		} catch (SQLException e) {
-			ErrorHandler.error("Failed to delete score from database.", e, true);
+			ErrorHandler.error("Failed to delete scores from database.", e, true);
 		}
+	}
+
+	/**
+	 * Sets all statement fields using a given ScoreData object.
+	 * @param stmt the statement to set fields for
+	 * @param data the score data
+	 * @throws SQLException
+	 */
+	private static void setStatementFields(PreparedStatement stmt, ScoreData data)
+			throws SQLException {
+		stmt.setLong(1, data.timestamp);
+		stmt.setInt(2, data.MID);
+		stmt.setInt(3, data.MSID);
+		stmt.setString(4, data.title);
+		stmt.setString(5, data.artist);
+		stmt.setString(6, data.creator);
+		stmt.setString(7, data.version);
+		stmt.setInt(8, data.hit300);
+		stmt.setInt(9, data.hit100);
+		stmt.setInt(10, data.hit50);
+		stmt.setInt(11, data.geki);
+		stmt.setInt(12, data.katu);
+		stmt.setInt(13, data.miss);
+		stmt.setLong(14, data.score);
+		stmt.setInt(15, data.combo);
+		stmt.setBoolean(16, data.perfect);
+		stmt.setInt(17, data.mods);
 	}
 
 	/**

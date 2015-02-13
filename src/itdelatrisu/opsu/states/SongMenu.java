@@ -168,6 +168,9 @@ public class SongMenu extends BasicGameState {
 	/** If non-null, the node that stateAction acts upon. */
 	private OsuGroupNode stateActionNode;
 
+	/** If non-null, the score data that stateAction acts upon. */
+	private ScoreData stateActionScore;
+
 	/** Timer before moving to the beatmap menu with the current focus node. */
 	private int beatmapMenuTimer = -1;
 
@@ -582,10 +585,17 @@ public class SongMenu extends BasicGameState {
 				if (rank >= focusScores.length)
 					break;
 				if (ScoreData.buttonContains(x, y, i)) {
-					// view score
-					GameData data = new GameData(focusScores[rank], container.getWidth(), container.getHeight());
-					((GameRanking) game.getState(Opsu.STATE_GAMERANKING)).setGameData(data);
-					game.enterState(Opsu.STATE_GAMERANKING, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
+					SoundController.playSound(SoundEffect.MENUHIT);
+					if (button != Input.MOUSE_RIGHT_BUTTON) {
+						// view score
+						GameData data = new GameData(focusScores[rank], container.getWidth(), container.getHeight());
+						((GameRanking) game.getState(Opsu.STATE_GAMERANKING)).setGameData(data);
+						game.enterState(Opsu.STATE_GAMERANKING, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
+					} else {
+						// score management
+						((ButtonMenu) game.getState(Opsu.STATE_BUTTONMENU)).setMenuState(MenuState.SCORE, focusScores[rank]);
+						game.enterState(Opsu.STATE_BUTTONMENU);
+					}
 					return;
 				}
 			}
@@ -818,7 +828,7 @@ public class SongMenu extends BasicGameState {
 		// state-based action
 		if (stateAction != null) {
 			switch (stateAction) {
-			case BEATMAP:  // clear scores
+			case BEATMAP:  // clear all scores
 				if (stateActionNode == null || stateActionNode.osuFileIndex == -1)
 					break;
 				OsuFile osu = stateActionNode.osuFiles.get(stateActionNode.osuFileIndex);
@@ -827,6 +837,14 @@ public class SongMenu extends BasicGameState {
 					focusScores = null;
 					scoreMap.remove(osu.version);
 				}
+				break;
+			case SCORE:  // clear single score
+				if (stateActionScore == null)
+					break;
+				ScoreDB.deleteScore(stateActionScore);
+				scoreMap = ScoreDB.getMapSetScores(focusNode.osuFiles.get(focusNode.osuFileIndex));
+				focusScores = getScoreDataForNode(focusNode, true);
+				startScore = 0;
 				break;
 			case BEATMAP_DELETE_CONFIRM:  // delete song group
 				if (stateActionNode == null)
@@ -926,6 +944,7 @@ public class SongMenu extends BasicGameState {
 			}
 			stateAction = null;
 			stateActionNode = null;
+			stateActionScore = null;
 		}
 	}
 
@@ -1061,7 +1080,7 @@ public class SongMenu extends BasicGameState {
 	 * Performs an action based on a menu state upon entering this state.
 	 * @param menuState the menu state determining the action
 	 */
-	public void doStateActionOnLoad(MenuState menuState) { doStateActionOnLoad(menuState, null); }
+	public void doStateActionOnLoad(MenuState menuState) { doStateActionOnLoad(menuState, null, null); }
 
 	/**
 	 * Performs an action based on a menu state upon entering this state.
@@ -1069,8 +1088,28 @@ public class SongMenu extends BasicGameState {
 	 * @param node the song node to perform the action on
 	 */
 	public void doStateActionOnLoad(MenuState menuState, OsuGroupNode node) {
+		doStateActionOnLoad(menuState, node, null);
+	}
+
+	/**
+	 * Performs an action based on a menu state upon entering this state.
+	 * @param menuState the menu state determining the action
+	 * @param scoreData the score data to perform the action on
+	 */
+	public void doStateActionOnLoad(MenuState menuState, ScoreData scoreData) {
+		doStateActionOnLoad(menuState, null, scoreData);
+	}
+
+	/**
+	 * Performs an action based on a menu state upon entering this state.
+	 * @param menuState the menu state determining the action
+	 * @param node the song node to perform the action on
+	 * @param scoreData the score data to perform the action on
+	 */
+	private void doStateActionOnLoad(MenuState menuState, OsuGroupNode node, ScoreData scoreData) {
 		stateAction = menuState;
 		stateActionNode = node;
+		stateActionScore = scoreData;
 	}
 
 	/**

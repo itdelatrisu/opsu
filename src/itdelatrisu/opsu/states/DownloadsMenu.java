@@ -413,7 +413,7 @@ public class DownloadsMenu extends BasicGameState {
 	@Override
 	public void mousePressed(int button, int x, int y) {
 		// check mouse button
-		if (button != Input.MOUSE_LEFT_BUTTON)
+		if (button == Input.MOUSE_MIDDLE_BUTTON)
 			return;
 
 		// block input during beatmap importing

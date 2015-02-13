@@ -23,10 +23,12 @@ import itdelatrisu.opsu.MenuButton;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.OsuGroupList;
 import itdelatrisu.opsu.OsuGroupNode;
+import itdelatrisu.opsu.ScoreData;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.newdawn.slick.Color;
@@ -108,6 +110,17 @@ public class ButtonMenu extends BasicGameState {
 			public void leave(GameContainer container, StateBasedGame game) {
 				Button.RELOAD_CANCEL.click(container, game);
 			}
+		},
+		SCORE (new Button[] { Button.DELETE_SCORE, Button.CLOSE }) {
+			@Override
+			public String[] getTitle(GameContainer container, StateBasedGame game) {
+				return new String[] { "Score Management" };
+			}
+
+			@Override
+			public void leave(GameContainer container, StateBasedGame game) {
+				Button.CLOSE.click(container, game);
+			}
 		};
 
 		/** The buttons in the state. */
@@ -115,6 +128,9 @@ public class ButtonMenu extends BasicGameState {
 
 		/** The associated MenuButton objects. */
 		private MenuButton[] menuButtons;
+
+		/** The actual title string list, generated upon entering the state. */
+		private List<String> actualTitle;
 
 		/** Initial x coordinate offsets left/right of center (for shifting animation), times width. (TODO) */
 		private static final float OFFSET_WIDTH_RATIO = 1 / 18f;
@@ -162,18 +178,11 @@ public class ButtonMenu extends BasicGameState {
 		 */
 		public void draw(GameContainer container, StateBasedGame game, Graphics g) {
 			// draw title
-			String[] title = getTitle(container, game);
-			float c = container.getWidth() * 0.02f;
-			int maxLineWidth = container.getWidth() - (int) (c * 2);
-			int lineHeight = Utils.FONT_LARGE.getLineHeight();
-			for (int i = 0, j = 0; i < title.length; i++, j++) {
-				// wrap text if too long
-				if (Utils.FONT_LARGE.getWidth(title[i]) > maxLineWidth) {
-					List<String> list = Utils.wrap(title[i], Utils.FONT_LARGE, maxLineWidth);
-					for (String str : list)
-						Utils.FONT_LARGE.drawString(c, c + (j++ * lineHeight), str, Color.white);
-				} else
-					Utils.FONT_LARGE.drawString(c, c + (j * lineHeight), title[i], Color.white);
+			if (actualTitle != null) {
+				float c = container.getWidth() * 0.02f;
+				int lineHeight = Utils.FONT_LARGE.getLineHeight();
+				for (int i = 0, size = actualTitle.size(); i < size; i++)
+					Utils.FONT_LARGE.drawString(c, c + (i * lineHeight), actualTitle.get(i), Color.white);
 			}
 
 			// draw buttons
@@ -251,6 +260,19 @@ public class ButtonMenu extends BasicGameState {
 			for (int i = 0; i < buttons.length; i++) {
 				menuButtons[i].setX(center + ((i % 2 == 0) ? centerOffset * -1 : centerOffset));
 				menuButtons[i].resetHover();
+			}
+
+			// create title string list
+			actualTitle = new ArrayList<String>();
+			String[] title = getTitle(container, game);
+			int maxLineWidth = (int) (container.getWidth() * 0.96f);
+			for (int i = 0; i < title.length; i++) {
+				// wrap text if too long
+				if (Utils.FONT_LARGE.getWidth(title[i]) > maxLineWidth) {
+					List<String> list = Utils.wrap(title[i], Utils.FONT_LARGE, maxLineWidth);
+					actualTitle.addAll(list);
+				} else
+					actualTitle.add(title[i]);
 			}
 		}
 
@@ -347,6 +369,21 @@ public class ButtonMenu extends BasicGameState {
 			public void click(GameContainer container, StateBasedGame game) {
 				CANCEL.click(container, game);
 			}
+		},
+		DELETE_SCORE ("Delete score", Color.green) {
+			@Override
+			public void click(GameContainer container, StateBasedGame game) {
+				SoundController.playSound(SoundEffect.MENUHIT);
+				ScoreData scoreData = ((ButtonMenu) game.getState(Opsu.STATE_BUTTONMENU)).getScoreData();
+				((SongMenu) game.getState(Opsu.STATE_SONGMENU)).doStateActionOnLoad(MenuState.SCORE, scoreData);
+				game.enterState(Opsu.STATE_SONGMENU, new EmptyTransition(), new FadeInTransition(Color.black));
+			}
+		},
+		CLOSE ("Close", Color.gray) {
+			@Override
+			public void click(GameContainer container, StateBasedGame game) {
+				CANCEL.click(container, game);
+			}
 		};
 
 		/** The text to show on the button. */
@@ -388,6 +425,9 @@ public class ButtonMenu extends BasicGameState {
 
 	/** The song node to process in the state. */
 	private OsuGroupNode node;
+
+	/** The score data to process in the state. */
+	private ScoreData scoreData;
 
 	// game-related variables
 	private GameContainer container;
@@ -441,7 +481,7 @@ public class ButtonMenu extends BasicGameState {
 	@Override
 	public void mousePressed(int button, int x, int y) {
 		// check mouse button
-		if (button != Input.MOUSE_LEFT_BUTTON)
+		if (button == Input.MOUSE_MIDDLE_BUTTON)
 			return;
 
 		if (menuState != null)
@@ -476,20 +516,41 @@ public class ButtonMenu extends BasicGameState {
 	 * Changes the menu state.
 	 * @param menuState the new menu state
 	 */
-	public void setMenuState(MenuState menuState) { setMenuState(menuState, null); }
+	public void setMenuState(MenuState menuState) { setMenuState(menuState, null, null); }
 
 	/**
 	 * Changes the menu state.
 	 * @param menuState the new menu state
 	 * @param node the song node to process in the state
 	 */
-	public void setMenuState(MenuState menuState, OsuGroupNode node) {
+	public void setMenuState(MenuState menuState, OsuGroupNode node) { setMenuState(menuState, node, null); }
+
+	/**
+	 * Changes the menu state.
+	 * @param menuState the new menu state
+	 * @param scoreData the score scoreData
+	 */
+	public void setMenuState(MenuState menuState, ScoreData scoreData) { setMenuState(menuState, null, scoreData); }
+
+	/**
+	 * Changes the menu state.
+	 * @param menuState the new menu state
+	 * @param node the song node to process in the state
+	 * @param scoreData the score scoreData
+	 */
+	private void setMenuState(MenuState menuState, OsuGroupNode node, ScoreData scoreData) {
 		this.menuState = menuState;
 		this.node = node;
+		this.scoreData = scoreData;
 	}
 
 	/**
 	 * Returns the song node being processed, or null if none.
 	 */
-	public OsuGroupNode getNode() { return node; }
+	private OsuGroupNode getNode() { return node; }
+
+	/**
+	 * Returns the score data being processed, or null if none.
+	 */
+	private ScoreData getScoreData() { return scoreData; }
 }
