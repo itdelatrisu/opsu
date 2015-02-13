@@ -31,6 +31,7 @@ import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
+import itdelatrisu.opsu.states.ButtonMenu.MenuState;
 
 import java.awt.Desktop;
 import java.io.IOException;
@@ -417,7 +418,8 @@ public class MainMenu extends BasicGameState {
 		switch (key) {
 		case Input.KEY_ESCAPE:
 		case Input.KEY_Q:
-			game.enterState(Opsu.STATE_MAINMENUEXIT);
+			((ButtonMenu) game.getState(Opsu.STATE_BUTTONMENU)).setMenuState(MenuState.EXIT);
+			game.enterState(Opsu.STATE_BUTTONMENU);
 			break;
 		case Input.KEY_P:
 			if (!logoClicked) {

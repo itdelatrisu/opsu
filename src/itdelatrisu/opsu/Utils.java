@@ -29,11 +29,13 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 
 import javax.imageio.ImageIO;
 
@@ -184,7 +186,7 @@ public class Utils {
 			Font font    = javaFont.deriveFont(Font.PLAIN, (int) (fontBase * 4 / 3));
 			FONT_DEFAULT = new UnicodeFont(font);
 			FONT_BOLD    = new UnicodeFont(font.deriveFont(Font.BOLD));
-			FONT_XLARGE  = new UnicodeFont(font.deriveFont(fontBase * 4));
+			FONT_XLARGE  = new UnicodeFont(font.deriveFont(fontBase * 3));
 			FONT_LARGE   = new UnicodeFont(font.deriveFont(fontBase * 2));
 			FONT_MEDIUM  = new UnicodeFont(font.deriveFont(fontBase * 3 / 2));
 			FONT_SMALL   = new UnicodeFont(font.deriveFont(fontBase));
@@ -797,4 +799,43 @@ public class Utils {
 		// delete the directory
 		dir.delete();
 	}
+
+	/**
+	 * Wraps the given string into a list of split lines based on the width.
+	 * @param text the text to split
+	 * @param font the font used to draw the string
+	 * @param width the maximum width of a line
+	 * @return the list of split strings
+	 * @author davedes (http://slick.ninjacave.com/forum/viewtopic.php?t=3778)
+	 */
+	public static List<String> wrap(String text, org.newdawn.slick.Font font, int width) {
+		List<String> list = new ArrayList<String>();
+		String str = text;
+		String line = "";
+		int i = 0;
+		int lastSpace = -1;
+		while (i < str.length()) {
+			char c = str.charAt(i);
+			if (Character.isWhitespace(c))
+				lastSpace = i;
+			String append = line + c;
+			if (font.getWidth(append) > width) {
+				int split = (lastSpace != -1) ? lastSpace : i;
+				int splitTrimmed = split;
+				if (lastSpace != -1 && split < str.length() - 1)
+					splitTrimmed++;
+				list.add(str.substring(0, split));
+				str = str.substring(splitTrimmed);
+				line = "";
+				i = 0;
+				lastSpace = -1;
+			} else {
+				line = append;
+				i++;
+			}
+		}
+		if (str.length() != 0)
+			list.add(str);
+		return list;
+    }
 }

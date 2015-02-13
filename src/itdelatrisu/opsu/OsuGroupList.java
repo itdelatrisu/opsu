@@ -177,6 +177,7 @@ public class OsuGroupList {
 			if (audioFile != null && audioFile.equals(osu.audioFilename)) {
 				MusicController.reset();
 				System.gc();  // TODO: why can't files be deleted without calling this?
+				              // TODO 2: this is broken as of 800014e
 			}
 		}
 

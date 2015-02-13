@@ -20,12 +20,12 @@ package itdelatrisu.opsu;
 
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.downloads.DownloadList;
+import itdelatrisu.opsu.states.ButtonMenu;
 import itdelatrisu.opsu.states.DownloadsMenu;
 import itdelatrisu.opsu.states.Game;
 import itdelatrisu.opsu.states.GamePauseMenu;
 import itdelatrisu.opsu.states.GameRanking;
 import itdelatrisu.opsu.states.MainMenu;
-import itdelatrisu.opsu.states.MainMenuExit;
 import itdelatrisu.opsu.states.OptionsMenu;
 import itdelatrisu.opsu.states.SongMenu;
 import itdelatrisu.opsu.states.Splash;
@@ -59,7 +59,7 @@ public class Opsu extends StateBasedGame {
 	public static final int
 		STATE_SPLASH        = 0,
 		STATE_MAINMENU      = 1,
-		STATE_MAINMENUEXIT  = 2,
+		STATE_BUTTONMENU    = 2,
 		STATE_SONGMENU      = 3,
 		STATE_GAME          = 4,
 		STATE_GAMEPAUSEMENU = 5,
@@ -82,7 +82,7 @@ public class Opsu extends StateBasedGame {
 	public void initStatesList(GameContainer container) throws SlickException {
 		addState(new Splash(STATE_SPLASH));
 		addState(new MainMenu(STATE_MAINMENU));
-		addState(new MainMenuExit(STATE_MAINMENUEXIT));
+		addState(new ButtonMenu(STATE_BUTTONMENU));
 		addState(new SongMenu(STATE_SONGMENU));
 		addState(new Game(STATE_GAME));
 		addState(new GamePauseMenu(STATE_GAMEPAUSEMENU));
