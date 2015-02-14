@@ -39,7 +39,7 @@ public class GameContainer {
 		Gdx.app.exit();
 	}
 
-	public void close_sub() {
+	private void close_sub() {
 		// TODO Auto-generated method stub
 		
 	}

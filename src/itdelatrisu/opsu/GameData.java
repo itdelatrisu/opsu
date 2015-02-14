@@ -562,13 +562,13 @@ public class GameData {
 		int hitErrorY = 30;
 		Iterator<ErrorInfo> iter2 = errorRateList.iterator();
 		g.setColor(Color.black);
-		g.fillRect(width/2f-3-hitResultOffset[GameScore.HIT_50], height-marginX-hitErrorY-10,hitResultOffset[GameScore.HIT_50]*2,20);
+		g.fillRect(width/2f-3-hitResultOffset[HIT_50], height-marginX-hitErrorY-10,hitResultOffset[HIT_50]*2,20);
 		g.setColor(Color.lightorange);
-		g.fillRect(width/2f-3-hitResultOffset[GameScore.HIT_50], height-marginX-hitErrorY-3,hitResultOffset[GameScore.HIT_50]*2,6);
+		g.fillRect(width/2f-3-hitResultOffset[HIT_50], height-marginX-hitErrorY-3,hitResultOffset[HIT_50]*2,6);
 		g.setColor(Color.lightgreen);
-		g.fillRect(width/2f-3-hitResultOffset[GameScore.HIT_100], height-marginX-hitErrorY-3,hitResultOffset[GameScore.HIT_100]*2,6);
+		g.fillRect(width/2f-3-hitResultOffset[HIT_100], height-marginX-hitErrorY-3,hitResultOffset[HIT_100]*2,6);
 		g.setColor(Color.lightblue);
-		g.fillRect(width/2f-3-hitResultOffset[GameScore.HIT_300], height-marginX-hitErrorY-3,hitResultOffset[GameScore.HIT_300]*2,6);
+		g.fillRect(width/2f-3-hitResultOffset[HIT_300], height-marginX-hitErrorY-3,hitResultOffset[HIT_300]*2,6);
 		g.setColor(Color.white);
 		g.drawRect(width/2f-3, height-marginX-hitErrorY-10, 6, 20);
 		while (iter2.hasNext()) {

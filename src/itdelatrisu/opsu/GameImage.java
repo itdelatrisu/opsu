@@ -18,8 +18,6 @@
 
 package itdelatrisu.opsu;
 
-import itdelatrisu.opsu.states.SongMenu;
-
 import fluddokt.opsu.fake.*;
 
 import itdelatrisu.opsu.states.SongMenu;

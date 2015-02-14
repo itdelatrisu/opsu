@@ -41,7 +41,8 @@ import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.state.transition.FadeInTransition;
-import org.newdawn.slick.state.transition.FadeOutTransition;*/
+import org.newdawn.slick.state.transition.FadeOutTransition;
+*/
 
 /**
  * "Game Ranking" (score card) state.
@@ -68,7 +69,8 @@ public class GameRanking extends BasicGameState {
 	}
 
 	@Override
-	public void init(GameContainer container, StateBasedGame game) {
+	public void init(GameContainer container, StateBasedGame game)
+			throws SlickException {
 		this.game = game;
 		this.input = container.getInput();
 
@@ -169,7 +171,8 @@ public class GameRanking extends BasicGameState {
 	}
 
 	@Override
-	public void enter(GameContainer container, StateBasedGame game) {
+	public void enter(GameContainer container, StateBasedGame game)
+			throws SlickException {
 		Display.setTitle(game.getTitle());
 		Utils.getBackButton().resetHover();
 		if (!data.isGameplay()) {

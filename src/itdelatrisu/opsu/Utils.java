@@ -23,10 +23,11 @@ import fluddokt.opsu.fake.*;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
 import itdelatrisu.opsu.downloads.DownloadNode;
-
-//import java.awt.Font;
-//import java.awt.image.BufferedImage;
-//import java.io.File;
+/*
+import java.awt.Font;
+import java.awt.image.BufferedImage;
+import java.io.File;
+ */
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
@@ -38,10 +39,10 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-
+/*
 import javax.imageio.ImageIO;
 
-/*
+
 import org.lwjgl.BufferUtils;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.input.Cursor;
@@ -144,7 +145,7 @@ public class Utils {
 	 * Initializes game settings and class data.
 	 * @param container the game container
 	 * @param game the game object
-	 * @throws SlickException 
+	 * @throws SlickException
 	 */
 	public static void init(GameContainer container, StateBasedGame game)
 			throws SlickException {
@@ -664,7 +665,8 @@ public class Utils {
 					ErrorHandler.error("Failed to take a screenshot.", e, true);
 				}
 			}
-		}.start();*/
+		}.start();
+		*/
 	}
 
 	/**

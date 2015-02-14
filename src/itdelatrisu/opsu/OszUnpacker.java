@@ -51,20 +51,14 @@ public class OszUnpacker {
 	public static File[] unpackAllFiles(File root, File dest) {
 		List<File> dirs = new ArrayList<File>();
 
-		System.out.println("OSZ unpackfiles "+root.getAbsolutePath()+" "+dest.getAbsolutePath());
 		// find all OSZ files
-		if(root == null || dest == null){
-			System.out.println("root or dest null "+root+" "+dest );
-		}
 		files = root.listFiles(new FilenameFilter() {
 			@Override
 			public boolean accept(java.io.File dir, String name) {
 				return name.toLowerCase().endsWith(".osz");
 			}
 		});
-		
 		if (files == null || files.length < 1) {
-			System.out.println("unpackAllFiles failed "+files.length );
 			files = null;
 			return new File[0];
 		}
@@ -74,7 +68,6 @@ public class OszUnpacker {
 			fileIndex++;
 			String dirName = file.getName().substring(0, file.getName().lastIndexOf('.'));
 			File songDir = new File(dest, dirName);
-			System.out.println("OSZ unpack :"+dirName+" "+songDir+" notExist:"+!songDir.isDirectory());
 			if (!songDir.isDirectory()) {
 				songDir.mkdir();
 			}

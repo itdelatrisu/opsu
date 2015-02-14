@@ -85,8 +85,7 @@ public class Container extends AppGameContainer {
 	/**
 	 * Actions to perform before destroying the game container.
 	 */
-	@Override
-	public void close_sub() {
+	private void close_sub() {
 		// save user options
 		Options.saveOptions();
 
@@ -115,8 +114,6 @@ public class Container extends AppGameContainer {
 			throw e;     // re-throw exception
 		}
 	}
-
-
 
 	@Override
 	public void exit() {

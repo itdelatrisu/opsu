@@ -27,8 +27,9 @@ import itdelatrisu.opsu.OsuGroupList;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.downloads.Download.Status;
 
-//import java.io.File;
 /*
+import java.io.File;
+
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
@@ -233,8 +234,9 @@ public class DownloadNode {
 	public void createDownload(DownloadServer server) {
 		if (download == null) {
 			//String path = String.format("%s%c%d", Options.getOSZDir(), File.separatorChar, beatmapSetID);
+			File path =  new File(Options.getOSZDir(),Integer.toString(beatmapSetID));
 			String rename = String.format("%d %s - %s.osz", beatmapSetID, artist, title);
-			this.download = new Download(server.getURL(beatmapSetID), new File(Options.getOSZDir(),beatmapSetID+""), rename);
+			this.download = new Download(server.getURL(beatmapSetID), path, rename);
 		}
 	}
 

@@ -171,7 +171,6 @@ public class Circle implements HitObject {
 				data.hitResult(time, GameData.HIT_300, x, y, color, comboEnd, hitSound);
 
 			else  // no more points can be scored, so send a miss
-				//score.hitResult(time, GameScore.HIT_MISS, x, y, color, comboEnd, hitSound);
 				data.hitResult(time, GameData.HIT_MISS, x, y, null, comboEnd, hitSound);
 			return true;
 		}

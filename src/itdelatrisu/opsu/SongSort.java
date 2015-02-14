@@ -26,7 +26,8 @@ import java.util.Comparator;
 
 /*
 import org.newdawn.slick.Color;
-import org.newdawn.slick.Image;*/
+import org.newdawn.slick.Image;
+*/
 
 /**
  * OsuGroupNode sorts.
@@ -77,20 +78,6 @@ public enum SongSort {
 	 * @param sort the new sort
 	 */
 	public static void setSort(SongSort sort) { SongSort.currentSort = sort; }
-
-	/**
-	 * Draws all sort tabs.
-	 */
-	public static void drawAll() {
-		Image tabImage = currentSort.tab.getImage();
-		float tabTextY = currentSort.tab.getY() - (tabImage.getHeight() / 2f);
-		for (SongSort sort : VALUES_REVERSED) {
-			float tabTextX = sort.tab.getX() - (Utils.FONT_MEDIUM.getWidth(sort.name) / 2);
-			tabImage.setAlpha((sort == currentSort) ? 1.0f : 0.7f);
-			sort.tab.draw();
-			Utils.FONT_MEDIUM.drawString(tabTextX, tabTextY, sort.name, Color.white);
-		}
-	}
 
 	/**
 	 * Compares two OsuGroupNode objects by title.
@@ -152,13 +139,12 @@ public enum SongSort {
 		}
 	}
 	/**
-	 * Compares two OsuGroupNode objects by length.
-	 * Uses the longest beatmap in each set for comparison.
+	 * Compares two OsuGroupNode randomly
 	 */
 	private static class RandOrder implements Comparator<OsuGroupNode> {
 		@Override
 		public int compare(OsuGroupNode v, OsuGroupNode w) {
-			return v.randNum - w.randNum;
+			return Integer2.compare(v.randNum, w.randNum);
 		}
 	}
 
@@ -217,4 +203,3 @@ public enum SongSort {
 		Utils.drawTab(tab.getX(), tab.getY(), name, selected, isHover);
 	}
 }
-

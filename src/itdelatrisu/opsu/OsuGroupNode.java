@@ -160,8 +160,7 @@ public class OsuGroupNode {
 			osu.creator.toLowerCase().contains(query) ||
 			osu.source.toLowerCase().contains(query) ||
 			osu.version.toLowerCase().contains(query) ||
-			osu.tags.contains(query)
-			)
+			osu.tags.contains(query))
 			return true;
 
 		// search: version, tags (remaining OsuFiles)

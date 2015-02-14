@@ -32,10 +32,12 @@ import itdelatrisu.opsu.OsuGroupNode;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
-import itdelatrisu.opsu.audio.SoundEffect;import itdelatrisu.opsu.states.ButtonMenu.MenuState;
+import itdelatrisu.opsu.audio.SoundEffect;
+import itdelatrisu.opsu.states.ButtonMenu.MenuState;
 
-
-//import java.awt.Desktop;
+/*
+import java.awt.Desktop;
+*/
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;

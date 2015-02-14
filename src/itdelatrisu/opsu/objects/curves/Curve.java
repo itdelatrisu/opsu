@@ -20,10 +20,10 @@ package itdelatrisu.opsu.objects.curves;
 
 import itdelatrisu.opsu.OsuHitObject;
 
+import fluddokt.opsu.fake.*;
 /*
 import org.newdawn.slick.Color;
 */
-import fluddokt.opsu.fake.*;
 
 
 /**

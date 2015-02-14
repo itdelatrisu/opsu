@@ -42,11 +42,9 @@ import itdelatrisu.opsu.objects.HitObject;
 import itdelatrisu.opsu.objects.Slider;
 import itdelatrisu.opsu.objects.Spinner;
 
-
-
-
-
-//import java.io.File;
+/*
+import java.io.File;
+*/
 import java.util.Stack;
 import java.util.concurrent.TimeUnit;
 /*
@@ -633,7 +631,6 @@ public class Game extends BasicGameState {
 
 	@Override
 	public void mousePressed(int button, int x, int y) {
-		//System.out.println("gameMousePressed"+" "+x+" "+y+" "+button);
 		if (button == Input.MOUSE_MIDDLE_BUTTON)
 			return;
 

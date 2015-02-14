@@ -199,7 +199,6 @@ public class OsuFile implements Comparable<OsuFile> {
 	 * Destroys all cached background images and resets the cache.
 	 */
 	public static void clearImageCache() {
-		System.out.println("Clear Image Cache");
 		for (Image img : bgImageMap.values()) {
 			if (img != null && !img.isDestroyed()) {
 				try {
@@ -264,7 +263,6 @@ public class OsuFile implements Comparable<OsuFile> {
 		if (bg == null)
 			return false;
 		try {
-			
 			Image bgImage = bgImageMap.get(this);
 			if (bgImage == null) {
 				if (bgImageMap.size() > MAX_CACHE_SIZE)

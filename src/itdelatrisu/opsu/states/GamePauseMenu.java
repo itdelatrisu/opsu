@@ -19,6 +19,7 @@
 package itdelatrisu.opsu.states;
 
 import fluddokt.opsu.fake.*;
+
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.MenuButton;
 import itdelatrisu.opsu.Opsu;
@@ -37,7 +38,8 @@ import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.state.transition.FadeInTransition;
-import org.newdawn.slick.state.transition.FadeOutTransition;*/
+import org.newdawn.slick.state.transition.FadeOutTransition;
+*/
 
 /**
  * "Game Pause/Fail" state.
@@ -69,7 +71,8 @@ public class GamePauseMenu extends BasicGameState {
 	}
 
 	@Override
-	public void init(GameContainer container, StateBasedGame game) {
+	public void init(GameContainer container, StateBasedGame game)
+			throws SlickException {
 		this.container = container;
 		this.game = game;
 		this.input = container.getInput();

@@ -139,7 +139,7 @@ public class Slider implements HitObject {
 		this.data = data;
 		this.color = color;
 		this.comboEnd = comboEnd;
-		
+
 		if (hitObject.getSliderType() == 'P' && hitObject.getSliderX().length == 2)
 			this.curve = new CircumscribedCircle(hitObject, color);
 		else
@@ -452,4 +452,3 @@ public class Slider implements HitObject {
 		}
 	}
 }
-
