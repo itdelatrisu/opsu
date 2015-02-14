@@ -46,9 +46,6 @@ public class MusicJL extends AbsMusic {
 		}
 		public void setVolume(float nvolume) {
 			volume = nvolume;
-			//if(ad!=null)
-			//	ad.setVolume(volume);
-			
 		}
 		public void stopPlaying(){
 			inited = false;
@@ -58,9 +55,7 @@ public class MusicJL extends AbsMusic {
 			
 		}
 		public void pause(){
-			//System.out.println("MusicJL pause");
 			inited = false;
-		
 			paused = true;
 		}
 		public void resumePlaying(){
@@ -73,16 +68,14 @@ public class MusicJL extends AbsMusic {
 		}
 		public void play(){
 			//System.out.println("MusicJL play");
-				paused = false;
-				toStop = false;
+			paused = false;
+			toStop = false;
 		}
 		public void run(){
 			try {
 				System.out.println("MusicJL Running Thread play "+file.path());
 				bitstream = new Bitstream(
-						//new FileInputStream(path));
-					//new java.io.BufferedInputStream(
-							file.read()
+								file.read()
 						//	)
 				);
 				position = 0;
@@ -112,8 +105,7 @@ public class MusicJL extends AbsMusic {
 								header = bitstream.readFrame();
 							}
 							while(position < nextPosition){
-								//System.out.println("Next Positioning2: "+position+" "+nextPosition);
-								bitstream.closeFrame();
+									bitstream.closeFrame();
 								header = bitstream.readFrame();
 								position+=header.ms_per_frame();
 								
@@ -161,7 +153,7 @@ public class MusicJL extends AbsMusic {
 								
 								
 								ad = Gdx.audio.newAudioDevice(sampleRate, channels==1);
-								
+
 								//write 0's to start with to get rid of garbage
 								ad.writeSamples(new short[4096], 0, 4096);
 								System.out.println("Latency: "+ad.getLatency()+" sr:"+sampleRate);
@@ -172,14 +164,11 @@ public class MusicJL extends AbsMusic {
 								int len = buf.reset()/2;
 								
 								ad.setVolume(volume);
-								//header.
 								posUpdateTime = TimeUtils.millis();
-								//System.out.println("Info:"+header+" "+" "+len+" "+ad.getLatency()+" "+volume+" "+TimeUtils.millis());
-								System.out.print(""); //magic: fixes audio in vm linux 
-								//Thread.sleep(1);
-								if(len>0)
+								if(len>0){
 									ad.writeSamples(buf.buffer2, 0, len);//buf.channelPointer2[0]);
-								audioUsed = true;
+									audioUsed = true;
+								}
 								
 								position+= 1000f*len/channels/sampleRate;// header.frequency();//header.ms_per_frame();
 								bitstream.closeFrame();
@@ -215,9 +204,6 @@ public class MusicJL extends AbsMusic {
 		
 		if(playThread==null || playThread.toStop)
 			playThread = new PlayThread();
-		//if(!playThread.started)
-		//	playThread.start();
-		
 		
 	}
 	@Override
@@ -254,7 +240,7 @@ public class MusicJL extends AbsMusic {
 
 	@Override
 	public String getName() {
-		return file.path();
+		return file!=null?file.path():"NULL";
 	}
 	@Override
 	public void pause() {
@@ -284,49 +270,15 @@ public class MusicJL extends AbsMusic {
 		playThread.stopPlaying();
 	}
 
-	/*float lastPosition = 0;//music.getPosition();
-	float lastUpdatePosition = 0;
-	long lastTime = TimeUtils.millis();
-	long lastUpdateTime = TimeUtils.millis();
-	float deltaTime=0;
-	float avgDiff;*/
+	
 	@Override
 	public float getPosition() {
-		/*float thisPosition = playThread.getPosition();
-		long thisTime = TimeUtils.millis();
-		//float dxPosition =  thisPosition - lastPosition;
-		float dxPosition2 =  thisPosition - lastUpdatePosition;
 		
-		float syncPosition = (thisPosition);//;
-		long dxTime = thisTime - lastTime;
-		
-		//Whenever the time changes check the difference between that and our current time
-		//sync our time to song time
-		if(Math.abs(syncPosition - dxTime/1000f)>1/10f){
-			lastTime = thisTime - ((long)(syncPosition*1000));
-			dxTime = thisTime - lastTime;
-			System.out.println("Time HARD Reset"+" "+syncPosition+" "+(dxTime/1000f) 
-					+" " +(int)(syncPosition*1000-(dxTime)) 
-					+" " +(int)(syncPosition*1000-(thisTime - lastTime)) 
-				);
-		}
-		if((int)(dxPosition2*1000)!=0){// && thisTime-lastUpdateTime>8
-			float diff = thisPosition*1000-(dxTime);
-			avgDiff = (diff+avgDiff*9)/10;
-			lastTime-=(int)(avgDiff/4);
-			if((int)(avgDiff/4)>1)
-				System.out.println("getPosition: mpos:"+thisPosition+"\t "+(dxTime/1000f)+"\t "+(int)(thisPosition*1000-(dxTime))+"\t "+(int)avgDiff+"\t "+lastTime);
-			dxTime = thisTime - lastTime;
-			lastUpdatePosition = thisPosition;
-			lastUpdateTime = thisTime;
-		}
-		
-		return dxTime/1000f;*/
 		return playThread.getPosition();
 	}
 
 	@Override
-	public void dispose() {
+	public void dispose() {	
 		
 		System.out.println("dispose "+(file!=null?file.path():"null"));
 		try {
@@ -336,21 +288,17 @@ public class MusicJL extends AbsMusic {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-		try {
-			if(ad!=null){
-				if(audioUsed)
-					ad.dispose();
-				
-			}
-		} catch (Exception e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
+	
+		if(ad!=null){
+			if(audioUsed)
+				ad.dispose();
+			
 		}
+		
 		if(bitstream!=null){
 			try {
 				bitstream.close();
 			} catch (BitstreamException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}

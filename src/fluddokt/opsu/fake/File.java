@@ -5,20 +5,10 @@ import java.io.BufferedReader;
 
 
 import java.io.BufferedWriter;
-//import java.io.File;
 import java.io.FileFilter;
 import java.io.FilenameFilter;
-import java.io.IOException;
-import java.net.URI;
-import java.nio.file.FileSystem;
-import java.nio.file.LinkOption;
-import java.nio.file.Path;
-import java.nio.file.WatchKey;
-import java.nio.file.WatchService;
-import java.nio.file.WatchEvent.Kind;
-import java.nio.file.WatchEvent.Modifier;
-import java.util.Iterator;
 
+import com.badlogic.gdx.Application.ApplicationType;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Files.FileType;
 import com.badlogic.gdx.files.FileHandle;
@@ -29,13 +19,19 @@ public class File {
 	FileHandle fh;
 
 	public File(String name) {
-		fh = Gdx.files.external(name);
+		if(Gdx.app.getType() == ApplicationType.Desktop)
+			fh = Gdx.files.local(name);
+		else
+			fh = Gdx.files.external(name);
 		if(!fh.exists()){
 			fh = Gdx.files.absolute(name);
 			if(!fh.exists()){
-				fh = Gdx.files.local(name);
+				Gdx.files.local(name);
 				if(!fh.exists()){
-					fh = Gdx.files.external(name);
+					fh = Gdx.files.internal(name);
+					if(!fh.exists()){
+						fh = Gdx.files.external(name);
+					}
 				}
 			}
 		}
@@ -65,8 +61,6 @@ public class File {
 			par = Gdx.files.getLocalStoragePath();
 		else if(fh.type() == FileType.External)
 			par = Gdx.files.getExternalStoragePath();
-		//else if(fh.type() == FileType.Internal)
-		//	par = Gdx.files.g
 		else
 			par = "";
 		return par+fh.path();
@@ -133,8 +127,6 @@ public class File {
 
 	public void delete() {
 		fh.delete();
-		// TODO Auto-generated method stub
-		
 	}
 
 	public void deleteOnExit() {
@@ -148,7 +140,6 @@ public class File {
 	}
 
 	public boolean mkdir() {
-		// TODO Auto-generated method stub
 		fh.mkdirs();
 		return true;
 	}

@@ -113,7 +113,7 @@ public class Image {
 					//&&false
 					){
 				//System.out.println("Creating Image align 4 "+pw+" "+ph+" "+pw4+" "+ph4);
-				Pixmap p2 = new Pixmap(pw4, ph4, p.getFormat());
+				Pixmap p2 = new Pixmap(pw4, ph4, Format.RGBA8888);
 				Pixmap.setBlending(Pixmap.Blending.None);
 				p2.drawPixmap(p, 0, 0);
 				p.dispose();
@@ -239,9 +239,9 @@ public class Image {
 		
 		float dx = copy.tex.getRegionWidth()/(float)copy.width;
 		float dy = copy.tex.getRegionHeight()/(float)copy.height;
-		tex = new TextureRegion(copy.tex, (int)(x*dy), (int)(y*dy), (int)(wid*dx), (int)(hei*dy));
-		width=(int)(tex.getRegionWidth()/dx);
-		height=(int)(tex.getRegionHeight()/dy);
+		tex = new TextureRegion(copy.tex, Math.round(x*dy), Math.round(y*dy), Math.round(wid*dx), Math.round(hei*dy));
+		width=(tex.getRegionWidth()/dx);
+		height=(tex.getRegionHeight()/dy);
 		filename = copy.filename;
 		name = copy.name+" r "+x+" "+y+" "+wid+" "+hei;
 	}

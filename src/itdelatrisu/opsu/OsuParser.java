@@ -69,17 +69,7 @@ public class OsuParser {
 		// create a new OsuGroupList
 		OsuGroupList.create();
 
-		//FileHandle gh;
-		//gh.
-		/*File fh;
-		fh = File.internal("Songs");
-		System.out.println("parseAllFiles: internal"+fh+" "+fh.exists()+" "+fh.getPath());
-		fh =  File.local("Songs");
-		System.out.println("parseAllFiles: local"+fh+" "+fh.exists()+" "+fh.getPath());
-		fh =  File.external("Songs");
-		System.out.println("parseAllFiles: external"+fh+" "+fh.exists()+" "+fh.getPath());
-		*/
-		//fh.
+		System.out.println("parseAllFiles root: "+root.getAbsolutePath());
 		// parse all directories
 		parseDirectories(root.listFiles());
 	}
@@ -92,34 +82,13 @@ public class OsuParser {
 	 */
 	public static OsuGroupNode parseDirectories(File[] dirs) {
 		// progress tracking
-		
-		//FileHandle songsF = Gdx.files.external(".");
-		
-		
-		File songsFile;// = Gdx.files.external("Songs");
-		/*songsFile = File.local("Songs");
-		System.out.println("parseAllFiles: local"+songsFile+" "+songsFile.exists()+" "+songsFile.getPath());
-		if(!songsFile.exists()){
-			songsFile = File.external("Songs");
-			System.out.println("parseAllFiles: external"+songsFile+" "+songsFile.exists()+" "+songsFile.getPath());
-		}
-		if(!songsFile.exists()){
-			songsFile = File.internal("Songs");
-			System.out.println("parseAllFiles: internal"+songsFile+" "+songsFile.exists()+" "+songsFile.getPath());
-		}*/
-		
 		currentDirectoryIndex = 0;
-		/*if(folders == null){
-			System.out.println("parseAllFiles folders are null");
-			return;
-		}*/
 		totalDirectories = dirs.length;
 
-		//System.out.println("OsuParser TotalDir:"+totalDirectories+" exists:"+songsFile.exists()+" isDir"+songsFile.isDirectory()+" "+songsFile.listFiles()+" "+songsFile.getPath()+" "+songsFile.getName());
 		// parse directories
 		OsuGroupNode lastNode = null;
 		for (File dir : dirs) {
-			//System.out.println("OsuParser Folder:"+folder);
+			System.out.println("OsuParser Folder:"+dir);
 			currentDirectoryIndex++;
 			if (!dir.isDirectory())
 				continue;
@@ -592,7 +561,6 @@ public class OsuParser {
 					// set combo info
 					// - new combo: get next combo index, reset combo number
 					// - else:      maintain combo index, increase combo number
-
 					if ((hitObject.isNewCombo() && !hitObject.isSpinner()) || objectIndex == 0) {
 						comboIndex = (comboIndex + 1) % osu.combo.length;
 						comboNumber = 1;

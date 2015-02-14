@@ -146,6 +146,8 @@ public class Download {
 					conn.setReadTimeout(READ_TIMEOUT);
 					conn.setUseCaches(false);
 					contentLength = conn.getContentLength();
+					if(contentLength<0)
+						throw new IOException("Negative content length");
 				} catch (IOException e) {
 					status = Status.ERROR;
 					ErrorHandler.error("Failed to open connection.", e, false);

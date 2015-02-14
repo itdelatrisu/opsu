@@ -1,9 +1,6 @@
 package fluddokt.opsu.fake;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-
-import sun.font.TrueTypeFont;
 
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Pixmap;
@@ -17,11 +14,9 @@ import com.badlogic.gdx.graphics.g2d.freetype.FreeType.Face;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeType.GlyphMetrics;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeType.GlyphSlot;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeType.Library;
-import com.badlogic.gdx.graphics.g2d.freetype.FreeType.Size;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeType.SizeMetrics;
 import com.badlogic.gdx.graphics.glutils.PixmapTextureData;
 import com.badlogic.gdx.utils.GdxRuntimeException;
-import com.sun.corba.se.impl.ior.ByteBuffer;
 
 class DynamicFreeType{
 	FileHandle handle;
@@ -32,11 +27,10 @@ class DynamicFreeType{
 	int ascent,descent,height;
 	public DynamicFreeType(FileHandle font, Font fontParam) {
 		this.fontParam = fontParam;
-		String filePath = font.pathWithoutExtension();
 		Library library = FreeType.initFreeType();
 		if (library == null) throw new GdxRuntimeException("Couldn't initialize FreeType");
 		face = FreeType.newFace(library, font, 0);
-		//face.
+		
 		if (face == null) throw new GdxRuntimeException("Couldn't create face for font '" + font + "'");
 		
 		
@@ -72,9 +66,6 @@ class DynamicFreeType{
 		public int xoffset;
 	}
 	public void draw(SpriteBatch batch, String str, float x, float y) {
-		// TODO Auto-generated method stub
-		//if(curTexture!=null)
-		//	batch.draw(curTexture,0,thiscnt*64);
 		char prevchr = 0;
 		for(int i=0; i<str.length(); i++){
 			char thischr = str.charAt(i);
@@ -101,7 +92,6 @@ class DynamicFreeType{
 		}
 	}
 	private float to26p6float(int n){
-		//System.out.println(n+" "+(1<<6));
 		return n/(float)(1<<6);
 	}
 	private CharInfo getCharInfo(char charAt) {
@@ -116,21 +106,27 @@ class DynamicFreeType{
 	int x,y,maxHeight;
 	public CharInfo addChar(char c){
 		FreeType.loadChar(face, c, 
-				FreeType.
-				//FT_LOAD_RENDER
-				//FT_LOAD_TARGET_LIGHT
-				FT_LOAD_DEFAULT
+				
+				//FreeType.FT_LOAD_RENDER
+				//FreeType.FT_LOAD_DEFAULT
+				//FreeType.FT_LOAD_RENDER
+				fontParam.size<16 ?
+					FreeType.FT_LOAD_DEFAULT
+					:
+					FreeType.FT_LOAD_NO_HINTING
+					//|FreeType.FT_LOAD_NO_BITMAP
+					//FreeType.FT_LOAD_NO_AUTOHINT
 				);// FT_LOAD_MONOCHROME FT_RENDER_MODE_LIGHT
 		GlyphSlot slot = face.getGlyph();
 		FreeType.renderGlyph(slot, FreeType.FT_RENDER_MODE_LIGHT);
 		Bitmap bitmap = slot.getBitmap();
-		//java.nio.ByteBuffer b = bitmap.getBuffer();
 		
 		//System.out.println("Pixel Mode "+bitmap.getPixelMode());
 		Pixmap pixmap;
 		if(bitmap.getPixelMode() == FreeType.FT_PIXEL_MODE_GRAY){
-			pixmap = bitmap.getPixmap(Format.RGBA8888);
-			/*pixmap = new Pixmap(bitmap.getWidth(),bitmap.getRows(),Format.RGBA8888);
+			//pixmap = bitmap.getPixmap(Format.RGBA8888);
+			//*
+			pixmap = new Pixmap(bitmap.getWidth(),bitmap.getRows(),Format.RGBA8888);
 			java.nio.ByteBuffer rbuf = bitmap.getBuffer();
 			java.nio.ByteBuffer wbuf = pixmap.getPixels();
 			
@@ -139,7 +135,7 @@ class DynamicFreeType{
 					byte curbyte = rbuf.get();
 					wbuf.putInt((curbyte&0xff) | 0xffffff00);
 				}
-			}*/
+			}//*/
 			
 		}else if(bitmap.getPixelMode() == FreeType.FT_PIXEL_MODE_MONO){
 			pixmap = new Pixmap(bitmap.getWidth(),bitmap.getRows(),Format.RGBA8888);

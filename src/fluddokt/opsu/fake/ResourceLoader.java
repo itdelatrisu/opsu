@@ -25,20 +25,24 @@ public class ResourceLoader {
 			return fh;
 		}
 		for(FileSystemLocation t: loc){
-			FileHandle child =  Gdx.files.local(t.f.getPath()).child(file);
-			if(child.exists()){
-				System.out.println("FOUNDED");
-				return child;
-			}
+			FileHandle child;
+			
 			child =  Gdx.files.internal(t.f.getPath()).child(file);
 			if(child.exists()){
-				System.out.println("FOUNDED");
+				System.out.println("FOUNDED internal " + t.f);
 				return child;
 			}
 			
+			child =  Gdx.files.local(t.f.getPath()).child(file);
+			if(child.exists()){
+				System.out.println("FOUNDED local " + t.f);
+				return child;
+			}
+			
+			
 			child =  Gdx.files.external(t.f.getPath()).child(file);
 			if(child.exists()){
-				System.out.println("FOUNDED");
+				System.out.println("FOUNDED external " + t.f);
 				return child;
 			}
 		}
