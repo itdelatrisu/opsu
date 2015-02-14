@@ -2,8 +2,6 @@ package fluddokt.opsu.fake;
 
 import java.io.BufferedReader;
 
-
-
 import java.io.BufferedWriter;
 import java.io.FileFilter;
 import java.io.FilenameFilter;
@@ -19,24 +17,25 @@ public class File {
 	FileHandle fh;
 
 	public File(String name) {
-		if(Gdx.app.getType() == ApplicationType.Desktop)
+		if (Gdx.app.getType() == ApplicationType.Desktop)
 			fh = Gdx.files.local(name);
 		else
 			fh = Gdx.files.external(name);
-		if(!fh.exists()){
+		if (!fh.exists()) {
 			fh = Gdx.files.absolute(name);
-			if(!fh.exists()){
+			if (!fh.exists()) {
 				Gdx.files.local(name);
-				if(!fh.exists()){
+				if (!fh.exists()) {
 					fh = Gdx.files.internal(name);
-					if(!fh.exists()){
+					if (!fh.exists()) {
 						fh = Gdx.files.external(name);
 					}
 				}
 			}
 		}
-		//System.out.println("New File: "+name+" "+fh.type());
+		// System.out.println("New File: "+name+" "+fh.type());
 	}
+
 	private File(FileHandle nfh) {
 		this.fh = nfh;
 	}
@@ -48,6 +47,7 @@ public class File {
 	public File(String parent, String child) {
 		this(new File(parent), child);
 	}
+
 	public boolean isFile() {
 		return fh.exists() && !fh.isDirectory();
 	}
@@ -55,26 +55,29 @@ public class File {
 	public String getAbsolutePath() {
 		return getFullPath();
 	}
-	public String getFullPath(){
+
+	public String getFullPath() {
 		String par;
-		if(fh.type() == FileType.Local)
+		if (fh.type() == FileType.Local)
 			par = Gdx.files.getLocalStoragePath();
-		else if(fh.type() == FileType.External)
+		else if (fh.type() == FileType.External)
 			par = Gdx.files.getExternalStoragePath();
 		else
 			par = "";
-		return par+fh.path();
+		return par + fh.path();
 	}
 
 	public static File internal(String name) {
 		return new File(Gdx.files.internal(name));
 	}
+
 	public static File external(String name) {
 		return new File(Gdx.files.external(name));
-		}
+	}
+
 	public static File local(String name) {
 		return new File(Gdx.files.local(name));
-		}
+	}
 
 	public boolean isDirectory() {
 		return fh.isDirectory();
@@ -83,17 +86,20 @@ public class File {
 	public File[] listFiles() {
 		return consturctList(fh.list());
 	}
+
 	public File[] listFiles(FilenameFilter filenameFilter) {
 		return consturctList(fh.list(filenameFilter));
 	}
+
 	public File[] listFiles(FileFilter fileFilter) {
 		return consturctList(fh.list(fileFilter));
 	}
-	private File[] consturctList(FileHandle[] list){
-		if(list == null)
+
+	private File[] consturctList(FileHandle[] list) {
+		if (list == null)
 			return null;
 		File[] newlist = new File[list.length];
-		for(int i=0;i<list.length;i++)
+		for (int i = 0; i < list.length; i++)
 			newlist[i] = new File(list[i]);
 		return newlist;
 	}
@@ -104,12 +110,11 @@ public class File {
 
 	public File getParentFile() {
 		return new File(fh.parent());
-		}
+	}
+
 	public String getName() {
 		return fh.name();
 	}
-
-	
 
 	public BufferedReader reader(int bufferSize, String charset) {
 		return fh.reader(bufferSize, charset);
@@ -131,9 +136,8 @@ public class File {
 
 	public void deleteOnExit() {
 		// TODO Auto-generated method stub
-		
-	}
 
+	}
 
 	public String getPath() {
 		return fh.path();
@@ -152,16 +156,16 @@ public class File {
 		return fh.file();
 	}
 
-	public String toString(){
+	public String toString() {
 		return getPath();
 	}
+
 	public BufferedWriter writer(String charset) {
 		return new BufferedWriter(fh.writer(false, charset));
 	}
 
-	public boolean equals(File f){
+	public boolean equals(File f) {
 		return this.fh.path().equals(f.fh.path());
 	}
-
 
 }

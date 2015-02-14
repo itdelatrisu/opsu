@@ -1,6 +1,5 @@
 package fluddokt.opsu.fake;
 
-
 public class Keyboard {
 
 	public static final int KEY_NONE = 0;

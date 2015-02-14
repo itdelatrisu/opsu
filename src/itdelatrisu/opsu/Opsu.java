@@ -22,6 +22,7 @@ import fluddokt.opsu.fake.*;
 
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.downloads.DownloadList;
+import itdelatrisu.opsu.states.ButtonMenu;
 import itdelatrisu.opsu.states.DownloadsMenu;
 import itdelatrisu.opsu.states.Game;
 import itdelatrisu.opsu.states.GamePauseMenu;
@@ -64,7 +65,7 @@ public class Opsu extends StateBasedGame {
 	public static final int
 		STATE_SPLASH        = 0,
 		STATE_MAINMENU      = 1,
-		STATE_MAINMENUEXIT  = 2,
+		STATE_BUTTONMENU    = 2,
 		STATE_SONGMENU      = 3,
 		STATE_GAME          = 4,
 		STATE_GAMEPAUSEMENU = 5,
@@ -87,7 +88,7 @@ public class Opsu extends StateBasedGame {
 	public void initStatesList(GameContainer container) throws SlickException {
 		addState(new Splash(STATE_SPLASH));
 		addState(new MainMenu(STATE_MAINMENU));
-		addState(new MainMenuExit(STATE_MAINMENUEXIT));
+		addState(new ButtonMenu(STATE_BUTTONMENU));
 		addState(new SongMenu(STATE_SONGMENU));
 		addState(new Game(STATE_GAME));
 		addState(new GamePauseMenu(STATE_GAMEPAUSEMENU));
@@ -111,9 +112,7 @@ public class Opsu extends StateBasedGame {
 		Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
 			@Override
 			public void uncaughtException(Thread t, Throwable e) {
-				if (!(e instanceof ThreadDeath)) {  // TODO: see MusicController
-					ErrorHandler.error("** Uncaught Exception! **", e, true);
-				}
+				ErrorHandler.error("** Uncaught Exception! **", e, true);
 			}
 		});
 
@@ -208,8 +207,6 @@ public class Opsu extends StateBasedGame {
 		return true;
 	}
 
-	
-
 	/**
 	 * Closes all resources and exits the application.
 	 */
@@ -231,5 +228,4 @@ public class Opsu extends StateBasedGame {
 
 		System.exit(0);
 	}
-
 }

@@ -18,6 +18,7 @@
 
 package itdelatrisu.opsu.downloads;
 
+import fluddokt.opsu.fake.*;
 
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.GameImage;
@@ -27,8 +28,6 @@ import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.downloads.Download.Status;
 
 //import java.io.File;
-
-import fluddokt.opsu.fake.*;
 /*
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
@@ -314,21 +313,16 @@ public class DownloadNode {
 				g.fillRect(buttonBaseX, y, buttonWidth * progress / 100f, buttonHeight);
 			}
 		}
-		
-		if (OsuParser.allBeatMapSetID.contains(getID())) {
-			g.setColor(Utils.COLOR_YELLOW_ALPHA);
-			g.fillRect(buttonBaseX, y, buttonWidth * 100 / 100f, buttonHeight);
-		}
-		
 
 		// text
 		Utils.FONT_BOLD.drawString(
 				textX, y + marginY,
 				String.format("%s - %s%s", getArtist(), getTitle(),
-						(dl != null) ? String.format(" [%s] %s", dl.getStatus().getName(),download.ETA()) : ""), Color.white);
+						(dl != null) ? String.format(" [%s]", dl.getStatus().getName()) : ""), Color.white);
 		Utils.FONT_DEFAULT.drawString(
 				textX, y + marginY + Utils.FONT_BOLD.getLineHeight(),
-				String.format("Last updated: %s", date), Color.white);
+				String.format("Last updated: %s %s %s", date, (dl != null)?dl.getTimeRemaining():"", (dl != null)?dl.getDownloadSpeed():""
+						), Color.white);
 		Utils.FONT_DEFAULT.drawString(
 				edgeX - Utils.FONT_DEFAULT.getWidth(creator), y + marginY,
 				creator, Color.white);

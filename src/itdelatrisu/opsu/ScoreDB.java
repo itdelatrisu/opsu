@@ -70,8 +70,9 @@ public class ScoreDB {
 
 		// create a database connection
 		try {
-			connection = DriverManager.getConnection(String.format("jdbc:sqlite:%s", Options.SCORE_DB.getPath()));
-			connection = DriverManager.getConnection(String.format("jdbc:sqlite:"+ com.badlogic.gdx.Gdx.files.getExternalStoragePath()+(Options.SCORE_DB)));
+			//connection = DriverManager.getConnection(String.format("jdbc:sqlite:%s", Options.SCORE_DB.getPath()));
+			System.out.println("Options.SCORE_DB.getAbsolutePath(): "+Options.SCORE_DB.getAbsolutePath());
+			connection = DriverManager.getConnection(String.format("jdbc:sqlite:"+ (Options.SCORE_DB.getAbsolutePath())));
 		} catch (SQLException e) {
 			// if the error message is "out of memory", it probably means no database file is found
 			ErrorHandler.error("Could not connect to score database.", e, true);

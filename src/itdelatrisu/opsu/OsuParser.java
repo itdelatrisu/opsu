@@ -56,13 +56,6 @@ public class OsuParser {
 	/** The total number of directories to parse. */
 	private static int totalDirectories = -1;
 
-	/** The string lookup database. */
-	private static HashMap<String, String> stringdb = new HashMap<String, String>();
-	
-	
-	public static HashSet<Integer> allBeatMapSetID = new HashSet<Integer>();
-
-	
 	// This class should not be instantiated.
 	private OsuParser() {}
 
@@ -309,7 +302,6 @@ public class OsuParser {
 								break;
 							case "BeatmapSetID":
 								osu.beatmapSetID = Integer.parseInt(tokens[1]);
-								allBeatMapSetID.add(osu.beatmapSetID);
 								break;
 							}
 						} catch (Exception e) {

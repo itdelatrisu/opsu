@@ -8,7 +8,7 @@ public class InternalTextureLoader {
 
 	public void clear() {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 }

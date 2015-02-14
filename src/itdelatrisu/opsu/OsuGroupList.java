@@ -18,9 +18,11 @@
 
 package itdelatrisu.opsu;
 
+import fluddokt.opsu.fake.File;
+
 import itdelatrisu.opsu.audio.MusicController;
 
-import java.io.File;
+//import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;

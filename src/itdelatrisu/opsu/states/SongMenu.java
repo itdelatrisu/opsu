@@ -72,7 +72,7 @@ import org.newdawn.slick.state.transition.FadeOutTransition;
  */
 public class SongMenu extends BasicGameState {
 	/** The max number of song buttons to be shown on each screen. */
-	public static final int MAX_SONG_BUTTONS = 8;
+	public static final int MAX_SONG_BUTTONS = 6;
 
 	/** The max number of score buttons to be shown at a time. */
 	public static final int MAX_SCORE_BUTTONS = 7;

@@ -6,6 +6,7 @@ import com.badlogic.gdx.files.FileHandle;
 public class FileSystemLocation {
 
 	File f;
+
 	public FileSystemLocation(File dir) {
 		f = dir;
 	}

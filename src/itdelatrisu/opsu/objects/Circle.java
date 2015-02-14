@@ -91,7 +91,7 @@ public class Circle implements HitObject {
 			float approachScale = 1 + scale*3 ;//(timeDiff * 3f / game.getApproachTime());
 			color.a = 1 - scale;
 			Utils.drawCentered(GameImage.APPROACHCIRCLE.getImage().getScaledCopy(approachScale), x, y, color);
-			float alpha = MathUtils.clamp((1 - scale)*2, 0, 1);//= (approachScale > 3.3f) ? 0f : 1f - (approachScale - 1f) / 2.7f;
+			float alpha = clamp((1 - scale)*2, 0, 1);//= (approachScale > 3.3f) ? 0f : 1f - (approachScale - 1f) / 2.7f;
 			color.a = 1f;//alpha;//alpha;
 			Utils.COLOR_WHITE_FADE.a = alpha;
 			Utils.drawCentered(GameImage.HITCIRCLE.getImage(), x, y, color);
@@ -101,6 +101,14 @@ public class Circle implements HitObject {
 			data.drawSymbolNumber(hitObject.getComboNumber(), x, y,
 					GameImage.HITCIRCLE.getImage().getWidth() * 0.40f / data.getDefaultSymbolImage(0).getHeight());
 		}
+	}
+
+	private float clamp(float val, int low, int high) {
+		if(val < low)
+			return low;
+		if(val > high)
+			return high;
+		return val;
 	}
 
 	/**

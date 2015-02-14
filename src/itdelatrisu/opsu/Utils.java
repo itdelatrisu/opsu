@@ -62,7 +62,7 @@ import org.newdawn.slick.util.Log;
 import org.newdawn.slick.util.ResourceLoader;
 */
 
-import com.sun.jna.platform.FileUtils;
+//import com.sun.jna.platform.FileUtils;
 
 /**
  * Contains miscellaneous utilities.
@@ -765,16 +765,18 @@ public class Utils {
 		if (!file.exists())
 			throw new IOException(String.format("File '%s' does not exist.", file.getAbsolutePath()));
 
-		// move to system trash, if possible
+		//TODO move to system trash, if possible
+		/*
 		FileUtils fileUtils = FileUtils.getInstance();
 		if (fileUtils.hasTrash()) {
 			try {
-				fileUtils.moveToTrash(new File[] { file });
+				fileUtils.moveToTrash(new java.io.File[] { file.getIOFile() });
 				return true;
 			} catch (IOException e) {
 				Log.warn(String.format("Failed to move file '%s' to trash.", file.getAbsolutePath()), e);
 			}
 		}
+		*/
 
 		// delete otherwise
 		if (file.isDirectory())
@@ -816,7 +818,7 @@ public class Utils {
 	 * @return the list of split strings
 	 * @author davedes (http://slick.ninjacave.com/forum/viewtopic.php?t=3778)
 	 */
-	public static List<String> wrap(String text, org.newdawn.slick.Font font, int width) {
+	public static List<String> wrap(String text, Font font, int width) {
 		List<String> list = new ArrayList<String>();
 		String str = text;
 		String line = "";

@@ -16,32 +16,31 @@ public class ResourceLoader {
 	}
 
 	public static FileHandle getFileHandle(String file) {
-		if(file == null)
+		if (file == null)
 			throw new Error("null file name");
-		System.out.print("ResourceLoader: getFileHandle:"+file+" ");
+		System.out.print("ResourceLoader: getFileHandle:" + file + " ");
 		FileHandle fh = Gdx.files.absolute(file);
-		if(fh.exists()){
+		if (fh.exists()) {
 			System.out.println("QFOUNDED");
 			return fh;
 		}
-		for(FileSystemLocation t: loc){
+		for (FileSystemLocation t : loc) {
 			FileHandle child;
-			
-			child =  Gdx.files.internal(t.f.getPath()).child(file);
-			if(child.exists()){
+
+			child = Gdx.files.internal(t.f.getPath()).child(file);
+			if (child.exists()) {
 				System.out.println("FOUNDED internal " + t.f);
 				return child;
 			}
-			
-			child =  Gdx.files.local(t.f.getPath()).child(file);
-			if(child.exists()){
+
+			child = Gdx.files.local(t.f.getPath()).child(file);
+			if (child.exists()) {
 				System.out.println("FOUNDED local " + t.f);
 				return child;
 			}
-			
-			
-			child =  Gdx.files.external(t.f.getPath()).child(file);
-			if(child.exists()){
+
+			child = Gdx.files.external(t.f.getPath()).child(file);
+			if (child.exists()) {
 				System.out.println("FOUNDED external " + t.f);
 				return child;
 			}

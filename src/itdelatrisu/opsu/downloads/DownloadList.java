@@ -166,7 +166,7 @@ public class DownloadList {
 	 * @return true if user selects "yes", false otherwise
 	 */
 	public static boolean showExitConfirmation() {
-		try {
+		/*try {
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		} catch (Exception e) {
 			ErrorHandler.error("Could not set system look and feel for DownloadList.", e, true);
@@ -174,6 +174,7 @@ public class DownloadList {
 		int n = JOptionPane.showConfirmDialog(null,
 				"Beatmap downloads are in progress.\nAre you sure you want to quit opsu!?",
 				"Warning", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
-		return (n != JOptionPane.YES_OPTION);
+		return (n != JOptionPane.YES_OPTION);*/
+		return true;
 	}
 }

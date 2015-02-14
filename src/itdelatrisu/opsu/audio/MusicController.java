@@ -107,7 +107,7 @@ public class MusicController {
 	 * @param position the track position (in ms)
 	 * @param loop whether or not to loop the track
 	 */
-	private static void loadTrack(File file, int previewTime, boolean loop) {
+	private static void loadTrack(File file, int position, boolean loop) {
 		try {   // create a new player
 			if(player!=null)
 				player.dispose();
@@ -218,7 +218,7 @@ public class MusicController {
 	 * Stops the current track.
 	 */
 	public static void stop() {
-		if (isPlaying()){
+		if (isPlaying())
 			player.stop();
 		if (trackExists())
 			pauseTime = 0f;

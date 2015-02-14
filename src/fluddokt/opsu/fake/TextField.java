@@ -4,22 +4,23 @@ import java.awt.event.KeyEvent;
 
 import com.badlogic.gdx.Gdx;
 
-public class TextField implements InputListener{
+public class TextField implements InputListener {
 
 	UnicodeFont font;
-	int x,y,w,h;
+	int x, y, w, h;
 	StringBuilder str = new StringBuilder();
-	Color bgColor=Color.green,textColor=Color.blue, borderColor=Color.red;
+	Color bgColor = Color.green, textColor = Color.blue,
+			borderColor = Color.red;
 	GameContainer container;
 	boolean hasFocus;
-	
-	public TextField(GameContainer container, UnicodeFont font, int x,
-			int y, int w, int h) {
-		this.x=x;
-		this.y=y;
-		this.w=w;
-		this.h=h;
-		this.font=font;
+
+	public TextField(GameContainer container, UnicodeFont font, int x, int y,
+			int w, int h) {
+		this.x = x;
+		this.y = y;
+		this.w = w;
+		this.h = h;
+		this.font = font;
 		this.container = container;
 	}
 
@@ -37,12 +38,12 @@ public class TextField implements InputListener{
 
 	public void setConsumeEvents(boolean b) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	public void setMaxLength(int i) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	public float getY() {
@@ -61,13 +62,14 @@ public class TextField implements InputListener{
 		g.setColor(textColor);
 		g.drawString(font, str.toString(), x, y);
 	}
+
 	public void setFocus(boolean b) {
-		//if(b!=hasFocus){
-			if(b){
-				container.addInputListener(this);
-			}else
-				container.removeInputListener(this);
-		//}
+		// if(b!=hasFocus){
+		if (b) {
+			container.addInputListener(this);
+		} else
+			container.removeInputListener(this);
+		// }
 	}
 
 	public String getText() {
@@ -96,15 +98,15 @@ public class TextField implements InputListener{
 
 	@Override
 	public void keyType(char character) {
-		if(character == KeyEvent.VK_BACK_SPACE)
+		if (character == KeyEvent.VK_BACK_SPACE)
 			str.setLength(Math.max(str.length() - 1, 0));
-		else if(!Character.isISOControl(character))
+		else if (!Character.isISOControl(character))
 			str.append(character);
 	}
 
 	@Override
 	public void touchDown(int screenX, int screenY, int pointer, int button) {
-		if(!(screenX<x || screenX>x+w || screenY<y || screenY > y+h)){
+		if (!(screenX < x || screenX > x + w || screenY < y || screenY > y + h)) {
 			Gdx.input.setOnscreenKeyboardVisible(true);
 		} else {
 			Gdx.input.setOnscreenKeyboardVisible(false);
@@ -114,13 +116,13 @@ public class TextField implements InputListener{
 	@Override
 	public void touchUp(int screenX, int screenY, int pointer, int button) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void touchDragged(int screenX, int screenY, int pointer) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 }

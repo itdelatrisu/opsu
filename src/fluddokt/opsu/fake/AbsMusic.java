@@ -1,31 +1,41 @@
 package fluddokt.opsu.fake;
 
 public class AbsMusic {
-	public boolean setPosition(float f){
-		return false;}
-	
-	public void loop(){}
+	public boolean setPosition(float f) {
+		return false;
+	}
 
-	public void play(){}
+	public void loop() {
+	}
 
-	public boolean playing(){
-		return false;}
+	public void play() {
+	}
 
-	public void pause(){}
+	public boolean playing() {
+		return false;
+	}
 
-	public void resume(){}
+	public void pause() {
+	}
 
-	public void setVolume(float volume){}
+	public void resume() {
+	}
 
-	public void stop(){}
+	public void setVolume(float volume) {
+	}
 
-	public void fade(int duration, float f, boolean b){}
+	public void stop() {
+	}
 
-	public float getPosition(){
-		return 0;}
-	
+	public void fade(int duration, float f, boolean b) {
+	}
 
-	public void dispose(){}
+	public float getPosition() {
+		return 0;
+	}
+
+	public void dispose() {
+	}
 
 	public String getName() {
 		// TODO Auto-generated method stub

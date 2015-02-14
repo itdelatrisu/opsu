@@ -23,6 +23,8 @@ import fluddokt.opsu.fake.*;
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.Utils;
 
+
+import java.io.FileInputStream;
 //import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -30,7 +32,6 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
@@ -108,6 +109,8 @@ public class Download {
 
 	/** Last calculated ETA string. */
 	private String lastTimeRemaining;
+	
+	Thread dlThread;
 
 	/**
 	 * Constructor.
@@ -176,7 +179,7 @@ public class Download {
 					int total = 0;
 					
 					while(status == Status.DOWNLOADING && total < contentLength){
-						long readed = foschannel.transferFrom(rbc, total, Math.min(2048, contentLength-total));
+						long readed = foschannel.transferFrom(rbc, total, Math.min(0x10000, contentLength-total));
 						total += readed;
 					}
 					//*/
@@ -205,7 +208,11 @@ public class Download {
 			    FileChannel outChannel = new FileOutputStream(dst.getIOFile()).getChannel();
 			    try
 			    {
-			        inChannel.transferTo(0, inChannel.size(), outChannel);
+			    	long total = 0;
+			    	long size = inChannel.size();
+			    	while (total < size){
+			    		total += inChannel.transferTo(total, size-total, outChannel);
+			    	}
 			    }
 			    finally
 			    {
@@ -307,8 +314,8 @@ public class Download {
 	private void updateReadSoFar() {
 		// only update while downloading
 		if (status != Status.DOWNLOADING) {
-			this.lastDownloadSpeed = null;
-			this.lastTimeRemaining = null;
+			this.lastDownloadSpeed = "";
+			this.lastTimeRemaining = "";
 			return;
 		}
 
@@ -350,7 +357,6 @@ public class Download {
 			try {
 				dlThread.join();
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			if (rbc != null && rbc.isOpen())

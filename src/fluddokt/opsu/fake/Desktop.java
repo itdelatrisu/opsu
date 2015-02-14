@@ -9,26 +9,27 @@ import com.badlogic.gdx.Gdx;
 public class Desktop {
 
 	public static boolean isDesktopSupported() {
-		//if(Gdx.app.getType() == ApplicationType.Desktop){
-		//	return java.awt.Desktop.isDesktopSupported();
-		//}
-		//else
-			return true;
+		// if(Gdx.app.getType() == ApplicationType.Desktop){
+		// return java.awt.Desktop.isDesktopSupported();
+		// }
+		// else
+		return true;
 	}
 
 	static Desktop single;
+
 	public static Desktop getDesktop() {
-		if(single == null)
+		if (single == null)
 			single = new Desktop();
 		return single;
 	}
 
 	public void browse(URI uri) throws IOException {
-		//if(Gdx.app.getType() == ApplicationType.Desktop){
-		//	java.awt.Desktop.getDesktop().browse(uri);
-		//} else {
-			Gdx.net.openURI(uri.toString());
-		//}
+		// if(Gdx.app.getType() == ApplicationType.Desktop){
+		// java.awt.Desktop.getDesktop().browse(uri);
+		// } else {
+		Gdx.net.openURI(uri.toString());
+		// }
 	}
 
 }

@@ -3,12 +3,13 @@ package fluddokt.opsu.fake;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Buttons;
 import com.badlogic.gdx.Input.Keys;
+
 public class Input {
 
 	public static final int MOUSE_LEFT_BUTTON = Buttons.LEFT;
 	public static final int MOUSE_RIGHT_BUTTON = Buttons.RIGHT;
 	public static final int MOUSE_MIDDLE_BUTTON = Buttons.MIDDLE;
-	
+
 	public static final int KEY_F1 = Keys.F1;
 	public static final int KEY_F2 = Keys.F2;
 	public static final int KEY_F3 = Keys.F3;
@@ -21,7 +22,7 @@ public class Input {
 	public static final int KEY_F10 = Keys.F10;
 	public static final int KEY_F11 = Keys.F11;
 	public static final int KEY_F12 = Keys.F12;
-	
+
 	public static final int KEY_DOWN = Keys.DOWN;
 	public static final int KEY_UP = Keys.UP;
 	public static final int KEY_RIGHT = Keys.RIGHT;
@@ -37,10 +38,10 @@ public class Input {
 
 	public static final int KEY_RCONTROL = Keys.CONTROL_RIGHT;
 	public static final int KEY_LCONTROL = Keys.CONTROL_LEFT;
-	
+
 	public static final int KEY_LSHIFT = Keys.SHIFT_LEFT;
 	public static final int KEY_RSHIFT = Keys.SHIFT_RIGHT;
-	
+
 	public static final int KEY_A = Keys.A;
 	public static final int KEY_B = Keys.B;
 	public static final int KEY_C = Keys.C;
@@ -77,27 +78,25 @@ public class Input {
 	public static final int KEY_8 = Keys.NUM_8;
 	public static final int KEY_9 = Keys.NUM_9;
 	public static final int KEY_0 = Keys.NUM_0;
-	
 
-	
 	public static final int ANDROID_BACK = Keys.BACK;
 	public static final int ANDROID_MENU = Keys.MENU;
-	
 
 	public int getMouseY() {
 		return Gdx.input.getY();
 	}
-	
+
 	public int getMouseX() {
 		return Gdx.input.getX();
 	}
+
 	public boolean isKeyDown(int key) {
 		return Gdx.input.isKeyPressed(key);
 	}
 
 	public void enableKeyRepeat() {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	public boolean isMouseButtonDown(int button) {

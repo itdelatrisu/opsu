@@ -3,8 +3,9 @@ package fluddokt.opsu.fake;
 public class SoundStore {
 
 	public static SoundStore single;
+
 	public static SoundStore get() {
-		if(single==null)
+		if (single == null)
 			single = new SoundStore();
 		return single;
 	}

@@ -8,5 +8,4 @@ public class Display {
 		Gdx.graphics.setTitle(title);
 	}
 
-
 }

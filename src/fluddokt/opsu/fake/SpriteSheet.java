@@ -3,7 +3,8 @@ package fluddokt.opsu.fake;
 public class SpriteSheet {
 
 	Image image;
-	int width,height;
+	int width, height;
+
 	public SpriteSheet(Image image, int width, int height) {
 		this.image = image;
 		this.width = width;

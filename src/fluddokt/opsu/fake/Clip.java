@@ -8,27 +8,28 @@ public class Clip {
 
 	Sound sound;
 	long id;
+
 	public Clip(String path) {
 		try {
 			sound = Gdx.audio.newSound(ResourceLoader.getFileHandle(path));
 		} catch (GdxRuntimeException e) {
-			Log.warn("error loading sound "+path+" "+e);
+			Log.warn("error loading sound " + path + " " + e);
 		}
 	}
 
 	public void stop() {
-		if(sound != null)
+		if (sound != null)
 			sound.stop();
 	}
 
 	public void start(float volume) {
-		if(sound != null)
+		if (sound != null)
 			id = sound.play(volume);
 	}
 
 	public void setFramePosition(int i) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	public boolean isRunning() {
@@ -39,6 +40,5 @@ public class Clip {
 	public void flush() {
 		// TODO Auto-generated method stub
 	}
-
 
 }

@@ -18,44 +18,50 @@ import com.badlogic.gdx.graphics.g2d.freetype.FreeType.SizeMetrics;
 import com.badlogic.gdx.graphics.glutils.PixmapTextureData;
 import com.badlogic.gdx.utils.GdxRuntimeException;
 
-class DynamicFreeType{
+class DynamicFreeType {
 	FileHandle handle;
 	private Face face;
-	int thiscnt=0;
+	int thiscnt = 0;
 	static int cnt = 0;
 	Font fontParam;
-	int ascent,descent,height;
+	int ascent, descent, height;
+
 	public DynamicFreeType(FileHandle font, Font fontParam) {
 		this.fontParam = fontParam;
 		Library library = FreeType.initFreeType();
-		if (library == null) throw new GdxRuntimeException("Couldn't initialize FreeType");
+		if (library == null)
+			throw new GdxRuntimeException("Couldn't initialize FreeType");
 		face = FreeType.newFace(library, font, 0);
-		
-		if (face == null) throw new GdxRuntimeException("Couldn't create face for font '" + font + "'");
-		
-		
-		if(!FreeType.setPixelSizes(face, 0, (int)fontParam.size)){
-			throw new GdxRuntimeException("Couldn't set size for font '" + font + "'");
+
+		if (face == null)
+			throw new GdxRuntimeException("Couldn't create face for font '"
+					+ font + "'");
+
+		if (!FreeType.setPixelSizes(face, 0, (int) fontParam.size)) {
+			throw new GdxRuntimeException("Couldn't set size for font '" + font
+					+ "'");
 		}
-		
+
 		SizeMetrics sizes = face.getSize().getMetrics();
 		ascent = FreeType.toInt(sizes.getAscender());
 		descent = FreeType.toInt(sizes.getDescender());
 		height = FreeType.toInt(sizes.getHeight());
-		//System.out.println("Face flag "+face.getFaceFlags());
-		
-		//if (checkForBitmapFont()) {
-		//return;
-		//}
-		//if (!face.setPixelSizes(0, 15)) throw new GdxRuntimeException("Couldn't set size for font '" + font + "'");
+		// System.out.println("Face flag "+face.getFaceFlags());
+
+		// if (checkForBitmapFont()) {
+		// return;
+		// }
+		// if (!face.setPixelSizes(0, 15)) throw new
+		// GdxRuntimeException("Couldn't set size for font '" + font + "'");
 		thiscnt = cnt++;
 	}
 
-	//ArrayList<Texture> pages = new ArrayList<Texture>();
+	// ArrayList<Texture> pages = new ArrayList<Texture>();
 	HashMap<Character, CharInfo> charmap = new HashMap<Character, CharInfo>();
 	Pixmap curPixmap;
 	Texture curTexture;
-	class CharInfo{
+
+	class CharInfo {
 		TextureRegion region;
 		public float horadvance;
 		public float xbear;
@@ -65,183 +71,186 @@ class DynamicFreeType{
 		public int yoffset;
 		public int xoffset;
 	}
+
 	public void draw(SpriteBatch batch, String str, float x, float y) {
 		char prevchr = 0;
-		for(int i=0; i<str.length(); i++){
+		for (int i = 0; i < str.length(); i++) {
 			char thischr = str.charAt(i);
 			CharInfo ci = getCharInfo(str.charAt(i));
 			TextureRegion tr = ci.region;
-			batch.draw(tr, x +ci.xbear//xoffset
-					, y - ascent + ci.ybear -ci.height);//ci.yoffset);//- tr.getRegionHeight() + ci.ybear );//-
-			if(FreeType.hasKerning(face)){
+			batch.draw(tr, x + ci.xbear// xoffset
+			, y - ascent + ci.ybear - ci.height);// ci.yoffset);//-
+													// tr.getRegionHeight() +
+													// ci.ybear );//-
+			if (FreeType.hasKerning(face)) {
 				System.out.println("KERNING");
-				x+=FreeType.getKerning(face, prevchr, thischr, FreeType.FT_KERNING_DEFAULT);
-			}else{
+				x += FreeType.getKerning(face, prevchr, thischr,
+						FreeType.FT_KERNING_DEFAULT);
+			} else {
 				/*
-				if(thischr == ' ')
-					x+=ci.horadvance;
-				else{
-					x+=tr.getRegionWidth()+2;
-				}
-				/*/
-				x+= ci.horadvance;
-				//*/
+				 * if(thischr == ' ') x+=ci.horadvance; else{
+				 * x+=tr.getRegionWidth()+2; } /
+				 */
+				x += ci.horadvance;
+				// */
 			}
 			prevchr = thischr;
-			
+
 		}
 	}
-	private float to26p6float(int n){
-		return n/(float)(1<<6);
+
+	private float to26p6float(int n) {
+		return n / (float) (1 << 6);
 	}
+
 	private CharInfo getCharInfo(char charAt) {
 		CharInfo ci = charmap.get(charAt);
-		if(ci == null){
+		if (ci == null) {
 			ci = addChar(charAt);
 			charmap.put(charAt, ci);
 		}
 		return ci;
 	}
 
-	int x,y,maxHeight;
-	public CharInfo addChar(char c){
-		FreeType.loadChar(face, c, 
-				
-				//FreeType.FT_LOAD_RENDER
-				//FreeType.FT_LOAD_DEFAULT
-				//FreeType.FT_LOAD_RENDER
-				fontParam.size<16 ?
-					FreeType.FT_LOAD_DEFAULT
-					:
-					FreeType.FT_LOAD_NO_HINTING
-					//|FreeType.FT_LOAD_NO_BITMAP
-					//FreeType.FT_LOAD_NO_AUTOHINT
-				);// FT_LOAD_MONOCHROME FT_RENDER_MODE_LIGHT
+	int x, y, maxHeight;
+
+	public CharInfo addChar(char c) {
+		FreeType.loadChar(face, c,
+
+		// FreeType.FT_LOAD_RENDER
+		// FreeType.FT_LOAD_DEFAULT
+		// FreeType.FT_LOAD_RENDER
+				fontParam.size < 16 ? FreeType.FT_LOAD_DEFAULT
+						: FreeType.FT_LOAD_NO_HINTING
+		// |FreeType.FT_LOAD_NO_BITMAP
+		// FreeType.FT_LOAD_NO_AUTOHINT
+		);// FT_LOAD_MONOCHROME FT_RENDER_MODE_LIGHT
 		GlyphSlot slot = face.getGlyph();
 		FreeType.renderGlyph(slot, FreeType.FT_RENDER_MODE_LIGHT);
 		Bitmap bitmap = slot.getBitmap();
-		
-		//System.out.println("Pixel Mode "+bitmap.getPixelMode());
+
+		// System.out.println("Pixel Mode "+bitmap.getPixelMode());
 		Pixmap pixmap;
-		if(bitmap.getPixelMode() == FreeType.FT_PIXEL_MODE_GRAY){
-			//pixmap = bitmap.getPixmap(Format.RGBA8888);
-			//*
-			pixmap = new Pixmap(bitmap.getWidth(),bitmap.getRows(),Format.RGBA8888);
+		if (bitmap.getPixelMode() == FreeType.FT_PIXEL_MODE_GRAY) {
+			// pixmap = bitmap.getPixmap(Format.RGBA8888);
+			// *
+			pixmap = new Pixmap(bitmap.getWidth(), bitmap.getRows(),
+					Format.RGBA8888);
 			java.nio.ByteBuffer rbuf = bitmap.getBuffer();
 			java.nio.ByteBuffer wbuf = pixmap.getPixels();
-			
-			for(int y=0; y<pixmap.getHeight(); y++){
-				for(int x=0; x<pixmap.getWidth(); x++){
+
+			for (int y = 0; y < pixmap.getHeight(); y++) {
+				for (int x = 0; x < pixmap.getWidth(); x++) {
 					byte curbyte = rbuf.get();
-					wbuf.putInt((curbyte&0xff) | 0xffffff00);
+					wbuf.putInt((curbyte & 0xff) | 0xffffff00);
 				}
-			}//*/
-			
-		}else if(bitmap.getPixelMode() == FreeType.FT_PIXEL_MODE_MONO){
-			pixmap = new Pixmap(bitmap.getWidth(),bitmap.getRows(),Format.RGBA8888);
+			}// */
+
+		} else if (bitmap.getPixelMode() == FreeType.FT_PIXEL_MODE_MONO) {
+			pixmap = new Pixmap(bitmap.getWidth(), bitmap.getRows(),
+					Format.RGBA8888);
 			java.nio.ByteBuffer rbuf = bitmap.getBuffer();
 			java.nio.ByteBuffer wbuf = pixmap.getPixels();
-			
+
 			byte curbyte = rbuf.get();
 			int bitAt = 0;
-			for(int y=0; y<pixmap.getHeight(); y++){
-				for(int x=0; x<pixmap.getWidth(); x++){
-					if(((curbyte>>(7-bitAt))&1) > 0){
+			for (int y = 0; y < pixmap.getHeight(); y++) {
+				for (int x = 0; x < pixmap.getWidth(); x++) {
+					if (((curbyte >> (7 - bitAt)) & 1) > 0) {
 						wbuf.putInt(0xffffffff);
-					}else{
+					} else {
 						wbuf.putInt(0x00000000);
 					}
 					bitAt++;
-					if(bitAt>=8){
-						bitAt=0;
-						if(rbuf.hasRemaining())
+					if (bitAt >= 8) {
+						bitAt = 0;
+						if (rbuf.hasRemaining())
 							curbyte = rbuf.get();
 					}
 				}
-				if(bitAt>0){
-					bitAt=0;
-					if(rbuf.hasRemaining())
+				if (bitAt > 0) {
+					bitAt = 0;
+					if (rbuf.hasRemaining())
 						curbyte = rbuf.get();
 				}
 			}
-		}else{
-			throw new GdxRuntimeException("Unknown Freetype pixel mode :"+bitmap.getPixelMode());
+		} else {
+			throw new GdxRuntimeException("Unknown Freetype pixel mode :"
+					+ bitmap.getPixelMode());
 		}
-		//create a new page
-		if(curPixmap == null || y+pixmap.getHeight() > curPixmap.getHeight()){
-			x=0;
-			y=0;
-			maxHeight=0;
+		// create a new page
+		if (curPixmap == null || y + pixmap.getHeight() > curPixmap.getHeight()) {
+			x = 0;
+			y = 0;
+			maxHeight = 0;
 			curPixmap = new Pixmap(512, 512, Format.RGBA8888);
-			curTexture = new Texture(new PixmapTextureData(curPixmap, null, false, false, true));
+			curTexture = new Texture(new PixmapTextureData(curPixmap, null,
+					false, false, true));
 		}
-		//cant fit width, go to next line
-		if(x+pixmap.getWidth() > curPixmap.getWidth()){
-			x=0;
-			y+=maxHeight;
-			maxHeight=0;
+		// cant fit width, go to next line
+		if (x + pixmap.getWidth() > curPixmap.getWidth()) {
+			x = 0;
+			y += maxHeight;
+			maxHeight = 0;
 		}
-		//find the max Height of the this line
-		if(pixmap.getHeight()>maxHeight){
+		// find the max Height of the this line
+		if (pixmap.getHeight() > maxHeight) {
 			maxHeight = pixmap.getHeight();
 		}
-		
-		
+
 		curPixmap.drawPixmap(pixmap, x, y);
-		
-		curTexture.load(new PixmapTextureData(curPixmap, null, false, false, true));
-		
-		TextureRegion tr = new TextureRegion(curTexture, x,y,pixmap.getWidth(), pixmap.getHeight());
-		x+=pixmap.getWidth();
-		
+
+		curTexture.load(new PixmapTextureData(curPixmap, null, false, false,
+				true));
+
+		TextureRegion tr = new TextureRegion(curTexture, x, y,
+				pixmap.getWidth(), pixmap.getHeight());
+		x += pixmap.getWidth();
+
 		GlyphMetrics metrics = slot.getMetrics();
 		CharInfo ci = new CharInfo();
 		ci.region = tr;
-		ci.horadvance = to26p6float(metrics.getHoriAdvance());//slot.getLinearHoriAdvance()>>16;
+		ci.horadvance = to26p6float(metrics.getHoriAdvance());// slot.getLinearHoriAdvance()>>16;
 		ci.xbear = to26p6float(metrics.getHoriBearingX());
 		ci.ybear = to26p6float(metrics.getHoriBearingY());
 		ci.height = to26p6float(metrics.getHeight());
 		ci.bitmaptop = slot.getBitmapTop();
 		ci.yoffset = slot.getBitmapTop() - pixmap.getHeight();
 		ci.xoffset = slot.getBitmapLeft();
-		
-		/*System.out.println(
-				c
-				+" fs:"+fontParam.size
-				+" fs:"+fontParam.style
-				+" hadv:"+ci.horadvance
-				+" xbear:"+ci.xbear
-				+" ybear:"+ci.ybear
-				+" height:"+ci.height
-				+" bitmaptop:"+ci.bitmaptop
-				+" yoffset:"+ci.yoffset
-				+" xoffset:"+ci.xoffset
-				+" pixWid:"+pixmap.getWidth()
-				+" pixtHei:"+pixmap.getHeight()
-				);*/
+
+		/*
+		 * System.out.println( c +" fs:"+fontParam.size +" fs:"+fontParam.style
+		 * +" hadv:"+ci.horadvance +" xbear:"+ci.xbear +" ybear:"+ci.ybear
+		 * +" height:"+ci.height +" bitmaptop:"+ci.bitmaptop
+		 * +" yoffset:"+ci.yoffset +" xoffset:"+ci.xoffset
+		 * +" pixWid:"+pixmap.getWidth() +" pixtHei:"+pixmap.getHeight() );
+		 */
 		return ci;
 	}
+
 	public int getHeight(String str) {
 		float max = 0;
-		for(int i=0; i<str.length(); i++){
+		for (int i = 0; i < str.length(); i++) {
 			float t = getCharInfo(str.charAt(i)).height;
-			if(t > max)
+			if (t > max)
 				max = t;
 		}
-		return (int) max;//getLineHeight();//FreeType.toInt(face.getMaxAdvanceHeight());
+		return (int) max;// getLineHeight();//FreeType.toInt(face.getMaxAdvanceHeight());
 	}
+
 	public int getWidth(String str) {
 		float len = 0;
-		for(int i=0; i<str.length(); i++){
+		for (int i = 0; i < str.length(); i++) {
 			float t = getCharInfo(str.charAt(i)).horadvance;
-					//FreeType.;
+			// FreeType.;
 			len += t;
 		}
-		return (int) len;//FreeType.toInt(face.getMaxAdvanceWidth())*str.length();
+		return (int) len;// FreeType.toInt(face.getMaxAdvanceWidth())*str.length();
 	}
+
 	public int getLineHeight() {
-		return ascent;
-			
+		return ascent + 2;
+
 	}
-	
+
 }
