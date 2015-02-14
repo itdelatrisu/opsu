@@ -916,6 +916,9 @@ public class SoundStore {
 			return;
 		}
 
+		if(this.stream != null){
+			this.stream.close();
+		}
 		currentMusic = sources.get(0);
 		this.stream = stream;
 		if (stream != null) {
