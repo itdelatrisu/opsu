@@ -664,8 +664,13 @@ public class Game extends BasicGameState {
 			objectIndex++;  // circle hit
 
 		// sliders
-		else if (hitObject.isSlider())
-			hitObjects[objectIndex].mousePressed(x, y);
+		else if (hitObject.isSlider() && hitObjects[objectIndex].mousePressed(x, y)){
+			
+		}
+
+		//Nothing hit
+		else
+			data.addMouseMissPoint(MusicController.getPosition(), x,y,button);
 	}
 
 	@Override
@@ -878,6 +883,7 @@ public class Game extends BasicGameState {
 		// HPDrainRate (health change), overallDifficulty (scoring)
 		data.setDrainRate(HPDrainRate);
 		data.setDifficulty(overallDifficulty);
+		data.setHitResultOffset(hitResultOffset);
 	}
 
 	/**

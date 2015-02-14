@@ -79,7 +79,10 @@ public class Utils {
 		COLOR_YELLOW_ALPHA    = new Color(255, 255, 0, 0.4f),
 		COLOR_WHITE_FADE      = new Color(255, 255, 255, 1f),
 		COLOR_RED_HOVER       = new Color(255, 112, 112),
-		COLOR_GREEN           = new Color(137, 201, 79);
+		COLOR_GREEN           = new Color(137, 201, 79),
+		COLOR_LIGHT_ORANGE    = new Color(255,192,128),
+		COLOR_LIGHT_GREEN     = new Color(128,255,128),
+		COLOR_LIGHT_BLUE      = new Color(128,128,255);
 
 	/** The default map colors, used when a map does not provide custom colors. */
 	public static final Color[] DEFAULT_COMBO = {
@@ -838,4 +841,20 @@ public class Utils {
 			list.add(str);
 		return list;
     }
+	
+	/**
+	 * Clamps the value to be in between low and high
+	 * @param val
+	 * @param low
+	 * @param high
+	 * @return val clamped between low and high
+	 * @author fluddokt (https://github.com/fluddokt)
+	 */
+	public static float clamp(float val, int low, int high) {
+		if(val < low)
+			return low;
+		if(val > high)
+			return high;
+		return val;
+	}
 }

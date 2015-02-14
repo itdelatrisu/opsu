@@ -153,6 +153,23 @@ public class GameData {
 	/** List of hit result objects associated with hit objects. */
 	private LinkedList<OsuHitObjectResult> hitResultList;
 
+
+	class ErrorInfo {
+		int time, x, y, timeDiff;
+
+		public ErrorInfo(int time, int x, int y, int timeDiff) {
+			super();
+			this.time = time;
+			this.x = x;
+			this.y = y;
+			this.timeDiff = timeDiff;
+		}
+
+	}
+
+	private LinkedList<ErrorInfo> errorRateList = new LinkedList<ErrorInfo>();
+	private LinkedList<ErrorInfo> mouseMissList = new LinkedList<ErrorInfo>();
+
 	/**
 	 * Hit result helper class.
 	 */
@@ -225,6 +242,10 @@ public class GameData {
 	/** Container dimensions. */
 	private int width, height;
 
+	/** Time offsets for obtaining each hit result (indexed by HIT_* constants). */
+	private int[] hitResultOffset;
+
+	
 	/**
 	 * Constructor for gameplay.
 	 * @param width container width
@@ -283,6 +304,8 @@ public class GameData {
 		comboEnd = 0;
 		comboBurstIndex = -1;
 		scoreData = null;
+		errorRateList.clear();
+		mouseMissList.clear();
 	}
 
 	/**
@@ -364,6 +387,10 @@ public class GameData {
 	public void setDifficulty(float difficulty) { this.difficulty = difficulty; }
 	public float getDifficulty() { return difficulty; }
 
+	/** Sets the HitResultOffset */
+	public void setHitResultOffset(int[] hitResultOffset) {this.hitResultOffset = hitResultOffset; }
+	
+	
 	/**
 	 * Draws a number with defaultSymbols.
 	 * @param n the number to draw
@@ -528,6 +555,47 @@ public class GameData {
 				);
 			}
 		}
+		
+
+		//*
+		//Draw Error bar
+		final int fadeDelay = 5000;
+		int hitErrorY = 30;
+		Iterator<ErrorInfo> iter2 = errorRateList.iterator();
+		g.setColor(Color.black);
+		g.fillRect(width/2f-3-hitResultOffset[HIT_50], height-marginX-hitErrorY-10,hitResultOffset[HIT_50]*2,20);
+		g.setColor(Utils.COLOR_LIGHT_ORANGE);
+		g.fillRect(width/2f-3-hitResultOffset[HIT_50], height-marginX-hitErrorY-3,hitResultOffset[HIT_50]*2,6);
+		g.setColor(Utils.COLOR_LIGHT_GREEN);
+		g.fillRect(width/2f-3-hitResultOffset[HIT_100], height-marginX-hitErrorY-3,hitResultOffset[HIT_100]*2,6);
+		g.setColor(Utils.COLOR_LIGHT_BLUE);
+		g.fillRect(width/2f-3-hitResultOffset[HIT_300], height-marginX-hitErrorY-3,hitResultOffset[HIT_300]*2,6);
+		g.setColor(Color.white);
+		g.drawRect(width/2f-3, height-marginX-hitErrorY-10, 6, 20);
+		while (iter2.hasNext()) {
+			ErrorInfo info = iter2.next();
+			int time = info.time;
+			if (time + fadeDelay > trackPosition) {
+				float alpha = 1 - ((float) (trackPosition - time) / fadeDelay);
+				g.setColor(Color.white.scaleCopy(alpha));
+				g.fillRect(width/2 + info.timeDiff-1, height-marginX-hitErrorY-10, 2, 20);
+			}else{
+				iter2.remove();
+			}
+		}
+		
+		iter2 = mouseMissList.iterator();
+		while (iter2.hasNext()) {
+			ErrorInfo info = iter2.next();
+			int time = info.time;
+			if (time + fadeDelay > trackPosition) {
+				//float alpha = 1 - ((float) (trackPosition - time) / fadeDelay);
+				//g.setColor(Color.green.scaleCopy(alpha));
+				//g.fillRect(info.x-5, info.y-5, 10, 10);
+			}else{
+				iter2.remove();
+			}
+		}//*/
 	}
 
 	/**
@@ -649,6 +717,9 @@ public class GameData {
 					float scale = 1f + ((trackPosition - hitResult.time) / (float) fadeDelay);
 					Image scaledLighting  = GameImage.LIGHTING.getImage().getScaledCopy(scale);
 					Image scaledLighting1 = GameImage.LIGHTING1.getImage().getScaledCopy(scale);
+					scaledLighting.setAlpha(hitResult.alpha);
+					scaledLighting1.setAlpha(hitResult.alpha);
+					
 					scaledLighting.draw(hitResult.x - (scaledLighting.getWidth() / 2f),
 							hitResult.y - (scaledLighting.getHeight() / 2f), hitResult.color);
 					scaledLighting1.draw(hitResult.x - (scaledLighting1.getWidth() / 2f),
@@ -1008,4 +1079,13 @@ public class GameData {
 	 * @return true if gameplay, false if score viewing
 	 */
 	public boolean isGameplay() { return gameplay; }
+	
+	public void addMouseMissPoint(int time, int x, int y, int button) {
+		mouseMissList.add(new ErrorInfo(time, x, y, 0));
+	}
+
+	public void addErrorRate(int time, int x, int y, int timeDiff) {
+		errorRateList.add(new ErrorInfo(time, x, y, timeDiff));
+	}
+
 }
