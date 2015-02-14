@@ -67,7 +67,7 @@ public class OsuTimingPoint {
 			this.sampleTypeCustom = Byte.parseByte(tokens[4]);
 			this.sampleVolume = Integer.parseInt(tokens[5]);
 //			this.inherited = (Integer.parseInt(tokens[6]) == 1);
-			if(tokens.length>7)
+			if (tokens.length > 7)
 				this.kiai = (Integer.parseInt(tokens[7]) == 1);
 		} catch (ArrayIndexOutOfBoundsException e) {
 			Log.debug(String.format("Error parsing timing point: '%s'", line));

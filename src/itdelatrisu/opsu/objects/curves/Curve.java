@@ -28,6 +28,8 @@ import fluddokt.opsu.fake.*;
 
 /**
  * Representation of a curve.
+ *
+ * @author fluddokt (https://github.com/fluddokt)
  */
 public abstract class Curve {
 	/** The associated OsuHitObject. */

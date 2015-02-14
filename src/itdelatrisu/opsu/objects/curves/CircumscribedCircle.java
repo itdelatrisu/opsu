@@ -33,6 +33,8 @@ import fluddokt.opsu.fake.*;
 /**
  * Representation of a curve along a Circumscribed Circle of three points.
  * http://en.wikipedia.org/wiki/Circumscribed_circle
+ *
+ * @author fluddokt (https://github.com/fluddokt)
  */
 public class CircumscribedCircle extends Curve {
 	/** PI constants. */

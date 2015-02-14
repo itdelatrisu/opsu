@@ -97,7 +97,7 @@ public class GameRanking extends BasicGameState {
 		OsuFile osu = MusicController.getOsuFile();
 
 		// background
-		if (!osu.drawBG(width, height, 0.7f))
+		if (!osu.drawBG(width, height, 0.7f, true))
 			g.setBackground(Utils.COLOR_BLACK_ALPHA);
 
 		// ranking screen elements
@@ -142,7 +142,7 @@ public class GameRanking extends BasicGameState {
 	@Override
 	public void mousePressed(int button, int x, int y) {
 		// check mouse button
-		if (button != Input.MOUSE_LEFT_BUTTON)
+		if (button == Input.MOUSE_MIDDLE_BUTTON)
 			return;
 
 		if (data.isGameplay()) {

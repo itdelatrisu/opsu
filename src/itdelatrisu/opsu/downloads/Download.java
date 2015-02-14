@@ -18,13 +18,11 @@
 
 package itdelatrisu.opsu.downloads;
 
+import fluddokt.opsu.fake.*;
 
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.Utils;
-import fluddokt.opsu.fake.*;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 //import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -49,6 +47,9 @@ public class Download {
 
 	/** Read timeout, in ms. */
 	public static final int READ_TIMEOUT = 10000;
+
+	/** Time between download speed and ETA updates, in ms. */
+	private static final int UPDATE_INTERVAL = 1000;
 
 	/** Download statuses. */
 	public enum Status {
@@ -96,11 +97,18 @@ public class Download {
 	/** The download status. */
 	private Status status = Status.WAITING;
 
-	Thread dlThread;
-	
-	private long lastUpdateETA;
-	private long lastReadSoFar;
-	String ETAstr = "Start";
+	/** Time when lastReadSoFar was updated. */
+	private long lastReadSoFarTime = -1;
+
+	/** Last readSoFar amount. */
+	private long lastReadSoFar = -1;
+
+	/** Last calculated download speed string. */
+	private String lastDownloadSpeed;
+
+	/** Last calculated ETA string. */
+	private String lastTimeRemaining;
+
 	/**
 	 * Constructor.
 	 * @param remoteURL the download URL
@@ -164,22 +172,12 @@ public class Download {
 					fos = fileOutputStream;
 					FileChannel foschannel = fos.getChannel();
 					status = Status.DOWNLOADING;
+					updateReadSoFar();
 					int total = 0;
 					
-					
-					/*
-					ByteBuffer buf = ByteBuffer.allocate(8192*32);
-					long len = 0;
-					while(status == Status.DOWNLOADING && (len = rbc.read(buf)) != -1) {
-						buf.flip();
-						fos.getChannel().write(buf);
-						buf.clear();
-					}
-					/*/
 					while(status == Status.DOWNLOADING && total < contentLength){
 						long readed = foschannel.transferFrom(rbc, total, Math.min(2048, contentLength-total));
 						total += readed;
-						//System.out.println("readed "+readed);
 					}
 					//*/
 					if (status == Status.DOWNLOADING) {  // not interrupted
@@ -286,28 +284,59 @@ public class Download {
 			return 0;
 		}
 	}
-	
-	public String ETA(){
-		if(lastUpdateETA<=0){
-			lastUpdateETA = System.currentTimeMillis();
-			lastReadSoFar = readSoFar();
-		}
-		if(System.currentTimeMillis() > lastUpdateETA + 1000){
-			long thisReadSoFar = readSoFar();
-			long thisUpdateETA = System.currentTimeMillis();
-			long dlspeed = (thisReadSoFar-lastReadSoFar)*1000/(thisUpdateETA-lastUpdateETA);
-			if(dlspeed>0)
-				ETAstr = Utils.bytesToString(dlspeed)+"/s "+ (timeStr((contentLength-thisReadSoFar)/dlspeed));
-			else
-				ETAstr = "";
-			lastUpdateETA = thisUpdateETA;
-			lastReadSoFar = thisReadSoFar;
-		}
-		return ETAstr;
+
+	/**
+	 * Returns the last calculated download speed, or null if not downloading.
+	 */
+	public String getDownloadSpeed() {
+		updateReadSoFar();
+		return lastDownloadSpeed;
 	}
-	public String timeStr(long t){
-		//t/=1000;
-		return t/60+"m"+t%60+"s";
+
+	/**
+	 * Returns the last calculated ETA, or null if not downloading.
+	 */
+	public String getTimeRemaining() {
+		updateReadSoFar();
+		return lastTimeRemaining;
+	}
+
+	/**
+	 * Updates the last readSoFar and related fields.
+	 */
+	private void updateReadSoFar() {
+		// only update while downloading
+		if (status != Status.DOWNLOADING) {
+			this.lastDownloadSpeed = null;
+			this.lastTimeRemaining = null;
+			return;
+		}
+
+		// update download speed and ETA
+		if (System.currentTimeMillis() > lastReadSoFarTime + UPDATE_INTERVAL) {
+			long readSoFar = readSoFar();
+			long readSoFarTime = System.currentTimeMillis();
+			long dlspeed = (readSoFar - lastReadSoFar) * 1000 / (readSoFarTime - lastReadSoFarTime);
+			if (dlspeed > 0) {
+				this.lastDownloadSpeed = String.format("%s/s", Utils.bytesToString(dlspeed));
+				long t = (contentLength - readSoFar) / dlspeed;
+				if (t >= 3600)
+					this.lastTimeRemaining = String.format("%dh%dm%ds", t / 3600, (t / 60) % 60, t % 60);
+				else
+					this.lastTimeRemaining = String.format("%dm%ds", t / 60, t % 60);
+			} else {
+				this.lastDownloadSpeed = String.format("%s/s", Utils.bytesToString(0));
+				this.lastTimeRemaining = "?";
+			}
+			this.lastReadSoFarTime = readSoFarTime;
+			this.lastReadSoFar = readSoFar;
+		}
+
+		// first call
+		else if (lastReadSoFarTime <= 0) {
+			this.lastReadSoFar = readSoFar();
+			this.lastReadSoFarTime = System.currentTimeMillis();
+		}
 	}
 
 	/**

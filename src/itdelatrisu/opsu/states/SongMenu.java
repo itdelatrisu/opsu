@@ -40,6 +40,7 @@ import itdelatrisu.opsu.audio.HitSound;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
+import itdelatrisu.opsu.states.ButtonMenu.MenuState;
 
 //import java.io.File;
 import java.util.Map;
@@ -78,6 +79,9 @@ public class SongMenu extends BasicGameState {
 
 	/** Delay time, in milliseconds, between each search. */
 	private static final int SEARCH_DELAY = 500;
+
+	/** Delay time, in milliseconds, before moving to the beatmap menu after a right click. */
+	private static final int BEATMAP_MENU_DELAY = 600;
 
 	/** Maximum x offset of song buttons for mouse hover, in pixels. */
 	private static final float MAX_HOVER_OFFSET = 30f;
@@ -161,6 +165,18 @@ public class SongMenu extends BasicGameState {
 	/** Whether or not to reset music track upon entering the state. */
 	private boolean resetTrack = false;
 
+	/** If non-null, determines the action to perform upon entering the state. */
+	private MenuState stateAction;
+
+	/** If non-null, the node that stateAction acts upon. */
+	private OsuGroupNode stateActionNode;
+
+	/** If non-null, the score data that stateAction acts upon. */
+	private ScoreData stateActionScore;
+
+	/** Timer before moving to the beatmap menu with the current focus node. */
+	private int beatmapMenuTimer = -1;
+
 	/** Beatmap reloading thread. */
 	private Thread reloadThread;
 
@@ -241,8 +257,11 @@ public class SongMenu extends BasicGameState {
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
 
 		// background
-		if (focusNode != null)
-			focusNode.osuFiles.get(focusNode.osuFileIndex).drawBG(width, height, 1.0f);
+		if (focusNode != null) {
+			OsuFile focusNodeOsu = focusNode.osuFiles.get(focusNode.osuFileIndex);
+			if (!focusNodeOsu.drawBG(width, height, 1.0f, true))
+				GameImage.PLAYFIELD.getImage().draw();
+		}
 
 		// header setup
 		float lowerBound = height * 0.15f;
@@ -376,10 +395,23 @@ public class SongMenu extends BasicGameState {
 		Utils.getBackButton().hoverUpdate(delta, mouseX, mouseY);
 		optionsButton.hoverUpdate(delta, mouseX, mouseY);
 
+		// beatmap menu timer
+		if (beatmapMenuTimer > -1) {
+			beatmapMenuTimer += delta;
+			if (beatmapMenuTimer >= BEATMAP_MENU_DELAY) {
+				beatmapMenuTimer = -1;
+				if (focusNode != null) {
+					((ButtonMenu) game.getState(Opsu.STATE_BUTTONMENU)).setMenuState(MenuState.BEATMAP, focusNode);
+					game.enterState(Opsu.STATE_BUTTONMENU);
+				}
+				return;
+			}
+		}
+
 		// search
 		search.setFocus(true);
 		searchTimer += delta;
-		if (searchTimer >= SEARCH_DELAY && reloadThread == null) {
+		if (searchTimer >= SEARCH_DELAY && reloadThread == null && beatmapMenuTimer == -1) {
 			searchTimer = 0;
 
 			// store the start/focus nodes
@@ -396,6 +428,8 @@ public class SongMenu extends BasicGameState {
 
 				// search produced new list: re-initialize it
 				startNode = focusNode = null;
+				scoreMap = null;
+				focusScores = null;
 				if (OsuGroupList.get().size() > 0) {
 					OsuGroupList.get().init();
 					if (search.getText().isEmpty()) {  // cleared search
@@ -462,11 +496,11 @@ public class SongMenu extends BasicGameState {
 	@Override
 	public void mousePressed(int button, int x, int y) {
 		// check mouse button
-		if (button != Input.MOUSE_LEFT_BUTTON)
+		if (button == Input.MOUSE_MIDDLE_BUTTON)
 			return;
 
-		// block input during beatmap reloading
-		if (reloadThread != null)
+		// block input
+		if (reloadThread != null || beatmapMenuTimer > -1)
 			return;
 
 		// back
@@ -518,8 +552,10 @@ public class SongMenu extends BasicGameState {
 				if (node.index == expandedIndex) {
 					if (node.osuFileIndex == focusNode.osuFileIndex) {
 						// if already focused, load the beatmap
-						startGame();
-
+						if (button != Input.MOUSE_RIGHT_BUTTON)
+							startGame();
+						else
+							SoundController.playSound(SoundEffect.MENUCLICK);
 					} else {
 						// focus the node
 						SoundController.playSound(SoundEffect.MENUCLICK);
@@ -537,6 +573,10 @@ public class SongMenu extends BasicGameState {
 				hoverOffset = oldHoverOffset;
 				hoverIndex = oldHoverIndex;
 
+				// open beatmap menu
+				if (button == Input.MOUSE_RIGHT_BUTTON)
+					beatmapMenuTimer = (node.index == expandedIndex) ? BEATMAP_MENU_DELAY * 4 / 5 : 0;
+
 				return;
 			}
 		}
@@ -548,10 +588,17 @@ public class SongMenu extends BasicGameState {
 				if (rank >= focusScores.length)
 					break;
 				if (ScoreData.buttonContains(x, y, i)) {
-					// view score
-					GameData data = new GameData(focusScores[rank], container.getWidth(), container.getHeight());
-					((GameRanking) game.getState(Opsu.STATE_GAMERANKING)).setGameData(data);
-					game.enterState(Opsu.STATE_GAMERANKING, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
+					SoundController.playSound(SoundEffect.MENUHIT);
+					if (button != Input.MOUSE_RIGHT_BUTTON) {
+						// view score
+						GameData data = new GameData(focusScores[rank], container.getWidth(), container.getHeight());
+						((GameRanking) game.getState(Opsu.STATE_GAMERANKING)).setGameData(data);
+						game.enterState(Opsu.STATE_GAMERANKING, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
+					} else {
+						// score management
+						((ButtonMenu) game.getState(Opsu.STATE_BUTTONMENU)).setMenuState(MenuState.SCORE, focusScores[rank]);
+						game.enterState(Opsu.STATE_BUTTONMENU);
+					}
 					return;
 				}
 			}
@@ -560,8 +607,8 @@ public class SongMenu extends BasicGameState {
 
 	@Override
 	public void keyPressed(int key, char c) {
-		// block input during beatmap reloading
-		if (reloadThread != null && !(key == Input.KEY_ESCAPE || key == Input.KEY_F12))
+		// block input
+		if ((reloadThread != null && !(key == Input.KEY_ESCAPE || key == Input.KEY_F12)) || beatmapMenuTimer > -1)
 			return;
 
 		switch (key) {
@@ -600,42 +647,17 @@ public class SongMenu extends BasicGameState {
 				setFocus(OsuGroupList.get().getRandomNode(), -1, true);
 			}
 			break;
+		case Input.KEY_F3:
+			if (focusNode == null)
+				break;
+			SoundController.playSound(SoundEffect.MENUHIT);
+			((ButtonMenu) game.getState(Opsu.STATE_BUTTONMENU)).setMenuState(MenuState.BEATMAP, focusNode);
+			game.enterState(Opsu.STATE_BUTTONMENU);
+			break;
 		case Input.KEY_F5:
-			// TODO: osu! has a confirmation menu
-			SoundController.playSound(SoundEffect.MENUCLICK);
-
-			// reset state and node references
-			MusicController.reset();
-			startNode = focusNode = null;
-			oldFocusNode = null;
-			randomStack = new Stack<SongNode>();
-			songInfo = null;
-			hoverOffset = 0f;
-			hoverIndex = -1;
-			search.setText("");
-			searchTimer = SEARCH_DELAY;
-			searchResultString = "Type to search!";
-
-			// reload songs in new thread
-			reloadThread = new Thread() {
-				@Override
-				public void run() {
-					// invoke unpacker and parser
-					File beatmapDir = Options.getBeatmapDir();
-					OszUnpacker.unpackAllFiles(Options.getOSZDir(), beatmapDir);
-					OsuParser.parseAllFiles(beatmapDir);
-
-					// initialize song list
-					if (OsuGroupList.get().size() > 0) {
-						OsuGroupList.get().init();
-						setFocus(OsuGroupList.get().getRandomNode(), -1, true);
-					} else
-						MusicController.playThemeSong();
-
-					reloadThread = null;
-				}
-			};
-			reloadThread.start();
+			SoundController.playSound(SoundEffect.MENUHIT);
+			((ButtonMenu) game.getState(Opsu.STATE_BUTTONMENU)).setMenuState(MenuState.RELOAD);
+			game.enterState(Opsu.STATE_BUTTONMENU);
 			break;
 		case Input.KEY_F12:
 			Utils.takeScreenShot();
@@ -704,8 +726,8 @@ public class SongMenu extends BasicGameState {
 
 	@Override
 	public void mouseDragged(int oldx, int oldy, int newx, int newy) {
-		// block input during beatmap reloading
-		if (reloadThread != null)
+		// block input
+		if (reloadThread != null || beatmapMenuTimer > -1)
 			return;
 
 		int diff = newy - oldy;
@@ -736,8 +758,8 @@ public class SongMenu extends BasicGameState {
 
 	@Override
 	public void mouseWheelMoved(int newValue) {
-		// block input during beatmap reloading
-		if (reloadThread != null)
+		// block input
+		if (reloadThread != null || beatmapMenuTimer > -1)
 			return;
 
 		int shift = (newValue < 0) ? 1 : -1;
@@ -764,6 +786,10 @@ public class SongMenu extends BasicGameState {
 		hoverOffset = 0f;
 		hoverIndex = -1;
 		startScore = 0;
+		beatmapMenuTimer = -1;
+
+		// reset song stack
+		randomStack = new Stack<SongNode>();
 
 		// set focus node if not set (e.g. theme song playing)
 		if (focusNode == null && OsuGroupList.get().size() > 0)
@@ -784,9 +810,6 @@ public class SongMenu extends BasicGameState {
 		if (MusicController.isTrackDimmed())
 			MusicController.toggleTrackDimmed(1f);
 
-		// reset song stack
-		randomStack = new Stack<SongNode>();
-
 		// reset game data
 		if (resetGame) {
 			((Game) game.getState(Opsu.STATE_GAME)).resetGameData();
@@ -804,6 +827,128 @@ public class SongMenu extends BasicGameState {
 			}
 
 			resetGame = false;
+		}
+
+		// state-based action
+		if (stateAction != null) {
+			switch (stateAction) {
+			case BEATMAP:  // clear all scores
+				if (stateActionNode == null || stateActionNode.osuFileIndex == -1)
+					break;
+				OsuFile osu = stateActionNode.osuFiles.get(stateActionNode.osuFileIndex);
+				ScoreDB.deleteScore(osu);
+				if (stateActionNode == focusNode) {
+					focusScores = null;
+					scoreMap.remove(osu.version);
+				}
+				break;
+			case SCORE:  // clear single score
+				if (stateActionScore == null)
+					break;
+				ScoreDB.deleteScore(stateActionScore);
+				scoreMap = ScoreDB.getMapSetScores(focusNode.osuFiles.get(focusNode.osuFileIndex));
+				focusScores = getScoreDataForNode(focusNode, true);
+				startScore = 0;
+				break;
+			case BEATMAP_DELETE_CONFIRM:  // delete song group
+				if (stateActionNode == null)
+					break;
+				OsuGroupNode
+					prev = OsuGroupList.get().getBaseNode(stateActionNode.index - 1),
+					next = OsuGroupList.get().getBaseNode(stateActionNode.index + 1);
+				int oldIndex = stateActionNode.index, focusNodeIndex = focusNode.index, startNodeIndex = startNode.index;
+				OsuGroupList.get().deleteSongGroup(stateActionNode);
+				if (oldIndex == focusNodeIndex) {
+					if (prev != null)
+						setFocus(prev, -1, true);
+					else if (next != null)
+						setFocus(next, -1, true);
+					else {
+						startNode = focusNode = null;
+						oldFocusNode = null;
+						randomStack = new Stack<SongNode>();
+						songInfo = null;
+						scoreMap = null;
+						focusScores = null;
+					}
+				} else if (oldIndex == startNodeIndex) {
+					if (startNode.prev != null)
+						startNode = startNode.prev;
+					else if (startNode.next != null)
+						startNode = startNode.next;
+					else {
+						startNode = null;
+						songInfo = null;
+					}
+				}
+				break;
+			case BEATMAP_DELETE_SELECT:  // delete single song
+				if (stateActionNode == null)
+					break;
+				int index = stateActionNode.index;
+				OsuGroupList.get().deleteSong(stateActionNode);
+				if (stateActionNode == focusNode) {
+					if (stateActionNode.prev != null &&
+					    !(stateActionNode.next != null && stateActionNode.next.index == index)) {
+						if (stateActionNode.prev.index == index)
+							setFocus(stateActionNode.prev, 0, true);
+						else
+							setFocus(stateActionNode.prev, -1, true);
+					} else if (stateActionNode.next != null) {
+						if (stateActionNode.next.index == index)
+							setFocus(stateActionNode.next, 0, true);
+						else
+							setFocus(stateActionNode.next, -1, true);
+					}
+				} else if (stateActionNode == startNode) {
+					if (startNode.prev != null)
+						startNode = startNode.prev;
+					else if (startNode.next != null)
+						startNode = startNode.next;
+				}
+				break;
+			case RELOAD:  // reload beatmaps
+				// reset state and node references
+				MusicController.reset();
+				startNode = focusNode = null;
+				scoreMap = null;
+				focusScores = null;
+				oldFocusNode = null;
+				randomStack = new Stack<SongNode>();
+				songInfo = null;
+				hoverOffset = 0f;
+				hoverIndex = -1;
+				search.setText("");
+				searchTimer = SEARCH_DELAY;
+				searchResultString = "Type to search!";
+
+				// reload songs in new thread
+				reloadThread = new Thread() {
+					@Override
+					public void run() {
+						// invoke unpacker and parser
+						File beatmapDir = Options.getBeatmapDir();
+						OszUnpacker.unpackAllFiles(Options.getOSZDir(), beatmapDir);
+						OsuParser.parseAllFiles(beatmapDir);
+
+						// initialize song list
+						if (OsuGroupList.get().size() > 0) {
+							OsuGroupList.get().init();
+							setFocus(OsuGroupList.get().getRandomNode(), -1, true);
+						} else
+							MusicController.playThemeSong();
+
+						reloadThread = null;
+					}
+				};
+				reloadThread.start();
+				break;
+			default:
+				break;
+			}
+			stateAction = null;
+			stateActionNode = null;
+			stateActionScore = null;
 		}
 	}
 
@@ -934,6 +1079,42 @@ public class SongMenu extends BasicGameState {
 	 * Triggers a reset of the music track upon entering this state.
 	 */
 	public void resetTrackOnLoad() { resetTrack = true; }
+
+	/**
+	 * Performs an action based on a menu state upon entering this state.
+	 * @param menuState the menu state determining the action
+	 */
+	public void doStateActionOnLoad(MenuState menuState) { doStateActionOnLoad(menuState, null, null); }
+
+	/**
+	 * Performs an action based on a menu state upon entering this state.
+	 * @param menuState the menu state determining the action
+	 * @param node the song node to perform the action on
+	 */
+	public void doStateActionOnLoad(MenuState menuState, OsuGroupNode node) {
+		doStateActionOnLoad(menuState, node, null);
+	}
+
+	/**
+	 * Performs an action based on a menu state upon entering this state.
+	 * @param menuState the menu state determining the action
+	 * @param scoreData the score data to perform the action on
+	 */
+	public void doStateActionOnLoad(MenuState menuState, ScoreData scoreData) {
+		doStateActionOnLoad(menuState, null, scoreData);
+	}
+
+	/**
+	 * Performs an action based on a menu state upon entering this state.
+	 * @param menuState the menu state determining the action
+	 * @param node the song node to perform the action on
+	 * @param scoreData the score data to perform the action on
+	 */
+	private void doStateActionOnLoad(MenuState menuState, OsuGroupNode node, ScoreData scoreData) {
+		stateAction = menuState;
+		stateActionNode = node;
+		stateActionScore = scoreData;
+	}
 
 	/**
 	 * Returns all the score data for an OsuGroupNode from scoreMap.

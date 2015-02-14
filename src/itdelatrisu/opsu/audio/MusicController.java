@@ -19,6 +19,7 @@
 package itdelatrisu.opsu.audio;
 
 import fluddokt.opsu.fake.*;
+
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.OsuFile;
@@ -28,8 +29,6 @@ import itdelatrisu.opsu.OsuParser;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.nio.IntBuffer;
-
-import javazoom.jl.converter.Converter;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.openal.AL;
@@ -51,9 +50,6 @@ public class MusicController {
 	/** The last OsuFile passed to play(). */
 	private static OsuFile lastOsu;
 
-	/** Temporary WAV file for file conversions (to be deleted). */
-	private static File wavFile;
-
 	/** Thread for loading tracks. */
 	private static Thread trackLoader;
 
@@ -74,35 +70,20 @@ public class MusicController {
 
 	/**
 	 * Plays an audio file at the preview position.
+	 * If the audio file is already playing, then nothing will happen.
 	 */
 	public static void play(final OsuFile osu, final boolean loop) {
-		boolean play = (lastOsu == null || !osu.audioFilename.equals(lastOsu.audioFilename));
-		//System.out.println("play "+play+"\n\t "+osu.audioFilename+osu+" \nLast:\t"+(lastOsu!=null?lastOsu.audioFilename:"NULL")+lastOsu+"\n "+player);
-		lastOsu = osu;
-		
-		if (play) {
-			
+		// new track: load and play
+		if (lastOsu == null || !osu.audioFilename.equals(lastOsu.audioFilename)) {
 			reset();
 			System.gc();
 
 			switch (OsuParser.getExtension(osu.audioFilename.getName())) {
 			case "ogg":
-				trackLoader = new Thread() {
-					@Override
-					public void run() {
-						loadTrack(osu.audioFilename, osu.previewTime, loop);
-					}
-				};
-				trackLoader.start();
-				break;
 			case "mp3":
 				trackLoader = new Thread() {
 					@Override
 					public void run() {
-						
-						//convertMp3(osu.audioFilename);
-//						if (!Thread.currentThread().isInterrupted())
-						
 						loadTrack(osu.audioFilename, osu.previewTime, loop);
 					}
 				};
@@ -112,17 +93,25 @@ public class MusicController {
 				break;
 			}
 		}
+
+		// new track position: play at position
+		else if (osu.previewTime != lastOsu.previewTime)
+			playAt(osu.previewTime, loop);
+
 		lastOsu = osu;
 	}
 
 	/**
 	 * Loads a track and plays it.
+	 * @param file the audio file
+	 * @param position the track position (in ms)
+	 * @param loop whether or not to loop the track
 	 */
 	private static void loadTrack(File file, int previewTime, boolean loop) {
 		try {   // create a new player
 			if(player!=null)
 				player.dispose();
-			player = new Music(file.getPath());
+			player = new Music(file.getPath(), true);
 			player.addListener(new MusicListener() {
 				@Override
 				public void musicEnded(Music music) { trackEnded = true; }
@@ -130,7 +119,7 @@ public class MusicController {
 				@Override
 				public void musicSwapped(Music music, Music newMusic) {}
 			});
-			playAt((previewTime > 0) ? previewTime : 0, loop);
+			playAt(position, loop);
 		} catch (Exception e) {
 			ErrorHandler.error(String.format("Could not play track '%s'.", file.getName()), e, false);
 		}
@@ -138,35 +127,21 @@ public class MusicController {
 
 	/**
 	 * Plays the current track at the given position.
+	 * @param position the track position (in ms)
+	 * @param loop whether or not to loop the track
 	 */
 	public static void playAt(final int position, final boolean loop) {
 		if (trackExists()) {
 			setVolume(Options.getMusicVolume() * Options.getMasterVolume());
-			player.setPosition(position / 1000f);
 			trackEnded = false;
 			pauseTime = 0f;
 			if (loop)
 				player.loop();
 			else
 				player.play();
+			if (position >= 0)
+				player.setPosition(position / 1000f);
 		}
-	}
-
-	/**
-	 * Converts an MP3 file to a temporary WAV file.
-	 */
-	private static File convertMp3(File file) {
-		try {
-			//wavFile = File.createTempFile(".osu", ".wav", Options.TMP_DIR);
-			//wavFile.deleteOnExit();
-
-			//Converter converter = new Converter();
-			//converter.convert(file.getPath(), wavFile.getPath());
-			return wavFile;
-		} catch (Exception e) {
-			ErrorHandler.error(String.format("Failed to play file '%s'.", file.getAbsolutePath()), e, false);
-		}
-		return wavFile;
 	}
 
 	/**
@@ -179,9 +154,7 @@ public class MusicController {
 	/**
 	 * Returns true if a track is loaded.
 	 */
-	public static boolean trackExists() {
-		return (player != null);
-	}
+	public static boolean trackExists() { return (player != null); }
 
 	/**
 	 * Returns the OsuFile associated with the current track.
@@ -247,8 +220,8 @@ public class MusicController {
 	public static void stop() {
 		if (isPlaying()){
 			player.stop();
-			System.out.println("Stopping "+lastOsu.audioFilename);
-		}
+		if (trackExists())
+			pauseTime = 0f;
 	}
 
 	/**
@@ -264,9 +237,8 @@ public class MusicController {
 	 * If no track is loaded, 0 will be returned.
 	 */
 	public static int getPosition() {
-		//System.out.println("Player Position:"+player.getPosition());
 		if (isPlaying())
-			return Math.max((int) (player.getPosition() * 1000 + Options.getMusicOffset()), 0);
+			return (int) (player.getPosition() * 1000 + Options.getMusicOffset());
 		else if (isPaused())
 			return Math.max((int) (pauseTime * 1000 + Options.getMusicOffset()), 0);
 		else
@@ -277,7 +249,15 @@ public class MusicController {
 	 * Seeks to a position in the current track.
 	 */
 	public static boolean setPosition(int position) {
-		return (trackExists() && player.setPosition(position / 1000f));
+		return (trackExists() && position >= 0 && player.setPosition(position / 1000f));
+	}
+	
+	/**
+	 * Plays the current track.
+	 */
+	public static void play() {
+		if (trackExists())
+			player.play();
 	}
 
 	/**
@@ -331,31 +311,25 @@ public class MusicController {
 	 * Stops the current track, cancels track conversions, erases
 	 * temporary files, releases OpenAL sources, and resets state.
 	 */
-	@SuppressWarnings("deprecation")
 	public static void reset() {
 		stop();
 
-		// TODO: properly interrupt instead of using deprecated Thread.stop();
-		// interrupt the conversion/track loading
+		// interrupt the track loading
+		// TODO: Not sure if the interrupt does anything, and the join kind of
+		// defeats the purpose of threading it, but it is needed since bad things
+		// likely happen when OpenALStreamPlayer source is released asynchronously.
 		if (isTrackLoading()){
 			trackLoader.interrupt();
 			try {
 				trackLoader.join();
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
-			}	
+			}
 		}
 		trackLoader = null;
 
 		if(player!=null){
 			player.stop();
-		}
-
-		// delete temporary WAV file
-		if (wavFile != null) {
-			wavFile.delete();
-			wavFile = null;
 		}
 
 		// reset state
@@ -430,6 +404,7 @@ public class MusicController {
 			player = null;
 		} catch (Exception e) {
 			ErrorHandler.error("Failed to destroy OpenAL.", e, true);
-		}*/
+		}
+*/
 	}
 }

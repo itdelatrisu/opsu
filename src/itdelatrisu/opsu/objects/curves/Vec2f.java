@@ -20,6 +20,8 @@ package itdelatrisu.opsu.objects.curves;
 
 /**
  * A two-dimensional floating-point vector.
+ *
+ * @author fluddokt (https://github.com/fluddokt)
  */
 public class Vec2f {
 	/** Vector coordinates. */

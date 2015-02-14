@@ -93,7 +93,7 @@ public class Slider implements HitObject {
 	private int tickIndex = 0;
 
 	/** Number of ticks hit and tick intervals so far. */
-	private int ticksHit = 0, tickIntervals = 1;	
+	private int ticksHit = 0, tickIntervals = 1;
 
 	/**
 	 * Initializes the Slider data type with images and dimensions.
@@ -223,15 +223,14 @@ public class Slider implements HitObject {
 			Utils.drawCentered(GameImage.APPROACHCIRCLE.getImage().getScaledCopy(approachScale), x, y, color);
 		} else {
 			float[] c = curve.pointAt(getT(trackPosition, false));
-			float[] c2 = curve.pointAt(getT(trackPosition, false)+0.01f);
+			float[] c2 = curve.pointAt(getT(trackPosition, false) + 0.01f);
 
 
 			// slider ball
-			Image sliderBallFr = sliderBall.getCurrentFrame();
-			sliderBallFr.setRotation((float)( Math.atan2(c2[1]-c[1], c2[0]-c[0])*180/Math.PI));
-			//color.a = 1;
-			//Utils.drawCentered(sliderBallFr, c[0], c[1], color);
-			Utils.drawCentered(sliderBallFr, c[0], c[1], Color.white);
+			Image sliderBallFrame = sliderBall.getCurrentFrame();
+			float angle = (float) (Math.atan2(c2[1] - c[1], c2[0] - c[0]) * 180 / Math.PI);
+			sliderBallFrame.setRotation(angle);
+			sliderBallFrame.drawCentered(c[0], c[1]);
 
 			// follow circle
 			if (followCircleActive)

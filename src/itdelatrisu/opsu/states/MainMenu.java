@@ -19,6 +19,7 @@
 package itdelatrisu.opsu.states;
 
 import fluddokt.opsu.fake.*;
+
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.MenuButton;
@@ -31,9 +32,7 @@ import itdelatrisu.opsu.OsuGroupNode;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
-import itdelatrisu.opsu.audio.SoundEffect;
-
-
+import itdelatrisu.opsu.audio.SoundEffect;import itdelatrisu.opsu.states.ButtonMenu.MenuState;
 
 
 //import java.awt.Desktop;
@@ -172,7 +171,7 @@ public class MainMenu extends BasicGameState {
 		// draw background
 		OsuFile osu = MusicController.getOsuFile();
 		if (Options.isDynamicBackgroundEnabled() &&
-			osu != null && osu.drawBG(width, height, bgAlpha))
+			osu != null && osu.drawBG(width, height, bgAlpha, true))
 				;
 		else {
 			Image bg = GameImage.MENU_BG.getImage();
@@ -344,7 +343,7 @@ public class MainMenu extends BasicGameState {
 	@Override
 	public void mousePressed(int button, int x, int y) {
 		// check mouse button
-		if (button != Input.MOUSE_LEFT_BUTTON)
+		if (button == Input.MOUSE_MIDDLE_BUTTON)
 			return;
 
 		// music button actions
@@ -422,7 +421,8 @@ public class MainMenu extends BasicGameState {
 		case Input.KEY_ESCAPE:
 		case Input.KEY_Q:
 		case Input.ANDROID_BACK:
-			game.enterState(Opsu.STATE_MAINMENUEXIT);
+			((ButtonMenu) game.getState(Opsu.STATE_BUTTONMENU)).setMenuState(MenuState.EXIT);
+			game.enterState(Opsu.STATE_BUTTONMENU);
 			break;
 		case Input.KEY_P:
 			if (!logoClicked) {

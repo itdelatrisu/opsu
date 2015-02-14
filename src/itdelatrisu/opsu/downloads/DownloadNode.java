@@ -22,7 +22,7 @@ package itdelatrisu.opsu.downloads;
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.Options;
-import itdelatrisu.opsu.OsuParser;
+import itdelatrisu.opsu.OsuGroupList;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.downloads.Download.Status;
 
@@ -300,6 +300,12 @@ public class DownloadNode {
 		g.setColor((focus) ? BG_FOCUS : (hover) ? BG_HOVER : BG_NORMAL);
 		g.fillRect(buttonBaseX, y, buttonWidth, buttonHeight);
 
+		// map is already loaded
+		if (OsuGroupList.get().containsBeatmapSetID(beatmapSetID)) {
+			g.setColor(Utils.COLOR_BLUE_BUTTON);
+			g.fillRect(buttonBaseX, y, buttonWidth, buttonHeight);
+		}
+
 		// download progress
 		if (dl != null) {
 			float progress = dl.getProgress();
@@ -358,9 +364,13 @@ public class DownloadNode {
 			info = status.getName();
 		else if (status == Download.Status.WAITING)
 			info = String.format("%s...", status.getName());
-		else
-			info = String.format("%s: %.1f%% (%s/%s)", status.getName(), progress,
-					Utils.bytesToString(download.readSoFar()), Utils.bytesToString(download.contentLength()));
+		else {
+			if (hover && status == Download.Status.DOWNLOADING)
+				info = String.format("%s: %s left (%s)", status.getName(), download.getTimeRemaining(), download.getDownloadSpeed());
+			else
+				info = String.format("%s: %.1f%% (%s/%s)", status.getName(), progress,
+						Utils.bytesToString(download.readSoFar()), Utils.bytesToString(download.contentLength()));
+		}
 		Utils.FONT_BOLD.drawString(textX, y + marginY, getTitle(), Color.white);
 		Utils.FONT_DEFAULT.drawString(textX, y + marginY + Utils.FONT_BOLD.getLineHeight(), info, Color.white);
 

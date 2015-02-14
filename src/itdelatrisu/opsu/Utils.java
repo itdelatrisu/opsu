@@ -24,20 +24,20 @@ import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
 import itdelatrisu.opsu.downloads.DownloadNode;
 
-
-
-
 //import java.awt.Font;
 //import java.awt.image.BufferedImage;
 //import java.io.File;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 
 import javax.imageio.ImageIO;
 
@@ -61,6 +61,8 @@ import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.util.Log;
 import org.newdawn.slick.util.ResourceLoader;
 */
+
+import com.sun.jna.platform.FileUtils;
 
 /**
  * Contains miscellaneous utilities.
@@ -186,15 +188,12 @@ public class Utils {
 			fontBase = 15f;
 
 		try {
-			//FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Gdx.files.internal("fonts/myfont.ttf"));
-
-			
 			//Font javaFont = Font.createFont(Font.TRUETYPE_FONT, ResourceLoader.getResourceAsStream(Options.FONT_NAME));
 			Font javaFont = new Font(Options.FONT_NAME);
 			Font font    = javaFont.deriveFont(Font.PLAIN, (int) (fontBase * 4 / 3));
 			FONT_DEFAULT = new UnicodeFont(font);
 			FONT_BOLD    = new UnicodeFont(font.deriveFont(Font.BOLD));
-			FONT_XLARGE  = new UnicodeFont(font.deriveFont(fontBase * 4));
+			FONT_XLARGE  = new UnicodeFont(font.deriveFont(fontBase * 3));
 			FONT_LARGE   = new UnicodeFont(font.deriveFont(fontBase * 2));
 			FONT_MEDIUM  = new UnicodeFont(font.deriveFont(fontBase * 3 / 2));
 			FONT_SMALL   = new UnicodeFont(font.deriveFont(fontBase));
@@ -752,4 +751,99 @@ public class Utils {
 	    }
 	    return cleanName.toString();
 	}
+
+	/**
+	 * Deletes a file or directory.  If a system trash directory is available,
+	 * the file or directory will be moved there instead.
+	 * @param file the file or directory to delete
+	 * @return true if moved to trash, and false if deleted
+	 * @throws IOException if given file does not exist
+	 */
+	public static boolean deleteToTrash(File file) throws IOException {
+		if (file == null)
+			throw new IOException("File cannot be null.");
+		if (!file.exists())
+			throw new IOException(String.format("File '%s' does not exist.", file.getAbsolutePath()));
+
+		// move to system trash, if possible
+		FileUtils fileUtils = FileUtils.getInstance();
+		if (fileUtils.hasTrash()) {
+			try {
+				fileUtils.moveToTrash(new File[] { file });
+				return true;
+			} catch (IOException e) {
+				Log.warn(String.format("Failed to move file '%s' to trash.", file.getAbsolutePath()), e);
+			}
+		}
+
+		// delete otherwise
+		if (file.isDirectory())
+			deleteDirectory(file);
+		else
+			file.delete();
+		return false;
+	}
+
+	/**
+	 * Recursively deletes all files and folders in a directory, then
+	 * deletes the directory itself.
+	 * @param dir the directory to delete
+	 */
+	private static void deleteDirectory(File dir) {
+		if (dir == null || !dir.isDirectory())
+			return;
+
+		// recursively delete contents of directory
+		File[] files = dir.listFiles();
+		if (files != null && files.length > 0) {
+			for (File file : files) {
+				if (file.isDirectory())
+					deleteDirectory(file);
+				else
+					file.delete();
+			}
+		}
+
+		// delete the directory
+		dir.delete();
+	}
+
+	/**
+	 * Wraps the given string into a list of split lines based on the width.
+	 * @param text the text to split
+	 * @param font the font used to draw the string
+	 * @param width the maximum width of a line
+	 * @return the list of split strings
+	 * @author davedes (http://slick.ninjacave.com/forum/viewtopic.php?t=3778)
+	 */
+	public static List<String> wrap(String text, org.newdawn.slick.Font font, int width) {
+		List<String> list = new ArrayList<String>();
+		String str = text;
+		String line = "";
+		int i = 0;
+		int lastSpace = -1;
+		while (i < str.length()) {
+			char c = str.charAt(i);
+			if (Character.isWhitespace(c))
+				lastSpace = i;
+			String append = line + c;
+			if (font.getWidth(append) > width) {
+				int split = (lastSpace != -1) ? lastSpace : i;
+				int splitTrimmed = split;
+				if (lastSpace != -1 && split < str.length() - 1)
+					splitTrimmed++;
+				list.add(str.substring(0, split));
+				str = str.substring(splitTrimmed);
+				line = "";
+				i = 0;
+				lastSpace = -1;
+			} else {
+				line = append;
+				i++;
+			}
+		}
+		if (str.length() != 0)
+			list.add(str);
+		return list;
+    }
 }

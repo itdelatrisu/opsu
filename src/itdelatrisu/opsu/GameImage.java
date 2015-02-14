@@ -18,14 +18,18 @@
 
 package itdelatrisu.opsu;
 
+import itdelatrisu.opsu.states.SongMenu;
+
 import fluddokt.opsu.fake.*;
+
 import itdelatrisu.opsu.states.SongMenu;
 
 //import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-/*import org.newdawn.slick.Image;
+/*
+import org.newdawn.slick.Image;
 import org.newdawn.slick.SlickException;
 */
 /**

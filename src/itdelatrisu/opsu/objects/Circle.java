@@ -18,8 +18,6 @@
 
 package itdelatrisu.opsu.objects;
 
-import com.badlogic.gdx.math.MathUtils;
-
 import fluddokt.opsu.fake.*;
 
 import itdelatrisu.opsu.GameData;
@@ -33,9 +31,8 @@ import itdelatrisu.opsu.states.Game;
 /*
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
-import org.newdawn.slick.SlickException;
+import org.newdawn.slick.Graphics;
 */
-
 /**
  * Data type representing a circle object.
  */

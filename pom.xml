@@ -55,7 +55,7 @@
 							<skip>${jar}</skip>
 							<executable>java</executable>
 							<arguments>
-								<argument>-Djava.library.path="${project.build.directory}\natives"</argument>
+								<argument>-Djava.library.path=${project.build.directory}/natives</argument>
 								<argument>-cp</argument>
 								<classpath />
 								<argument>itdelatrisu.opsu.Opsu</argument>
@@ -73,9 +73,11 @@
 							<workingDirectory>${basedir}/target</workingDirectory>
 							<arguments>
 								<argument>-jar</argument>
-								<argument>-Dinput="opsu-${project.version}.jar"</argument>
-								<argument>-Dmain="itdelatrisu.opsu.Opsu"</argument>
-								<argument>-Doutput="opsu-${project.version}-runnable.jar"</argument>
+								<argument>-Dinput=opsu-${project.version}.jar</argument>
+								<argument>-Dmain=itdelatrisu.opsu.Opsu</argument>
+								<argument>-Doutput=opsu-${project.version}-runnable.jar</argument>
+								<!-- uncomment the line below to use XDG base directories in Unix -->
+								<!--<argument>-Dparams=-DXDG=true</argument>-->
 								<argument>${basedir}/tools/JarSplicePlus.jar</argument>
 							</arguments>
 						</configuration>
@@ -93,6 +95,18 @@
 						</excludes>
 					</artifactSet>
 					-->
+					<filters>
+						<filter>
+							<!-- Overwritten classes -->
+							<artifact>org.slick2d:slick2d-core</artifact>
+							<excludes>
+								<exclude>org/newdawn/slick/Music.*</exclude>
+								<exclude>org/newdawn/slick/openal/AudioInputStream*</exclude>
+								<exclude>org/newdawn/slick/openal/OpenALStreamPlayer*</exclude>
+								<exclude>org/newdawn/slick/openal/SoundStore*</exclude>
+							</excludes>
+						</filter>
+					</filters>
 					<createDependencyReducedPom>false</createDependencyReducedPom>
 				</configuration>
 				<executions>
@@ -142,6 +156,16 @@
 			<groupId>org.json</groupId>
 			<artifactId>json</artifactId>
 			<version>20140107</version>
+		</dependency>
+		<dependency>
+			<groupId>net.java.dev.jna</groupId>
+			<artifactId>jna</artifactId>
+			<version>4.1.0</version>
+		</dependency>
+		<dependency>
+			<groupId>net.java.dev.jna</groupId>
+			<artifactId>jna-platform</artifactId>
+			<version>4.1.0</version>
 		</dependency>
 	</dependencies>
 </project>
