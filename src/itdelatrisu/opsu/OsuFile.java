@@ -268,14 +268,20 @@ public class OsuFile implements Comparable<OsuFile> {
 				bgImageMap.put(this, bgImage);
 			}
 
-			// fit image to screen
 			int swidth = width;
 			int sheight = height;
 			if (!stretch) {
+				// fit image to screen
 				if (bgImage.getWidth() / (float) bgImage.getHeight() > width / (float) height)  // x > y
 					sheight = (int) (width * bgImage.getHeight() / (float) bgImage.getWidth());
 				else
 					swidth = (int) (height * bgImage.getWidth() / (float) bgImage.getHeight());
+			} else {
+				//fill image to screen while keeping aspect ratio
+				if (bgImage.getWidth() / (float) bgImage.getHeight() > width / (float) height)  // x > y
+					swidth = (int) (height * bgImage.getWidth() / (float) bgImage.getHeight());
+				else
+					sheight = (int) (width * bgImage.getHeight() / (float) bgImage.getWidth());
 			}
 			bgImage = bgImage.getScaledCopy(swidth, sheight);
 
