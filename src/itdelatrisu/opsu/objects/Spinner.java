@@ -38,12 +38,6 @@ import org.newdawn.slick.Image;
  */
 public class Spinner implements HitObject {
 
-	/** The rate at which the spinner slows down in rotations/second^2. */
-	private static final float ANGULAR_DRAG = 12f;
-	
-	/** The maximum rate at which the spinner can speed up in rotations/second^2. */
-	private static final float MAX_ANGULAR_INCREASE = 26f;
-
 	/** Container dimensions. */
 	private static int width, height;
 
@@ -61,12 +55,18 @@ public class Spinner implements HitObject {
 
 	/** The total number of rotations needed to clear the spinner. */
 	private float rotationsNeeded;
-	
-	/** The current angular velocity of the spinner in rotations/second. */
-	private float angularVelocity;
+        
+        /** The sum of all the velocities in storedVelocities. */
+        private float sumVelocity = 0f;
+        
+        /** Array of the last 50 rotation velocities. */
+        private float[] storedVelocities = new float[50];
 	
 	/** True if the mouse cursor is pressed. */
 	private boolean isSpinning;
+        
+        /** Current index of the stored velocities in rotations/second. */
+        private int velocityIndex = 0;
 
 	/**
 	 * Initializes the Spinner data type with images and dimensions.
@@ -132,6 +132,9 @@ public class Spinner implements HitObject {
 			if (extraRotations > 0)
 				data.drawSymbolNumber(extraRotations * 1000, width / 2, height * 2 / 3, 1.0f);
 		}
+                
+                g.setColor(Color.white);
+                g.drawString(String.format("RPM: %d", Math.abs(Math.round(sumVelocity/storedVelocities.length*60))), 100, 100);
 	}
 
 	/**
@@ -212,31 +215,15 @@ public class Spinner implements HitObject {
 		// spin caused by the cursor
 		float cursorVelocity = 0;
 		if (isSpinning)
-			cursorVelocity = (float)(angleDiff / (Math.PI*2) / delta * 1000);
-		// spin from the momentum of the spinner
-		float momentumVelocity = (angularVelocity > 0) ?
-			Math.max(0, angularVelocity - ANGULAR_DRAG * delta / 1000) :
-			Math.min(0, angularVelocity + ANGULAR_DRAG * delta / 1000);
-
-		//sets the new angular velocity of the spinner
-		if (momentumVelocity > 0 && cursorVelocity < 0 ||
-				momentumVelocity < 0 && cursorVelocity > 0) {
-			angularVelocity = momentumVelocity + cursorVelocity;
-		} else if (Math.abs(cursorVelocity) > Math.abs(momentumVelocity)) {
-			// limit the increase in angular velocity
-			if (momentumVelocity > 0) {
-				angularVelocity = Math.min(cursorVelocity,
-					angularVelocity + MAX_ANGULAR_INCREASE * delta / 1000);
-			} else {
-				angularVelocity = Math.max(cursorVelocity,
-					angularVelocity - MAX_ANGULAR_INCREASE * delta / 1000);
-			}
-		} else {
-			angularVelocity = momentumVelocity;
-		}
+			cursorVelocity = Math.min((float)(angleDiff / (Math.PI*2) / delta * 1000), 8f);
+                
+                sumVelocity -= storedVelocities[velocityIndex];
+                sumVelocity += cursorVelocity;
+                storedVelocities[velocityIndex++] = cursorVelocity;
+                velocityIndex %= storedVelocities.length;
 
 		data.changeHealth(delta * GameData.HP_DRAIN_MULTIPLIER);
-		rotate(angularVelocity * (float)Math.PI*2 * delta / 1000);
+		rotate(sumVelocity / storedVelocities.length * (float)Math.PI*2 * delta / 1000);
 		
 		lastAngle = angle;
 		return false;
