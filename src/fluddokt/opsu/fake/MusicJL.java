@@ -14,6 +14,14 @@ public class MusicJL extends AbsMusic {
 	float volume = 0.1f;
 	boolean audioUsed = false;
 	
+	PlayThread playThread;
+	Bitstream bitstream;
+	Decoder decoder;
+	Header header;
+	AudioDevice ad;
+	SampleBuffer buf;
+	FileHandle file;
+	
 	class PlayThread extends Thread{
 		boolean started = false;
 		boolean paused = true;
@@ -96,7 +104,7 @@ public class MusicJL extends AbsMusic {
 						if(setNextPosition){
 							System.out.println("Next Positioning: "+position+" "+nextPosition);
 							if(position > nextPosition){
-								decoder = new MP3Decoder();
+								decoder = new Decoder();
 								bitstream = new Bitstream(
 									file.read()
 								);
@@ -120,8 +128,8 @@ public class MusicJL extends AbsMusic {
 								bitstream = new Bitstream(file.read());
 								header = bitstream.readFrame();
 								position=0;
-								buf = new OutputBuffer(header.mode()==Header.SINGLE_CHANNEL?1:2, false);
-								decoder = new MP3Decoder();
+								buf = new SampleBuffer(sampleRate, channels);
+								decoder = new Decoder();
 								decoder.setOutputBuffer(buf);
 								if(header == null){
 									System.out.println("MusicJL Header is null still"+bitstream.header_pos());
@@ -143,10 +151,10 @@ public class MusicJL extends AbsMusic {
 									sampleRate = header.frequency();
 									channels = header.mode()==Header.SINGLE_CHANNEL?1:2;
 									initData=true;
-									buf = new OutputBuffer(channels, false);
-									decoder = new MP3Decoder();
+									buf = new SampleBuffer(sampleRate, channels);
+									decoder = new Decoder();
 									decoder.setOutputBuffer(buf);
-									buf.reset();
+									buf.clear_buffer();
 									System.out.println("MusicJL initData");
 									
 								}
@@ -161,12 +169,13 @@ public class MusicJL extends AbsMusic {
 							}
 							if(header!=null && inited){
 								decoder.decodeFrame(header, bitstream);
-								int len = buf.reset()/2;
+								int len = buf.getBufferLength();
+								buf.clear_buffer();
 								
 								ad.setVolume(volume);
 								posUpdateTime = TimeUtils.millis();
 								if(len>0){
-									ad.writeSamples(buf.buffer2, 0, len);//buf.channelPointer2[0]);
+									ad.writeSamples(buf.getBuffer(), 0, len);//buf.channelPointer2[0]);
 									audioUsed = true;
 								}
 								
@@ -191,13 +200,7 @@ public class MusicJL extends AbsMusic {
 		}
 		
 	}
-	PlayThread playThread;
-	Bitstream bitstream;
-	MP3Decoder decoder;
-	Header header;
-	AudioDevice ad;
-	OutputBuffer buf;
-	FileHandle file;
+	
 	public MusicJL(String path) {
 		System.out.println("New Song "+path);
 		file = ResourceLoader.getFileHandle(path);
