@@ -42,6 +42,12 @@ public class Spinner implements HitObject {
 	/** Container dimensions. */
 	private static int width, height;
 
+	/** The number of rotation velocities to store. */
+	private static final int MAX_ROTATION_VELOCITIES = 50;
+
+	/** PI constants. */
+	private static final float TWO_PI  = (float) (Math.PI * 2);
+
 	/** The associated OsuHitObject. */
 	private OsuHitObject hitObject;
 
@@ -49,13 +55,25 @@ public class Spinner implements HitObject {
 	private GameData data;
 
 	/** The last rotation angle. */
-	private float lastAngle = -1f;
+	private float lastAngle = 0f;
 
 	/** The current number of rotations. */
 	private float rotations = 0f;
 
 	/** The total number of rotations needed to clear the spinner. */
 	private float rotationsNeeded;
+
+	/** The sum of all the velocities in storedVelocities. */
+	private float sumVelocity = 0f;
+
+	/** Array holding the most recent rotation velocities. */
+	private float[] storedVelocities = new float[MAX_ROTATION_VELOCITIES];
+
+	/** True if the mouse cursor is pressed. */
+	private boolean isSpinning;
+
+	/** Current index of the stored velocities in rotations/second. */
+	private int velocityIndex = 0;
 
 	/**
 	 * Initializes the Spinner data type with images and dimensions.
@@ -122,6 +140,10 @@ public class Spinner implements HitObject {
 			if (extraRotations > 0)
 				data.drawSymbolNumber(extraRotations * 1000, width / 2, height * 2 / 3, 1.0f);
 		}
+
+		// TODO: add rpm meter at bottom of spinner
+		// TODO 2: make this work for Auto/Spun-Out mods
+//		int rpm = Math.abs(Math.round(sumVelocity / storedVelocities.length * 60));
 	}
 
 	/**
@@ -175,35 +197,54 @@ public class Spinner implements HitObject {
 			return false;
 		}
 
-		// not spinning: nothing to do
-		if (!Utils.isGameKeyPressed()) {
-			lastAngle = -1f;
+		// game button is released
+		if (isSpinning && !Utils.isGameKeyPressed())
+			isSpinning = false;
+
+		float angle = (float) Math.atan2(mouseY - (height / 2), mouseX - (width / 2));
+
+		// set initial angle to current mouse position to skip first click
+		if (!isSpinning && Utils.isGameKeyPressed()) {
+			lastAngle = angle;
+			isSpinning = true;
 			return false;
 		}
 
-		// scale angle from [-pi, +pi] to [0, +pi]
-		float angle = (float) Math.atan2(mouseY - (height / 2), mouseX - (width / 2));
-		if (angle < 0f)
-			angle += Math.PI;
+		float angleDiff = angle - lastAngle;
 
-		if (lastAngle >= 0f) {  // skip initial clicks
-			float angleDiff = Math.abs(lastAngle - angle);
-			if (angleDiff < Math.PI / 2) {  // skip huge angle changes...
-				data.changeHealth(delta * GameData.HP_DRAIN_MULTIPLIER);
-				rotate(angleDiff);
-			}
-		}
+		// make angleDiff the smallest angle change possible
+		// (i.e. 1/4 rotation instead of 3/4 rotation)
+		if (angleDiff < -Math.PI)
+			angleDiff += TWO_PI;
+		else if (angleDiff > Math.PI)
+			angleDiff -= TWO_PI;
+
+		// spin caused by the cursor
+		float cursorVelocity = 0;
+		if (isSpinning)
+			cursorVelocity = Math.min(angleDiff / TWO_PI / delta * 1000, 8f);
+
+		sumVelocity -= storedVelocities[velocityIndex];
+		sumVelocity += cursorVelocity;
+		storedVelocities[velocityIndex++] = cursorVelocity;
+		velocityIndex %= storedVelocities.length;
+
+		float rotationAngle = sumVelocity / storedVelocities.length * TWO_PI * delta / 1000;
+		rotate(rotationAngle);
+		if (rotationAngle > 0.00001f)
+			data.changeHealth(delta * GameData.HP_DRAIN_MULTIPLIER);
 
 		lastAngle = angle;
 		return false;
 	}
 
 	/**
-	 * Rotates the spinner by a number of degrees.
-	 * @param degrees the angle to rotate (in radians)
+	 * Rotates the spinner by an angle.
+	 * @param angle the angle to rotate (in radians)
 	 */
-	private void rotate(float degrees) {
-		float newRotations = rotations + (degrees / (float) (2 * Math.PI));
+	private void rotate(float angle) {
+		angle = Math.abs(angle);
+		float newRotations = rotations + (angle / TWO_PI);
 
 		// added one whole rotation...
 		if (Math.floor(newRotations) > rotations) {

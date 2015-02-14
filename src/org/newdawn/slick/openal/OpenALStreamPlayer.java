@@ -392,5 +392,18 @@ public class OpenALStreamPlayer {
 	public void resuming() {
 		lastUpdateTime = System.currentTimeMillis() - offsetTime;
 	}
+
+	/**
+	 * Closes the stream.
+	 */
+	public void close() {
+		if (audio != null) {
+			try {
+				audio.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
 }
 

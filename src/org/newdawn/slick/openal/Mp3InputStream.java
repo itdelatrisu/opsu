@@ -199,4 +199,13 @@ public class Mp3InputStream extends InputStream implements AudioInputStream {
 
 		return skipped;
 	}
+
+	@Override
+	public void close() throws IOException {
+		try {
+			bitstream.close();
+		} catch (BitstreamException e) {
+			e.printStackTrace();
+		}
+	}
 }
