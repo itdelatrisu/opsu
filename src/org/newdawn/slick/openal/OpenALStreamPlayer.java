@@ -393,15 +393,17 @@ public class OpenALStreamPlayer {
 		lastUpdateTime = System.currentTimeMillis() - offsetTime;
 	}
 
+	/**
+	 * Closes the stream.
+	 */
 	public void close() {
-		if(audio != null){
+		if (audio != null) {
 			try {
 				audio.close();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 		}
-		
 	}
 }
 

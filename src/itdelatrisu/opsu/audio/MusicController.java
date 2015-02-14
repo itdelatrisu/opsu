@@ -245,7 +245,7 @@ public class MusicController {
 	public static boolean setPosition(int position) {
 		return (trackExists() && position >= 0 && player.setPosition(position / 1000f));
 	}
-	
+
 	/**
 	 * Plays the current track.
 	 */
