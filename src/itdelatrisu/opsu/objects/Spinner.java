@@ -133,8 +133,8 @@ public class Spinner implements HitObject {
 				data.drawSymbolNumber(extraRotations * 1000, width / 2, height * 2 / 3, 1.0f);
 		}
                 
-                g.setColor(Color.white);
-                g.drawString(String.format("RPM: %d", Math.abs(Math.round(sumVelocity/storedVelocities.length*60))), 100, 100);
+                int rpm = Math.abs(Math.round(sumVelocity/storedVelocities.length*60));
+                //TODO: add rpm meter at bottom of spinner
 	}
 
 	/**
