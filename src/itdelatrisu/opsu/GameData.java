@@ -457,6 +457,35 @@ public class GameData {
 			}
 		}
 	}
+	/**
+	 * Draws a string of scoreSymbols.
+	 * @param str the string to draw
+	 * @param x the starting x coordinate
+	 * @param y the y coordinate
+	 * @param scale the scale to apply
+	 * @param rightAlign align right (true) or left (false)
+	 */
+	private void drawFixedSizeSymbolString(String str, int x, int y, float scale, float fixedsize, boolean rightAlign) {
+		char[] c = str.toCharArray();
+		int cx = x;
+		if (rightAlign) {
+			for (int i = c.length - 1; i >= 0; i--) {
+				Image digit = getScoreSymbolImage(c[i]);
+				if (scale != 1.0f)
+					digit = digit.getScaledCopy(scale);
+				cx -= fixedsize;
+				digit.draw(cx + (fixedsize-digit.getWidth())/2, y);
+			}
+		} else {
+			for (int i = 0; i < c.length; i++) {
+				Image digit = getScoreSymbolImage(c[i]);
+				if (scale != 1.0f)
+					digit = digit.getScaledCopy(scale);
+				digit.draw(cx + (fixedsize-digit.getWidth())/2, y);
+				cx += fixedsize;
+			}
+		}
+	}
 
 	/**
 	 * Draws game elements:
@@ -470,28 +499,28 @@ public class GameData {
 		int marginX = (int) (width * 0.008f);
 
 		// score
-		drawSymbolString((scoreDisplay < 100000000) ? String.format("%08d", scoreDisplay) : Long.toString(scoreDisplay),
-				width - marginX, 0, 1.0f, true);
+		drawFixedSizeSymbolString((scoreDisplay < 100000000) ? String.format("%08d", scoreDisplay) : Long.toString(scoreDisplay),
+				width - marginX, 0, 1.0f, getScoreSymbolImage('0').getWidth()-2, true);
 
 		// score percentage
 		int symbolHeight = getScoreSymbolImage('0').getHeight();
 		float scorePercent = getScorePercent();
 		drawSymbolString(
 				String.format((scorePercent < 10f) ? "0%.2f%%" : "%.2f%%", scorePercent),
-				width - marginX, symbolHeight, 0.75f, true
+				width - marginX, symbolHeight, 0.60f, true
 		);
 
 		// map progress circle
 		g.setAntiAlias(true);
 		g.setLineWidth(2f);
 		g.setColor(Color.white);
-		int circleX = width - marginX - (  // max width: "100.00%"
+		float circleDiameter = symbolHeight * 0.60f;
+		int circleX = (int) (width - marginX - (  // max width: "100.00%"
 				getScoreSymbolImage('1').getWidth() +
 				getScoreSymbolImage('0').getWidth() * 4 +
 				getScoreSymbolImage('.').getWidth() +
 				getScoreSymbolImage('%').getWidth()
-		);
-		float circleDiameter = symbolHeight * 0.75f;
+		) * 0.60f - circleDiameter);
 		g.drawOval(circleX, symbolHeight, circleDiameter, circleDiameter);
 
 		OsuFile osu = MusicController.getOsuFile();
@@ -621,18 +650,16 @@ public class GameData {
 	 * @param osu the OsuFile
 	 */
 	public void drawRankingElements(Graphics g, OsuFile osu) {
-		// grade
-		Grade grade = getGrade();
-		if (grade != Grade.NULL)
-			grade.getLargeImage().draw(width * 0.985f - grade.getLargeImage().getWidth(), height * 0.09f);
-
+		
+		float marginX = width * 0.01f, marginY = height * 0.025f;
 		// header & "Ranking" text
 		Image rankingTitle = GameImage.RANKING_TITLE.getImage();
 		float rankingHeight = (rankingTitle.getHeight() * 0.75f) + 3;
+		
+
 		g.setColor(Utils.COLOR_BLACK_ALPHA);
 		g.fillRect(0, 0, width, rankingHeight);
 		rankingTitle.draw((width * 0.97f) - rankingTitle.getWidth(), 0);
-		float marginX = width * 0.01f, marginY = height * 0.01f;
 		Utils.FONT_LARGE.drawString(marginX, marginY,
 				String.format("%s - %s [%s]", osu.getArtist(), osu.getTitle(), osu.version), Color.white);
 		Utils.FONT_MEDIUM.drawString(marginX, marginY + Utils.FONT_LARGE.getLineHeight() - 6,
@@ -645,19 +672,20 @@ public class GameData {
 		Image rankingPanel = GameImage.RANKING_PANEL.getImage();
 		int rankingPanelWidth  = rankingPanel.getWidth();
 		int rankingPanelHeight = rankingPanel.getHeight();
-		rankingPanel.draw(0, rankingHeight - (rankingHeight / 10f));
+		rankingPanel.draw(0, rankingHeight);//rankingHeight - (rankingHeight / 10f));
 
-		float symbolTextScale = (height / 15f) / getScoreSymbolImage('0').getHeight();
-		float rankResultScale = (height * 0.03f) / hitResults[HIT_300].getHeight();
+		float scoreTextScale = 1.2f; //(height / 15f) / getScoreSymbolImage('0').getHeight();
+		float symbolTextScale = 1.2f; //(height / 15f) / getScoreSymbolImage('0').getHeight();
+		float rankResultScale = 0.5f;//(height * 0.03f) / hitResults[HIT_300].getHeight();
 
 		// score
-		drawSymbolString((score < 100000000) ? String.format("%08d", score) : Long.toString(score),
-				(int) (width * 0.18f), height / 6, symbolTextScale, false);
+		drawFixedSizeSymbolString((score < 100000000) ? String.format("%08d", score) : Long.toString(score),
+				(int) (width * 0.18f), (int) (rankingHeight+50), scoreTextScale, getScoreSymbolImage('0').getWidth()*scoreTextScale-2, false);
 
 		// result counts
-		float resultInitialX = rankingPanelWidth * 0.20f;
-		float resultInitialY = rankingHeight + (rankingPanelHeight * 0.27f) + (rankingHeight / 10f);
-		float resultHitInitialX = rankingPanelWidth * 0.05f;
+		float resultInitialX = 150;// rankingPanelWidth * 0.20f;
+		float resultInitialY = rankingHeight + (rankingPanelHeight * 0.20f) + (rankingHeight / 10f);
+		float resultHitInitialX = 0;//rankingPanelWidth * 0.05f;
 		float resultHitInitialY = resultInitialY + (getScoreSymbolImage('0').getHeight() * symbolTextScale);
 		float resultOffsetX = rankingPanelWidth / 2f;
 		float resultOffsetY = rankingPanelHeight * 0.2f;
@@ -700,6 +728,10 @@ public class GameData {
 					(height * 0.99f) - GameImage.RANKING_PERFECT.getImage().getHeight()
 			);
 		}
+		// grade
+		Grade grade = getGrade();
+		if (grade != Grade.NULL)
+			grade.getLargeImage().draw(width * 0.985f - grade.getLargeImage().getWidth(), rankingHeight+marginY);
 
 		// mod icons
 		int modWidth = GameMod.AUTO.getImage().getWidth();

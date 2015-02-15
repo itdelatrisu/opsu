@@ -102,6 +102,11 @@ public class Opsu extends StateBasedGame {
 		} catch (FileNotFoundException e) {
 			Log.error(e);
 		}
+		try {
+			System.setOut(new PrintStream(new FileOutputStream("jnlog.txt", false)));
+		} catch (FileNotFoundException e) {
+			Log.error(e);
+		}
 		Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
 			@Override
 			public void uncaughtException(Thread t, Throwable e) {
@@ -113,12 +118,12 @@ public class Opsu extends StateBasedGame {
 		Options.parseOptions();
 
 		// only allow a single instance
-		try {
+		/*try {
 			SERVER_SOCKET = new ServerSocket(Options.getPort());
 		} catch (IOException e) {
 			ErrorHandler.error(String.format("Another program is already running on port %d.", Options.getPort()), e, false);
 			System.exit(1);
-		}
+		}*/
 
 		// set path for lwjgl natives - NOT NEEDED if using JarSplice
 		File nativeDir = new File("./target/natives/");

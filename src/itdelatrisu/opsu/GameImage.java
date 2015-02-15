@@ -35,31 +35,31 @@ public enum GameImage {
 	CURSOR ("cursor", "png") {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy(1 + ((h - 600) / 1000f));
+			return img.getScaledCopy(h / 768f);
 		}
 	},
 	CURSOR_MIDDLE ("cursormiddle", "png") {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy(1 + ((h - 600) / 1000f));
+			return img.getScaledCopy(h / 768f);
 		}
 	},
 	CURSOR_TRAIL ("cursortrail", "png") {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy(1 + ((h - 600) / 1000f));
+			return img.getScaledCopy(h / 768f);
 		}
 	},
 	CURSOR_OLD ("cursor2", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy(1 + ((h - 600) / 1000f));
+			return img.getScaledCopy(h / 768f);
 		}
 	},
 	CURSOR_TRAIL_OLD ("cursortrail2", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy(1 + ((h - 600) / 1000f));
+			return img.getScaledCopy(h / 768f);
 		}
 	},
 
@@ -183,125 +183,280 @@ public enum GameImage {
 	SCOREBAR_KI ("scorebar-ki", "png"),
 	SCOREBAR_KI_DANGER ("scorebar-kidanger", "png"),
 	SCOREBAR_KI_DANGER2 ("scorebar-kidanger2", "png"),
-	HIT_MISS ("hit0", "png"),
-	HIT_50 ("hit50", "png"),
-	HIT_100 ("hit100", "png"),
-	HIT_300 ("hit300", "png"),
-	HIT_100K ("hit100k", "png"),
-	HIT_300K ("hit300k", "png"),
-	HIT_300G ("hit300g", "png"),
+	HIT_MISS ("hit0", "png") {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy(h / 768f);
+		}
+	},
+	HIT_50 ("hit50", "png") {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy(h / 768f);
+		}
+	},
+	HIT_100 ("hit100", "png") {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy(h / 768f);
+		}
+	},
+	HIT_300 ("hit300", "png") {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy(h / 768f);
+		}
+	},
+	HIT_100K ("hit100k", "png") {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy(h / 768f);
+		}
+	},
+	HIT_300K ("hit300k", "png") {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy(h / 768f);
+		}
+	},
+	HIT_300G ("hit300g", "png") {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy(h / 768f);
+		}
+	},
 	HIT_SLIDER10 ("sliderpoint10", "png"),
 	HIT_SLIDER30 ("sliderpoint30", "png"),
 	RANKING_SS ("ranking-X", "png") {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h / 2f) / img.getHeight());
+			return img.getScaledCopy(h / 768f);
 		}
 	},
 	RANKING_SS_SMALL ("ranking-X-small", "png"),
 	RANKING_SSH ("ranking-XH", "png") {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h / 2f) / img.getHeight());
+			return img.getScaledCopy(h / 768f);
 		}
 	},
 	RANKING_SSH_SMALL ("ranking-XH-small", "png"),
 	RANKING_S ("ranking-S", "png") {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h / 2f) / img.getHeight());
+			return img.getScaledCopy(h / 768f);
 		}
 	},
 	RANKING_S_SMALL ("ranking-S-small", "png"),
 	RANKING_SH ("ranking-SH", "png") {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h / 2f) / img.getHeight());
+			return img.getScaledCopy(h / 768f);
 		}
 	},
 	RANKING_SH_SMALL ("ranking-SH-small", "png"),
 	RANKING_A ("ranking-A", "png") {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h / 2f) / img.getHeight());
+			return img.getScaledCopy(h / 768f);
 		}
 	},
 	RANKING_A_SMALL ("ranking-A-small", "png"),
 	RANKING_B ("ranking-B", "png") {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h / 2f) / img.getHeight());
+			return img.getScaledCopy(h / 768f);
 		}
 	},
 	RANKING_B_SMALL ("ranking-B-small", "png"),
 	RANKING_C ("ranking-C", "png") {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h / 2f) / img.getHeight());
+			return img.getScaledCopy(h / 768f);
 		}
 	},
 	RANKING_C_SMALL ("ranking-C-small", "png"),
 	RANKING_D ("ranking-D", "png") {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h / 2f) / img.getHeight());
+			return img.getScaledCopy(h / 768f);
 		}
 	},
 	RANKING_D_SMALL ("ranking-D-small", "png"),
 	RANKING_PANEL ("ranking-panel", "png") {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h * 0.63f) / img.getHeight());
+			return img.getScaledCopy(h / 768f);
 		}
 	},
 	RANKING_PERFECT ("ranking-perfect", "png") {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h * 0.16f) / img.getHeight());
+			return img.getScaledCopy(h / 768f);
 		}
 	},
 	RANKING_TITLE ("ranking-title", "png") {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h * 0.15f) / img.getHeight());
+			return img.getScaledCopy(h / 768f);
 		}
 	},
 	RANKING_MAXCOMBO ("ranking-maxcombo", "png") {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h * 0.05f) / img.getHeight());
+			return img.getScaledCopy(h / 768f);
 		}
 	},
 	RANKING_ACCURACY ("ranking-accuracy", "png") {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h * 0.05f) / img.getHeight());
+			return img.getScaledCopy(h / 768f);
 		}
 	},
-	DEFAULT_0 ("default-0", "png"),
-	DEFAULT_1 ("default-1", "png"),
-	DEFAULT_2 ("default-2", "png"),
-	DEFAULT_3 ("default-3", "png"),
-	DEFAULT_4 ("default-4", "png"),
-	DEFAULT_5 ("default-5", "png"),
-	DEFAULT_6 ("default-6", "png"),
-	DEFAULT_7 ("default-7", "png"),
-	DEFAULT_8 ("default-8", "png"),
-	DEFAULT_9 ("default-9", "png"),
-	SCORE_0 ("score-0", "png"),
-	SCORE_1 ("score-1", "png"),
-	SCORE_2 ("score-2", "png"),
-	SCORE_3 ("score-3", "png"),
-	SCORE_4 ("score-4", "png"),
-	SCORE_5 ("score-5", "png"),
-	SCORE_6 ("score-6", "png"),
-	SCORE_7 ("score-7", "png"),
-	SCORE_8 ("score-8", "png"),
-	SCORE_9 ("score-9", "png"),
-	SCORE_COMMA ("score-comma", "png"),
-	SCORE_DOT ("score-dot", "png"),
-	SCORE_PERCENT ("score-percent", "png"),
-	SCORE_X ("score-x", "png"),
+	DEFAULT_0 ("default-0", "png") {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy(h / 768f);
+		}
+	},
+	DEFAULT_1 ("default-1", "png") {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy(h / 768f);
+		}
+	},
+	DEFAULT_2 ("default-2", "png") {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy(h / 768f);
+		}
+	},
+	DEFAULT_3 ("default-3", "png") {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy(h / 768f);
+		}
+	},
+	DEFAULT_4 ("default-4", "png") {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy(h / 768f);
+		}
+	},
+	DEFAULT_5 ("default-5", "png") {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy(h / 768f);
+		}
+	},
+	DEFAULT_6 ("default-6", "png") {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy(h / 768f);
+		}
+	},
+	DEFAULT_7 ("default-7", "png") {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy(h / 768f);
+		}
+	},
+	DEFAULT_8 ("default-8", "png") {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy(h / 768f);
+		}
+	},
+	DEFAULT_9 ("default-9", "png") {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy(h / 768f);
+		}
+	},
+	SCORE_0 ("score-0", "png") {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy(h / 768f);
+		}
+	},
+	SCORE_1 ("score-1", "png") {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy(h / 768f);
+		}
+	},
+	SCORE_2 ("score-2", "png") {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy(h / 768f);
+		}
+	},
+	SCORE_3 ("score-3", "png") {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy(h / 768f);
+		}
+	},
+	SCORE_4 ("score-4", "png") {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy(h / 768f);
+		}
+	},
+	SCORE_5 ("score-5", "png") {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy(h / 768f);
+		}
+	},
+	SCORE_6 ("score-6", "png") {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy(h / 768f);
+		}
+	},
+	SCORE_7 ("score-7", "png") {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy(h / 768f);
+		}
+	},
+	SCORE_8 ("score-8", "png") {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy(h / 768f);
+		}
+	},
+	SCORE_9 ("score-9", "png") {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy(h / 768f);
+		}
+	},
+	SCORE_COMMA ("score-comma", "png") {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy(h / 768f);
+		}
+	},
+	SCORE_DOT ("score-dot", "png") {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy(h / 768f);
+		}
+	},
+	SCORE_PERCENT ("score-percent", "png") {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy(h / 768f);
+		}
+	},
+	SCORE_X ("score-x", "png") {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy(h / 768f);
+		}
+	},
 	LIGHTING ("lighting", "png"),
 	LIGHTING1 ("lighting1", "png"),
 

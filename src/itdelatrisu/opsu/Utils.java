@@ -86,8 +86,8 @@ public class Utils {
 
 	/** The default map colors, used when a map does not provide custom colors. */
 	public static final Color[] DEFAULT_COMBO = {
-		COLOR_GREEN_OBJECT, COLOR_BLUE_OBJECT,
-		COLOR_RED_OBJECT, COLOR_ORANGE_OBJECT
+		COLOR_ORANGE_OBJECT, COLOR_GREEN_OBJECT, 
+		COLOR_BLUE_OBJECT, COLOR_RED_OBJECT, 
 	};
 
 	/** Game fonts. */

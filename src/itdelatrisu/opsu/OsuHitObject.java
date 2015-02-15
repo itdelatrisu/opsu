@@ -296,4 +296,9 @@ public class OsuHitObject {
 	 * @return true if new combo
 	 */
 	public boolean isNewCombo() { return (type & TYPE_NEWCOMBO) > 0; }
+
+	public int getComboSkip() {
+		return (type>>4);
+	}
+
 }
