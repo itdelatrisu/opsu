@@ -154,6 +154,27 @@ public class GameData {
 	private LinkedList<OsuHitObjectResult> hitResultList;
 
 	/**
+	 * class to store Hit Error information.
+	 * @author fluddokt
+	 */
+	class HitErrorInfo {
+		int time, x, y, timeDiff;
+
+		public HitErrorInfo(int time, int x, int y, int timeDiff) {
+			this.time = time;
+			this.x = x;
+			this.y = y;
+			this.timeDiff = timeDiff;
+		}
+
+	}
+
+	/**
+	 * List of stored Hit Error Info
+	 */
+	private LinkedList<HitErrorInfo> hitErrorList = new LinkedList<HitErrorInfo>();
+
+	/**
 	 * Hit result helper class.
 	 */
 	private class OsuHitObjectResult {
@@ -225,6 +246,10 @@ public class GameData {
 	/** Container dimensions. */
 	private int width, height;
 
+	/** Time offsets for obtaining each hit result (indexed by HIT_* constants). */
+	private int[] hitResultOffset;
+
+	
 	/**
 	 * Constructor for gameplay.
 	 * @param width container width
@@ -283,6 +308,7 @@ public class GameData {
 		comboEnd = 0;
 		comboBurstIndex = -1;
 		scoreData = null;
+		hitErrorList.clear();
 	}
 
 	/**
@@ -364,6 +390,10 @@ public class GameData {
 	public void setDifficulty(float difficulty) { this.difficulty = difficulty; }
 	public float getDifficulty() { return difficulty; }
 
+	/** Sets the HitResultOffset */
+	public void setHitResultOffset(int[] hitResultOffset) {this.hitResultOffset = hitResultOffset; }
+	
+	
 	/**
 	 * Draws a number with defaultSymbols.
 	 * @param n the number to draw
@@ -517,6 +547,50 @@ public class GameData {
 			// combo count
 			if (combo > 0)  // 0 isn't a combo
 				drawSymbolString(String.format("%dx", combo), 10, height - 10 - symbolHeight, 1.0f, false);
+			
+			//*
+			//Draw Hit Error bar
+			final int fadeDelay = 5000;
+			int hitErrorY = 30;
+			Iterator<HitErrorInfo> iter2 = hitErrorList.iterator();
+			g.setColor(Color.black);
+			g.fillRect(width / 2f - 3 - hitResultOffset[HIT_50],
+					height - marginX - hitErrorY - 10,
+					hitResultOffset[HIT_50] * 2,
+					20);
+			g.setColor(Utils.COLOR_LIGHT_ORANGE);
+			g.fillRect(width / 2f - 3 - hitResultOffset[HIT_50], 
+					height - marginX - hitErrorY - 3, 
+					hitResultOffset[HIT_50] * 2, 
+					6);
+			g.setColor(Utils.COLOR_LIGHT_GREEN);
+			g.fillRect(width / 2f - 3 - hitResultOffset[HIT_100], 
+					height - marginX - hitErrorY - 3, 
+					hitResultOffset[HIT_100] * 2, 
+					6);
+			g.setColor(Utils.COLOR_LIGHT_BLUE);
+			g.fillRect(width / 2f - 3 - hitResultOffset[HIT_300], 
+					height- marginX - hitErrorY - 3, 
+					hitResultOffset[HIT_300] * 2, 
+					6);
+			g.setColor(Color.white);
+			g.drawRect(width / 2f - 3, height - marginX - hitErrorY - 10, 6, 20);
+			while (iter2.hasNext()) {
+				HitErrorInfo info = iter2.next();
+				int time = info.time;
+				if (Math.abs(info.timeDiff) < hitResultOffset[GameData.HIT_50]
+						&& time + fadeDelay > trackPosition) {
+					float alpha = 1 - ((float) (trackPosition - time) / fadeDelay);
+					Color col = new Color(Color.white);
+					col.a = alpha;
+					g.setColor(col);
+					g.fillRect(width / 2 + info.timeDiff - 1, height - marginX
+							- hitErrorY - 10, 2, 20);
+				} else {
+					iter2.remove();
+				}
+			}
+			//*/
 		} else {
 			// grade
 			Grade grade = getGrade();
@@ -528,6 +602,9 @@ public class GameData {
 				);
 			}
 		}
+		
+
+		
 	}
 
 	/**
@@ -649,6 +726,9 @@ public class GameData {
 					float scale = 1f + ((trackPosition - hitResult.time) / (float) fadeDelay);
 					Image scaledLighting  = GameImage.LIGHTING.getImage().getScaledCopy(scale);
 					Image scaledLighting1 = GameImage.LIGHTING1.getImage().getScaledCopy(scale);
+					scaledLighting.setAlpha(hitResult.alpha);
+					scaledLighting1.setAlpha(hitResult.alpha);
+					
 					scaledLighting.draw(hitResult.x - (scaledLighting.getWidth() / 2f),
 							hitResult.y - (scaledLighting.getHeight() / 2f), hitResult.color);
 					scaledLighting1.draw(hitResult.x - (scaledLighting1.getWidth() / 2f),
@@ -1008,4 +1088,15 @@ public class GameData {
 	 * @return true if gameplay, false if score viewing
 	 */
 	public boolean isGameplay() { return gameplay; }
+	
+	/**
+	 * add a Hit Error Info to the list.
+	 * @param time  when it should have been hit
+	 * @param x, y   the location that it hit 
+	 * @param timeDiff  the difference from the time from when it was actually hit
+	 */
+	public void addHitError(int time, int x, int y, int timeDiff) {
+		hitErrorList.add(new HitErrorInfo(time, x, y, timeDiff));
+	}
+
 }

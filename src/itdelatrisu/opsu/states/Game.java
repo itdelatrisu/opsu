@@ -878,6 +878,7 @@ public class Game extends BasicGameState {
 		// HPDrainRate (health change), overallDifficulty (scoring)
 		data.setDrainRate(HPDrainRate);
 		data.setDifficulty(overallDifficulty);
+		data.setHitResultOffset(hitResultOffset);
 	}
 
 	/**
