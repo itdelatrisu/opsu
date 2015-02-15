@@ -92,6 +92,14 @@ public class MainMenu extends BasicGameState {
 	/** Background alpha level (for fade-in effect). */
 	private float bgAlpha = 0f;
 
+	/** Music position bar coordinates and dimensions. */
+	private float musicBarX, musicBarY, musicBarWidth, musicBarHeight;
+
+	/** Music position bar background colors. */
+	private static final Color
+		BG_NORMAL = new Color(0, 0, 0, 0.25f),
+		BG_HOVER  = new Color(0, 0, 0, 0.5f);
+
 	// game-related variables
 	private GameContainer container;
 	private StateBasedGame game;
@@ -132,16 +140,22 @@ public class MainMenu extends BasicGameState {
 		exitButton.setHoverExpand(1.05f);
 
 		// initialize music buttons
-		int musicWidth  = 48;
-		int musicHeight = 30;
-		musicPlay     = new MenuButton(GameImage.MUSIC_PLAY.getImage(), width - (2 * musicWidth), musicHeight);
-		musicPause    = new MenuButton(GameImage.MUSIC_PAUSE.getImage(), width - (2 * musicWidth), musicHeight);
-		musicNext     = new MenuButton(GameImage.MUSIC_NEXT.getImage(), width - musicWidth, musicHeight);
-		musicPrevious = new MenuButton(GameImage.MUSIC_PREVIOUS.getImage(), width - (3 * musicWidth), musicHeight);
+		int musicWidth  = GameImage.MUSIC_PLAY.getImage().getWidth();
+		int musicHeight = GameImage.MUSIC_PLAY.getImage().getHeight();
+		musicPlay     = new MenuButton(GameImage.MUSIC_PLAY.getImage(), width - (2 * musicWidth), musicHeight / 1.5f);
+		musicPause    = new MenuButton(GameImage.MUSIC_PAUSE.getImage(), width - (2 * musicWidth), musicHeight / 1.5f);
+		musicNext     = new MenuButton(GameImage.MUSIC_NEXT.getImage(), width - musicWidth, musicHeight / 1.5f);
+		musicPrevious = new MenuButton(GameImage.MUSIC_PREVIOUS.getImage(), width - (3 * musicWidth), musicHeight / 1.5f);
 		musicPlay.setHoverExpand(1.5f);
 		musicPause.setHoverExpand(1.5f);
 		musicNext.setHoverExpand(1.5f);
 		musicPrevious.setHoverExpand(1.5f);
+
+		// initialize music position bar location
+		musicBarX = width - musicWidth * 3.5f;
+		musicBarY = musicHeight * 1.25f;
+		musicBarWidth = musicWidth * 3f;
+		musicBarHeight = musicHeight * 0.11f;
 
 		// initialize downloads button
 		Image dlImg = GameImage.DOWNLOADS.getImage();
@@ -177,6 +191,7 @@ public class MainMenu extends BasicGameState {
 			bg.draw();
 		}
 
+		// top/bottom horizontal bars
 		float oldAlpha = Utils.COLOR_BLACK_ALPHA.a;
 		Utils.COLOR_BLACK_ALPHA.a = 0.2f;
 		g.setColor(Utils.COLOR_BLACK_ALPHA);
@@ -201,12 +216,16 @@ public class MainMenu extends BasicGameState {
 			musicPlay.draw();
 		musicNext.draw();
 		musicPrevious.draw();
-		g.setColor(Utils.COLOR_BLACK_ALPHA);
-		g.fillRoundRect(width - 168, 54, 148, 5, 4);
+
+		// draw music position bar
+		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
+		g.setColor((musicPositionBarContains(mouseX, mouseY)) ? BG_HOVER : BG_NORMAL);
+		g.fillRoundRect(musicBarX, musicBarY, musicBarWidth, musicBarHeight, 4);
 		g.setColor(Color.white);
-		if (!MusicController.isTrackLoading() && osu != null)
-			g.fillRoundRect(width - 168, 54,
-				148f * MusicController.getPosition() / osu.endTime, 5, 4);
+		if (!MusicController.isTrackLoading() && osu != null) {
+			float musicBarPosition = Math.min((float) MusicController.getPosition() / osu.endTime, 1f);
+			g.fillRoundRect(musicBarX, musicBarY, musicBarWidth * musicBarPosition, musicBarHeight, 4);
+		}
 
 		// draw repository button
 		if (repoButton != null)
@@ -344,6 +363,16 @@ public class MainMenu extends BasicGameState {
 		if (button == Input.MOUSE_MIDDLE_BUTTON)
 			return;
 
+		// music position bar
+		if (MusicController.isPlaying()) {
+			if (musicPositionBarContains(x, y)) {
+				float pos = (x - musicBarX) / musicBarWidth;
+				OsuFile osu = MusicController.getOsuFile();
+				MusicController.setPosition((int) (pos * osu.endTime));
+				return;
+			}
+		}
+
 		// music button actions
 		if (musicPlay.contains(x, y)) {
 			if (MusicController.isPlaying())
@@ -443,6 +472,16 @@ public class MainMenu extends BasicGameState {
 			Utils.takeScreenShot();
 			break;
 		}
+	}
+
+	/**
+	 * Returns true if the coordinates are within the music position bar bounds.
+	 * @param cx the x coordinate
+	 * @param cy the y coordinate
+	 */
+	private boolean musicPositionBarContains(float cx, float cy) {
+		return ((cx > musicBarX && cx < musicBarX + musicBarWidth) &&
+		        (cy > musicBarY && cy < musicBarY + musicBarHeight));
 	}
 
 	/**

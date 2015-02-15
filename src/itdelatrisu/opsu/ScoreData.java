@@ -71,9 +71,6 @@ public class ScoreData implements Comparable<ScoreData> {
 	/** Drawing values. */
 	private static float baseX, baseY, buttonWidth, buttonHeight, buttonOffset;
 
-	/** Container dimensions. */
-	private static int containerWidth, containerHeight;
-
 	/** Button background colors. */
 	private static final Color
 		BG_NORMAL = new Color(0, 0, 0, 0.25f),
@@ -85,9 +82,6 @@ public class ScoreData implements Comparable<ScoreData> {
 	 * @param height the container height
 	 */
 	public static void init(int width, int height) {
-		containerWidth = width;
-		containerHeight = height;
-
 		baseX = width * 0.01f;
 		baseY = height * 0.16f;
 		buttonWidth = width * 0.4f;
@@ -127,13 +121,8 @@ public class ScoreData implements Comparable<ScoreData> {
 	 * @param total the total number of buttons
 	 */
 	public static void drawScrollbar(Graphics g, int index, int total) {
-		float scorebarWidth = containerWidth * 0.00347f;
-		float heightRatio = 0.0016f * (total * total) - 0.0705f * total + 0.9965f;
-		float scorebarHeight = containerHeight * heightRatio;
-		float heightDiff = buttonHeight + buttonOffset * (SongMenu.MAX_SCORE_BUTTONS - 1) - scorebarHeight;
-		float offsetY = heightDiff * ((float) index / (total - SongMenu.MAX_SCORE_BUTTONS));
-		g.setColor(Color.white);
-		g.fillRect(0, baseY + offsetY, scorebarWidth, scorebarHeight);
+		Utils.drawScrollbar(g, index, total, SongMenu.MAX_SCORE_BUTTONS, 0, baseY,
+				0, buttonHeight, buttonOffset, null, Color.white, false);
 	}
 
 	/**

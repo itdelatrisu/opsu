@@ -609,6 +609,40 @@ public class Utils {
 	}
 
 	/**
+	 * Draws a scroll bar.
+	 * @param g the graphics context
+	 * @param unitIndex the unit index
+	 * @param totalUnits the total number of units
+	 * @param maxShown the maximum number of units shown at one time
+	 * @param unitBaseX the base x coordinate of the units
+	 * @param unitBaseY the base y coordinate of the units
+	 * @param unitWidth the width of a unit
+	 * @param unitHeight the height of a unit
+	 * @param unitOffsetY the y offset between units
+	 * @param bgColor the scroll bar area background color (null if none)
+	 * @param scrollbarColor the scroll bar color
+	 * @param right whether or not to place the scroll bar on the right side of the unit
+	 */
+	public static void drawScrollbar(
+			Graphics g, int unitIndex, int totalUnits, int maxShown,
+			float unitBaseX, float unitBaseY, float unitWidth, float unitHeight, float unitOffsetY,
+			Color bgColor, Color scrollbarColor, boolean right
+	) {
+		float scrollbarWidth = container.getWidth() * 0.00347f;
+		float heightRatio = (float) (2.6701f * Math.exp(-0.81 * Math.log(totalUnits)));
+		float scrollbarHeight = container.getHeight() * heightRatio;
+		float scrollAreaHeight = unitHeight + unitOffsetY * (maxShown - 1);
+		float offsetY = (scrollAreaHeight - scrollbarHeight) * ((float) unitIndex / (totalUnits - maxShown));
+		float scrollbarX = unitBaseX + unitWidth - ((right) ? scrollbarWidth : 0);
+		if (bgColor != null) {
+			g.setColor(bgColor);
+			g.fillRect(scrollbarX, unitBaseY, scrollbarWidth, scrollAreaHeight);
+		}
+		g.setColor(scrollbarColor);
+		g.fillRect(scrollbarX, unitBaseY + offsetY, scrollbarWidth, scrollbarHeight);
+	}
+
+	/**
 	 * Takes a screenshot.
 	 * @author http://wiki.lwjgl.org/index.php?title=Taking_Screen_Shots
 	 */

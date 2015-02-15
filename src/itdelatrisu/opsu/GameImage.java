@@ -446,10 +446,30 @@ public enum GameImage {
 	MENU_BUTTON_MID ("button-middle", "png", false, false),
 	MENU_BUTTON_LEFT ("button-left", "png", false, false),
 	MENU_BUTTON_RIGHT ("button-right", "png", false, false),
-	MUSIC_PLAY ("music-play", "png", false, false),
-	MUSIC_PAUSE ("music-pause", "png", false, false),
-	MUSIC_NEXT ("music-next", "png", false, false),
-	MUSIC_PREVIOUS ("music-previous", "png", false, false),
+	MUSIC_PLAY ("music-play", "png", false, false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy((h / 18f) / img.getHeight());
+		}
+	},
+	MUSIC_PAUSE ("music-pause", "png", false, false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy((h / 18f) / img.getHeight());
+		}
+	},
+	MUSIC_NEXT ("music-next", "png", false, false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy((h / 18f) / img.getHeight());
+		}
+	},
+	MUSIC_PREVIOUS ("music-previous", "png", false, false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy((h / 18f) / img.getHeight());
+		}
+	},
 	RANKING_RETRY ("ranking-retry", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {

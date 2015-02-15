@@ -128,9 +128,7 @@ public class SongMenu extends BasicGameState {
 	private String[] songInfo;
 
 	/** Button coordinate values. */
-	private float
-		buttonX, buttonY, buttonOffset,
-		buttonWidth, buttonHeight;
+	private float buttonX, buttonY, buttonOffset, buttonWidth, buttonHeight;
 
 	/** Current x offset of song buttons for mouse hover, in pixels. */
 	private float hoverOffset = 0f;
@@ -357,12 +355,18 @@ public class SongMenu extends BasicGameState {
 
 		// scroll bar
 		if (focusNode != null) {
-			float scrollStartY = height * 0.16f;
-			float scrollEndY = height * 0.82f;
-			g.setColor(Utils.COLOR_BLACK_ALPHA);
-			g.fillRoundRect(width - 10, scrollStartY, 5, scrollEndY, 4);
-			g.setColor(Color.white);
-			g.fillRoundRect(width - 10, scrollStartY + (scrollEndY * startNode.index / OsuGroupList.get().size()), 5, 20, 4);
+			int focusNodes = focusNode.osuFiles.size();
+			int totalNodes = OsuGroupList.get().size() + focusNodes - 1;
+			if (totalNodes > MAX_SONG_BUTTONS) {
+				int startIndex = startNode.index;
+				if (startNode.index > focusNode.index)
+					startIndex += focusNodes;
+				else if (startNode.index == focusNode.index)
+					startIndex += startNode.osuFileIndex;
+				Utils.drawScrollbar(g, startIndex, totalNodes, MAX_SONG_BUTTONS,
+						width, height * 0.16f, 0, buttonHeight, buttonOffset,
+						Utils.COLOR_BLACK_ALPHA, Color.white, true);
+			}
 		}
 
 		// reloading beatmaps

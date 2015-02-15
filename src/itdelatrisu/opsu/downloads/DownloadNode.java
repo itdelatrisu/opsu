@@ -62,8 +62,8 @@ public class DownloadNode {
 	/** Maximum number of results and downloads to display on one screen. */
 	private static int maxResultsShown, maxDownloadsShown;
 
-	/** Container dimensions. */
-	private static int containerWidth, containerHeight;
+	/** Container width. */
+	private static int containerWidth;
 
 	/** Button background colors. */
 	public static final Color
@@ -78,7 +78,6 @@ public class DownloadNode {
 	 */
 	public static void init(int width, int height) {
 		containerWidth = width;
-		containerHeight = height;
 
 		// download result buttons
 		buttonBaseX = width * 0.024f;
@@ -180,15 +179,8 @@ public class DownloadNode {
 	 * @param total the total number of buttons
 	 */
 	public static void drawResultScrollbar(Graphics g, int index, int total) {
-		float scrollbarWidth = containerWidth * 0.00347f;
-		float heightRatio = 0.0016f * (total * total) - 0.0705f * total + 0.9965f;
-		float scrollbarHeight = containerHeight * heightRatio;
-		float heightDiff = buttonHeight + buttonOffset * (maxResultsShown - 1) - scrollbarHeight;
-		float offsetY = heightDiff * ((float) index / (total - maxResultsShown));
-		g.setColor(BG_NORMAL);
-		g.fillRect(buttonBaseX + buttonWidth * 1.005f, buttonBaseY, scrollbarWidth, buttonOffset * maxResultsShown);
-		g.setColor(Color.white);
-		g.fillRect(buttonBaseX + buttonWidth * 1.005f, buttonBaseY + offsetY, scrollbarWidth, scrollbarHeight);
+		Utils.drawScrollbar(g, index, total, maxResultsShown, buttonBaseX, buttonBaseY,
+				buttonWidth * 1.01f, buttonHeight, buttonOffset, BG_NORMAL, Color.white, true);
 	}
 
 	/**
@@ -198,15 +190,8 @@ public class DownloadNode {
 	 * @param total the total number of downloads
 	 */
 	public static void drawDownloadScrollbar(Graphics g, int index, int total) {
-		float scrollbarWidth = containerWidth * 0.00347f;
-		float heightRatio = 0.0016f * (total * total) - 0.0705f * total + 0.9965f;
-		float scrollbarHeight = containerHeight * heightRatio;
-		float heightDiff = infoHeight + infoHeight * (maxDownloadsShown - 1) - scrollbarHeight;
-		float offsetY = heightDiff * ((float) index / (total - maxDownloadsShown));
-		g.setColor(BG_NORMAL);
-		g.fillRect(infoBaseX + infoWidth - scrollbarWidth, infoBaseY, scrollbarWidth, infoHeight * maxDownloadsShown);
-		g.setColor(Color.white);
-		g.fillRect(infoBaseX + infoWidth - scrollbarWidth, infoBaseY + offsetY, scrollbarWidth, scrollbarHeight);
+		Utils.drawScrollbar(g, index, total, maxDownloadsShown, infoBaseX, infoBaseY,
+				infoWidth, infoHeight, infoHeight, BG_NORMAL, Color.white, true);
 	}
 
 	/**
