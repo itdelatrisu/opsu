@@ -289,7 +289,7 @@ public class Slider implements HitObject {
 			//else not a hit
 
 			if (result > -1) {
-				data.addErrorRate(hitObject.getTime(), x,y,trackPosition - hitObject.getTime());
+				data.addHitError(hitObject.getTime(), x,y,trackPosition - hitObject.getTime());
 				sliderClicked = true;
 				data.sliderTickResult(hitObject.getTime(), result,
 						hitObject.getX(), hitObject.getY(), hitObject.getHitSoundType());

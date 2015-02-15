@@ -137,7 +137,7 @@ public class Circle implements HitObject {
 			int result = hitResult(timeDiff);
 			
 			if (result > -1) {
-				data.addErrorRate(hitObject.getTime(), x, y, timeDiff);
+				data.addHitError(hitObject.getTime(), x, y, timeDiff);
 				data.hitResult(
 						hitObject.getTime(), result,
 						hitObject.getX(), hitObject.getY(),

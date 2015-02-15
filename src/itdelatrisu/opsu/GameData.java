@@ -153,12 +153,14 @@ public class GameData {
 	/** List of hit result objects associated with hit objects. */
 	private LinkedList<OsuHitObjectResult> hitResultList;
 
-
-	class ErrorInfo {
+	/**
+	 * class to store Hit Error information.
+	 * @author fluddokt
+	 */
+	class HitErrorInfo {
 		int time, x, y, timeDiff;
 
-		public ErrorInfo(int time, int x, int y, int timeDiff) {
-			super();
+		public HitErrorInfo(int time, int x, int y, int timeDiff) {
 			this.time = time;
 			this.x = x;
 			this.y = y;
@@ -167,8 +169,10 @@ public class GameData {
 
 	}
 
-	private LinkedList<ErrorInfo> errorRateList = new LinkedList<ErrorInfo>();
-	private LinkedList<ErrorInfo> mouseMissList = new LinkedList<ErrorInfo>();
+	/**
+	 * List of stored Hit Error Info
+	 */
+	private LinkedList<HitErrorInfo> hitErrorList = new LinkedList<HitErrorInfo>();
 
 	/**
 	 * Hit result helper class.
@@ -304,8 +308,7 @@ public class GameData {
 		comboEnd = 0;
 		comboBurstIndex = -1;
 		scoreData = null;
-		errorRateList.clear();
-		mouseMissList.clear();
+		hitErrorList.clear();
 	}
 
 	/**
@@ -544,6 +547,50 @@ public class GameData {
 			// combo count
 			if (combo > 0)  // 0 isn't a combo
 				drawSymbolString(String.format("%dx", combo), 10, height - 10 - symbolHeight, 1.0f, false);
+			
+			//*
+			//Draw Hit Error bar
+			final int fadeDelay = 5000;
+			int hitErrorY = 30;
+			Iterator<HitErrorInfo> iter2 = hitErrorList.iterator();
+			g.setColor(Color.black);
+			g.fillRect(width / 2f - 3 - hitResultOffset[HIT_50],
+					height - marginX - hitErrorY - 10,
+					hitResultOffset[HIT_50] * 2,
+					20);
+			g.setColor(Utils.COLOR_LIGHT_ORANGE);
+			g.fillRect(width / 2f - 3 - hitResultOffset[HIT_50], 
+					height - marginX - hitErrorY - 3, 
+					hitResultOffset[HIT_50] * 2, 
+					6);
+			g.setColor(Utils.COLOR_LIGHT_GREEN);
+			g.fillRect(width / 2f - 3 - hitResultOffset[HIT_100], 
+					height - marginX - hitErrorY - 3, 
+					hitResultOffset[HIT_100] * 2, 
+					6);
+			g.setColor(Utils.COLOR_LIGHT_BLUE);
+			g.fillRect(width / 2f - 3 - hitResultOffset[HIT_300], 
+					height- marginX - hitErrorY - 3, 
+					hitResultOffset[HIT_300] * 2, 
+					6);
+			g.setColor(Color.white);
+			g.drawRect(width / 2f - 3, height - marginX - hitErrorY - 10, 6, 20);
+			while (iter2.hasNext()) {
+				HitErrorInfo info = iter2.next();
+				int time = info.time;
+				if (Math.abs(info.timeDiff) < hitResultOffset[GameData.HIT_50]
+						&& time + fadeDelay > trackPosition) {
+					float alpha = 1 - ((float) (trackPosition - time) / fadeDelay);
+					Color col = new Color(Color.white);
+					col.a = alpha;
+					g.setColor(col);
+					g.fillRect(width / 2 + info.timeDiff - 1, height - marginX
+							- hitErrorY - 10, 2, 20);
+				} else {
+					iter2.remove();
+				}
+			}
+			//*/
 		} else {
 			// grade
 			Grade grade = getGrade();
@@ -557,45 +604,7 @@ public class GameData {
 		}
 		
 
-		//*
-		//Draw Error bar
-		final int fadeDelay = 5000;
-		int hitErrorY = 30;
-		Iterator<ErrorInfo> iter2 = errorRateList.iterator();
-		g.setColor(Color.black);
-		g.fillRect(width/2f-3-hitResultOffset[HIT_50], height-marginX-hitErrorY-10,hitResultOffset[HIT_50]*2,20);
-		g.setColor(Utils.COLOR_LIGHT_ORANGE);
-		g.fillRect(width/2f-3-hitResultOffset[HIT_50], height-marginX-hitErrorY-3,hitResultOffset[HIT_50]*2,6);
-		g.setColor(Utils.COLOR_LIGHT_GREEN);
-		g.fillRect(width/2f-3-hitResultOffset[HIT_100], height-marginX-hitErrorY-3,hitResultOffset[HIT_100]*2,6);
-		g.setColor(Utils.COLOR_LIGHT_BLUE);
-		g.fillRect(width/2f-3-hitResultOffset[HIT_300], height-marginX-hitErrorY-3,hitResultOffset[HIT_300]*2,6);
-		g.setColor(Color.white);
-		g.drawRect(width/2f-3, height-marginX-hitErrorY-10, 6, 20);
-		while (iter2.hasNext()) {
-			ErrorInfo info = iter2.next();
-			int time = info.time;
-			if (time + fadeDelay > trackPosition) {
-				float alpha = 1 - ((float) (trackPosition - time) / fadeDelay);
-				g.setColor(Color.white.scaleCopy(alpha));
-				g.fillRect(width/2 + info.timeDiff-1, height-marginX-hitErrorY-10, 2, 20);
-			}else{
-				iter2.remove();
-			}
-		}
 		
-		iter2 = mouseMissList.iterator();
-		while (iter2.hasNext()) {
-			ErrorInfo info = iter2.next();
-			int time = info.time;
-			if (time + fadeDelay > trackPosition) {
-				//float alpha = 1 - ((float) (trackPosition - time) / fadeDelay);
-				//g.setColor(Color.green.scaleCopy(alpha));
-				//g.fillRect(info.x-5, info.y-5, 10, 10);
-			}else{
-				iter2.remove();
-			}
-		}//*/
 	}
 
 	/**
@@ -1080,12 +1089,14 @@ public class GameData {
 	 */
 	public boolean isGameplay() { return gameplay; }
 	
-	public void addMouseMissPoint(int time, int x, int y, int button) {
-		mouseMissList.add(new ErrorInfo(time, x, y, 0));
-	}
-
-	public void addErrorRate(int time, int x, int y, int timeDiff) {
-		errorRateList.add(new ErrorInfo(time, x, y, timeDiff));
+	/**
+	 * add a Hit Error Info to the list.
+	 * @param time  when it should have been hit
+	 * @param x, y   the location that it hit 
+	 * @param timeDiff  the difference from the time from when it was actually hit
+	 */
+	public void addHitError(int time, int x, int y, int timeDiff) {
+		hitErrorList.add(new HitErrorInfo(time, x, y, timeDiff));
 	}
 
 }

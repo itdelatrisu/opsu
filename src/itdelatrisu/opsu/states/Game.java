@@ -664,13 +664,8 @@ public class Game extends BasicGameState {
 			objectIndex++;  // circle hit
 
 		// sliders
-		else if (hitObject.isSlider() && hitObjects[objectIndex].mousePressed(x, y)){
-			
-		}
-
-		//Nothing hit
-		else
-			data.addMouseMissPoint(MusicController.getPosition(), x,y,button);
+		else if (hitObject.isSlider())
+			hitObjects[objectIndex].mousePressed(x, y);
 	}
 
 	@Override
