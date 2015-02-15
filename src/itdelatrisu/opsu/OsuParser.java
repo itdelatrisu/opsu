@@ -176,7 +176,7 @@ public class OsuParser {
 						try {
 							switch (tokens[0]) {
 							case "AudioFilename":
-								File audioFileName = new File(file.getParent(), tokens[1]);
+								File audioFileName = new File(file.getParentFile(), tokens[1]);
 								if (!osuFiles.isEmpty()) {
 									// if possible, reuse the same File object from another OsuFile in the group
 									File groupAudioFileName = osuFiles.get(0).audioFilename;

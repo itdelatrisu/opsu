@@ -157,7 +157,7 @@ public abstract class StateBasedGame extends Game implements InputProcessor {
 		for (InputListener keylis : keyListeners) {
 			keylis.touchDragged(screenX, screenY, pointer);
 		}
-		if (pointer > 0) {
+		if (pointer == 0) {
 			currentState.mouseDragged(oldx, oldy, screenX, screenY);
 			oldx = screenX;
 			oldy = screenY;

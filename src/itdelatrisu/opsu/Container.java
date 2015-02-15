@@ -85,7 +85,8 @@ public class Container extends AppGameContainer {
 	/**
 	 * Actions to perform before destroying the game container.
 	 */
-	private void close_sub() {
+	@Override
+	protected void close_sub() {
 		// save user options
 		Options.saveOptions();
 

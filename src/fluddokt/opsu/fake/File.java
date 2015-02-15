@@ -33,7 +33,7 @@ public class File {
 				}
 			}
 		}
-		// System.out.println("New File: "+name+" "+fh.type());
+		
 	}
 
 	private File(FileHandle nfh) {
