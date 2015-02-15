@@ -83,7 +83,8 @@ public class OptionsMenu extends BasicGameState {
 			GameOption.FIXED_HP,
 			GameOption.FIXED_AR,
 			GameOption.FIXED_OD,
-			GameOption.CHECKPOINT
+			GameOption.CHECKPOINT,
+			GameOption.SHOW_HIT_ERROR_BAR
 		});
 
 		/** Total number of tabs. */

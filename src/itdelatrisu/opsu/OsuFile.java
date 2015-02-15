@@ -277,7 +277,7 @@ public class OsuFile implements Comparable<OsuFile> {
 				else
 					swidth = (int) (height * bgImage.getWidth() / (float) bgImage.getHeight());
 			} else {
-				//fill image to screen while keeping aspect ratio
+				// fill screen while maintaining aspect ratio
 				if (bgImage.getWidth() / (float) bgImage.getHeight() > width / (float) height)  // x > y
 					swidth = (int) (height * bgImage.getWidth() / (float) bgImage.getHeight());
 				else

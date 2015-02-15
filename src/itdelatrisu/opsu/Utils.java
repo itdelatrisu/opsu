@@ -322,6 +322,22 @@ public class Utils {
 	}
 
 	/**
+	 * Clamps a value between a lower and upper bound.
+	 * @param val the value to clamp
+	 * @param low the lower bound
+	 * @param high the upper bound
+	 * @return the clamped value
+	 * @author fluddokt
+	 */
+	public static float clamp(float val, int low, int high) {
+		if (val < low)
+			return low;
+		if (val > high)
+			return high;
+		return val;
+	}
+
+	/**
 	 * Draws the cursor.
 	 */
 	public static void drawCursor() {
@@ -875,20 +891,4 @@ public class Utils {
 			list.add(str);
 		return list;
     }
-	
-	/**
-	 * Clamps the value to be in between low and high
-	 * @param val
-	 * @param low
-	 * @param high
-	 * @return val clamped between low and high
-	 * @author fluddokt (https://github.com/fluddokt)
-	 */
-	public static float clamp(float val, int low, int high) {
-		if(val < low)
-			return low;
-		if(val > high)
-			return high;
-		return val;
-	}
 }

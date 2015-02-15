@@ -96,7 +96,7 @@ public class Circle implements HitObject {
 			Utils.COLOR_WHITE_FADE.a = alpha;
 			Utils.drawCentered(GameImage.HITCIRCLE.getImage(), x, y, color);
 			Utils.drawCentered(GameImage.HITCIRCLE_OVERLAY.getImage(), x, y, Utils.COLOR_WHITE_FADE);
-			
+
 			color.a = oldAlpha;
 			Utils.COLOR_WHITE_FADE.a = 1f;
 			data.drawSymbolNumber(hitObject.getComboNumber(), x, y,
@@ -135,7 +135,7 @@ public class Circle implements HitObject {
 			int trackPosition = MusicController.getPosition();
 			int timeDiff = trackPosition - hitObject.getTime();
 			int result = hitResult(timeDiff);
-			
+
 			if (result > -1) {
 				data.addHitError(hitObject.getTime(), x, y, timeDiff);
 				data.hitResult(

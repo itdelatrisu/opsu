@@ -141,23 +141,21 @@ public class Slider implements HitObject {
 			this.curve = new LinearBezier(hitObject, color);
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public void draw(int trackPosition, boolean currentObject, Graphics g) {
 		int timeDiff = hitObject.getTime() - trackPosition;
-		
+		float scale = timeDiff / (float) game.getApproachTime();
+		float approachScale = 1 + scale * 3;
+		float x = hitObject.getX(), y = hitObject.getY();
+
 		float oldAlpha = color.a;
 		float oldAlphaFade = Utils.COLOR_WHITE_FADE.a;
-		
-		float x = hitObject.getX(), y = hitObject.getY();
-		float scale = timeDiff / (float)game.getApproachTime();
-		
-		float approachScale = 1 + scale*3 ;
-		float alpha = (1 - scale);//(approachScale > 3.3f) ? 0f : 1f - (approachScale - 1f) / 2.7f;
-		color.a = Utils.clamp(alpha* 0.5f, 0, 1);
-		
+		float alpha = (1 - scale);
+		color.a = Utils.clamp(alpha * 0.5f, 0, 1);
 		alpha = Utils.clamp(alpha, 0, 1);
 		Utils.COLOR_WHITE_FADE.a = alpha;
-		
+
 		// curve
 		curve.draw();
 
@@ -169,11 +167,10 @@ public class Slider implements HitObject {
 				tick.drawCentered(c[0], c[1]);
 			}
 		}
-		
-		color.a = alpha;
 
 		Image hitCircleOverlay = GameImage.HITCIRCLE_OVERLAY.getImage();
 		Image hitCircle = GameImage.HITCIRCLE.getImage();
+		color.a = alpha;
 
 		// end circle
 		float[] endPos = curve.pointAt(1);
@@ -216,28 +213,27 @@ public class Slider implements HitObject {
 		if (timeDiff >= 0) {
 			// approach circle
 			color.a = 1 - scale;
-			
 			Utils.drawCentered(GameImage.APPROACHCIRCLE.getImage().getScaledCopy(approachScale), x, y, color);
 		} else {
 			float[] c = curve.pointAt(getT(trackPosition, false));
 			float[] c2 = curve.pointAt(getT(trackPosition, false) + 0.01f);
 
 			// slider ball
-			sliderBall.updateNoDraw();//TODO ..... I can't thing of anything else
-			//It might be better to make your own animation class or something
-			//also it might be better to update the animation based on the distance traveled
+			// TODO: deprecated method
+			// TODO 2: update the animation based on the distance traveled?
+			sliderBall.updateNoDraw();
 			Image sliderBallFrame = sliderBall.getCurrentFrame();
-			float angle = (float) (Math.atan2(c2[1] - c[1], c2[0] - c[0]) * 180 / Math.PI)
-					+ (currentRepeats % 2 == 1 ? 180 : 0);
+			float angle = (float) (Math.atan2(c2[1] - c[1], c2[0] - c[0]) * 180 / Math.PI);
+			if (currentRepeats % 2 == 1)
+				angle += 180;
 			sliderBallFrame.setRotation(angle);
 			sliderBallFrame.drawCentered(c[0], c[1]);
+
 			// follow circle
 			if (followCircleActive)
 				GameImage.SLIDER_FOLLOWCIRCLE.getImage().drawCentered(c[0], c[1]);
 		}
 	}
-	
-	
 
 	/**
 	 * Calculates the slider hit result.

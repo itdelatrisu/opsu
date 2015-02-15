@@ -363,6 +363,13 @@ public class Options {
 
 			@Override
 			public void click(GameContainer container) { themeSongEnabled = !themeSongEnabled; }
+		},
+		SHOW_HIT_ERROR_BAR ("Show Hit Error Bar", "Displays hit accuracy information at the bottom of the screen.") {
+			@Override
+			public String getValueString() { return showHitErrorBar ? "Yes" : "No"; }
+
+			@Override
+			public void click(GameContainer container) { showHitErrorBar = !showHitErrorBar; }
 		};
 
 		/** Option name. */
@@ -432,7 +439,6 @@ public class Options {
 		RES_2560_1440 (2560, 1440),
 		RES_2560_1600 (2560, 1600),
 		RES_3840_2160 (3840, 2160);
-		
 
 		/** Screen dimensions. */
 		private int width, height;
@@ -534,6 +540,9 @@ public class Options {
 
 	/** Whether or not to play the theme song. */
 	private static boolean themeSongEnabled = true;
+
+	/** Whether or not to show the hit error bar. */
+	private static boolean showHitErrorBar = false;
 
 	/** Fixed difficulty overrides. */
 	private static float
@@ -765,7 +774,7 @@ public class Options {
 	 * Returns whether or not to play the theme song.
 	 * @return true if enabled
 	 */
-	public static boolean isThemSongEnabled() { return themeSongEnabled; }
+	public static boolean isThemeSongEnabled() { return themeSongEnabled; }
 
 	/**
 	 * Sets the track checkpoint time, if within bounds.
@@ -779,6 +788,12 @@ public class Options {
 		}
 		return false;
 	}
+
+	/**
+	 * Returns whether or not to show the hit error bar.
+	 * @return true if enabled
+	 */
+	public static boolean isHitErrorBarEnabled() { return showHitErrorBar; }
 
 	/**
 	 * Returns the left game key.
@@ -1042,6 +1057,9 @@ public class Options {
 				case "PerfectHit":
 					showPerfectHit = Boolean.parseBoolean(value);
 					break;
+				case "HitErrorBar":
+					showHitErrorBar = Boolean.parseBoolean(value);
+					break;
 				case "FixedCS":
 					fixedCS = Float.parseFloat(value);
 					break;
@@ -1144,6 +1162,8 @@ public class Options {
 			writer.write(String.format("ComboBurst = %b", showComboBursts));
 			writer.newLine();
 			writer.write(String.format("PerfectHit = %b", showPerfectHit));
+			writer.newLine();
+			writer.write(String.format("HitErrorBar = %b", showHitErrorBar));
 			writer.newLine();
 			writer.write(String.format(Locale.US, "FixedCS = %.1f", fixedCS));
 			writer.newLine();
