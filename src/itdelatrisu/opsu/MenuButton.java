@@ -24,9 +24,8 @@ import org.newdawn.slick.Font;
 import org.newdawn.slick.Image;
 
 /**
- * A convenience class for menu buttons.
- * Consists of an image or animation and coordinates.
- * Multi-part images and animations currently do not support hover updates.
+ * A convenience class for menu buttons, consisting of an image or animation
+ * and coordinates. Multi-part images currently do not support effects.
  */
 public class MenuButton {
 	/** The image associated with the button. */
@@ -53,23 +52,29 @@ public class MenuButton {
 	/** The color to draw the text with. */
 	private Color color;
 
-	/** Hover action types. */
-	private enum HoverAction { NONE, EXPAND, FADE };
+	/** Effect types. */
+	private static final int
+		EFFECT_EXPAND = 1,
+		EFFECT_FADE   = 2,
+		EFFECT_ROTATE = 4;
 
-	/** The hover action for this button. */
-	private HoverAction hoverAction = HoverAction.NONE;
+	/** The hover actions for this button. */
+	private int hoverEffect = 0;
 
-	/** The current and max scale of the button (for hovering). */
+	/** The current and max scale of the button. */
 	private float scale = 1f, hoverScale = 1.25f;
 
-	/** The current and base alpha level of the button (for hovering). */
+	/** The current and base alpha level of the button. */
 	private float alpha = 1f, baseAlpha = 0.75f;
 
-	/** The scaled expansion direction for the button (for hovering). */
+	/** The scaled expansion direction for the button. */
 	private Expand dir = Expand.CENTER;
 
-	/** Scaled expansion directions (for hovering). */
+	/** Scaled expansion directions. */
 	public enum Expand { CENTER, UP, RIGHT, LEFT, DOWN, UP_RIGHT, UP_LEFT, DOWN_RIGHT, DOWN_LEFT; }
+
+	/** The current and max rotation angles  of the button. */
+	private float angle = 0f, maxAngle = 30f;
 
 	/**
 	 * Creates a new button from an Image.
@@ -162,43 +167,7 @@ public class MenuButton {
 	/**
 	 * Draws the button.
 	 */
-	public void draw() {
-		if (img != null) {
-			if (imgL == null) {
-				if (hoverAction == HoverAction.EXPAND) {
-					Image imgScaled = (scale == 1f) ? img : img.getScaledCopy(scale);
-					imgScaled.setAlpha(img.getAlpha());
-					imgScaled.draw(x - xRadius, y - yRadius);
-				} else if (hoverAction == HoverAction.FADE) {
-					float a = img.getAlpha();
-					img.setAlpha(alpha);
-					img.draw(x - xRadius, y - yRadius);
-					img.setAlpha(a);
-				} else
-					img.draw(x - xRadius, y - yRadius);
-			} else {
-				if (hoverAction == HoverAction.FADE) {
-					float a = img.getAlpha(), aL = imgL.getAlpha(), aR = imgR.getAlpha();
-					img.setAlpha(alpha);
-					imgL.setAlpha(alpha);
-					imgR.setAlpha(alpha);
-					img.draw(x - xRadius + imgL.getWidth(), y - yRadius);
-					imgL.draw(x - xRadius, y - yRadius);
-					imgR.draw(x + xRadius - imgR.getWidth(), y - yRadius);
-					img.setAlpha(a);
-					imgL.setAlpha(aL);
-					imgR.setAlpha(aR);
-				} else {
-					img.draw(x - xRadius + imgL.getWidth(), y - yRadius);
-					imgL.draw(x - xRadius, y - yRadius);
-					imgR.draw(x + xRadius - imgR.getWidth(), y - yRadius);
-				}
-			}
-		} else
-			anim.draw(x - xRadius, y - yRadius);
-		if (text != null)
-			font.drawString(x - font.getWidth(text) / 2f, y - font.getLineHeight() / 2f, text, color);
-	}
+	public void draw() { draw(null); }
 
 	/**
 	 * Draw the button with a color filter.
@@ -207,37 +176,48 @@ public class MenuButton {
 	public void draw(Color filter) {
 		if (img != null) {
 			if (imgL == null) {
-				if (hoverAction == HoverAction.EXPAND) {
-					Image imgScaled = (scale == 1f) ? img : img.getScaledCopy(scale);
-					imgScaled.setAlpha(img.getAlpha());
-					imgScaled.draw(x - xRadius, y - yRadius, filter);
-				} else if (hoverAction == HoverAction.FADE) {
-					float a = img.getAlpha();
-					img.setAlpha(alpha);
-					img.draw(x - xRadius, y - yRadius, filter);
-					img.setAlpha(a);
-				} else
-					img.draw(x - xRadius, y - yRadius, filter);
+				if (hoverEffect == 0)
+					Utils.draw(img, x - xRadius, y - yRadius, filter);
+				else {
+					Image hoverImg = img;
+					float oldAlpha = img.getAlpha();
+					float oldAngle = img.getRotation();
+					if ((hoverEffect & EFFECT_EXPAND) > 0) {
+						if (scale != 1f) {
+							hoverImg = hoverImg.getScaledCopy(scale);
+							hoverImg.setAlpha(oldAlpha);
+						}
+					}
+					if ((hoverEffect & EFFECT_FADE) > 0)
+						hoverImg.setAlpha(alpha);
+					if ((hoverEffect & EFFECT_ROTATE) > 0)
+						hoverImg.setRotation(angle);
+					Utils.draw(hoverImg, x - xRadius, y - yRadius, filter);
+					if (hoverImg != img) {
+						hoverImg.setAlpha(oldAlpha);
+						hoverImg.setRotation(oldAngle);
+					}
+				}
 			} else {
-				if (hoverAction == HoverAction.FADE) {
+				if (hoverEffect == 0) {
+					Utils.draw(img, x - xRadius + imgL.getWidth(), y - yRadius, filter);
+					Utils.draw(imgL, x - xRadius, y - yRadius, filter);
+					Utils.draw(imgR, x + xRadius - imgR.getWidth(), y - yRadius, filter);
+				} else if ((hoverEffect & EFFECT_FADE) > 0) {
 					float a = img.getAlpha(), aL = imgL.getAlpha(), aR = imgR.getAlpha();
 					img.setAlpha(alpha);
 					imgL.setAlpha(alpha);
 					imgR.setAlpha(alpha);
-					img.draw(x - xRadius + imgL.getWidth(), y - yRadius, filter);
-					imgL.draw(x - xRadius, y - yRadius, filter);
-					imgR.draw(x + xRadius - imgR.getWidth(), y - yRadius, filter);
+					Utils.draw(img, x - xRadius + imgL.getWidth(), y - yRadius, filter);
+					Utils.draw(imgL, x - xRadius, y - yRadius, filter);
+					Utils.draw(imgR, x + xRadius - imgR.getWidth(), y - yRadius, filter);
 					img.setAlpha(a);
 					imgL.setAlpha(aL);
 					imgR.setAlpha(aR);
-				} else {
-					img.draw(x - xRadius + imgL.getWidth(), y - yRadius, filter);
-					imgL.draw(x - xRadius, y - yRadius, filter);
-					imgR.draw(x + xRadius - imgR.getWidth(), y - yRadius, filter);
 				}
 			}
 		} else
-			anim.draw(x - xRadius, y - yRadius, filter);
+			Utils.draw(anim, x - xRadius, y - yRadius, filter);
 		if (text != null)
 			font.drawString(x - font.getWidth(text) / 2f, y - font.getLineHeight() / 2f, text, color);
 	}
@@ -256,53 +236,75 @@ public class MenuButton {
 	 * Resets the hover fields for the button.
 	 */
 	public void resetHover() {
-		if (hoverAction == HoverAction.EXPAND) {
+		if ((hoverEffect & EFFECT_EXPAND) > 0) {
 			this.scale = 1f;
 			setHoverRadius();
-		} else if (hoverAction == HoverAction.FADE)
+		}
+		if ((hoverEffect & EFFECT_FADE) > 0)
 			this.alpha = baseAlpha;
+		if ((hoverEffect & EFFECT_ROTATE) > 0)
+			this.angle = 0f;
 	}
 
 	/**
-	 * Sets the hover action to "expand".
+	 * Removes all hover effects that have been set for the button.
 	 */
-	public void setHoverExpand() { this.hoverAction = HoverAction.EXPAND; }
+	public void removeHoverEffects() { hoverEffect = 0; }
 
 	/**
-	 * Sets the hover action to "expand".
+	 * Sets the "expand" hover effect.
+	 */
+	public void setHoverExpand() { hoverEffect |= EFFECT_EXPAND; }
+
+	/**
+	 * Sets the "expand" hover effect.
 	 * @param scale the maximum scale factor (default 1.25f)
 	 */
 	public void setHoverExpand(float scale) { setHoverExpand(scale, this.dir); }
 
 	/**
-	 * Sets the hover action to "expand".
+	 * Sets the "expand" hover effect.
 	 * @param dir the expansion direction
 	 */
 	public void setHoverExpand(Expand dir) { setHoverExpand(this.hoverScale, dir); }
 
 	/**
-	 * Sets the hover action to "expand".
+	 * Sets the "expand" hover effect.
 	 * @param scale the maximum scale factor (default 1.25f)
 	 * @param dir the expansion direction
 	 */
 	public void setHoverExpand(float scale, Expand dir) {
-		this.hoverAction = HoverAction.EXPAND;
+		hoverEffect |= EFFECT_EXPAND;
 		this.hoverScale = scale;
 		this.dir = dir;
 	}
 
 	/**
-	 * Sets the hover action to "fade".
+	 * Sets the "fade" hover effect.
 	 */
-	public void setHoverFade() { this.hoverAction = HoverAction.FADE; }
+	public void setHoverFade() { hoverEffect |= EFFECT_FADE; }
 
 	/**
-	 * Sets the hover action to "fade".
+	 * Sets the "fade" hover effect.
 	 * @param baseAlpha the base alpha level to fade in from (default 0.7f)
 	 */
 	public void setHoverFade(float baseAlpha) {
-		this.hoverAction = HoverAction.FADE;
+		hoverEffect |= EFFECT_FADE;
 		this.baseAlpha = baseAlpha;
+	}
+
+	/**
+	 * Sets the "rotate" hover effect.
+	 */
+	public void setHoverRotate() { hoverEffect |= EFFECT_ROTATE; }
+
+	/**
+	 * Sets the "rotate" hover effect.
+	 * @param maxAngle the maximum rotation angle, in degrees (default 30f)
+	 */
+	public void setHoverRotate(float maxAngle) {
+		hoverEffect |= EFFECT_ROTATE;
+		this.maxAngle = maxAngle;
 	}
 
 	/**
@@ -313,31 +315,48 @@ public class MenuButton {
 	 * @param cy the y coordinate
 	 */
 	public void hoverUpdate(int delta, float cx, float cy) {
-		if (hoverAction == HoverAction.NONE)
+		if (hoverEffect == 0)
 			return;
-
 		boolean isHover = contains(cx, cy);
-		if (hoverAction == HoverAction.EXPAND) {
-			// scale the button
-			int sign;
+
+		// scale the button
+		if ((hoverEffect & EFFECT_EXPAND) > 0) {
+			int sign = 0;
 			if (isHover && scale < hoverScale)
 				sign = 1;
 			else if (!isHover && scale > 1f)
 				sign = -1;
-			else
-				return;
-			scale = Utils.getBoundedValue(scale, sign * (hoverScale - 1f) * delta / 100f, 1, hoverScale);
-			setHoverRadius();
-		} else {
-			// fade the button
-			int sign;
+			if (sign != 0) {
+				scale = Utils.getBoundedValue(scale, sign * (hoverScale - 1f) * delta / 100f, 1, hoverScale);
+				setHoverRadius();
+			}
+		}
+
+		// fade the button
+		if ((hoverEffect & EFFECT_FADE) > 0) {
+			int sign = 0;
 			if (isHover && alpha < 1f)
 				sign = 1;
 			else if (!isHover && alpha > baseAlpha)
 				sign = -1;
-			else
-				return;
-			alpha = Utils.getBoundedValue(alpha, sign * (1f - baseAlpha) * delta / 200f, baseAlpha, 1f);
+			if (sign != 0)
+				alpha = Utils.getBoundedValue(alpha, sign * (1f - baseAlpha) * delta / 200f, baseAlpha, 1f);
+		}
+
+		// rotate the button
+		if ((hoverEffect & EFFECT_ROTATE) > 0) {
+			int sign = 0;
+			boolean right = (maxAngle > 0);
+			if (isHover && angle != maxAngle)
+				sign = (right) ? 1 : -1;
+			else if (!isHover && angle != 0)
+				sign = (right) ? -1 : 1;
+			if (sign != 0) {
+				float diff = sign * Math.abs(maxAngle) * delta / 125f;
+				angle = (right) ?
+					Utils.getBoundedValue(angle, diff, 0, maxAngle) :
+					Utils.getBoundedValue(angle, diff, maxAngle, 0);
+			}
 		}
 	}
 

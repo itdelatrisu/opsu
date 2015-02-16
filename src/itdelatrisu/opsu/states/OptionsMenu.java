@@ -19,7 +19,6 @@
 package itdelatrisu.opsu.states;
 
 import itdelatrisu.opsu.GameImage;
-import itdelatrisu.opsu.GameMod;
 import itdelatrisu.opsu.MenuButton;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.Options;
@@ -171,10 +170,6 @@ public class OptionsMenu extends BasicGameState {
 		int width = container.getWidth();
 		int height = container.getHeight();
 
-		// game option coordinate modifiers
-		textY = 20 + (Utils.FONT_XLARGE.getLineHeight() * 3 / 2);
-		offsetY = (int) (((height * 0.8f) - textY) / maxOptionsScreen);
-
 		// option tabs
 		Image tabImage = GameImage.MENU_TAB.getImage();
 		int subtextWidth = Utils.FONT_DEFAULT.getWidth("Click or drag an option to change it.");
@@ -184,6 +179,10 @@ public class OptionsMenu extends BasicGameState {
 				((width - subtextWidth - tabImage.getWidth()) / 2) / OptionTab.SIZE);
 		for (OptionTab tab : OptionTab.values())
 			tab.button = new MenuButton(tabImage, tabX + (tab.ordinal() * tabOffset), tabY);
+
+		// game option coordinate modifiers
+		textY = (int) (tabY + tabImage.getHeight());
+		offsetY = (height - textY - GameImage.MENU_BACK.getImage().getHeight()) / maxOptionsScreen;
 	}
 
 	@Override
@@ -232,21 +231,6 @@ public class OptionsMenu extends BasicGameState {
 		g.drawLine(0, lineY, width, lineY);
 		g.resetLineWidth();
 
-		// game mods
-		Utils.FONT_LARGE.drawString(width / 30, height * 0.8f, "Game Mods:", Color.white);
-		boolean descDrawn = false;
-		for (GameMod mod : GameMod.values()) {
-			mod.draw();
-			if (!descDrawn && mod.contains(mouseX, mouseY)) {
-				Utils.FONT_DEFAULT.drawString(
-						(width - Utils.FONT_DEFAULT.getWidth(mod.getDescription())) / 2,
-						height * 0.975f - Utils.FONT_DEFAULT.getLineHeight(),
-						mod.getDescription(), Color.white
-				);
-				descDrawn = true;
-			}
-		}
-
 		Utils.getBackButton().draw();
 
 		// key entry state
@@ -272,8 +256,6 @@ public class OptionsMenu extends BasicGameState {
 		Utils.updateVolumeDisplay(delta);
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
 		Utils.getBackButton().hoverUpdate(delta, mouseX, mouseY);
-		for (GameMod mod : GameMod.values())
-			mod.hoverUpdate(delta, mouseX, mouseY);
 	}
 
 	@Override
@@ -305,17 +287,6 @@ public class OptionsMenu extends BasicGameState {
 					currentTab = tab;
 					SoundController.playSound(SoundEffect.MENUCLICK);
 				}
-				return;
-			}
-		}
-
-		// game mods
-		for (GameMod mod : GameMod.values()) {
-			if (mod.contains(x, y)) {
-				boolean prevState = mod.isActive();
-				mod.toggle(true);
-				if (mod.isActive() != prevState)
-					SoundController.playSound(SoundEffect.MENUCLICK);
 				return;
 			}
 		}
@@ -400,15 +371,6 @@ public class OptionsMenu extends BasicGameState {
 				currentTab = currentTab.next();
 			SoundController.playSound(SoundEffect.MENUCLICK);
 			break;
-		default:
-			// check mod shortcut keys
-			for (GameMod mod : GameMod.values()) {
-				if (key == mod.getKey()) {
-					mod.toggle(true);
-					break;
-				}
-			}
-			break;
 		}
 	}
 
@@ -417,8 +379,6 @@ public class OptionsMenu extends BasicGameState {
 			throws SlickException {
 		currentTab = OptionTab.DISPLAY;
 		Utils.getBackButton().resetHover();
-		for (GameMod mod : GameMod.values())
-			mod.resetHover();
 	}
 
 	/**

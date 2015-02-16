@@ -359,9 +359,8 @@ public class SongMenu extends BasicGameState {
 		}
 
 		// selection buttons
-		// TODO
-//		GameImage.SELECTION_MODS.getImage().drawCentered(selectModsButton.getX(), selectModsButton.getY());
-//		selectModsButton.draw();
+		GameImage.SELECTION_MODS.getImage().drawCentered(selectModsButton.getX(), selectModsButton.getY());
+		selectModsButton.draw();
 		GameImage.SELECTION_RANDOM.getImage().drawCentered(selectRandomButton.getX(), selectRandomButton.getY());
 		selectRandomButton.draw();
 		GameImage.SELECTION_OPTIONS.getImage().drawCentered(selectMapOptionsButton.getX(), selectMapOptionsButton.getY());
@@ -714,9 +713,9 @@ public class SongMenu extends BasicGameState {
 			}
 			break;
 		case Input.KEY_F1:
-			// TODO: mods menu
-//			SoundController.playSound(SoundEffect.MENUHIT);
-//			game.enterState();
+			SoundController.playSound(SoundEffect.MENUHIT);
+			((ButtonMenu) game.getState(Opsu.STATE_BUTTONMENU)).setMenuState(MenuState.MODS);
+			game.enterState(Opsu.STATE_BUTTONMENU);
 			break;
 		case Input.KEY_F2:
 			if (focusNode == null)

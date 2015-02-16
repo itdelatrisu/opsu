@@ -309,7 +309,7 @@ public enum GameImage {
 	MOD_EASY ("selection-mod-easy", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h * 0.12f) / img.getHeight());
+			return img.getScaledCopy((h / 12f) / img.getHeight());
 		}
 	},
 	MOD_NO_FAIL ("selection-mod-nofail", "png", false, false) {
@@ -361,6 +361,18 @@ public enum GameImage {
 		}
 	},
 	MOD_FLASHLIGHT ("selection-mod-flashlight", "png", false, false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return MOD_EASY.process_sub(img, w, h);
+		}
+	},
+	MOD_RELAX ("selection-mod-relax", "png", false, false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return MOD_EASY.process_sub(img, w, h);
+		}
+	},
+	MOD_AUTOPILOT ("selection-mod-relax2", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
 			return MOD_EASY.process_sub(img, w, h);

@@ -1007,13 +1007,6 @@ public class GameData {
 		if (hitValue > 0) {
 			SoundController.playHitSound(hitSound);
 
-			// game mod score multipliers
-			float modMultiplier = 1f;
-			for (GameMod mod : GameMod.values()) {
-				if (mod.isActive())
-					modMultiplier *= mod.getMultiplier();
-			}
-
 			/**
 			 * [SCORE FORMULA]
 			 * Score = Hit Value + Hit Value * (Combo * Difficulty * Mod) / 25
@@ -1022,7 +1015,7 @@ public class GameData {
 			 * - Difficulty: the beatmap difficulty
 			 * - Mod: mod multipliers
 			 */
-			score += (hitValue + (hitValue * (Math.max(combo - 1, 0) * difficulty * modMultiplier) / 25));
+			score += (hitValue + (hitValue * (Math.max(combo - 1, 0) * difficulty * GameMod.getScoreMultiplier()) / 25));
 			incrementComboStreak();
 		}
 		hitResultCount[result]++;

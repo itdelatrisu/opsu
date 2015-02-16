@@ -213,8 +213,7 @@ public class Utils {
 		}
 
 		// initialize game mods
-		for (GameMod mod : GameMod.values())
-			mod.init(width, height);
+		GameMod.init(width, height);
 
 		// initialize hit objects
 		OsuHitObject.init(width, height);
@@ -279,6 +278,34 @@ public class Utils {
 	 */
 	public static void drawCentered(Animation anim, float x, float y) {
 		anim.draw(x - (anim.getWidth() / 2f), y - (anim.getHeight() / 2f));
+	}
+
+	/**
+	 * Draws an image at the given location.
+	 * @param img the image to draw
+	 * @param x the x coordinate
+	 * @param y the y coordinate
+	 * @param color the color filter to apply
+	 */
+	public static void draw(Image img, float x, float y, Color color) {
+		if (color == null)
+			img.draw(x, y);
+		else
+			img.draw(x, y, color);
+	}
+
+	/**
+	 * Draws an animation at the given location.
+	 * @param anim the animation to draw
+	 * @param x the x coordinate
+	 * @param y the y coordinate
+	 * @param color the color filter to apply
+	 */
+	public static void draw(Animation anim, float x, float y, Color color) {
+		if (color == null)
+			anim.draw(x, y);
+		else
+			anim.draw(x, y, color);
 	}
 
 	/**

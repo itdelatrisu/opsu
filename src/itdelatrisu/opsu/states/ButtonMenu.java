@@ -19,6 +19,7 @@
 package itdelatrisu.opsu.states;
 
 import itdelatrisu.opsu.GameImage;
+import itdelatrisu.opsu.GameMod;
 import itdelatrisu.opsu.MenuButton;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.OsuGroupList;
@@ -121,6 +122,95 @@ public class ButtonMenu extends BasicGameState {
 			public void leave(GameContainer container, StateBasedGame game) {
 				Button.CLOSE.click(container, game);
 			}
+		},
+		MODS (new Button[] { Button.RESET_MODS, Button.CLOSE }) {
+			@Override
+			public String[] getTitle(GameContainer container, StateBasedGame game) {
+				return new String[] {
+					"Mods provide different ways to enjoy gameplay. Some have an effect on the score you can achieve during ranked play. Others are just for fun."
+				};
+			}
+
+			@Override
+			protected float getBaseY(GameContainer container, StateBasedGame game) {
+				return container.getHeight() * 2f / 3;
+			}
+
+			@Override
+			public void enter(GameContainer container, StateBasedGame game) {
+				super.enter(container, game);
+				for (GameMod mod : GameMod.values())
+					mod.resetHover();
+			}
+
+			@Override
+			public void leave(GameContainer container, StateBasedGame game) {
+				Button.CLOSE.click(container, game);
+			}
+
+			@Override
+			public void draw(GameContainer container, StateBasedGame game, Graphics g) {
+				super.draw(container, game, g);
+
+				int width = container.getWidth();
+				int height = container.getHeight();
+
+				// score multiplier (TODO: fade in color changes)
+				float mult = GameMod.getScoreMultiplier();
+				String multString = String.format("Score Multiplier: %.2fx", mult);
+				Color multColor = (mult == 1f) ? Color.white : (mult > 1f) ? Color.green : Color.red;
+				float multY = Utils.FONT_LARGE.getLineHeight() * 2 + height * 0.06f;
+				Utils.FONT_LARGE.drawString(
+						(width - Utils.FONT_LARGE.getWidth(multString)) / 2f,
+						multY, multString, multColor);
+
+				// category text
+				for (GameMod.Category category : GameMod.Category.values()) {
+					Utils.FONT_LARGE.drawString(category.getX(),
+							category.getY() - Utils.FONT_LARGE.getLineHeight() / 2f,
+							category.getName(), category.getColor());
+				}
+
+				// buttons (TODO: draw descriptions when hovering)
+				for (GameMod mod : GameMod.values())
+					mod.draw();
+			}
+
+			@Override
+			public void update(GameContainer container, int delta, int mouseX, int mouseY) {
+				super.update(container, delta, mouseX, mouseY);
+				for (GameMod mod : GameMod.values()) {
+					if (mod.isActive())
+						mod.hoverUpdate(delta, mod.getButtonX(), mod.getButtonY());
+					else
+						mod.hoverUpdate(delta, -1, -1);
+				}
+			}
+
+			@Override
+			public void keyPress(GameContainer container, StateBasedGame game, int key, char c) {
+				super.keyPress(container, game, key, c);
+				for (GameMod mod : GameMod.values()) {
+					if (key == mod.getKey()) {
+						mod.toggle(true);
+						break;
+					}
+				}
+			}
+
+			@Override
+			public void click(GameContainer container, StateBasedGame game, int cx, int cy) {
+				super.click(container, game, cx, cy);
+				for (GameMod mod : GameMod.values()) {
+					if (mod.contains(cx, cy)) {
+						boolean prevState = mod.isActive();
+						mod.toggle(true);
+						if (mod.isActive() != prevState)
+							SoundController.playSound(SoundEffect.MENUCLICK);
+						return;
+					}
+				}
+			}
 		};
 
 		/** The buttons in the state. */
@@ -153,21 +243,27 @@ public class ButtonMenu extends BasicGameState {
 		 */
 		public void init(GameContainer container, StateBasedGame game, Image button, Image buttonL, Image buttonR) {
 			float center = container.getWidth() / 2f;
-			float centerOffset = container.getWidth() * OFFSET_WIDTH_RATIO;
-			float baseY = container.getHeight() * 0.2f;
-			baseY += ((getTitle(container, game).length - 1) * Utils.FONT_LARGE.getLineHeight());
+			float baseY = getBaseY(container, game);
 			float offsetY = button.getHeight() * 1.25f;
 
 			menuButtons = new MenuButton[buttons.length];
 			for (int i = 0; i < buttons.length; i++) {
-				MenuButton b = new MenuButton(button, buttonL, buttonR,
-						center + ((i % 2 == 0) ? centerOffset * -1 : centerOffset),
-						baseY + (i * offsetY));
-				b.setText(String.format("%d. %s", i + 1, buttons[i].getText()),
-						Utils.FONT_XLARGE, Color.white);
+				MenuButton b = new MenuButton(button, buttonL, buttonR, center, baseY + (i * offsetY));
+				b.setText(String.format("%d. %s", i + 1, buttons[i].getText()), Utils.FONT_XLARGE, Color.white);
 				b.setHoverFade();
 				menuButtons[i] = b;
 			}
+		}
+
+		/**
+		 * Returns the base Y coordinate for the buttons.
+		 * @param container the game container
+		 * @param game the game
+		 */
+		protected float getBaseY(GameContainer container, StateBasedGame game) {
+			float baseY = container.getHeight() * 0.2f;
+			baseY += ((getTitle(container, game).length - 1) * Utils.FONT_LARGE.getLineHeight());
+			return baseY;
 		}
 
 		/**
@@ -231,13 +327,14 @@ public class ButtonMenu extends BasicGameState {
 		}
 
 		/**
-		 * Processes a key press action (numeric digits only).
+		 * Processes a key press action.
 		 * @param container the game container
 		 * @param game the game
-		 * @param digit the digit pressed
+		 * @param key the key code that was pressed (see {@link org.newdawn.slick.Input})
+		 * @param c the character of the key that was pressed
 		 */
-		public void keyPress(GameContainer container, StateBasedGame game, int digit) {
-			int index = digit - 1;
+		public void keyPress(GameContainer container, StateBasedGame game, int key, char c) {
+			int index = Character.getNumericValue(c) - 1;
 			if (index >= 0 && index < buttons.length)
 				buttons[index].click(container, game);
 		}
@@ -384,6 +481,16 @@ public class ButtonMenu extends BasicGameState {
 			public void click(GameContainer container, StateBasedGame game) {
 				CANCEL.click(container, game);
 			}
+		},
+		RESET_MODS ("Reset All Mods", Color.red) {
+			@Override
+			public void click(GameContainer container, StateBasedGame game) {
+				SoundController.playSound(SoundEffect.MENUHIT);
+				for (GameMod mod : GameMod.values()) {
+					if (mod.isActive())
+						mod.toggle(false);
+				}
+			}
 		};
 
 		/** The text to show on the button. */
@@ -500,7 +607,7 @@ public class ButtonMenu extends BasicGameState {
 			break;
 		default:
 			if (menuState != null)
-				menuState.keyPress(container, game, Character.getNumericValue(c));
+				menuState.keyPress(container, game, key, c);
 			break;
 		}
 	}
