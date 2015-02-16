@@ -44,6 +44,7 @@ import org.newdawn.slick.util.Log;
  * @author kevin
  * @author Nathan Sweet <misc@n4te.com>
  */
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class Music {
 	/** The music currently being played or null if none */
 	private static Music currentMusic;

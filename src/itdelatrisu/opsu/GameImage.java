@@ -41,25 +41,25 @@ public enum GameImage {
 	CURSOR_MIDDLE ("cursormiddle", "png") {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy(1 + ((h - 600) / 1000f));
+			return CURSOR.process_sub(img, w, h);
 		}
 	},
 	CURSOR_TRAIL ("cursortrail", "png") {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy(1 + ((h - 600) / 1000f));
+			return CURSOR.process_sub(img, w, h);
 		}
 	},
 	CURSOR_OLD ("cursor2", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy(1 + ((h - 600) / 1000f));
+			return CURSOR.process_sub(img, w, h);
 		}
 	},
 	CURSOR_TRAIL_OLD ("cursortrail2", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy(1 + ((h - 600) / 1000f));
+			return CURSOR.process_sub(img, w, h);
 		}
 	},
 
@@ -82,25 +82,25 @@ public enum GameImage {
 	COUNTDOWN_3 ("count3", "png") {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h / 3f) / img.getHeight());
+			return COUNTDOWN_READY.process_sub(img, w, h);
 		}
 	},
 	COUNTDOWN_2 ("count2", "png") {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h / 3f) / img.getHeight());
+			return COUNTDOWN_READY.process_sub(img, w, h);
 		}
 	},
 	COUNTDOWN_1 ("count1", "png") {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h / 3f) / img.getHeight());
+			return COUNTDOWN_READY.process_sub(img, w, h);
 		}
 	},
 	COUNTDOWN_GO ("go", "png") {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h / 3f) / img.getHeight());
+			return COUNTDOWN_READY.process_sub(img, w, h);
 		}
 	},
 	HITCIRCLE_SELECT ("hitcircleselect", "png"),
@@ -202,49 +202,49 @@ public enum GameImage {
 	RANKING_SSH ("ranking-XH", "png") {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h / 2f) / img.getHeight());
+			return RANKING_SS.process_sub(img, w, h);
 		}
 	},
 	RANKING_SSH_SMALL ("ranking-XH-small", "png"),
 	RANKING_S ("ranking-S", "png") {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h / 2f) / img.getHeight());
+			return RANKING_SS.process_sub(img, w, h);
 		}
 	},
 	RANKING_S_SMALL ("ranking-S-small", "png"),
 	RANKING_SH ("ranking-SH", "png") {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h / 2f) / img.getHeight());
+			return RANKING_SS.process_sub(img, w, h);
 		}
 	},
 	RANKING_SH_SMALL ("ranking-SH-small", "png"),
 	RANKING_A ("ranking-A", "png") {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h / 2f) / img.getHeight());
+			return RANKING_SS.process_sub(img, w, h);
 		}
 	},
 	RANKING_A_SMALL ("ranking-A-small", "png"),
 	RANKING_B ("ranking-B", "png") {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h / 2f) / img.getHeight());
+			return RANKING_SS.process_sub(img, w, h);
 		}
 	},
 	RANKING_B_SMALL ("ranking-B-small", "png"),
 	RANKING_C ("ranking-C", "png") {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h / 2f) / img.getHeight());
+			return RANKING_SS.process_sub(img, w, h);
 		}
 	},
 	RANKING_C_SMALL ("ranking-C-small", "png"),
 	RANKING_D ("ranking-D", "png") {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h / 2f) / img.getHeight());
+			return RANKING_SS.process_sub(img, w, h);
 		}
 	},
 	RANKING_D_SMALL ("ranking-D-small", "png"),
@@ -315,59 +315,59 @@ public enum GameImage {
 	MOD_NO_FAIL ("selection-mod-nofail", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h * 0.12f) / img.getHeight());
+			return MOD_EASY.process_sub(img, w, h);
 		}
 	},
 	MOD_HARD_ROCK ("selection-mod-hardrock", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h * 0.12f) / img.getHeight());
+			return MOD_EASY.process_sub(img, w, h);
 		}
 	},
 	MOD_SUDDEN_DEATH ("selection-mod-suddendeath", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h * 0.12f) / img.getHeight());
+			return MOD_EASY.process_sub(img, w, h);
 		}
 	},
 	MOD_SPUN_OUT ("selection-mod-spunout", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h * 0.12f) / img.getHeight());
+			return MOD_EASY.process_sub(img, w, h);
 		}
 	},
 	MOD_AUTO ("selection-mod-autoplay", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h * 0.12f) / img.getHeight());
+			return MOD_EASY.process_sub(img, w, h);
 		}
 	},
 	MOD_HALF_TIME ("selection-mod-halftime", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h * 0.12f) / img.getHeight());
+			return MOD_EASY.process_sub(img, w, h);
 		}
 	},
 	MOD_DOUBLE_TIME ("selection-mod-doubletime", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h * 0.12f) / img.getHeight());
+			return MOD_EASY.process_sub(img, w, h);
 		}
 	},
 	MOD_HIDDEN ("selection-mod-hidden", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h * 0.12f) / img.getHeight());
+			return MOD_EASY.process_sub(img, w, h);
 		}
 	},
 	MOD_FLASHLIGHT ("selection-mod-flashlight", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h * 0.12f) / img.getHeight());
+			return MOD_EASY.process_sub(img, w, h);
 		}
 	},
 
-	// Non-Game Components
+	// Selection Buttons
 	SELECTION_MODS ("selection-mods", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
@@ -377,45 +377,47 @@ public enum GameImage {
 	SELECTION_MODS_OVERLAY ("selection-mods-over", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h * 0.115f) / img.getHeight());
+			return SELECTION_MODS.process_sub(img, w, h);
 		}
 	},
 	SELECTION_RANDOM ("selection-random", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h * 0.115f) / img.getHeight());
+			return SELECTION_MODS.process_sub(img, w, h);
 		}
 	},
 	SELECTION_RANDOM_OVERLAY ("selection-random-over", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h * 0.115f) / img.getHeight());
+			return SELECTION_MODS.process_sub(img, w, h);
 		}
 	},
 	SELECTION_OPTIONS ("selection-options", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h * 0.115f) / img.getHeight());
+			return SELECTION_MODS.process_sub(img, w, h);
 		}
 	},
 	SELECTION_OPTIONS_OVERLAY ("selection-options-over", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h * 0.115f) / img.getHeight());
+			return SELECTION_MODS.process_sub(img, w, h);
 		}
 	},
 	SELECTION_OTHER_OPTIONS ("selection-selectoptions", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h * 0.115f) / img.getHeight());
+			return SELECTION_MODS.process_sub(img, w, h);
 		}
 	},
 	SELECTION_OTHER_OPTIONS_OVERLAY ("selection-selectoptions-over", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h * 0.115f) / img.getHeight());
+			return SELECTION_MODS.process_sub(img, w, h);
 		}
 	},
+
+	// Non-Game Components
 	VOLUME ("volume-bg", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
@@ -483,6 +485,8 @@ public enum GameImage {
 	MENU_BUTTON_MID ("button-middle", "png", false, false),
 	MENU_BUTTON_LEFT ("button-left", "png", false, false),
 	MENU_BUTTON_RIGHT ("button-right", "png", false, false),
+
+	// Music Player Buttons
 	MUSIC_PLAY ("music-play", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
@@ -492,21 +496,22 @@ public enum GameImage {
 	MUSIC_PAUSE ("music-pause", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h / 18f) / img.getHeight());
+			return MUSIC_PLAY.process_sub(img, w, h);
 		}
 	},
 	MUSIC_NEXT ("music-next", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h / 18f) / img.getHeight());
+			return MUSIC_PLAY.process_sub(img, w, h);
 		}
 	},
 	MUSIC_PREVIOUS ("music-previous", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h / 18f) / img.getHeight());
+			return MUSIC_PLAY.process_sub(img, w, h);
 		}
 	},
+
 	RANKING_RETRY ("ranking-retry", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
