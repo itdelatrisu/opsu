@@ -18,8 +18,6 @@
 
 package itdelatrisu.opsu;
 
-import itdelatrisu.opsu.states.SongMenu;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -42,12 +40,7 @@ public enum GameImage {
 	SECTION_PASS ("section-pass", "png"),
 	SECTION_FAIL ("section-fail", "png"),
 	WARNINGARROW ("play-warningarrow", "png"),
-	SKIP ("play-skip", "png") {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h * 0.1f) / img.getHeight());
-		}
-	},
+	SKIP ("play-skip", "png"),
 	COUNTDOWN_READY ("ready", "png") {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
@@ -276,6 +269,7 @@ public enum GameImage {
 		}
 	},
 	MENU_BACK ("menu-back", "png", false, false),
+	//MENU_BACK ("menu-back", "menu-back-%d","png") //TODO menu-back animation
 	MENU_BUTTON_BG ("menu-button-background", "png", false, false),
 	MENU_TAB ("selection-tab", "png", false, false) {
 		@Override
@@ -434,6 +428,7 @@ public enum GameImage {
 	/** Container dimensions. */
 	private static int containerWidth, containerHeight;
 	
+	/** value ui should be scaled by */
 	public static float uiscale;
 
 	/**

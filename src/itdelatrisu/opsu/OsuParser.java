@@ -139,12 +139,11 @@ public class OsuParser {
 	private static OsuFile parseFile(File file, File dir, ArrayList<OsuFile> osuFiles, boolean parseObjects) {
 		OsuFile osu = new OsuFile(file);
 
-		String version ="";
 		try (BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF-8"))) {
+
 			// initialize timing point list
 			osu.timingPoints = new ArrayList<OsuTimingPoint>();
 
-			version = in.readLine();
 			String line = in.readLine();
 			String tokens[] = null;
 			while (line != null) {
@@ -492,8 +491,6 @@ public class OsuParser {
 					}
 					break;
 				default:
-					//System.out.println("Dead: "+line+" "+file);
-					
 					line = in.readLine();
 					break;
 				}
@@ -503,10 +500,8 @@ public class OsuParser {
 		}
 
 		// if no custom colors, use the default color scheme
-		if (osu.combo == null){
-			System.out.println("Default Combo "+version+" "+file+" "+osu.combo);
+		if (osu.combo == null)
 			osu.combo = Utils.DEFAULT_COMBO;
-		}
 
 		// parse hit objects now?
 		if (parseObjects)
@@ -531,7 +526,6 @@ public class OsuParser {
 				+ osu.hitObjectSlider + osu.hitObjectSpinner)];
 
 		try (BufferedReader in = new BufferedReader(new FileReader(osu.getFile()))) {
-			String version = in.readLine();
 			String line = in.readLine();
 			while (line != null) {
 				line = line.trim();
@@ -553,21 +547,15 @@ public class OsuParser {
 			boolean first = true;
 			while ((line = in.readLine()) != null && objectIndex < osu.objects.length) {
 				line = line.trim();
-				if (!isValidLine(line)){
-					System.out.println("Not Valid :"+line);
+				if (!isValidLine(line))
 					continue;
-				}
 				if (line.charAt(0) == '[')
 					break;
 
 				// lines must have at minimum 5 parameters
 				int tokenCount = line.length() - line.replace(",", "").length();
-				if (tokenCount < 4){
-					System.out.println("(tokenCount < 4 :"+line);
-					
+				if (tokenCount < 4)
 					continue;
-			
-				}
 
 				try {
 					// create a new OsuHitObject for each line
