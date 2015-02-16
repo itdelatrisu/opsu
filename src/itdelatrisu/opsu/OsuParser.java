@@ -573,9 +573,7 @@ public class OsuParser {
 						}
 						first=false;
 					}
-					if(hitObject.getType()>15){
-						System.out.println(line+" "+hitObject.isCircle()+" "+hitObject.isSlider()+" "+hitObject.isSpinner());
-					}
+
 					hitObject.setComboIndex(comboIndex);
 					hitObject.setComboNumber(comboNumber++);
 
