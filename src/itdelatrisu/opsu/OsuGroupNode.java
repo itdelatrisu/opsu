@@ -63,7 +63,7 @@ public class OsuGroupNode {
 		OsuFile osu;
 		Color textColor = Color.lightGray;
 		Image bg = GameImage.MENU_BUTTON_BG.getImage();
-
+		bg.setAlpha(0.9f);
 		if (expanded) {  // expanded
 			xOffset = bg.getWidth() / 10f;
 			if (focus) {

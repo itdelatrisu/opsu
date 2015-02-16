@@ -287,6 +287,8 @@ public class ScoreData implements Comparable<ScoreData> {
 		// time since
 		if (getTimeSince() != null) {
 			Image clock = GameImage.HISTORY.getImage();
+			g.setColor((focus) ? BG_FOCUS : BG_NORMAL);
+			g.fillRect(baseX + buttonWidth, y, Utils.FONT_DEFAULT.getWidth("         "),buttonHeight);
 			clock.drawCentered(baseX + buttonWidth * 1.02f + clock.getWidth() / 2f, midY);
 			Utils.FONT_DEFAULT.drawString(
 					baseX + buttonWidth * 1.03f + clock.getWidth(),
