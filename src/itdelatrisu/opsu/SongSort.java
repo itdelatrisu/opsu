@@ -145,21 +145,21 @@ public enum SongSort {
 
 	/**
 	 * Initializes the sort tab.
-	 * @param width the container width
-	 * @param height the container height
+	 * @param containerWidth the container width
+	 * @param bottomY the bottom y coordinate
 	 */
-	public void init(int width, int height) {
+	public void init(int containerWidth, float bottomY) {
 		Image tab = GameImage.MENU_TAB.getImage();
 		int tabWidth = tab.getWidth();
-		float buttonX = width / 2f;
-		float tabOffset = (width - buttonX - tabWidth) / (SIZE - 1);
+		float buttonX = containerWidth / 2f;
+		float tabOffset = (containerWidth - buttonX - tabWidth) / (SIZE - 1);
 		if (tabOffset > tabWidth) {  // prevent tabs from being spaced out
 			tabOffset = tabWidth;
-			buttonX = (width * 0.99f) - (tabWidth * SIZE);
+			buttonX = (containerWidth * 0.99f) - (tabWidth * SIZE);
 		}
 		this.tab = new MenuButton(tab,
 				(buttonX + (tabWidth / 2f)) + (id * tabOffset),
-				(height * 0.15f) - (tab.getHeight() / 2f) - 2f
+				bottomY - (tab.getHeight() / 2f)
 		);
 	}
 

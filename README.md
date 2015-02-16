@@ -33,7 +33,8 @@ folder if placed in the `SongPacks` directory.
 ### First Run
 The `Music Offset` value will likely need to be adjusted when playing for the
 first time, or whenever hit objects are out of sync with the music.  This and
-other game options can be accessed by clicking the wrench icon in the song menu.
+other game options can be accessed by clicking the "Other Options" button in
+the song menu.
 
 ## Building
 opsu! is distributed as a Maven project.

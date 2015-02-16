@@ -78,13 +78,13 @@ public class ScoreData implements Comparable<ScoreData> {
 
 	/**
 	 * Initializes the base coordinates for drawing.
-	 * @param width the container width
-	 * @param height the container height
+	 * @param containerWidth the container width
+	 * @param topY the top y coordinate
 	 */
-	public static void init(int width, int height) {
-		baseX = width * 0.01f;
-		baseY = height * 0.16f;
-		buttonWidth = width * 0.4f;
+	public static void init(int containerWidth, float topY) {
+		baseX = containerWidth * 0.01f;
+		baseY = topY;
+		buttonWidth = containerWidth * 0.4f;
 		float gradeHeight = GameImage.MENU_BUTTON_BG.getImage().getHeight() * 0.45f;
 		buttonHeight = Math.max(gradeHeight, Utils.FONT_DEFAULT.getLineHeight() * 3.03f);
 		buttonOffset = buttonHeight + gradeHeight / 10f;

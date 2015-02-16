@@ -368,6 +368,54 @@ public enum GameImage {
 	},
 
 	// Non-Game Components
+	SELECTION_MODS ("selection-mods", "png", false, false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy((h * 0.115f) / img.getHeight());
+		}
+	},
+	SELECTION_MODS_OVERLAY ("selection-mods-over", "png", false, false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy((h * 0.115f) / img.getHeight());
+		}
+	},
+	SELECTION_RANDOM ("selection-random", "png", false, false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy((h * 0.115f) / img.getHeight());
+		}
+	},
+	SELECTION_RANDOM_OVERLAY ("selection-random-over", "png", false, false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy((h * 0.115f) / img.getHeight());
+		}
+	},
+	SELECTION_OPTIONS ("selection-options", "png", false, false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy((h * 0.115f) / img.getHeight());
+		}
+	},
+	SELECTION_OPTIONS_OVERLAY ("selection-options-over", "png", false, false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy((h * 0.115f) / img.getHeight());
+		}
+	},
+	SELECTION_OTHER_OPTIONS ("selection-selectoptions", "png", false, false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy((h * 0.115f) / img.getHeight());
+		}
+	},
+	SELECTION_OTHER_OPTIONS_OVERLAY ("selection-selectoptions-over", "png", false, false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy((h * 0.115f) / img.getHeight());
+		}
+	},
 	VOLUME ("volume-bg", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
@@ -383,25 +431,14 @@ public enum GameImage {
 	MENU_BUTTON_BG ("menu-button-background", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy(w / 2, h / SongMenu.MAX_SONG_BUTTONS);
+			// TODO: scale these properly (messy due to non-cropped images)
+			return img.getScaledCopy(w / 2, (int) (h * 0.95f) / SongMenu.MAX_SONG_BUTTONS);
 		}
 	},
 	MENU_TAB ("selection-tab", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
 			return img.getScaledCopy((h * 0.033f) / img.getHeight());
-		}
-	},
-	MENU_SEARCH ("search", "png", false, false) {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy(Utils.FONT_BOLD.getLineHeight() * 2f / img.getHeight());
-		}
-	},
-	MENU_OPTIONS ("options", "png", false, false) {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy(Utils.FONT_BOLD.getLineHeight() * 2f / img.getHeight());
 		}
 	},
 	MENU_MUSICNOTE ("music-note", "png", false, false) {

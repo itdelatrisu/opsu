@@ -82,7 +82,8 @@ public class Utils {
 		COLOR_GREEN           = new Color(137, 201, 79),
 		COLOR_LIGHT_ORANGE    = new Color(255,192,128),
 		COLOR_LIGHT_GREEN     = new Color(128,255,128),
-		COLOR_LIGHT_BLUE      = new Color(128,128,255);
+		COLOR_LIGHT_BLUE      = new Color(128,128,255),
+		COLOR_GREEN_SEARCH    = new Color(173, 255, 47);
 
 	/** The default map colors, used when a map does not provide custom colors. */
 	public static final Color[] DEFAULT_COMBO = {
@@ -215,15 +216,8 @@ public class Utils {
 		for (GameMod mod : GameMod.values())
 			mod.init(width, height);
 
-		// initialize sorts
-		for (SongSort sort : SongSort.values())
-			sort.init(width, height);
-
 		// initialize hit objects
 		OsuHitObject.init(width, height);
-
-		// initialize score data buttons
-		ScoreData.init(width, height);
 
 		// initialize download nodes
 		DownloadNode.init(width, height);
