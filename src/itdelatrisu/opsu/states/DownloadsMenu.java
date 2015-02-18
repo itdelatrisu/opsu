@@ -229,6 +229,7 @@ public class DownloadsMenu extends BasicGameState {
 
 		// search
 		g.setColor(Color.white);
+		g.setLineWidth(2f);
 		search.render(container, g);
 		Utils.FONT_BOLD.drawString(
 				search.getX() + search.getWidth() * 0.01f, search.getY() + search.getHeight() * 1.3f,

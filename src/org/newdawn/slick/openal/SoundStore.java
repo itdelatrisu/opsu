@@ -52,6 +52,7 @@ import org.newdawn.slick.util.ResourceLoader;
  * @author Kevin Glass
  * @author Rockstar setVolume cleanup 
  */
+@SuppressWarnings({"rawtypes", "unchecked", "unused"})
 public class SoundStore {
 	
 	/** The single instance of this class */
@@ -318,7 +319,8 @@ public class SoundStore {
 		inited = true;
 		
 		AccessController.doPrivileged(new PrivilegedAction() {
-            public Object run() {
+			@Override
+			public Object run() {
 				try {
 					AL.create();
 					soundWorks = true;

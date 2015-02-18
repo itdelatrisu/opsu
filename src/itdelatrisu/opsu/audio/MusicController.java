@@ -248,10 +248,15 @@ public class MusicController {
 
 	/**
 	 * Plays the current track.
+	 * @param loop whether or not to loop the track
 	 */
-	public static void play() {
-		if (trackExists())
-			player.play();
+	public static void play(boolean loop) {
+		if (trackExists()) {
+			if (loop)
+				player.loop();
+			else
+				player.play();
+		}
 	}
 
 	/**

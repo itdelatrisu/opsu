@@ -204,61 +204,123 @@ public enum GameImage {
 	MOD_EASY ("selection-mod-easy", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h * 0.12f) / img.getHeight());
+			return img.getScaledCopy((h / 12f) / img.getHeight());
 		}
 	},
 	MOD_NO_FAIL ("selection-mod-nofail", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h * 0.12f) / img.getHeight());
+			return MOD_EASY.process_sub(img, w, h);
 		}
 	},
 	MOD_HARD_ROCK ("selection-mod-hardrock", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h * 0.12f) / img.getHeight());
+			return MOD_EASY.process_sub(img, w, h);
 		}
 	},
 	MOD_SUDDEN_DEATH ("selection-mod-suddendeath", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h * 0.12f) / img.getHeight());
+			return MOD_EASY.process_sub(img, w, h);
 		}
 	},
 	MOD_SPUN_OUT ("selection-mod-spunout", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h * 0.12f) / img.getHeight());
+			return MOD_EASY.process_sub(img, w, h);
 		}
 	},
 	MOD_AUTO ("selection-mod-autoplay", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h * 0.12f) / img.getHeight());
+			return MOD_EASY.process_sub(img, w, h);
 		}
 	},
 	MOD_HALF_TIME ("selection-mod-halftime", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h * 0.12f) / img.getHeight());
+			return MOD_EASY.process_sub(img, w, h);
 		}
 	},
 	MOD_DOUBLE_TIME ("selection-mod-doubletime", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h * 0.12f) / img.getHeight());
+			return MOD_EASY.process_sub(img, w, h);
 		}
 	},
 	MOD_HIDDEN ("selection-mod-hidden", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h * 0.12f) / img.getHeight());
+			return MOD_EASY.process_sub(img, w, h);
 		}
 	},
 	MOD_FLASHLIGHT ("selection-mod-flashlight", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h * 0.12f) / img.getHeight());
+			return MOD_EASY.process_sub(img, w, h);
+		}
+	},
+	MOD_RELAX ("selection-mod-relax", "png", false, false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return MOD_EASY.process_sub(img, w, h);
+		}
+	},
+	MOD_AUTOPILOT ("selection-mod-relax2", "png", false, false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return MOD_EASY.process_sub(img, w, h);
+		}
+	},
+
+	// Selection Buttons
+	SELECTION_MODS ("selection-mods", "png", false, false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy((h * 0.115f) / img.getHeight());
+		}
+	},
+	SELECTION_MODS_OVERLAY ("selection-mods-over", "png", false, false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return SELECTION_MODS.process_sub(img, w, h);
+		}
+	},
+	SELECTION_RANDOM ("selection-random", "png", false, false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return SELECTION_MODS.process_sub(img, w, h);
+		}
+	},
+	SELECTION_RANDOM_OVERLAY ("selection-random-over", "png", false, false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return SELECTION_MODS.process_sub(img, w, h);
+		}
+	},
+	SELECTION_OPTIONS ("selection-options", "png", false, false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return SELECTION_MODS.process_sub(img, w, h);
+		}
+	},
+	SELECTION_OPTIONS_OVERLAY ("selection-options-over", "png", false, false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return SELECTION_MODS.process_sub(img, w, h);
+		}
+	},
+	SELECTION_OTHER_OPTIONS ("selection-selectoptions", "png", false, false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return SELECTION_MODS.process_sub(img, w, h);
+		}
+	},
+	SELECTION_OTHER_OPTIONS_OVERLAY ("selection-selectoptions-over", "png", false, false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return SELECTION_MODS.process_sub(img, w, h);
 		}
 	},
 
@@ -275,18 +337,6 @@ public enum GameImage {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
 			return img.getScaledCopy((h * 0.033f) / img.getHeight());
-		}
-	},
-	MENU_SEARCH ("search", "png", false, false) {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy(Utils.FONT_BOLD.getLineHeight() * 2f / img.getHeight());
-		}
-	},
-	MENU_OPTIONS ("options", "png", false, false) {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy(Utils.FONT_BOLD.getLineHeight() * 2f / img.getHeight());
 		}
 	},
 	MENU_MUSICNOTE ("music-note", "png", false, false) {
@@ -331,6 +381,8 @@ public enum GameImage {
 	MENU_BUTTON_MID ("button-middle", "png", false, false),
 	MENU_BUTTON_LEFT ("button-left", "png", false, false),
 	MENU_BUTTON_RIGHT ("button-right", "png", false, false),
+
+	// Music Player Buttons
 	MUSIC_PLAY ("music-play", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
@@ -340,19 +392,19 @@ public enum GameImage {
 	MUSIC_PAUSE ("music-pause", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h / 18f) / img.getHeight());
+			return MUSIC_PLAY.process_sub(img, w, h);
 		}
 	},
 	MUSIC_NEXT ("music-next", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h / 18f) / img.getHeight());
+			return MUSIC_PLAY.process_sub(img, w, h);
 		}
 	},
 	MUSIC_PREVIOUS ("music-previous", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h / 18f) / img.getHeight());
+			return MUSIC_PLAY.process_sub(img, w, h);
 		}
 	},
 	RANKING_RETRY ("ranking-retry", "png", false, false),

@@ -54,38 +54,55 @@ public class OsuGroupNode {
 	 * Draws the button.
 	 * @param x the x coordinate
 	 * @param y the y coordinate
+	 * @param headerY the header end y coordinate (for cropping)
+	 * @param footerY the footer start y coordinate (for cropping)
 	 * @param grade the highest grade, if any
 	 * @param focus true if this is the focused node
 	 */
-	public void draw(float x, float y, Grade grade, boolean focus) {
+	public void draw(float x, float y, float headerY, float footerY, Grade grade, boolean focus) {
 		boolean expanded = (osuFileIndex > -1);
 		float xOffset = 0f;
 		OsuFile osu;
-		Color textColor = Color.lightGray;
 		Image bg = GameImage.MENU_BUTTON_BG.getImage();
 		bg.setAlpha(0.9f);
+		Color bgColor;
+		Color textColor = Color.lightGray;
+		
 		if (expanded) {  // expanded
-			xOffset = bg.getWidth() / 10f;
+			x -= bg.getWidth() / 10f;
 			if (focus) {
-				bg.draw(x - xOffset, y, Color.white);
+				bgColor = Color.white;
 				textColor = Color.white;
 			} else
-				bg.draw(x - xOffset, y, Utils.COLOR_BLUE_BUTTON);
+				bgColor = Utils.COLOR_BLUE_BUTTON;
 			osu = osuFiles.get(osuFileIndex);
 		} else {
-			bg.draw(x, y, Utils.COLOR_ORANGE_BUTTON);
+			bgColor = Utils.COLOR_ORANGE_BUTTON;
 			osu = osuFiles.get(0);
 		}
+		// crop image if necessary
+		if (y < headerY) {
+			int cropHeight = (int) (headerY - y);
+			Image bgCropped = bg.getSubImage(0, cropHeight, bg.getWidth(), bg.getHeight() - cropHeight);
+			bgCropped.draw(x, headerY, bgColor);
+		} else if (y + bg.getHeight() > footerY) {
+			int cropHeight = (int) (footerY - y);
+			Image bgCropped = bg.getSubImage(0, 0, bg.getWidth(), cropHeight);
+			bgCropped.draw(x, y, bgColor);
+		} else
+			bg.draw(x, y, bgColor);
 
-		float cx = x + (bg.getWidth() * 0.05f) - xOffset;
+		float cx = x + (bg.getWidth() * 0.05f);
 		float cy = y + (bg.getHeight() * 0.2f) - 3;
 
+		// draw grade
 		if (grade != Grade.NULL) {
 			Image gradeImg = grade.getMenuImage();
 			gradeImg.drawCentered(cx - bg.getWidth() * 0.01f + gradeImg.getWidth() / 2f, y + bg.getHeight() / 2.2f);
 			cx += gradeImg.getWidth();
 		}
 
+		// draw text
 		Utils.FONT_MEDIUM.drawString(cx, cy, osu.getTitle(), textColor);
 		Utils.FONT_DEFAULT.drawString(cx, cy + Utils.FONT_MEDIUM.getLineHeight() - 4,
 				String.format("%s // %s", osu.getArtist(), osu.creator), textColor);
