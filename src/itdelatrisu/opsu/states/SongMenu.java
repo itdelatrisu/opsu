@@ -69,7 +69,7 @@ import org.newdawn.slick.state.transition.FadeOutTransition;
  */
 public class SongMenu extends BasicGameState {
 	/** The max number of song buttons to be shown on each screen. */
-	public static final int MAX_SONG_BUTTONS = 7;
+	public static final int MAX_SONG_BUTTONS = 6;
 
 	/** The max number of score buttons to be shown at a time. */
 	public static final int MAX_SCORE_BUTTONS = 7;
@@ -253,7 +253,7 @@ public class SongMenu extends BasicGameState {
 		search.setMaxLength(60);
 
 		// selection buttons
-		float selectX = GameImage.MENU_BACK.getImage().getWidth() * 1.75f;
+		float selectX = GameImage.MENU_BACK.getAnimation(1).getWidth() * 1.75f;
 		float selectY = height - GameImage.SELECTION_MODS.getImage().getHeight() / 2f;
 		float selectOffset = GameImage.SELECTION_MODS.getImage().getWidth() * 1.05f;
 		selectModsButton = new MenuButton(GameImage.SELECTION_MODS_OVERLAY.getImage(),

@@ -182,7 +182,7 @@ public class OptionsMenu extends BasicGameState {
 
 		// game option coordinate modifiers
 		textY = (int) (tabY + tabImage.getHeight());
-		offsetY = (height - textY - GameImage.MENU_BACK.getImage().getHeight()) / maxOptionsScreen;
+		offsetY = (height - textY - GameImage.MENU_BACK.getAnimation(1).getHeight()) / maxOptionsScreen;
 	}
 
 	@Override
