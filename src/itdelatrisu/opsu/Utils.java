@@ -229,11 +229,21 @@ public class Utils {
 		DownloadNode.init(width, height);
 
 		// back button
-		Image back = GameImage.MENU_BACK.getImage();
-		backButton = new MenuButton(back,
-				back.getWidth() / 2f,
-				height - (back.getHeight() / 2f));
+		//TODO: this is annoying perhaps we can just pass in GameImage to MenuButton?
+		if (GameImage.MENU_BACK.getImages() != null){
+			Animation back = GameImage.MENU_BACK.getAnimation(200);
+			backButton = new MenuButton(back,
+					back.getWidth() / 2f,
+					height - (back.getHeight() / 2f));
+		}else{
+			Image back = GameImage.MENU_BACK.getImage();
+			backButton = new MenuButton(GameImage.MENU_BACK.getImage(),
+					back.getWidth() / 2f,
+					height - (back.getHeight() / 2f));
+		}
 		backButton.setHoverExpand(MenuButton.Expand.UP_RIGHT);
+		
+		
 	}
 
 	/**

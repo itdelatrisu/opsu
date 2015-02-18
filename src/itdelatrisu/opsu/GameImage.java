@@ -22,6 +22,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.newdawn.slick.Animation;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.SlickException;
 
@@ -40,7 +41,7 @@ public enum GameImage {
 	SECTION_PASS ("section-pass", "png"),
 	SECTION_FAIL ("section-fail", "png"),
 	WARNINGARROW ("play-warningarrow", "png"),
-	SKIP ("play-skip", "png"),
+	SKIP ("play-skip", "play-skip-%d","png"),
 	COUNTDOWN_READY ("ready", "png") {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
@@ -138,7 +139,7 @@ public enum GameImage {
 	COMBO_BURST ("comboburst", "comboburst-%d", "png"),
 	SCOREBAR_BG ("scorebar-bg", "png"),
 	SCOREBAR_COLOUR ("scorebar-colour", "scorebar-colour-%d", "png"),
-	//scorebar-marker?
+	//TODO scorebar-marker?
 	SCOREBAR_KI ("scorebar-ki", "png"),
 	SCOREBAR_KI_DANGER ("scorebar-kidanger", "png"),
 	SCOREBAR_KI_DANGER2 ("scorebar-kidanger2", "png"),
@@ -268,8 +269,7 @@ public enum GameImage {
 			return img.getScaledCopy((h * 0.3f) / img.getHeight());
 		}
 	},
-	MENU_BACK ("menu-back", "png", false, false),
-	//MENU_BACK ("menu-back", "menu-back-%d","png") //TODO menu-back animation
+	MENU_BACK ("menu-back", "menu-back-%d","png"), 
 	MENU_BUTTON_BG ("menu-button-background", "png", false, false),
 	MENU_TAB ("selection-tab", "png", false, false) {
 		@Override
@@ -536,6 +536,17 @@ public enum GameImage {
 	public Image getImage() {
 		setDefaultImage();
 		return (skinImage != null) ? skinImage : defaultImage;
+	}
+	
+	/**
+	 * Returns an Animation based on the image array.
+	 * If no image array exist, returns the single image as an animation.
+	 */
+	public Animation getAnimation(int duration){
+		Image[] images = getImages();
+		if (images == null)
+			images = new Image[]{ getImage() };
+		return new Animation(images, duration);
 	}
 
 	/**
