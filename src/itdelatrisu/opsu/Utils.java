@@ -70,8 +70,8 @@ public class Utils {
 		COLOR_WHITE_ALPHA     = new Color(255, 255, 255, 0.5f),
 		COLOR_BLUE_DIVIDER    = new Color(49, 94, 237),
 		COLOR_BLUE_BACKGROUND = new Color(74, 130, 255),
-		COLOR_BLUE_BUTTON     = new Color(50, 189, 237),
-		COLOR_ORANGE_BUTTON   = new Color(230, 151, 87),
+		COLOR_BLUE_BUTTON     = new Color(40, 129, 237),
+		COLOR_ORANGE_BUTTON   = new Color(200, 90, 3),
 		COLOR_GREEN_OBJECT    = new Color(26, 207, 26),
 		COLOR_BLUE_OBJECT     = new Color(46, 136, 248),
 		COLOR_RED_OBJECT      = new Color(243, 48, 77),
@@ -87,8 +87,8 @@ public class Utils {
 
 	/** The default map colors, used when a map does not provide custom colors. */
 	public static final Color[] DEFAULT_COMBO = {
-		COLOR_GREEN_OBJECT, COLOR_BLUE_OBJECT,
-		COLOR_RED_OBJECT, COLOR_ORANGE_OBJECT
+		COLOR_ORANGE_OBJECT, COLOR_GREEN_OBJECT, 
+		COLOR_BLUE_OBJECT, COLOR_RED_OBJECT, 
 	};
 
 	/** Game fonts. */
@@ -222,11 +222,21 @@ public class Utils {
 		DownloadNode.init(width, height);
 
 		// back button
-		Image back = GameImage.MENU_BACK.getImage();
-		backButton = new MenuButton(back,
-				back.getWidth() / 2f,
-				height - (back.getHeight() / 2f));
+		//TODO: this is annoying perhaps we can just pass in GameImage to MenuButton?
+		if (GameImage.MENU_BACK.getImages() != null){
+			Animation back = GameImage.MENU_BACK.getAnimation(200);
+			backButton = new MenuButton(back,
+					back.getWidth() / 2f,
+					height - (back.getHeight() / 2f));
+		}else{
+			Image back = GameImage.MENU_BACK.getImage();
+			backButton = new MenuButton(GameImage.MENU_BACK.getImage(),
+					back.getWidth() / 2f,
+					height - (back.getHeight() / 2f));
+		}
 		backButton.setHoverExpand(MenuButton.Expand.UP_RIGHT);
+		
+		
 	}
 
 	/**

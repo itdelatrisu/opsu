@@ -366,20 +366,23 @@ public class MenuButton {
 	 */
 	private void setHoverRadius() {
 		int xOffset = 0, yOffset = 0;
-		if (dir != Expand.CENTER) {
-			// offset by difference between normal/scaled image dimensions
-			xOffset = (int) ((scale - 1f) * img.getWidth());
-			yOffset = (int) ((scale - 1f) * img.getHeight());
-			if (dir == Expand.UP || dir == Expand.DOWN)
-				xOffset = 0;    // no horizontal offset
-			if (dir == Expand.RIGHT || dir == Expand.LEFT)
-				yOffset = 0;    // no vertical offset
-			if (dir == Expand.RIGHT || dir == Expand.DOWN_RIGHT || dir == Expand.UP_RIGHT)
-				xOffset *= -1;  // flip x for right
-			if (dir == Expand.DOWN ||  dir == Expand.DOWN_LEFT || dir == Expand.DOWN_RIGHT)
-				yOffset *= -1;  // flip y for down
+		if(img != null){
+			if (dir != Expand.CENTER) {
+				// offset by difference between normal/scaled image dimensions
+				xOffset = (int) ((scale - 1f) * img.getWidth());
+				yOffset = (int) ((scale - 1f) * img.getHeight());
+				if (dir == Expand.UP || dir == Expand.DOWN)
+					xOffset = 0;    // no horizontal offset
+				if (dir == Expand.RIGHT || dir == Expand.LEFT)
+					yOffset = 0;    // no vertical offset
+				if (dir == Expand.RIGHT || dir == Expand.DOWN_RIGHT || dir == Expand.UP_RIGHT)
+					xOffset *= -1;  // flip x for right
+				if (dir == Expand.DOWN ||  dir == Expand.DOWN_LEFT || dir == Expand.DOWN_RIGHT)
+					yOffset *= -1;  // flip y for down
+			}
+			this.xRadius = ((img.getWidth() * scale) + xOffset) / 2f;
+			this.yRadius = ((img.getHeight() * scale) + yOffset) / 2f;
+		
 		}
-		this.xRadius = ((img.getWidth() * scale) + xOffset) / 2f;
-		this.yRadius = ((img.getHeight() * scale) + yOffset) / 2f;
 	}
 }

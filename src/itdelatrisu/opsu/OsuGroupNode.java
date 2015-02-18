@@ -61,12 +61,13 @@ public class OsuGroupNode {
 	 */
 	public void draw(float x, float y, float headerY, float footerY, Grade grade, boolean focus) {
 		boolean expanded = (osuFileIndex > -1);
+		float xOffset = 0f;
 		OsuFile osu;
 		Image bg = GameImage.MENU_BUTTON_BG.getImage();
+		bg.setAlpha(0.9f);
 		Color bgColor;
 		Color textColor = Color.lightGray;
-
-		// draw song button background
+		
 		if (expanded) {  // expanded
 			x -= bg.getWidth() / 10f;
 			if (focus) {

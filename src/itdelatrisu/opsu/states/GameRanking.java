@@ -95,8 +95,10 @@ public class GameRanking extends BasicGameState {
 		OsuFile osu = MusicController.getOsuFile();
 
 		// background
-		if (!osu.drawBG(width, height, 0.7f, true))
-			g.setBackground(Utils.COLOR_BLACK_ALPHA);
+		if (!osu.drawBG(width, height, 0.7f, true)) {
+			GameImage.MENU_BG.getImage().draw(0,0);
+			//g.setBackground(Utils.COLOR_BLACK_ALPHA);
+		}
 
 		// ranking screen elements
 		data.drawRankingElements(g, osu);

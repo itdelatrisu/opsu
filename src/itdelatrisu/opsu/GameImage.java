@@ -18,12 +18,11 @@
 
 package itdelatrisu.opsu;
 
-import itdelatrisu.opsu.states.SongMenu;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.newdawn.slick.Animation;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.SlickException;
 
@@ -32,47 +31,17 @@ import org.newdawn.slick.SlickException;
  */
 public enum GameImage {
 	// Cursor
-	CURSOR ("cursor", "png") {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy(1 + ((h - 600) / 1000f));
-		}
-	},
-	CURSOR_MIDDLE ("cursormiddle", "png") {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return CURSOR.process_sub(img, w, h);
-		}
-	},
-	CURSOR_TRAIL ("cursortrail", "png") {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return CURSOR.process_sub(img, w, h);
-		}
-	},
-	CURSOR_OLD ("cursor2", "png", false, false) {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return CURSOR.process_sub(img, w, h);
-		}
-	},
-	CURSOR_TRAIL_OLD ("cursortrail2", "png", false, false) {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return CURSOR.process_sub(img, w, h);
-		}
-	},
+	CURSOR ("cursor", "png"),
+	CURSOR_MIDDLE ("cursormiddle", "png"),
+	CURSOR_TRAIL ("cursortrail", "png"),
+	CURSOR_OLD ("cursor2", "png", false, false),
+	CURSOR_TRAIL_OLD ("cursortrail2", "png", false, false),
 
 	// Game
 	SECTION_PASS ("section-pass", "png"),
 	SECTION_FAIL ("section-fail", "png"),
 	WARNINGARROW ("play-warningarrow", "png"),
-	SKIP ("play-skip", "png") {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h * 0.1f) / img.getHeight());
-		}
-	},
+	SKIP ("play-skip", "play-skip-%d","png"),
 	COUNTDOWN_READY ("ready", "png") {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
@@ -82,25 +51,25 @@ public enum GameImage {
 	COUNTDOWN_3 ("count3", "png") {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return COUNTDOWN_READY.process_sub(img, w, h);
+			return img.getScaledCopy((h / 3f) / img.getHeight());
 		}
 	},
 	COUNTDOWN_2 ("count2", "png") {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return COUNTDOWN_READY.process_sub(img, w, h);
+			return img.getScaledCopy((h / 3f) / img.getHeight());
 		}
 	},
 	COUNTDOWN_1 ("count1", "png") {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return COUNTDOWN_READY.process_sub(img, w, h);
+			return img.getScaledCopy((h / 3f) / img.getHeight());
 		}
 	},
 	COUNTDOWN_GO ("go", "png") {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return COUNTDOWN_READY.process_sub(img, w, h);
+			return img.getScaledCopy((h / 3f) / img.getHeight());
 		}
 	},
 	HITCIRCLE_SELECT ("hitcircleselect", "png"),
@@ -168,18 +137,9 @@ public enum GameImage {
 
 	// Score Data
 	COMBO_BURST ("comboburst", "comboburst-%d", "png"),
-	SCOREBAR_BG ("scorebar-bg", "png") {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((w * 0.565f) / img.getWidth());
-		}
-	},
-	SCOREBAR_COLOUR ("scorebar-colour", "scorebar-colour-%d", "png") {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((w * 0.521f) / img.getWidth());
-		}
-	},
+	SCOREBAR_BG ("scorebar-bg", "png"),
+	SCOREBAR_COLOUR ("scorebar-colour", "scorebar-colour-%d", "png"),
+	//TODO scorebar-marker?
 	SCOREBAR_KI ("scorebar-ki", "png"),
 	SCOREBAR_KI_DANGER ("scorebar-kidanger", "png"),
 	SCOREBAR_KI_DANGER2 ("scorebar-kidanger2", "png"),
@@ -192,92 +152,27 @@ public enum GameImage {
 	HIT_300G ("hit300g", "png"),
 	HIT_SLIDER10 ("sliderpoint10", "png"),
 	HIT_SLIDER30 ("sliderpoint30", "png"),
-	RANKING_SS ("ranking-X", "png") {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h / 2f) / img.getHeight());
-		}
-	},
+	RANKING_SS ("ranking-X", "png"),
 	RANKING_SS_SMALL ("ranking-X-small", "png"),
-	RANKING_SSH ("ranking-XH", "png") {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return RANKING_SS.process_sub(img, w, h);
-		}
-	},
+	RANKING_SSH ("ranking-XH", "png"),
 	RANKING_SSH_SMALL ("ranking-XH-small", "png"),
-	RANKING_S ("ranking-S", "png") {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return RANKING_SS.process_sub(img, w, h);
-		}
-	},
+	RANKING_S ("ranking-S", "png"),
 	RANKING_S_SMALL ("ranking-S-small", "png"),
-	RANKING_SH ("ranking-SH", "png") {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return RANKING_SS.process_sub(img, w, h);
-		}
-	},
+	RANKING_SH ("ranking-SH", "png"),
 	RANKING_SH_SMALL ("ranking-SH-small", "png"),
-	RANKING_A ("ranking-A", "png") {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return RANKING_SS.process_sub(img, w, h);
-		}
-	},
+	RANKING_A ("ranking-A", "png"),
 	RANKING_A_SMALL ("ranking-A-small", "png"),
-	RANKING_B ("ranking-B", "png") {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return RANKING_SS.process_sub(img, w, h);
-		}
-	},
+	RANKING_B ("ranking-B", "png"),
 	RANKING_B_SMALL ("ranking-B-small", "png"),
-	RANKING_C ("ranking-C", "png") {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return RANKING_SS.process_sub(img, w, h);
-		}
-	},
+	RANKING_C ("ranking-C", "png"),
 	RANKING_C_SMALL ("ranking-C-small", "png"),
-	RANKING_D ("ranking-D", "png") {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return RANKING_SS.process_sub(img, w, h);
-		}
-	},
+	RANKING_D ("ranking-D", "png"),
 	RANKING_D_SMALL ("ranking-D-small", "png"),
-	RANKING_PANEL ("ranking-panel", "png") {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h * 0.63f) / img.getHeight());
-		}
-	},
-	RANKING_PERFECT ("ranking-perfect", "png") {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h * 0.16f) / img.getHeight());
-		}
-	},
-	RANKING_TITLE ("ranking-title", "png") {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h * 0.15f) / img.getHeight());
-		}
-	},
-	RANKING_MAXCOMBO ("ranking-maxcombo", "png") {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h * 0.05f) / img.getHeight());
-		}
-	},
-	RANKING_ACCURACY ("ranking-accuracy", "png") {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h * 0.05f) / img.getHeight());
-		}
-	},
+	RANKING_PANEL ("ranking-panel", "png"),
+	RANKING_PERFECT ("ranking-perfect", "png"),
+	RANKING_TITLE ("ranking-title", "png"),
+	RANKING_MAXCOMBO ("ranking-maxcombo", "png"),
+	RANKING_ACCURACY ("ranking-accuracy", "png"),
 	DEFAULT_0 ("default-0", "png"),
 	DEFAULT_1 ("default-1", "png"),
 	DEFAULT_2 ("default-2", "png"),
@@ -436,19 +331,8 @@ public enum GameImage {
 			return img.getScaledCopy((h * 0.3f) / img.getHeight());
 		}
 	},
-	MENU_BACK ("menu-back", "png", false, false) {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h * 0.1f) / img.getHeight());
-		}
-	},
-	MENU_BUTTON_BG ("menu-button-background", "png", false, false) {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			// TODO: scale these properly (messy due to non-cropped images)
-			return img.getScaledCopy(w / 2, (int) (h * 0.95f) / SongMenu.MAX_SONG_BUTTONS);
-		}
-	},
+	MENU_BACK ("menu-back", "menu-back-%d","png"), 
+	MENU_BUTTON_BG ("menu-button-background", "png", false, false),
 	MENU_TAB ("selection-tab", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
@@ -523,19 +407,8 @@ public enum GameImage {
 			return MUSIC_PLAY.process_sub(img, w, h);
 		}
 	},
-
-	RANKING_RETRY ("ranking-retry", "png", false, false) {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h * 0.15f) / img.getHeight());
-		}
-	},
-	RANKING_EXIT ("ranking-back", "png", false, false) {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h * 0.15f) / img.getHeight());
-		}
-	},
+	RANKING_RETRY ("ranking-retry", "png", false, false),
+	RANKING_EXIT ("ranking-back", "png", false, false),
 	DOWNLOADS ("downloads", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
@@ -606,6 +479,9 @@ public enum GameImage {
 
 	/** Container dimensions. */
 	private static int containerWidth, containerHeight;
+	
+	/** value ui should be scaled by */
+	public static float uiscale;
 
 	/**
 	 * Initializes the GameImage class with container dimensions.
@@ -615,6 +491,7 @@ public enum GameImage {
 	public static void init(int width, int height) {
 		containerWidth = width;
 		containerHeight = height;
+		uiscale = containerHeight / 768f;
 	}
 
 	/**
@@ -711,6 +588,17 @@ public enum GameImage {
 	public Image getImage() {
 		setDefaultImage();
 		return (skinImage != null) ? skinImage : defaultImage;
+	}
+	
+	/**
+	 * Returns an Animation based on the image array.
+	 * If no image array exist, returns the single image as an animation.
+	 */
+	public Animation getAnimation(int duration){
+		Image[] images = getImages();
+		if (images == null)
+			images = new Image[]{ getImage() };
+		return new Animation(images, duration);
 	}
 
 	/**
@@ -925,13 +813,14 @@ public enum GameImage {
 	 * Performs individual post-loading actions on the image.
 	 */
 	private void process() {
+		int fakeWid = 768*containerWidth/containerHeight;
 		if (skinImages != null) {
 			for (int i = 0; i < skinImages.length; i++)
-				setImage(process_sub(getImages()[i], containerWidth, containerHeight), i);
+				setImage(process_sub(getImages()[i], fakeWid, 768).getScaledCopy(uiscale), i);
 		} else if (defaultImages != null && skinImage == null) {
 			for (int i = 0; i < defaultImages.length; i++)
-				setImage(process_sub(getImages()[i], containerWidth, containerHeight), i);
+				setImage(process_sub(getImages()[i], fakeWid, 768).getScaledCopy(uiscale), i);
 		} else
-			setImage(process_sub(getImage(), containerWidth, containerHeight));
+			setImage(process_sub(getImage(), fakeWid, 768).getScaledCopy(uiscale));
 	}
 }
