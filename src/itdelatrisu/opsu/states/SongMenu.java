@@ -329,12 +329,17 @@ public class SongMenu extends BasicGameState {
 
 		// song buttons
 		OsuGroupNode node = startNode;
-		for (int i = 0; i < MAX_SONG_BUTTONS && node != null; i++, node = node.next) {
+		int songButtonIndex = 0;
+		if (node != null && node.prev != null) {
+			node = node.prev;
+			songButtonIndex = -1;
+		}
+		for (int i = songButtonIndex; i <= MAX_SONG_BUTTONS && node != null; i++, node = node.next) {
 			// draw the node
 			float offset = (i == hoverIndex) ? hoverOffset : 0f;
 			ScoreData[] scores = getScoreDataForNode(node, false);
 			node.draw(
-					buttonX - offset, buttonY + (i*buttonOffset),
+					buttonX - offset, buttonY + (i*buttonOffset) + DIVIDER_LINE_WIDTH / 2,
 					headerY + DIVIDER_LINE_WIDTH / 2, footerY - DIVIDER_LINE_WIDTH,
 					(scores == null) ? Grade.NULL : scores[0].getGrade(),
 					(node == focusNode)

@@ -202,8 +202,13 @@ public class OptionsMenu extends BasicGameState {
 
 		// game options
 		g.setLineWidth(1f);
-		for (int i = 0; i < currentTab.options.length; i++)
-			drawOption(currentTab.options[i], i);
+		GameOption hoverOption = (keyEntryLeft)  ? GameOption.KEY_LEFT :
+		                         (keyEntryRight) ? GameOption.KEY_RIGHT :
+		                                           getOptionAt(mouseY);
+		for (int i = 0; i < currentTab.options.length; i++) {
+			GameOption option = currentTab.options[i];
+			drawOption(option, i, hoverOption == option);
+		}
 
 		// option tabs
 		OptionTab hoverTab = null;
@@ -287,7 +292,7 @@ public class OptionsMenu extends BasicGameState {
 		}
 
 		// options (click only)
-		GameOption option = getClickedOption(y);
+		GameOption option = getOptionAt(y);
 		if (option != GameOption.NULL)
 			option.click(container);
 
@@ -323,7 +328,7 @@ public class OptionsMenu extends BasicGameState {
 		diff = ((diff > 0) ? 1 : -1) * multiplier;
 
 		// options (drag only)
-		GameOption option = getClickedOption(oldy);
+		GameOption option = getOptionAt(oldy);
 		if (option != GameOption.NULL)
 			option.drag(container, diff);
 	}
@@ -380,26 +385,27 @@ public class OptionsMenu extends BasicGameState {
 	 * Draws a game option.
 	 * @param option the option
 	 * @param pos the position to draw at
+	 * @param focus whether the option is currently focused
 	 */
-	private void drawOption(GameOption option, int pos) {
+	private void drawOption(GameOption option, int pos, boolean focus) {
 		int width = container.getWidth();
 		int textHeight = Utils.FONT_LARGE.getLineHeight();
 		float y = textY + (pos * offsetY);
+		Color color = (focus) ? Color.cyan : Color.white;
 
-		Utils.FONT_LARGE.drawString(width / 30, y, option.getName(), Color.white);
-		Utils.FONT_LARGE.drawString(width / 2, y, option.getValueString(), Color.white);
-		Utils.FONT_SMALL.drawString(width / 30, y + textHeight, option.getDescription(), Color.white);
+		Utils.FONT_LARGE.drawString(width / 30, y, option.getName(), color);
+		Utils.FONT_LARGE.drawString(width / 2, y, option.getValueString(), color);
+		Utils.FONT_SMALL.drawString(width / 30, y + textHeight, option.getDescription(), color);
 		g.setColor(Utils.COLOR_WHITE_ALPHA);
 		g.drawLine(0, y + textHeight, width, y + textHeight);
 	}
 
 	/**
-	 * Returns the option clicked.
-	 * If no option clicked, -1 will be returned.
+	 * Returns the option at the given y coordinate.
 	 * @param y the y coordinate
-	 * @return the option
+	 * @return the option, or GameOption.NULL if no such option exists
 	 */
-	private GameOption getClickedOption(int y) {
+	private GameOption getOptionAt(int y) {
 		GameOption option = GameOption.NULL;
 
 		if (y < textY || y > textY + (offsetY * maxOptionsScreen))

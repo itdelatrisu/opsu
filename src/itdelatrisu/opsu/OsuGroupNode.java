@@ -60,9 +60,13 @@ public class OsuGroupNode {
 	 * @param focus true if this is the focused node
 	 */
 	public void draw(float x, float y, float headerY, float footerY, Grade grade, boolean focus) {
+		// don't draw if out of bounds
+		Image bg = GameImage.MENU_BUTTON_BG.getImage();
+		if (y + bg.getHeight() < headerY || y > footerY)
+			return;
+
 		boolean expanded = (osuFileIndex > -1);
 		OsuFile osu;
-		Image bg = GameImage.MENU_BUTTON_BG.getImage();
 		bg.setAlpha(0.9f);
 		Color bgColor;
 		Color textColor = Color.lightGray;
@@ -103,11 +107,17 @@ public class OsuGroupNode {
 			cx += gradeImg.getWidth();
 		}
 
-		// draw text
-		Utils.FONT_MEDIUM.drawString(cx, cy, osu.getTitle(), textColor);
-		Utils.FONT_DEFAULT.drawString(cx, cy + Utils.FONT_MEDIUM.getLineHeight() - 4,
-				String.format("%s // %s", osu.getArtist(), osu.creator), textColor);
-		if (expanded || osuFiles.size() == 1)
+		// draw text (TODO: crop text)
+		float textY = cy;
+		if (textY + Utils.FONT_MEDIUM.getLineHeight() >= headerY && textY <= footerY)
+			Utils.FONT_MEDIUM.drawString(cx, cy, osu.getTitle(), textColor);
+		textY += Utils.FONT_MEDIUM.getLineHeight() - 4;
+		if (textY + Utils.FONT_MEDIUM.getLineHeight() >= headerY && textY <= footerY)
+			Utils.FONT_DEFAULT.drawString(cx, cy + Utils.FONT_MEDIUM.getLineHeight() - 4,
+					String.format("%s // %s", osu.getArtist(), osu.creator), textColor);
+		textY += Utils.FONT_MEDIUM.getLineHeight() - 4;
+		if ((textY + Utils.FONT_BOLD.getLeading() >= headerY && textY <= footerY) &&
+		    (expanded || osuFiles.size() == 1))
 			Utils.FONT_BOLD.drawString(cx, cy + Utils.FONT_MEDIUM.getLineHeight() + Utils.FONT_DEFAULT.getLineHeight() - 8,
 					osu.version, textColor);
 	}
