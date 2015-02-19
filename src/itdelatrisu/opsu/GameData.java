@@ -456,8 +456,9 @@ public class GameData {
 			}
 		}
 	}
+
 	/**
-	 * Draws a string of scoreSymbols.
+	 * Draws a string of scoreSymbols of fixed width.
 	 * @param str the string to draw
 	 * @param x the starting x coordinate
 	 * @param y the y coordinate
@@ -474,14 +475,14 @@ public class GameData {
 				if (scale != 1.0f)
 					digit = digit.getScaledCopy(scale);
 				cx -= fixedsize;
-				digit.draw(cx + (fixedsize-digit.getWidth())/2, y);
+				digit.draw(cx + (fixedsize - digit.getWidth()) / 2, y);
 			}
 		} else {
 			for (int i = 0; i < c.length; i++) {
 				Image digit = getScoreSymbolImage(c[i]);
 				if (scale != 1.0f)
 					digit = digit.getScaledCopy(scale);
-				digit.draw(cx + (fixedsize-digit.getWidth())/2, y);
+				digit.draw(cx + (fixedsize - digit.getWidth()) / 2, y);
 				cx += fixedsize;
 			}
 		}
@@ -495,12 +496,13 @@ public class GameData {
 	 * @param breakPeriod if true, will not draw scorebar and combo elements, and will draw grade
 	 * @param firstObject true if the first hit object's start time has not yet passed
 	 */
+	@SuppressWarnings("deprecation")
 	public void drawGameElements(Graphics g, boolean breakPeriod, boolean firstObject) {
 		int marginX = (int) (width * 0.008f);
 
 		// score
 		drawFixedSizeSymbolString((scoreDisplay < 100000000) ? String.format("%08d", scoreDisplay) : Long.toString(scoreDisplay),
-				width - marginX, 0, 1.0f, getScoreSymbolImage('0').getWidth()-2, true);
+				width - marginX, 0, 1.0f, getScoreSymbolImage('0').getWidth() - 2, true);
 
 		// score percentage
 		int symbolHeight = getScoreSymbolImage('0').getHeight();
@@ -564,19 +566,18 @@ public class GameData {
 			}
 			Image scorebar = GameImage.SCOREBAR_BG.getImage();
 			Image colour;
-			if (scorebarColour != null){
-				scorebarColour.updateNoDraw(); //TODO deprecated method
+			if (scorebarColour != null) {
+				scorebarColour.updateNoDraw();  // TODO deprecated method
 				colour = scorebarColour.getCurrentFrame();
-			} else {
+			} else
 				colour = GameImage.SCOREBAR_COLOUR.getImage();
-			}
-			float colourX = 4 * GameImage.uiscale, colourY = 15 * GameImage.uiscale;
-			Image colourCropped = colour.getSubImage(0, 0, (int) (645 * GameImage.uiscale * healthRatio), colour.getHeight());
-			
+			float colourX = 4 * GameImage.getUIscale(), colourY = 15 * GameImage.getUIscale();
+			Image colourCropped = colour.getSubImage(0, 0, (int) (645 * GameImage.getUIscale() * healthRatio), colour.getHeight());
+
 			scorebar.setAlpha(1f);
 			scorebar.draw(0, 0);
 			colourCropped.draw(colourX, colourY);
-			
+
 			Image ki = null;
 			if (health >= 50f)
 				ki = GameImage.SCOREBAR_KI.getImage();
@@ -655,36 +656,28 @@ public class GameData {
 	 * @param osu the OsuFile
 	 */
 	public void drawRankingElements(Graphics g, OsuFile osu) {
-		
-		float marginX = width * 0.01f, marginY = height * 0.025f;
-		// header & "Ranking" text
-		Image rankingTitle = GameImage.RANKING_TITLE.getImage();
-		// ranking panel
-		Image rankingPanel = GameImage.RANKING_PANEL.getImage();
-		
-		
-		//TODO Version 2 skins
+		// TODO Version 2 skins
 		float rankingHeight = 75;
-
-		rankingPanel.draw(0, (int) (rankingHeight * GameImage.uiscale));
-
 		float scoreTextScale = 1.0f;
 		float symbolTextScale = 1.15f;
 		float rankResultScale = 0.5f;
 
+		// ranking panel
+		GameImage.RANKING_PANEL.getImage().draw(0, (int) (rankingHeight * GameImage.getUIscale()));
+
 		// score
 		drawFixedSizeSymbolString(
 				(score < 100000000) ? String.format("%08d", score) : Long.toString(score),
-				(int) (210 * GameImage.uiscale),
-				(int) ((rankingHeight + 50) * GameImage.uiscale),
-				scoreTextScale, 
+				(int) (210 * GameImage.getUIscale()),
+				(int) ((rankingHeight + 50) * GameImage.getUIscale()),
+				scoreTextScale,
 				getScoreSymbolImage('0').getWidth() * scoreTextScale - 2, false);
 
 		// result counts
 		float resultInitialX = 130;
 		float resultInitialY = rankingHeight + 140;
 		float resultHitInitialX = 65;
-		float resultHitInitialY = rankingHeight + 182 ;
+		float resultHitInitialY = rankingHeight + 182;
 		float resultOffsetX = 320;
 		float resultOffsetY = 96;
 
@@ -697,42 +690,37 @@ public class GameData {
 
 		for (int i = 0; i < rankDrawOrder.length; i += 2) {
 			hitResults[rankDrawOrder[i]].getScaledCopy(rankResultScale).drawCentered(
-					(resultHitInitialX * GameImage.uiscale), 
-					((resultHitInitialY  + (resultOffsetY * (i / 2))) * GameImage.uiscale)
-					);
+					(resultHitInitialX * GameImage.getUIscale()),
+					((resultHitInitialY  + (resultOffsetY * (i / 2))) * GameImage.getUIscale()));
 			hitResults[rankDrawOrder[i+1]].getScaledCopy(rankResultScale).drawCentered(
-					((resultHitInitialX + resultOffsetX) * GameImage.uiscale),
-					((resultHitInitialY  + (resultOffsetY * (i / 2))) * GameImage.uiscale)
-					);
+					((resultHitInitialX + resultOffsetX) * GameImage.getUIscale()),
+					((resultHitInitialY  + (resultOffsetY * (i / 2))) * GameImage.getUIscale()));
 			drawSymbolString(String.format("%dx", rankResultOrder[i]),
-					(int) (resultInitialX * GameImage.uiscale), 
-					(int) ((resultInitialY + (resultOffsetY * (i / 2))) * GameImage.uiscale), 
+					(int) (resultInitialX * GameImage.getUIscale()),
+					(int) ((resultInitialY + (resultOffsetY * (i / 2))) * GameImage.getUIscale()),
 					symbolTextScale, false);
 			drawSymbolString(String.format("%dx", rankResultOrder[i+1]),
-					(int) ((resultInitialX + resultOffsetX) * GameImage.uiscale), 
-					(int) ((resultInitialY + (resultOffsetY * (i / 2))) * GameImage.uiscale), 
+					(int) ((resultInitialX + resultOffsetX) * GameImage.getUIscale()),
+					(int) ((resultInitialY + (resultOffsetY * (i / 2))) * GameImage.getUIscale()),
 					symbolTextScale, false);
 		}
 
 		// combo and accuracy
-		Image rankingMaxCombo = GameImage.RANKING_MAXCOMBO.getImage();
-		Image rankingAccuracy = GameImage.RANKING_ACCURACY.getImage();
 		float accuracyX = 295;
 		float textY = rankingHeight + 425;
 		float numbersY = textY + 30;
 		drawSymbolString(String.format("%dx", comboMax),
-				(int) (25 * GameImage.uiscale),
-				(int) (numbersY * GameImage.uiscale), symbolTextScale, false);
+				(int) (25 * GameImage.getUIscale()),
+				(int) (numbersY * GameImage.getUIscale()), symbolTextScale, false);
 		drawSymbolString(String.format("%02.2f%%", getScorePercent()),
-				(int) ((accuracyX + 20) * GameImage.uiscale),
-				(int) (numbersY * GameImage.uiscale), symbolTextScale, false);
-		rankingMaxCombo.draw(
-				(int) (10 * GameImage.uiscale),
-				(int) (textY * GameImage.uiscale));
-		rankingAccuracy.draw(
-				(int) (accuracyX * GameImage.uiscale),
-				(int) (textY * GameImage.uiscale));
-		
+				(int) ((accuracyX + 20) * GameImage.getUIscale()),
+				(int) (numbersY * GameImage.getUIscale()), symbolTextScale, false);
+		GameImage.RANKING_MAXCOMBO.getImage().draw(
+				(int) (10 * GameImage.getUIscale()),
+				(int) (textY * GameImage.getUIscale()));
+		GameImage.RANKING_ACCURACY.getImage().draw(
+				(int) (accuracyX * GameImage.getUIscale()),
+				(int) (textY * GameImage.getUIscale()));
 
 		// full combo
 		if (comboMax == fullObjectCount) {
@@ -741,24 +729,26 @@ public class GameData {
 					(height * 0.99f) - GameImage.RANKING_PERFECT.getImage().getHeight()
 			);
 		}
+
 		// grade
 		Grade grade = getGrade();
 		if (grade != Grade.NULL)
-			grade.getLargeImage().draw(width-grade.getLargeImage().getWidth(), rankingHeight);
+			grade.getLargeImage().draw(width - grade.getLargeImage().getWidth(), rankingHeight);
 
-		//Header
+		// header
+		Image rankingTitle = GameImage.RANKING_TITLE.getImage();
 		g.setColor(Utils.COLOR_BLACK_ALPHA);
-		g.fillRect(0, 0, width, 100 * GameImage.uiscale);
+		g.fillRect(0, 0, width, 100 * GameImage.getUIscale());
 		rankingTitle.draw((width * 0.97f) - rankingTitle.getWidth(), 0);
-		Utils.FONT_LARGE.drawString(marginX, marginY,
+		float c = width * 0.01f;
+		Utils.FONT_LARGE.drawString(c, c,
 				String.format("%s - %s [%s]", osu.getArtist(), osu.getTitle(), osu.version), Color.white);
-		Utils.FONT_MEDIUM.drawString(marginX, marginY + Utils.FONT_LARGE.getLineHeight() - 6,
+		Utils.FONT_MEDIUM.drawString(c, c + Utils.FONT_LARGE.getLineHeight() - 6,
 				String.format("Beatmap by %s", osu.creator), Color.white);
 		Utils.FONT_MEDIUM.drawString(
-				marginX, marginY + Utils.FONT_LARGE.getLineHeight() + Utils.FONT_MEDIUM.getLineHeight() - 10,
+				c, c + Utils.FONT_LARGE.getLineHeight() + Utils.FONT_MEDIUM.getLineHeight() - 10,
 				String.format("Played on %s.", scoreData.getTimeString()), Color.white);
 
-		
 		// mod icons
 		int modWidth = GameMod.AUTO.getImage().getWidth();
 		float modX = (width * 0.98f) - modWidth;

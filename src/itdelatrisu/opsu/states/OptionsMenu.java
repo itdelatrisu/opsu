@@ -172,17 +172,17 @@ public class OptionsMenu extends BasicGameState {
 
 		// option tabs
 		Image tabImage = GameImage.MENU_TAB.getImage();
-		int subtextWidth = Utils.FONT_DEFAULT.getWidth("Click or drag an option to change it.");
 		float tabX = (width / 50) + (tabImage.getWidth() / 2f);
-		float tabY = 15 + Utils.FONT_XLARGE.getLineHeight() + (tabImage.getHeight() / 2f);
-		int tabOffset = Math.min(tabImage.getWidth(),
-				(width/2) / OptionTab.SIZE);
+		float tabY = Utils.FONT_LARGE.getLineHeight() + Utils.FONT_DEFAULT.getLineHeight() +
+				height * 0.03f + (tabImage.getHeight() / 2f);
+		int tabOffset = Math.min(tabImage.getWidth(), (width / 2) / OptionTab.SIZE);
 		for (OptionTab tab : OptionTab.values())
 			tab.button = new MenuButton(tabImage, tabX + (tab.ordinal() * tabOffset), tabY);
 
 		// game option coordinate modifiers
 		textY = (int) (tabY + tabImage.getHeight());
-		offsetY = (height - textY - GameImage.MENU_BACK.getAnimation(1).getHeight()) / maxOptionsScreen;
+		int backHeight = GameImage.MENU_BACK.getAnimation(1).getHeight();
+		offsetY = (height - textY - (backHeight * 4 / 5)) / maxOptionsScreen;
 	}
 
 	@Override
@@ -195,15 +195,10 @@ public class OptionsMenu extends BasicGameState {
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
 
 		// title
-		Utils.FONT_XLARGE.drawString(
-				(width - Utils.FONT_XLARGE.getWidth("GAME OPTIONS")) / 2, 10,
-				"GAME OPTIONS", Color.white
-		);
-		Utils.FONT_DEFAULT.drawString(
-				(width - Utils.FONT_DEFAULT.getWidth("Click or drag an option to change it.")) / 2,
-				10 + Utils.FONT_XLARGE.getLineHeight(),
-				"Click or drag an option to change it.", Color.white
-		);
+		float c = container.getWidth() * 0.02f;
+		Utils.FONT_LARGE.drawString(c, c, "Game Options", Color.white);
+		Utils.FONT_DEFAULT.drawString(c, c + Utils.FONT_LARGE.getLineHeight() * 0.9f,
+				"Click or drag an option to change it.", Color.white);
 
 		// game options
 		g.setLineWidth(1f);

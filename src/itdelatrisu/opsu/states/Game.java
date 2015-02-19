@@ -809,20 +809,15 @@ public class Game extends BasicGameState {
 		}
 
 		// skip button
-		//TODO: this is annoying perhaps we can just pass in GameImage to MenuButton?
-		if (GameImage.SKIP.getImages() != null){
-			Animation back = GameImage.SKIP.getAnimation(200);
-			skipButton = new MenuButton(back,
-					width - back.getWidth() / 2f,
-					height - (back.getHeight() / 2f));
-		}else{
-			Image back = GameImage.SKIP.getImage();
-			skipButton = new MenuButton(GameImage.SKIP.getImage(),
-					width - back.getWidth() / 2f,
-					height - (back.getHeight() / 2f));
+		if (GameImage.SKIP.getImages() != null) {
+			Animation skip = GameImage.SKIP.getAnimation(200);
+			skipButton = new MenuButton(skip, width - skip.getWidth() / 2f, height - (skip.getHeight() / 2f));
+		} else {
+			Image skip = GameImage.SKIP.getImage();
+			skipButton = new MenuButton(skip, width - skip.getWidth() / 2f, height - (skip.getHeight() / 2f));
 		}
-		skipButton.setHoverExpand(MenuButton.Expand.UP_LEFT);
-		
+		skipButton.setHoverExpand(1.1f, MenuButton.Expand.UP_LEFT);
+
 		// load other images...
 		((GamePauseMenu) game.getState(Opsu.STATE_GAMEPAUSEMENU)).loadImages();
 		data.loadImages();

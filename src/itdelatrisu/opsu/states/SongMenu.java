@@ -310,16 +310,17 @@ public class SongMenu extends BasicGameState {
 			else
 				musicNote.draw(marginX, marginY);
 			int iconWidth = musicNote.getWidth();
-			int iconHeight = musicNote.getHeight();
 
 			if (songInfo == null)
 				songInfo = focusNode.getInfo();
 			marginX += 5;
-			Utils.FONT_LARGE.drawString(marginX + iconWidth * 1.05f, marginY, songInfo[0], Color.white);
-			Utils.FONT_DEFAULT.drawString(marginX + iconWidth * 1.05f, marginY + Utils.FONT_LARGE.getLineHeight() * 0.75f, songInfo[1], Color.white);
-			float headerTextY = marginY + iconHeight;
+			float headerTextY = marginY;
+			Utils.FONT_LARGE.drawString(marginX + iconWidth * 1.05f, headerTextY, songInfo[0], Color.white);
+			headerTextY += Utils.FONT_LARGE.getLineHeight() - 8;
+			Utils.FONT_DEFAULT.drawString(marginX + iconWidth * 1.05f, headerTextY, songInfo[1], Color.white);
+			headerTextY += Utils.FONT_DEFAULT.getLineHeight() - 2;
 			Utils.FONT_BOLD.drawString(marginX, headerTextY, songInfo[2], Color.white);
-			headerTextY += Utils.FONT_BOLD.getLineHeight() - 6;
+			headerTextY += Utils.FONT_BOLD.getLineHeight() - 4;
 			Utils.FONT_DEFAULT.drawString(marginX, headerTextY, songInfo[3], Color.white);
 			headerTextY += Utils.FONT_DEFAULT.getLineHeight() - 4;
 			Utils.FONT_SMALL.drawString(marginX, headerTextY, songInfo[4], Color.white);
@@ -630,7 +631,7 @@ public class SongMenu extends BasicGameState {
 					(y > buttonY + (i * buttonOffset) && y < buttonY + (i * buttonOffset) + buttonHeight)) {
 					float oldHoverOffset = hoverOffset;
 					int oldHoverIndex = hoverIndex;
-	
+
 					// clicked node is already expanded
 					if (node.index == expandedIndex) {
 						if (node.osuFileIndex == focusNode.osuFileIndex) {
@@ -645,21 +646,21 @@ public class SongMenu extends BasicGameState {
 							setFocus(node, 0, false);
 						}
 					}
-	
+
 					// clicked node is a new group
 					else {
 						SoundController.playSound(SoundEffect.MENUCLICK);
 						setFocus(node, -1, false);
 					}
-	
+
 					// restore hover data
 					hoverOffset = oldHoverOffset;
 					hoverIndex = oldHoverIndex;
-	
+
 					// open beatmap menu
 					if (button == Input.MOUSE_RIGHT_BUTTON)
 						beatmapMenuTimer = (node.index == expandedIndex) ? BEATMAP_MENU_DELAY * 4 / 5 : 0;
-	
+
 					return;
 				}
 			}

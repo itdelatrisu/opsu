@@ -298,10 +298,7 @@ public class OsuHitObject {
 	public boolean isNewCombo() { return (type & TYPE_NEWCOMBO) > 0; }
 
 	/**
-	 * Returns the number of extra skips on the combo colours
+	 * Returns the number of extra skips on the combo colors.
 	 */
-	public int getComboSkip() {
-		return (type >> 4);
-	}
-
+	public int getComboSkip() { return (type >> TYPE_NEWCOMBO); }
 }

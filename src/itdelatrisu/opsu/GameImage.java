@@ -41,7 +41,7 @@ public enum GameImage {
 	SECTION_PASS ("section-pass", "png"),
 	SECTION_FAIL ("section-fail", "png"),
 	WARNINGARROW ("play-warningarrow", "png"),
-	SKIP ("play-skip", "play-skip-%d","png"),
+	SKIP ("play-skip", "play-skip-%d", "png"),
 	COUNTDOWN_READY ("ready", "png") {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
@@ -51,19 +51,19 @@ public enum GameImage {
 	COUNTDOWN_3 ("count3", "png") {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h / 3f) / img.getHeight());
+			return COUNTDOWN_READY.process_sub(img, w, h);
 		}
 	},
 	COUNTDOWN_2 ("count2", "png") {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h / 3f) / img.getHeight());
+			return COUNTDOWN_READY.process_sub(img, w, h);
 		}
 	},
 	COUNTDOWN_1 ("count1", "png") {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h / 3f) / img.getHeight());
+			return COUNTDOWN_READY.process_sub(img, w, h);
 		}
 	},
 	COUNTDOWN_GO ("go", "png") {
@@ -135,7 +135,7 @@ public enum GameImage {
 	SPINNER_CLEAR ("spinner-clear", "png"),
 	SPINNER_OSU ("spinner-osu", "png"),
 
-	// Score Data
+	// Game Data
 	COMBO_BURST ("comboburst", "comboburst-%d", "png"),
 	SCOREBAR_BG ("scorebar-bg", "png"),
 	SCOREBAR_COLOUR ("scorebar-colour", "scorebar-colour-%d", "png"),
@@ -331,7 +331,7 @@ public enum GameImage {
 			return img.getScaledCopy((h * 0.3f) / img.getHeight());
 		}
 	},
-	MENU_BACK ("menu-back", "menu-back-%d","png"), 
+	MENU_BACK ("menu-back", "menu-back-%d", "png"),
 	MENU_BUTTON_BG ("menu-button-background", "png", false, false),
 	MENU_TAB ("selection-tab", "png", false, false) {
 		@Override
@@ -342,14 +342,14 @@ public enum GameImage {
 	MENU_MUSICNOTE ("music-note", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			int r = (int) (Utils.FONT_LARGE.getLineHeight() * 0.75f + Utils.FONT_DEFAULT.getLineHeight());
+			int r = (int) ((Utils.FONT_LARGE.getLineHeight() + Utils.FONT_DEFAULT.getLineHeight() - 8) / getUIscale());
 			return img.getScaledCopy(r, r);
 		}
 	},
 	MENU_LOADER ("loader", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			int r = (int) (Utils.FONT_LARGE.getLineHeight() * 0.75f + Utils.FONT_DEFAULT.getLineHeight());
+			int r = (int) ((Utils.FONT_LARGE.getLineHeight() + Utils.FONT_DEFAULT.getLineHeight() - 8) / getUIscale());
 			return img.getScaledCopy(r / 48f);
 		}
 	},
@@ -479,9 +479,12 @@ public enum GameImage {
 
 	/** Container dimensions. */
 	private static int containerWidth, containerHeight;
-	
-	/** value ui should be scaled by */
-	public static float uiscale;
+
+	/** Value to scale UI components by. */
+	private static float uiscale;
+
+	/** The unscaled container height that uiscale is based on. */
+	private static final int UNSCALED_HEIGHT = 768;
 
 	/**
 	 * Initializes the GameImage class with container dimensions.
@@ -491,8 +494,13 @@ public enum GameImage {
 	public static void init(int width, int height) {
 		containerWidth = width;
 		containerHeight = height;
-		uiscale = containerHeight / 768f;
+		uiscale = (float) containerHeight / UNSCALED_HEIGHT;
 	}
+
+	/**
+	 * Returns the UI scale.
+	 */
+	public static float getUIscale() { return uiscale; }
 
 	/**
 	 * Clears all image references.
@@ -589,15 +597,16 @@ public enum GameImage {
 		setDefaultImage();
 		return (skinImage != null) ? skinImage : defaultImage;
 	}
-	
+
 	/**
 	 * Returns an Animation based on the image array.
-	 * If no image array exist, returns the single image as an animation.
+	 * If no image array exists, returns the single image as an animation.
+	 * @param duration the duration to show each frame in the animation
 	 */
 	public Animation getAnimation(int duration){
 		Image[] images = getImages();
 		if (images == null)
-			images = new Image[]{ getImage() };
+			images = new Image[] { getImage() };
 		return new Animation(images, duration);
 	}
 
@@ -813,14 +822,14 @@ public enum GameImage {
 	 * Performs individual post-loading actions on the image.
 	 */
 	private void process() {
-		int fakeWid = 768*containerWidth/containerHeight;
+		int unscaledWidth = UNSCALED_HEIGHT * containerWidth / containerHeight;
 		if (skinImages != null) {
 			for (int i = 0; i < skinImages.length; i++)
-				setImage(process_sub(getImages()[i], fakeWid, 768).getScaledCopy(uiscale), i);
+				setImage(process_sub(getImages()[i], unscaledWidth, UNSCALED_HEIGHT).getScaledCopy(getUIscale()), i);
 		} else if (defaultImages != null && skinImage == null) {
 			for (int i = 0; i < defaultImages.length; i++)
-				setImage(process_sub(getImages()[i], fakeWid, 768).getScaledCopy(uiscale), i);
+				setImage(process_sub(getImages()[i], unscaledWidth, UNSCALED_HEIGHT).getScaledCopy(getUIscale()), i);
 		} else
-			setImage(process_sub(getImage(), fakeWid, 768).getScaledCopy(uiscale));
+			setImage(process_sub(getImage(), unscaledWidth, UNSCALED_HEIGHT).getScaledCopy(getUIscale()));
 	}
 }

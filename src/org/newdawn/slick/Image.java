@@ -45,6 +45,7 @@ import org.newdawn.slick.util.Log;
  *
  * @author kevin
  */
+@SuppressWarnings("unused")
 public class Image implements Renderable {
 	/** The top left corner identifier */
 	public static final int TOP_LEFT = 0;
@@ -570,6 +571,7 @@ public class Image implements Renderable {
 	 * @param x The x location to draw the image at
 	 * @param y The y location to draw the image at
 	 */
+	@Override
 	public void draw(float x, float y) {
 		init();
 		draw(x,y,width,height);
@@ -1316,9 +1318,7 @@ public class Image implements Renderable {
 		GL.glBegin(SGL.GL_QUADS);
 	}
 	
-	/**
-	 * @see java.lang.Object#toString()
-	 */
+	@Override
 	public String toString() {
 		init();
 		

@@ -61,13 +61,13 @@ public class OsuGroupNode {
 	 */
 	public void draw(float x, float y, float headerY, float footerY, Grade grade, boolean focus) {
 		boolean expanded = (osuFileIndex > -1);
-		float xOffset = 0f;
 		OsuFile osu;
 		Image bg = GameImage.MENU_BUTTON_BG.getImage();
 		bg.setAlpha(0.9f);
 		Color bgColor;
 		Color textColor = Color.lightGray;
-		
+
+		// get drawing parameters
 		if (expanded) {  // expanded
 			x -= bg.getWidth() / 10f;
 			if (focus) {
@@ -80,6 +80,7 @@ public class OsuGroupNode {
 			bgColor = Utils.COLOR_ORANGE_BUTTON;
 			osu = osuFiles.get(0);
 		}
+
 		// crop image if necessary
 		if (y < headerY) {
 			int cropHeight = (int) (headerY - y);
