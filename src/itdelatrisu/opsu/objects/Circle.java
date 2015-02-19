@@ -89,13 +89,13 @@ public class Circle implements HitObject {
 
 			float approachScale = 1 + scale * 3;
 			color.a = 1 - scale;
-			Utils.drawCentered(GameImage.APPROACHCIRCLE.getImage().getScaledCopy(approachScale), x, y, color);
+			GameImage.APPROACHCIRCLE.getImage().getScaledCopy(approachScale).drawCentered(x, y, color);
 
 			float alpha = Utils.clamp((1 - scale) * 2, 0, 1);
 			color.a = alpha;
 			Utils.COLOR_WHITE_FADE.a = alpha;
-			Utils.drawCentered(GameImage.HITCIRCLE.getImage(), x, y, color);
-			Utils.drawCentered(GameImage.HITCIRCLE_OVERLAY.getImage(), x, y, Utils.COLOR_WHITE_FADE);
+			GameImage.HITCIRCLE.getImage().drawCentered(x, y, color);
+			GameImage.HITCIRCLE_OVERLAY.getImage().drawCentered(x, y, Utils.COLOR_WHITE_FADE);
 
 			color.a = oldAlpha;
 			Utils.COLOR_WHITE_FADE.a = 1f;

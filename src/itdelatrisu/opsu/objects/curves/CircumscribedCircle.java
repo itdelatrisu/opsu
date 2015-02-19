@@ -174,11 +174,11 @@ public class CircumscribedCircle extends Curve {
 		Image hitCircleOverlay = GameImage.HITCIRCLE_OVERLAY.getImage();
 		for (int i = 0; i < step; i++) {
 			float[] xy = pointAt(i / step);
-			Utils.drawCentered(hitCircleOverlay, xy[0], xy[1], Utils.COLOR_WHITE_FADE);
+			hitCircleOverlay.drawCentered(xy[0], xy[1], Utils.COLOR_WHITE_FADE);
 		}
 		for (int i = 0; i < step; i++) {
 			float[] xy = pointAt(i / step);
-			Utils.drawCentered(hitCircle, xy[0], xy[1], color);
+			hitCircle.drawCentered(xy[0], xy[1], color);
 		}
 	}
 

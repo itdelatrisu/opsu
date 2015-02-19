@@ -174,12 +174,12 @@ public class Slider implements HitObject {
 
 		// end circle
 		float[] endPos = curve.pointAt(1);
-		Utils.drawCentered(hitCircle, endPos[0], endPos[1], color);
-		Utils.drawCentered(hitCircleOverlay, endPos[0], endPos[1], Utils.COLOR_WHITE_FADE);
+		hitCircle.drawCentered(endPos[0], endPos[1], color);
+		hitCircleOverlay.drawCentered(endPos[0], endPos[1], Utils.COLOR_WHITE_FADE);
 
 		// start circle
-		Utils.drawCentered(hitCircle, x, y, color);
-		Utils.drawCentered(hitCircleOverlay, x, y, Utils.COLOR_WHITE_FADE);
+		hitCircle.drawCentered(x, y, color);
+		hitCircleOverlay.drawCentered(x, y, Utils.COLOR_WHITE_FADE);
 		if (sliderClicked)
 			;  // don't draw current combo number if already clicked
 		else
@@ -213,7 +213,7 @@ public class Slider implements HitObject {
 		if (timeDiff >= 0) {
 			// approach circle
 			color.a = 1 - scale;
-			Utils.drawCentered(GameImage.APPROACHCIRCLE.getImage().getScaledCopy(approachScale), x, y, color);
+			GameImage.APPROACHCIRCLE.getImage().getScaledCopy(approachScale).drawCentered(x, y, color);
 		} else {
 			float[] c = curve.pointAt(getT(trackPosition, false));
 			float[] c2 = curve.pointAt(getT(trackPosition, false) + 0.01f);

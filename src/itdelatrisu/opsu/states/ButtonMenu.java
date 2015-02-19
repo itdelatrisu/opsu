@@ -485,7 +485,7 @@ public class ButtonMenu extends BasicGameState {
 		RESET_MODS ("Reset All Mods", Color.red) {
 			@Override
 			public void click(GameContainer container, StateBasedGame game) {
-				SoundController.playSound(SoundEffect.MENUHIT);
+				SoundController.playSound(SoundEffect.MENUCLICK);
 				for (GameMod mod : GameMod.values()) {
 					if (mod.isActive())
 						mod.toggle(false);

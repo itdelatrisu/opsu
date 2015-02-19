@@ -84,6 +84,8 @@ public class GameRanking extends BasicGameState {
 				width - (exit.getWidth() / 2f),
 				(height * 0.97f) - (exit.getHeight() / 2f)
 		);
+		retryButton.setHoverFade(0.6f);
+		exitButton.setHoverFade(0.6f);
 	}
 
 	@Override
@@ -119,6 +121,10 @@ public class GameRanking extends BasicGameState {
 		Utils.updateCursor(delta);
 		Utils.updateVolumeDisplay(delta);
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
+		if (data.isGameplay()) {
+			retryButton.hoverUpdate(delta, mouseX, mouseY);
+			exitButton.hoverUpdate(delta, mouseX, mouseY);
+		}
 		Utils.getBackButton().hoverUpdate(delta, mouseX, mouseY);
 	}
 
@@ -174,8 +180,11 @@ public class GameRanking extends BasicGameState {
 		if (!data.isGameplay()) {
 			if (!MusicController.isTrackDimmed())
 				MusicController.toggleTrackDimmed(0.5f);
-		} else
+		} else {
 			SoundController.playSound(SoundEffect.APPLAUSE);
+			retryButton.resetHover();
+			exitButton.resetHover();
+		}
 	}
 
 	@Override

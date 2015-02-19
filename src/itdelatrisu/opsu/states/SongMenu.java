@@ -253,9 +253,10 @@ public class SongMenu extends BasicGameState {
 		search.setMaxLength(60);
 
 		// selection buttons
-		float selectX = GameImage.MENU_BACK.getAnimation(1).getWidth() * 1.75f;
-		float selectY = height - GameImage.SELECTION_MODS.getImage().getHeight() / 2f;
-		float selectOffset = GameImage.SELECTION_MODS.getImage().getWidth() * 1.05f;
+		Image selectionMods = GameImage.SELECTION_MODS.getImage();
+		float selectX = width * 0.183f + selectionMods.getWidth() / 2f;
+		float selectY = height - selectionMods.getHeight() / 2f;
+		float selectOffset = selectionMods.getWidth() * 1.05f;
 		selectModsButton = new MenuButton(GameImage.SELECTION_MODS_OVERLAY.getImage(),
 				selectX, selectY);
 		selectRandomButton = new MenuButton(GameImage.SELECTION_RANDOM_OVERLAY.getImage(),

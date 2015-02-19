@@ -236,7 +236,7 @@ public class MainMenu extends BasicGameState {
 		g.setFont(Utils.FONT_MEDIUM);
 		int lineHeight = Utils.FONT_MEDIUM.getLineHeight() * 9 / 10;
 		g.drawString(String.format("Loaded %d songs and %d beatmaps.",
-				OsuGroupList.get().size(), OsuGroupList.get().getMapCount()), marginX, marginY);
+				OsuGroupList.get().getMapSetCount(), OsuGroupList.get().getMapCount()), marginX, marginY);
 		if (MusicController.isTrackLoading())
 			g.drawString("Track loading...", marginX, marginY + lineHeight);
 		else if (MusicController.trackExists()) {

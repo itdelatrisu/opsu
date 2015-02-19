@@ -164,9 +164,9 @@ public class LinearBezier extends Curve {
 		Image hitCircle = GameImage.HITCIRCLE.getImage();
 		Image hitCircleOverlay = GameImage.HITCIRCLE_OVERLAY.getImage();
 		for (int i = curve.length - 2; i >= 0; i--)
-			Utils.drawCentered(hitCircleOverlay, curve[i].x, curve[i].y, Utils.COLOR_WHITE_FADE);
+			hitCircleOverlay.drawCentered(curve[i].x, curve[i].y, Utils.COLOR_WHITE_FADE);
 		for (int i = curve.length - 2; i >= 0; i--)
-			Utils.drawCentered(hitCircle, curve[i].x, curve[i].y, color);
+			hitCircle.drawCentered(curve[i].x, curve[i].y, color);
 	}
 
 	@Override

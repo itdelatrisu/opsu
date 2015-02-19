@@ -223,7 +223,7 @@ public class Utils {
 
 		// back button
 		if (GameImage.MENU_BACK.getImages() != null) {
-			Animation back = GameImage.MENU_BACK.getAnimation(200);
+			Animation back = GameImage.MENU_BACK.getAnimation(120);
 			backButton = new MenuButton(back, back.getWidth() / 2f, height - (back.getHeight() / 2f));
 		} else {
 			Image back = GameImage.MENU_BACK.getImage();
@@ -258,19 +258,8 @@ public class Utils {
 			filter = (isHover) ? Utils.COLOR_RED_HOVER : Color.red;
 			textColor = Color.white;
 		}
-		Utils.drawCentered(tabImage, x, y, filter);
+		tabImage.drawCentered(x, y, filter);
 		Utils.FONT_MEDIUM.drawString(tabTextX, tabTextY, text, textColor);
-	}
-
-	/**
-	 * Draws an image based on its center with a color filter.
-	 * @param img the image to draw
-	 * @param x the center x coordinate
-	 * @param y the center y coordinate
-	 * @param color the color filter to apply
-	 */
-	public static void drawCentered(Image img, float x, float y, Color color) {
-		img.draw(x - (img.getWidth() / 2f), y - (img.getHeight() / 2f), color);
 	}
 
 	/**
@@ -281,34 +270,6 @@ public class Utils {
 	 */
 	public static void drawCentered(Animation anim, float x, float y) {
 		anim.draw(x - (anim.getWidth() / 2f), y - (anim.getHeight() / 2f));
-	}
-
-	/**
-	 * Draws an image at the given location.
-	 * @param img the image to draw
-	 * @param x the x coordinate
-	 * @param y the y coordinate
-	 * @param color the color filter to apply
-	 */
-	public static void draw(Image img, float x, float y, Color color) {
-		if (color == null)
-			img.draw(x, y);
-		else
-			img.draw(x, y, color);
-	}
-
-	/**
-	 * Draws an animation at the given location.
-	 * @param anim the animation to draw
-	 * @param x the x coordinate
-	 * @param y the y coordinate
-	 * @param color the color filter to apply
-	 */
-	public static void draw(Animation anim, float x, float y, Color color) {
-		if (color == null)
-			anim.draw(x, y);
-		else
-			anim.draw(x, y, color);
 	}
 
 	/**

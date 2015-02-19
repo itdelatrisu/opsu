@@ -556,13 +556,24 @@ public class Image implements Renderable {
 	}
 	
 	/**
-	 * Draw the image based on it's center 
+	 * Draw the image based on its center 
 	 * 
 	 * @param x The x coordinate to place the image's center at
 	 * @param y The y coordinate to place the image's center at
 	 */
 	public void drawCentered(float x, float y) {
 		draw(x-(getWidth()/2),y-(getHeight()/2));
+	}
+
+	/**
+	 * Draw the image based on its center with a color filter
+	 *
+	 * @param x The x coordinate to place the image's center at
+	 * @param y The y coordinate to place the image's center at
+	 * @param color The color filter to apply
+	 */
+	public void drawCentered(float x, float y, Color color) {
+		draw(x - (getWidth() / 2f), y - (getHeight() / 2f), color);
 	}
 	
 	/**

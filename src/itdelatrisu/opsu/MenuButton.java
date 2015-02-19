@@ -167,57 +167,67 @@ public class MenuButton {
 	/**
 	 * Draws the button.
 	 */
-	public void draw() { draw(null); }
+	public void draw() { draw(Color.white); }
 
 	/**
 	 * Draw the button with a color filter.
 	 * @param filter the color to filter with when drawing
 	 */
+	@SuppressWarnings("deprecation")
 	public void draw(Color filter) {
-		if (img != null) {
-			if (imgL == null) {
-				if (hoverEffect == 0)
-					Utils.draw(img, x - xRadius, y - yRadius, filter);
-				else {
-					Image hoverImg = img;
-					float oldAlpha = img.getAlpha();
-					float oldAngle = img.getRotation();
-					if ((hoverEffect & EFFECT_EXPAND) > 0) {
-						if (scale != 1f) {
-							hoverImg = hoverImg.getScaledCopy(scale);
-							hoverImg.setAlpha(oldAlpha);
-						}
-					}
-					if ((hoverEffect & EFFECT_FADE) > 0)
-						hoverImg.setAlpha(alpha);
-					if ((hoverEffect & EFFECT_ROTATE) > 0)
-						hoverImg.setRotation(angle);
-					Utils.draw(hoverImg, x - xRadius, y - yRadius, filter);
-					if (hoverImg != img) {
-						hoverImg.setAlpha(oldAlpha);
-						hoverImg.setRotation(oldAngle);
+		// animations: get current frame
+		Image image = this.img;
+		if (image == null) {
+			anim.updateNoDraw();
+			image = anim.getCurrentFrame();
+		}
+
+		// normal images
+		if (imgL == null) {
+			if (hoverEffect == 0)
+				image.draw(x - xRadius, y - yRadius, filter);
+			else {
+				float oldAlpha = image.getAlpha();
+				float oldAngle = image.getRotation();
+				if ((hoverEffect & EFFECT_EXPAND) > 0) {
+					if (scale != 1f) {
+						image = image.getScaledCopy(scale);
+						image.setAlpha(oldAlpha);
 					}
 				}
-			} else {
-				if (hoverEffect == 0) {
-					Utils.draw(img, x - xRadius + imgL.getWidth(), y - yRadius, filter);
-					Utils.draw(imgL, x - xRadius, y - yRadius, filter);
-					Utils.draw(imgR, x + xRadius - imgR.getWidth(), y - yRadius, filter);
-				} else if ((hoverEffect & EFFECT_FADE) > 0) {
-					float a = img.getAlpha(), aL = imgL.getAlpha(), aR = imgR.getAlpha();
-					img.setAlpha(alpha);
-					imgL.setAlpha(alpha);
-					imgR.setAlpha(alpha);
-					Utils.draw(img, x - xRadius + imgL.getWidth(), y - yRadius, filter);
-					Utils.draw(imgL, x - xRadius, y - yRadius, filter);
-					Utils.draw(imgR, x + xRadius - imgR.getWidth(), y - yRadius, filter);
-					img.setAlpha(a);
-					imgL.setAlpha(aL);
-					imgR.setAlpha(aR);
+				if ((hoverEffect & EFFECT_FADE) > 0)
+					image.setAlpha(alpha);
+				if ((hoverEffect & EFFECT_ROTATE) > 0)
+					image.setRotation(angle);
+				image.draw(x - xRadius, y - yRadius, filter);
+				if (image != this.img) {
+					image.setAlpha(oldAlpha);
+					image.setRotation(oldAngle);
 				}
 			}
-		} else
-			Utils.draw(anim, x - xRadius, y - yRadius, filter);
+		}
+
+		// 3-part images
+		else {
+			if (hoverEffect == 0) {
+				image.draw(x - xRadius + imgL.getWidth(), y - yRadius, filter);
+				imgL.draw(x - xRadius, y - yRadius, filter);
+				imgR.draw(x + xRadius - imgR.getWidth(), y - yRadius, filter);
+			} else if ((hoverEffect & EFFECT_FADE) > 0) {
+				float a = image.getAlpha(), aL = imgL.getAlpha(), aR = imgR.getAlpha();
+				image.setAlpha(alpha);
+				imgL.setAlpha(alpha);
+				imgR.setAlpha(alpha);
+				image.draw(x - xRadius + imgL.getWidth(), y - yRadius, filter);
+				imgL.draw(x - xRadius, y - yRadius, filter);
+				imgR.draw(x + xRadius - imgR.getWidth(), y - yRadius, filter);
+				image.setAlpha(a);
+				imgL.setAlpha(aL);
+				imgR.setAlpha(aR);
+			}
+		}
+
+		// text
 		if (text != null)
 			font.drawString(x - font.getWidth(text) / 2f, y - font.getLineHeight() / 2f, text, color);
 	}
@@ -365,14 +375,15 @@ public class MenuButton {
 	 * and expansion direction.
 	 */
 	private void setHoverRadius() {
-		if (img == null)
-			return;
+		Image image = this.img;
+		if (image == null)
+			image = anim.getCurrentFrame();
 
 		int xOffset = 0, yOffset = 0;
 		if (dir != Expand.CENTER) {
 			// offset by difference between normal/scaled image dimensions
-			xOffset = (int) ((scale - 1f) * img.getWidth());
-			yOffset = (int) ((scale - 1f) * img.getHeight());
+			xOffset = (int) ((scale - 1f) * image.getWidth());
+			yOffset = (int) ((scale - 1f) * image.getHeight());
 			if (dir == Expand.UP || dir == Expand.DOWN)
 				xOffset = 0;    // no horizontal offset
 			if (dir == Expand.RIGHT || dir == Expand.LEFT)
@@ -382,7 +393,7 @@ public class MenuButton {
 			if (dir == Expand.DOWN ||  dir == Expand.DOWN_LEFT || dir == Expand.DOWN_RIGHT)
 				yOffset *= -1;  // flip y for down
 		}
-		this.xRadius = ((img.getWidth() * scale) + xOffset) / 2f;
-		this.yRadius = ((img.getHeight() * scale) + yOffset) / 2f;
+		this.xRadius = ((image.getWidth() * scale) + xOffset) / 2f;
+		this.yRadius = ((image.getHeight() * scale) + yOffset) / 2f;
 	}
 }

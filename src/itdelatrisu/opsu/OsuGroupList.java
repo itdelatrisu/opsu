@@ -240,6 +240,11 @@ public class OsuGroupList {
 	public int getMapCount() { return mapCount; }
 
 	/**
+	 * Returns the total number of parsed maps sets.
+	 */
+	public int getMapSetCount() { return parsedNodes.size(); }
+
+	/**
 	 * Returns the OsuGroupNode at an index, disregarding expansions.
 	 */
 	public OsuGroupNode getBaseNode(int index) {
