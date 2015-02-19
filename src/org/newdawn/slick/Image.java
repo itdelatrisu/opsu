@@ -24,7 +24,7 @@
  * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
-*/
+ */
 
 package org.newdawn.slick;
 
@@ -1406,6 +1406,36 @@ public class Image implements Renderable {
 			return new Color(translate(pixelData[offset]),translate(pixelData[offset+1]),
 					 	     translate(pixelData[offset+2]));
 		}
+	}
+
+	/**
+	 * Get the alpha value of a pixel at a specified location in this image,
+	 * or 1f if the image does not support transparency.
+	 * 
+	 * @param x The x coordinate of the pixel
+	 * @param y The y coordinate of the pixel
+	 * @return The alpha level of the pixel at the specified location
+	 */
+	public float getAlphaAt(int x, int y) {
+		if (!texture.hasAlpha())
+			return 1f;
+
+		if (pixelData == null)
+			pixelData = texture.getTextureData();
+
+		// scale coordinates based on the image scale
+		x = x * texture.getImageWidth() / width;
+		y = y * texture.getImageHeight() / height;
+
+		int xo = (int) (textureOffsetX * texture.getTextureWidth());
+		int yo = (int) (textureOffsetY * texture.getTextureHeight());
+
+		x = (textureWidth < 0) ? xo - x : xo + x;
+		y = (textureHeight < 0) ? yo - y : yo + y;
+
+		int offset = x + (y * texture.getTextureWidth());
+		offset *= 4;
+		return (offset + 3 >= pixelData.length) ? 1f : translate(pixelData[offset + 3]) / 255f;
 	}
 	
 	/**

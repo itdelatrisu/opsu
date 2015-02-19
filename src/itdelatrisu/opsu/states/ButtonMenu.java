@@ -179,12 +179,8 @@ public class ButtonMenu extends BasicGameState {
 			@Override
 			public void update(GameContainer container, int delta, int mouseX, int mouseY) {
 				super.update(container, delta, mouseX, mouseY);
-				for (GameMod mod : GameMod.values()) {
-					if (mod.isActive())
-						mod.hoverUpdate(delta, mod.getButtonX(), mod.getButtonY());
-					else
-						mod.hoverUpdate(delta, -1, -1);
-				}
+				for (GameMod mod : GameMod.values())
+					mod.hoverUpdate(delta, mod.isActive());
 			}
 
 			@Override

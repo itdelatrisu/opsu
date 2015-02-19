@@ -267,9 +267,9 @@ public class MainMenu extends BasicGameState {
 		Utils.updateCursor(delta);
 		Utils.updateVolumeDisplay(delta);
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
-		logo.hoverUpdate(delta, mouseX, mouseY);
-		playButton.hoverUpdate(delta, mouseX, mouseY);
-		exitButton.hoverUpdate(delta, mouseX, mouseY);
+		logo.hoverUpdate(delta, mouseX, mouseY, 0.25f);
+		playButton.hoverUpdate(delta, mouseX, mouseY, 0.25f);
+		exitButton.hoverUpdate(delta, mouseX, mouseY, 0.25f);
 		if (repoButton != null)
 			repoButton.hoverUpdate(delta, mouseX, mouseY);
 		downloadsButton.hoverUpdate(delta, mouseX, mouseY);
@@ -337,11 +337,11 @@ public class MainMenu extends BasicGameState {
 			throws SlickException {
 		// reset button hover states if mouse is not currently hovering over the button
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
-		if (!logo.contains(mouseX, mouseY))
+		if (!logo.contains(mouseX, mouseY, 0.25f))
 			logo.resetHover();
-		if (!playButton.contains(mouseX, mouseY))
+		if (!playButton.contains(mouseX, mouseY, 0.25f))
 			playButton.resetHover();
-		if (!exitButton.contains(mouseX, mouseY))
+		if (!exitButton.contains(mouseX, mouseY, 0.25f))
 			exitButton.resetHover();
 		if (!musicPlay.contains(mouseX, mouseY))
 			musicPlay.resetHover();
@@ -418,7 +418,7 @@ public class MainMenu extends BasicGameState {
 
 		// start moving logo (if clicked)
 		else if (!logoClicked) {
-			if (logo.contains(x, y)) {
+			if (logo.contains(x, y, 0.25f)) {
 				logoClicked = true;
 				logoTimer = 0;
 				playButton.getImage().setAlpha(0f);
@@ -429,10 +429,10 @@ public class MainMenu extends BasicGameState {
 
 		// other button actions (if visible)
 		else if (logoClicked) {
-			if (logo.contains(x, y) || playButton.contains(x, y)) {
+			if (logo.contains(x, y, 0.25f) || playButton.contains(x, y, 0.25f)) {
 				SoundController.playSound(SoundEffect.MENUHIT);
 				game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
-			} else if (exitButton.contains(x, y))
+			} else if (exitButton.contains(x, y, 0.25f))
 				container.exit();
 		}
 	}

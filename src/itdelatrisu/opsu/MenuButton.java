@@ -243,6 +243,24 @@ public class MenuButton {
 	}
 
 	/**
+	 * Returns true if the coordinates are within the button bounds and the
+	 * pixel at the specified location has an alpha level above the given bound.
+	 * @param cx the x coordinate
+	 * @param cy the y coordinate
+	 * @param alpha the alpha level lower bound
+	 */
+	public boolean contains(float cx, float cy, float alpha) {
+		Image image = this.img;
+		if (image == null)
+			image = anim.getCurrentFrame();
+		float xRad = img.getWidth() / 2f, yRad = img.getHeight() / 2f;
+
+		return ((cx > x - xRad && cx < x + xRad) &&
+				(cy > y - yRad && cy < y + yRad) &&
+				image.getAlphaAt((int) (cx - (x - xRad)), (int) (cy - (y - yRad))) > alpha);
+	}
+
+	/**
 	 * Resets the hover fields for the button.
 	 */
 	public void resetHover() {
@@ -325,9 +343,31 @@ public class MenuButton {
 	 * @param cy the y coordinate
 	 */
 	public void hoverUpdate(int delta, float cx, float cy) {
+		hoverUpdate(delta, contains(cx, cy));
+	}
+
+	/**
+	 * Processes a hover action depending on whether or not the cursor
+	 * is hovering over the button, only if the specified pixel of the
+	 * image has an alpha level above the given bound.
+	 * @param delta the delta interval
+	 * @param cx the x coordinate
+	 * @param cy the y coordinate
+	 * @param alpha the alpha level lower bound
+	 */
+	public void hoverUpdate(int delta, float cx, float cy, float alpha) {
+		hoverUpdate(delta, contains(cx, cy, alpha));
+	}
+
+	/**
+	 * Processes a hover action depending on whether or not the cursor
+	 * is hovering over the button.
+	 * @param delta the delta interval
+	 * @param isHover true if the cursor is currently hovering over the button
+	 */
+	public void hoverUpdate(int delta, boolean isHover) {
 		if (hoverEffect == 0)
 			return;
-		boolean isHover = contains(cx, cy);
 
 		// scale the button
 		if ((hoverEffect & EFFECT_EXPAND) > 0) {

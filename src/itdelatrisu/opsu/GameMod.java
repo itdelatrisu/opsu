@@ -226,7 +226,7 @@ public enum GameMod {
 	 */
 	GameMod(Category category, int categoryIndex, GameImage image, String abbrev,
 			int bit, int key, float multiplier, String description) {
-		this(category, categoryIndex, image, abbrev, bit, key, 1f, true, description);
+		this(category, categoryIndex, image, abbrev, bit, key, multiplier, true, description);
 	}
 
 	/**
@@ -356,16 +356,6 @@ public enum GameMod {
 	public boolean contains(float x, float y) { return button.contains(x, y); }
 
 	/**
-	 * Returns the center x coordinate of the button.
-	 */
-	public float getButtonX() { return button.getX(); }
-
-	/**
-	 * Returns the center y coordinate of the button.
-	 */
-	public float getButtonY() { return button.getY(); }
-
-	/**
 	 * Resets the hover fields for the button.
 	 */
 	public void resetHover() { button.resetHover(); }
@@ -378,4 +368,12 @@ public enum GameMod {
 	 * @param y the y coordinate
 	 */
 	public void hoverUpdate(int delta, float x, float y) { button.hoverUpdate(delta, x, y); }
+
+	/**
+	 * Updates the scale of the button depending on whether or not the cursor
+	 * is hovering over the button.
+	 * @param delta the delta interval
+	 * @param isHover true if the cursor is currently hovering over the button
+	 */
+	public void hoverUpdate(int delta, boolean isHover) { button.hoverUpdate(delta, isHover); }
 }
