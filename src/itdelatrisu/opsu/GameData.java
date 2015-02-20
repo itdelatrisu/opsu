@@ -557,6 +557,51 @@ public class GameData {
 			}
 		}
 
+		// hit error bar
+		if (Options.isHitErrorBarEnabled() && !hitErrorList.isEmpty()) {
+			// fade out with last tick
+			float hitErrorAlpha = 1f;
+			Color white = new Color(Color.white);
+			if (trackPosition - hitErrorList.getFirst().time > HIT_ERROR_FADE_TIME * 0.9f)
+				hitErrorAlpha = (HIT_ERROR_FADE_TIME - (trackPosition - hitErrorList.getFirst().time)) / (HIT_ERROR_FADE_TIME * 0.1f);
+
+			// draw bar
+			int hitErrorY = height - marginX - 30, hitErrorX = width / 2;
+			float oldAlphaBlack = Utils.COLOR_BLACK_ALPHA.a;
+			Utils.COLOR_BLACK_ALPHA.a = hitErrorAlpha;
+			g.setColor(Utils.COLOR_BLACK_ALPHA);
+			g.fillRect(hitErrorX - 3 - hitResultOffset[HIT_50],
+					hitErrorY - 10, hitResultOffset[HIT_50] * 2, 20);
+			Utils.COLOR_BLACK_ALPHA.a = oldAlphaBlack;
+			Utils.COLOR_LIGHT_ORANGE.a = hitErrorAlpha;
+			g.setColor(Utils.COLOR_LIGHT_ORANGE);
+			g.fillRect(hitErrorX - 3 - hitResultOffset[HIT_50],
+					hitErrorY - 3, hitResultOffset[HIT_50] * 2, 6);
+			Utils.COLOR_LIGHT_ORANGE.a = 1f;
+			Utils.COLOR_LIGHT_GREEN.a = hitErrorAlpha;
+			g.setColor(Utils.COLOR_LIGHT_GREEN);
+			g.fillRect(hitErrorX - 3 - hitResultOffset[HIT_100],
+					hitErrorY - 3, hitResultOffset[HIT_100] * 2, 6);
+			Utils.COLOR_LIGHT_GREEN.a = 1f;
+			Utils.COLOR_LIGHT_BLUE.a = hitErrorAlpha;
+			g.setColor(Utils.COLOR_LIGHT_BLUE);
+			g.fillRect(hitErrorX - 3 - hitResultOffset[HIT_300],
+					hitErrorY - 3, hitResultOffset[HIT_300] * 2, 6);
+			Utils.COLOR_LIGHT_BLUE.a = 1f;
+			white.a = hitErrorAlpha;
+			g.setColor(white);
+			g.fillRect(hitErrorX - 1.5f, hitErrorY - 10, 3, 20);
+
+			// draw ticks
+			for (HitErrorInfo info : hitErrorList) {
+				int time = info.time;
+				float alpha = 1 - ((float) (trackPosition - time) / HIT_ERROR_FADE_TIME);
+				white.a = alpha * hitErrorAlpha;
+				g.setColor(white);
+				g.fillRect(hitErrorX + info.timeDiff - 1, hitErrorY - 10, 2, 20);
+			}
+		}
+
 		if (!breakPeriod) {
 			// scorebar
 			float healthRatio = healthDisplay / 100f;
@@ -597,46 +642,6 @@ public class GameData {
 			// combo count
 			if (combo > 0)  // 0 isn't a combo
 				drawSymbolString(String.format("%dx", combo), 10, height - 10 - symbolHeight, 1.0f, false);
-
-			// hit error bar
-			if (Options.isHitErrorBarEnabled()) {
-				// draw bar
-				int hitErrorY = 30;
-				g.setColor(Color.black);
-				g.fillRect(width / 2f - 3 - hitResultOffset[HIT_50],
-						height - marginX - hitErrorY - 10,
-						hitResultOffset[HIT_50] * 2, 20);
-				g.setColor(Utils.COLOR_LIGHT_ORANGE);
-				g.fillRect(width / 2f - 3 - hitResultOffset[HIT_50],
-						height - marginX - hitErrorY - 3,
-						hitResultOffset[HIT_50] * 2, 6);
-				g.setColor(Utils.COLOR_LIGHT_GREEN);
-				g.fillRect(width / 2f - 3 - hitResultOffset[HIT_100],
-						height - marginX - hitErrorY - 3,
-						hitResultOffset[HIT_100] * 2, 6);
-				g.setColor(Utils.COLOR_LIGHT_BLUE);
-				g.fillRect(width / 2f - 3 - hitResultOffset[HIT_300],
-						height - marginX - hitErrorY - 3,
-						hitResultOffset[HIT_300] * 2, 6);
-				g.setColor(Color.white);
-				g.drawRect(width / 2f - 3, height - marginX - hitErrorY - 10, 6, 20);
-
-				// draw ticks
-				Color white = new Color(Color.white);
-				Iterator<HitErrorInfo> iter = hitErrorList.iterator();
-				while (iter.hasNext()) {
-					HitErrorInfo info = iter.next();
-					int time = info.time;
-					if (Math.abs(info.timeDiff) < hitResultOffset[GameData.HIT_50] &&
-					    time + HIT_ERROR_FADE_TIME > trackPosition) {
-						float alpha = 1 - ((float) (trackPosition - time) / HIT_ERROR_FADE_TIME);
-						white.a = alpha;
-						g.setColor(white);
-						g.fillRect(width / 2 + info.timeDiff - 1, height - marginX - hitErrorY - 10, 2, 20);
-					} else
-						iter.remove();
-				}
-			}
 		} else {
 			// grade
 			Grade grade = getGrade();
@@ -939,6 +944,18 @@ public class GameData {
 					comboBurstAlpha = 0f;
 			}
 		}
+
+		// hit error bar
+		if (Options.isHitErrorBarEnabled()) {
+			int trackPosition = MusicController.getPosition();
+			Iterator<HitErrorInfo> iter = hitErrorList.iterator();
+			while (iter.hasNext()) {
+				HitErrorInfo info = iter.next();
+				if (Math.abs(info.timeDiff) >= hitResultOffset[GameData.HIT_50] ||
+				    info.time + HIT_ERROR_FADE_TIME <= trackPosition)
+					iter.remove();
+			}
+		}
 	}
 
 	/**
@@ -1146,6 +1163,6 @@ public class GameData {
 	 * @param timeDiff the difference between the correct and actual hit times
 	 */
 	public void addHitError(int time, int x, int y, int timeDiff) {
-		hitErrorList.add(new HitErrorInfo(time, x, y, timeDiff));
+		hitErrorList.addFirst(new HitErrorInfo(time, x, y, timeDiff));
 	}
 }

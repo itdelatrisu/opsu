@@ -75,15 +75,15 @@ public class OptionsMenu extends BasicGameState {
 			GameOption.IGNORE_BEATMAP_SKINS,
 			GameOption.SHOW_HIT_LIGHTING,
 			GameOption.SHOW_COMBO_BURSTS,
-			GameOption.SHOW_PERFECT_HIT
+			GameOption.SHOW_PERFECT_HIT,
+			GameOption.SHOW_HIT_ERROR_BAR
 		}),
 		CUSTOM ("Custom", new GameOption[] {
 			GameOption.FIXED_CS,
 			GameOption.FIXED_HP,
 			GameOption.FIXED_AR,
 			GameOption.FIXED_OD,
-			GameOption.CHECKPOINT,
-			GameOption.SHOW_HIT_ERROR_BAR
+			GameOption.CHECKPOINT
 		});
 
 		/** Total number of tabs. */
