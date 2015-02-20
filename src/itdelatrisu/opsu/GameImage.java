@@ -134,6 +134,12 @@ public enum GameImage {
 	SPINNER_SPIN ("spinner-spin", "png"),
 	SPINNER_CLEAR ("spinner-clear", "png"),
 	SPINNER_OSU ("spinner-osu", "png"),
+	SPINNER_RPM ("spinner-rpm", "png", false, true) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy((SCORE_0.getImage().getHeight() * 1.05f) / img.getHeight());
+		}
+	},
 
 	// Game Data
 	COMBO_BURST ("comboburst", "comboburst-%d", "png"),

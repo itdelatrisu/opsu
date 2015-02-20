@@ -106,15 +106,19 @@ public class Spinner implements HitObject {
 		int timeDiff = hitObject.getTime() - trackPosition;
 		boolean spinnerComplete = (rotations >= rotationsNeeded);
 
-		// TODO: draw "OSU!" image after spinner ends
-		//GameImage.SPINNER_OSU.getImage().drawCentered(width / 2, height / 4);
-
 		// darken screen
 		g.setColor(Utils.COLOR_BLACK_ALPHA);
 		g.fillRect(0, 0, width, height);
 
 		if (timeDiff > 0)
 			return;
+
+		// rpm (TODO: make this work for Auto/Spun-Out mods)
+		int rpm = Math.abs(Math.round(sumVelocity / storedVelocities.length * 60));
+		Image rpmImg = GameImage.SPINNER_RPM.getImage();
+		rpmImg.drawCentered(width / 2f, height - rpmImg.getHeight() / 2f);
+		data.drawSymbolString(Integer.toString(rpm), (int) ((width + rpmImg.getWidth() * 0.95f) / 2f),
+				(int) (height - data.getScoreSymbolImage('0').getHeight() * 1.025f), 1f, true);
 
 		// spinner meter (subimage)
 		Image spinnerMetre = GameImage.SPINNER_METRE.getImage();
@@ -138,10 +142,6 @@ public class Spinner implements HitObject {
 			if (extraRotations > 0)
 				data.drawSymbolNumber(extraRotations * 1000, width / 2, height * 2 / 3, 1.0f);
 		}
-
-		// TODO: add rpm meter at bottom of spinner
-		// TODO 2: make this work for Auto/Spun-Out mods
-//		int rpm = Math.abs(Math.round(sumVelocity / storedVelocities.length * 60));
 	}
 
 	/**
@@ -150,22 +150,21 @@ public class Spinner implements HitObject {
 	 */
 	private int hitResult() {
 		// TODO: verify ratios
-
 		int result;
 		float ratio = rotations / rotationsNeeded;
 		if (ratio >= 1.0f ||
 			GameMod.AUTO.isActive() || GameMod.SPUN_OUT.isActive()) {
 			result = GameData.HIT_300;
 			SoundController.playSound(SoundEffect.SPINNEROSU);
-		} else if (ratio >= 0.8f)
+		} else if (ratio >= 0.9f)
 			result = GameData.HIT_100;
-		else if (ratio >= 0.5f)
+		else if (ratio >= 0.75f)
 			result = GameData.HIT_50;
 		else
 			result = GameData.HIT_MISS;
 
 		data.hitResult(hitObject.getEndTime(), result, width / 2, height / 2,
-				Color.transparent, true, (byte) -1);
+				Color.transparent, true, (byte) -1, true);
 		return result;
 	}
 

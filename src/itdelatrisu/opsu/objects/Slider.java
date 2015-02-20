@@ -255,10 +255,10 @@ public class Slider implements HitObject {
 		if (currentRepeats % 2 == 0) {  // last circle
 			float[] lastPos = curve.pointAt(1);
 			data.hitResult(hitObject.getTime() + (int) sliderTimeTotal, result,
-					lastPos[0],lastPos[1], color, comboEnd, hitObject.getHitSoundType());
+					lastPos[0],lastPos[1], color, comboEnd, hitObject.getHitSoundType(), false);
 		} else {  // first circle
 			data.hitResult(hitObject.getTime() + (int) sliderTimeTotal, result,
-					hitObject.getX(), hitObject.getY(), color, comboEnd, hitObject.getHitSoundType());
+					hitObject.getX(), hitObject.getY(), color, comboEnd, hitObject.getHitSoundType(), false);
 		}
 
 		return result;

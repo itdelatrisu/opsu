@@ -39,6 +39,9 @@ public class GameData {
 	/** Delta multiplier for steady HP drain. */
 	public static final float HP_DRAIN_MULTIPLIER = 1 / 200f;
 
+	/** Time, in milliseconds, for a hit result to fade. */
+	public static final int HITRESULT_FADE_TIME = 500;
+
 	/** Time, in milliseconds, for a hit error tick to fade. */
 	private static final int HIT_ERROR_FADE_TIME = 5000;
 
@@ -207,6 +210,9 @@ public class GameData {
 		/** Combo color. */
 		public Color color;
 
+		/** Whether the hit object was a spinner. */
+		public boolean isSpinner;
+
 		/** Alpha level (for fading out). */
 		public float alpha = 1f;
 
@@ -217,13 +223,15 @@ public class GameData {
 		 * @param x the center x coordinate
 		 * @param y the center y coordinate
 		 * @param color the color of the hit object
+		 * @param isSpinner whether the hit object was a spinner
 		 */
-		public OsuHitObjectResult(int time, int result, float x, float y, Color color) {
+		public OsuHitObjectResult(int time, int result, float x, float y, Color color, boolean isSpinner) {
 			this.time = time;
 			this.result = result;
 			this.x = x;
 			this.y = y;
 			this.color = color;
+			this.isSpinner = isSpinner;
 		}
 	}
 
@@ -232,6 +240,9 @@ public class GameData {
 
 	/** Displayed game score (for animation, slightly behind score). */
 	private long scoreDisplay;
+
+	/** Displayed game score percent (for animation, slightly behind score percent). */
+	private float scorePercentDisplay;
 
 	/** Current health bar percentage. */
 	private float health;
@@ -311,6 +322,7 @@ public class GameData {
 	public void clear() {
 		score = 0;
 		scoreDisplay = 0;
+		scorePercentDisplay = 0f;
 		health = 100f;
 		healthDisplay = 100f;
 		hitResultCount = new int[HIT_MAX];
@@ -435,7 +447,7 @@ public class GameData {
 	 * @param scale the scale to apply
 	 * @param rightAlign align right (true) or left (false)
 	 */
-	private void drawSymbolString(String str, int x, int y, float scale, boolean rightAlign) {
+	public void drawSymbolString(String str, int x, int y, float scale, boolean rightAlign) {
 		char[] c = str.toCharArray();
 		int cx = x;
 		if (rightAlign) {
@@ -466,7 +478,7 @@ public class GameData {
 	 * @param fixedsize the width to use for all symbols
 	 * @param rightAlign align right (true) or left (false)
 	 */
-	private void drawFixedSizeSymbolString(String str, int x, int y, float scale, float fixedsize, boolean rightAlign) {
+	public void drawFixedSizeSymbolString(String str, int x, int y, float scale, float fixedsize, boolean rightAlign) {
 		char[] c = str.toCharArray();
 		int cx = x;
 		if (rightAlign) {
@@ -506,11 +518,9 @@ public class GameData {
 
 		// score percentage
 		int symbolHeight = getScoreSymbolImage('0').getHeight();
-		float scorePercent = getScorePercent();
 		drawSymbolString(
-				String.format((scorePercent < 10f) ? "0%.2f%%" : "%.2f%%", scorePercent),
-				width - marginX, symbolHeight, 0.60f, true
-		);
+				String.format((scorePercentDisplay < 10f) ? "0%.2f%%" : "%.2f%%", scorePercentDisplay),
+				width - marginX, symbolHeight, 0.60f, true);
 
 		// map progress circle
 		g.setAntiAlias(true);
@@ -771,20 +781,27 @@ public class GameData {
 	 * @param trackPosition the current track position
 	 */
 	public void drawHitResults(int trackPosition) {
-		final int fadeDelay = 500;
-
 		Iterator<OsuHitObjectResult> iter = hitResultList.iterator();
 		while (iter.hasNext()) {
 			OsuHitObjectResult hitResult = iter.next();
-			if (hitResult.time + fadeDelay > trackPosition) {
+			if (hitResult.time + HITRESULT_FADE_TIME > trackPosition) {
+				// hit result
 				hitResults[hitResult.result].setAlpha(hitResult.alpha);
-				hitResult.alpha = 1 - ((float) (trackPosition - hitResult.time) / fadeDelay);
 				hitResults[hitResult.result].drawCentered(hitResult.x, hitResult.y);
+				hitResults[hitResult.result].setAlpha(1f);
+
+				// spinner
+				if (hitResult.isSpinner && hitResult.result != HIT_MISS) {
+					Image spinnerOsu = GameImage.SPINNER_OSU.getImage();
+					spinnerOsu.setAlpha(hitResult.alpha);
+					spinnerOsu.drawCentered(width / 2, height / 4);
+					spinnerOsu.setAlpha(1f);
+				}
 
 				// hit lighting
-				if (Options.isHitLightingEnabled() && hitResult.result != HIT_MISS &&
+				else if (Options.isHitLightingEnabled() && hitResult.result != HIT_MISS &&
 					hitResult.result != HIT_SLIDER30 && hitResult.result != HIT_SLIDER10) {
-					float scale = 1f + ((trackPosition - hitResult.time) / (float) fadeDelay);
+					float scale = 1f + ((trackPosition - hitResult.time) / (float) HITRESULT_FADE_TIME);
 					Image scaledLighting  = GameImage.LIGHTING.getImage().getScaledCopy(scale);
 					Image scaledLighting1 = GameImage.LIGHTING1.getImage().getScaledCopy(scale);
 					scaledLighting.setAlpha(hitResult.alpha);
@@ -795,6 +812,8 @@ public class GameData {
 					scaledLighting1.draw(hitResult.x - (scaledLighting1.getWidth() / 2f),
 							hitResult.y - (scaledLighting1.getHeight() / 2f), hitResult.color);
 				}
+
+				hitResult.alpha = 1 - ((float) (trackPosition - hitResult.time) / HITRESULT_FADE_TIME);
 			} else
 				iter.remove();
 		}
@@ -901,7 +920,7 @@ public class GameData {
 	}
 
 	/**
-	 * Updates the score, health, and combo burst displays based on a delta value.
+	 * Updates displayed elements based on a delta value.
 	 * @param delta the delta interval since the last call
 	 */
 	public void updateDisplays(int delta) {
@@ -910,6 +929,20 @@ public class GameData {
 			scoreDisplay += (score - scoreDisplay) * delta / 50 + 1;
 			if (scoreDisplay > score)
 				scoreDisplay = score;
+		}
+
+		// score percent display
+		float scorePercent = getScorePercent();
+		if (scorePercentDisplay != scorePercent) {
+			if (scorePercentDisplay < scorePercent) {
+				scorePercentDisplay += (scorePercent - scorePercentDisplay) * delta / 50f + 0.01f;
+				if (scorePercentDisplay > scorePercent)
+					scorePercentDisplay = scorePercent;
+			} else {
+				scorePercentDisplay -= (scorePercentDisplay - scorePercent) * delta / 50f + 0.01f;
+				if (scorePercentDisplay < scorePercent)
+					scorePercentDisplay = scorePercent;
+			}
 		}
 
 		// health display
@@ -1027,7 +1060,7 @@ public class GameData {
 			if (!Options.isPerfectHitBurstEnabled())
 				;  // hide perfect hit results
 			else
-				hitResultList.add(new OsuHitObjectResult(time, result, x, y, null));
+				hitResultList.add(new OsuHitObjectResult(time, result, x, y, null, false));
 		}
 	}
 
@@ -1040,9 +1073,10 @@ public class GameData {
 	 * @param color the combo color
 	 * @param end true if this is the last hit object in the combo
 	 * @param hitSound the object's hit sound
+	 * @param isSpinner whether the hit object was a spinner
 	 */
 	public void hitResult(int time, int result, float x, float y, Color color,
-			boolean end, byte hitSound) {
+			boolean end, byte hitSound, boolean isSpinner) {
 		int hitValue = 0;
 		boolean perfectHit = false;
 		switch (result) {
@@ -1109,7 +1143,7 @@ public class GameData {
 		if (perfectHit && !Options.isPerfectHitBurstEnabled())
 			;  // hide perfect hit results
 		else
-			hitResultList.add(new OsuHitObjectResult(time, result, x, y, color));
+			hitResultList.add(new OsuHitObjectResult(time, result, x, y, color, isSpinner));
 	}
 
 	/**
