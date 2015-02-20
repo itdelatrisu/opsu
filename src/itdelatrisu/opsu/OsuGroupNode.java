@@ -54,17 +54,11 @@ public class OsuGroupNode {
 	 * Draws the button.
 	 * @param x the x coordinate
 	 * @param y the y coordinate
-	 * @param headerY the header end y coordinate (for cropping)
-	 * @param footerY the footer start y coordinate (for cropping)
 	 * @param grade the highest grade, if any
 	 * @param focus true if this is the focused node
 	 */
-	public void draw(float x, float y, float headerY, float footerY, Grade grade, boolean focus) {
-		// don't draw if out of bounds
+	public void draw(float x, float y, Grade grade, boolean focus) {
 		Image bg = GameImage.MENU_BUTTON_BG.getImage();
-		if (y + bg.getHeight() < headerY || y > footerY)
-			return;
-
 		boolean expanded = (osuFileIndex > -1);
 		OsuFile osu;
 		bg.setAlpha(0.9f);
@@ -72,7 +66,7 @@ public class OsuGroupNode {
 		Color textColor = Color.lightGray;
 
 		// get drawing parameters
-		if (expanded) {  // expanded
+		if (expanded) {
 			x -= bg.getWidth() / 10f;
 			if (focus) {
 				bgColor = Color.white;
@@ -84,18 +78,7 @@ public class OsuGroupNode {
 			bgColor = Utils.COLOR_ORANGE_BUTTON;
 			osu = osuFiles.get(0);
 		}
-
-		// crop image if necessary
-		if (y < headerY) {
-			int cropHeight = (int) (headerY - y);
-			Image bgCropped = bg.getSubImage(0, cropHeight, bg.getWidth(), bg.getHeight() - cropHeight);
-			bgCropped.draw(x, headerY, bgColor);
-		} else if (y + bg.getHeight() > footerY) {
-			int cropHeight = (int) (footerY - y);
-			Image bgCropped = bg.getSubImage(0, 0, bg.getWidth(), cropHeight);
-			bgCropped.draw(x, y, bgColor);
-		} else
-			bg.draw(x, y, bgColor);
+		bg.draw(x, y, bgColor);
 
 		float cx = x + (bg.getWidth() * 0.05f);
 		float cy = y + (bg.getHeight() * 0.2f) - 3;
@@ -107,17 +90,11 @@ public class OsuGroupNode {
 			cx += gradeImg.getWidth();
 		}
 
-		// draw text (TODO: crop text)
-		float textY = cy;
-		if (textY + Utils.FONT_MEDIUM.getLineHeight() >= headerY && textY <= footerY)
-			Utils.FONT_MEDIUM.drawString(cx, cy, osu.getTitle(), textColor);
-		textY += Utils.FONT_MEDIUM.getLineHeight() - 4;
-		if (textY + Utils.FONT_MEDIUM.getLineHeight() >= headerY && textY <= footerY)
-			Utils.FONT_DEFAULT.drawString(cx, cy + Utils.FONT_MEDIUM.getLineHeight() - 4,
-					String.format("%s // %s", osu.getArtist(), osu.creator), textColor);
-		textY += Utils.FONT_MEDIUM.getLineHeight() - 4;
-		if ((textY + Utils.FONT_BOLD.getLeading() >= headerY && textY <= footerY) &&
-		    (expanded || osuFiles.size() == 1))
+		// draw text
+		Utils.FONT_MEDIUM.drawString(cx, cy, osu.getTitle(), textColor);
+		Utils.FONT_DEFAULT.drawString(cx, cy + Utils.FONT_MEDIUM.getLineHeight() - 4,
+				String.format("%s // %s", osu.getArtist(), osu.creator), textColor);
+		if (expanded || osuFiles.size() == 1)
 			Utils.FONT_BOLD.drawString(cx, cy + Utils.FONT_MEDIUM.getLineHeight() + Utils.FONT_DEFAULT.getLineHeight() - 8,
 					osu.version, textColor);
 	}

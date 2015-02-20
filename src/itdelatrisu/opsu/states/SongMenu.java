@@ -292,14 +292,34 @@ public class SongMenu extends BasicGameState {
 				GameImage.PLAYFIELD.getImage().draw();
 		}
 
+		// song buttons
+		OsuGroupNode node = startNode;
+		int songButtonIndex = 0;
+		if (node != null && node.prev != null) {
+			node = node.prev;
+			songButtonIndex = -1;
+		}
+		g.setClip(0, (int) (headerY + DIVIDER_LINE_WIDTH / 2), width, (int) (footerY - headerY));
+		for (int i = songButtonIndex; i <= MAX_SONG_BUTTONS && node != null; i++, node = node.next) {
+			// draw the node
+			float offset = (i == hoverIndex) ? hoverOffset : 0f;
+			ScoreData[] scores = getScoreDataForNode(node, false);
+			node.draw(buttonX - offset, buttonY + (i*buttonOffset) + DIVIDER_LINE_WIDTH / 2,
+			          (scores == null) ? Grade.NULL : scores[0].getGrade(), (node == focusNode));
+
+			// load glyphs
+			Utils.loadGlyphs(node.osuFiles.get(0));
+		}
+		g.clearClip();
+
 		// top/bottom bars
-		g.setColor(Color.black);
+		g.setColor(Utils.COLOR_BLACK_ALPHA);
 		g.fillRect(0, 0, width, headerY);
 		g.fillRect(0, footerY, width, height - footerY);
 		g.setColor(Utils.COLOR_BLUE_DIVIDER);
 		g.setLineWidth(DIVIDER_LINE_WIDTH);
 		g.drawLine(0, headerY, width, headerY);
-		g.drawLine(0, footerY - DIVIDER_LINE_WIDTH / 2, width, footerY - DIVIDER_LINE_WIDTH / 2);
+		g.drawLine(0, footerY, width, footerY);
 		g.resetLineWidth();
 
 		// header
@@ -325,28 +345,6 @@ public class SongMenu extends BasicGameState {
 			Utils.FONT_DEFAULT.drawString(marginX, headerTextY, songInfo[3], Color.white);
 			headerTextY += Utils.FONT_DEFAULT.getLineHeight() - 4;
 			Utils.FONT_SMALL.drawString(marginX, headerTextY, songInfo[4], Color.white);
-		}
-
-		// song buttons
-		OsuGroupNode node = startNode;
-		int songButtonIndex = 0;
-		if (node != null && node.prev != null) {
-			node = node.prev;
-			songButtonIndex = -1;
-		}
-		for (int i = songButtonIndex; i <= MAX_SONG_BUTTONS && node != null; i++, node = node.next) {
-			// draw the node
-			float offset = (i == hoverIndex) ? hoverOffset : 0f;
-			ScoreData[] scores = getScoreDataForNode(node, false);
-			node.draw(
-					buttonX - offset, buttonY + (i*buttonOffset) + DIVIDER_LINE_WIDTH / 2,
-					headerY + DIVIDER_LINE_WIDTH / 2, footerY - DIVIDER_LINE_WIDTH,
-					(scores == null) ? Grade.NULL : scores[0].getGrade(),
-					(node == focusNode)
-			);
-
-			// load glyphs
-			Utils.loadGlyphs(node.osuFiles.get(0));
 		}
 
 		// score buttons
