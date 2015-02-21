@@ -163,7 +163,7 @@ public class SoundController {
 
 	/**
 	 * Returns the sound file name, with extension, by first looking through
-	 * the skins directory and then the default images.
+	 * the skins directory and then the default resource locations.
 	 * @param filename the base file name
 	 * @return the full file name, or null if no file found
 	 */

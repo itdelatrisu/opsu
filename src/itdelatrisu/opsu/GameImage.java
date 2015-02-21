@@ -25,6 +25,7 @@ import java.util.List;
 import org.newdawn.slick.Animation;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.SlickException;
+import org.newdawn.slick.util.ResourceLoader;
 
 /**
  * Game images.
@@ -537,16 +538,41 @@ public enum GameImage {
 	}
 
 	/**
-	 * Returns a list of possible filenames (with extensions).
-	 * @return filename list
+	 * Returns the image file name, with extension, by first looking through
+	 * the given directory and then the default resource locations (unless
+	 * dirOnly is true).
+	 * @param filename the base file name
+	 * @param dir the directory to search first (if non-null)
+	 * @param type the file type bitmask (IMG_*)
+	 * @param dirOnly if true and dir is non-null, will not search default resource locations
+	 * @return the full file name, or null if no file found
 	 */
-	private static List<String> getFileNames(String filename, byte type) {
-		List<String> list = new ArrayList<String>(2);
+	private static String getImageFileName(String filename, File dir, byte type, boolean dirOnly) {
+		ArrayList<String> names = new ArrayList<String>(2);
 		if ((type & IMG_PNG) != 0)
-			list.add(String.format("%s.png", filename));
+			names.add(String.format("%s.png", filename));
 		if ((type & IMG_JPG) != 0)
-			list.add(String.format("%s.jpg", filename));
-		return list;
+			names.add(String.format("%s.jpg", filename));
+		int size = names.size();
+
+		// look through directory
+		if (dir != null) {
+			for (int i = 0; i < size; i++) {
+				File file = new File(dir, names.get(i));
+				if (file.isFile())
+					return file.getAbsolutePath();
+			}
+		}
+
+		// look through default resource path
+		if (!dirOnly || dir == null) {
+			for (int i = 0; i < size; i++) {
+				if (ResourceLoader.resourceExists(names.get(i)))
+					return names.get(i);
+			}
+		}
+
+		return null;
 	}
 
 	/**
@@ -661,25 +687,28 @@ public enum GameImage {
 		// load image array
 		if (filenameFormat != null) {
 			List<Image> list = new ArrayList<Image>();
+			File dir = Options.getSkinDir();
 			int i = 0;
-			boolean loaded;
-			do {
-				loaded = false;
-				for (String name : getFileNames(String.format(filenameFormat, i), type)) {
-					try {
-						// try loading the image
-						Image img = new Image(name);
-
-						// image successfully loaded
-						list.add(img);
-						loaded = true;
-						break;
-					} catch (SlickException | RuntimeException e) {
-						continue;
-					}
+			while (true) {
+				// look for next image
+				String filenameFormatted = String.format(filenameFormat, i++);
+				String name = getImageFileName(filenameFormatted, dir, type, true);
+				if (i == 1 && name == null) {  // first image: check other location
+					dir = null;
+					name = getImageFileName(filenameFormatted, dir, type, true);
 				}
-				i++;
-			} while (loaded);
+				if (name == null)
+					break;
+
+				// add image to list
+				try {
+					Image img = new Image(name);
+					list.add(img);
+				} catch (SlickException e) {
+					ErrorHandler.error(String.format("Failed to set default image '%s'.", name), null, false);
+					break;
+				}
+			}
 			if (!list.isEmpty()) {
 				this.defaultImages = list.toArray(new Image[list.size()]);
 				process();
@@ -688,20 +717,18 @@ public enum GameImage {
 		}
 
 		// load single image
-		for (String name : getFileNames(filename, type)) {
-			try {
-				// try loading the image
-				Image img = new Image(name);
-
-				// image successfully loaded
-				this.defaultImage = img;
-				process();
-				return;
-			} catch (SlickException | RuntimeException e) {
-				continue;
-			}
+		String name = getImageFileName(filename, Options.getSkinDir(), type, false);
+		if (name == null) {
+			ErrorHandler.error(String.format("Could not find image '%s'.", filename), null, false);
+			return;
 		}
-		ErrorHandler.error(String.format("Failed to set default image '%s'.", filename), null, false);
+		try {
+			Image img = new Image(name);
+			this.defaultImage = img;
+			process();
+		} catch (SlickException e) {
+			ErrorHandler.error(String.format("Failed to set default image '%s'.", filename), null, false);
+		}
 	}
 
 	/**
@@ -724,27 +751,22 @@ public enum GameImage {
 		if (filenameFormat != null) {
 			List<Image> list = new ArrayList<Image>();
 			int i = 0;
-			boolean loaded;
-			do {
-				loaded = false;
-				for (String name : getFileNames(String.format(filenameFormat, i), type)) {
-					File file = new File(dir, name);
-					if (!file.isFile())
-						continue;
-					try {
-						// try loading the image
-						Image img = new Image(file.getAbsolutePath());
+			while (true) {
+				// look for next image
+				String filenameFormatted = String.format(filenameFormat, i++);
+				String name = getImageFileName(filenameFormatted, dir, type, true);
+				if (name == null)
+					break;
 
-						// image successfully loaded
-						list.add(img);
-						loaded = true;
-						break;
-					} catch (SlickException | RuntimeException e) {
-						continue;
-					}
+				// add image to list
+				try {
+					Image img = new Image(name);
+					list.add(img);
+				} catch (SlickException e) {
+					ErrorHandler.error(String.format("Failed to set skin image '%s'.", name), null, false);
+					break;
 				}
-				i++;
-			} while (loaded);
+			}
 			if (!list.isEmpty()) {
 				this.skinImages = list.toArray(new Image[list.size()]);
 				process();
@@ -753,27 +775,18 @@ public enum GameImage {
 		}
 
 		// look for a skin image
-		String errorFile = null;
-		for (String name : getFileNames(filename, type)) {
-			File file = new File(dir, name);
-			if (!file.isFile())
-				continue;
-			try {
-				// try loading the image
-				Image img = new Image(file.getAbsolutePath());
-
-				// image successfully loaded
-				this.skinImage = img;
-				process();
-				return true;
-			} catch (SlickException | RuntimeException e) {
-				errorFile = file.getAbsolutePath();
-				continue;
-			}
+		String name = getImageFileName(filename, dir, type, true);
+		if (name == null)
+			return false;
+		try {
+			Image img = new Image(name);
+			this.skinImage = img;
+			process();
+			return true;
+		} catch (SlickException e) {
+			skinImage = null;
+			ErrorHandler.error(String.format("Failed to set skin image '%s'.", name), null, false);
 		}
-		skinImage = null;
-		if (errorFile != null)
-			ErrorHandler.error(String.format("Failed to set skin image '%s'.", errorFile), null, false);
 		return false;
 	}
 
