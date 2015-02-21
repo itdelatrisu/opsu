@@ -24,6 +24,7 @@ import itdelatrisu.opsu.OsuHitObject;
 import itdelatrisu.opsu.audio.HitSound.SampleSet;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 
 import javax.sound.sampled.AudioFormat;
@@ -71,16 +72,85 @@ public class SoundController {
 	private static Clip loadClip(String ref) {
 		try {
 			URL url = ResourceLoader.getResource(ref);
+			//check for 0 length wav files
+			InputStream in = url.openStream();
+			if(in.available()==0){
+				in.close();
+				return AudioSystem.getClip();
+			}
+			in.close();
+			
 			AudioInputStream audioIn = AudioSystem.getAudioInputStream(url);
 
 			// GNU/Linux workaround
 //			Clip clip = AudioSystem.getClip();
 			AudioFormat format = audioIn.getFormat();
 			DataLine.Info info = new DataLine.Info(Clip.class, format);
-			Clip clip = (Clip) AudioSystem.getLine(info);
-
-			clip.open(audioIn);
-			return clip;
+			if(AudioSystem.isLineSupported(info)){
+				Clip clip = (Clip) AudioSystem.getLine(info);
+				clip.open(audioIn);
+				return clip;
+			}else{
+				//Try to find closest matching line
+				Clip clip = AudioSystem.getClip();
+				AudioFormat[] formats = ((DataLine.Info) clip.getLineInfo())
+						.getFormats();
+				int bestIndex = -1;
+				float bestScore = 0;
+				float sampleRate = format.getSampleRate();
+				if (sampleRate < 0) {
+					sampleRate = clip.getFormat().getSampleRate();
+				}
+				float oldSampleRate = sampleRate;
+				while (true) {
+					for (int i = 0; i < formats.length; i++) {
+						AudioFormat curFormat = formats[i];
+						AudioFormat newFormat = new AudioFormat(sampleRate,
+								curFormat.getSampleSizeInBits(),
+								curFormat.getChannels(), true,
+								curFormat.isBigEndian());
+						formats[i] = newFormat;
+						DataLine.Info newLine = new DataLine.Info(Clip.class,
+								newFormat);
+						if (AudioSystem.isLineSupported(newLine)
+								&& AudioSystem.isConversionSupported(newFormat,
+										format)) {
+							float score = 1
+									+ (newFormat.getSampleRate() == sampleRate ? 5 : 0)
+									+ (newFormat.getSampleSizeInBits() == format.getSampleSizeInBits() ? 5 : 0)
+									+ (newFormat.getChannels() == format.getChannels() ? 5 : 0)
+									+ (newFormat.isBigEndian() == format.isBigEndian() ? 1 : 0)
+									+ newFormat.getSampleRate() / 11025
+									+ newFormat.getChannels()
+									+ newFormat.getSampleSizeInBits() / 8;
+							if (score > bestScore) {
+								bestIndex = i;
+								bestScore = score;
+							}
+						}
+					}
+					if (bestIndex < 0) {
+						if (oldSampleRate < 44100) {
+							if (sampleRate > 44100)
+								break;
+							sampleRate *= 2;
+						} else {
+							if (sampleRate < 44100)
+								break;
+							sampleRate /= 2;
+						}
+					} else
+						break;
+				}
+				if (bestIndex >= 0) {
+					clip.open(AudioSystem.getAudioInputStream(
+							formats[bestIndex], audioIn));
+				} else
+					// still couldn't find anything, try the default clip format
+					clip.open(AudioSystem.getAudioInputStream(clip.getFormat(),
+							audioIn));
+				return clip;
+			}
 		} catch (UnsupportedAudioFileException | IOException | LineUnavailableException | RuntimeException e) {
 			ErrorHandler.error(String.format("Failed to load file '%s'.", ref), e, true);
 		}
