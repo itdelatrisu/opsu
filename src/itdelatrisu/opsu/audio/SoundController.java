@@ -23,6 +23,7 @@ import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.OsuHitObject;
 import itdelatrisu.opsu.audio.HitSound.SampleSet;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -67,54 +68,59 @@ public class SoundController {
 	/**
 	 * Loads and returns a Clip from a resource.
 	 * @param ref the resource name
+	 * @param isMP3 true if MP3, false if WAV
 	 * @return the loaded and opened clip
 	 */
-	private static Clip loadClip(String ref) {
+	private static Clip loadClip(String ref, boolean isMP3) {
 		try {
 			URL url = ResourceLoader.getResource(ref);
-			//check for 0 length wav files
+
+			// check for 0 length files
 			InputStream in = url.openStream();
-			if(in.available()==0){
+			if (in.available() == 0) {
 				in.close();
 				return AudioSystem.getClip();
 			}
 			in.close();
-			
+
 			AudioInputStream audioIn = AudioSystem.getAudioInputStream(url);
 
 			// GNU/Linux workaround
 //			Clip clip = AudioSystem.getClip();
 			AudioFormat format = audioIn.getFormat();
+			if (isMP3) {
+				AudioFormat decodedFormat = new AudioFormat(
+						AudioFormat.Encoding.PCM_SIGNED, format.getSampleRate(), 16,
+						format.getChannels(), format.getChannels() * 2, format.getSampleRate(), false);
+				AudioInputStream decodedAudioIn = AudioSystem.getAudioInputStream(decodedFormat, audioIn);
+				format = decodedFormat;
+				audioIn = decodedAudioIn;
+			}
 			DataLine.Info info = new DataLine.Info(Clip.class, format);
-			if(AudioSystem.isLineSupported(info)){
+			if (AudioSystem.isLineSupported(info)) {
 				Clip clip = (Clip) AudioSystem.getLine(info);
 				clip.open(audioIn);
 				return clip;
-			}else{
-				//Try to find closest matching line
+			} else {
+				// try to find closest matching line
 				Clip clip = AudioSystem.getClip();
-				AudioFormat[] formats = ((DataLine.Info) clip.getLineInfo())
-						.getFormats();
+				AudioFormat[] formats = ((DataLine.Info) clip.getLineInfo()).getFormats();
 				int bestIndex = -1;
 				float bestScore = 0;
 				float sampleRate = format.getSampleRate();
-				if (sampleRate < 0) {
+				if (sampleRate < 0)
 					sampleRate = clip.getFormat().getSampleRate();
-				}
 				float oldSampleRate = sampleRate;
 				while (true) {
 					for (int i = 0; i < formats.length; i++) {
 						AudioFormat curFormat = formats[i];
-						AudioFormat newFormat = new AudioFormat(sampleRate,
-								curFormat.getSampleSizeInBits(),
-								curFormat.getChannels(), true,
-								curFormat.isBigEndian());
+						AudioFormat newFormat = new AudioFormat(
+								sampleRate, curFormat.getSampleSizeInBits(),
+								curFormat.getChannels(), true, curFormat.isBigEndian());
 						formats[i] = newFormat;
-						DataLine.Info newLine = new DataLine.Info(Clip.class,
-								newFormat);
-						if (AudioSystem.isLineSupported(newLine)
-								&& AudioSystem.isConversionSupported(newFormat,
-										format)) {
+						DataLine.Info newLine = new DataLine.Info(Clip.class, newFormat);
+						if (AudioSystem.isLineSupported(newLine) &&
+						    AudioSystem.isConversionSupported(newFormat, format)) {
 							float score = 1
 									+ (newFormat.getSampleRate() == sampleRate ? 5 : 0)
 									+ (newFormat.getSampleSizeInBits() == format.getSampleSizeInBits() ? 5 : 0)
@@ -143,17 +149,35 @@ public class SoundController {
 						break;
 				}
 				if (bestIndex >= 0) {
-					clip.open(AudioSystem.getAudioInputStream(
-							formats[bestIndex], audioIn));
+					clip.open(AudioSystem.getAudioInputStream(formats[bestIndex], audioIn));
 				} else
 					// still couldn't find anything, try the default clip format
-					clip.open(AudioSystem.getAudioInputStream(clip.getFormat(),
-							audioIn));
+					clip.open(AudioSystem.getAudioInputStream(clip.getFormat(), audioIn));
 				return clip;
 			}
 		} catch (UnsupportedAudioFileException | IOException | LineUnavailableException | RuntimeException e) {
 			ErrorHandler.error(String.format("Failed to load file '%s'.", ref), e, true);
 		}
+		return null;
+	}
+
+	/**
+	 * Returns the sound file name, with extension, by first looking through
+	 * the skins directory and then the default images.
+	 * @param filename the base file name
+	 * @return the full file name, or null if no file found
+	 */
+	private static String getSoundFileName(String filename) {
+		String wav = String.format("%s.wav", filename), mp3 = String.format("%s.mp3", filename);
+		File skinWAV = new File(Options.getSkinDir(), wav), skinMP3 = new File(Options.getSkinDir(), mp3);
+		if (skinWAV.isFile())
+			return skinWAV.getAbsolutePath();
+		if (skinMP3.isFile())
+			return skinMP3.getAbsolutePath();
+		if (ResourceLoader.resourceExists(wav))
+			return wav;
+		if (ResourceLoader.resourceExists(mp3))
+			return mp3;
 		return null;
 	}
 
@@ -164,21 +188,27 @@ public class SoundController {
 		if (Options.isSoundDisabled())
 			return;
 
-		// TODO: support MP3 sounds?
 		currentFileIndex = 0;
 
 		// menu and game sounds
 		for (SoundEffect s : SoundEffect.values()) {
-			currentFileName = String.format("%s.wav", s.getFileName());
-			s.setClip(loadClip(currentFileName));
+			if ((currentFileName = getSoundFileName(s.getFileName())) == null) {
+				ErrorHandler.error(String.format("Could not find sound file '%s'.", s.getFileName()), null, false);
+				continue;
+			}
+			s.setClip(loadClip(currentFileName, currentFileName.endsWith(".mp3")));
 			currentFileIndex++;
 		}
 
 		// hit sounds
 		for (SampleSet ss : SampleSet.values()) {
 			for (HitSound s : HitSound.values()) {
-				currentFileName = String.format("%s-%s.wav", ss.getName(), s.getFileName());
-				s.setClip(ss, loadClip(currentFileName));
+				String filename = String.format("%s-%s", ss.getName(), s.getFileName());
+				if ((currentFileName = getSoundFileName(filename)) == null) {
+					ErrorHandler.error(String.format("Could not find hit sound file '%s'.", filename), null, false);
+					continue;
+				}
+				s.setClip(ss, loadClip(currentFileName, false));
 				currentFileIndex++;
 			}
 		}
