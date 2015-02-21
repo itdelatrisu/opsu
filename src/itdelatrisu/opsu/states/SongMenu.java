@@ -1106,11 +1106,11 @@ public class SongMenu extends BasicGameState {
 	/**
 	 * Sets a new focus node.
 	 * @param node the base node; it will be expanded if it isn't already
-	 * @param pos the OsuFile element to focus; if out of bounds, it will be randomly chosen
-	 * @param flag if true, startNode will be set to the first node in the group
+	 * @param osuFileIndex the OsuFile element to focus; if out of bounds, it will be randomly chosen
+	 * @param changeStartNode if true, startNode will be set to the first node in the group
 	 * @return the old focus node
 	 */
-	public OsuGroupNode setFocus(OsuGroupNode node, int pos, boolean flag) {
+	public OsuGroupNode setFocus(OsuGroupNode node, int osuFileIndex, boolean changeStartNode) {
 		if (node == null)
 			return null;
 
@@ -1126,18 +1126,18 @@ public class SongMenu extends BasicGameState {
 
 			// if start node was previously expanded, move it
 			if (startNode != null && startNode.index == expandedIndex)
-				startNode = node;
+				startNode = OsuGroupList.get().getBaseNode(startNode.index);
 		}
 
-		// check pos bounds
+		// check osuFileIndex bounds
 		int length = node.osuFiles.size();
-		if (pos < 0 || pos > length - 1)  // set a random pos
-			pos = (int) (Math.random() * length);
+		if (osuFileIndex < 0 || osuFileIndex > length - 1)  // set a random index
+			osuFileIndex = (int) (Math.random() * length);
 
 		// change the focus node
-		if (flag || (startNode.index == 0 && startNode.osuFileIndex == -1 && startNode.prev == null))
+		if (changeStartNode || (startNode.index == 0 && startNode.osuFileIndex == -1 && startNode.prev == null))
 			startNode = node;
-		focusNode = OsuGroupList.get().getNode(node, pos);
+		focusNode = OsuGroupList.get().getNode(node, osuFileIndex);
 		OsuFile osu = focusNode.osuFiles.get(focusNode.osuFileIndex);
 		MusicController.play(osu, true);
 		Utils.loadGlyphs(osu);
