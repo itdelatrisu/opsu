@@ -36,6 +36,7 @@ import java.nio.IntBuffer;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.openal.AL10;
 import org.lwjgl.openal.OpenALException;
+import org.newdawn.slick.SlickException;
 import org.newdawn.slick.util.Log;
 import org.newdawn.slick.util.ResourceLoader;
 
@@ -67,7 +68,7 @@ public class OpenALStreamPlayer {
     private int remainingBufferCount;
 	/** True if we should loop the track */
 	private boolean loop;
-	/** True if we've completed play back */
+	/** True if we've completed streaming to buffer (but may not be done playing) */
 	private boolean done = true;
 	/** The stream we're currently reading from */
 	private AudioInputStream audio;
@@ -158,6 +159,7 @@ public class OpenALStreamPlayer {
 			sampleSize = 2; // AL10.AL_FORMAT_MONO16
 //		positionOffset = 0;
 		streamPos = 0;
+		playedPos = 0;
 		
 	}
 	
@@ -180,6 +182,10 @@ public class OpenALStreamPlayer {
 		while (AL10.alGetSourcei(source, AL10.AL_BUFFERS_QUEUED) > 0) {
 			AL10.alSourceUnqueueBuffers(source, buffer);
 			buffer.clear();
+			int exc = AL10.alGetError();
+			if (exc != AL10.AL_NO_ERROR) {
+				System.out.println("removeBuffers AL ERROR, err: " + exc);
+			}
 		}
 	}
 	
@@ -189,7 +195,8 @@ public class OpenALStreamPlayer {
 	 * @param loop True if the stream should loop 
 	 * @throws IOException Indicates a failure to read from the stream
 	 */
-	public void play(boolean loop) throws IOException {
+	public synchronized void play(boolean loop) throws IOException {
+		
 		this.loop = loop;
 		initStreams();
 		
@@ -261,6 +268,10 @@ public class OpenALStreamPlayer {
 		if (state != AL10.AL_PLAYING) {
 			AL10.alSourcePlay(source);
 		}
+		int exc = AL10.alGetError();
+		if (exc != AL10.AL_NO_ERROR) {
+			System.out.println("update AL ERROR, err: " + exc);
+		}
 	}
 	
 	/**
@@ -282,6 +293,10 @@ public class OpenALStreamPlayer {
 				int format = audio.getChannels() > 1 ? AL10.AL_FORMAT_STEREO16 : AL10.AL_FORMAT_MONO16;
 				try {
 					AL10.alBufferData(bufferId, format, bufferData, audio.getRate());
+					int exc = AL10.alGetError();
+					if (exc != AL10.AL_NO_ERROR) {
+						System.out.println("stream AL ERROR, err: " + exc);
+					}
 				} catch (OpenALException e) {
 					Log.error("Failed to loop buffer: "+bufferId+" "+format+" "+count+" "+audio.getRate(), e);
 					return false;
