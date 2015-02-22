@@ -488,7 +488,7 @@ public class Options {
 	private static int targetFPSindex = 0;
 
 	/** Whether or not to show the FPS. */
-	private static boolean showFPS = false;
+	private static boolean showFPS = true;
 
 	/** Whether or not to show hit lighting effects. */
 	private static boolean showHitLighting = true;
@@ -506,7 +506,7 @@ public class Options {
 	private static int effectVolume = 70;
 
 	/** Default hit sound volume. */
-	private static int hitSoundVolume = 70;
+	private static int hitSoundVolume = 30;
 
 	/** Offset time, in milliseconds, for music position-related elements. */
 	private static int musicOffset = -150;
@@ -530,7 +530,7 @@ public class Options {
 	private static boolean showPerfectHit = true;
 
 	/** Percentage to dim background images during gameplay. */
-	private static int backgroundDim = 30;
+	private static int backgroundDim = 50;
 
 	/** Whether or not to always display the default playfield background. */
 	private static boolean forceDefaultPlayfield = false;
