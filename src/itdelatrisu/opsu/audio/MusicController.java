@@ -252,6 +252,7 @@ public class MusicController {
 	 */
 	public static void play(boolean loop) {
 		if (trackExists()) {
+			trackEnded = false;
 			if (loop)
 				player.loop();
 			else
