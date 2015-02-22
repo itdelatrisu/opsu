@@ -366,6 +366,13 @@ public class Options {
 
 			@Override
 			public void click(GameContainer container) { themeSongEnabled = !themeSongEnabled; }
+		},
+		SHOW_HIT_ERROR_BAR ("Show Hit Error Bar", "Shows precisely how accurate you were with each hit.") {
+			@Override
+			public String getValueString() { return showHitErrorBar ? "Yes" : "No"; }
+
+			@Override
+			public void click(GameContainer container) { showHitErrorBar = !showHitErrorBar; }
 		};
 
 		/** Option name. */
@@ -421,8 +428,10 @@ public class Options {
 		RES_800_600 (800, 600),
 		RES_1024_600 (1024, 600),
 		RES_1024_768 (1024, 768),
+		RES_1280_720 (1280, 720),
 		RES_1280_800 (1280, 800),
 		RES_1280_960 (1280, 960),
+		RES_1280_1024 (1280, 1024),
 		RES_1366_768 (1366, 768),
 		RES_1440_900 (1440, 900),
 		RES_1600_900 (1600, 900),
@@ -431,7 +440,8 @@ public class Options {
 		RES_1920_1080 (1920, 1080),
 		RES_1920_1200 (1920, 1200),
 		RES_2560_1440 (2560, 1440),
-		RES_2560_1600 (2560, 1600);
+		RES_2560_1600 (2560, 1600),
+		RES_3840_2160 (3840, 2160);
 
 		/** Screen dimensions. */
 		private int width, height;
@@ -481,7 +491,7 @@ public class Options {
 	private static int targetFPSindex = 0;
 
 	/** Whether or not to show the FPS. */
-	private static boolean showFPS = false;
+	private static boolean showFPS = true;
 
 	/** Whether or not to show hit lighting effects. */
 	private static boolean showHitLighting = true;
@@ -499,7 +509,7 @@ public class Options {
 	private static int effectVolume = 70;
 
 	/** Default hit sound volume. */
-	private static int hitSoundVolume = 70;
+	private static int hitSoundVolume = 30;
 
 	/** Offset time, in milliseconds, for music position-related elements. */
 	private static int musicOffset = -150;
@@ -523,7 +533,7 @@ public class Options {
 	private static boolean showPerfectHit = true;
 
 	/** Percentage to dim background images during gameplay. */
-	private static int backgroundDim = 30;
+	private static int backgroundDim = 50;
 
 	/** Whether or not to always display the default playfield background. */
 	private static boolean forceDefaultPlayfield = false;
@@ -533,6 +543,9 @@ public class Options {
 
 	/** Whether or not to play the theme song. */
 	private static boolean themeSongEnabled = true;
+
+	/** Whether or not to show the hit error bar. */
+	private static boolean showHitErrorBar = false;
 
 	/** Fixed difficulty overrides. */
 	private static float
@@ -765,7 +778,7 @@ public class Options {
 	 * Returns whether or not to play the theme song.
 	 * @return true if enabled
 	 */
-	public static boolean isThemSongEnabled() { return themeSongEnabled; }
+	public static boolean isThemeSongEnabled() { return themeSongEnabled; }
 
 	/**
 	 * Sets the track checkpoint time, if within bounds.
@@ -779,6 +792,12 @@ public class Options {
 		}
 		return false;
 	}
+
+	/**
+	 * Returns whether or not to show the hit error bar.
+	 * @return true if enabled
+	 */
+	public static boolean isHitErrorBarEnabled() { return showHitErrorBar; }
 
 	/**
 	 * Returns the left game key.
@@ -1042,6 +1061,9 @@ public class Options {
 				case "PerfectHit":
 					showPerfectHit = Boolean.parseBoolean(value);
 					break;
+				case "ScoreMeter":
+					showHitErrorBar = Boolean.parseBoolean(value);
+					break;
 				case "FixedCS":
 					fixedCS = Float.parseFloat(value);
 					break;
@@ -1147,6 +1169,8 @@ public class Options {
 			writer.write(String.format("ComboBurst = %b", showComboBursts));
 			writer.newLine();
 			writer.write(String.format("PerfectHit = %b", showPerfectHit));
+			writer.newLine();
+			writer.write(String.format("ScoreMeter = %b", showHitErrorBar));
 			writer.newLine();
 			writer.write(String.format(Locale.US, "FixedCS = %.1f", fixedCS));
 			writer.newLine();

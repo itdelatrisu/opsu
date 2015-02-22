@@ -21,7 +21,6 @@ package itdelatrisu.opsu.states;
 import fluddokt.opsu.fake.*;
 
 import itdelatrisu.opsu.GameImage;
-import itdelatrisu.opsu.GameMod;
 import itdelatrisu.opsu.MenuButton;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.Options;
@@ -79,7 +78,8 @@ public class OptionsMenu extends BasicGameState {
 			GameOption.IGNORE_BEATMAP_SKINS,
 			GameOption.SHOW_HIT_LIGHTING,
 			GameOption.SHOW_COMBO_BURSTS,
-			GameOption.SHOW_PERFECT_HIT
+			GameOption.SHOW_PERFECT_HIT,
+			GameOption.SHOW_HIT_ERROR_BAR
 		}),
 		CUSTOM ("Custom", new GameOption[] {
 			GameOption.FIXED_CS,
@@ -173,19 +173,19 @@ public class OptionsMenu extends BasicGameState {
 		int width = container.getWidth();
 		int height = container.getHeight();
 
-		// game option coordinate modifiers
-		textY = 20 + (Utils.FONT_XLARGE.getLineHeight() * 3 / 2);
-		offsetY = (int) (((height * 0.8f) - textY) / maxOptionsScreen);
-
 		// option tabs
 		Image tabImage = GameImage.MENU_TAB.getImage();
-		int subtextWidth = Utils.FONT_DEFAULT.getWidth("Click or drag an option to change it.");
 		float tabX = (width / 50) + (tabImage.getWidth() / 2f);
-		float tabY = 15 + Utils.FONT_XLARGE.getLineHeight() + (tabImage.getHeight() / 2f);
-		int tabOffset = Math.min(tabImage.getWidth(),
-				((width - subtextWidth - tabImage.getWidth()) / 2) / OptionTab.SIZE);
+		float tabY = Utils.FONT_LARGE.getLineHeight() + Utils.FONT_DEFAULT.getLineHeight() +
+				height * 0.03f + (tabImage.getHeight() / 2f);
+		int tabOffset = Math.min(tabImage.getWidth(), (width / 2) / OptionTab.SIZE);
 		for (OptionTab tab : OptionTab.values())
 			tab.button = new MenuButton(tabImage, tabX + (tab.ordinal() * tabOffset), tabY);
+
+		// game option coordinate modifiers
+		textY = (int) (tabY + tabImage.getHeight());
+		int backHeight = GameImage.MENU_BACK.getAnimation(1).getHeight();
+		offsetY = (height - textY - (backHeight * 4 / 5)) / maxOptionsScreen;
 	}
 
 	@Override
@@ -198,20 +198,20 @@ public class OptionsMenu extends BasicGameState {
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
 
 		// title
-		Utils.FONT_XLARGE.drawString(
-				(width - Utils.FONT_XLARGE.getWidth("GAME OPTIONS")) / 2, 10,
-				"GAME OPTIONS", Color.white
-		);
-		Utils.FONT_DEFAULT.drawString(
-				(width - Utils.FONT_DEFAULT.getWidth("Click or drag an option to change it.")) / 2,
-				10 + Utils.FONT_XLARGE.getLineHeight(),
-				"Click or drag an option to change it.", Color.white
-		);
+		float c = container.getWidth() * 0.02f;
+		Utils.FONT_LARGE.drawString(c, c, "Game Options", Color.white);
+		Utils.FONT_DEFAULT.drawString(c, c + Utils.FONT_LARGE.getLineHeight() * 0.9f,
+				"Click or drag an option to change it.", Color.white);
 
 		// game options
 		g.setLineWidth(1f);
-		for (int i = 0; i < currentTab.options.length; i++)
-			drawOption(currentTab.options[i], i);
+		GameOption hoverOption = (keyEntryLeft)  ? GameOption.KEY_LEFT :
+		                         (keyEntryRight) ? GameOption.KEY_RIGHT :
+		                                           getOptionAt(mouseY);
+		for (int i = 0; i < currentTab.options.length; i++) {
+			GameOption option = currentTab.options[i];
+			drawOption(option, i, hoverOption == option);
+		}
 
 		// option tabs
 		OptionTab hoverTab = null;
@@ -233,21 +233,6 @@ public class OptionsMenu extends BasicGameState {
 		float lineY = OptionTab.DISPLAY.button.getY() + (GameImage.MENU_TAB.getImage().getHeight() / 2f);
 		g.drawLine(0, lineY, width, lineY);
 		g.resetLineWidth();
-
-		// game mods
-		Utils.FONT_LARGE.drawString(width / 30, height * 0.8f, "Game Mods:", Color.white);
-		boolean descDrawn = false;
-		for (GameMod mod : GameMod.values()) {
-			mod.draw();
-			if (!descDrawn && mod.contains(mouseX, mouseY)) {
-				Utils.FONT_DEFAULT.drawString(
-						(width - Utils.FONT_DEFAULT.getWidth(mod.getDescription())) / 2,
-						height * 0.975f - Utils.FONT_DEFAULT.getLineHeight(),
-						mod.getDescription(), Color.white
-				);
-				descDrawn = true;
-			}
-		}
 
 		Utils.getBackButton().draw();
 
@@ -274,8 +259,6 @@ public class OptionsMenu extends BasicGameState {
 		Utils.updateVolumeDisplay(delta);
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
 		Utils.getBackButton().hoverUpdate(delta, mouseX, mouseY);
-		for (GameMod mod : GameMod.values())
-			mod.hoverUpdate(delta, mouseX, mouseY);
 	}
 
 	@Override
@@ -311,19 +294,8 @@ public class OptionsMenu extends BasicGameState {
 			}
 		}
 
-		// game mods
-		for (GameMod mod : GameMod.values()) {
-			if (mod.contains(x, y)) {
-				boolean prevState = mod.isActive();
-				mod.toggle(true);
-				if (mod.isActive() != prevState)
-					SoundController.playSound(SoundEffect.MENUCLICK);
-				return;
-			}
-		}
-
 		// options (click only)
-		GameOption option = getClickedOption(y);
+		GameOption option = getOptionAt(y);
 		if (option != GameOption.NULL)
 			option.click(container);
 
@@ -359,7 +331,7 @@ public class OptionsMenu extends BasicGameState {
 		diff = ((diff > 0) ? 1 : -1) * multiplier;
 
 		// options (drag only)
-		GameOption option = getClickedOption(oldy);
+		GameOption option = getOptionAt(oldy);
 		if (option != GameOption.NULL)
 			option.drag(container, diff);
 	}
@@ -402,15 +374,6 @@ public class OptionsMenu extends BasicGameState {
 				currentTab = currentTab.next();
 			SoundController.playSound(SoundEffect.MENUCLICK);
 			break;
-		default:
-			// check mod shortcut keys
-			for (GameMod mod : GameMod.values()) {
-				if (key == mod.getKey()) {
-					mod.toggle(true);
-					break;
-				}
-			}
-			break;
 		}
 	}
 
@@ -419,34 +382,33 @@ public class OptionsMenu extends BasicGameState {
 			throws SlickException {
 		currentTab = OptionTab.DISPLAY;
 		Utils.getBackButton().resetHover();
-		for (GameMod mod : GameMod.values())
-			mod.resetHover();
 	}
 
 	/**
 	 * Draws a game option.
 	 * @param option the option
 	 * @param pos the position to draw at
+	 * @param focus whether the option is currently focused
 	 */
-	private void drawOption(GameOption option, int pos) {
+	private void drawOption(GameOption option, int pos, boolean focus) {
 		int width = container.getWidth();
 		int textHeight = Utils.FONT_LARGE.getLineHeight();
 		float y = textY + (pos * offsetY);
+		Color color = (focus) ? Color.cyan : Color.white;
 
-		Utils.FONT_LARGE.drawString(width / 30, y, option.getName(), Color.white);
-		Utils.FONT_LARGE.drawString(width / 2, y, option.getValueString(), Color.white);
-		Utils.FONT_SMALL.drawString(width / 30, y + textHeight, option.getDescription(), Color.white);
+		Utils.FONT_LARGE.drawString(width / 30, y, option.getName(), color);
+		Utils.FONT_LARGE.drawString(width / 2, y, option.getValueString(), color);
+		Utils.FONT_SMALL.drawString(width / 30, y + textHeight, option.getDescription(), color);
 		g.setColor(Utils.COLOR_WHITE_ALPHA);
 		g.drawLine(0, y + textHeight, width, y + textHeight);
 	}
 
 	/**
-	 * Returns the option clicked.
-	 * If no option clicked, -1 will be returned.
+	 * Returns the option at the given y coordinate.
 	 * @param y the y coordinate
-	 * @return the option
+	 * @return the option, or GameOption.NULL if no such option exists
 	 */
-	private GameOption getClickedOption(int y) {
+	private GameOption getOptionAt(int y) {
 		GameOption option = GameOption.NULL;
 
 		if (y < textY || y > textY + (offsetY * maxOptionsScreen))

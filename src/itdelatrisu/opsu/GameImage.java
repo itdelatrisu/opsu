@@ -20,62 +20,32 @@ package itdelatrisu.opsu;
 
 import fluddokt.opsu.fake.*;
 
-import itdelatrisu.opsu.states.SongMenu;
-
 //import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 /*
+import org.newdawn.slick.Animation;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.SlickException;
+import org.newdawn.slick.util.ResourceLoader;
 */
 /**
  * Game images.
  */
 public enum GameImage {
 	// Cursor
-	CURSOR ("cursor", "png") {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy(1 + ((h - 600) / 1000f));
-		}
-	},
-	CURSOR_MIDDLE ("cursormiddle", "png") {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy(1 + ((h - 600) / 1000f));
-		}
-	},
-	CURSOR_TRAIL ("cursortrail", "png") {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy(1 + ((h - 600) / 1000f));
-		}
-	},
-	CURSOR_OLD ("cursor2", "png", false, false) {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy(1 + ((h - 600) / 1000f));
-		}
-	},
-	CURSOR_TRAIL_OLD ("cursortrail2", "png", false, false) {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy(1 + ((h - 600) / 1000f));
-		}
-	},
+	CURSOR ("cursor", "png"),
+	CURSOR_MIDDLE ("cursormiddle", "png"),
+	CURSOR_TRAIL ("cursortrail", "png"),
+	CURSOR_OLD ("cursor2", "png", false, false),
+	CURSOR_TRAIL_OLD ("cursortrail2", "png", false, false),
 
 	// Game
 	SECTION_PASS ("section-pass", "png"),
 	SECTION_FAIL ("section-fail", "png"),
 	WARNINGARROW ("play-warningarrow", "png"),
-	SKIP ("play-skip", "png") {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h * 0.1f) / img.getHeight());
-		}
-	},
+	SKIP ("play-skip", "play-skip-%d", "png"),
 	COUNTDOWN_READY ("ready", "png") {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
@@ -85,19 +55,19 @@ public enum GameImage {
 	COUNTDOWN_3 ("count3", "png") {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h / 3f) / img.getHeight());
+			return COUNTDOWN_READY.process_sub(img, w, h);
 		}
 	},
 	COUNTDOWN_2 ("count2", "png") {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h / 3f) / img.getHeight());
+			return COUNTDOWN_READY.process_sub(img, w, h);
 		}
 	},
 	COUNTDOWN_1 ("count1", "png") {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h / 3f) / img.getHeight());
+			return COUNTDOWN_READY.process_sub(img, w, h);
 		}
 	},
 	COUNTDOWN_GO ("go", "png") {
@@ -168,21 +138,18 @@ public enum GameImage {
 	SPINNER_SPIN ("spinner-spin", "png"),
 	SPINNER_CLEAR ("spinner-clear", "png"),
 	SPINNER_OSU ("spinner-osu", "png"),
+	SPINNER_RPM ("spinner-rpm", "png", false, true) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy((SCORE_0.getImage().getHeight() * 1.05f) / img.getHeight());
+		}
+	},
 
-	// Score Data
+	// Game Data
 	COMBO_BURST ("comboburst", "comboburst-%d", "png"),
-	SCOREBAR_BG ("scorebar-bg", "png") {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((w * 0.565f) / img.getWidth());
-		}
-	},
-	SCOREBAR_COLOUR ("scorebar-colour", "scorebar-colour-%d", "png") {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((w * 0.521f) / img.getWidth());
-		}
-	},
+	SCOREBAR_BG ("scorebar-bg", "png"),
+	SCOREBAR_COLOUR ("scorebar-colour", "scorebar-colour-%d", "png"),
+	//TODO scorebar-marker?
 	SCOREBAR_KI ("scorebar-ki", "png"),
 	SCOREBAR_KI_DANGER ("scorebar-kidanger", "png"),
 	SCOREBAR_KI_DANGER2 ("scorebar-kidanger2", "png"),
@@ -195,92 +162,27 @@ public enum GameImage {
 	HIT_300G ("hit300g", "png"),
 	HIT_SLIDER10 ("sliderpoint10", "png"),
 	HIT_SLIDER30 ("sliderpoint30", "png"),
-	RANKING_SS ("ranking-X", "png") {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h / 2f) / img.getHeight());
-		}
-	},
+	RANKING_SS ("ranking-X", "png"),
 	RANKING_SS_SMALL ("ranking-X-small", "png"),
-	RANKING_SSH ("ranking-XH", "png") {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h / 2f) / img.getHeight());
-		}
-	},
+	RANKING_SSH ("ranking-XH", "png"),
 	RANKING_SSH_SMALL ("ranking-XH-small", "png"),
-	RANKING_S ("ranking-S", "png") {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h / 2f) / img.getHeight());
-		}
-	},
+	RANKING_S ("ranking-S", "png"),
 	RANKING_S_SMALL ("ranking-S-small", "png"),
-	RANKING_SH ("ranking-SH", "png") {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h / 2f) / img.getHeight());
-		}
-	},
+	RANKING_SH ("ranking-SH", "png"),
 	RANKING_SH_SMALL ("ranking-SH-small", "png"),
-	RANKING_A ("ranking-A", "png") {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h / 2f) / img.getHeight());
-		}
-	},
+	RANKING_A ("ranking-A", "png"),
 	RANKING_A_SMALL ("ranking-A-small", "png"),
-	RANKING_B ("ranking-B", "png") {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h / 2f) / img.getHeight());
-		}
-	},
+	RANKING_B ("ranking-B", "png"),
 	RANKING_B_SMALL ("ranking-B-small", "png"),
-	RANKING_C ("ranking-C", "png") {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h / 2f) / img.getHeight());
-		}
-	},
+	RANKING_C ("ranking-C", "png"),
 	RANKING_C_SMALL ("ranking-C-small", "png"),
-	RANKING_D ("ranking-D", "png") {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h / 2f) / img.getHeight());
-		}
-	},
+	RANKING_D ("ranking-D", "png"),
 	RANKING_D_SMALL ("ranking-D-small", "png"),
-	RANKING_PANEL ("ranking-panel", "png") {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h * 0.63f) / img.getHeight());
-		}
-	},
-	RANKING_PERFECT ("ranking-perfect", "png") {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h * 0.16f) / img.getHeight());
-		}
-	},
-	RANKING_TITLE ("ranking-title", "png") {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h * 0.15f) / img.getHeight());
-		}
-	},
-	RANKING_MAXCOMBO ("ranking-maxcombo", "png") {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h * 0.05f) / img.getHeight());
-		}
-	},
-	RANKING_ACCURACY ("ranking-accuracy", "png") {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h * 0.05f) / img.getHeight());
-		}
-	},
+	RANKING_PANEL ("ranking-panel", "png"),
+	RANKING_PERFECT ("ranking-perfect", "png"),
+	RANKING_TITLE ("ranking-title", "png"),
+	RANKING_MAXCOMBO ("ranking-maxcombo", "png"),
+	RANKING_ACCURACY ("ranking-accuracy", "png"),
 	DEFAULT_0 ("default-0", "png"),
 	DEFAULT_1 ("default-1", "png"),
 	DEFAULT_2 ("default-2", "png"),
@@ -312,61 +214,123 @@ public enum GameImage {
 	MOD_EASY ("selection-mod-easy", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h * 0.12f) / img.getHeight());
+			return img.getScaledCopy((h / 12f) / img.getHeight());
 		}
 	},
 	MOD_NO_FAIL ("selection-mod-nofail", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h * 0.12f) / img.getHeight());
+			return MOD_EASY.process_sub(img, w, h);
 		}
 	},
 	MOD_HARD_ROCK ("selection-mod-hardrock", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h * 0.12f) / img.getHeight());
+			return MOD_EASY.process_sub(img, w, h);
 		}
 	},
 	MOD_SUDDEN_DEATH ("selection-mod-suddendeath", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h * 0.12f) / img.getHeight());
+			return MOD_EASY.process_sub(img, w, h);
 		}
 	},
 	MOD_SPUN_OUT ("selection-mod-spunout", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h * 0.12f) / img.getHeight());
+			return MOD_EASY.process_sub(img, w, h);
 		}
 	},
 	MOD_AUTO ("selection-mod-autoplay", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h * 0.12f) / img.getHeight());
+			return MOD_EASY.process_sub(img, w, h);
 		}
 	},
 	MOD_HALF_TIME ("selection-mod-halftime", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h * 0.12f) / img.getHeight());
+			return MOD_EASY.process_sub(img, w, h);
 		}
 	},
 	MOD_DOUBLE_TIME ("selection-mod-doubletime", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h * 0.12f) / img.getHeight());
+			return MOD_EASY.process_sub(img, w, h);
 		}
 	},
 	MOD_HIDDEN ("selection-mod-hidden", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h * 0.12f) / img.getHeight());
+			return MOD_EASY.process_sub(img, w, h);
 		}
 	},
 	MOD_FLASHLIGHT ("selection-mod-flashlight", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h * 0.12f) / img.getHeight());
+			return MOD_EASY.process_sub(img, w, h);
+		}
+	},
+	MOD_RELAX ("selection-mod-relax", "png", false, false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return MOD_EASY.process_sub(img, w, h);
+		}
+	},
+	MOD_AUTOPILOT ("selection-mod-relax2", "png", false, false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return MOD_EASY.process_sub(img, w, h);
+		}
+	},
+
+	// Selection Buttons
+	SELECTION_MODS ("selection-mods", "png", false, false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy((h * 0.115f) / img.getHeight());
+		}
+	},
+	SELECTION_MODS_OVERLAY ("selection-mods-over", "png", false, false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return SELECTION_MODS.process_sub(img, w, h);
+		}
+	},
+	SELECTION_RANDOM ("selection-random", "png", false, false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return SELECTION_MODS.process_sub(img, w, h);
+		}
+	},
+	SELECTION_RANDOM_OVERLAY ("selection-random-over", "png", false, false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return SELECTION_MODS.process_sub(img, w, h);
+		}
+	},
+	SELECTION_OPTIONS ("selection-options", "png", false, false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return SELECTION_MODS.process_sub(img, w, h);
+		}
+	},
+	SELECTION_OPTIONS_OVERLAY ("selection-options-over", "png", false, false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return SELECTION_MODS.process_sub(img, w, h);
+		}
+	},
+	SELECTION_OTHER_OPTIONS ("selection-selectoptions", "png", false, false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return SELECTION_MODS.process_sub(img, w, h);
+		}
+	},
+	SELECTION_OTHER_OPTIONS_OVERLAY ("selection-selectoptions-over", "png", false, false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return SELECTION_MODS.process_sub(img, w, h);
 		}
 	},
 
@@ -377,47 +341,25 @@ public enum GameImage {
 			return img.getScaledCopy((h * 0.3f) / img.getHeight());
 		}
 	},
-	MENU_BACK ("menu-back", "png", false, false) {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h * 0.1f) / img.getHeight());
-		}
-	},
-	MENU_BUTTON_BG ("menu-button-background", "png", false, false) {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy(w / 2, h / SongMenu.MAX_SONG_BUTTONS);
-		}
-	},
+	MENU_BACK ("menu-back", "menu-back-%d", "png"),
+	MENU_BUTTON_BG ("menu-button-background", "png", false, false),
 	MENU_TAB ("selection-tab", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
 			return img.getScaledCopy((h * 0.033f) / img.getHeight());
 		}
 	},
-	MENU_SEARCH ("search", "png", false, false) {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy(Utils.FONT_BOLD.getLineHeight() * 2f / img.getHeight());
-		}
-	},
-	MENU_OPTIONS ("options", "png", false, false) {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy(Utils.FONT_BOLD.getLineHeight() * 2f / img.getHeight());
-		}
-	},
 	MENU_MUSICNOTE ("music-note", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			int r = (int) (Utils.FONT_LARGE.getLineHeight() * 0.75f + Utils.FONT_DEFAULT.getLineHeight());
+			int r = (int) ((Utils.FONT_LARGE.getLineHeight() + Utils.FONT_DEFAULT.getLineHeight() - 8) / getUIscale());
 			return img.getScaledCopy(r, r);
 		}
 	},
 	MENU_LOADER ("loader", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			int r = (int) (Utils.FONT_LARGE.getLineHeight() * 0.75f + Utils.FONT_DEFAULT.getLineHeight());
+			int r = (int) ((Utils.FONT_LARGE.getLineHeight() + Utils.FONT_DEFAULT.getLineHeight() - 8) / getUIscale());
 			return img.getScaledCopy(r / 48f);
 		}
 	},
@@ -449,22 +391,34 @@ public enum GameImage {
 	MENU_BUTTON_MID ("button-middle", "png", false, false),
 	MENU_BUTTON_LEFT ("button-left", "png", false, false),
 	MENU_BUTTON_RIGHT ("button-right", "png", false, false),
-	MUSIC_PLAY ("music-play", "png", false, false),
-	MUSIC_PAUSE ("music-pause", "png", false, false),
-	MUSIC_NEXT ("music-next", "png", false, false),
-	MUSIC_PREVIOUS ("music-previous", "png", false, false),
-	RANKING_RETRY ("ranking-retry", "png", false, false) {
+
+	// Music Player Buttons
+	MUSIC_PLAY ("music-play", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h * 0.15f) / img.getHeight());
+			return img.getScaledCopy((h / 18f) / img.getHeight());
 		}
 	},
-	RANKING_EXIT ("ranking-back", "png", false, false) {
+	MUSIC_PAUSE ("music-pause", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h * 0.15f) / img.getHeight());
+			return MUSIC_PLAY.process_sub(img, w, h);
 		}
 	},
+	MUSIC_NEXT ("music-next", "png", false, false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return MUSIC_PLAY.process_sub(img, w, h);
+		}
+	},
+	MUSIC_PREVIOUS ("music-previous", "png", false, false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return MUSIC_PLAY.process_sub(img, w, h);
+		}
+	},
+	RANKING_RETRY ("ranking-retry", "png", false, false),
+	RANKING_EXIT ("ranking-back", "png", false, false),
 	DOWNLOADS ("downloads", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
@@ -536,6 +490,12 @@ public enum GameImage {
 	/** Container dimensions. */
 	private static int containerWidth, containerHeight;
 
+	/** Value to scale UI components by. */
+	private static float uiscale;
+
+	/** The unscaled container height that uiscale is based on. */
+	private static final int UNSCALED_HEIGHT = 768;
+
 	/**
 	 * Initializes the GameImage class with container dimensions.
 	 * @param width the container width
@@ -544,7 +504,13 @@ public enum GameImage {
 	public static void init(int width, int height) {
 		containerWidth = width;
 		containerHeight = height;
+		uiscale = (float) containerHeight / UNSCALED_HEIGHT;
 	}
+
+	/**
+	 * Returns the UI scale.
+	 */
+	public static float getUIscale() { return uiscale; }
 
 	/**
 	 * Clears all image references.
@@ -575,16 +541,41 @@ public enum GameImage {
 	}
 
 	/**
-	 * Returns a list of possible filenames (with extensions).
-	 * @return filename list
+	 * Returns the image file name, with extension, by first looking through
+	 * the given directory and then the default resource locations (unless
+	 * dirOnly is true).
+	 * @param filename the base file name
+	 * @param dir the directory to search first (if non-null)
+	 * @param type the file type bitmask (IMG_*)
+	 * @param dirOnly if true and dir is non-null, will not search default resource locations
+	 * @return the full file name, or null if no file found
 	 */
-	private static List<String> getFileNames(String filename, byte type) {
-		List<String> list = new ArrayList<String>(2);
+	private static String getImageFileName(String filename, File dir, byte type, boolean dirOnly) {
+		ArrayList<String> names = new ArrayList<String>(2);
 		if ((type & IMG_PNG) != 0)
-			list.add(String.format("%s.png", filename));
+			names.add(String.format("%s.png", filename));
 		if ((type & IMG_JPG) != 0)
-			list.add(String.format("%s.jpg", filename));
-		return list;
+			names.add(String.format("%s.jpg", filename));
+		int size = names.size();
+
+		// look through directory
+		if (dir != null) {
+			for (int i = 0; i < size; i++) {
+				File file = new File(dir, names.get(i));
+				if (file.isFile())
+					return file.getAbsolutePath();
+			}
+		}
+
+		// look through default resource path
+		if (!dirOnly || dir == null) {
+			for (int i = 0; i < size; i++) {
+				if (ResourceLoader.resourceExists(names.get(i)))
+					return names.get(i);
+			}
+		}
+
+		return null;
 	}
 
 	/**
@@ -643,6 +634,18 @@ public enum GameImage {
 	}
 
 	/**
+	 * Returns an Animation based on the image array.
+	 * If no image array exists, returns the single image as an animation.
+	 * @param duration the duration to show each frame in the animation
+	 */
+	public Animation getAnimation(int duration){
+		Image[] images = getImages();
+		if (images == null)
+			images = new Image[] { getImage() };
+		return new Animation(images, duration);
+	}
+
+	/**
 	 * Returns the image array associated with this resource.
 	 * The skin images takes priority over the default images.
 	 */
@@ -687,25 +690,28 @@ public enum GameImage {
 		// load image array
 		if (filenameFormat != null) {
 			List<Image> list = new ArrayList<Image>();
+			File dir = Options.getSkinDir();
 			int i = 0;
-			boolean loaded;
-			do {
-				loaded = false;
-				for (String name : getFileNames(String.format(filenameFormat, i), type)) {
-					try {
-						// try loading the image
-						Image img = new Image(name);
-
-						// image successfully loaded
-						list.add(img);
-						loaded = true;
-						break;
-					} catch (SlickException | RuntimeException e) {
-						continue;
-					}
+			while (true) {
+				// look for next image
+				String filenameFormatted = String.format(filenameFormat, i++);
+				String name = getImageFileName(filenameFormatted, dir, type, true);
+				if (i == 1 && name == null) {  // first image: check other location
+					dir = null;
+					name = getImageFileName(filenameFormatted, dir, type, true);
 				}
-				i++;
-			} while (loaded);
+				if (name == null)
+					break;
+
+				// add image to list
+				try {
+					Image img = new Image(name);
+					list.add(img);
+				} catch (SlickException e) {
+					ErrorHandler.error(String.format("Failed to set default image '%s'.", name), null, false);
+					break;
+				}
+			}
 			if (!list.isEmpty()) {
 				this.defaultImages = list.toArray(new Image[list.size()]);
 				process();
@@ -714,20 +720,18 @@ public enum GameImage {
 		}
 
 		// load single image
-		for (String name : getFileNames(filename, type)) {
-			try {
-				// try loading the image
-				Image img = new Image(name);
-
-				// image successfully loaded
-				this.defaultImage = img;
-				process();
-				return;
-			} catch (SlickException | RuntimeException e) {
-				continue;
-			}
+		String name = getImageFileName(filename, Options.getSkinDir(), type, false);
+		if (name == null) {
+			ErrorHandler.error(String.format("Could not find image '%s'.", filename), null, false);
+			return;
 		}
-		ErrorHandler.error(String.format("Failed to set default image '%s'.", filename), null, false);
+		try {
+			Image img = new Image(name);
+			this.defaultImage = img;
+			process();
+		} catch (SlickException e) {
+			ErrorHandler.error(String.format("Failed to set default image '%s'.", filename), null, false);
+		}
 	}
 
 	/**
@@ -750,27 +754,22 @@ public enum GameImage {
 		if (filenameFormat != null) {
 			List<Image> list = new ArrayList<Image>();
 			int i = 0;
-			boolean loaded;
-			do {
-				loaded = false;
-				for (String name : getFileNames(String.format(filenameFormat, i), type)) {
-					File file = new File(dir, name);
-					if (!file.isFile())
-						continue;
-					try {
-						// try loading the image
-						Image img = new Image(file.getAbsolutePath());
+			while (true) {
+				// look for next image
+				String filenameFormatted = String.format(filenameFormat, i++);
+				String name = getImageFileName(filenameFormatted, dir, type, true);
+				if (name == null)
+					break;
 
-						// image successfully loaded
-						list.add(img);
-						loaded = true;
-						break;
-					} catch (SlickException | RuntimeException e) {
-						continue;
-					}
+				// add image to list
+				try {
+					Image img = new Image(name);
+					list.add(img);
+				} catch (SlickException e) {
+					ErrorHandler.error(String.format("Failed to set skin image '%s'.", name), null, false);
+					break;
 				}
-				i++;
-			} while (loaded);
+			}
 			if (!list.isEmpty()) {
 				this.skinImages = list.toArray(new Image[list.size()]);
 				process();
@@ -779,27 +778,18 @@ public enum GameImage {
 		}
 
 		// look for a skin image
-		String errorFile = null;
-		for (String name : getFileNames(filename, type)) {
-			File file = new File(dir, name);
-			if (!file.isFile())
-				continue;
-			try {
-				// try loading the image
-				Image img = new Image(file.getAbsolutePath());
-
-				// image successfully loaded
-				this.skinImage = img;
-				process();
-				return true;
-			} catch (SlickException | RuntimeException e) {
-				errorFile = file.getAbsolutePath();
-				continue;
-			}
+		String name = getImageFileName(filename, dir, type, true);
+		if (name == null)
+			return false;
+		try {
+			Image img = new Image(name);
+			this.skinImage = img;
+			process();
+			return true;
+		} catch (SlickException e) {
+			skinImage = null;
+			ErrorHandler.error(String.format("Failed to set skin image '%s'.", name), null, false);
 		}
-		skinImage = null;
-		if (errorFile != null)
-			ErrorHandler.error(String.format("Failed to set skin image '%s'.", errorFile), null, false);
 		return false;
 	}
 
@@ -867,13 +857,14 @@ public enum GameImage {
 	 * Performs individual post-loading actions on the image.
 	 */
 	private void process() {
+		int unscaledWidth = UNSCALED_HEIGHT * containerWidth / containerHeight;
 		if (skinImages != null) {
 			for (int i = 0; i < skinImages.length; i++)
-				setImage(process_sub(getImages()[i], containerWidth, containerHeight), i);
+				setImage(process_sub(getImages()[i], unscaledWidth, UNSCALED_HEIGHT).getScaledCopy(getUIscale()), i);
 		} else if (defaultImages != null && skinImage == null) {
 			for (int i = 0; i < defaultImages.length; i++)
-				setImage(process_sub(getImages()[i], containerWidth, containerHeight), i);
+				setImage(process_sub(getImages()[i], unscaledWidth, UNSCALED_HEIGHT).getScaledCopy(getUIscale()), i);
 		} else
-			setImage(process_sub(getImage(), containerWidth, containerHeight));
+			setImage(process_sub(getImage(), unscaledWidth, UNSCALED_HEIGHT).getScaledCopy(getUIscale()));
 	}
 }

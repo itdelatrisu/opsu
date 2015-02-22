@@ -24,7 +24,7 @@
  * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
-*/
+ */
 
 package org.newdawn.slick;
 
@@ -44,9 +44,13 @@ import org.newdawn.slick.util.Log;
  * @author kevin
  * @author Nathan Sweet <misc@n4te.com>
  */
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class Music {
 	/** The music currently being played or null if none */
 	private static Music currentMusic;
+	
+	/** The lock object for synchronized modification to Music*/
+	private static Object musicLock = new Object();
 	
 	/**
 	 * Poll the state of the current music. This causes streaming music
@@ -56,16 +60,18 @@ public class Music {
 	 * @param delta The amount of time since last poll
 	 */
 	public static void poll(int delta) {
-		if (currentMusic != null) {
-			SoundStore.get().poll(delta);
-			if (!SoundStore.get().isMusicPlaying()) {
-				if (!currentMusic.positioning && !currentMusic.playing) {
-					Music oldMusic = currentMusic;
-					currentMusic = null;
-					oldMusic.fireMusicEnded();
+		synchronized (musicLock) {
+			if (currentMusic != null) {
+				SoundStore.get().poll(delta);
+				if (!SoundStore.get().isMusicPlaying()) {
+					if (!currentMusic.positioning) {
+						Music oldMusic = currentMusic;
+						currentMusic = null;
+						oldMusic.fireMusicEnded();
+					}
+				} else {
+					currentMusic.update(delta);
 				}
-			} else {
-				currentMusic.update(delta);
 			}
 		}
 	}
@@ -154,7 +160,9 @@ public class Music {
 		try {
 			if (ref.toLowerCase().endsWith(".ogg") || ref.toLowerCase().endsWith(".mp3")) {
 				if (streamingHint) {
-					sound = SoundStore.get().getOggStream(url);
+					synchronized (musicLock) {
+						sound = SoundStore.get().getOggStream(url);
+					}
 				} else {
 					sound = SoundStore.get().getOgg(url.openStream());
 				}
@@ -186,7 +194,12 @@ public class Music {
 		try {
 			if (ref.toLowerCase().endsWith(".ogg") || ref.toLowerCase().endsWith(".mp3")) {
 				if (streamingHint) {
-					sound = SoundStore.get().getOggStream(ref);
+					synchronized (musicLock) {
+						//getting a stream ends the current stream....
+						//which may cause a MusicEnded instead of of MusicSwap
+						//Not that it really matters for MusicController use
+						sound = SoundStore.get().getOggStream(ref);
+					}
 				} else {
 					sound = SoundStore.get().getOgg(ref);
 				}
@@ -285,22 +298,24 @@ public class Music {
 	 * @param loop if false the music is played once, the music is looped otherwise
 	 */
 	private void startMusic(float pitch, float volume, boolean loop) {
-		if (currentMusic != null) {
-			currentMusic.stop();
-			currentMusic.fireMusicSwapped(this);
-		}
-		
-		if (volume < 0.0f)
-			volume = 0.0f;
-		if (volume > 1.0f)
-			volume = 1.0f;
-
-		playing = true;
-		currentMusic = this;
-		sound.playAsMusic(pitch, volume, loop);
-		setVolume(volume);
-		if (requiredPosition != -1) {
-			setPosition(requiredPosition);
+		synchronized (musicLock) {
+			if (currentMusic != null) {
+				currentMusic.stop();
+				currentMusic.fireMusicSwapped(this);
+			}
+			
+			if (volume < 0.0f)
+				volume = 0.0f;
+			if (volume > 1.0f)
+				volume = 1.0f;
+	
+			playing = true;
+			currentMusic = this;
+			sound.playAsMusic(pitch, volume, loop);
+			setVolume(volume);
+			if (requiredPosition != -1) {
+				setPosition(requiredPosition);
+			}
 		}
 	}
 	
@@ -316,7 +331,10 @@ public class Music {
 	 * Stop the music playing
 	 */
 	public void stop() {
-		sound.stop();
+		synchronized (musicLock) {
+			playing = false;
+			sound.stop();
+		}
 	}
 	
 	/**
@@ -413,19 +431,21 @@ public class Music {
 	 * @return True if the seek was successful
 	 */
 	public boolean setPosition(float position) {
-		if (playing) {
-			requiredPosition = -1;
-			
-			positioning = true;
-			playing = false;
-			boolean result = sound.setPosition(position);
-			playing = true;
-			positioning = false;
-
-			return result;
-		} else {
-			requiredPosition = position;
-			return false;
+		synchronized (musicLock) {
+			if (playing) {
+				requiredPosition = -1;
+				
+				positioning = true;
+				playing = false;
+				boolean result = sound.setPosition(position);
+				playing = true;
+				positioning = false;
+	
+				return result;
+			} else {
+				requiredPosition = position;
+				return false;
+			}
 		}
 	}
 

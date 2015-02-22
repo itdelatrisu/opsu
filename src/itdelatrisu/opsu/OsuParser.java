@@ -556,6 +556,7 @@ public class OsuParser {
 			int comboNumber = 1;  // combo number
 
 			int objectIndex = 0;
+			boolean first = true;
 			while ((line = in.readLine()) != null && objectIndex < osu.objects.length) {
 				line = line.trim();
 				if (!isValidLine(line))
@@ -575,10 +576,15 @@ public class OsuParser {
 					// set combo info
 					// - new combo: get next combo index, reset combo number
 					// - else:      maintain combo index, increase combo number
-					if ((hitObject.isNewCombo() && !hitObject.isSpinner()) || objectIndex == 0) {
-						comboIndex = (comboIndex + 1) % osu.combo.length;
-						comboNumber = 1;
+					if (((hitObject.isNewCombo() || first) && !hitObject.isSpinner())) {
+						int skip = 1 + hitObject.getComboSkip();
+						for (int i = 0; i < skip; i++) {
+							comboIndex = (comboIndex + 1) % osu.combo.length;
+							comboNumber = 1;
+						}
+						first = false;
 					}
+
 					hitObject.setComboIndex(comboIndex);
 					hitObject.setComboNumber(comboNumber++);
 

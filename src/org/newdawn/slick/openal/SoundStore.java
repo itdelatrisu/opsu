@@ -24,7 +24,7 @@
  * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
-*/
+ */
 
 package org.newdawn.slick.openal;
 
@@ -52,6 +52,7 @@ import org.newdawn.slick.util.ResourceLoader;
  * @author Kevin Glass
  * @author Rockstar setVolume cleanup 
  */
+@SuppressWarnings({"rawtypes", "unchecked", "unused"})
 public class SoundStore {
 	
 	/** The single instance of this class */
@@ -318,7 +319,8 @@ public class SoundStore {
 		inited = true;
 		
 		AccessController.doPrivileged(new PrivilegedAction() {
-            public Object run() {
+			@Override
+			public Object run() {
 				try {
 					AL.create();
 					soundWorks = true;
@@ -916,7 +918,7 @@ public class SoundStore {
 			return;
 		}
 
-		if (this.stream != null) {
+		if (this.stream != null && this.stream != stream) {
 			this.stream.close();
 		}
 		currentMusic = sources.get(0);

@@ -60,8 +60,6 @@ public class Circle implements HitObject {
 	public static void init(GameContainer container, float circleSize) {
 		int diameter = (int) (104 - (circleSize * 8));
 		diameter = (int) (diameter * OsuHitObject.getXMultiplier());  // convert from Osupixels (640x480)
-		System.out.println("Diameter:"+diameter);
-		
 		GameImage.HITCIRCLE.setImage(GameImage.HITCIRCLE.getImage().getScaledCopy(diameter, diameter));
 		GameImage.HITCIRCLE_OVERLAY.setImage(GameImage.HITCIRCLE_OVERLAY.getImage().getScaledCopy(diameter, diameter));
 		GameImage.APPROACHCIRCLE.setImage(GameImage.APPROACHCIRCLE.getImage().getScaledCopy(diameter, diameter));
@@ -88,29 +86,25 @@ public class Circle implements HitObject {
 		int timeDiff = hitObject.getTime() - trackPosition;
 
 		if (timeDiff >= 0) {
+			float oldAlpha = color.a;
 			float x = hitObject.getX(), y = hitObject.getY();
 			float scale = timeDiff / (float)game.getApproachTime();
-			float approachScale = 1 + scale*3 ;//(timeDiff * 3f / game.getApproachTime());
+
+			float approachScale = 1 + scale * 3;
 			color.a = 1 - scale;
-			Utils.drawCentered(GameImage.APPROACHCIRCLE.getImage().getScaledCopy(approachScale), x, y, color);
-			float alpha = clamp((1 - scale)*2, 0, 1);//= (approachScale > 3.3f) ? 0f : 1f - (approachScale - 1f) / 2.7f;
-			color.a = 1f;//alpha;//alpha;
+			GameImage.APPROACHCIRCLE.getImage().getScaledCopy(approachScale).drawCentered(x, y, color);
+
+			float alpha = Utils.clamp((1 - scale) * 2, 0, 1);
+			color.a = alpha;
 			Utils.COLOR_WHITE_FADE.a = alpha;
-			Utils.drawCentered(GameImage.HITCIRCLE.getImage(), x, y, color);
-			Utils.drawCentered(GameImage.HITCIRCLE_OVERLAY.getImage(), x, y, Utils.COLOR_WHITE_FADE);
-			color.a = 1f;
+			GameImage.HITCIRCLE.getImage().drawCentered(x, y, color);
+			GameImage.HITCIRCLE_OVERLAY.getImage().drawCentered(x, y, Utils.COLOR_WHITE_FADE);
+
+			color.a = oldAlpha;
 			Utils.COLOR_WHITE_FADE.a = 1f;
 			data.drawSymbolNumber(hitObject.getComboNumber(), x, y,
 					GameImage.HITCIRCLE.getImage().getWidth() * 0.40f / data.getDefaultSymbolImage(0).getHeight());
 		}
-	}
-
-	private float clamp(float val, int low, int high) {
-		if(val < low)
-			return low;
-		if(val > high)
-			return high;
-		return val;
 	}
 
 	/**
@@ -118,9 +112,9 @@ public class Circle implements HitObject {
 	 * @param time the hit object time (difference between track time)
 	 * @return the hit result (GameData.HIT_* constants)
 	 */
-	private int hitResult(int timeDiff) {
-		timeDiff = Math.abs(timeDiff);
-
+	private int hitResult(int time) {
+		int timeDiff = Math.abs(time);
+		
 		int[] hitResultOffset = game.getHitResultOffsets();
 		int result = -1;
 		if (timeDiff < hitResultOffset[GameData.HIT_300])
@@ -144,13 +138,13 @@ public class Circle implements HitObject {
 			int trackPosition = MusicController.getPosition();
 			int timeDiff = trackPosition - hitObject.getTime();
 			int result = hitResult(timeDiff);
-			
+
 			if (result > -1) {
-				data.addErrorRate(hitObject.getTime(), x, y, timeDiff);
+				data.addHitError(hitObject.getTime(), x, y, timeDiff);
 				data.hitResult(
 						hitObject.getTime(), result,
 						hitObject.getX(), hitObject.getY(),
-						color, comboEnd, hitObject.getHitSoundType()
+						color, comboEnd, hitObject.getHitSoundType(), false
 				);
 				return true;
 			}
@@ -170,17 +164,17 @@ public class Circle implements HitObject {
 
 		if (overlap || trackPosition > time + hitResultOffset[GameData.HIT_50]) {
 			if (isAutoMod)  // "auto" mod: catch any missed notes due to lag
-				data.hitResult(time, GameData.HIT_300, x, y, color, comboEnd, hitSound);
+				data.hitResult(time, GameData.HIT_300, x, y, color, comboEnd, hitSound, false);
 
 			else  // no more points can be scored, so send a miss
-				data.hitResult(time, GameData.HIT_MISS, x, y, null, comboEnd, hitSound);
+				data.hitResult(time, GameData.HIT_MISS, x, y, null, comboEnd, hitSound, false);
 			return true;
 		}
 
 		// "auto" mod: send a perfect hit result
 		else if (isAutoMod) {
 			if (Math.abs(trackPosition - time) < hitResultOffset[GameData.HIT_300]) {
-				data.hitResult(time, GameData.HIT_300, x, y, color, comboEnd, hitSound);
+				data.hitResult(time, GameData.HIT_300, x, y, color, comboEnd, hitSound, false);
 				return true;
 			}
 		}

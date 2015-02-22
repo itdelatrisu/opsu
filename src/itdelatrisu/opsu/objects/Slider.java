@@ -74,8 +74,8 @@ public class Slider implements HitObject {
 	/** The time duration of the slider including repeats, in milliseconds. */
 	private float sliderTimeTotal = 0f;
 
-	/** Whether or not the result of the initial hit circle has been processed. */
-	private boolean sliderClicked = false;
+	/** Whether or not the result of the initial/final hit circles have been processed. */
+	private boolean sliderClickedInitial = false, sliderClickedFinal = false;
 
 	/** Whether or not to show the follow circle. */
 	private boolean followCircleActive = false;
@@ -102,7 +102,6 @@ public class Slider implements HitObject {
 	 * @param osu the associated OsuFile object
 	 */
 	public static void init(GameContainer container, float circleSize, OsuFile osu) {
-		//int diameter = (int) (96 - (circleSize * 8));
 		int diameter = (int) (104 - (circleSize * 8));
 		diameter = (int) (diameter * OsuHitObject.getXMultiplier());  // convert from Osupixels (640x480)
 		
@@ -115,7 +114,7 @@ public class Slider implements HitObject {
 			sliderBallImages = new Image[]{ GameImage.SLIDER_BALL.getImage() };
 		for (int i = 0; i < sliderBallImages.length; i++)
 			sliderBallImages[i] = sliderBallImages[i].getScaledCopy(diameter * 118 / 128, diameter * 118 / 128);
-		sliderBall = new Animation(sliderBallImages, 60);
+		sliderBall = new Animation(sliderBallImages, 30);
 
 		GameImage.SLIDER_FOLLOWCIRCLE.setImage(GameImage.SLIDER_FOLLOWCIRCLE.getImage().getScaledCopy(diameter * 259 / 128, diameter * 259 / 128));
 		GameImage.REVERSEARROW.setImage(GameImage.REVERSEARROW.getImage().getScaledCopy(diameter, diameter));
@@ -146,19 +145,19 @@ public class Slider implements HitObject {
 			this.curve = new LinearBezier(hitObject, color);
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public void draw(int trackPosition, boolean currentObject, Graphics g) {
-		float x = hitObject.getX(), y = hitObject.getY();
 		int timeDiff = hitObject.getTime() - trackPosition;
+		float scale = timeDiff / (float) game.getApproachTime();
+		float approachScale = 1 + scale * 3;
+		float x = hitObject.getX(), y = hitObject.getY();
 
-		float approachScale = (timeDiff >= 0) ? 1 + (timeDiff * 3f / game.getApproachTime()) : 1f;
-		float alpha = (approachScale > 3.3f) ? 0f : 1f - (approachScale - 1f) / 2.7f;
 		float oldAlpha = color.a;
 		float oldAlphaFade = Utils.COLOR_WHITE_FADE.a;
-		
-		float scale = timeDiff / (float)game.getApproachTime();
-		alpha = (1 - scale)*2 ;
-		color.a = alpha* 0.3f;
+		float alpha = (1 - scale);
+		color.a = Utils.clamp(alpha * 0.5f, 0, 1);
+		alpha = Utils.clamp(alpha, 0, 1);
 		Utils.COLOR_WHITE_FADE.a = alpha;
 
 		// curve
@@ -172,21 +171,20 @@ public class Slider implements HitObject {
 				tick.drawCentered(c[0], c[1]);
 			}
 		}
-		
-		color.a = alpha;
 
 		Image hitCircleOverlay = GameImage.HITCIRCLE_OVERLAY.getImage();
 		Image hitCircle = GameImage.HITCIRCLE.getImage();
+		color.a = alpha;
 
 		// end circle
 		float[] endPos = curve.pointAt(1);
-		Utils.drawCentered(hitCircle, endPos[0], endPos[1], color);
-		Utils.drawCentered(hitCircleOverlay, endPos[0], endPos[1], Utils.COLOR_WHITE_FADE);
+		hitCircle.drawCentered(endPos[0], endPos[1], color);
+		hitCircleOverlay.drawCentered(endPos[0], endPos[1], Utils.COLOR_WHITE_FADE);
 
 		// start circle
-		Utils.drawCentered(hitCircle, x, y, color);
-		Utils.drawCentered(hitCircleOverlay, x, y, Utils.COLOR_WHITE_FADE);
-		if (sliderClicked)
+		hitCircle.drawCentered(x, y, color);
+		hitCircleOverlay.drawCentered(x, y, Utils.COLOR_WHITE_FADE);
+		if (sliderClickedInitial)
 			;  // don't draw current combo number if already clicked
 		else
 			data.drawSymbolNumber(hitObject.getComboNumber(), x, y,
@@ -220,15 +218,21 @@ public class Slider implements HitObject {
 			// approach circle
 			color.a = 1 - scale;
 			
-			Utils.drawCentered(GameImage.APPROACHCIRCLE.getImage().getScaledCopy(approachScale), x, y, color);
+			color.a = 1 - scale;
+			GameImage.APPROACHCIRCLE.getImage().getScaledCopy(approachScale).drawCentered(x, y, color);
 		} else {
 			float[] c = curve.pointAt(getT(trackPosition, false));
 			float[] c2 = curve.pointAt(getT(trackPosition, false) + 0.01f);
 
 
 			// slider ball
+			// TODO: deprecated method
+			// TODO 2: update the animation based on the distance traveled?
+			sliderBall.updateNoDraw();
 			Image sliderBallFrame = sliderBall.getCurrentFrame();
 			float angle = (float) (Math.atan2(c2[1] - c[1], c2[0] - c[0]) * 180 / Math.PI);
+			if (currentRepeats % 2 == 1)
+				angle += 180;
 			sliderBallFrame.setRotation(angle);
 			sliderBallFrame.drawCentered(c[0], c[1]);
 
@@ -258,10 +262,10 @@ public class Slider implements HitObject {
 		if (currentRepeats % 2 == 0) {  // last circle
 			float[] lastPos = curve.pointAt(1);
 			data.hitResult(hitObject.getTime() + (int) sliderTimeTotal, result,
-					lastPos[0],lastPos[1], color, comboEnd, hitObject.getHitSoundType());
+					lastPos[0],lastPos[1], color, comboEnd, hitObject.getHitSoundType(), false);
 		} else {  // first circle
 			data.hitResult(hitObject.getTime() + (int) sliderTimeTotal, result,
-					hitObject.getX(), hitObject.getY(), color, comboEnd, hitObject.getHitSoundType());
+					hitObject.getX(), hitObject.getY(), color, comboEnd, hitObject.getHitSoundType(), false);
 		}
 
 		return result;
@@ -269,7 +273,7 @@ public class Slider implements HitObject {
 
 	@Override
 	public boolean mousePressed(int x, int y) {
-		if (sliderClicked)  // first circle already processed
+		if (sliderClickedInitial)  // first circle already processed
 			return false;
 
 		double distance = Math.hypot(hitObject.getX() - x, hitObject.getY() - y);
@@ -289,7 +293,8 @@ public class Slider implements HitObject {
 
 			if (result > -1) {
 				data.addErrorRate(hitObject.getTime(), x,y,trackPosition - hitObject.getTime());
-				sliderClicked = true;
+				data.addHitError(hitObject.getTime(), x,y,trackPosition - hitObject.getTime());
+				sliderClickedInitial = true;
 				data.sliderTickResult(hitObject.getTime(), result,
 						hitObject.getX(), hitObject.getY(), hitObject.getHitSoundType());
 				return true;
@@ -326,12 +331,12 @@ public class Slider implements HitObject {
 		int lastIndex = hitObject.getSliderX().length - 1;
 		boolean isAutoMod = GameMod.AUTO.isActive();
 
-		if (!sliderClicked) {
+		if (!sliderClickedInitial) {
 			int time = hitObject.getTime();
 
 			// start circle time passed
 			if (trackPosition > time + hitResultOffset[GameData.HIT_50]) {
-				sliderClicked = true;
+				sliderClickedInitial = true;
 				if (isAutoMod) {  // "auto" mod: catch any missed notes due to lag
 					ticksHit++;
 					data.sliderTickResult(time, GameData.HIT_SLIDER30,
@@ -345,7 +350,7 @@ public class Slider implements HitObject {
 			else if (isAutoMod) {
 				if (Math.abs(trackPosition - time) < hitResultOffset[GameData.HIT_300]) {
 					ticksHit++;
-					sliderClicked = true;
+					sliderClickedInitial = true;
 					data.sliderTickResult(time, GameData.HIT_SLIDER30,
 							hitObject.getX(), hitObject.getY(), hitSound);
 				}
@@ -356,18 +361,22 @@ public class Slider implements HitObject {
 		if (overlap || trackPosition > hitObject.getTime() + sliderTimeTotal) {
 			tickIntervals++;
 
-			// "auto" mod: send a perfect hit result
-			if (isAutoMod)
-				ticksHit++;
-
 			// check if cursor pressed and within end circle
-			else if (Utils.isGameKeyPressed()) {
+			if (Utils.isGameKeyPressed()) {
 				float[] c = curve.pointAt(getT(trackPosition, false));
 				double distance = Math.hypot(c[0] - mouseX, c[1] - mouseY);
 				int followCircleRadius = GameImage.SLIDER_FOLLOWCIRCLE.getImage().getWidth() / 2;
 				if (distance < followCircleRadius)
-					ticksHit++;
+					sliderClickedFinal = true;
 			}
+
+			// final circle hit
+			if (sliderClickedFinal)
+				ticksHit++;
+
+			// "auto" mod: always send a perfect hit result
+			if (isAutoMod)
+				ticksHit = tickIntervals;
 
 			// calculate and send slider result
 			hitResult();
@@ -424,6 +433,10 @@ public class Slider implements HitObject {
 				data.sliderTickResult(trackPosition, GameData.HIT_SLIDER10,
 						c[0], c[1], (byte) -1);
 			}
+
+			// held near end of slider
+			if (!sliderClickedFinal && trackPosition > hitObject.getTime() + sliderTimeTotal - hitResultOffset[GameData.HIT_300])
+				sliderClickedFinal = true;
 		} else {
 			followCircleActive = false;
 

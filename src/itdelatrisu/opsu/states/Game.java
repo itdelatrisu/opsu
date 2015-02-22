@@ -49,6 +49,7 @@ import java.util.Stack;
 import java.util.concurrent.TimeUnit;
 /*
 import org.lwjgl.input.Keyboard;
+import org.newdawn.slick.Animation;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
@@ -272,7 +273,6 @@ public class Game extends BasicGameState {
 
 		// skip beginning
 		if (objectIndex == 0 &&
-		    firstObjectTime - SKIP_OFFSET > 5000 &&
 		    trackPosition < osu.objects[0].getTime() - SKIP_OFFSET)
 			skipButton.draw();
 
@@ -711,7 +711,7 @@ public class Game extends BasicGameState {
 			resetGameData();
 
 			// needs to play before setting position to resume without lag later
-			MusicController.play();
+			MusicController.play(false);
 			MusicController.setPosition(0);
 			MusicController.pause();
 
@@ -792,7 +792,6 @@ public class Game extends BasicGameState {
 		int firstObjectTime = osu.objects[0].getTime();
 		int trackPosition = MusicController.getPosition();
 		if (objectIndex == 0 &&
-			firstObjectTime - SKIP_OFFSET > 4000 &&
 			trackPosition < firstObjectTime - SKIP_OFFSET) {
 			if (isLeadIn()) {
 				leadInTime = 0;
@@ -820,11 +819,14 @@ public class Game extends BasicGameState {
 		}
 
 		// skip button
-		Image skip = GameImage.SKIP.getImage();
-		skipButton = new MenuButton(skip,
-				width - (skip.getWidth() / 2f),
-				height - (skip.getHeight() / 2f));
-		skipButton.setHoverExpand(MenuButton.Expand.UP_LEFT);
+		if (GameImage.SKIP.getImages() != null) {
+			Animation skip = GameImage.SKIP.getAnimation(120);
+			skipButton = new MenuButton(skip, width - skip.getWidth() / 2f, height - (skip.getHeight() / 2f));
+		} else {
+			Image skip = GameImage.SKIP.getImage();
+			skipButton = new MenuButton(skip, width - skip.getWidth() / 2f, height - (skip.getHeight() / 2f));
+		}
+		skipButton.setHoverExpand(1.1f, MenuButton.Expand.UP_LEFT);
 
 		// load other images...
 		((GamePauseMenu) game.getState(Opsu.STATE_GAMEPAUSEMENU)).loadImages();

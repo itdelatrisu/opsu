@@ -86,6 +86,12 @@ public class SongMenu extends BasicGameState {
 	/** Maximum x offset of song buttons for mouse hover, in pixels. */
 	private static final float MAX_HOVER_OFFSET = 30f;
 
+	/** Time, in milliseconds, for the search bar to fade in or out. */
+	private static final int SEARCH_TRANSITION_TIME = 250;
+
+	/** Line width of the header/footer divider. */
+	private static final int DIVIDER_LINE_WIDTH = 4;
+
 	/** Song node class representing an OsuGroupNode and file index. */
 	private static class SongNode {
 		/** Song node. */
@@ -131,9 +137,7 @@ public class SongMenu extends BasicGameState {
 	private String[] songInfo;
 
 	/** Button coordinate values. */
-	private float
-		buttonX, buttonY, buttonOffset,
-		buttonWidth, buttonHeight;
+	private float buttonX, buttonY, buttonOffset, buttonWidth, buttonHeight;
 
 	/** Current x offset of song buttons for mouse hover, in pixels. */
 	private float hoverOffset = 0f;
@@ -141,8 +145,8 @@ public class SongMenu extends BasicGameState {
 	/** Current index of hovered song button. */
 	private int hoverIndex = -1;
 
-	/** The options button (to enter the "Game Options" menu). */
-	private MenuButton optionsButton;
+	/** The selection buttons. */
+	private MenuButton selectModsButton, selectRandomButton, selectMapOptionsButton, selectOptionsButton;
 
 	/** The search textfield. */
 	private TextField search;
@@ -151,10 +155,10 @@ public class SongMenu extends BasicGameState {
 	 * Delay timer, in milliseconds, before running another search.
 	 * This is overridden by character entry (reset) and 'esc' (immediate search).
 	 */
-	private int searchTimer;
+	private int searchTimer = 0;
 
 	/** Information text to display based on the search query. */
-	private String searchResultString;
+	private String searchResultString = null;
 
 	/** Loader animation. */
 	private Animation loader;
@@ -189,6 +193,12 @@ public class SongMenu extends BasicGameState {
 	/** Current start score (topmost score entry). */
 	private int startScore = 0;
 
+	/** Header and footer end and start y coordinates, respectively. */
+	private float headerY, footerY;
+
+	/** Time, in milliseconds, for fading the search bar. */
+	private int searchTransitionTimer = SEARCH_TRANSITION_TIME;
+
 	// game-related variables
 	private GameContainer container;
 	private StateBasedGame game;
@@ -209,26 +219,35 @@ public class SongMenu extends BasicGameState {
 		int width = container.getWidth();
 		int height = container.getHeight();
 
+		// header/footer coordinates
+		headerY = height * 0.0075f + GameImage.MENU_MUSICNOTE.getImage().getHeight() +
+				Utils.FONT_BOLD.getLineHeight() + Utils.FONT_DEFAULT.getLineHeight() +
+				Utils.FONT_SMALL.getLineHeight();
+		footerY = height - GameImage.SELECTION_MODS.getImage().getHeight();
+
+		// initialize sorts
+		for (SongSort sort : SongSort.values())
+			sort.init(width, headerY - SongMenu.DIVIDER_LINE_WIDTH / 2);
+
+		// initialize score data buttons
+		ScoreData.init(width, headerY + height * 0.01f);
+
 		// song button background & graphics context
 		Image menuBackground = GameImage.MENU_BUTTON_BG.getImage();
 
 		// song button coordinates
 		buttonX = width * 0.6f;
-		buttonY = height * 0.16f;
+		buttonY = headerY;
 		buttonWidth = menuBackground.getWidth();
 		buttonHeight = menuBackground.getHeight();
-		buttonOffset = (height * 0.8f) / MAX_SONG_BUTTONS;
+		buttonOffset = (footerY - headerY - DIVIDER_LINE_WIDTH) / MAX_SONG_BUTTONS;
 
 		// search
-		searchTimer = 0;
-		searchResultString = "Type to search!";
-		Image searchIcon = GameImage.MENU_SEARCH.getImage();
-		Image tab = GameImage.MENU_TAB.getImage();
+		int textFieldX = (int) (width * 0.7125f + Utils.FONT_BOLD.getWidth("Search: "));
+		int textFieldY = (int) (headerY + Utils.FONT_BOLD.getLineHeight() / 2);
 		search = new TextField(
-				container, Utils.FONT_DEFAULT,
-				(int) buttonX + (tab.getWidth() / 2) + searchIcon.getWidth(),
-				(int) ((height * 0.15f) - (tab.getHeight() * 2.5f)),
-				(int) (buttonWidth / 2), Utils.FONT_DEFAULT.getLineHeight()
+				container, Utils.FONT_BOLD, textFieldX, textFieldY,
+				(int) (width * 0.99f) - textFieldX, Utils.FONT_BOLD.getLineHeight()
 		);
 		search.setBackgroundColor(Color.transparent);
 		search.setBorderColor(Color.transparent);
@@ -236,10 +255,23 @@ public class SongMenu extends BasicGameState {
 		search.setConsumeEvents(false);
 		search.setMaxLength(60);
 
-		// options button
-		Image optionsIcon = GameImage.MENU_OPTIONS.getImage();
-		optionsButton = new MenuButton(optionsIcon, search.getX() - (optionsIcon.getWidth() * 1.5f), search.getY());
-		optionsButton.setHoverExpand(1.75f);
+		// selection buttons
+		Image selectionMods = GameImage.SELECTION_MODS.getImage();
+		float selectX = width * 0.183f + selectionMods.getWidth() / 2f;
+		float selectY = height - selectionMods.getHeight() / 2f;
+		float selectOffset = selectionMods.getWidth() * 1.05f;
+		selectModsButton = new MenuButton(GameImage.SELECTION_MODS_OVERLAY.getImage(),
+				selectX, selectY);
+		selectRandomButton = new MenuButton(GameImage.SELECTION_RANDOM_OVERLAY.getImage(),
+				selectX + selectOffset, selectY);
+		selectMapOptionsButton = new MenuButton(GameImage.SELECTION_OPTIONS_OVERLAY.getImage(),
+				selectX + selectOffset * 2f, selectY);
+		selectOptionsButton = new MenuButton(GameImage.SELECTION_OTHER_OPTIONS_OVERLAY.getImage(),
+				selectX + selectOffset * 3f, selectY);
+		selectModsButton.setHoverFade(0f);
+		selectRandomButton.setHoverFade(0f);
+		selectMapOptionsButton.setHoverFade(0f);
+		selectOptionsButton.setHoverFade(0f);
 
 		// loader
 		int loaderDim = GameImage.MENU_MUSICNOTE.getImage().getWidth();
@@ -263,54 +295,59 @@ public class SongMenu extends BasicGameState {
 				GameImage.PLAYFIELD.getImage().draw();
 		}
 
-		// header setup
-		float lowerBound = height * 0.15f;
+		// song buttons
+		OsuGroupNode node = startNode;
+		int songButtonIndex = 0;
+		if (node != null && node.prev != null) {
+			node = node.prev;
+			songButtonIndex = -1;
+		}
+		g.setClip(0, (int) (headerY + DIVIDER_LINE_WIDTH / 2), width, (int) (footerY - headerY));
+		for (int i = songButtonIndex; i <= MAX_SONG_BUTTONS && node != null; i++, node = node.next) {
+			// draw the node
+			float offset = (i == hoverIndex) ? hoverOffset : 0f;
+			ScoreData[] scores = getScoreDataForNode(node, false);
+			node.draw(buttonX - offset, buttonY + (i*buttonOffset) + DIVIDER_LINE_WIDTH / 2,
+			          (scores == null) ? Grade.NULL : scores[0].getGrade(), (node == focusNode));
+
+			// load glyphs
+			Utils.loadGlyphs(node.osuFiles.get(0));
+		}
+		g.clearClip();
+
+		// top/bottom bars
 		g.setColor(Utils.COLOR_BLACK_ALPHA);
-		g.fillRect(0, 0, width, lowerBound);
+		g.fillRect(0, 0, width, headerY);
+		g.fillRect(0, footerY, width, height - footerY);
 		g.setColor(Utils.COLOR_BLUE_DIVIDER);
-		g.setLineWidth(2f);
-		g.drawLine(0, lowerBound, width, lowerBound);
+		g.setLineWidth(DIVIDER_LINE_WIDTH);
+		g.drawLine(0, headerY, width, headerY);
+		g.drawLine(0, footerY, width, footerY);
 		g.resetLineWidth();
 
 		// header
 		if (focusNode != null) {
 			float marginX = width * 0.005f, marginY = height * 0.005f;
-
 			Image musicNote = GameImage.MENU_MUSICNOTE.getImage();
 			if (MusicController.isTrackLoading())
 				loader.draw(marginX, marginY);
 			else
 				musicNote.draw(marginX, marginY);
 			int iconWidth = musicNote.getWidth();
-			int iconHeight = musicNote.getHeight();
 
 			if (songInfo == null)
 				songInfo = focusNode.getInfo();
 			marginX += 5;
-			Utils.FONT_LARGE.drawString(marginX + iconWidth, marginY, songInfo[0], Color.white);
-			Utils.FONT_DEFAULT.drawString(marginX + iconWidth, marginY + Utils.FONT_LARGE.getLineHeight() * 0.75f, songInfo[1], Color.white);
-			float headerY = marginY + iconHeight;
-			Utils.FONT_BOLD.drawString(marginX, headerY, songInfo[2], Color.white);
-			headerY += Utils.FONT_BOLD.getLineHeight() - 6;
-			Utils.FONT_DEFAULT.drawString(marginX, headerY, songInfo[3], Color.white);
-			headerY += Utils.FONT_DEFAULT.getLineHeight() - 4;
-			Utils.FONT_SMALL.drawString(marginX, headerY, songInfo[4], Color.white);
-		}
-
-		// song buttons
-		OsuGroupNode node = startNode;
-		for (int i = 0; i < MAX_SONG_BUTTONS && node != null; i++, node = node.next) {
-			// draw the node
-			float offset = (i == hoverIndex) ? hoverOffset : 0f;
-			ScoreData[] scores = getScoreDataForNode(node, false);
-			node.draw(
-					buttonX - offset, buttonY + (i*buttonOffset),
-					(scores == null) ? Grade.NULL : scores[0].getGrade(),
-					(node == focusNode)
-			);
-
-			// load glyphs
-			Utils.loadGlyphs(node.osuFiles.get(0));
+			float headerTextY = marginY;
+			Utils.FONT_LARGE.drawString(marginX + iconWidth * 1.05f, headerTextY, songInfo[0], Color.white);
+			headerTextY += Utils.FONT_LARGE.getLineHeight() - 8;
+			Utils.FONT_DEFAULT.drawString(marginX + iconWidth * 1.05f, headerTextY, songInfo[1], Color.white);
+			headerTextY += Utils.FONT_DEFAULT.getLineHeight() - 2;
+			Utils.FONT_BOLD.drawString(marginX, headerTextY, songInfo[2], Color.white);
+			headerTextY += Utils.FONT_BOLD.getLineHeight() - 4;
+			Utils.FONT_DEFAULT.drawString(marginX, headerTextY, songInfo[3], Color.white);
+			headerTextY += Utils.FONT_DEFAULT.getLineHeight() - 4;
+			Utils.FONT_SMALL.drawString(marginX, headerTextY, songInfo[4], Color.white);
 		}
 
 		// score buttons
@@ -329,8 +366,15 @@ public class SongMenu extends BasicGameState {
 				ScoreData.drawScrollbar(g, startScore, focusScores.length);
 		}
 
-		// options button
-		optionsButton.draw();
+		// selection buttons
+		GameImage.SELECTION_MODS.getImage().drawCentered(selectModsButton.getX(), selectModsButton.getY());
+		selectModsButton.draw();
+		GameImage.SELECTION_RANDOM.getImage().drawCentered(selectRandomButton.getX(), selectRandomButton.getY());
+		selectRandomButton.draw();
+		GameImage.SELECTION_OPTIONS.getImage().drawCentered(selectMapOptionsButton.getX(), selectMapOptionsButton.getY());
+		selectMapOptionsButton.draw();
+		GameImage.SELECTION_OTHER_OPTIONS.getImage().drawCentered(selectOptionsButton.getX(), selectOptionsButton.getY());
+		selectOptionsButton.draw();
 
 		// sorting tabs
 		SongSort currentSort = SongSort.getSort();
@@ -348,24 +392,52 @@ public class SongMenu extends BasicGameState {
 		currentSort.draw(true, false);
 
 		// search
-		Image searchIcon = GameImage.MENU_SEARCH.getImage();
-		Utils.FONT_BOLD.drawString(
-				search.getX(), search.getY() - Utils.FONT_BOLD.getLineHeight(),
-				searchResultString, Color.white
-		);
-		searchIcon.draw(search.getX() - searchIcon.getWidth(),
-						search.getY() - Utils.FONT_DEFAULT.getLineHeight());
-		g.setColor(Color.white);
-		search.render(container, g);
+		boolean searchEmpty = search.getText().isEmpty();
+		int searchX = search.getX(), searchY = search.getY();
+		float searchBaseX = width * 0.7f;
+		float searchTextX = width * 0.7125f;
+		float searchRectHeight = Utils.FONT_BOLD.getLineHeight() * 2;
+		float searchExtraHeight = Utils.FONT_DEFAULT.getLineHeight() * 0.7f;
+		float searchProgress = (searchTransitionTimer < SEARCH_TRANSITION_TIME) ?
+				((float) searchTransitionTimer / SEARCH_TRANSITION_TIME) : 1f;
+		float oldAlpha = Utils.COLOR_BLACK_ALPHA.a;
+		if (searchEmpty) {
+			searchRectHeight += (1f - searchProgress) * searchExtraHeight;
+			Utils.COLOR_BLACK_ALPHA.a = 0.5f - searchProgress * 0.3f;
+		} else {
+			searchRectHeight += searchProgress * searchExtraHeight;
+			Utils.COLOR_BLACK_ALPHA.a = 0.2f + searchProgress * 0.3f;
+		}
+		g.setColor(Utils.COLOR_BLACK_ALPHA);
+		g.fillRect(searchBaseX, headerY + DIVIDER_LINE_WIDTH / 2, width - searchBaseX, searchRectHeight);
+		Utils.COLOR_BLACK_ALPHA.a = oldAlpha;
+		Utils.FONT_BOLD.drawString(searchTextX, searchY, "Search:", Utils.COLOR_GREEN_SEARCH);
+		if (searchEmpty)
+			Utils.FONT_BOLD.drawString(searchX, searchY, "Type to search!", Color.white);
+		else {
+			g.setColor(Color.white);
+			// TODO: why is this needed to correctly position the TextField?
+			search.setLocation(searchX - 3, searchY - 1);
+			search.render(container, g);
+			search.setLocation(searchX, searchY);
+			Utils.FONT_DEFAULT.drawString(searchTextX, searchY + Utils.FONT_BOLD.getLineHeight(),
+					(searchResultString == null) ? "Searching..." : searchResultString, Color.white);
+		}
 
 		// scroll bar
 		if (focusNode != null) {
-			float scrollStartY = height * 0.16f;
-			float scrollEndY = height * 0.82f;
-			g.setColor(Utils.COLOR_BLACK_ALPHA);
-			g.fillRoundRect(width - 10, scrollStartY, 5, scrollEndY, 4);
-			g.setColor(Color.white);
-			g.fillRoundRect(width - 10, scrollStartY + (scrollEndY * startNode.index / OsuGroupList.get().size()), 5, 20, 4);
+			int focusNodes = focusNode.osuFiles.size();
+			int totalNodes = OsuGroupList.get().size() + focusNodes - 1;
+			if (totalNodes > MAX_SONG_BUTTONS) {
+				int startIndex = startNode.index;
+				if (startNode.index > focusNode.index)
+					startIndex += focusNodes;
+				else if (startNode.index == focusNode.index)
+					startIndex += startNode.osuFileIndex;
+				Utils.drawScrollbar(g, startIndex, totalNodes, MAX_SONG_BUTTONS,
+						width, headerY + DIVIDER_LINE_WIDTH / 2, 0, buttonOffset - DIVIDER_LINE_WIDTH * 1.5f, buttonOffset,
+						Utils.COLOR_BLACK_ALPHA, Color.white, true);
+			}
 		}
 
 		// reloading beatmaps
@@ -393,7 +465,10 @@ public class SongMenu extends BasicGameState {
 		Utils.updateVolumeDisplay(delta);
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
 		Utils.getBackButton().hoverUpdate(delta, mouseX, mouseY);
-		optionsButton.hoverUpdate(delta, mouseX, mouseY);
+		selectModsButton.hoverUpdate(delta, mouseX, mouseY);
+		selectRandomButton.hoverUpdate(delta, mouseX, mouseY);
+		selectMapOptionsButton.hoverUpdate(delta, mouseX, mouseY);
+		selectOptionsButton.hoverUpdate(delta, mouseX, mouseY);
 
 		// beatmap menu timer
 		if (beatmapMenuTimer > -1) {
@@ -424,7 +499,7 @@ public class SongMenu extends BasicGameState {
 
 				// empty search
 				if (search.getText().isEmpty())
-					searchResultString = "Type to search!";
+					searchResultString = null;
 
 				// search produced new list: re-initialize it
 				startNode = focusNode = null;
@@ -449,39 +524,45 @@ public class SongMenu extends BasicGameState {
 					searchResultString = "No matches found. Hit 'esc' to reset.";
 			}
 		}
+		if (searchTransitionTimer < SEARCH_TRANSITION_TIME) {
+			searchTransitionTimer += delta;
+			if (searchTransitionTimer > SEARCH_TRANSITION_TIME)
+				searchTransitionTimer = SEARCH_TRANSITION_TIME;
+		}
 
 		// slide buttons
 		int height = container.getHeight();
-		float targetY = height * 0.16f;
-		if (buttonY > targetY) {
+		if (buttonY > headerY) {
 			buttonY -= height * delta / 20000f;
-			if (buttonY < targetY)
-				buttonY = targetY;
-		} else if (buttonY < targetY) {
+			if (buttonY < headerY)
+				buttonY = headerY;
+		} else if (buttonY < headerY) {
 			buttonY += height * delta / 20000f;
-			if (buttonY > targetY)
-				buttonY = targetY;
+			if (buttonY > headerY)
+				buttonY = headerY;
 		}
 
 		// mouse hover
-		OsuGroupNode node = startNode;
 		boolean isHover = false;
-		for (int i = 0; i < MAX_SONG_BUTTONS && node != null; i++, node = node.next) {
-			float cx = (node.index == OsuGroupList.get().getExpandedIndex()) ? buttonX * 0.9f : buttonX;
-			if ((mouseX > cx && mouseX < cx + buttonWidth) &&
-				(mouseY > buttonY + (i * buttonOffset) && mouseY < buttonY + (i * buttonOffset) + buttonHeight)) {
-				if (i == hoverIndex) {
-					if (hoverOffset < MAX_HOVER_OFFSET) {
-						hoverOffset += delta / 3f;
-						if (hoverOffset > MAX_HOVER_OFFSET)
-							hoverOffset = MAX_HOVER_OFFSET;
+		if (mouseY > headerY && mouseY < footerY) {
+			OsuGroupNode node = startNode;
+			for (int i = 0; i < MAX_SONG_BUTTONS && node != null; i++, node = node.next) {
+				float cx = (node.index == OsuGroupList.get().getExpandedIndex()) ? buttonX * 0.9f : buttonX;
+				if ((mouseX > cx && mouseX < cx + buttonWidth) &&
+					(mouseY > buttonY + (i * buttonOffset) && mouseY < buttonY + (i * buttonOffset) + buttonHeight)) {
+					if (i == hoverIndex) {
+						if (hoverOffset < MAX_HOVER_OFFSET) {
+							hoverOffset += delta / 3f;
+							if (hoverOffset > MAX_HOVER_OFFSET)
+								hoverOffset = MAX_HOVER_OFFSET;
+						}
+					} else {
+						hoverIndex = i;
+						hoverOffset = 0f;
 					}
-				} else {
-					hoverIndex = i;
-					hoverOffset = 0f;
+					isHover = true;
+					break;
 				}
-				isHover = true;
-				break;
 			}
 		}
 		if (!isHover) {
@@ -511,8 +592,17 @@ public class SongMenu extends BasicGameState {
 			return;
 		}
 
-		// options
-		if (optionsButton.contains(x, y)) {
+		// selection buttons
+		if (selectModsButton.contains(x, y)) {
+			this.keyPressed(Input.KEY_F1, '\0');
+			return;
+		} else if (selectRandomButton.contains(x, y)) {
+			this.keyPressed(Input.KEY_F2, '\0');
+			return;
+		} else if (selectMapOptionsButton.contains(x, y)) {
+			this.keyPressed(Input.KEY_F3, '\0');
+			return;
+		} else if (selectOptionsButton.contains(x, y)) {
 			SoundController.playSound(SoundEffect.MENUHIT);
 			game.enterState(Opsu.STATE_OPTIONSMENU, new EmptyTransition(), new FadeInTransition(Color.black));
 			return;
@@ -538,46 +628,48 @@ public class SongMenu extends BasicGameState {
 		}
 
 		// song buttons
-		int expandedIndex = OsuGroupList.get().getExpandedIndex();
-		OsuGroupNode node = startNode;
-		for (int i = 0; i < MAX_SONG_BUTTONS && node != null; i++, node = node.next) {
-			// is button at this index clicked?
-			float cx = (node.index == expandedIndex) ? buttonX * 0.9f : buttonX;
-			if ((x > cx && x < cx + buttonWidth) &&
-				(y > buttonY + (i * buttonOffset) && y < buttonY + (i * buttonOffset) + buttonHeight)) {
-				float oldHoverOffset = hoverOffset;
-				int oldHoverIndex = hoverIndex;
+		if (y > headerY && y < footerY) {
+			int expandedIndex = OsuGroupList.get().getExpandedIndex();
+			OsuGroupNode node = startNode;
+			for (int i = 0; i < MAX_SONG_BUTTONS && node != null; i++, node = node.next) {
+				// is button at this index clicked?
+				float cx = (node.index == expandedIndex) ? buttonX * 0.9f : buttonX;
+				if ((x > cx && x < cx + buttonWidth) &&
+					(y > buttonY + (i * buttonOffset) && y < buttonY + (i * buttonOffset) + buttonHeight)) {
+					float oldHoverOffset = hoverOffset;
+					int oldHoverIndex = hoverIndex;
 
-				// clicked node is already expanded
-				if (node.index == expandedIndex) {
-					if (node.osuFileIndex == focusNode.osuFileIndex) {
-						// if already focused, load the beatmap
-						if (button != Input.MOUSE_RIGHT_BUTTON)
-							startGame();
-						else
+					// clicked node is already expanded
+					if (node.index == expandedIndex) {
+						if (node.osuFileIndex == focusNode.osuFileIndex) {
+							// if already focused, load the beatmap
+							if (button != Input.MOUSE_RIGHT_BUTTON)
+								startGame();
+							else
+								SoundController.playSound(SoundEffect.MENUCLICK);
+						} else {
+							// focus the node
 							SoundController.playSound(SoundEffect.MENUCLICK);
-					} else {
-						// focus the node
-						SoundController.playSound(SoundEffect.MENUCLICK);
-						setFocus(node, 0, false);
+							setFocus(node, 0, false);
+						}
 					}
+
+					// clicked node is a new group
+					else {
+						SoundController.playSound(SoundEffect.MENUCLICK);
+						setFocus(node, -1, false);
+					}
+
+					// restore hover data
+					hoverOffset = oldHoverOffset;
+					hoverIndex = oldHoverIndex;
+
+					// open beatmap menu
+					if (button == Input.MOUSE_RIGHT_BUTTON)
+						beatmapMenuTimer = (node.index == expandedIndex) ? BEATMAP_MENU_DELAY * 4 / 5 : 0;
+
+					return;
 				}
-
-				// clicked node is a new group
-				else {
-					SoundController.playSound(SoundEffect.MENUCLICK);
-					setFocus(node, -1, false);
-				}
-
-				// restore hover data
-				hoverOffset = oldHoverOffset;
-				hoverIndex = oldHoverIndex;
-
-				// open beatmap menu
-				if (button == Input.MOUSE_RIGHT_BUTTON)
-					beatmapMenuTimer = (node.index == expandedIndex) ? BEATMAP_MENU_DELAY * 4 / 5 : 0;
-
-				return;
 			}
 		}
 
@@ -621,6 +713,7 @@ public class SongMenu extends BasicGameState {
 				// clear search text
 				search.setText("");
 				searchTimer = SEARCH_DELAY;
+				searchTransitionTimer = 0;
 			} else {
 				// return to main menu
 				SoundController.playSound(SoundEffect.MENUBACK);
@@ -630,11 +723,13 @@ public class SongMenu extends BasicGameState {
 			break;
 		case Input.KEY_F1:
 			SoundController.playSound(SoundEffect.MENUHIT);
-			game.enterState(Opsu.STATE_OPTIONSMENU, new EmptyTransition(), new FadeInTransition(Color.black));
+			((ButtonMenu) game.getState(Opsu.STATE_BUTTONMENU)).setMenuState(MenuState.MODS);
+			game.enterState(Opsu.STATE_BUTTONMENU);
 			break;
 		case Input.KEY_F2:
 			if (focusNode == null)
 				break;
+			SoundController.playSound(SoundEffect.MENUHIT);
 			if (input.isKeyDown(Input.KEY_RSHIFT) || input.isKeyDown(Input.KEY_LSHIFT)) {
 				// shift key: previous random track
 				SongNode prev;
@@ -718,8 +813,16 @@ public class SongMenu extends BasicGameState {
 			break;
 		default:
 			// wait for user to finish typing
-			if (Character.isLetterOrDigit(c) || key == Input.KEY_BACK)
+			// TODO: accept all characters (current conditions are from TextField class)
+			if ((c > 31 && c < 127) || key == Input.KEY_BACK) {
 				searchTimer = 0;
+				int textLength = search.getText().length();
+				if (key == Input.KEY_BACK) {
+					if (textLength == 0)
+						searchTransitionTimer = 0;
+				} else if (textLength == 1)
+					searchTransitionTimer = 0;
+			}
 			break;
 		}
 	}
@@ -782,11 +885,15 @@ public class SongMenu extends BasicGameState {
 			throws SlickException {
 		Display.setTitle(game.getTitle());
 		Utils.getBackButton().resetHover();
-		optionsButton.resetHover();
+		selectModsButton.resetHover();
+		selectRandomButton.resetHover();
+		selectMapOptionsButton.resetHover();
+		selectOptionsButton.resetHover();
 		hoverOffset = 0f;
 		hoverIndex = -1;
 		startScore = 0;
 		beatmapMenuTimer = -1;
+		searchTransitionTimer = SEARCH_TRANSITION_TIME;
 
 		// reset song stack
 		randomStack = new Stack<SongNode>();
@@ -920,7 +1027,8 @@ public class SongMenu extends BasicGameState {
 				hoverIndex = -1;
 				search.setText("");
 				searchTimer = SEARCH_DELAY;
-				searchResultString = "Type to search!";
+				searchTransitionTimer = SEARCH_TRANSITION_TIME;
+				searchResultString = null;
 
 				// reload songs in new thread
 				reloadThread = new Thread() {
@@ -977,16 +1085,16 @@ public class SongMenu extends BasicGameState {
 			if (n < 0 && startNode.prev != null) {
 				startNode = startNode.prev;
 				buttonY += buttonOffset / 4;
-				if (buttonY > height * 0.18f)
-					buttonY = height * 0.18f;
+				if (buttonY > headerY + height * 0.02f)
+					buttonY = headerY + height * 0.02f;
 				n++;
 				shifted = true;
 			} else if (n > 0 && startNode.next != null &&
 			           OsuGroupList.get().getNode(startNode, MAX_SONG_BUTTONS) != null) {
 				startNode = startNode.next;
 				buttonY -= buttonOffset / 4;
-				if (buttonY < height * 0.14f)
-					buttonY = height * 0.14f;
+				if (buttonY < headerY - height * 0.02f)
+					buttonY = headerY - height * 0.02f;
 				n--;
 				shifted = true;
 			} else
@@ -1002,11 +1110,11 @@ public class SongMenu extends BasicGameState {
 	/**
 	 * Sets a new focus node.
 	 * @param node the base node; it will be expanded if it isn't already
-	 * @param pos the OsuFile element to focus; if out of bounds, it will be randomly chosen
-	 * @param flag if true, startNode will be set to the first node in the group
+	 * @param osuFileIndex the OsuFile element to focus; if out of bounds, it will be randomly chosen
+	 * @param changeStartNode if true, startNode will be set to the first node in the group
 	 * @return the old focus node
 	 */
-	public OsuGroupNode setFocus(OsuGroupNode node, int pos, boolean flag) {
+	public OsuGroupNode setFocus(OsuGroupNode node, int osuFileIndex, boolean changeStartNode) {
 		if (node == null)
 			return null;
 
@@ -1022,18 +1130,18 @@ public class SongMenu extends BasicGameState {
 
 			// if start node was previously expanded, move it
 			if (startNode != null && startNode.index == expandedIndex)
-				startNode = node;
+				startNode = OsuGroupList.get().getBaseNode(startNode.index);
 		}
 
-		// check pos bounds
+		// check osuFileIndex bounds
 		int length = node.osuFiles.size();
-		if (pos < 0 || pos > length - 1)  // set a random pos
-			pos = (int) (Math.random() * length);
+		if (osuFileIndex < 0 || osuFileIndex > length - 1)  // set a random index
+			osuFileIndex = (int) (Math.random() * length);
 
 		// change the focus node
-		if (flag || (startNode.index == 0 && startNode.osuFileIndex == -1 && startNode.prev == null))
+		if (changeStartNode || (startNode.index == 0 && startNode.osuFileIndex == -1 && startNode.prev == null))
 			startNode = node;
-		focusNode = OsuGroupList.get().getNode(node, pos);
+		focusNode = OsuGroupList.get().getNode(node, osuFileIndex);
 		OsuFile osu = focusNode.osuFiles.get(focusNode.osuFileIndex);
 		MusicController.play(osu, true);
 		Utils.loadGlyphs(osu);

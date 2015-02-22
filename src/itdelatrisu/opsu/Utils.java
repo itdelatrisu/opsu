@@ -75,8 +75,8 @@ public class Utils {
 		COLOR_WHITE_ALPHA     = new Color(255, 255, 255, 0.5f),
 		COLOR_BLUE_DIVIDER    = new Color(49, 94, 237),
 		COLOR_BLUE_BACKGROUND = new Color(74, 130, 255),
-		COLOR_BLUE_BUTTON     = new Color(50, 189, 237),
-		COLOR_ORANGE_BUTTON   = new Color(230, 151, 87),
+		COLOR_BLUE_BUTTON     = new Color(40, 129, 237),
+		COLOR_ORANGE_BUTTON   = new Color(200, 90, 3),
 		COLOR_GREEN_OBJECT    = new Color(26, 207, 26),
 		COLOR_BLUE_OBJECT     = new Color(46, 136, 248),
 		COLOR_RED_OBJECT      = new Color(243, 48, 77),
@@ -84,12 +84,16 @@ public class Utils {
 		COLOR_YELLOW_ALPHA    = new Color(255, 255, 0, 0.4f),
 		COLOR_WHITE_FADE      = new Color(255, 255, 255, 1f),
 		COLOR_RED_HOVER       = new Color(255, 112, 112),
-		COLOR_GREEN           = new Color(137, 201, 79);
+		COLOR_GREEN           = new Color(137, 201, 79),
+		COLOR_LIGHT_ORANGE    = new Color(255,192,128),
+		COLOR_LIGHT_GREEN     = new Color(128,255,128),
+		COLOR_LIGHT_BLUE      = new Color(128,128,255),
+		COLOR_GREEN_SEARCH    = new Color(173, 255, 47);
 
 	/** The default map colors, used when a map does not provide custom colors. */
 	public static final Color[] DEFAULT_COMBO = {
-		COLOR_GREEN_OBJECT, COLOR_BLUE_OBJECT,
-		COLOR_RED_OBJECT, COLOR_ORANGE_OBJECT
+		COLOR_ORANGE_OBJECT, COLOR_GREEN_OBJECT,
+		COLOR_BLUE_OBJECT, COLOR_RED_OBJECT,
 	};
 
 	/** Game fonts. */
@@ -217,27 +221,22 @@ public class Utils {
 		}
 
 		// initialize game mods
-		for (GameMod mod : GameMod.values())
-			mod.init(width, height);
-
-		// initialize sorts
-		for (SongSort sort : SongSort.values())
-			sort.init(width, height);
+		GameMod.init(width, height);
 
 		// initialize hit objects
 		OsuHitObject.init(width, height);
-
-		// initialize score data buttons
-		ScoreData.init(width, height);
 
 		// initialize download nodes
 		DownloadNode.init(width, height);
 
 		// back button
-		Image back = GameImage.MENU_BACK.getImage();
-		backButton = new MenuButton(back,
-				back.getWidth() / 2f,
-				height - (back.getHeight() / 2f));
+		if (GameImage.MENU_BACK.getImages() != null) {
+			Animation back = GameImage.MENU_BACK.getAnimation(120);
+			backButton = new MenuButton(back, back.getWidth() / 2f, height - (back.getHeight() / 2f));
+		} else {
+			Image back = GameImage.MENU_BACK.getImage();
+			backButton = new MenuButton(back, back.getWidth() / 2f, height - (back.getHeight() / 2f));
+		}
 		backButton.setHoverExpand(MenuButton.Expand.UP_RIGHT);
 	}
 
@@ -267,19 +266,8 @@ public class Utils {
 			filter = (isHover) ? Utils.COLOR_RED_HOVER : Color.red;
 			textColor = Color.white;
 		}
-		Utils.drawCentered(tabImage, x, y, filter);
+		tabImage.drawCentered(x, y, filter);
 		Utils.FONT_MEDIUM.drawString(tabTextX, tabTextY, text, textColor);
-	}
-
-	/**
-	 * Draws an image based on its center with a color filter.
-	 * @param img the image to draw
-	 * @param x the center x coordinate
-	 * @param y the center y coordinate
-	 * @param color the color filter to apply
-	 */
-	public static void drawCentered(Image img, float x, float y, Color color) {
-		img.draw(x - (img.getWidth() / 2f), y - (img.getHeight() / 2f), color);
 	}
 
 	/**
@@ -323,6 +311,22 @@ public class Utils {
 			val = min;
 		else if (val > max)
 			val = max;
+		return val;
+	}
+
+	/**
+	 * Clamps a value between a lower and upper bound.
+	 * @param val the value to clamp
+	 * @param low the lower bound
+	 * @param high the upper bound
+	 * @return the clamped value
+	 * @author fluddokt
+	 */
+	public static float clamp(float val, int low, int high) {
+		if (val < low)
+			return low;
+		if (val > high)
+			return high;
 		return val;
 	}
 
@@ -614,6 +618,40 @@ public class Utils {
 					(container.getWidth() - (marginX * 2f)) * progress / 100f, lineOffsetY / 4f, 4
 			);
 		}
+	}
+
+	/**
+	 * Draws a scroll bar.
+	 * @param g the graphics context
+	 * @param unitIndex the unit index
+	 * @param totalUnits the total number of units
+	 * @param maxShown the maximum number of units shown at one time
+	 * @param unitBaseX the base x coordinate of the units
+	 * @param unitBaseY the base y coordinate of the units
+	 * @param unitWidth the width of a unit
+	 * @param unitHeight the height of a unit
+	 * @param unitOffsetY the y offset between units
+	 * @param bgColor the scroll bar area background color (null if none)
+	 * @param scrollbarColor the scroll bar color
+	 * @param right whether or not to place the scroll bar on the right side of the unit
+	 */
+	public static void drawScrollbar(
+			Graphics g, int unitIndex, int totalUnits, int maxShown,
+			float unitBaseX, float unitBaseY, float unitWidth, float unitHeight, float unitOffsetY,
+			Color bgColor, Color scrollbarColor, boolean right
+	) {
+		float scrollbarWidth = container.getWidth() * 0.00347f;
+		float heightRatio = (float) (2.6701f * Math.exp(-0.81 * Math.log(totalUnits)));
+		float scrollbarHeight = container.getHeight() * heightRatio;
+		float scrollAreaHeight = unitHeight + unitOffsetY * (maxShown - 1);
+		float offsetY = (scrollAreaHeight - scrollbarHeight) * ((float) unitIndex / (totalUnits - maxShown));
+		float scrollbarX = unitBaseX + unitWidth - ((right) ? scrollbarWidth : 0);
+		if (bgColor != null) {
+			g.setColor(bgColor);
+			g.fillRect(scrollbarX, unitBaseY, scrollbarWidth, scrollAreaHeight);
+		}
+		g.setColor(scrollbarColor);
+		g.fillRect(scrollbarX, unitBaseY + offsetY, scrollbarWidth, scrollbarHeight);
 	}
 
 	/**

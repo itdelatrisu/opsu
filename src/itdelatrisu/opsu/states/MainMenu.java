@@ -96,6 +96,14 @@ public class MainMenu extends BasicGameState {
 	/** Background alpha level (for fade-in effect). */
 	private float bgAlpha = 0f;
 
+	/** Music position bar coordinates and dimensions. */
+	private float musicBarX, musicBarY, musicBarWidth, musicBarHeight;
+
+	/** Music position bar background colors. */
+	private static final Color
+		BG_NORMAL = new Color(0, 0, 0, 0.25f),
+		BG_HOVER  = new Color(0, 0, 0, 0.5f);
+
 	// game-related variables
 	private GameContainer container;
 	private StateBasedGame game;
@@ -136,16 +144,22 @@ public class MainMenu extends BasicGameState {
 		exitButton.setHoverExpand(1.05f);
 
 		// initialize music buttons
-		int musicWidth  = 48;
-		int musicHeight = 30;
-		musicPlay     = new MenuButton(GameImage.MUSIC_PLAY.getImage(), width - (2 * musicWidth), musicHeight);
-		musicPause    = new MenuButton(GameImage.MUSIC_PAUSE.getImage(), width - (2 * musicWidth), musicHeight);
-		musicNext     = new MenuButton(GameImage.MUSIC_NEXT.getImage(), width - musicWidth, musicHeight);
-		musicPrevious = new MenuButton(GameImage.MUSIC_PREVIOUS.getImage(), width - (3 * musicWidth), musicHeight);
+		int musicWidth  = GameImage.MUSIC_PLAY.getImage().getWidth();
+		int musicHeight = GameImage.MUSIC_PLAY.getImage().getHeight();
+		musicPlay     = new MenuButton(GameImage.MUSIC_PLAY.getImage(), width - (2 * musicWidth), musicHeight / 1.5f);
+		musicPause    = new MenuButton(GameImage.MUSIC_PAUSE.getImage(), width - (2 * musicWidth), musicHeight / 1.5f);
+		musicNext     = new MenuButton(GameImage.MUSIC_NEXT.getImage(), width - musicWidth, musicHeight / 1.5f);
+		musicPrevious = new MenuButton(GameImage.MUSIC_PREVIOUS.getImage(), width - (3 * musicWidth), musicHeight / 1.5f);
 		musicPlay.setHoverExpand(1.5f);
 		musicPause.setHoverExpand(1.5f);
 		musicNext.setHoverExpand(1.5f);
 		musicPrevious.setHoverExpand(1.5f);
+
+		// initialize music position bar location
+		musicBarX = width - musicWidth * 3.5f;
+		musicBarY = musicHeight * 1.25f;
+		musicBarWidth = musicWidth * 3f;
+		musicBarHeight = musicHeight * 0.11f;
 
 		// initialize downloads button
 		Image dlImg = GameImage.DOWNLOADS.getImage();
@@ -181,6 +195,7 @@ public class MainMenu extends BasicGameState {
 			bg.draw();
 		}
 
+		// top/bottom horizontal bars
 		float oldAlpha = Utils.COLOR_BLACK_ALPHA.a;
 		Utils.COLOR_BLACK_ALPHA.a = 0.2f;
 		g.setColor(Utils.COLOR_BLACK_ALPHA);
@@ -205,12 +220,16 @@ public class MainMenu extends BasicGameState {
 			musicPlay.draw();
 		musicNext.draw();
 		musicPrevious.draw();
-		g.setColor(Utils.COLOR_BLACK_ALPHA);
-		g.fillRoundRect(width - 168, 54, 148, 5, 4);
+
+		// draw music position bar
+		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
+		g.setColor((musicPositionBarContains(mouseX, mouseY)) ? BG_HOVER : BG_NORMAL);
+		g.fillRoundRect(musicBarX, musicBarY, musicBarWidth, musicBarHeight, 4);
 		g.setColor(Color.white);
-		if (!MusicController.isTrackLoading() && osu != null)
-			g.fillRoundRect(width - 168, 54,
-				148f * MusicController.getPosition() / osu.endTime, 5, 4);
+		if (!MusicController.isTrackLoading() && osu != null) {
+			float musicBarPosition = Math.min((float) MusicController.getPosition() / osu.endTime, 1f);
+			g.fillRoundRect(musicBarX, musicBarY, musicBarWidth * musicBarPosition, musicBarHeight, 4);
+		}
 
 		// draw repository button
 		if (repoButton != null)
@@ -221,7 +240,7 @@ public class MainMenu extends BasicGameState {
 		g.setFont(Utils.FONT_MEDIUM);
 		int lineHeight = Utils.FONT_MEDIUM.getLineHeight() * 9 / 10;
 		g.drawString(String.format("Loaded %d songs and %d beatmaps.",
-				OsuGroupList.get().size(), OsuGroupList.get().getMapCount()), marginX, marginY);
+				OsuGroupList.get().getMapSetCount(), OsuGroupList.get().getMapCount()), marginX, marginY);
 		if (MusicController.isTrackLoading())
 			g.drawString("Track loading...", marginX, marginY + lineHeight);
 		else if (MusicController.trackExists()) {
@@ -252,9 +271,9 @@ public class MainMenu extends BasicGameState {
 		Utils.updateCursor(delta);
 		Utils.updateVolumeDisplay(delta);
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
-		logo.hoverUpdate(delta, mouseX, mouseY);
-		playButton.hoverUpdate(delta, mouseX, mouseY);
-		exitButton.hoverUpdate(delta, mouseX, mouseY);
+		logo.hoverUpdate(delta, mouseX, mouseY, 0.25f);
+		playButton.hoverUpdate(delta, mouseX, mouseY, 0.25f);
+		exitButton.hoverUpdate(delta, mouseX, mouseY, 0.25f);
 		if (repoButton != null)
 			repoButton.hoverUpdate(delta, mouseX, mouseY);
 		downloadsButton.hoverUpdate(delta, mouseX, mouseY);
@@ -322,11 +341,11 @@ public class MainMenu extends BasicGameState {
 			throws SlickException {
 		// reset button hover states if mouse is not currently hovering over the button
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
-		if (!logo.contains(mouseX, mouseY))
+		if (!logo.contains(mouseX, mouseY, 0.25f))
 			logo.resetHover();
-		if (!playButton.contains(mouseX, mouseY))
+		if (!playButton.contains(mouseX, mouseY, 0.25f))
 			playButton.resetHover();
-		if (!exitButton.contains(mouseX, mouseY))
+		if (!exitButton.contains(mouseX, mouseY, 0.25f))
 			exitButton.resetHover();
 		if (!musicPlay.contains(mouseX, mouseY))
 			musicPlay.resetHover();
@@ -347,6 +366,16 @@ public class MainMenu extends BasicGameState {
 		// check mouse button
 		if (button == Input.MOUSE_MIDDLE_BUTTON)
 			return;
+
+		// music position bar
+		if (MusicController.isPlaying()) {
+			if (musicPositionBarContains(x, y)) {
+				float pos = (x - musicBarX) / musicBarWidth;
+				OsuFile osu = MusicController.getOsuFile();
+				MusicController.setPosition((int) (pos * osu.endTime));
+				return;
+			}
+		}
 
 		// music button actions
 		if (musicPlay.contains(x, y)) {
@@ -393,7 +422,7 @@ public class MainMenu extends BasicGameState {
 
 		// start moving logo (if clicked)
 		else if (!logoClicked) {
-			if (logo.contains(x, y)) {
+			if (logo.contains(x, y, 0.25f)) {
 				logoClicked = true;
 				logoTimer = 0;
 				playButton.getImage().setAlpha(0f);
@@ -404,10 +433,10 @@ public class MainMenu extends BasicGameState {
 
 		// other button actions (if visible)
 		else if (logoClicked) {
-			if (logo.contains(x, y) || playButton.contains(x, y)) {
+			if (logo.contains(x, y, 0.25f) || playButton.contains(x, y, 0.25f)) {
 				SoundController.playSound(SoundEffect.MENUHIT);
 				game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
-			} else if (exitButton.contains(x, y))
+			} else if (exitButton.contains(x, y, 0.25f))
 				container.exit();
 		}
 	}
@@ -448,6 +477,16 @@ public class MainMenu extends BasicGameState {
 			Utils.takeScreenShot();
 			break;
 		}
+	}
+
+	/**
+	 * Returns true if the coordinates are within the music position bar bounds.
+	 * @param cx the x coordinate
+	 * @param cy the y coordinate
+	 */
+	private boolean musicPositionBarContains(float cx, float cy) {
+		return ((cx > musicBarX && cx < musicBarX + musicBarWidth) &&
+		        (cy > musicBarY && cy < musicBarY + musicBarHeight));
 	}
 
 	/**
