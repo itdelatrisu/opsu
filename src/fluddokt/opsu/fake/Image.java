@@ -72,18 +72,7 @@ public class Image {
 		ph = texinfo.ph;
 		texture = texinfo.tex;
 		texinfo.add(this);
-		// p.dispose();
-		/*
-		 * / texture = new Texture(ResourceLoader.getFileHandle(filename));
-		 * 
-		 * int pw = texture.getWidth(); int ph = texture.getHeight(); //
-		 */
-		// System.out.println("TexMang :"
-		// +Texture.getManagedStatus()+" "
-		// +Texture.getNumManagedTextures());
 		tex = new TextureRegion(texture, pw, ph);
-		// ttex.setFilter(TextureFilter.Linear, TextureFilter.Linear);
-		// tex = new TextureRegion(ttex);
 		width = tex.getRegionWidth();
 		height = tex.getRegionHeight();
 		name = filename;
@@ -114,26 +103,26 @@ public class Image {
 				e.printStackTrace();
 				p = new Pixmap(32, 32, Format.RGBA8888);
 			}
-				pw = p.getWidth();
-				ph = p.getHeight();
-				int pw4 = nextmultipleof4(pw);
-				int ph4 = nextmultipleof4(ph);
-				if ((pw != pw4 || ph != ph4)
-				// &&false
-				) {
-					// System.out.println("Creating Image align 4 "+pw+" "+ph+" "+pw4+" "+ph4);
-					Pixmap p2 = new Pixmap(pw4, ph4, Format.RGBA8888);
-					Pixmap.setBlending(Pixmap.Blending.None);
-					p2.drawPixmap(p, 0, 0);
-					p.dispose();
-					p = p2;
-				} else {
+			pw = p.getWidth();
+			ph = p.getHeight();
+			int pw4 = nextmultipleof4(pw);
+			int ph4 = nextmultipleof4(ph);
+			if ((pw != pw4 || ph != ph4)
+			// &&false
+			) {
+				// System.out.println("Creating Image align 4 "+pw+" "+ph+" "+pw4+" "+ph4);
+				Pixmap p2 = new Pixmap(pw4, ph4, Format.RGBA8888);
+				Pixmap.setBlending(Pixmap.Blending.None);
+				p2.drawPixmap(p, 0, 0);
+				p.dispose();
+				p = p2;
+			} else {
 
-				}
-				npw = p.getWidth();
-				nph = p.getHeight();
-				pformat = p.getFormat();
-				inited = true;
+			}
+			npw = p.getWidth();
+			nph = p.getHeight();
+			pformat = p.getFormat();
+			inited = true;
 			
 		}
 

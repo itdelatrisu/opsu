@@ -1,10 +1,10 @@
 package fluddokt.opsu.fake;
 
 import java.io.BufferedReader;
-
 import java.io.BufferedWriter;
 import java.io.FileFilter;
 import java.io.FilenameFilter;
+import java.io.IOException;
 
 import com.badlogic.gdx.Application.ApplicationType;
 import com.badlogic.gdx.Gdx;
@@ -16,11 +16,19 @@ public class File {
 	public static final String separator = "/";
 	FileHandle fh;
 
-	static{
+	/*static{
 		FileHandle fh = Gdx.files.external("./");
-		if(!fh.exists())
-			fh.mkdirs();
-	}
+		FileHandle fh2 = fh.child("opsu.log");
+		
+		if(!fh2.exists()){
+			try {
+				fh2.writer(true).close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	}*/
 	public File(String name) {
 		if (Gdx.app.getType() == ApplicationType.Desktop)
 			fh = Gdx.files.local(name);
@@ -33,10 +41,10 @@ public class File {
 		fh = Gdx.files.internal(name);
 		if (fh.exists()) 
 			return;
-		fh = Gdx.files.absolute(name);
+		fh = Gdx.files.local(name);
 		if (fh.exists()) 
 			return;
-		fh = Gdx.files.local(name);
+		fh = Gdx.files.absolute(name);
 		if (fh.exists()) 
 			return;
 		fh = Gdx.files.external(name);
