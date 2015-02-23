@@ -1,15 +1,9 @@
 package fluddokt.opsu.fake;
 
-public class MusicListener {
+public interface MusicListener {
 
-	public void musicEnded(Music music) {
-		// TODO Auto-generated method stub
+	public void musicEnded(Music music);
 
-	}
-
-	public void musicSwapped(Music music, Music newMusic) {
-		// TODO Auto-generated method stub
-
-	}
+	public void musicSwapped(Music music, Music newMusic);
 
 }

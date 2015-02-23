@@ -2,6 +2,7 @@ package fluddokt.opsu.fake;
 
 public class SoundStore {
 
+	private static Music music;
 	public static SoundStore single;
 
 	public static SoundStore get() {
@@ -11,12 +12,13 @@ public class SoundStore {
 	}
 
 	public void setMusicVolume(float musicVolume) {
-		GameContainer.setMusicVolume(musicVolume);
+		if(music != null){
+			music.setMusicVolume(musicVolume);
+		}
 	}
 
-	public int getSourceCount() {
-		// TODO Auto-generated method stub
-		return 0;
+	public void setMusic(Music music2) {
+		SoundStore.music = music2;
 	}
 
 }

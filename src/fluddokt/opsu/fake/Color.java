@@ -16,6 +16,7 @@ public class Color {
 	public static final Color lightblue = new Color(0.5f, 0.5f, 1f);
 	public static final Color gray = new Color(0.5f, 0.5f, 0.5f);
 	public static final Color magenta = new Color(1f, 0f, 1f);
+	public static final Color cyan = new Color(0f, 1f, 1f);
 	public float r, g, b, a;
 
 	public Color(float r, float g, float b) {
@@ -47,7 +48,14 @@ public class Color {
 		this(r, g, b, 255);
 	}
 
-	public Color multAlpha(float na) {
+	public Color(Color color) {
+		r = color.r;
+		g = color.g;
+		b = color.b;
+		a = color.a;
+	}
+
+	protected Color multAlpha(float na) {
 		return new Color(r, g, b, a * na);
 	}
 

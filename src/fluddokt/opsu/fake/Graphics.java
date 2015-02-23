@@ -7,12 +7,15 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
+import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.scenes.scene2d.utils.ScissorStack;
 
 public class Graphics {
 
 	static SpriteBatch batch;
 	static ShapeRenderer shapeRender;
 	static UnicodeFont curFont;
+	static OrthographicCamera camera;
 	final static int SPRITE = 3;
 	final static int SHAPELINE = 5;
 	final static int SHAPEFILLED = 6;
@@ -33,12 +36,12 @@ public class Graphics {
 	public static void resize(int wid, int hei) {
 		width = wid;
 		height = hei;
-		OrthographicCamera t = new OrthographicCamera(wid, hei);
+		camera= new OrthographicCamera(wid, hei);
 		// t.setToOrtho(false,wid,hei);
-		t.translate(wid / 2, hei / 2);
-		t.update();
-		batch.setProjectionMatrix(t.combined);
-		shapeRender.setProjectionMatrix(t.combined);
+		camera.translate(wid / 2, hei / 2);
+		camera.update();
+		batch.setProjectionMatrix(camera.combined);
+		shapeRender.setProjectionMatrix(camera.combined);
 	}
 
 	public void setBackground(Color ncolor) {
@@ -192,5 +195,27 @@ public class Graphics {
 		}
 		return g;
 	}
+
+	Rectangle scissor;
+	public void setClip(int x, int y, int w, int h) {
+		//g.setClip()
+		checkMode(0);
+		scissor = new Rectangle();
+		Rectangle clip = new Rectangle(x, height - y - h, w, h);
+		ScissorStack.calculateScissors(camera, batch.getTransformMatrix(), clip, scissor);
+		if (!ScissorStack.pushScissors(scissor))
+			scissor = null;
+	}
+
+	public void clearClip() {
+		checkMode(0);
+		if (scissor != null){
+			scissor = null;
+			if( ScissorStack.peekScissors() != null)
+				ScissorStack.popScissors();
+		}
+	}
+	
+	
 
 }

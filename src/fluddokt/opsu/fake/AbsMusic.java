@@ -38,7 +38,6 @@ public class AbsMusic {
 	}
 
 	public String getName() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 }

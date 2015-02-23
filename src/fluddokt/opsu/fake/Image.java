@@ -1,7 +1,6 @@
 package fluddokt.opsu.fake;
 
 import java.util.HashMap;
-import java.util.HashSet;
 
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Pixmap;
@@ -10,7 +9,6 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.Texture.TextureFilter;
 import com.badlogic.gdx.graphics.TextureData;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.graphics.glutils.PixmapTextureData;
 import com.badlogic.gdx.utils.GdxRuntimeException;
 
 public class Image {
@@ -104,39 +102,43 @@ public class Image {
 
 		@Override
 		public TextureDataType getType() {
-			// System.out.println("getType "+file.path());
 			return TextureDataType.Pixmap;
 
 		}
 
 		private void loadPixmap() {
-			p = new Pixmap(file);
-			pw = p.getWidth();
-			ph = p.getHeight();
-			int pw4 = nextmultipleof4(pw);
-			int ph4 = nextmultipleof4(ph);
-			if ((pw != pw4 || ph != ph4)
-			// &&false
-			) {
-				// System.out.println("Creating Image align 4 "+pw+" "+ph+" "+pw4+" "+ph4);
-				Pixmap p2 = new Pixmap(pw4, ph4, Format.RGBA8888);
-				Pixmap.setBlending(Pixmap.Blending.None);
-				p2.drawPixmap(p, 0, 0);
-				p.dispose();
-				p = p2;
-			} else {
-
+			try {
+				p = new Pixmap(file);
+			} catch (GdxRuntimeException e) {
+				// TODO Fails to load some pngs. Try javapng / pngj?
+				e.printStackTrace();
+				p = new Pixmap(32, 32, Format.RGBA8888);
 			}
-			npw = p.getWidth();
-			nph = p.getHeight();
-			pformat = p.getFormat();
-			inited = true;
+				pw = p.getWidth();
+				ph = p.getHeight();
+				int pw4 = nextmultipleof4(pw);
+				int ph4 = nextmultipleof4(ph);
+				if ((pw != pw4 || ph != ph4)
+				// &&false
+				) {
+					// System.out.println("Creating Image align 4 "+pw+" "+ph+" "+pw4+" "+ph4);
+					Pixmap p2 = new Pixmap(pw4, ph4, Format.RGBA8888);
+					Pixmap.setBlending(Pixmap.Blending.None);
+					p2.drawPixmap(p, 0, 0);
+					p.dispose();
+					p = p2;
+				} else {
+
+				}
+				npw = p.getWidth();
+				nph = p.getHeight();
+				pformat = p.getFormat();
+				inited = true;
+			
 		}
 
 		@Override
 		public boolean isPrepared() {
-			// System.out.println("isPrepared "+file.path());
-			// TODO Auto-generated method stub
 			return true;
 		}
 
@@ -148,7 +150,6 @@ public class Image {
 
 		@Override
 		public Pixmap consumePixmap() {
-			// System.out.println("consumePixmap "+file.path());
 			if (p == null)
 				loadPixmap();
 			Pixmap t = p;
@@ -158,7 +159,6 @@ public class Image {
 
 		@Override
 		public boolean disposePixmap() {
-			// System.out.println("disposePixmap "+file.path());
 			return true;
 		}
 
@@ -170,14 +170,12 @@ public class Image {
 		}
 
 		public int getImgWidth() {
-			// System.out.println("getWidth");
 			if (!inited)
 				loadPixmap();
 			return pw;
 		}
 
 		public int getImgHeight() {
-			// System.out.println("getHeight");
 			if (!inited)
 				loadPixmap();
 			return ph;
@@ -185,7 +183,6 @@ public class Image {
 
 		@Override
 		public int getWidth() {
-			// System.out.println("getWidth");
 			if (!inited)
 				loadPixmap();
 			return npw;
@@ -193,7 +190,6 @@ public class Image {
 
 		@Override
 		public int getHeight() {
-			// System.out.println("getHeight");
 			if (!inited)
 				loadPixmap();
 			return nph;
@@ -201,7 +197,6 @@ public class Image {
 
 		@Override
 		public Format getFormat() {
-			// System.out.println("getFormat "+file.path());
 			if (!inited)
 				loadPixmap();
 			return pformat;
@@ -209,15 +204,11 @@ public class Image {
 
 		@Override
 		public boolean useMipMaps() {
-			// System.out.println("useMipMaps "+file.path());
-			// TODO Auto-generated method stub
 			return false;
 		}
 
 		@Override
 		public boolean isManaged() {
-			// System.out.println("isManaged "+file.path());
-			// TODO Auto-generated method stub
 			return true;
 		}
 
@@ -328,11 +319,15 @@ public class Image {
 				getWidth(), getHeight(), rotation);
 	}
 
-	public void drawCentered(float x, float y) {
-		Graphics.getGraphics().setColor(Color.white.multAlpha(alpha));
+
+	public void drawCentered(float x, float y, Color color) {
+		Graphics.getGraphics().setColor(color.multAlpha(alpha));
 		Graphics.getGraphics().drawTexture(getTextureRegion(),
 				x - getWidth() / 2, y - getHeight() / 2, getWidth(),
 				getHeight(), rotation);
+	}
+	public void drawCentered(float x, float y) {
+		drawCentered(x, y, Color.white);
 	}
 
 	public TextureRegion getTextureRegion() {
@@ -357,5 +352,10 @@ public class Image {
 	public String getResourceReference() {
 		return filename;
 	}
+
+	public float getAlphaAt(int i, int j) {
+		return 1;
+	}
+
 
 }

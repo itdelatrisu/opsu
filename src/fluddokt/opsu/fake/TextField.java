@@ -37,20 +37,18 @@ public class TextField implements InputListener {
 	}
 
 	public void setConsumeEvents(boolean b) {
-		// TODO Auto-generated method stub
-
+	
 	}
 
 	public void setMaxLength(int i) {
-		// TODO Auto-generated method stub
-
+	
 	}
 
-	public float getY() {
+	public int getY() {
 		return y;
 	}
 
-	public float getX() {
+	public int getX() {
 		return x;
 	}
 
@@ -115,14 +113,17 @@ public class TextField implements InputListener {
 
 	@Override
 	public void touchUp(int screenX, int screenY, int pointer, int button) {
-		// TODO Auto-generated method stub
-
+	
 	}
 
 	@Override
 	public void touchDragged(int screenX, int screenY, int pointer) {
-		// TODO Auto-generated method stub
+	
+	}
 
+	public void setLocation(int x, int y) {
+		this.x = x;
+		this.y = y;
 	}
 
 }

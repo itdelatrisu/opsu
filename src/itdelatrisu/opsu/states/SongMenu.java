@@ -244,7 +244,7 @@ public class SongMenu extends BasicGameState {
 
 		// search
 		int textFieldX = (int) (width * 0.7125f + Utils.FONT_BOLD.getWidth("Search: "));
-		int textFieldY = (int) (headerY + Utils.FONT_BOLD.getLineHeight() / 2);
+		int textFieldY = (int) (0 + Utils.FONT_BOLD.getLineHeight() / 2);
 		search = new TextField(
 				container, Utils.FONT_BOLD, textFieldX, textFieldY,
 				(int) (width * 0.99f) - textFieldX, Utils.FONT_BOLD.getLineHeight()
@@ -409,7 +409,7 @@ public class SongMenu extends BasicGameState {
 			Utils.COLOR_BLACK_ALPHA.a = 0.2f + searchProgress * 0.3f;
 		}
 		g.setColor(Utils.COLOR_BLACK_ALPHA);
-		g.fillRect(searchBaseX, headerY + DIVIDER_LINE_WIDTH / 2, width - searchBaseX, searchRectHeight);
+		g.fillRect(searchBaseX, searchY + DIVIDER_LINE_WIDTH / 2, width - searchBaseX, searchRectHeight);
 		Utils.COLOR_BLACK_ALPHA.a = oldAlpha;
 		Utils.FONT_BOLD.drawString(searchTextX, searchY, "Search:", Utils.COLOR_GREEN_SEARCH);
 		if (searchEmpty)

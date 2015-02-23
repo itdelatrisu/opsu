@@ -96,4 +96,10 @@ public class Animation extends Image {
 		return getImage(curFrame);
 	}
 
+	@Deprecated
+	public void updateNoDraw() {
+		// TODO Auto-generated method stub
+		
+	}
+
 }

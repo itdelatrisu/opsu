@@ -57,7 +57,7 @@ public class GameContainer {
 	}
 
 	static float musvolume;
-	public static void setMusicVolume(float musicVolume) {
+	public void setMusicVolume(float musicVolume) {
 		musvolume = musicVolume;
 		if(music!=null)
 			music.setMusicVolume(musvolume);

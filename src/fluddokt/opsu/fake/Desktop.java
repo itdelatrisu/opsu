@@ -3,7 +3,6 @@ package fluddokt.opsu.fake;
 import java.io.IOException;
 import java.net.URI;
 
-import com.badlogic.gdx.Application.ApplicationType;
 import com.badlogic.gdx.Gdx;
 
 public class Desktop {

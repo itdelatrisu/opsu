@@ -167,7 +167,8 @@ public class Utils {
 
 		int width = container.getWidth();
 		int height = container.getHeight();
-
+		System.out.println("Utils init"+" "+width+" "+height);
+		
 		// set the cursor
 		/*
 		try {
@@ -676,7 +677,7 @@ public class Utils {
 		SoundController.playSound(SoundEffect.SHUTTER);
 
 		/*
-		// copy the screen to file
+		// TODO ? copy the screen to file
 		final int width = Display.getWidth();
 		final int height = Display.getHeight();
 		final int bpp = 3;  // assuming a 32-bit display with a byte each for red, green, blue, and alpha

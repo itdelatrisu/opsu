@@ -1,10 +1,13 @@
 package fluddokt.opsu.fake;
 
+import java.util.ArrayList;
+
 import com.badlogic.gdx.utils.TimeUtils;
 
 public class Music {
 
 	AbsMusic music;
+	ArrayList<MusicListener> musicListenerList = new ArrayList<MusicListener>();
 
 	public Music(String path, boolean b) {
 		if (path.toLowerCase().endsWith(".mp3"))
@@ -12,6 +15,7 @@ public class Music {
 		else
 			music = new MusicGdx(path);
 		GameContainer.setMusic(this);
+		SoundStore.get().setMusic(this);
 
 	}
 
@@ -117,8 +121,7 @@ public class Music {
 	}
 
 	public void addListener(MusicListener musicListener) {
-		// TODO Auto-generated method stub
-
+		musicListenerList.add(musicListener);
 	}
 
 }

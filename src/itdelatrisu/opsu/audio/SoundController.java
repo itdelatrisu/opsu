@@ -19,7 +19,7 @@
 package itdelatrisu.opsu.audio;
 
 import fluddokt.opsu.fake.Clip;
-import fluddokt.opsu.fake.Log;
+import fluddokt.opsu.fake.File;
 import fluddokt.opsu.fake.ResourceLoader;
 
 import itdelatrisu.opsu.ErrorHandler;

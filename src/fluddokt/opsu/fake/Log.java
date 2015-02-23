@@ -9,16 +9,10 @@ public class Log {
 		if (DefaultLogSystem.out != null) {
 			DefaultLogSystem.out.println("Error: " + string + " ");
 		}
-
 	}
 
-	public static void error(Exception e) {
-		Gdx.app.error("Error", "", e);
-		e.printStackTrace();
-		if (DefaultLogSystem.out != null) {
-			DefaultLogSystem.out.println("Error: ");
-			e.printStackTrace(DefaultLogSystem.out);
-		}
+	public static void error(Throwable e) {
+		error(":", e);
 
 	}
 
@@ -54,15 +48,11 @@ public class Log {
 	}
 
 	public static void debug(String string) {
-		Gdx.app.log("Error", string);
+		Gdx.app.debug("debug", string);
 		if (DefaultLogSystem.out != null) {
 			DefaultLogSystem.out.println("Error: " + string + " ");
 		}
 	}
 
-	public static void error(Throwable e) {
-		error("Er:,e");
-
-	}
 
 }

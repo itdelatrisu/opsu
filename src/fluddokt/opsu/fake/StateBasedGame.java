@@ -1,7 +1,6 @@
 package fluddokt.opsu.fake;
 
 import java.util.HashMap;
-import java.util.LinkedList;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
@@ -74,9 +73,14 @@ public abstract class StateBasedGame extends Game implements InputProcessor {
 	public void render() throws SlickException {
 		enterNextState();
 		if (currentState != null) {
-			currentState.update(gc, this,
+			try {
+				currentState.update(gc, this,
 					(int) (Gdx.graphics.getDeltaTime() * 1000));
-			currentState.render(gc, this, Graphics.getGraphics());
+				currentState.render(gc, this, Graphics.getGraphics());
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 	}
 

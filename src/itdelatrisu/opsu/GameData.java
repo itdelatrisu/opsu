@@ -197,6 +197,8 @@ public class GameData {
 
 	/** List containing recent hit error information. */
 	private LinkedList<HitErrorInfo> hitErrorList;
+	/** List containing recent hit error information. */
+	private LinkedList<HitErrorInfo> mouseMissList;
 
 	/**
 	 * Hit result helper class.
@@ -338,7 +340,7 @@ public class GameData {
 		comboEnd = 0;
 		comboBurstIndex = -1;
 		scoreData = null;
-		mouseMissList.clear();
+		mouseMissList = new LinkedList<HitErrorInfo>();
 	}
 
 	/**
@@ -792,38 +794,8 @@ public class GameData {
 			if (hitResult.time + HITRESULT_FADE_TIME > trackPosition) {
 				// hit result
 				hitResults[hitResult.result].setAlpha(hitResult.alpha);
-				hitResult.alpha = 1 - ((float) (trackPosition - hitResult.time) / fadeDelay);
 				hitResults[hitResult.result].drawCentered(hitResult.x, hitResult.y);
-
-				// hit lighting
-				/*
-				if (Options.isHitLightingEnabled() && hitResult.result != HIT_MISS &&
-					hitResult.result != HIT_SLIDER30 && hitResult.result != HIT_SLIDER10) {
-					float scale = 1f + ((trackPosition - hitResult.time) / (float) fadeDelay)/2;
-					Image scaledLighting  = GameImage.LIGHTING.getImage().getScaledCopy(scale);
-					Image scaledLighting1 = GameImage.LIGHTING1.getImage().getScaledCopy(scale);
-					scaledLighting.draw(hitResult.x - (scaledLighting.getWidth() / 2f),
-							hitResult.y - (scaledLighting.getHeight() / 2f), hitResult.color);
-					scaledLighting1.draw(hitResult.x - (scaledLighting1.getWidth() / 2f),
-							hitResult.y - (scaledLighting1.getHeight() / 2f), hitResult.color);
-				}
-				/*/
-				float scale = 1f + ((trackPosition - hitResult.time) / (float) fadeDelay)/2;
-				float alpha = 1-(trackPosition - hitResult.time)*2f/(float) fadeDelay;
-				Image scaledHitCircle = GameImage.HITCIRCLE.getImage().getScaledCopy(scale);
-				scaledHitCircle.setAlpha(alpha);
-				scaledHitCircle.draw(hitResult.x - (scaledHitCircle.getWidth() / 2f),
-						hitResult.y - (scaledHitCircle.getHeight() / 2f),
-						hitResult.color!=null?hitResult.color:Color.white
-						);
-				/*Image scaledHitCircleOverlay = GameImage.HITCIRCLE_OVERLAY.getImage().getScaledCopy(scale);
-				scaledHitCircleOverlay.setAlpha(alpha);
-				scaledHitCircleOverlay.draw(hitResult.x - (scaledHitCircleOverlay.getWidth() / 2f),
-						hitResult.y - (scaledHitCircleOverlay.getHeight() / 2f),
-						Color.white
-						);*/
-				//*/
-							hitResults[hitResult.result].setAlpha(1f);
+				hitResults[hitResult.result].setAlpha(1f);
 
 				// spinner
 				if (hitResult.isSpinner && hitResult.result != HIT_MISS) {
@@ -832,11 +804,24 @@ public class GameData {
 					spinnerOsu.drawCentered(width / 2, height / 4);
 					spinnerOsu.setAlpha(1f);
 				}
+
+				// hit lighting
 				else if (Options.isHitLightingEnabled() && hitResult.result != HIT_MISS &&
+					hitResult.result != HIT_SLIDER30 && hitResult.result != HIT_SLIDER10) {
+					float scale = 1f + ((trackPosition - hitResult.time) / (float) HITRESULT_FADE_TIME);
+					Image scaledLighting  = GameImage.LIGHTING.getImage().getScaledCopy(scale);
+					Image scaledLighting1 = GameImage.LIGHTING1.getImage().getScaledCopy(scale);
 					scaledLighting.setAlpha(hitResult.alpha);
 					scaledLighting1.setAlpha(hitResult.alpha);
 
-} else
+					scaledLighting.draw(hitResult.x - (scaledLighting.getWidth() / 2f),
+							hitResult.y - (scaledLighting.getHeight() / 2f), hitResult.color);
+					scaledLighting1.draw(hitResult.x - (scaledLighting1.getWidth() / 2f),
+							hitResult.y - (scaledLighting1.getHeight() / 2f), hitResult.color);
+				}
+
+				hitResult.alpha = 1 - ((float) (trackPosition - hitResult.time) / HITRESULT_FADE_TIME);
+			} else
 				iter.remove();
 		}
 	}
@@ -1213,7 +1198,7 @@ public class GameData {
 	
 	public void addMouseMissPoint(int time, int x, int y, int button) {
 		System.out.println("addMouseMissPoint "+x+" "+y+" "+button);
-		mouseMissList.add(new ErrorInfo(time, x, y, 0));
+		mouseMissList.add(new HitErrorInfo(time, x, y, 0));
 	}
 
 

@@ -204,24 +204,30 @@ public class Download {
 
 			//http://stackoverflow.com/questions/4770004/how-to-move-rename-file-from-internal-app-storage-to-external-storage-on-android
 			private void move(File src, File dst) throws IOException {
-				FileChannel inChannel = new FileInputStream(src.getIOFile()).getChannel();
-			    FileChannel outChannel = new FileOutputStream(dst.getIOFile()).getChannel();
-			    try
-			    {
-			    	long total = 0;
-			    	long size = inChannel.size();
-			    	while (total < size){
-			    		total += inChannel.transferTo(total, size-total, outChannel);
-			    	}
-			    }
-			    finally
-			    {
-			        if (inChannel != null)
-			            inChannel.close();
-			        if (outChannel != null)
-			            outChannel.close();
-			    }
-			    src.delete();
+				FileInputStream instream = new FileInputStream(src.getIOFile());
+				FileOutputStream outstream = new FileOutputStream(dst.getIOFile());
+				FileChannel inChannel = instream.getChannel();
+				FileChannel outChannel = outstream.getChannel();
+				try
+				{
+					long total = 0;
+					long size = inChannel.size();
+					while (total < size){
+						total += inChannel.transferTo(total, size-total, outChannel);
+					}
+				}
+				finally
+				{
+					if(instream != null)
+						instream.close();
+					if(outstream != null)
+						outstream.close();
+					if (inChannel != null)
+						inChannel.close();
+					if (outChannel != null)
+						outChannel.close();
+				}
+				src.delete();
 			}
 		};
 		dlThread.start();

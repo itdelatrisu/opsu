@@ -48,11 +48,6 @@ class DynamicFreeType {
 		height = FreeType.toInt(sizes.getHeight());
 		// System.out.println("Face flag "+face.getFaceFlags());
 
-		// if (checkForBitmapFont()) {
-		// return;
-		// }
-		// if (!face.setPixelSizes(0, 15)) throw new
-		// GdxRuntimeException("Couldn't set size for font '" + font + "'");
 		thiscnt = cnt++;
 	}
 
@@ -79,7 +74,7 @@ class DynamicFreeType {
 			CharInfo ci = getCharInfo(str.charAt(i));
 			TextureRegion tr = ci.region;
 			batch.draw(tr, x + ci.xbear// xoffset
-			, y - ascent + ci.ybear - ci.height);// ci.yoffset);//-
+			, y - ascent + ci.yoffset);// ci.yoffset);//-
 													// tr.getRegionHeight() +
 													// ci.ybear );//-
 			if (FreeType.hasKerning(face)) {
@@ -87,12 +82,7 @@ class DynamicFreeType {
 				x += FreeType.getKerning(face, prevchr, thischr,
 						FreeType.FT_KERNING_DEFAULT);
 			} else {
-				/*
-				 * if(thischr == ' ') x+=ci.horadvance; else{
-				 * x+=tr.getRegionWidth()+2; } /
-				 */
 				x += ci.horadvance;
-				// */
 			}
 			prevchr = thischr;
 
@@ -120,9 +110,9 @@ class DynamicFreeType {
 		// FreeType.FT_LOAD_RENDER
 		// FreeType.FT_LOAD_DEFAULT
 		// FreeType.FT_LOAD_RENDER
-				fontParam.size < 16 ? FreeType.FT_LOAD_DEFAULT
-						: FreeType.FT_LOAD_NO_HINTING
-		// |FreeType.FT_LOAD_NO_BITMAP
+				fontParam.size < 16 ? FreeType.FT_LOAD_DEFAULT : 
+							FreeType.FT_LOAD_NO_HINTING
+		 |FreeType.FT_LOAD_NO_BITMAP
 		// FreeType.FT_LOAD_NO_AUTOHINT
 		);// FT_LOAD_MONOCHROME FT_RENDER_MODE_LIGHT
 		GlyphSlot slot = face.getGlyph();
@@ -217,14 +207,7 @@ class DynamicFreeType {
 		ci.bitmaptop = slot.getBitmapTop();
 		ci.yoffset = slot.getBitmapTop() - pixmap.getHeight();
 		ci.xoffset = slot.getBitmapLeft();
-
-		/*
-		 * System.out.println( c +" fs:"+fontParam.size +" fs:"+fontParam.style
-		 * +" hadv:"+ci.horadvance +" xbear:"+ci.xbear +" ybear:"+ci.ybear
-		 * +" height:"+ci.height +" bitmaptop:"+ci.bitmaptop
-		 * +" yoffset:"+ci.yoffset +" xoffset:"+ci.xoffset
-		 * +" pixWid:"+pixmap.getWidth() +" pixtHei:"+pixmap.getHeight() );
-		 */
+		 
 		return ci;
 	}
 
@@ -235,17 +218,16 @@ class DynamicFreeType {
 			if (t > max)
 				max = t;
 		}
-		return (int) max;// getLineHeight();//FreeType.toInt(face.getMaxAdvanceHeight());
+		return (int) max;
 	}
 
 	public int getWidth(String str) {
 		float len = 0;
 		for (int i = 0; i < str.length(); i++) {
 			float t = getCharInfo(str.charAt(i)).horadvance;
-			// FreeType.;
 			len += t;
 		}
-		return (int) len;// FreeType.toInt(face.getMaxAdvanceWidth())*str.length();
+		return (int) len;
 	}
 
 	public int getLineHeight() {

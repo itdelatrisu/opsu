@@ -16,23 +16,31 @@ public class File {
 	public static final String separator = "/";
 	FileHandle fh;
 
+	static{
+		FileHandle fh = Gdx.files.external("./");
+		if(!fh.exists())
+			fh.mkdirs();
+	}
 	public File(String name) {
 		if (Gdx.app.getType() == ApplicationType.Desktop)
 			fh = Gdx.files.local(name);
 		else
 			fh = Gdx.files.external(name);
-		if (!fh.exists()) {
-			fh = Gdx.files.absolute(name);
-			if (!fh.exists()) {
-				Gdx.files.local(name);
-				if (!fh.exists()) {
-					fh = Gdx.files.internal(name);
-					if (!fh.exists()) {
-						fh = Gdx.files.external(name);
-					}
-				}
-			}
-		}
+		System.out.println(fh+" "+fh.exists()+" "+fh.type());
+		if (fh.exists()) 
+			return;
+		
+		fh = Gdx.files.internal(name);
+		if (fh.exists()) 
+			return;
+		fh = Gdx.files.absolute(name);
+		if (fh.exists()) 
+			return;
+		fh = Gdx.files.local(name);
+		if (fh.exists()) 
+			return;
+		fh = Gdx.files.external(name);
+		
 		
 	}
 
@@ -124,19 +132,8 @@ public class File {
 		return fh.reader(bufferSize);
 	}
 
-	public static File createTempFile(String string, String string2,
-			java.io.File tmpDir) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 	public void delete() {
 		fh.delete();
-	}
-
-	public void deleteOnExit() {
-		// TODO Auto-generated method stub
-
 	}
 
 	public String getPath() {

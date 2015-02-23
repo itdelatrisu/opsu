@@ -1,7 +1,6 @@
 package fluddokt.opsu.fake;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.utils.TimeUtils;
 
 public class MusicGdx extends AbsMusic {
 
@@ -60,17 +59,27 @@ public class MusicGdx extends AbsMusic {
 	public void fade(int duration, float f, boolean b) {
 		// TODO Auto-generated method stub
 		// final int dura = duration;
-		/*
-		 * new Thread(){
-		 * 
-		 * @Override public void run() { float mult=1; float sub =
-		 * (1/60f)/(dura/1000f); float volume = music.getVolume();
-		 * while(mult>=0){ try { mult-= sub;
-		 * //System.out.println("Fade:"+mult+" "+sub);
-		 * music.setVolume(volume*mult); Thread.sleep(16); } catch
-		 * (InterruptedException e) { e.printStackTrace(); } } music.stop(); }
-		 * }.start();
-		 */
+		
+		/*new Thread() {
+			@Override
+			public void run() {
+				float mult = 1;
+				float sub = (1 / 60f) / (dura / 1000f);
+				float volume = music.getVolume();
+				while (mult >= 0) {
+					try {
+						mult -= sub;
+						// System.out.println("Fade:"+mult+" "+sub);
+						music.setVolume(volume * mult);
+						Thread.sleep(16);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+				music.stop();
+			}
+		}.start();*/
+
 		music.stop();
 	}
 
