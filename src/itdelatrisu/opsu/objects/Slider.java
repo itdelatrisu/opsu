@@ -148,12 +148,10 @@ public class Slider implements HitObject {
 		float scale = timeDiff / (float) game.getApproachTime();
 		float approachScale = 1 + scale * 3;
 		float x = hitObject.getX(), y = hitObject.getY();
+		float alpha = Utils.clamp(1 - scale, 0, 1);
 
 		float oldAlpha = color.a;
-		float oldAlphaFade = Utils.COLOR_WHITE_FADE.a;
-		float alpha = (1 - scale);
-		color.a = Utils.clamp(alpha * 0.5f, 0, 1);
-		alpha = Utils.clamp(alpha, 0, 1);
+		color.a = alpha;
 		Utils.COLOR_WHITE_FADE.a = alpha;
 
 		// curve
@@ -171,6 +169,7 @@ public class Slider implements HitObject {
 		Image hitCircleOverlay = GameImage.HITCIRCLE_OVERLAY.getImage();
 		Image hitCircle = GameImage.HITCIRCLE.getImage();
 		color.a = alpha;
+		Utils.COLOR_WHITE_FADE.a = 1f;
 
 		// end circle
 		float[] endPos = curve.pointAt(1);
@@ -187,7 +186,6 @@ public class Slider implements HitObject {
 					hitCircle.getWidth() * 0.40f / data.getDefaultSymbolImage(0).getHeight());
 
 		color.a = oldAlpha;
-		Utils.COLOR_WHITE_FADE.a = oldAlphaFade;
 
 		// repeats
 		for(int tcurRepeat = currentRepeats; tcurRepeat<=currentRepeats+1; tcurRepeat++){
