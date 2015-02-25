@@ -536,6 +536,9 @@ header a.button {
   right: 0;
   background: transparent url(../images/github-button.png) 0 0 no-repeat;
 }
+header a.button#apk {
+  display: none;
+}
 aside a.button {
   display: block;
   width: 138px;
@@ -825,7 +828,7 @@ footer a:hover {
   header h2 {
     font-size: 24px;
   }
-  header a.button {
+  header a.button, header a.button#apk {
     position: relative;
     display: inline-block;
     width: auto;
