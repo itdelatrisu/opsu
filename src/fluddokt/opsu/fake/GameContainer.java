@@ -34,8 +34,9 @@ public class GameContainer {
 
 	public void exit() {
 		close_sub();
-		if(music != null)
-			music.stop();
+		if(music != null){
+			music.dispose();
+		}
 		Gdx.app.exit();
 	}
 

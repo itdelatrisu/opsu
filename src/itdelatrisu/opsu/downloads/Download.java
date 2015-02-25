@@ -23,7 +23,6 @@ import fluddokt.opsu.fake.*;
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.Utils;
 
-
 import java.io.FileInputStream;
 //import java.io.File;
 import java.io.FileOutputStream;
@@ -178,12 +177,20 @@ public class Download {
 					updateReadSoFar();
 					int total = 0;
 					
-					while(status == Status.DOWNLOADING && total < contentLength){
-						long readed = foschannel.transferFrom(rbc, total, Math.min(0x10000, contentLength-total));
-						total += readed;
+					try {
+						while(status == Status.DOWNLOADING && total < contentLength){
+							long readed = foschannel.transferFrom(rbc, total, Math.min(8192, contentLength-total));
+							total += readed;
+						}
+					}  catch (Exception e) {
+						//e.printStackTrace();
+						if(status != Status.CANCELLED){
+							status = Status.ERROR;
+							ErrorHandler.error("Error while downloading.", e, true);
+						}
 					}
-					//*/
-					if (status == Status.DOWNLOADING) {  // not interrupted
+					
+					if (status == Status.DOWNLOADING) {
 						status = Status.COMPLETE;
 						rbc.close();
 						fos.close();
@@ -356,27 +363,26 @@ public class Download {
 	 * Cancels the download, if running.
 	 */
 	public void cancel() {
-		try {
-			this.status = Status.CANCELLED;
-			boolean transferring = isTransferring();
-			dlThread.interrupt();
-			try {
-				dlThread.join();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
+			//dlThread.interrupt();
+		new Thread(){
+			public void run(){
+				try {
+					status = Status.CANCELLED;
+					boolean transferring = isTransferring();
+					if (rbc != null && rbc.isOpen())
+						rbc.close();
+					if (fos != null && fos.getChannel().isOpen())
+						fos.close();
+					if (transferring) {
+						File f = localFile;
+						if (f.isFile())
+							f.delete();
+					}
+				} catch (Exception e) {
+					status = Status.ERROR;
+					ErrorHandler.error("Failed to cancel download.", e, true);
+				}
 			}
-			if (rbc != null && rbc.isOpen())
-				rbc.close();
-			if (fos != null && fos.getChannel().isOpen())
-				fos.close();
-			if (transferring) {
-				File f = localFile;
-				if (f.isFile())
-					f.delete();
-			}
-		} catch (IOException e) {
-			this.status = Status.ERROR;
-			ErrorHandler.error("Failed to cancel download.", e, true);
-		}
+		}.start();
 	}
 }

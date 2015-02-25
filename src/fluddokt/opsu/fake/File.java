@@ -35,19 +35,30 @@ public class File {
 		else
 			fh = Gdx.files.external(name);
 		System.out.println(fh+" "+fh.exists()+" "+fh.type());
-		if (fh.exists()) 
+		if (fh.exists()) {
+			System.out.println("new file:"+info());
 			return;
-		
-		fh = Gdx.files.internal(name);
-		if (fh.exists()) 
+		}
+		if (Gdx.app.getType() == ApplicationType.Desktop)
+			fh = Gdx.files.external(name);
+		else
+			fh = Gdx.files.local(name);
+		if (fh.exists()) {
+			System.out.println("new file:"+info());
 			return;
-		fh = Gdx.files.local(name);
-		if (fh.exists()) 
-			return;
+		}
 		fh = Gdx.files.absolute(name);
-		if (fh.exists()) 
+		if (fh.exists()) {
+			System.out.println("new file:"+info());
 			return;
+		}
+		fh = Gdx.files.internal(name);
+		if (fh.exists()) {
+			System.out.println("new file:"+info());
+			return;
+		}
 		fh = Gdx.files.external(name);
+		System.out.println("new nonexist file:"+info());
 		
 		
 	}
@@ -57,7 +68,12 @@ public class File {
 	}
 
 	public File(File parent, String child) {
+		System.out.println("new child file:"+parent.info()+" "+child);
 		fh = parent.fh.child(child);
+	}
+
+	private String info() {
+		return fh.path()+"["+fh.type();
 	}
 
 	public File(String parent, String child) {

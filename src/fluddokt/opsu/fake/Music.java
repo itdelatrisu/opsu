@@ -112,7 +112,7 @@ public class Music {
 	}
 
 	public void dispose() {
-		System.out.println("Music pause " + music.getName());
+		System.out.println("Music dispose " + music.getName());
 		music.dispose();
 	}
 
