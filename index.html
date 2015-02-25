@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link href='https://fonts.googleapis.com/css?family=Architects+Daughter' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
+
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <title>Opsu by itdelatrisu</title>
+  </head>
+
+  <body>
+    <header>
+      <div class="inner">
+        <h1>Opsu</h1>
+        <h2>an open-source osu! client</h2>
+        <a href="https://github.com/itdelatrisu/opsu" class="button"><small>View project on</small> GitHub</a>
+      </div>
+    </header>
+
+    <div id="content-wrapper">
+      <div class="inner clearfix">
+        <section id="main-content">
+          <h1>
+<a id="about" class="anchor" href="#about" aria-hidden="true"><span class="octicon octicon-link"></span></a>About</h1>
+
+<p>opsu! is an <strong>unofficial</strong> open-source client for <a href="https://osu.ppy.sh/">osu!</a>,
+a rhythm game based on popular commercial games such as <em>Ouendan</em> and
+<em>Elite Beat Agents</em>.</p>
+
+<p>opsu! is written in Java using <a href="http://slick.ninjacave.com/">Slick2D</a> and
+<a href="http://lwjgl.org/">LWJGL</a>, wrappers around the OpenGL and OpenAL libraries.</p>
+
+<h2>
+<a id="getting-started" class="anchor" href="#getting-started" aria-hidden="true"><span class="octicon octicon-link"></span></a>Getting Started</h2>
+
+<p>Precompiled binaries for opsu! can be found on the
+<a href="https://github.com/itdelatrisu/opsu/releases">releases</a> page, with the latest
+builds at the top.</p>
+
+<h3>
+<a id="java-setup" class="anchor" href="#java-setup" aria-hidden="true"><span class="octicon octicon-link"></span></a>Java Setup</h3>
+
+<p>The Java Runtime Environment (JRE) must be installed in order to run opsu!.
+The download page is located <a href="https://www.java.com/en/download/">here</a>.</p>
+
+<h3>
+<a id="beatmaps" class="anchor" href="#beatmaps" aria-hidden="true"><span class="octicon octicon-link"></span></a>Beatmaps</h3>
+
+<p>opsu! requires beatmaps to run, which are available for download on the
+<a href="https://osu.ppy.sh/p/beatmaplist">osu! website</a> and mirror sites such as
+<a href="https://osu.yas-online.net/">osu!Mirror</a> or <a href="http://bloodcat.com/osu/">Bloodcat</a>.
+Beatmaps can also be downloaded directly through opsu! in the downloads menu.</p>
+
+<p>If osu! is already installed, this application will attempt to load songs
+directly from the osu! program folder.  Otherwise, place songs in the generated
+<code>Songs</code> folder or set the <code>BeatmapDirectory</code> value in the generated
+configuration file to the path of the root song directory.</p>
+
+<p>Note that beatmaps are typically delivered as OSZ files.  These can be extracted
+with any ZIP tool, and opsu! will automatically extract them into the songs
+folder if placed in the <code>SongPacks</code> directory.</p>
+
+<h3>
+<a id="first-run" class="anchor" href="#first-run" aria-hidden="true"><span class="octicon octicon-link"></span></a>First Run</h3>
+
+<p>The <code>Music Offset</code> value will likely need to be adjusted when playing for the
+first time, or whenever hit objects are out of sync with the music.  This and
+other game options can be accessed by clicking the "Other Options" button in
+the song menu.</p>
+
+<h2>
+<a id="building" class="anchor" href="#building" aria-hidden="true"><span class="octicon octicon-link"></span></a>Building</h2>
+
+<p>opsu! is distributed as a Maven project.</p>
+
+<ul>
+<li>To run the project, execute the Maven goal <code>compile exec:exec</code>.</li>
+<li>To create a single executable JAR file, execute the Maven goal
+<code>install -Djar</code>.  This will link the LWJGL native libraries using a
+<a href="https://github.com/itdelatrisu/JarSplicePlus">modified version</a> of
+<a href="http://ninjacave.com/jarsplice">JarSplice</a>, which is included in the
+<code>tools</code> directory in both its original and modified forms.  The resulting
+file will be located in <code>target/opsu-${version}-runnable.jar</code>.</li>
+</ul>
+
+<h2>
+<a id="credits" class="anchor" href="#credits" aria-hidden="true"><span class="octicon octicon-link"></span></a>Credits</h2>
+
+<p>This software was created by Jeffrey Han 
+(<a href="https://github.com/itdelatrisu/">@itdelatrisu</a>).  All game concepts and
+designs are based on work by osu! developer Dean Herbert.  Other credits can
+be found <a href="CREDITS.md">here</a>.</p>
+
+<h2>
+<a id="license" class="anchor" href="#license" aria-hidden="true"><span class="octicon octicon-link"></span></a>License</h2>
+
+<p><strong>This software is licensed under GNU GPL version 3.</strong>
+You can find the full text of the license <a href="LICENSE">here</a>.</p>
+        </section>
+
+        <aside id="sidebar">
+          <a href="https://github.com/itdelatrisu/opsu/zipball/master" class="button">
+            <small>Download</small>
+            .zip file
+          </a>
+          <a href="https://github.com/itdelatrisu/opsu/tarball/master" class="button">
+            <small>Download</small>
+            .tar.gz file
+          </a>
+
+          <p class="repo-owner"><a href="https://github.com/itdelatrisu/opsu"></a> is maintained by <a href="https://github.com/itdelatrisu">itdelatrisu</a>.</p>
+
+          <p>This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the Architect theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.</p>
+        </aside>
+      </div>
+    </div>
+
+  
+  </body>
+</html>
