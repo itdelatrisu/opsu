@@ -8,7 +8,13 @@
     <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
     <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen">
     <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
+	<link rel="stylesheet" type="text/css" href="stylesheets/photoswipe.css">
+	<link rel="stylesheet" type="text/css" href="images/photoswipe/default-skin.css">
     <link rel="icon" type="image/png" href="images/icon.png">
+
+	<script src="javascripts/photoswipe.min.js"></script>
+	<script src="javascripts/photoswipe-ui-default.min.js"></script>
+	<script src="javascripts/main.js"></script>
 
     <!--[if lt IE 9]>
     <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
@@ -30,7 +36,7 @@
       <div class="inner clearfix">
         <section id="main-content">
           <h2>
-<a id="about" class="anchor" href="#about" aria-hidden="true"><span class="octicon octicon-link"></span></a>About</h2>
+<a id="about" class="anchor" href="#about" aria-hidden="true"><span class="octicon octicon-link">About</span></a></h2>
 
 <p>opsu! is an <strong>unofficial</strong> open-source client for <a href="https://osu.ppy.sh/">osu!</a>,
 a rhythm game based on popular commercial games such as <em>Ouendan</em> and
@@ -38,20 +44,20 @@ a rhythm game based on popular commercial games such as <em>Ouendan</em> and
 <a href="http://lwjgl.org/">LWJGL</a>, wrappers around the OpenGL and OpenAL libraries.</p>
 
 <h2>
-<a id="getting-started" class="anchor" href="#getting-started" aria-hidden="true"><span class="octicon octicon-link"></span></a>Getting Started</h2>
+<a id="getting-started" class="anchor" href="#getting-started" aria-hidden="true"><span class="octicon octicon-link">Getting Started</span></a></h2>
 
 <p>Precompiled binaries for opsu! can be found on the
 <a href="https://github.com/itdelatrisu/opsu/releases">releases</a> page, with the latest
 builds at the top.</p>
 
 <h3>
-<a id="java-setup" class="anchor" href="#java-setup" aria-hidden="true"><span class="octicon octicon-link"></span></a>Java Setup</h3>
+<a id="java-setup" class="anchor" href="#java-setup" aria-hidden="true"><span class="octicon octicon-link">Java Setup</span></a></h3>
 
 <p>The Java Runtime Environment (JRE) must be installed in order to run opsu!.
 The download page is located <a href="https://www.java.com/en/download/">here</a>.</p>
 
 <h3>
-<a id="beatmaps" class="anchor" href="#beatmaps" aria-hidden="true"><span class="octicon octicon-link"></span></a>Beatmaps</h3>
+<a id="beatmaps" class="anchor" href="#beatmaps" aria-hidden="true"><span class="octicon octicon-link">Beatmaps</span></a></h3>
 
 <p>opsu! requires beatmaps to run, which are available for download on the
 <a href="https://osu.ppy.sh/p/beatmaplist">osu! website</a> and mirror sites such as
@@ -68,7 +74,7 @@ with any ZIP tool, and opsu! will automatically extract them into the songs
 folder if placed in the <code>SongPacks</code> directory.</p>
 
 <h3>
-<a id="first-run" class="anchor" href="#first-run" aria-hidden="true"><span class="octicon octicon-link"></span></a>First Run</h3>
+<a id="first-run" class="anchor" href="#first-run" aria-hidden="true"><span class="octicon octicon-link">First Run</span></a></h3>
 
 <p>The <code>Music Offset</code> value will likely need to be adjusted when playing for the
 first time, or whenever hit objects are out of sync with the music.  This and
@@ -76,7 +82,7 @@ other game options can be accessed by clicking the "Other Options" button in
 the song menu.</p>
 
 <h2>
-<a id="building" class="anchor" href="#building" aria-hidden="true"><span class="octicon octicon-link"></span></a>Building</h2>
+<a id="building" class="anchor" href="#building" aria-hidden="true"><span class="octicon octicon-link">Building</span></a></h2>
 
 <p>opsu! is distributed as a Maven project.</p>
 
@@ -91,7 +97,7 @@ file will be located in <code>target/opsu-${version}-runnable.jar</code>.</li>
 </ul>
 
 <h2>
-<a id="credits" class="anchor" href="#credits" aria-hidden="true"><span class="octicon octicon-link"></span></a>Credits</h2>
+<a id="credits" class="anchor" href="#credits" aria-hidden="true"><span class="octicon octicon-link">Credits</span></a></h2>
 
 <p>This software was created by Jeffrey Han 
 (<a href="https://github.com/itdelatrisu/">@itdelatrisu</a>).  All game concepts and
@@ -99,10 +105,66 @@ designs are based on work by osu! developer Dean Herbert.  Other credits can
 be found <a href="https://github.com/itdelatrisu/opsu/blob/master/CREDITS.md">here</a>.</p>
 
 <h2>
-<a id="license" class="anchor" href="#license" aria-hidden="true"><span class="octicon octicon-link"></span></a>License</h2>
+<a id="license" class="anchor" href="#license" aria-hidden="true"><span class="octicon octicon-link">License</span></a></h2>
 
-<p><strong>This software is licensed under GNU GPL version 3.</strong>
+<p>This software is licensed under GNU GPL version 3.
 You can find the full text of the license <a href="https://github.com/itdelatrisu/opsu/blob/master/LICENSE">here</a>.</p>
+
+<h2>
+<a id="screenshots" class="anchor" href="#screenshots" aria-hidden="true"><span class="octicon octicon-link">Screenshots</span></a></h2>
+
+  <div class="pswp-gallery" itemscope itemtype="http://schema.org/ImageGallery">
+    <figure itemprop="associatedMedia" itemscope itemtype="http://schema.org/ImageObject">
+      <a href="images/screenshots/s01.jpg" itemprop="contentUrl" data-size="1600x900">
+          <img src="images/screenshots/t01.jpg" itemprop="thumbnail" alt="Main Menu" />
+      </a>
+	  <figcaption itemprop="caption description"></figcaption>
+    </figure>
+    <figure itemprop="associatedMedia" itemscope itemtype="http://schema.org/ImageObject">
+      <a href="images/screenshots/s02.jpg" itemprop="contentUrl" data-size="1600x900">
+          <img src="images/screenshots/t02.jpg" itemprop="thumbnail" alt="Song Menu" />
+      </a>
+	  <figcaption itemprop="caption description"></figcaption>
+    </figure>
+    <figure itemprop="associatedMedia" itemscope itemtype="http://schema.org/ImageObject">
+      <a href="images/screenshots/s03.jpg" itemprop="contentUrl" data-size="1600x900">
+          <img src="images/screenshots/t03.jpg" itemprop="thumbnail" alt="Gameplay 1" />
+      </a>
+	  <figcaption itemprop="caption description"></figcaption>
+    </figure>
+    <figure itemprop="associatedMedia" itemscope itemtype="http://schema.org/ImageObject">
+      <a href="images/screenshots/s04.jpg" itemprop="contentUrl" data-size="1600x900">
+          <img src="images/screenshots/t04.jpg" itemprop="thumbnail" alt="Gameplay 2" />
+      </a>
+	  <figcaption itemprop="caption description"></figcaption>
+    </figure>
+    <figure itemprop="associatedMedia" itemscope itemtype="http://schema.org/ImageObject">
+      <a href="images/screenshots/s05.jpg" itemprop="contentUrl" data-size="1600x900">
+          <img src="images/screenshots/t05.jpg" itemprop="thumbnail" alt="Gameplay 3" />
+      </a>
+	  <figcaption itemprop="caption description"></figcaption>
+    </figure>
+    <figure itemprop="associatedMedia" itemscope itemtype="http://schema.org/ImageObject">
+      <a href="images/screenshots/s06.jpg" itemprop="contentUrl" data-size="1600x900">
+          <img src="images/screenshots/t06.jpg" itemprop="thumbnail" alt="Game Ranking" />
+      </a>
+	  <figcaption itemprop="caption description"></figcaption>
+    </figure>
+    <figure itemprop="associatedMedia" itemscope itemtype="http://schema.org/ImageObject">
+      <a href="images/screenshots/s07.jpg" itemprop="contentUrl" data-size="1600x900">
+          <img src="images/screenshots/t07.jpg" itemprop="thumbnail" alt="Mod Select" />
+      </a>
+	  <figcaption itemprop="caption description"></figcaption>
+    </figure>
+    <figure itemprop="associatedMedia" itemscope itemtype="http://schema.org/ImageObject">
+      <a href="images/screenshots/s08.jpg" itemprop="contentUrl" data-size="1600x900">
+          <img src="images/screenshots/t08.jpg" itemprop="thumbnail" alt="Downloads" />
+      </a>
+	  <figcaption itemprop="caption description"></figcaption>
+    </figure>
+  </div>
+<p>&nbsp;</p>
+
         </section>
 
         <aside id="sidebar">
@@ -126,6 +188,41 @@ You can find the full text of the license <a href="https://github.com/itdelatris
       </div>
     </div>
 
-  
+	<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+		<div class="pswp__bg"></div>
+		<div class="pswp__scroll-wrap">
+			<div class="pswp__container">
+				<div class="pswp__item"></div>
+				<div class="pswp__item"></div>
+				<div class="pswp__item"></div>
+			</div>
+			<div class="pswp__ui pswp__ui--hidden">
+				<div class="pswp__top-bar">
+					<div class="pswp__counter"></div>
+					<button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+					<button class="pswp__button pswp__button--share" title="Share"></button>
+					<button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+					<button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+					<div class="pswp__preloader">
+						<div class="pswp__preloader__icn">
+						  <div class="pswp__preloader__cut">
+							<div class="pswp__preloader__donut"></div>
+						  </div>
+						</div>
+					</div>
+				</div>
+				<div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+					<div class="pswp__share-tooltip"></div> 
+				</div>
+				<button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+				</button>
+				<button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+				</button>
+				<div class="pswp__caption">
+					<div class="pswp__caption__center"></div>
+				</div>
+			</div>
+		</div>
+	</div>
   </body>
 </html>
