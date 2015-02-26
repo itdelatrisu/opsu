@@ -1,15 +1,16 @@
 # opsu!
-opsu! is an **unofficial** open-source client for [osu!](https://osu.ppy.sh/),
+**opsu!** is an unofficial open-source client for [osu!](https://osu.ppy.sh/),
 a rhythm game based on popular commercial games such as *Ouendan* and
-*Elite Beat Agents*.
+*Elite Beat Agents*.  It is written in Java using [Slick2D](http://slick.ninjacave.com/)
+and [LWJGL](http://lwjgl.org/), wrappers around the OpenGL and OpenAL libraries.
 
-opsu! is written in Java using [Slick2D](http://slick.ninjacave.com/) and
-[LWJGL](http://lwjgl.org/), wrappers around the OpenGL and OpenAL libraries.
+opsu! runs on Windows, OS X, and Linux platforms. A [libGDX port](https://github.com/fluddokt/opsu)
+additionally supports Android devices.
 
 ## Getting Started
 Precompiled binaries for opsu! can be found on the
 [releases](https://github.com/itdelatrisu/opsu/releases) page, with the latest
-builds at the top.
+builds at the top.  APK releases can be found [here](https://github.com/fluddokt/opsu/releases).
 
 ### Java Setup
 The Java Runtime Environment (JRE) must be installed in order to run opsu!.
