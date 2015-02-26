@@ -259,6 +259,16 @@ public class MainMenu extends BasicGameState {
 		Utils.drawVolume(g);
 		Utils.drawFPS();
 		Utils.drawCursor();
+
+		// tooltips
+		if (musicPositionBarContains(mouseX, mouseY))
+			Utils.drawTooltip(g, "Click to seek to a specific point in the song.", false);
+		else if (musicPlay.contains(mouseX, mouseY))
+			Utils.drawTooltip(g, (MusicController.isPlaying()) ? "Pause" : "Play", false);
+		else if (musicNext.contains(mouseX, mouseY))
+			Utils.drawTooltip(g, "Next track", false);
+		else if (musicPrevious.contains(mouseX, mouseY))
+			Utils.drawTooltip(g, "Previous track", false);
 	}
 
 	@Override
@@ -273,10 +283,13 @@ public class MainMenu extends BasicGameState {
 		if (repoButton != null)
 			repoButton.hoverUpdate(delta, mouseX, mouseY);
 		downloadsButton.hoverUpdate(delta, mouseX, mouseY);
+		// ensure only one button is in hover state at once
+		if (musicPositionBarContains(mouseX, mouseY))
+			mouseX = mouseY = -1;
 		musicPlay.hoverUpdate(delta, mouseX, mouseY);
 		musicPause.hoverUpdate(delta, mouseX, mouseY);
 		if (musicPlay.contains(mouseX, mouseY))
-			mouseX = mouseY = -1;  // ensure only one button is in hover state at once
+			mouseX = mouseY = -1;
 		musicNext.hoverUpdate(delta, mouseX, mouseY);
 		musicPrevious.hoverUpdate(delta, mouseX, mouseY);
 

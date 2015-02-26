@@ -150,8 +150,6 @@ public class ButtonMenu extends BasicGameState {
 
 			@Override
 			public void draw(GameContainer container, StateBasedGame game, Graphics g) {
-				super.draw(container, game, g);
-
 				int width = container.getWidth();
 				int height = container.getHeight();
 
@@ -171,9 +169,21 @@ public class ButtonMenu extends BasicGameState {
 							category.getName(), category.getColor());
 				}
 
-				// buttons (TODO: draw descriptions when hovering)
-				for (GameMod mod : GameMod.values())
+				// buttons
+				Input input = container.getInput();
+				int mouseX = input.getMouseX(), mouseY = input.getMouseY();
+				GameMod hoverMod = null;
+				for (GameMod mod : GameMod.values()) {
 					mod.draw();
+					if (hoverMod == null && mod.contains(mouseX, mouseY))
+						hoverMod = mod;
+				}
+
+				super.draw(container, game, g);
+
+				// tooltips
+				if (hoverMod != null && hoverMod.isImplemented())
+					Utils.drawTooltip(g, hoverMod.getDescription(), true);
 			}
 
 			@Override
@@ -280,6 +290,10 @@ public class ButtonMenu extends BasicGameState {
 			// draw buttons
 			for (int i = 0; i < buttons.length; i++)
 				menuButtons[i].draw(buttons[i].getColor());
+
+			Utils.drawVolume(g);
+			Utils.drawFPS();
+			Utils.drawCursor();
 		}
 
 		/**
@@ -564,9 +578,6 @@ public class ButtonMenu extends BasicGameState {
 		g.setBackground(Color.black);
 		if (menuState != null)
 			menuState.draw(container, game, g);
-		Utils.drawVolume(g);
-		Utils.drawFPS();
-		Utils.drawCursor();
 	}
 
 	@Override

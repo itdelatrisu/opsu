@@ -50,9 +50,9 @@ public enum GameMod {
 	FLASHLIGHT    (Category.HARD, 4, GameImage.MOD_FLASHLIGHT, "FL", 1024, Input.KEY_G, 1.12f, false,
 	              "Restricted view area."),
 	RELAX         (Category.SPECIAL, 0, GameImage.MOD_RELAX, "RL", 128, Input.KEY_Z, 0f, false,
-	              "You don't need to click. Give your clicking/tapping finger a break from the heat of things. **UNRANKED**"),
+	              "You don't need to click.\nGive your clicking/tapping finger a break from the heat of things.\n**UNRANKED**"),
 	AUTOPILOT     (Category.SPECIAL, 1, GameImage.MOD_AUTOPILOT, "AP", 8192, Input.KEY_X, 0f, false,
-	              "Automatic cursor movement - just follow the rhythm. **UNRANKED**"),
+	              "Automatic cursor movement - just follow the rhythm.\n**UNRANKED**"),
 	SPUN_OUT      (Category.SPECIAL, 2, GameImage.MOD_SPUN_OUT, "SO", 4096, Input.KEY_V, 0.9f,
 	              "Spinners will be automatically completed."),
 	AUTO          (Category.SPECIAL, 3, GameImage.MOD_AUTO, "", 2048, Input.KEY_B, 1f,
@@ -284,6 +284,12 @@ public enum GameMod {
 	 * @return the description
 	 */
 	public String getDescription() { return description; }
+
+	/**
+	 * Returns whether or not the mod is implemented.
+	 * @return true if implemented
+	 */
+	public boolean isImplemented() { return implemented; }
 
 	/**
 	 * Toggles the active status of the mod.

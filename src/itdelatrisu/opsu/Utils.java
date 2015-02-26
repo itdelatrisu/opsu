@@ -647,6 +647,52 @@ public class Utils {
 	}
 
 	/**
+	 * Draws a tooltip near the current mouse coordinates, bounded by the
+	 * container dimensions.
+	 * @param g the graphics context
+	 * @param text the tooltip text
+	 * @param newlines whether to check for line breaks ('\n')
+	 */
+	public static void drawTooltip(Graphics g, String text, boolean newlines) {
+		int containerWidth = container.getWidth(), containerHeight = container.getHeight();
+		int margin = containerWidth / 100, textMarginX = 2;
+		int offset = GameImage.CURSOR_MIDDLE.getImage().getWidth() / 2;
+		int lineHeight = FONT_SMALL.getLineHeight();
+		int textWidth = textMarginX * 2, textHeight = lineHeight;
+		if (newlines) {
+			String[] lines = text.split("\\n");
+			int maxWidth = FONT_SMALL.getWidth(lines[0]);
+			for (int i = 1; i < lines.length; i++) {
+				int w = FONT_SMALL.getWidth(lines[i]);
+				if (w > maxWidth)
+					maxWidth = w;
+			}
+			textWidth += maxWidth;
+			textHeight += lineHeight * (lines.length - 1);
+		} else
+			textWidth += FONT_SMALL.getWidth(text);
+
+		// get drawing coordinates
+		int x = input.getMouseX() + offset, y = input.getMouseY() + offset;
+		if (x + textWidth > containerWidth - margin)
+			x = containerWidth - margin - textWidth;
+		else if (x < margin)
+			x = margin;
+		if (y + textHeight > containerHeight - margin)
+			y = containerHeight - margin - textHeight;
+		else if (y < margin)
+			y = margin;
+
+		// draw tooltip text inside a filled rectangle
+		g.setColor(Color.black);
+		g.fillRect(x, y, textWidth, textHeight);
+		g.setColor(Color.darkGray);
+		g.setLineWidth(1);
+		g.drawRect(x, y, textWidth, textHeight);
+		FONT_SMALL.drawString(x + textMarginX, y, text, Color.white);
+	}
+
+	/**
 	 * Takes a screenshot.
 	 * @author http://wiki.lwjgl.org/index.php?title=Taking_Screen_Shots
 	 */
