@@ -33,7 +33,6 @@ import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
 import javax.sound.sampled.DataLine;
-import javax.sound.sampled.FloatControl;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
@@ -50,7 +49,7 @@ public class SoundController {
 		 * Returns the Clip associated with the sound component.
 		 * @return the Clip
 		 */
-		public Clip getClip();
+		public MultiClip getClip();
 	}
 
 	/** Sample volume multiplier, from timing points [0, 1]. */
@@ -71,7 +70,7 @@ public class SoundController {
 	 * @param isMP3 true if MP3, false if WAV
 	 * @return the loaded and opened clip
 	 */
-	private static Clip loadClip(String ref, boolean isMP3) {
+	private static MultiClip loadClip(String ref, boolean isMP3) {
 		try {
 			URL url = ResourceLoader.getResource(ref);
 
@@ -79,7 +78,7 @@ public class SoundController {
 			InputStream in = url.openStream();
 			if (in.available() == 0) {
 				in.close();
-				return AudioSystem.getClip();
+				return new MultiClip(ref, null);
 			}
 			in.close();
 
@@ -88,6 +87,9 @@ public class SoundController {
 			// GNU/Linux workaround
 //			Clip clip = AudioSystem.getClip();
 			AudioFormat format = audioIn.getFormat();
+			
+			//TODO Is this really needed? since the code below will find out the format isn't supported
+			// and will pretty much do the same thing I think. -fluddokt
 			if (isMP3) {
 				AudioFormat decodedFormat = new AudioFormat(
 						AudioFormat.Encoding.PCM_SIGNED, format.getSampleRate(), 16,
@@ -97,12 +99,10 @@ public class SoundController {
 				audioIn = decodedAudioIn;
 			}
 			DataLine.Info info = new DataLine.Info(Clip.class, format);
-			if (AudioSystem.isLineSupported(info)) {
-				Clip clip = (Clip) AudioSystem.getLine(info);
-				clip.open(audioIn);
-				return clip;
-			} else {
-				// try to find closest matching line
+			if(AudioSystem.isLineSupported(info)){
+				return new MultiClip(ref, audioIn);
+			}else{
+				//Try to find closest matching line
 				Clip clip = AudioSystem.getClip();
 				AudioFormat[] formats = ((DataLine.Info) clip.getLineInfo()).getFormats();
 				int bestIndex = -1;
@@ -149,11 +149,10 @@ public class SoundController {
 						break;
 				}
 				if (bestIndex >= 0) {
-					clip.open(AudioSystem.getAudioInputStream(formats[bestIndex], audioIn));
+					return new MultiClip(ref, AudioSystem.getAudioInputStream(formats[bestIndex], audioIn));
 				} else
 					// still couldn't find anything, try the default clip format
-					clip.open(AudioSystem.getAudioInputStream(clip.getFormat(), audioIn));
-				return clip;
+					return new MultiClip(ref, AudioSystem.getAudioInputStream(clip.getFormat(), audioIn));
 			}
 		} catch (UnsupportedAudioFileException | IOException | LineUnavailableException | RuntimeException e) {
 			ErrorHandler.error(String.format("Failed to load file '%s'.", ref), e, true);
@@ -231,28 +230,16 @@ public class SoundController {
 	 * @param clip the Clip to play
 	 * @param volume the volume [0, 1]
 	 */
-	private static void playClip(Clip clip, float volume) {
+	private static void playClip(MultiClip clip, float volume) {
 		if (clip == null)  // clip failed to load properly
 			return;
 
 		if (volume > 0f) {
-			// stop clip if running
-			if (clip.isRunning()) {
-				clip.stop();
-				clip.flush();
+			try {
+				clip.start(volume);
+			} catch (LineUnavailableException | IOException e) {
+				ErrorHandler.error(String.format("Could not start a clip '%s'.", clip.getName()), e, true);
 			}
-
-			// PulseAudio does not support Master Gain
-			if (clip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
-				// set volume
-				FloatControl gainControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
-				float dB = (float) (Math.log(volume) / Math.log(10.0) * 20.0);
-				gainControl.setValue(dB);
-			}
-
-			// play clip
-			clip.setFramePosition(0);
-			clip.start();
 		}
 	}
 
