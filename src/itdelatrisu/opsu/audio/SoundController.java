@@ -87,9 +87,6 @@ public class SoundController {
 			// GNU/Linux workaround
 //			Clip clip = AudioSystem.getClip();
 			AudioFormat format = audioIn.getFormat();
-			
-			//TODO Is this really needed? since the code below will find out the format isn't supported
-			// and will pretty much do the same thing I think. -fluddokt
 			if (isMP3) {
 				AudioFormat decodedFormat = new AudioFormat(
 						AudioFormat.Encoding.PCM_SIGNED, format.getSampleRate(), 16,
