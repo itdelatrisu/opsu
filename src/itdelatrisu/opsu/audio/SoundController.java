@@ -27,6 +27,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.ListIterator;
 
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
@@ -297,5 +300,54 @@ public class SoundController {
 			return -1;
 
 		return currentFileIndex * 100 / (SoundEffect.SIZE + (HitSound.SIZE * SampleSet.SIZE));
+	}
+	
+	
+	/** Max number of clips that can be created */
+	static int MAX_CLIP = 100;
+	
+	/** List of clips that has been created */
+	static HashSet<Clip> clipList = new HashSet<Clip>();
+	
+	/** List of clips to be closed */
+	static LinkedList<Clip> clipsToClose = new LinkedList<Clip>();
+	
+	/**
+	 *  Returns a new clip if it still below the max number of clips 
+	 */
+	protected static Clip newClip() throws LineUnavailableException{
+		if(clipList.size() < MAX_CLIP) {
+			Clip c = AudioSystem.getClip();
+			clipList.add(c);
+			return c;
+		} else {
+			System.out.println("Can't newClip");
+			
+			return null;
+		}
+	}
+	
+	/** 
+	 * Adds a clip to be closed 
+	 */
+	protected static void destroyClip(Clip c) {
+		if(clipList.remove(c)){
+			clipsToClose.add(c);
+		}
+	}
+	/**
+	 *  Destroys all extra Clips 
+	 */
+	public static void destroyExtraClips() {
+		MultiClip.destroyExtraClips();
+		new Thread(){
+			public void run(){
+				for(ListIterator<Clip> ita = clipsToClose.listIterator(); ita.hasNext(); ){
+					Clip c = ita.next();
+					c.close();
+					ita.remove();
+				}
+			}
+		}.start();
 	}
 }

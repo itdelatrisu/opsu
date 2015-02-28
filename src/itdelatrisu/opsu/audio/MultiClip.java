@@ -1,11 +1,11 @@
 package itdelatrisu.opsu.audio;
 
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.LinkedList;
 
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
-import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
 import javax.sound.sampled.FloatControl;
 import javax.sound.sampled.LineUnavailableException;
@@ -26,6 +26,8 @@ public class MultiClip {
 	
 	/** Size of a single buffer */
 	final int BUFFER_SIZE = 0x1000;
+	
+	static LinkedList<MultiClip> allMultiClips = new LinkedList<MultiClip>();
 	
 	/** Constructor  */
 	public MultiClip(String name, AudioInputStream audioIn) throws IOException, LineUnavailableException {
@@ -64,6 +66,7 @@ public class MultiClip {
 			}
 		}
 		getClip();
+		allMultiClips.add(this);
 	}
 	
 	/**
@@ -83,6 +86,9 @@ public class MultiClip {
 	public void start(float volume) throws LineUnavailableException, IOException {
 		Clip clip = getClip();
 		
+		if(clip == null)
+			return;
+		
 		// PulseAudio does not support Master Gain
 		if (clip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
 			// set volume
@@ -96,19 +102,55 @@ public class MultiClip {
 	}
 	/**
 	 * Returns a Clip that is not playing from the list
-	 * if one is not available a new one is created
+	 * if one is not available a new one is created if able
 	 * @return the Clip
 	 */
 	private Clip getClip() throws LineUnavailableException, IOException{
-		for(Clip c : clips){
+		for(Iterator<Clip> ita = clips.listIterator(); ita.hasNext(); ) {
+			Clip c = ita.next();
 			if(!c.isRunning()){
+				ita.remove();
+				clips.add(c);
 				return c;
 			}
 		}
-		Clip t = AudioSystem.getClip();
-		if (format != null)
-			t.open(format, audioData, 0, audioData.length);
-		clips.add(t);
+		
+		Clip t = SoundController.newClip();
+		if(t == null){
+			if(clips.isEmpty()){
+				return null;
+			}
+			t = clips.removeFirst();
+			t.stop();
+			clips.add(t);
+		} else {
+			if (format != null)
+				t.open(format, audioData, 0, audioData.length);
+			clips.add(t);
+		}
 		return t;
+	}
+	
+	/**
+	 * Destroys all but one clip 
+	*/
+	protected void destroyAllButOne(){
+		for(Iterator<Clip> ita = clips.listIterator(); ita.hasNext(); ) {
+			Clip c = ita.next();
+			if(clips.size()>1){
+				ita.remove();
+				SoundController.destroyClip(c);
+			}
+		}
+		
+	}
+
+	/** 
+	 * Destroys all but one clip for all MultiClips 
+	 */
+	protected static void destroyExtraClips() {
+		for(MultiClip mc : MultiClip.allMultiClips){
+			mc.destroyAllButOne();
+		}
 	}
 }
