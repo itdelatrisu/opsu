@@ -18,8 +18,6 @@
 
 package itdelatrisu.opsu.audio;
 
-import javax.sound.sampled.Clip;
-
 /**
  * Sound effects.
  */

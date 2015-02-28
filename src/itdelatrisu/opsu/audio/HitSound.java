@@ -20,8 +20,6 @@ package itdelatrisu.opsu.audio;
 
 import java.util.HashMap;
 
-import javax.sound.sampled.Clip;
-
 /**
  * Hit sounds.
  */

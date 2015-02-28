@@ -1,7 +1,5 @@
 package itdelatrisu.opsu.audio;
 
-import itdelatrisu.opsu.ErrorHandler;
-
 import java.io.IOException;
 import java.util.LinkedList;
 
@@ -21,28 +19,49 @@ public class MultiClip {
 	AudioFormat format;
 	
 	/** The data for this audio sample */
-	byte[] buffer;
+	byte[] audioData;
 	
 	/** The name given to this clip */
 	String name;
 	
-	/** Constructor 
-	 * @param name 
-	 * @throws LineUnavailableException */
+	/** Size of a single buffer */
+	final int BUFFER_SIZE = 0x1000;
+	
+	/** Constructor  */
 	public MultiClip(String name, AudioInputStream audioIn) throws IOException, LineUnavailableException {
 		this.name = name;
 		if(audioIn != null){
-			buffer = new byte[audioIn.available()];
-			int readed= 0;
-			while(readed < buffer.length) {
-				int read = audioIn.read(buffer, readed, buffer.length-readed);
-				if(read < 0 )
-					break;
-				readed += read;
-			}
 			format = audioIn.getFormat();
-		} else {
-			System.out.println("Null multiclip");
+			
+			LinkedList<byte[]> allBufs = new LinkedList<byte[]>();
+			
+			int readed = 0;
+			boolean hasData = true;
+			while (hasData) {
+				readed = 0;
+				byte[] tbuf = new byte[BUFFER_SIZE];
+				while (readed < tbuf.length) {
+					int read = audioIn.read(tbuf, readed, tbuf.length - readed);
+					if (read < 0) {
+						hasData = false;
+						break;
+					}
+					readed += read;
+				}
+				allBufs.add(tbuf);
+			}
+			
+			audioData = new byte[(allBufs.size() - 1) * BUFFER_SIZE + readed];
+			
+			int cnt = 0;
+			for (byte[] tbuf : allBufs) {
+				int size = BUFFER_SIZE;
+				if (cnt == allBufs.size() - 1) {
+					size = readed;
+				}
+				System.arraycopy(tbuf, 0, audioData, BUFFER_SIZE * cnt, size);
+				cnt++;
+			}
 		}
 		getClip();
 	}
@@ -88,7 +107,7 @@ public class MultiClip {
 		}
 		Clip t = AudioSystem.getClip();
 		if (format != null)
-			t.open(format, buffer, 0, buffer.length);
+			t.open(format, audioData, 0, audioData.length);
 		clips.add(t);
 		return t;
 	}
