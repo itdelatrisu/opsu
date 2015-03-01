@@ -18,8 +18,6 @@
 
 package itdelatrisu.opsu.audio;
 
-import javax.sound.sampled.Clip;
-
 /**
  * Sound effects.
  */
@@ -47,7 +45,7 @@ public enum SoundEffect implements SoundController.SoundComponent {
 	private String filename;
 
 	/** The Clip associated with the sound effect. */
-	private Clip clip;
+	private MultiClip clip;
 
 	/** Total number of sound effects. */
 	public static final int SIZE = values().length;
@@ -67,11 +65,11 @@ public enum SoundEffect implements SoundController.SoundComponent {
 	public String getFileName() { return filename; }
 
 	@Override
-	public Clip getClip() { return clip; }
+	public MultiClip getClip() { return clip; }
 
 	/**
 	 * Sets the Clip for the sound.
 	 * @param clip the clip
 	 */
-	public void setClip(Clip clip) { this.clip = clip; }
+	public void setClip(MultiClip clip) { this.clip = clip; }
 }

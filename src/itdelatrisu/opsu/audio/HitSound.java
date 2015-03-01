@@ -20,8 +20,6 @@ package itdelatrisu.opsu.audio;
 
 import java.util.HashMap;
 
-import javax.sound.sampled.Clip;
-
 /**
  * Hit sounds.
  */
@@ -79,7 +77,7 @@ public enum HitSound implements SoundController.SoundComponent {
 	private String filename;
 
 	/** The Clip associated with the hit sound. */
-	private HashMap<SampleSet, Clip> clips;
+	private HashMap<SampleSet, MultiClip> clips;
 
 	/** Total number of hit sounds. */
 	public static final int SIZE = values().length;
@@ -90,7 +88,7 @@ public enum HitSound implements SoundController.SoundComponent {
 	 */
 	HitSound(String filename) {
 		this.filename = filename;
-		this.clips = new HashMap<SampleSet, Clip>();
+		this.clips = new HashMap<SampleSet, MultiClip>();
 	}
 
 	/**
@@ -100,7 +98,7 @@ public enum HitSound implements SoundController.SoundComponent {
 	public String getFileName() { return filename; }
 
 	@Override
-	public Clip getClip() {
+	public MultiClip getClip() {
 		return (currentSampleSet != null) ? clips.get(currentSampleSet) : null;
 	}
 
@@ -109,7 +107,7 @@ public enum HitSound implements SoundController.SoundComponent {
 	 * @param s the sample set
 	 * @param clip the Clip
 	 */
-	public void setClip(SampleSet s, Clip clip) {
+	public void setClip(SampleSet s, MultiClip clip) {
 		clips.put(s, clip);
 	}
 
