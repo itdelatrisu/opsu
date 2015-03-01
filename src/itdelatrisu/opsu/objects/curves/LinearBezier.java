@@ -109,8 +109,13 @@ public class LinearBezier extends Curve {
 					if (iter.hasNext()) {
 						curBezier = iter.next();
 						curPoint = 0;
-					} else
+					} else {
 						curPoint = curBezier.points() - 1;
+						if (lastDistanceAt == distanceAt) {
+							// out of points even though the preferred distance hasn't been reached
+							break;
+						}
+					}
 				}
 			}
 			Vec2f thisCurve = curBezier.getCurve()[curPoint];

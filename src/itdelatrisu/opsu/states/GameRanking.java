@@ -185,7 +185,6 @@ public class GameRanking extends BasicGameState {
 			retryButton.resetHover();
 			exitButton.resetHover();
 		}
-		SoundController.destroyExtraClips();
 	}
 
 	@Override
