@@ -96,9 +96,9 @@ public class SoundController {
 				audioIn = decodedAudioIn;
 			}
 			DataLine.Info info = new DataLine.Info(Clip.class, format);
-			if(AudioSystem.isLineSupported(info)){
+			if (AudioSystem.isLineSupported(info)) {
 				return new MultiClip(ref, audioIn);
-			}else{
+			} else {
 				// try to find closest matching line
 				Clip clip = AudioSystem.getClip();
 				AudioFormat[] formats = ((DataLine.Info) clip.getLineInfo()).getFormats();
@@ -251,6 +251,8 @@ public class SoundController {
 	/**
 	 * Plays hit sound(s) using an OsuHitObject bitmask.
 	 * @param hitSound the hit sound (bitmask)
+	 * @param sampleSet the sample set
+	 * @param additionSampleSet the 'addition' sample set
 	 */
 	public static void playHitSound(byte hitSound, byte sampleSet, byte additionSampleSet) {
 		if (hitSound < 0)
@@ -263,7 +265,7 @@ public class SoundController {
 		// play all sounds
 		HitSound.setSampleSet(sampleSet);
 		playClip(HitSound.NORMAL.getClip(), volume);
-		
+
 		HitSound.setSampleSet(additionSampleSet);
 		if ((hitSound & OsuHitObject.SOUND_WHISTLE) > 0)
 			playClip(HitSound.WHISTLE.getClip(), volume);

@@ -73,7 +73,7 @@ public class OsuHitObject {
 
 	/** Hit sound addition (sampleSet, AdditionSampleSet, ?, ...). */
 	private byte[] addition;
-	
+
 	/** Slider curve type (SLIDER_* constant). */
 	private char sliderType;
 
@@ -88,16 +88,12 @@ public class OsuHitObject {
 
 	/** Spinner end time (in ms). */
 	private int endTime;
-	
-	/** Edge Hit sound type (SOUND_* bitmask). */
-	private byte[] edgeHitSound;
-	
-	/** Edge Hit sound addition (sampleSet, AdditionSampleSet). */
-	private byte[][] edgeAddition;
 
-	// additional v10+ parameters not implemented...
-	// addition -> sampl:add:cust:vol:hitsound
-	// edge_hitsound, edge_addition (sliders only)
+	/** Slider edge hit sound type (SOUND_* bitmask). */
+	private byte[] edgeHitSound;
+
+	/** Slider edge hit sound addition (sampleSet, AdditionSampleSet). */
+	private byte[][] edgeAddition;
 
 	/** Current index in combo color array. */
 	private int comboIndex;
@@ -152,7 +148,7 @@ public class OsuHitObject {
 		 *   x,y,time,type,hitSound,endTime,addition
 		 *   256,192,654,12,0,4029,0:0:0:0:
 		 *
-		 * NOTE: 'addition' is optional, and defaults to "0:0:0:0:".
+		 * NOTE: 'addition' -> sampl:add:cust:vol:hitsound (optional, defaults to "0:0:0:0:")
 		 */
 		String tokens[] = line.split(",");
 
@@ -167,7 +163,7 @@ public class OsuHitObject {
 		if ((type & OsuHitObject.TYPE_CIRCLE) > 0) {
 			if (tokens.length > 5) {
 				String[] additionTokens = tokens[5].split(":");
-				addition = new byte[additionTokens.length];
+				this.addition = new byte[additionTokens.length];
 				for (int j = 0; j < additionTokens.length; j++)
 					this.addition[j] = Byte.parseByte(additionTokens[j]);
 			}
@@ -187,9 +183,8 @@ public class OsuHitObject {
 			if (tokens.length > 8) {
 				String[] edgeHitSoundTokens = tokens[8].split("\\|");
 				this.edgeHitSound = new byte[edgeHitSoundTokens.length];
-				for (int j = 0; j < edgeHitSoundTokens.length; j++) {
+				for (int j = 0; j < edgeHitSoundTokens.length; j++)
 					edgeHitSound[j] = Byte.parseByte(edgeHitSoundTokens[j]);
-				}
 			}
 			if (tokens.length > 9) {
 				String[] edgeAdditionTokens = tokens[9].split("\\|");
@@ -206,7 +201,7 @@ public class OsuHitObject {
 			if (index != -1)
 				tokens[5] = tokens[5].substring(0, index);
 			this.endTime = Integer.parseInt(tokens[5]);
-			/* 'addition' not implemented. */
+			/* TODO: 'addition' not implemented. */
 		}
 	}
 
@@ -239,15 +234,16 @@ public class OsuHitObject {
 	 * @return the sound type (SOUND_* bitmask)
 	 */
 	public byte getHitSoundType() { return hitSound; }
-	
+
 	/**
 	 * Returns the edge hit sound type.
 	 * @return the sound type (SOUND_* bitmask)
 	 */
-	public byte getEdgeHitSoundType(int i) { 
-		if(edgeHitSound != null)
-			return edgeHitSound[i]; 
-		else return hitSound;
+	public byte getEdgeHitSoundType(int i) {
+		if (edgeHitSound != null)
+			return edgeHitSound[i];
+		else
+			return hitSound;
 	}
 
 	/**
@@ -338,24 +334,28 @@ public class OsuHitObject {
 	 * Returns the number of extra skips on the combo colors.
 	 */
 	public int getComboSkip() { return (type >> TYPE_NEWCOMBO); }
-	
+
 	/**
-	 * Returns the Sample Set at i.
+	 * Returns the sample set at the given index.
+	 * @param index the index (for sliders, ignored otherwise)
+	 * @return the sample set, or 0 if none available
 	 */
-	public byte getSampleSet(int i) {
+	public byte getSampleSet(int index) {
 		if (edgeAddition != null)
-			return edgeAddition[i][0];
+			return edgeAddition[index][0];
 		if (addition != null)
 			return addition[0];
 		return 0;
 	}
 
 	/**
-	 * Returns the Addition Sample Set at i.
+	 * Returns the 'addition' sample set at the given index.
+	 * @param index the index (for sliders, ignored otherwise)
+	 * @return the sample set, or 0 if none available
 	 */
-	public byte getAdditionSampleSet(int i) {
+	public byte getAdditionSampleSet(int index) {
 		if (edgeAddition != null)
-			return edgeAddition[i][1];
+			return edgeAddition[index][1];
 		if (addition != null)
 			return addition[1];
 		return 0;

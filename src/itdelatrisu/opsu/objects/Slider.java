@@ -253,14 +253,10 @@ public class Slider implements HitObject {
 		if (currentRepeats % 2 == 0) {  // last circle
 			float[] lastPos = curve.pointAt(1);
 			data.hitResult(hitObject.getTime() + (int) sliderTimeTotal, result,
-					lastPos[0],lastPos[1], color, comboEnd, 
-					hitObject, currentRepeats+1
-					, false);
+					lastPos[0], lastPos[1], color, comboEnd, hitObject, currentRepeats + 1);
 		} else {  // first circle
 			data.hitResult(hitObject.getTime() + (int) sliderTimeTotal, result,
-					hitObject.getX(), hitObject.getY(), color, comboEnd,
-					hitObject, currentRepeats+1
-					, false);
+					hitObject.getX(), hitObject.getY(), color, comboEnd, hitObject, currentRepeats + 1);
 		}
 
 		return result;
@@ -290,9 +286,7 @@ public class Slider implements HitObject {
 				data.addHitError(hitObject.getTime(), x,y,trackPosition - hitObject.getTime());
 				sliderClickedInitial = true;
 				data.sliderTickResult(hitObject.getTime(), result,
-						hitObject.getX(), hitObject.getY(), 
-						hitObject, currentRepeats
-						);
+						hitObject.getX(), hitObject.getY(), hitObject, currentRepeats);
 				return true;
 			}
 		}

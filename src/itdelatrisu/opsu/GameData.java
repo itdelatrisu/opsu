@@ -1031,9 +1031,10 @@ public class GameData {
 	 * @param result the hit result (HIT_* constants)
 	 * @param x the x coordinate
 	 * @param y the y coordinate
-	 * @param hitSound the object's hit sound
+	 * @param hitObject the hit object
+	 * @param repeat the current repeat number
 	 */
-	public void sliderTickResult(int time, int result, float x, float y, OsuHitObject hitObject, int repeats) {
+	public void sliderTickResult(int time, int result, float x, float y, OsuHitObject hitObject, int repeat) {
 		int hitValue = 0;
 		switch (result) {
 		case HIT_SLIDER30:
@@ -1041,9 +1042,9 @@ public class GameData {
 			incrementComboStreak();
 			changeHealth(1f);
 			SoundController.playHitSound(
-					hitObject.getEdgeHitSoundType(repeats),
-					hitObject.getSampleSet(repeats),
-					hitObject.getAdditionSampleSet(repeats));
+					hitObject.getEdgeHitSoundType(repeat),
+					hitObject.getSampleSet(repeat),
+					hitObject.getAdditionSampleSet(repeat));
 			break;
 		case HIT_SLIDER10:
 			hitValue = 10;
@@ -1075,11 +1076,11 @@ public class GameData {
 	 * @param y the y coordinate
 	 * @param color the combo color
 	 * @param end true if this is the last hit object in the combo
-	 * @param hitSound the object's hit sound
-	 * @param isSpinner whether the hit object was a spinner
+	 * @param hitObject the hit object
+	 * @param repeat the current repeat number (for sliders, or 0 otherwise)
 	 */
 	public void hitResult(int time, int result, float x, float y, Color color,
-			boolean end, OsuHitObject hitObject, int repeats, boolean isSpinner) {
+			boolean end, OsuHitObject hitObject, int repeat) {
 		int hitValue = 0;
 		boolean perfectHit = false;
 		switch (result) {
@@ -1108,10 +1109,9 @@ public class GameData {
 		}
 		if (hitValue > 0) {
 			SoundController.playHitSound(
-					hitObject.getEdgeHitSoundType(repeats),
-					hitObject.getSampleSet(repeats),
-					hitObject.getAdditionSampleSet(repeats));
-			
+					hitObject.getEdgeHitSoundType(repeat),
+					hitObject.getSampleSet(repeat),
+					hitObject.getAdditionSampleSet(repeat));
 			/**
 			 * [SCORE FORMULA]
 			 * Score = Hit Value + Hit Value * (Combo * Difficulty * Mod) / 25
@@ -1149,7 +1149,7 @@ public class GameData {
 		if (perfectHit && !Options.isPerfectHitBurstEnabled())
 			;  // hide perfect hit results
 		else
-			hitResultList.add(new OsuHitObjectResult(time, result, x, y, color, isSpinner));
+			hitResultList.add(new OsuHitObjectResult(time, result, x, y, color, hitObject.isSpinner()));
 	}
 
 	/**

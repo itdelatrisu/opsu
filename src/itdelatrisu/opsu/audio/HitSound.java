@@ -75,7 +75,7 @@ public enum HitSound implements SoundController.SoundComponent {
 
 	/** Current default sample set. */
 	private static SampleSet currentDefaultSampleSet = SampleSet.NORMAL;
-	
+
 	/** The file name. */
 	private String filename;
 
@@ -130,7 +130,7 @@ public enum HitSound implements SoundController.SoundComponent {
 
 	/**
 	 * Sets the default sample set to use when playing hit sounds.
-	 * @param sampleSet the sample set (0:auto, 1:normal, 2:soft, 3:drum)
+	 * @param sampleType the sample set (0:auto, 1:normal, 2:soft, 3:drum)
 	 */
 	public static void setDefaultSampleSet(byte sampleType) {
 		currentDefaultSampleSet = SampleSet.NORMAL;
@@ -141,6 +141,7 @@ public enum HitSound implements SoundController.SoundComponent {
 			}
 		}
 	}
+
 	/**
 	 * Sets the sample set to use when playing hit sounds.
 	 * @param sampleType the sample set (0:auto, 1:normal, 2:soft, 3:drum)
@@ -154,6 +155,4 @@ public enum HitSound implements SoundController.SoundComponent {
 			}
 		}
 	}
-	
-	
 }
