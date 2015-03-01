@@ -71,6 +71,9 @@ public class OsuHitObject {
 	/** Hit sound type (SOUND_* bitmask). */
 	private byte hitSound;
 
+	/** Hit sound addition (sampleSet, AdditionSampleSet, ?, ...). */
+	private byte[] addition;
+	
 	/** Slider curve type (SLIDER_* constant). */
 	private char sliderType;
 
@@ -85,6 +88,12 @@ public class OsuHitObject {
 
 	/** Spinner end time (in ms). */
 	private int endTime;
+	
+	/** Edge Hit sound type (SOUND_* bitmask). */
+	private byte[] edgeHitSound;
+	
+	/** Edge Hit sound addition (sampleSet, AdditionSampleSet). */
+	private byte[][] edgeAddition;
 
 	// additional v10+ parameters not implemented...
 	// addition -> sampl:add:cust:vol:hitsound
@@ -156,8 +165,12 @@ public class OsuHitObject {
 
 		// type-specific fields
 		if ((type & OsuHitObject.TYPE_CIRCLE) > 0) {
-			/* 'addition' not implemented. */
-
+			if (tokens.length > 5) {
+				String[] additionTokens = tokens[5].split(":");
+				addition = new byte[additionTokens.length];
+				for (int j = 0; j < additionTokens.length; j++)
+					this.addition[j] = Byte.parseByte(additionTokens[j]);
+			}
 		} else if ((type & OsuHitObject.TYPE_SLIDER) > 0) {
 			// slider curve type and coordinates
 			String[] sliderTokens = tokens[5].split("\\|");
@@ -171,8 +184,22 @@ public class OsuHitObject {
 			}
 			this.repeat = Integer.parseInt(tokens[6]);
 			this.pixelLength = Float.parseFloat(tokens[7]);
-			/* edge fields and 'addition' not implemented. */
-
+			if (tokens.length > 8) {
+				String[] edgeHitSoundTokens = tokens[8].split("\\|");
+				this.edgeHitSound = new byte[edgeHitSoundTokens.length];
+				for (int j = 0; j < edgeHitSoundTokens.length; j++) {
+					edgeHitSound[j] = Byte.parseByte(edgeHitSoundTokens[j]);
+				}
+			}
+			if (tokens.length > 9) {
+				String[] edgeAdditionTokens = tokens[9].split("\\|");
+				this.edgeAddition = new byte[edgeAdditionTokens.length][2];
+				for (int j = 0; j < edgeAdditionTokens.length; j++) {
+					String[] tedgeAddition = edgeAdditionTokens[j].split(":");
+					edgeAddition[j][0] = Byte.parseByte(tedgeAddition[0]);
+					edgeAddition[j][1] = Byte.parseByte(tedgeAddition[1]);
+				}
+			}
 		} else { //if ((type & OsuHitObject.TYPE_SPINNER) > 0) {
 			// some 'endTime' fields contain a ':' character (?)
 			int index = tokens[5].indexOf(':');
@@ -212,6 +239,16 @@ public class OsuHitObject {
 	 * @return the sound type (SOUND_* bitmask)
 	 */
 	public byte getHitSoundType() { return hitSound; }
+	
+	/**
+	 * Returns the edge hit sound type.
+	 * @return the sound type (SOUND_* bitmask)
+	 */
+	public byte getEdgeHitSoundType(int i) { 
+		if(edgeHitSound != null)
+			return edgeHitSound[i]; 
+		else return hitSound;
+	}
 
 	/**
 	 * Returns the slider type.
@@ -301,4 +338,26 @@ public class OsuHitObject {
 	 * Returns the number of extra skips on the combo colors.
 	 */
 	public int getComboSkip() { return (type >> TYPE_NEWCOMBO); }
+	
+	/**
+	 * Returns the Sample Set at i.
+	 */
+	public byte getSampleSet(int i) {
+		if (edgeAddition != null)
+			return edgeAddition[i][0];
+		if (addition != null)
+			return addition[0];
+		return 0;
+	}
+
+	/**
+	 * Returns the Addition Sample Set at i.
+	 */
+	public byte getAdditionSampleSet(int i) {
+		if (edgeAddition != null)
+			return edgeAddition[i][1];
+		if (addition != null)
+			return addition[1];
+		return 0;
+	}
 }

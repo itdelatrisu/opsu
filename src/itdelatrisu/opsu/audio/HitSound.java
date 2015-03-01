@@ -73,6 +73,9 @@ public enum HitSound implements SoundController.SoundComponent {
 	/** Current sample set. */
 	private static SampleSet currentSampleSet;
 
+	/** Current default sample set. */
+	private static SampleSet currentDefaultSampleSet = SampleSet.NORMAL;
+	
 	/** The file name. */
 	private String filename;
 
@@ -112,25 +115,38 @@ public enum HitSound implements SoundController.SoundComponent {
 	}
 
 	/**
-	 * Sets the sample set to use when playing hit sounds.
-	 * @param sampleSet the sample set ("None", "Normal", "Soft", "Drum")
+	 * Sets the default sample set to use when playing hit sounds.
+	 * @param sampleSet the sample set ("auto", "Normal", "Soft", "Drum")
 	 */
-	public static void setSampleSet(String sampleSet) {
-		currentSampleSet = null;
+	public static void setDefaultSampleSet(String sampleSet) {
+		currentDefaultSampleSet = SampleSet.NORMAL;
 		for (SampleSet ss : SampleSet.values()) {
 			if (sampleSet.equalsIgnoreCase(ss.getName())) {
-				currentSampleSet = ss;
+				currentDefaultSampleSet = ss;
 				return;
 			}
 		}
 	}
 
 	/**
+	 * Sets the default sample set to use when playing hit sounds.
+	 * @param sampleSet the sample set (0:auto, 1:normal, 2:soft, 3:drum)
+	 */
+	public static void setDefaultSampleSet(byte sampleType) {
+		currentDefaultSampleSet = SampleSet.NORMAL;
+		for (SampleSet ss : SampleSet.values()) {
+			if (sampleType == ss.getIndex()) {
+				currentDefaultSampleSet = ss;
+				return;
+			}
+		}
+	}
+	/**
 	 * Sets the sample set to use when playing hit sounds.
-	 * @param sampleType the sample set (0:none, 1:normal, 2:soft, 3:drum)
+	 * @param sampleType the sample set (0:auto, 1:normal, 2:soft, 3:drum)
 	 */
 	public static void setSampleSet(byte sampleType) {
-		currentSampleSet = null;
+		currentSampleSet = currentDefaultSampleSet;
 		for (SampleSet ss : SampleSet.values()) {
 			if (sampleType == ss.getIndex()) {
 				currentSampleSet = ss;
@@ -138,4 +154,6 @@ public enum HitSound implements SoundController.SoundComponent {
 			}
 		}
 	}
+	
+	
 }

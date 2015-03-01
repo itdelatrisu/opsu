@@ -252,7 +252,7 @@ public class SoundController {
 	 * Plays hit sound(s) using an OsuHitObject bitmask.
 	 * @param hitSound the hit sound (bitmask)
 	 */
-	public static void playHitSound(byte hitSound) {
+	public static void playHitSound(byte hitSound, byte sampleSet, byte additionSampleSet) {
 		if (hitSound < 0)
 			return;
 
@@ -261,16 +261,16 @@ public class SoundController {
 			return;
 
 		// play all sounds
-		if (hitSound == OsuHitObject.SOUND_NORMAL)
-			playClip(HitSound.NORMAL.getClip(), volume);
-		else {
-			if ((hitSound & OsuHitObject.SOUND_WHISTLE) > 0)
-				playClip(HitSound.WHISTLE.getClip(), volume);
-			if ((hitSound & OsuHitObject.SOUND_FINISH) > 0)
-				playClip(HitSound.FINISH.getClip(), volume);
-			if ((hitSound & OsuHitObject.SOUND_CLAP) > 0)
-				playClip(HitSound.CLAP.getClip(), volume);
-		}
+		HitSound.setSampleSet(sampleSet);
+		playClip(HitSound.NORMAL.getClip(), volume);
+		
+		HitSound.setSampleSet(additionSampleSet);
+		if ((hitSound & OsuHitObject.SOUND_WHISTLE) > 0)
+			playClip(HitSound.WHISTLE.getClip(), volume);
+		if ((hitSound & OsuHitObject.SOUND_FINISH) > 0)
+			playClip(HitSound.FINISH.getClip(), volume);
+		if ((hitSound & OsuHitObject.SOUND_CLAP) > 0)
+			playClip(HitSound.CLAP.getClip(), volume);
 	}
 
 	/**

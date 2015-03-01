@@ -564,8 +564,8 @@ public class OsuParser {
 					// set combo info
 					// - new combo: get next combo index, reset combo number
 					// - else:      maintain combo index, increase combo number
-					if (((hitObject.isNewCombo() || first) && !hitObject.isSpinner())) {
-						int skip = 1 + hitObject.getComboSkip();
+					if (hitObject.isNewCombo() || first) {
+						int skip = (hitObject.isSpinner()?0:1) + hitObject.getComboSkip();
 						for (int i = 0; i < skip; i++) {
 							comboIndex = (comboIndex + 1) % osu.combo.length;
 							comboNumber = 1;
