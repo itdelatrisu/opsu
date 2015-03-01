@@ -253,10 +253,14 @@ public class Slider implements HitObject {
 		if (currentRepeats % 2 == 0) {  // last circle
 			float[] lastPos = curve.pointAt(1);
 			data.hitResult(hitObject.getTime() + (int) sliderTimeTotal, result,
-					lastPos[0],lastPos[1], color, comboEnd, hitObject.getHitSoundType(), false);
+					lastPos[0],lastPos[1], color, comboEnd, 
+					hitObject, currentRepeats+1
+					, false);
 		} else {  // first circle
 			data.hitResult(hitObject.getTime() + (int) sliderTimeTotal, result,
-					hitObject.getX(), hitObject.getY(), color, comboEnd, hitObject.getHitSoundType(), false);
+					hitObject.getX(), hitObject.getY(), color, comboEnd,
+					hitObject, currentRepeats+1
+					, false);
 		}
 
 		return result;
@@ -286,7 +290,9 @@ public class Slider implements HitObject {
 				data.addHitError(hitObject.getTime(), x,y,trackPosition - hitObject.getTime());
 				sliderClickedInitial = true;
 				data.sliderTickResult(hitObject.getTime(), result,
-						hitObject.getX(), hitObject.getY(), hitObject.getHitSoundType());
+						hitObject.getX(), hitObject.getY(), 
+						hitObject, currentRepeats
+						);
 				return true;
 			}
 		}
@@ -315,7 +321,6 @@ public class Slider implements HitObject {
 			}
 		}
 
-		byte hitSound = hitObject.getHitSoundType();
 		int trackPosition = MusicController.getPosition();
 		int[] hitResultOffset = game.getHitResultOffsets();
 		int lastIndex = hitObject.getSliderX().length - 1;
@@ -330,10 +335,10 @@ public class Slider implements HitObject {
 				if (isAutoMod) {  // "auto" mod: catch any missed notes due to lag
 					ticksHit++;
 					data.sliderTickResult(time, GameData.HIT_SLIDER30,
-							hitObject.getX(), hitObject.getY(), hitSound);
+							hitObject.getX(), hitObject.getY(), hitObject, currentRepeats);
 				} else
 					data.sliderTickResult(time, GameData.HIT_MISS,
-							hitObject.getX(), hitObject.getY(), hitSound);
+							hitObject.getX(), hitObject.getY(), hitObject, currentRepeats);
 			}
 
 			// "auto" mod: send a perfect hit result
@@ -342,7 +347,7 @@ public class Slider implements HitObject {
 					ticksHit++;
 					sliderClickedInitial = true;
 					data.sliderTickResult(time, GameData.HIT_SLIDER30,
-							hitObject.getX(), hitObject.getY(), hitSound);
+							hitObject.getX(), hitObject.getY(), hitObject, currentRepeats);
 				}
 			}
 		}
@@ -411,17 +416,18 @@ public class Slider implements HitObject {
 				ticksHit++;
 				if (currentRepeats % 2 > 0)  // last circle
 					data.sliderTickResult(trackPosition, GameData.HIT_SLIDER30,
-							hitObject.getSliderX()[lastIndex], hitObject.getSliderY()[lastIndex], hitSound);
+							hitObject.getSliderX()[lastIndex], hitObject.getSliderY()[lastIndex],
+							hitObject, currentRepeats);
 				else  // first circle
 					data.sliderTickResult(trackPosition, GameData.HIT_SLIDER30,
-							c[0], c[1], hitSound);
+							c[0], c[1], hitObject, currentRepeats);
 			}
 
 			// held during new tick
 			if (isNewTick) {
 				ticksHit++;
 				data.sliderTickResult(trackPosition, GameData.HIT_SLIDER10,
-						c[0], c[1], (byte) -1);
+						c[0], c[1], hitObject, currentRepeats);
 			}
 
 			// held near end of slider
@@ -431,9 +437,9 @@ public class Slider implements HitObject {
 			followCircleActive = false;
 
 			if (isNewRepeat)
-				data.sliderTickResult(trackPosition, GameData.HIT_MISS, 0, 0, (byte) -1);
+				data.sliderTickResult(trackPosition, GameData.HIT_MISS, 0, 0, hitObject, currentRepeats);
 			if (isNewTick)
-				data.sliderTickResult(trackPosition, GameData.HIT_MISS, 0, 0, (byte) -1);
+				data.sliderTickResult(trackPosition, GameData.HIT_MISS, 0, 0, hitObject, currentRepeats);
 		}
 
 		return false;

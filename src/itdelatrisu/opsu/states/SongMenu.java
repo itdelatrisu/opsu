@@ -1260,7 +1260,7 @@ public class SongMenu extends BasicGameState {
 		OsuFile osu = MusicController.getOsuFile();
 		Display.setTitle(String.format("%s - %s", game.getTitle(), osu.toString()));
 		OsuParser.parseHitObjects(osu);
-		HitSound.setSampleSet(osu.sampleSet);
+		HitSound.setDefaultSampleSet(osu.sampleSet);
 		((Game) game.getState(Opsu.STATE_GAME)).setRestart(Game.Restart.NEW);
 		game.enterState(Opsu.STATE_GAME, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 	}

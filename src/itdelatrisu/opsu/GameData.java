@@ -1033,14 +1033,17 @@ public class GameData {
 	 * @param y the y coordinate
 	 * @param hitSound the object's hit sound
 	 */
-	public void sliderTickResult(int time, int result, float x, float y, byte hitSound) {
+	public void sliderTickResult(int time, int result, float x, float y, OsuHitObject hitObject, int repeats) {
 		int hitValue = 0;
 		switch (result) {
 		case HIT_SLIDER30:
 			hitValue = 30;
 			incrementComboStreak();
 			changeHealth(1f);
-			SoundController.playHitSound(hitSound);
+			SoundController.playHitSound(
+					hitObject.getEdgeHitSoundType(repeats),
+					hitObject.getSampleSet(repeats),
+					hitObject.getAdditionSampleSet(repeats));
 			break;
 		case HIT_SLIDER10:
 			hitValue = 10;
@@ -1076,7 +1079,7 @@ public class GameData {
 	 * @param isSpinner whether the hit object was a spinner
 	 */
 	public void hitResult(int time, int result, float x, float y, Color color,
-			boolean end, byte hitSound, boolean isSpinner) {
+			boolean end, OsuHitObject hitObject, int repeats, boolean isSpinner) {
 		int hitValue = 0;
 		boolean perfectHit = false;
 		switch (result) {
@@ -1104,8 +1107,11 @@ public class GameData {
 			return;
 		}
 		if (hitValue > 0) {
-			SoundController.playHitSound(hitSound);
-
+			SoundController.playHitSound(
+					hitObject.getEdgeHitSoundType(repeats),
+					hitObject.getSampleSet(repeats),
+					hitObject.getAdditionSampleSet(repeats));
+			
 			/**
 			 * [SCORE FORMULA]
 			 * Score = Hit Value + Hit Value * (Combo * Difficulty * Mod) / 25
