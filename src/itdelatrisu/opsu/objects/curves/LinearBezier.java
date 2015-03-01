@@ -111,8 +111,8 @@ public class LinearBezier extends Curve {
 						curPoint = 0;
 					} else {
 						curPoint = curBezier.points() - 1;
-						if(lastDistanceAt == distanceAt){
-							//out of points even though we haven't reached the preferred distance.
+						if (lastDistanceAt == distanceAt) {
+							// out of points even though the preferred distance hasn't been reached
 							break;
 						}
 					}

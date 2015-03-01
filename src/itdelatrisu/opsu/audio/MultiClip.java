@@ -6,89 +6,103 @@ import java.util.LinkedList;
 
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
 import javax.sound.sampled.FloatControl;
 import javax.sound.sampled.LineUnavailableException;
 
-//http://stackoverflow.com/questions/1854616/in-java-how-can-i-play-the-same-audio-clip-multiple-times-simultaneously
+/**
+ * Extension of Clip that allows playing multiple copies of a Clip simultaneously.
+ * http://stackoverflow.com/questions/1854616/
+ *
+ * @author fluddokt (https://github.com/fluddokt)
+ */
 public class MultiClip {
-	/** A list of clips used for this audio sample */
-	LinkedList<Clip> clips = new LinkedList<Clip>();
-	
-	/** The format of this audio sample */
-	AudioFormat format;
-	
-	/** The data for this audio sample */
-	byte[] audioData;
-	
-	/** The name given to this clip */
-	String name;
-	
-	/** Size of a single buffer */
-	final int BUFFER_SIZE = 0x1000;
-	
-	static LinkedList<MultiClip> allMultiClips = new LinkedList<MultiClip>();
-	
-	/** Constructor  */
+	/** Maximum number of extra clips that can be created at one time. */
+	private static final int MAX_CLIPS = 20;
+
+	/** A list of all created MultiClips. */
+	private static final LinkedList<MultiClip> ALL_MULTICLIPS = new LinkedList<MultiClip>();
+
+	/** Size of a single buffer. */
+	private static final int BUFFER_SIZE = 0x1000;
+
+	/** Current number of extra clips created. */
+	private static int extraClips = 0;
+
+	/** Current number of clip-closing threads in execution. */
+	private static int closingThreads = 0;
+
+	/** A list of clips used for this audio sample. */
+	private LinkedList<Clip> clips = new LinkedList<Clip>();
+
+	/** The format of this audio sample. */
+	private AudioFormat format;
+
+	/** The data for this audio sample. */
+	private byte[] audioData;
+
+	/** The name given to this clip. */
+	private String name;
+
+	/**
+	 * Constructor.
+	 * @param name the clip name
+	 * @param audioIn the associated AudioInputStream
+	 */
 	public MultiClip(String name, AudioInputStream audioIn) throws IOException, LineUnavailableException {
 		this.name = name;
-		if(audioIn != null){
+		if (audioIn != null) {
 			format = audioIn.getFormat();
-			
+
 			LinkedList<byte[]> allBufs = new LinkedList<byte[]>();
-			
-			int readed = 0;
+
+			int totalRead = 0;
 			boolean hasData = true;
 			while (hasData) {
-				readed = 0;
+				totalRead = 0;
 				byte[] tbuf = new byte[BUFFER_SIZE];
-				while (readed < tbuf.length) {
-					int read = audioIn.read(tbuf, readed, tbuf.length - readed);
+				while (totalRead < tbuf.length) {
+					int read = audioIn.read(tbuf, totalRead, tbuf.length - totalRead);
 					if (read < 0) {
 						hasData = false;
 						break;
 					}
-					readed += read;
+					totalRead += read;
 				}
 				allBufs.add(tbuf);
 			}
-			
-			audioData = new byte[(allBufs.size() - 1) * BUFFER_SIZE + readed];
-			
+
+			audioData = new byte[(allBufs.size() - 1) * BUFFER_SIZE + totalRead];
+
 			int cnt = 0;
 			for (byte[] tbuf : allBufs) {
 				int size = BUFFER_SIZE;
-				if (cnt == allBufs.size() - 1) {
-					size = readed;
-				}
+				if (cnt == allBufs.size() - 1)
+					size = totalRead;
 				System.arraycopy(tbuf, 0, audioData, BUFFER_SIZE * cnt, size);
 				cnt++;
 			}
 		}
 		getClip();
-		allMultiClips.add(this);
+		ALL_MULTICLIPS.add(this);
 	}
-	
+
 	/**
-	 * Returns the name of the clip
+	 * Returns the name of the clip.
 	 * @return the name
 	 */
-	public String getName() {
-		return name;
-	}
-	
+	public String getName() { return name; }
+
 	/**
 	 * Plays the clip with the specified volume.
 	 * @param volume the volume the play at
-	 * @throws IOException 
-	 * @throws LineUnavailableException 
 	 */
-	public void start(float volume) throws LineUnavailableException, IOException {
+	public void start(float volume) throws LineUnavailableException {
 		Clip clip = getClip();
-		
-		if(clip == null)
+		if (clip == null)
 			return;
-		
+
 		// PulseAudio does not support Master Gain
 		if (clip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
 			// set volume
@@ -96,61 +110,89 @@ public class MultiClip {
 			float dB = (float) (Math.log(volume) / Math.log(10.0) * 20.0);
 			gainControl.setValue(dB);
 		}
-		
+
 		clip.setFramePosition(0);
 		clip.start();
 	}
+
 	/**
-	 * Returns a Clip that is not playing from the list
-	 * if one is not available a new one is created if able
-	 * @return the Clip
+	 * Returns a Clip that is not playing from the list.
+	 * If no clip is available, then a new one is created if under MAX_CLIPS.
+	 * Otherwise, an existing clip will be returned.
+	 * @return the Clip to play
 	 */
-	private Clip getClip() throws LineUnavailableException, IOException{
-		for(Iterator<Clip> ita = clips.listIterator(); ita.hasNext(); ) {
-			Clip c = ita.next();
-			if(!c.isRunning()){
-				ita.remove();
+	private Clip getClip() throws LineUnavailableException {
+		// TODO:
+		// Occasionally, even when clips are being closed in a separate thread,
+		// playing any clip will cause the game to hang until all clips are
+		// closed.  Why?
+		if (closingThreads > 0)
+			return null;
+
+		// search for existing stopped clips
+		for (Iterator<Clip> iter = clips.iterator(); iter.hasNext();) {
+			Clip c = iter.next();
+			if (!c.isRunning()) {
+				iter.remove();
 				clips.add(c);
 				return c;
 			}
 		}
-		
-		Clip t = SoundController.newClip();
-		if(t == null){
-			if(clips.isEmpty()){
+
+		Clip c = null;
+		if (extraClips >= MAX_CLIPS) {
+			// use an existing clip
+			if (clips.isEmpty())
 				return null;
-			}
-			t = clips.removeFirst();
-			t.stop();
-			clips.add(t);
+			c = clips.removeFirst();
+			c.stop();
+			clips.add(c);
 		} else {
+			// create a new clip
+			c = AudioSystem.getClip();
 			if (format != null)
-				t.open(format, audioData, 0, audioData.length);
-			clips.add(t);
+				c.open(format, audioData, 0, audioData.length);
+			clips.add(c);
+			if (clips.size() != 1)
+				extraClips++;
 		}
-		return t;
-	}
-	
-	/**
-	 * Destroys all but one clip 
-	*/
-	protected void destroyAllButOne(){
-		for(Iterator<Clip> ita = clips.listIterator(); ita.hasNext(); ) {
-			Clip c = ita.next();
-			if(clips.size()>1){
-				ita.remove();
-				SoundController.destroyClip(c);
-			}
-		}
-		
+		return c;
 	}
 
-	/** 
-	 * Destroys all but one clip for all MultiClips 
+	/**
+	 * Destroys all extra clips.
 	 */
-	protected static void destroyExtraClips() {
-		for(MultiClip mc : MultiClip.allMultiClips){
-			mc.destroyAllButOne();
+	public static void destroyExtraClips() {
+		if (extraClips == 0)
+			return;
+
+		// find all extra clips
+		final LinkedList<Clip> clipsToClose = new LinkedList<Clip>();
+		for (MultiClip mc : MultiClip.ALL_MULTICLIPS) {
+			for (Iterator<Clip> iter = mc.clips.iterator(); iter.hasNext();) {
+				Clip c = iter.next();
+				if (mc.clips.size() > 1) {  // retain last Clip in list
+					iter.remove();
+					clipsToClose.add(c);
+				}
+			}
 		}
+
+		// close clips in a new thread
+		new Thread() {
+			@Override
+			public void run() {
+				closingThreads++;
+				for (Clip c : clipsToClose) {
+					c.stop();
+					c.flush();
+					c.close();
+				}
+				closingThreads--;
+			}
+		}.start();
+
+		// reset extra clip count
+		extraClips = 0;
 	}
 }

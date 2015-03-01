@@ -35,6 +35,7 @@ import itdelatrisu.opsu.ScoreData;
 import itdelatrisu.opsu.SongSort;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.HitSound;
+import itdelatrisu.opsu.audio.MultiClip;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
@@ -917,6 +918,9 @@ public class SongMenu extends BasicGameState {
 		if (resetGame) {
 			((Game) game.getState(Opsu.STATE_GAME)).resetGameData();
 
+			// destroy extra Clips
+			MultiClip.destroyExtraClips();
+
 			// destroy skin images, if any
 			for (GameImage img : GameImage.values()) {
 				if (img.isSkinnable())
@@ -1261,6 +1265,7 @@ public class SongMenu extends BasicGameState {
 		Display.setTitle(String.format("%s - %s", game.getTitle(), osu.toString()));
 		OsuParser.parseHitObjects(osu);
 		HitSound.setSampleSet(osu.sampleSet);
+		MultiClip.destroyExtraClips();
 		((Game) game.getState(Opsu.STATE_GAME)).setRestart(Game.Restart.NEW);
 		game.enterState(Opsu.STATE_GAME, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 	}
