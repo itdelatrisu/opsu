@@ -18,6 +18,8 @@
 
 package itdelatrisu.opsu.audio;
 
+import fluddokt.opsu.fake.MultiClip;
+
 /**
  * Sound effects.
  */

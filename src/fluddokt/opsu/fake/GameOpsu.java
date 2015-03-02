@@ -22,7 +22,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 
 public class GameOpsu extends com.badlogic.gdx.Game {
 
-	final String VERSION = "OpsuAnd0.6.0c";
+	final String VERSION = "OpsuAnd0.6.1c";
 	public StateBasedGame sbg;
 	
 	Stage stage;

@@ -111,7 +111,7 @@ public class Opsu extends StateBasedGame {
 		// log all errors to a file
 		Log.setVerbose(false);
 		try {
-			DefaultLogSystem.out = new PrintStream(new FileOutputStream(Options.LOG_FILE, true));
+			DefaultLogSystem.out = new PrintStream(new FileOutputStream(Options.LOG_FILE, false));
 		} catch (FileNotFoundException e) {
 			Log.error(e);
 		}

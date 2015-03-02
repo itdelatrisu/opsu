@@ -18,7 +18,7 @@
 
 package itdelatrisu.opsu.audio;
 
-import fluddokt.opsu.fake.Clip;
+import fluddokt.opsu.fake.MultiClip;
 import fluddokt.opsu.fake.File;
 import fluddokt.opsu.fake.ResourceLoader;
 
@@ -26,6 +26,7 @@ import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.OsuHitObject;
 import itdelatrisu.opsu.audio.HitSound.SampleSet;
+
 /*
 import java.io.File;
 import java.io.IOException;
@@ -76,7 +77,7 @@ public class SoundController {
 	 * @return the loaded and opened clip
 	 */
 	private static MultiClip loadClip(String ref, boolean isMP3) {
-		return new Clip(ref);
+		return new MultiClip(ref);
 		/*
 		try {
 			URL url = ResourceLoader.getResource(ref);
@@ -239,11 +240,11 @@ public class SoundController {
 			return;
 
 		if (volume > 0f) {
-			try {
+			//try {
 				clip.start(volume);
-			} catch (LineUnavailableException e) {
-				ErrorHandler.error(String.format("Could not start a clip '%s'.", clip.getName()), e, true);
-			}
+			//} catch (LineUnavailableException e) {
+			//	ErrorHandler.error(String.format("Could not start a clip '%s'.", clip.getName()), e, true);
+			//}
 		}
 	}
 

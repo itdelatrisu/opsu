@@ -13,7 +13,7 @@ public class Clip {
 		try {
 			sound = Gdx.audio.newSound(ResourceLoader.getFileHandle(path));
 		} catch (GdxRuntimeException e) {
-			Log.warn("error loading sound " + path + " " + e);
+			Log.warn("error loading sound " + path + " ", e);
 		}
 	}
 
