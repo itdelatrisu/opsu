@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileFilter;
 import java.io.FilenameFilter;
-import java.io.IOException;
 
 import com.badlogic.gdx.Application.ApplicationType;
 import com.badlogic.gdx.Gdx;
@@ -16,19 +15,6 @@ public class File {
 	public static final String separator = "/";
 	FileHandle fh;
 
-	/*static{
-		FileHandle fh = Gdx.files.external("./");
-		FileHandle fh2 = fh.child("opsu.log");
-		
-		if(!fh2.exists()){
-			try {
-				fh2.writer(true).close();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-	}*/
 	public File(String name) {
 		if (Gdx.app.getType() == ApplicationType.Desktop)
 			fh = Gdx.files.local(name);
@@ -39,27 +25,40 @@ public class File {
 			System.out.println("new file:"+info());
 			return;
 		}
-		if (Gdx.app.getType() == ApplicationType.Desktop)
+		
+		if(Gdx.files.isExternalStorageAvailable()){
 			fh = Gdx.files.external(name);
-		else
+		} else if(Gdx.files.isLocalStorageAvailable()){
 			fh = Gdx.files.local(name);
+		} else {
+			//no storage available ...
+		}
 		if (fh.exists()) {
 			System.out.println("new file:"+info());
 			return;
 		}
-		fh = Gdx.files.absolute(name);
-		if (fh.exists()) {
-			System.out.println("new file:"+info());
-			return;
-		}
+		
 		fh = Gdx.files.internal(name);
 		if (fh.exists()) {
 			System.out.println("new file:"+info());
 			return;
 		}
-		fh = Gdx.files.external(name);
-		System.out.println("new nonexist file:"+info());
 		
+		fh = Gdx.files.absolute(name);
+		if (fh.exists()) {
+			System.out.println("new file:"+info());
+			return;
+		}
+		
+		if(Gdx.files.isExternalStorageAvailable()){
+			fh = Gdx.files.external(name);
+		} else if(Gdx.files.isLocalStorageAvailable()){
+			fh = Gdx.files.local(name);
+		} else {
+			//no storage available ...
+		}
+		//fh = Gdx.files.external(name);
+		System.out.println("new nonexist file:"+info());
 		
 	}
 

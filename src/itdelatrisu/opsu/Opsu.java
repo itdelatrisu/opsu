@@ -101,6 +101,13 @@ public class Opsu extends StateBasedGame {
 	 */
 	public static Opsu opsu;
 	public static void main(String[] args) {
+		Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+			@Override
+			public void uncaughtException(Thread t, Throwable e) {
+				ErrorHandler.error("** Uncaught Exception! **", e, true);
+			}
+		});
+		
 		// log all errors to a file
 		Log.setVerbose(false);
 		try {
@@ -108,12 +115,7 @@ public class Opsu extends StateBasedGame {
 		} catch (FileNotFoundException e) {
 			Log.error(e);
 		}
-		Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
-			@Override
-			public void uncaughtException(Thread t, Throwable e) {
-				ErrorHandler.error("** Uncaught Exception! **", e, true);
-			}
-		});
+		
 
 		// parse configuration file
 		Options.parseOptions();

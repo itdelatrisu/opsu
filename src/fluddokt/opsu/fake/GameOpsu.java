@@ -1,18 +1,40 @@
 package fluddokt.opsu.fake;
 
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.net.URI;
+import java.net.URISyntaxException;
+
+import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.Opsu;
-import itdelatrisu.opsu.Utils;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
 
 public class GameOpsu extends com.badlogic.gdx.Game {
 
-	StateBasedGame sbg;
-
+	final String VERSION = "OpsuAnd0.6.0c";
+	public StateBasedGame sbg;
+	
+	Stage stage;
+	Table table;
+	Skin skin;
+	static GameOpsu gameOpsu;
+	
 	boolean inited = false;
+
+	private boolean pause;
 	public GameOpsu() {
+		gameOpsu = this;
 	}
 
 	@Override
@@ -28,6 +50,7 @@ public class GameOpsu extends com.badlogic.gdx.Game {
 			e.printStackTrace();
 		}
 		sbg.gc.lostFocus();
+		
 	}
 
 	@Override
@@ -57,7 +80,8 @@ public class GameOpsu extends com.badlogic.gdx.Game {
 	@Override
 	public void render() {
 		super.render();
-		
+		if(!pause){
+		try{
 		if(!inited){
 			if(Gdx.graphics.getWidth() > Gdx.graphics.getHeight()){
 				Opsu.main(new String[0]);
@@ -68,8 +92,9 @@ public class GameOpsu extends com.badlogic.gdx.Game {
 					sbg.init();
 				} catch (SlickException e) {
 					e.printStackTrace();
+					error("SlickErrorInit", e);
 				}
-				Gdx.input.setInputProcessor(sbg);
+				Gdx.input.setInputProcessor(new InputMultiplexer(stage, sbg));
 				inited = true;
 			}
 		} else {
@@ -81,9 +106,20 @@ public class GameOpsu extends com.badlogic.gdx.Game {
 				sbg.render();
 			} catch (SlickException e) {
 				e.printStackTrace();
+				error("SlickErrorRender", e);
 			}
 			Graphics.checkMode(0);
 		}
+		}catch(Throwable e){
+			e.printStackTrace();
+			error("RenderError", e);
+		}
+		}else{
+			Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+		}
+		
+		stage.act(Gdx.graphics.getDeltaTime());
+		stage.draw();
 	}
 
 	@Override
@@ -92,39 +128,106 @@ public class GameOpsu extends com.badlogic.gdx.Game {
 
 		super.resize(width, height);
 		Graphics.resize(width, height);
-		//int owid = sbg.gc.width;
-		//int ohei = sbg.gc.height;
 		if(!inited)
 			return;
 		sbg.gc.width = width;
 		sbg.gc.height = height;
-
-		/*try {
-			if(owid!=width || ohei!=height){
-				for (GameImage img : GameImage.values()) {
-					try {
-						img.dispose();
-					} catch (SlickException e) {
-						e.printStackTrace();
-					}
-				}
-				Utils.init(sbg.gc,sbg);
-			}
-		} catch (SlickException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}*/
+		stage.getViewport().update(width, height);
 	}
 
 	@Override
 	public void create() {
+
+		stage = new Stage();
+		Gdx.input.setInputProcessor(stage);
+		table = new Table();
+		table.setFillParent(true);
+		stage.addActor(table);
+		
+		skin = new Skin(Gdx.files.internal("ui/uiskin.json"));
+		
+		Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+			@Override
+			public void uncaughtException(Thread t, Throwable e) {
+				ErrorHandler.error("** Uncaught Exception! A **", e, true);
+			}
+		});
+		
+		if(!Gdx.files.isExternalStorageAvailable()){
+			if(!Gdx.files.isLocalStorageAvailable()){
+				error("No storage is available ... ????", null);
+			}else{
+				error("External Storage is not available. \n"
+						+"Using Local Storage instead." , null);
+			}
+		}
 		Gdx.graphics.setVSync(false);
 		Gdx.input.setCatchBackKey(true);
 		
 		Gdx.gl.glEnable(GL20.GL_BLEND);
 		Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
 		
+		
 		Graphics.init();
+		
+	}
+
+	public static void error(String string, Throwable e) {
+		gameOpsu.errorDialog(string, e);
+	}
+
+	private void errorDialog(final String string, final Throwable e) {
+		pause = true;
+		String tbodyString = "X";
+		if(e != null){
+			StringWriter sw = new StringWriter();
+			e.printStackTrace(new PrintWriter(sw));
+			tbodyString = sw.toString();
+		}
+		final String bodyString = tbodyString;
+		Dialog dialog = new Dialog("ERROR", skin){
+			final String title = string;
+			final String body = bodyString;
+			@Override
+			protected void result(Object object) {
+				System.out.println(object);
+				if("CloseOpsu".equals(object)){
+					Gdx.app.exit();
+				}
+				
+				if("R".equals(object)){
+					try {
+						System.out.println("Reporting");
+						Desktop.getDesktop().browse(
+								new URI("https://github.com/fluddokt/opsu/issues/new?"
+									+"title="+java.net.URLEncoder.encode(title, "UTF-8")
+									+"&body="+java.net.URLEncoder.encode(title+"\n"+VERSION+"\n"+body ,"UTF-8")
+								)
+						);
+					} catch (URISyntaxException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+				pause = false;
+				if("S".equals(object)){
+					
+				}
+				
+			}
+			
+		}.button("Close this Dialog Box and Continue","S").button("Report on github","R").button("Close Opsu", "CloseOpsu");;
+		dialog.getContentTable().row();
+		Label tex =new Label(string+"\n"+bodyString, skin);
+		
+		dialog.getContentTable().add(new ScrollPane(tex)).width(Gdx.graphics.getWidth());
+		dialog.pack();
+		table.addActor(dialog);
+		table.validate();
+		
 		
 	}
 

@@ -10,6 +10,7 @@ You will then need the files at
 https://github.com/fluddokt/FKGdxOpsuLaunchers
 
 You will then need to place the files here in the directory core from the launcher files.
+You will also need to copy core/res into android/assets/res
 
 https://github.com/libgdx/libgdx/wiki/Deploying-your-application
 

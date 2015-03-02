@@ -73,14 +73,14 @@ public abstract class StateBasedGame extends Game implements InputProcessor {
 	public void render() throws SlickException {
 		enterNextState();
 		if (currentState != null) {
-			try {
+			//try {
 				currentState.update(gc, this,
 					(int) (Gdx.graphics.getDeltaTime() * 1000));
 				currentState.render(gc, this, Graphics.getGraphics());
-			} catch (Exception e) {
+			/*} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-			}
+			}*/
 		}
 	}
 
