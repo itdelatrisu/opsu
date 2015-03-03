@@ -1,6 +1,7 @@
 package fluddokt.opsu.fake;
 
 import java.util.HashMap;
+import java.util.LinkedList;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
@@ -13,6 +14,7 @@ public abstract class StateBasedGame extends Game implements InputProcessor {
 	};
 	BasicGameState nextState = null;
 	HashMap<Integer, BasicGameState> bgs = new HashMap<Integer, BasicGameState>();
+	LinkedList<BasicGameState> orderedbgs = new LinkedList<BasicGameState>();
 	String title;
 	OrderedSet<InputListener> keyListeners = new OrderedSet<InputListener>();
 
@@ -23,8 +25,8 @@ public abstract class StateBasedGame extends Game implements InputProcessor {
 		// gc.height = Gdx.graphics.getHeight();
 	}
 
-	public BasicGameState getState(int stateSongmenu) {
-		return bgs.get(stateSongmenu);
+	public BasicGameState getState(int state) {
+		return bgs.get(state);
 	}
 
 	public void enterState(int newState) {
@@ -65,6 +67,7 @@ public abstract class StateBasedGame extends Game implements InputProcessor {
 
 	public void addState(BasicGameState gs) throws SlickException {
 		bgs.put(gs.getID(), gs);
+		orderedbgs.add(gs);
 		if (gs.getID() == 0)
 			enterState(0);
 		// gs.init(gc, this);
@@ -73,20 +76,15 @@ public abstract class StateBasedGame extends Game implements InputProcessor {
 	public void render() throws SlickException {
 		enterNextState();
 		if (currentState != null) {
-			//try {
-				currentState.update(gc, this,
-					(int) (Gdx.graphics.getDeltaTime() * 1000));
-				currentState.render(gc, this, Graphics.getGraphics());
-			/*} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}*/
+			currentState.update(gc, this,
+				(int) (Gdx.graphics.getDeltaTime() * 1000));
+			currentState.render(gc, this, Graphics.getGraphics());
 		}
 	}
 
 	public void init() throws SlickException {
 		initStatesList(gc);
-		for (BasicGameState tgs : bgs.values()) {
+		for (BasicGameState tgs : orderedbgs) {
 			if (!tgs.inited) {
 				tgs.init(gc, this);
 				tgs.inited = true;
