@@ -237,11 +237,12 @@ public class OsuHitObject {
 
 	/**
 	 * Returns the edge hit sound type.
+	 * @param index the slider edge index (ignored for non-sliders)
 	 * @return the sound type (SOUND_* bitmask)
 	 */
-	public byte getEdgeHitSoundType(int i) {
+	public byte getEdgeHitSoundType(int index) {
 		if (edgeHitSound != null)
-			return edgeHitSound[i];
+			return edgeHitSound[index];
 		else
 			return hitSound;
 	}

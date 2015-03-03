@@ -68,8 +68,6 @@ public class OptionsMenu extends BasicGameState {
 			GameOption.ENABLE_THEME_SONG
 		}),
 		GAMEPLAY ("Gameplay", new GameOption[] {
-			GameOption.KEY_LEFT,
-			GameOption.KEY_RIGHT,
 			GameOption.BACKGROUND_DIM,
 			GameOption.FORCE_DEFAULT_PLAYFIELD,
 			GameOption.IGNORE_BEATMAP_SKINS,
@@ -77,6 +75,12 @@ public class OptionsMenu extends BasicGameState {
 			GameOption.SHOW_COMBO_BURSTS,
 			GameOption.SHOW_PERFECT_HIT,
 			GameOption.SHOW_HIT_ERROR_BAR
+		}),
+		INPUT ("Input", new GameOption[] {
+			GameOption.KEY_LEFT,
+			GameOption.KEY_RIGHT,
+			GameOption.DISABLE_MOUSE_WHEEL,
+			GameOption.DISABLE_MOUSE_BUTTONS
 		}),
 		CUSTOM ("Custom", new GameOption[] {
 			GameOption.FIXED_CS,

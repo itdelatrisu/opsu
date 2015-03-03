@@ -370,6 +370,20 @@ public class Options {
 
 			@Override
 			public void click(GameContainer container) { showHitErrorBar = !showHitErrorBar; }
+		},
+		DISABLE_MOUSE_WHEEL ("Disable mouse wheel in play mode", "During play, you can use the mouse wheel to adjust the volume and pause the game.\nThis will disable that functionality.") {
+			@Override
+			public String getValueString() { return disableMouseWheel ? "Yes" : "No"; }
+
+			@Override
+			public void click(GameContainer container) { disableMouseWheel = !disableMouseWheel; }
+		},
+		DISABLE_MOUSE_BUTTONS ("Disable mouse buttons in play mode", "This option will disable all mouse buttons.\nSpecifically for people who use their keyboard to click.") {
+			@Override
+			public String getValueString() { return disableMouseButtons ? "Yes" : "No"; }
+
+			@Override
+			public void click(GameContainer container) { disableMouseButtons = !disableMouseButtons; }
 		};
 
 		/** Option name. */
@@ -543,6 +557,12 @@ public class Options {
 
 	/** Whether or not to show the hit error bar. */
 	private static boolean showHitErrorBar = false;
+
+	/** Whether or not to disable the mouse wheel during gameplay. */
+	private static boolean disableMouseWheel = false;
+
+	/** Whether or not to disable the mouse buttons during gameplay. */
+	private static boolean disableMouseButtons = false;
 
 	/** Fixed difficulty overrides. */
 	private static float
@@ -796,6 +816,18 @@ public class Options {
 	public static boolean isHitErrorBarEnabled() { return showHitErrorBar; }
 
 	/**
+	 * Returns whether or not the mouse wheel is disabled during gameplay.
+	 * @return true if disabled
+	 */
+	public static boolean isMouseWheelDisabled() { return disableMouseWheel; }
+
+	/**
+	 * Returns whether or not the mouse buttons are disabled during gameplay.
+	 * @return true if disabled
+	 */
+	public static boolean isMouseDisabled() { return disableMouseButtons; }
+
+	/**
 	 * Returns the left game key.
 	 * @return the left key code
 	 */
@@ -1037,6 +1069,12 @@ public class Options {
 							keyRight = i;
 					}
 					break;
+				case "MouseDisableWheel":
+					disableMouseWheel = Boolean.parseBoolean(value);
+					break;
+				case "MouseDisableButtons":
+					disableMouseButtons = Boolean.parseBoolean(value);
+					break;
 				case "DimLevel":
 					i = Integer.parseInt(value);
 					if (i >= 0 && i <= 100)
@@ -1150,6 +1188,10 @@ public class Options {
 			writer.write(String.format("keyOsuLeft = %s", Keyboard.getKeyName(getGameKeyLeft())));
 			writer.newLine();
 			writer.write(String.format("keyOsuRight = %s", Keyboard.getKeyName(getGameKeyRight())));
+			writer.newLine();
+			writer.write(String.format("MouseDisableWheel = %b", disableMouseWheel));
+			writer.newLine();
+			writer.write(String.format("MouseDisableButtons = %b", disableMouseButtons));
 			writer.newLine();
 			writer.write(String.format("DimLevel = %d", backgroundDim));
 			writer.newLine();

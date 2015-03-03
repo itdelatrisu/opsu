@@ -533,9 +533,9 @@ public class Game extends BasicGameState {
 		// game keys
 		if (!Keyboard.isRepeatEvent()) {
 			if (key == Options.getGameKeyLeft())
-				mousePressed(Input.MOUSE_LEFT_BUTTON, input.getMouseX(), input.getMouseY());
+				gameKeyPressed(Input.MOUSE_LEFT_BUTTON, input.getMouseX(), input.getMouseY());
 			else if (key == Options.getGameKeyRight())
-				mousePressed(Input.MOUSE_RIGHT_BUTTON, input.getMouseX(), input.getMouseY());
+				gameKeyPressed(Input.MOUSE_RIGHT_BUTTON, input.getMouseX(), input.getMouseY());
 		}
 
 		switch (key) {
@@ -626,9 +626,33 @@ public class Game extends BasicGameState {
 
 	@Override
 	public void mousePressed(int button, int x, int y) {
-		if (button == Input.MOUSE_MIDDLE_BUTTON)
+		if (Options.isMouseDisabled())
 			return;
 
+		// mouse wheel: pause the game
+		if (button == Input.MOUSE_MIDDLE_BUTTON && !Options.isMouseWheelDisabled()) {
+			int trackPosition = MusicController.getPosition();
+			if (pauseTime < 0 && breakTime <= 0 && trackPosition >= osu.objects[0].getTime()) {
+				pausedMouseX = x;
+				pausedMouseY = y;
+				pausePulse = 0f;
+			}
+			if (MusicController.isPlaying() || isLeadIn())
+				pauseTime = trackPosition;
+			game.enterState(Opsu.STATE_GAMEPAUSEMENU, new EmptyTransition(), new FadeInTransition(Color.black));
+			return;
+		}
+
+		gameKeyPressed(button, x, y);
+	}
+
+	/**
+	 * Handles a game key pressed event.
+	 * @param button the index of the button pressed
+	 * @param x the mouse x coordinate
+	 * @param y the mouse y coordinate
+	 */
+	private void gameKeyPressed(int button, int x, int y) {
 		// returning from pause screen
 		if (pauseTime > -1) {
 			double distance = Math.hypot(pausedMouseX - x, pausedMouseY - y);
@@ -670,6 +694,9 @@ public class Game extends BasicGameState {
 
 	@Override
 	public void mouseWheelMoved(int newValue) {
+		if (Options.isMouseWheelDisabled() || Options.isMouseDisabled())
+			return;
+
 		Utils.changeVolume((newValue < 0) ? -1 : 1);
 	}
 

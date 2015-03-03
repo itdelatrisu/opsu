@@ -393,7 +393,8 @@ public class Utils {
 		final float scale = 1.25f;
 		int state = game.getCurrentStateID();
 		if (((state == Opsu.STATE_GAME || state == Opsu.STATE_GAMEPAUSEMENU) && isGameKeyPressed()) ||
-		    (input.isMouseButtonDown(Input.MOUSE_LEFT_BUTTON) || input.isMouseButtonDown(Input.MOUSE_RIGHT_BUTTON))) {
+		    ((input.isMouseButtonDown(Input.MOUSE_LEFT_BUTTON) || input.isMouseButtonDown(Input.MOUSE_RIGHT_BUTTON)) &&
+		    !(state == Opsu.STATE_GAME && Options.isMouseDisabled()))) {
 			cursor = cursor.getScaledCopy(scale);
 			if (newStyle)
 				cursorMiddle = cursorMiddle.getScaledCopy(scale);
@@ -487,8 +488,10 @@ public class Utils {
 	 * @return true if pressed
 	 */
 	public static boolean isGameKeyPressed() {
-		return (input.isMouseButtonDown(Input.MOUSE_LEFT_BUTTON) ||
-				input.isMouseButtonDown(Input.MOUSE_RIGHT_BUTTON) ||
+		boolean mouseDown = !Options.isMouseDisabled() && (
+				input.isMouseButtonDown(Input.MOUSE_LEFT_BUTTON) ||
+				input.isMouseButtonDown(Input.MOUSE_RIGHT_BUTTON));
+		return (mouseDown ||
 				input.isKeyDown(Options.getGameKeyLeft()) ||
 				input.isKeyDown(Options.getGameKeyRight()));
 	}
