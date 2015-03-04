@@ -118,7 +118,7 @@ public class Spinner implements HitObject {
 		Image rpmImg = GameImage.SPINNER_RPM.getImage();
 		rpmImg.drawCentered(width / 2f, height - rpmImg.getHeight() / 2f);
 		data.drawSymbolString(Integer.toString(rpm), (int) ((width + rpmImg.getWidth() * 0.95f) / 2f),
-				(int) (height - data.getScoreSymbolImage('0').getHeight() * 1.025f), 1f, true);
+				(int) (height - data.getScoreSymbolImage('0').getHeight() * 1.025f), 1f, 1f, true);
 
 		// spinner meter (subimage)
 		Image spinnerMetre = GameImage.SPINNER_METRE.getImage();
