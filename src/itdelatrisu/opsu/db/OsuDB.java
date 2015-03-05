@@ -48,7 +48,7 @@ public class OsuDB {
 	private static Connection connection;
 
 	/** Query statements. */
-	private static PreparedStatement insertStmt, selectStmt, lastModStmt, deleteStmt;
+	private static PreparedStatement insertStmt, selectStmt, lastModStmt, deleteMapStmt, deleteGroupStmt;
 
 	// This class should not be instantiated.
 	private OsuDB() {}
@@ -80,7 +80,8 @@ public class OsuDB {
 			);
 			lastModStmt = connection.prepareStatement("SELECT dir, file, lastModified FROM beatmaps");
 			selectStmt = connection.prepareStatement("SELECT * FROM beatmaps WHERE dir = ? AND file = ?");
-			deleteStmt = connection.prepareStatement("DELETE FROM beatmaps WHERE dir = ? AND file = ?");
+			deleteMapStmt = connection.prepareStatement("DELETE FROM beatmaps WHERE dir = ? AND file = ?");
+			deleteGroupStmt = connection.prepareStatement("DELETE FROM beatmaps WHERE dir = ?");
 		} catch (SQLException e) {
 			ErrorHandler.error("Failed to prepare beatmap statements.", e, true);
 		}
@@ -319,17 +320,30 @@ public class OsuDB {
 	}
 
 	/**
-	 * Deletes the entry from the database.
+	 * Deletes the beatmap entry from the database.
 	 * @param dir the directory
 	 * @param file the file
 	 */
 	public static void delete(String dir, String file) {
 		try {
-			deleteStmt.setString(1, dir);
-			deleteStmt.setString(2, file);
-			deleteStmt.executeUpdate();
+			deleteMapStmt.setString(1, dir);
+			deleteMapStmt.setString(2, file);
+			deleteMapStmt.executeUpdate();
 		} catch (SQLException e) {
-			ErrorHandler.error("Failed to delete entry from database.", e, true);
+			ErrorHandler.error("Failed to delete beatmap entry from database.", e, true);
+		}
+	}
+
+	/**
+	 * Deletes the beatmap group entry from the database.
+	 * @param dir the directory
+	 */
+	public static void delete(String dir) {
+		try {
+			deleteGroupStmt.setString(1, dir);
+			deleteGroupStmt.executeUpdate();
+		} catch (SQLException e) {
+			ErrorHandler.error("Failed to delete beatmap group entry from database.", e, true);
 		}
 	}
 
@@ -342,7 +356,8 @@ public class OsuDB {
 				insertStmt.close();
 				lastModStmt.close();
 				selectStmt.close();
-				deleteStmt.close();
+				deleteMapStmt.close();
+				deleteGroupStmt.close();
 				connection.close();
 			} catch (SQLException e) {
 				ErrorHandler.error("Failed to close beatmap database.", e, true);
