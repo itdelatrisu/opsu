@@ -179,7 +179,7 @@ public class OptionsMenu extends BasicGameState {
 		float tabX = (width / 50) + (tabImage.getWidth() / 2f);
 		float tabY = Utils.FONT_LARGE.getLineHeight() + Utils.FONT_DEFAULT.getLineHeight() +
 				height * 0.03f + (tabImage.getHeight() / 2f);
-		int tabOffset = Math.min(tabImage.getWidth(), (width / 2) / OptionTab.SIZE);
+		int tabOffset = Math.min(tabImage.getWidth(), width / OptionTab.SIZE);
 		for (OptionTab tab : OptionTab.values())
 			tab.button = new MenuButton(tabImage, tabX + (tab.ordinal() * tabOffset), tabY);
 

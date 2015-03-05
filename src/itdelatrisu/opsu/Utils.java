@@ -248,8 +248,7 @@ public class Utils {
 	public static void drawTab(float x, float y, String text, boolean selected, boolean isHover) {
 		Image tabImage = GameImage.MENU_TAB.getImage();
 		float tabTextX = x - (Utils.FONT_MEDIUM.getWidth(text) / 2);
-		float tabTextY = y - (tabImage.getHeight() / 2f) +
-				Math.max((tabImage.getHeight() - Utils.FONT_MEDIUM.getLineHeight()) / 1.5f, 0);
+		float tabTextY = y - (tabImage.getHeight() / 2.5f);
 		Color filter, textColor;
 		if (selected) {
 			filter = Color.white;
