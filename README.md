@@ -1,4 +1,4 @@
-# opsu!
+# [opsu!](http://itdelatrisu.github.io/opsu/)
 **opsu!** is an unofficial open-source client for [osu!](https://osu.ppy.sh/),
 a rhythm game based on popular commercial games such as *Ouendan* and
 *Elite Beat Agents*.  It is written in Java using [Slick2D](http://slick.ninjacave.com/)
