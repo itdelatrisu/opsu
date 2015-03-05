@@ -518,6 +518,10 @@ public class DownloadsMenu extends BasicGameState {
 							OsuGroupList.get().reset();
 							OsuGroupList.get().init();
 							((SongMenu) game.getState(Opsu.STATE_SONGMENU)).setFocus(node, -1, true);
+
+							// send notification
+							UI.sendBarNotification((dirs.length == 1) ? "Imported 1 new song." :
+									String.format("Imported %d new songs.", dirs.length));
 						}
 					}
 

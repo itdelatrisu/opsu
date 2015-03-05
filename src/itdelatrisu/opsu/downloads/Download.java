@@ -72,6 +72,12 @@ public class Download {
 		public String getName() { return name; }
 	}
 
+	/** Download listener interface. */
+	public interface DownloadListener {
+		/** Indication that a download has completed. */
+		public void completed();
+	}
+
 	/** The local path. */
 	private String localPath;
 
@@ -80,6 +86,9 @@ public class Download {
 
 	/** The download URL. */
 	private URL url;
+
+	/** The download listener. */
+	private DownloadListener listener;
 
 	/** The readable byte channel. */
 	private ReadableByteChannelWrapper rbc;
@@ -133,6 +142,12 @@ public class Download {
 	}
 
 	/**
+	 * Sets the download listener.
+	 * @param listener the listener to set
+	 */
+	public void setListener(DownloadListener listener) { this.listener = listener; }
+
+	/**
 	 * Starts the download from the "waiting" status.
 	 */
 	public void start() {
@@ -176,6 +191,8 @@ public class Download {
 							Path source = new File(localPath).toPath();
 							Files.move(source, source.resolveSibling(cleanedName), StandardCopyOption.REPLACE_EXISTING);
 						}
+						if (listener != null)
+							listener.completed();
 					}
 				} catch (Exception e) {
 					status = Status.ERROR;

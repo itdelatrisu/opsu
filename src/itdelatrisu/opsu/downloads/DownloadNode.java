@@ -24,6 +24,7 @@ import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.OsuGroupList;
 import itdelatrisu.opsu.UI;
 import itdelatrisu.opsu.Utils;
+import itdelatrisu.opsu.downloads.Download.DownloadListener;
 import itdelatrisu.opsu.downloads.Download.Status;
 
 import java.io.File;
@@ -219,6 +220,12 @@ public class DownloadNode {
 			String path = String.format("%s%c%d", Options.getOSZDir(), File.separatorChar, beatmapSetID);
 			String rename = String.format("%d %s - %s.osz", beatmapSetID, artist, title);
 			this.download = new Download(server.getURL(beatmapSetID), path, rename);
+			download.setListener(new DownloadListener() {
+				@Override
+				public void completed() {
+					UI.sendBarNotification(String.format("Download complete: %s", getTitle()));
+				}
+			});
 		}
 	}
 
