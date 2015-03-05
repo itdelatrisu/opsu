@@ -256,6 +256,7 @@ public class MainMenu extends BasicGameState {
 				new SimpleDateFormat("h:mm a").format(new Date())),
 				marginX, height - marginY - lineHeight);
 
+		Utils.drawBarNotification(g);
 		Utils.drawVolume(g);
 		Utils.drawFPS();
 		Utils.drawCursor();
@@ -276,6 +277,7 @@ public class MainMenu extends BasicGameState {
 			throws SlickException {
 		Utils.updateCursor(delta);
 		Utils.updateVolumeDisplay(delta);
+		Utils.updateBarNotification(delta);
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
 		logo.hoverUpdate(delta, mouseX, mouseY, 0.25f);
 		playButton.hoverUpdate(delta, mouseX, mouseY, 0.25f);
@@ -388,10 +390,13 @@ public class MainMenu extends BasicGameState {
 
 		// music button actions
 		if (musicPlay.contains(x, y)) {
-			if (MusicController.isPlaying())
+			if (MusicController.isPlaying()) {
 				MusicController.pause();
-			else if (!MusicController.isTrackLoading())
+				Utils.sendBarNotification("Pause");
+			} else if (!MusicController.isTrackLoading()) {
 				MusicController.resume();
+				Utils.sendBarNotification("Play");
+			}
 		} else if (musicNext.contains(x, y)) {
 			boolean isTheme = MusicController.isThemePlaying();
 			SongMenu menu = (SongMenu) game.getState(Opsu.STATE_SONGMENU);
@@ -404,6 +409,7 @@ public class MainMenu extends BasicGameState {
 			}
 			if (Options.isDynamicBackgroundEnabled() && !sameAudio && !MusicController.isThemePlaying())
 				bgAlpha = 0f;
+			Utils.sendBarNotification(">> Next");
 		} else if (musicPrevious.contains(x, y)) {
 			if (!previous.isEmpty()) {
 				SongMenu menu = (SongMenu) game.getState(Opsu.STATE_SONGMENU);
@@ -412,6 +418,7 @@ public class MainMenu extends BasicGameState {
 					bgAlpha = 0f;
 			} else
 				MusicController.setPosition(0);
+			Utils.sendBarNotification("<< Previous");
 		}
 
 		// downloads button actions

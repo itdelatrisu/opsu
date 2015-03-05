@@ -116,6 +116,15 @@ public class Utils {
 	/** Volume display elapsed time. */
 	private static int volumeDisplay = -1;
 
+	/** The current bar notification string. */
+	private static String barNotif;
+
+	/** The current bar notification timer. */
+	private static int barNotifTimer = -1;
+
+	/** Duration, in milliseconds, to display bar notifications. */
+	private static final int BAR_NOTIFICATION_TIME = 1250;
+
 	/** Set of all Unicode strings already loaded. */
 	private static HashSet<String> loadedGlyphs = new HashSet<String>();
 
@@ -692,6 +701,56 @@ public class Utils {
 		g.setLineWidth(1);
 		g.drawRect(x, y, textWidth, textHeight);
 		FONT_SMALL.drawString(x + textMarginX, y, text, Color.white);
+	}
+
+	/**
+	 * Submits a bar notification for drawing.
+	 * Must be called with {@link #drawBarNotification(Graphics)}.
+	 * @param s the notification string
+	 */
+	public static void sendBarNotification(String s) {
+		if (s != null) {
+			barNotif = s;
+			barNotifTimer = 0;
+		}
+	}
+
+	/**
+	 * Updates the bar notification by a delta interval.
+	 * @param delta the delta interval since the last call
+	 */
+	public static void updateBarNotification(int delta) {
+		if (barNotifTimer > -1 && barNotifTimer < BAR_NOTIFICATION_TIME) {
+			barNotifTimer += delta;
+			if (barNotifTimer > BAR_NOTIFICATION_TIME)
+				barNotifTimer = BAR_NOTIFICATION_TIME;
+		}
+	}
+
+	/**
+	 * Draws the notification sent from {@link #sendBarNotification(String)}.
+	 * @param g the graphics context
+	 */
+	public static void drawBarNotification(Graphics g) {
+		if (barNotifTimer == -1 || barNotifTimer >= BAR_NOTIFICATION_TIME)
+			return;
+
+		float alpha = 1f;
+		if (barNotifTimer >= BAR_NOTIFICATION_TIME * 0.9f)
+			alpha -= 1 - ((BAR_NOTIFICATION_TIME - barNotifTimer) / (BAR_NOTIFICATION_TIME * 0.1f));
+		int midX = container.getWidth() / 2, midY = container.getHeight() / 2;
+		float barHeight = FONT_LARGE.getLineHeight() * (1f + 0.6f * Math.min(barNotifTimer * 15f / BAR_NOTIFICATION_TIME, 1f));
+		float oldAlphaB = Utils.COLOR_BLACK_ALPHA.a, oldAlphaW = Utils.COLOR_WHITE_ALPHA.a;
+		Utils.COLOR_BLACK_ALPHA.a *= alpha;
+		Utils.COLOR_WHITE_ALPHA.a = alpha;
+		g.setColor(Utils.COLOR_BLACK_ALPHA);
+		g.fillRect(0, midY - barHeight / 2f, container.getWidth(), barHeight);
+		FONT_LARGE.drawString(
+				midX - FONT_LARGE.getWidth(barNotif) / 2f,
+				midY - FONT_LARGE.getLineHeight() / 2.2f,
+				barNotif, Utils.COLOR_WHITE_ALPHA);
+		Utils.COLOR_BLACK_ALPHA.a = oldAlphaB;
+		Utils.COLOR_WHITE_ALPHA.a = oldAlphaW;
 	}
 
 	/**
