@@ -19,6 +19,7 @@
 package itdelatrisu.opsu;
 
 import itdelatrisu.opsu.audio.MusicController;
+import itdelatrisu.opsu.db.DBController;
 import itdelatrisu.opsu.downloads.DownloadList;
 import itdelatrisu.opsu.states.ButtonMenu;
 import itdelatrisu.opsu.states.DownloadsMenu;
@@ -132,8 +133,8 @@ public class Opsu extends StateBasedGame {
 		ResourceLoader.addResourceLocation(new FileSystemLocation(new File(".")));
 		ResourceLoader.addResourceLocation(new FileSystemLocation(new File("./res/")));
 
-		// initialize score database
-		ScoreDB.init();
+		// initialize databases
+		DBController.init();
 
 		// start the game
 		try {
@@ -200,8 +201,8 @@ public class Opsu extends StateBasedGame {
 	 * Closes all resources and exits the application.
 	 */
 	public static void exit() {
-		// close scores database
-		ScoreDB.closeConnection();
+		// close databases
+		DBController.closeConnections();
 
 		// cancel all downloads
 		DownloadList.get().cancelAllDownloads();

@@ -142,4 +142,16 @@ public class OsuTimingPoint {
 	 * @return true if active
 	 */
 	public boolean isKiaiTimeActive() { return kiai; }
+
+	@Override
+	public String toString() {
+		if (inherited)
+			return String.format("%d,%d,%d,%d,%d,%d,%d,%d",
+				time, velocity, meter, (int) sampleType,
+				(int) sampleTypeCustom, sampleVolume, 1, (kiai) ? 1: 0);
+		else
+			return String.format("%d,%g,%d,%d,%d,%d,%d,%d",
+				time, beatLength, meter, (int) sampleType,
+				(int) sampleTypeCustom, sampleVolume, 0, (kiai) ? 1: 0);
+	}
 }

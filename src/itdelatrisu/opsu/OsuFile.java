@@ -21,6 +21,7 @@ package itdelatrisu.opsu;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Image;
@@ -164,10 +165,10 @@ public class OsuFile implements Comparable<OsuFile> {
 	 */
 
 	/** All timing points. */
-	public ArrayList<OsuTimingPoint> timingPoints;
+	public ArrayList<OsuTimingPoint> timingPoints = new ArrayList<OsuTimingPoint>();
 
 	/** Song BPM range. */
-	int bpmMin = 0, bpmMax = 0;
+	public int bpmMin = 0, bpmMax = 0;
 
 	/**
 	 * [Colours]
@@ -264,7 +265,7 @@ public class OsuFile implements Comparable<OsuFile> {
 			if (bgImage == null) {
 				if (bgImageMap.size() > MAX_CACHE_SIZE)
 					clearImageCache();
-				bgImage = new Image(bg);
+				bgImage = new Image(new File(file.getParentFile(), bg).getAbsolutePath());
 				bgImageMap.put(this, bgImage);
 			}
 
@@ -316,5 +317,115 @@ public class OsuFile implements Comparable<OsuFile> {
 	@Override
 	public String toString() {
 		return String.format("%s - %s [%s]", getArtist(), getTitle(), version);
+	}
+
+	/**
+	 * Returns the {@link #breaks} field formatted as a string,
+	 * or null if the field is null.
+	 */
+	public String breaksToString() {
+		if (breaks == null)
+			return null;
+
+		StringBuilder sb = new StringBuilder();
+		for (int i : breaks) {
+			sb.append(i);
+			sb.append(',');
+		}
+		if (sb.length() > 0)
+			sb.setLength(sb.length() - 1);
+		return sb.toString();
+	}
+
+	/**
+	 * Sets the {@link #breaks} field from a string.
+	 * @param s the string
+	 */
+	public void breaksFromString(String s) {
+		if (s == null)
+			return;
+
+		this.breaks = new ArrayList<Integer>();
+		String[] tokens = s.split(",");
+		for (int i = 0; i < tokens.length; i++)
+			breaks.add(Integer.parseInt(tokens[i]));
+	}
+
+	/**
+	 * Returns the {@link #timingPoints} field formatted as a string,
+	 * or null if the field is null.
+	 */
+	public String timingPointsToString() {
+		if (timingPoints == null)
+			return null;
+
+		StringBuilder sb = new StringBuilder();
+		for (OsuTimingPoint p : timingPoints) {
+			sb.append(p.toString());
+			sb.append('|');
+		}
+		if (sb.length() > 0)
+			sb.setLength(sb.length() - 1);
+		return sb.toString();
+	}
+
+	/**
+	 * Sets the {@link #timingPoints} field from a string.
+	 * @param s the string
+	 */
+	public void timingPointsFromString(String s) {
+		if (s == null)
+			return;
+
+		String[] tokens = s.split("\\|");
+		for (int i = 0; i < tokens.length; i++) {
+			try {
+				timingPoints.add(new OsuTimingPoint(tokens[i]));
+			} catch (Exception e) {
+				Log.warn(String.format("Failed to read timing point '%s'.", tokens[i]), e);
+			}
+		}
+		timingPoints.trimToSize();
+	}
+
+	/**
+	 * Returns the {@link #combo} field formatted as a string,
+	 * or null if the field is null.
+	 */
+	public String comboToString() {
+		if (combo == null)
+			return null;
+
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < combo.length; i++) {
+			Color c = combo[i];
+			sb.append(c.getRed());
+			sb.append(',');
+			sb.append(c.getGreen());
+			sb.append(',');
+			sb.append(c.getBlue());
+			sb.append('|');
+		}
+		if (sb.length() > 0)
+			sb.setLength(sb.length() - 1);
+		return sb.toString();
+	}
+
+	/**
+	 * Sets the {@link #combo} field from a string.
+	 * @param s the string
+	 */
+	public void comboFromString(String s) {
+		if (s == null)
+			return;
+
+		LinkedList<Color> colors = new LinkedList<Color>();
+		String[] tokens = s.split("\\|");
+		for (int i = 0; i < tokens.length; i++) {
+			String[] rgb = tokens[i].split(",");
+			colors.add(new Color(Integer.parseInt(rgb[0]), Integer.parseInt(rgb[1]), Integer.parseInt(rgb[2])));
+		}
+		if (!colors.isEmpty())
+			this.combo = colors.toArray(new Color[colors.size()]);
 	}
 }

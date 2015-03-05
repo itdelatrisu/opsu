@@ -587,7 +587,7 @@ public class Utils {
 			text = "Unpacking new beatmaps...";
 			progress = OszUnpacker.getUnpackerProgress();
 		} else if ((file = OsuParser.getCurrentFileName()) != null) {
-			text = "Loading beatmaps...";
+			text = (OsuParser.isUpdatingDatabase()) ? "Updating database..." : "Loading beatmaps...";
 			progress = OsuParser.getParserProgress();
 		} else if ((file = SoundController.getCurrentFileName()) != null) {
 			text = "Loading sounds...";

@@ -30,7 +30,6 @@ import itdelatrisu.opsu.OsuGroupList;
 import itdelatrisu.opsu.OsuGroupNode;
 import itdelatrisu.opsu.OsuParser;
 import itdelatrisu.opsu.OszUnpacker;
-import itdelatrisu.opsu.ScoreDB;
 import itdelatrisu.opsu.ScoreData;
 import itdelatrisu.opsu.SongSort;
 import itdelatrisu.opsu.Utils;
@@ -39,6 +38,8 @@ import itdelatrisu.opsu.audio.MultiClip;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
+import itdelatrisu.opsu.db.OsuDB;
+import itdelatrisu.opsu.db.ScoreDB;
 import itdelatrisu.opsu.states.ButtonMenu.MenuState;
 
 import java.io.File;
@@ -1034,6 +1035,9 @@ public class SongMenu extends BasicGameState {
 				reloadThread = new Thread() {
 					@Override
 					public void run() {
+						// clear the beatmap cache
+						OsuDB.clearDatabase();
+
 						// invoke unpacker and parser
 						File beatmapDir = Options.getBeatmapDir();
 						OszUnpacker.unpackAllFiles(Options.getOSZDir(), beatmapDir);

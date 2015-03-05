@@ -16,7 +16,12 @@
  * along with opsu!.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package itdelatrisu.opsu;
+package itdelatrisu.opsu.db;
+
+import itdelatrisu.opsu.ErrorHandler;
+import itdelatrisu.opsu.Options;
+import itdelatrisu.opsu.OsuFile;
+import itdelatrisu.opsu.ScoreData;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -51,16 +56,9 @@ public class ScoreDB {
 	private ScoreDB() {}
 
 	/**
-	 * Initializes the score database connection.
+	 * Initializes the database connection.
 	 */
 	public static void init() {
-		// load the sqlite-JDBC driver using the current class loader
-		try {
-			Class.forName("org.sqlite.JDBC");
-		} catch (ClassNotFoundException e) {
-			ErrorHandler.error("Could not load sqlite-JDBC driver.", e, true);
-		}
-
 		// create a database connection
 		try {
 			connection = DriverManager.getConnection(String.format("jdbc:sqlite:%s", Options.SCORE_DB.getPath()));
@@ -96,12 +94,12 @@ public class ScoreDB {
 				"geki = ? AND katu = ? AND miss = ? AND score = ? AND combo = ? AND perfect = ? AND mods = ?"
 			);
 		} catch (SQLException e) {
-			ErrorHandler.error("Failed to prepare score insertion statement.", e, true);
+			ErrorHandler.error("Failed to prepare score statements.", e, true);
 		}
 	}
 
 	/**
-	 * Creates the score database, if it does not exist.
+	 * Creates the database, if it does not exist.
 	 */
 	private static void createDatabase() {
 		try (Statement stmt = connection.createStatement()) {
@@ -265,7 +263,7 @@ public class ScoreDB {
 	}
 
 	/**
-	 * Closes the connection to the score database.
+	 * Closes the connection to the database.
 	 */
 	public static void closeConnection() {
 		if (connection != null) {
@@ -277,21 +275,6 @@ public class ScoreDB {
 			} catch (SQLException e) {
 				ErrorHandler.error("Failed to close score database.", e, true);
 			}
-		}
-	}
-
-	/**
-	 * Prints the entire database (for debugging purposes).
-	 */
-	protected static void printDatabase() {
-		try (
-			Statement stmt = connection.createStatement();
-			ResultSet rs = stmt.executeQuery("SELECT * FROM scores ORDER BY timestamp ASC");
-		) {
-			while (rs.next())
-				System.out.println(new ScoreData(rs));
-		} catch (SQLException e) {
-			ErrorHandler.error(null, e, false);
 		}
 	}
 }

@@ -61,6 +61,9 @@ public class Options {
 		new File(DATA_DIR, "Songs/").getPath()
 	};
 
+	/** Cached beatmap database name. */
+	public static final File OSU_DB = new File(DATA_DIR, ".opsu.db");
+
 	/** Score database name. */
 	public static final File SCORE_DB = new File(DATA_DIR, ".opsu_scores.db");
 
