@@ -27,6 +27,7 @@ import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.OsuFile;
 import itdelatrisu.opsu.OsuGroupList;
 import itdelatrisu.opsu.OsuGroupNode;
+import itdelatrisu.opsu.UI;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
@@ -256,28 +257,23 @@ public class MainMenu extends BasicGameState {
 				new SimpleDateFormat("h:mm a").format(new Date())),
 				marginX, height - marginY - lineHeight);
 
-		Utils.drawBarNotification(g);
-		Utils.drawVolume(g);
-		Utils.drawFPS();
-		Utils.drawCursor();
+		UI.draw(g);
 
 		// tooltips
 		if (musicPositionBarContains(mouseX, mouseY))
-			Utils.drawTooltip(g, "Click to seek to a specific point in the song.", false);
+			UI.drawTooltip(g, "Click to seek to a specific point in the song.", false);
 		else if (musicPlay.contains(mouseX, mouseY))
-			Utils.drawTooltip(g, (MusicController.isPlaying()) ? "Pause" : "Play", false);
+			UI.drawTooltip(g, (MusicController.isPlaying()) ? "Pause" : "Play", false);
 		else if (musicNext.contains(mouseX, mouseY))
-			Utils.drawTooltip(g, "Next track", false);
+			UI.drawTooltip(g, "Next track", false);
 		else if (musicPrevious.contains(mouseX, mouseY))
-			Utils.drawTooltip(g, "Previous track", false);
+			UI.drawTooltip(g, "Previous track", false);
 	}
 
 	@Override
 	public void update(GameContainer container, StateBasedGame game, int delta)
 			throws SlickException {
-		Utils.updateCursor(delta);
-		Utils.updateVolumeDisplay(delta);
-		Utils.updateBarNotification(delta);
+		UI.update(delta);
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
 		logo.hoverUpdate(delta, mouseX, mouseY, 0.25f);
 		playButton.hoverUpdate(delta, mouseX, mouseY, 0.25f);
@@ -350,6 +346,8 @@ public class MainMenu extends BasicGameState {
 	@Override
 	public void enter(GameContainer container, StateBasedGame game)
 			throws SlickException {
+		UI.enter();
+
 		// reset button hover states if mouse is not currently hovering over the button
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
 		if (!logo.contains(mouseX, mouseY, 0.25f))
@@ -392,10 +390,10 @@ public class MainMenu extends BasicGameState {
 		if (musicPlay.contains(x, y)) {
 			if (MusicController.isPlaying()) {
 				MusicController.pause();
-				Utils.sendBarNotification("Pause");
+				UI.sendBarNotification("Pause");
 			} else if (!MusicController.isTrackLoading()) {
 				MusicController.resume();
-				Utils.sendBarNotification("Play");
+				UI.sendBarNotification("Play");
 			}
 		} else if (musicNext.contains(x, y)) {
 			boolean isTheme = MusicController.isThemePlaying();
@@ -409,7 +407,7 @@ public class MainMenu extends BasicGameState {
 			}
 			if (Options.isDynamicBackgroundEnabled() && !sameAudio && !MusicController.isThemePlaying())
 				bgAlpha = 0f;
-			Utils.sendBarNotification(">> Next");
+			UI.sendBarNotification(">> Next");
 		} else if (musicPrevious.contains(x, y)) {
 			if (!previous.isEmpty()) {
 				SongMenu menu = (SongMenu) game.getState(Opsu.STATE_SONGMENU);
@@ -418,7 +416,7 @@ public class MainMenu extends BasicGameState {
 					bgAlpha = 0f;
 			} else
 				MusicController.setPosition(0);
-			Utils.sendBarNotification("<< Previous");
+			UI.sendBarNotification("<< Previous");
 		}
 
 		// downloads button actions
@@ -459,7 +457,7 @@ public class MainMenu extends BasicGameState {
 
 	@Override
 	public void mouseWheelMoved(int newValue) {
-		Utils.changeVolume((newValue < 0) ? -1 : 1);
+		UI.changeVolume((newValue < 0) ? -1 : 1);
 	}
 
 	@Override
@@ -483,10 +481,10 @@ public class MainMenu extends BasicGameState {
 			}
 			break;
 		case Input.KEY_UP:
-			Utils.changeVolume(1);
+			UI.changeVolume(1);
 			break;
 		case Input.KEY_DOWN:
-			Utils.changeVolume(-1);
+			UI.changeVolume(-1);
 			break;
 		case Input.KEY_F12:
 			Utils.takeScreenShot();

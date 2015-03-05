@@ -199,7 +199,7 @@ public class Options {
 			@Override
 			public void click(GameContainer container) {
 				super.click(container);
-				Utils.resetCursor();
+				UI.resetCursor();
 			}
 		},
 		DYNAMIC_BACKGROUND ("Enable Dynamic Backgrounds", "The song background will be used as the main menu background.", true),

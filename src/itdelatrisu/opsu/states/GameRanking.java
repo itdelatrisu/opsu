@@ -23,6 +23,7 @@ import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.MenuButton;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.OsuFile;
+import itdelatrisu.opsu.UI;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
@@ -108,24 +109,21 @@ public class GameRanking extends BasicGameState {
 			retryButton.draw();
 			exitButton.draw();
 		}
-		Utils.getBackButton().draw();
+		UI.getBackButton().draw();
 
-		Utils.drawVolume(g);
-		Utils.drawFPS();
-		Utils.drawCursor();
+		UI.draw(g);
 	}
 
 	@Override
 	public void update(GameContainer container, StateBasedGame game, int delta)
 			throws SlickException {
-		Utils.updateCursor(delta);
-		Utils.updateVolumeDisplay(delta);
+		UI.update(delta);
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
 		if (data.isGameplay()) {
 			retryButton.hoverUpdate(delta, mouseX, mouseY);
 			exitButton.hoverUpdate(delta, mouseX, mouseY);
 		}
-		Utils.getBackButton().hoverUpdate(delta, mouseX, mouseY);
+		UI.getBackButton().hoverUpdate(delta, mouseX, mouseY);
 	}
 
 	@Override
@@ -161,12 +159,12 @@ public class GameRanking extends BasicGameState {
 				SoundController.playSound(SoundEffect.MENUBACK);
 				((MainMenu) game.getState(Opsu.STATE_MAINMENU)).reset();
 				((SongMenu) game.getState(Opsu.STATE_SONGMENU)).resetGameDataOnLoad();
-				Utils.resetCursor();
+				UI.resetCursor();
 				game.enterState(Opsu.STATE_MAINMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 				return;
 			}
 		}
-		if (Utils.getBackButton().contains(x, y)) {
+		if (UI.getBackButton().contains(x, y)) {
 			returnToSongMenu();
 			return;
 		}
@@ -175,8 +173,8 @@ public class GameRanking extends BasicGameState {
 	@Override
 	public void enter(GameContainer container, StateBasedGame game)
 			throws SlickException {
+		UI.enter();
 		Display.setTitle(game.getTitle());
-		Utils.getBackButton().resetHover();
 		if (!data.isGameplay()) {
 			if (!MusicController.isTrackDimmed())
 				MusicController.toggleTrackDimmed(0.5f);
@@ -203,7 +201,7 @@ public class GameRanking extends BasicGameState {
 			songMenu.resetGameDataOnLoad();
 			songMenu.resetTrackOnLoad();
 		}
-		Utils.resetCursor();
+		UI.resetCursor();
 		game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 	}
 

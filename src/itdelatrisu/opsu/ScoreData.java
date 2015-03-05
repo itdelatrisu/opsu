@@ -121,7 +121,7 @@ public class ScoreData implements Comparable<ScoreData> {
 	 * @param total the total number of buttons
 	 */
 	public static void drawScrollbar(Graphics g, int index, int total) {
-		Utils.drawScrollbar(g, index, total, SongMenu.MAX_SCORE_BUTTONS, 0, baseY,
+		UI.drawScrollbar(g, index, total, SongMenu.MAX_SCORE_BUTTONS, 0, baseY,
 				0, buttonHeight, buttonOffset, null, Color.white, false);
 	}
 

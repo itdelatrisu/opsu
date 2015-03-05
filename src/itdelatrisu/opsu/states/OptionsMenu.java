@@ -23,6 +23,7 @@ import itdelatrisu.opsu.MenuButton;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.Options.GameOption;
+import itdelatrisu.opsu.UI;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
@@ -224,10 +225,10 @@ public class OptionsMenu extends BasicGameState {
 		}
 		for (OptionTab tab : OptionTab.VALUES_REVERSED) {
 			if (tab != currentTab)
-				Utils.drawTab(tab.button.getX(), tab.button.getY(),
+				UI.drawTab(tab.button.getX(), tab.button.getY(),
 						tab.getName(), false, tab == hoverTab);
 		}
-		Utils.drawTab(currentTab.button.getX(), currentTab.button.getY(),
+		UI.drawTab(currentTab.button.getX(), currentTab.button.getY(),
 				currentTab.getName(), true, false);
 		g.setColor(Color.white);
 		g.setLineWidth(2f);
@@ -235,7 +236,7 @@ public class OptionsMenu extends BasicGameState {
 		g.drawLine(0, lineY, width, lineY);
 		g.resetLineWidth();
 
-		Utils.getBackButton().draw();
+		UI.getBackButton().draw();
 
 		// key entry state
 		if (keyEntryLeft || keyEntryRight) {
@@ -248,18 +249,15 @@ public class OptionsMenu extends BasicGameState {
 			);
 		}
 
-		Utils.drawVolume(g);
-		Utils.drawFPS();
-		Utils.drawCursor();
+		UI.draw(g);
 	}
 
 	@Override
 	public void update(GameContainer container, StateBasedGame game, int delta)
 			throws SlickException {
-		Utils.updateCursor(delta);
-		Utils.updateVolumeDisplay(delta);
+		UI.update(delta);
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
-		Utils.getBackButton().hoverUpdate(delta, mouseX, mouseY);
+		UI.getBackButton().hoverUpdate(delta, mouseX, mouseY);
 	}
 
 	@Override
@@ -278,7 +276,7 @@ public class OptionsMenu extends BasicGameState {
 			return;
 
 		// back
-		if (Utils.getBackButton().contains(x, y)) {
+		if (UI.getBackButton().contains(x, y)) {
 			SoundController.playSound(SoundEffect.MENUBACK);
 			game.enterState(Opsu.STATE_SONGMENU, new EmptyTransition(), new FadeInTransition(Color.black));
 			return;
@@ -381,8 +379,8 @@ public class OptionsMenu extends BasicGameState {
 	@Override
 	public void enter(GameContainer container, StateBasedGame game)
 			throws SlickException {
+		UI.enter();
 		currentTab = OptionTab.DISPLAY;
-		Utils.getBackButton().resetHover();
 	}
 
 	/**

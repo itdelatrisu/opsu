@@ -29,6 +29,7 @@ import itdelatrisu.opsu.OsuFile;
 import itdelatrisu.opsu.OsuHitObject;
 import itdelatrisu.opsu.OsuTimingPoint;
 import itdelatrisu.opsu.ScoreData;
+import itdelatrisu.opsu.UI;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.HitSound;
 import itdelatrisu.opsu.audio.MusicController;
@@ -258,8 +259,7 @@ public class Game extends BasicGameState {
 
 				if (GameMod.AUTO.isActive())
 					GameImage.UNRANKED.getImage().drawCentered(width / 2, height * 0.077f);
-				Utils.drawFPS();
-				Utils.drawCursor();
+				UI.draw(g);
 				return;
 			}
 		}
@@ -365,16 +365,13 @@ public class Game extends BasicGameState {
 			cursorCirclePulse.drawCentered(pausedMouseX, pausedMouseY);
 		}
 
-		Utils.drawVolume(g);
-		Utils.drawFPS();
-		Utils.drawCursor();
+		UI.draw(g);
 	}
 
 	@Override
 	public void update(GameContainer container, StateBasedGame game, int delta)
 			throws SlickException {
-		Utils.updateCursor(delta);
-		Utils.updateVolumeDisplay(delta);
+		UI.update(delta);
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
 		skipButton.hoverUpdate(delta, mouseX, mouseY);
 
@@ -613,10 +610,10 @@ public class Game extends BasicGameState {
 			}
 			break;
 		case Input.KEY_UP:
-			Utils.changeVolume(1);
+			UI.changeVolume(1);
 			break;
 		case Input.KEY_DOWN:
-			Utils.changeVolume(-1);
+			UI.changeVolume(-1);
 			break;
 		case Input.KEY_F12:
 			Utils.takeScreenShot();
@@ -697,12 +694,13 @@ public class Game extends BasicGameState {
 		if (Options.isMouseWheelDisabled() || Options.isMouseDisabled())
 			return;
 
-		Utils.changeVolume((newValue < 0) ? -1 : 1);
+		UI.changeVolume((newValue < 0) ? -1 : 1);
 	}
 
 	@Override
 	public void enter(GameContainer container, StateBasedGame game)
 			throws SlickException {
+		UI.enter();
 		if (restart == Restart.NEW)
 			osu = MusicController.getOsuFile();
 

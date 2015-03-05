@@ -183,6 +183,6 @@ public enum SongSort {
 	 * @param isHover whether to include a hover effect (unselected only)
 	 */
 	public void draw(boolean selected, boolean isHover) {
-		Utils.drawTab(tab.getX(), tab.getY(), name, selected, isHover);
+		UI.drawTab(tab.getX(), tab.getY(), name, selected, isHover);
 	}
 }

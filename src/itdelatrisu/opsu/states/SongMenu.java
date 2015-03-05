@@ -32,6 +32,7 @@ import itdelatrisu.opsu.OsuParser;
 import itdelatrisu.opsu.OszUnpacker;
 import itdelatrisu.opsu.ScoreData;
 import itdelatrisu.opsu.SongSort;
+import itdelatrisu.opsu.UI;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.HitSound;
 import itdelatrisu.opsu.audio.MultiClip;
@@ -433,7 +434,7 @@ public class SongMenu extends BasicGameState {
 					startIndex += focusNodes;
 				else if (startNode.index == focusNode.index)
 					startIndex += startNode.osuFileIndex;
-				Utils.drawScrollbar(g, startIndex, totalNodes, MAX_SONG_BUTTONS,
+				UI.drawScrollbar(g, startIndex, totalNodes, MAX_SONG_BUTTONS,
 						width, headerY + DIVIDER_LINE_WIDTH / 2, 0, buttonOffset - DIVIDER_LINE_WIDTH * 1.5f, buttonOffset,
 						Utils.COLOR_BLACK_ALPHA, Color.white, true);
 			}
@@ -445,25 +446,22 @@ public class SongMenu extends BasicGameState {
 			g.setColor(Utils.COLOR_BLACK_ALPHA);
 			g.fillRect(0, 0, width, height);
 
-			Utils.drawLoadingProgress(g);
+			UI.drawLoadingProgress(g);
 		}
 
 		// back button
 		else
-			Utils.getBackButton().draw();
+			UI.getBackButton().draw();
 
-		Utils.drawVolume(g);
-		Utils.drawFPS();
-		Utils.drawCursor();
+		UI.draw(g);
 	}
 
 	@Override
 	public void update(GameContainer container, StateBasedGame game, int delta)
 			throws SlickException {
-		Utils.updateCursor(delta);
-		Utils.updateVolumeDisplay(delta);
+		UI.update(delta);
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
-		Utils.getBackButton().hoverUpdate(delta, mouseX, mouseY);
+		UI.getBackButton().hoverUpdate(delta, mouseX, mouseY);
 		selectModsButton.hoverUpdate(delta, mouseX, mouseY);
 		selectRandomButton.hoverUpdate(delta, mouseX, mouseY);
 		selectMapOptionsButton.hoverUpdate(delta, mouseX, mouseY);
@@ -584,7 +582,7 @@ public class SongMenu extends BasicGameState {
 			return;
 
 		// back
-		if (Utils.getBackButton().contains(x, y)) {
+		if (UI.getBackButton().contains(x, y)) {
 			SoundController.playSound(SoundEffect.MENUBACK);
 			((MainMenu) game.getState(Opsu.STATE_MAINMENU)).reset();
 			game.enterState(Opsu.STATE_MAINMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
@@ -881,8 +879,8 @@ public class SongMenu extends BasicGameState {
 	@Override
 	public void enter(GameContainer container, StateBasedGame game)
 			throws SlickException {
+		UI.enter();
 		Display.setTitle(game.getTitle());
-		Utils.getBackButton().resetHover();
 		selectModsButton.resetHover();
 		selectRandomButton.resetHover();
 		selectMapOptionsButton.resetHover();
