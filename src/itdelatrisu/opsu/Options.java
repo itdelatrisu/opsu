@@ -472,6 +472,16 @@ public class Options {
 	public static int getTargetFPS() { return targetFPS[targetFPSindex]; }
 
 	/**
+	 * Sets the target frame rate to the next available option, and sends a
+	 * bar notification about the action.
+	 * @param container the game container
+	 */
+	public static void setNextFPS(GameContainer container) {
+		GameOption.TARGET_FPS.click(container);
+		UI.sendBarNotification(String.format("Frame limiter: %s", GameOption.TARGET_FPS.getValueString()));
+	}
+
+	/**
 	 * Returns the master volume level.
 	 * @return the volume [0, 1]
 	 */
@@ -696,6 +706,16 @@ public class Options {
 	 * @return true if disabled
 	 */
 	public static boolean isMouseDisabled() { return GameOption.DISABLE_MOUSE_BUTTONS.getBooleanValue(); }
+
+	/**
+	 * Toggles the mouse button enabled/disabled state during gameplay and
+	 * sends a bar notification about the action.
+	 */
+	public static void toggleMouseDisabled() {
+		GameOption.DISABLE_MOUSE_BUTTONS.click(null);
+		UI.sendBarNotification((GameOption.DISABLE_MOUSE_BUTTONS.getBooleanValue()) ?
+			"Mouse buttons are disabled." : "Mouse buttons are enabled.");
+	}
 
 	/**
 	 * Returns the left game key.

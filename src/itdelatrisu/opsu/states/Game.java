@@ -578,8 +578,10 @@ public class Game extends BasicGameState {
 					break;
 
 				int position = (pauseTime > -1) ? pauseTime : trackPosition;
-				if (Options.setCheckpoint(position / 1000))
+				if (Options.setCheckpoint(position / 1000)) {
 					SoundController.playSound(SoundEffect.MENUCLICK);
+					UI.sendBarNotification("Checkpoint saved.");
+				}
 			}
 			break;
 		case Input.KEY_L:
@@ -597,6 +599,7 @@ public class Game extends BasicGameState {
 						MusicController.resume();
 					}
 					SoundController.playSound(SoundEffect.MENUHIT);
+					UI.sendBarNotification("Checkpoint loaded.");
 
 					// skip to checkpoint
 					MusicController.setPosition(checkpoint);
@@ -614,6 +617,12 @@ public class Game extends BasicGameState {
 			break;
 		case Input.KEY_DOWN:
 			UI.changeVolume(-1);
+			break;
+		case Input.KEY_F7:
+			Options.setNextFPS(container);
+			break;
+		case Input.KEY_F10:
+			Options.toggleMouseDisabled();
 			break;
 		case Input.KEY_F12:
 			Utils.takeScreenShot();

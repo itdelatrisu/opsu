@@ -137,6 +137,7 @@ public class DownloadsMenu extends BasicGameState {
 	private Thread importThread;
 
 	// game-related variables
+	private GameContainer container;
 	private StateBasedGame game;
 	private Input input;
 	private int state;
@@ -148,6 +149,7 @@ public class DownloadsMenu extends BasicGameState {
 	@Override
 	public void init(GameContainer container, StateBasedGame game)
 			throws SlickException {
+		this.container = container;
 		this.game = game;
 		this.input = container.getInput();
 
@@ -635,6 +637,12 @@ public class DownloadsMenu extends BasicGameState {
 			lastQuery = null;
 			pageDir = Page.CURRENT;
 			resetSearchTimer();
+			break;
+		case Input.KEY_F7:
+			Options.setNextFPS(container);
+			break;
+		case Input.KEY_F10:
+			Options.toggleMouseDisabled();
 			break;
 		case Input.KEY_F12:
 			Utils.takeScreenShot();

@@ -750,6 +750,12 @@ public class SongMenu extends BasicGameState {
 			((ButtonMenu) game.getState(Opsu.STATE_BUTTONMENU)).setMenuState(MenuState.RELOAD);
 			game.enterState(Opsu.STATE_BUTTONMENU);
 			break;
+		case Input.KEY_F7:
+			Options.setNextFPS(container);
+			break;
+		case Input.KEY_F10:
+			Options.toggleMouseDisabled();
+			break;
 		case Input.KEY_F12:
 			Utils.takeScreenShot();
 			break;

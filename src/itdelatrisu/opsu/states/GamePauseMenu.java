@@ -148,6 +148,12 @@ public class GamePauseMenu extends BasicGameState {
 				game.enterState(Opsu.STATE_GAME);
 			}
 			break;
+		case Input.KEY_F7:
+			Options.setNextFPS(container);
+			break;
+		case Input.KEY_F10:
+			Options.toggleMouseDisabled();
+			break;
 		case Input.KEY_F12:
 			Utils.takeScreenShot();
 			break;

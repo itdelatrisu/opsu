@@ -22,6 +22,7 @@ import itdelatrisu.opsu.GameData;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.MenuButton;
 import itdelatrisu.opsu.Opsu;
+import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.OsuFile;
 import itdelatrisu.opsu.UI;
 import itdelatrisu.opsu.Utils;
@@ -57,6 +58,7 @@ public class GameRanking extends BasicGameState {
 	private MenuButton retryButton, exitButton;
 
 	// game-related variables
+	private GameContainer container;
 	private StateBasedGame game;
 	private int state;
 	private Input input;
@@ -68,6 +70,7 @@ public class GameRanking extends BasicGameState {
 	@Override
 	public void init(GameContainer container, StateBasedGame game)
 			throws SlickException {
+		this.container = container;
 		this.game = game;
 		this.input = container.getInput();
 
@@ -134,6 +137,12 @@ public class GameRanking extends BasicGameState {
 		switch (key) {
 		case Input.KEY_ESCAPE:
 			returnToSongMenu();
+			break;
+		case Input.KEY_F7:
+			Options.setNextFPS(container);
+			break;
+		case Input.KEY_F10:
+			Options.toggleMouseDisabled();
 			break;
 		case Input.KEY_F12:
 			Utils.takeScreenShot();
