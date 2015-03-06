@@ -26,7 +26,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -71,19 +70,10 @@ public class Options {
 	public static final String FONT_NAME = "kochi-gothic.ttf";
 
 	/** Repository address. */
-	public static URI REPOSITORY_URI;
+	public static URI REPOSITORY_URI = URI.create("https://github.com/itdelatrisu/opsu");
 
 	/** Issue reporting address. */
-	public static URI ISSUES_URI;
-
-	static {
-		try {
-			REPOSITORY_URI = new URI("https://github.com/itdelatrisu/opsu");
-			ISSUES_URI = new URI("https://github.com/itdelatrisu/opsu/issues/new");
-		} catch (URISyntaxException e) {
-			Log.error("Problem loading URIs.", e);
-		}
-	}
+	public static String ISSUES_URL = "https://github.com/itdelatrisu/opsu/issues/new?title=%s&body=%s";
 
 	/** The beatmap directory. */
 	private static File beatmapDir;

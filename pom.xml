@@ -4,15 +4,27 @@
 	<groupId>itdelatrisu</groupId>
 	<artifactId>opsu</artifactId>
 	<version>0.6.0</version>
-
+	<properties>
+		<timestamp>${maven.build.timestamp}</timestamp>
+		<maven.build.timestamp.format>yyyy-MM-dd HH:mm</maven.build.timestamp.format>
+	</properties>
 	<build>
 		<sourceDirectory>src</sourceDirectory>
 		<resources>
 			<resource>
+				<filtering>false</filtering>
 				<directory>res</directory>
 				<excludes>
 					<exclude>**/Thumbs.db</exclude>
+					<exclude>**/version</exclude>
 				</excludes>
+			</resource>
+			<resource>
+				<filtering>true</filtering>
+				<directory>res</directory>
+				<includes>
+					<include>**/version</include>
+				</includes>
 			</resource>
 		</resources>
 		<plugins>

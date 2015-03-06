@@ -1,3 +1,6 @@
-#Mon, 03 Jun 2013 22:20:24 +0100
-#Sun May 11 20:17:03 BST 2008
+# opsu! build info
+version=${pom.version}
+build.date=${timestamp}
+
+# slick build
 build=237

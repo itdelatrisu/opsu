@@ -22,6 +22,9 @@ import java.awt.Cursor;
 import java.awt.Desktop;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.net.URI;
+import java.net.URLEncoder;
+import java.util.Properties;
 
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
@@ -29,6 +32,7 @@ import javax.swing.JTextArea;
 import javax.swing.UIManager;
 
 import org.newdawn.slick.util.Log;
+import org.newdawn.slick.util.ResourceLoader;
 
 /**
  * Error handler to log and display errors.
@@ -92,10 +96,12 @@ public class ErrorHandler {
 			textArea.append(error);
 			textArea.append("\n");
 		}
+		String trace = null;
 		if (e != null) {
 			StringWriter sw = new StringWriter();
 			e.printStackTrace(new PrintWriter(sw));
-			textArea.append(sw.toString());
+			trace = sw.toString();
+			textArea.append(trace);
 		}
 
 		// display popup
@@ -109,8 +115,39 @@ public class ErrorHandler {
 							JOptionPane.DEFAULT_OPTION, JOptionPane.ERROR_MESSAGE,
 							null, optionsR, optionsR[2]);
 					if (n == 0) {
-						Desktop.getDesktop().browse(Options.ISSUES_URI);
-						Desktop.getDesktop().open(Options.LOG_FILE);
+						// auto-fill debug information
+						String issueTitle = (error != null) ? error : e.getMessage();
+						StringBuilder sb = new StringBuilder();
+						Properties props = new Properties();
+						props.load(ResourceLoader.getResourceAsStream("version"));
+						String version = props.getProperty("version");
+						if (version != null && !version.equals("${pom.version}")) {
+							sb.append("**Version:** ");
+							sb.append(version);
+							sb.append('\n');
+						}
+						String timestamp = props.getProperty("build.date");
+						if (timestamp != null &&
+						    !timestamp.equals("${maven.build.timestamp}") && !timestamp.equals("${timestamp}")) {
+							sb.append("**Build date:** ");
+							sb.append(timestamp);
+							sb.append('\n');
+						}
+						if (error != null) {
+							sb.append("**Error:** `");
+							sb.append(error);
+							sb.append("`\n");
+						}
+						if (trace != null) {
+							sb.append("**Stack trace:**");
+							sb.append("\n```\n");
+							sb.append(trace);
+							sb.append("```");
+						}
+						URI uri = URI.create(String.format(Options.ISSUES_URL,
+								URLEncoder.encode(issueTitle, "UTF-8"),
+								URLEncoder.encode(sb.toString(), "UTF-8")));
+						Desktop.getDesktop().browse(uri);
 					} else if (n == 1)
 						Desktop.getDesktop().open(Options.LOG_FILE);
 				} else {
