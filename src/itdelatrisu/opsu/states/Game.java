@@ -839,8 +839,10 @@ public class Game extends BasicGameState {
 		// set images
 		File parent = osu.getFile().getParentFile();
 		for (GameImage img : GameImage.values()) {
-			if (img.isSkinnable())
+			if (img.isSkinnable()) {
+				img.setDefaultImage();
 				img.setSkinImage(parent);
+			}
 		}
 
 		// skip button
