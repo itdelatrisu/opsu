@@ -256,7 +256,7 @@ public class Utils {
 	 * @return the clamped value
 	 * @author fluddokt
 	 */
-	public static float clamp(float val, int low, int high) {
+	public static float clamp(float val, float low, float high) {
 		if (val < low)
 			return low;
 		if (val > high)
