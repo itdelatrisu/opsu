@@ -396,22 +396,12 @@ public class MainMenu extends BasicGameState {
 				UI.sendBarNotification("Play");
 			}
 		} else if (musicNext.contains(x, y)) {
-			boolean isTheme = MusicController.isThemePlaying();
-			SongMenu menu = (SongMenu) game.getState(Opsu.STATE_SONGMENU);
-			OsuGroupNode node = menu.setFocus(OsuGroupList.get().getRandomNode(), -1, true);
-			boolean sameAudio = false;
-			if (node != null) {
-				sameAudio = MusicController.getOsuFile().audioFilename.equals(node.osuFiles.get(0).audioFilename);
-				if (!isTheme && !sameAudio)
-					previous.add(node.index);
-			}
-			if (Options.isDynamicBackgroundEnabled() && !sameAudio && !MusicController.isThemePlaying())
-				bgAlpha = 0f;
+			nextTrack();
 			UI.sendBarNotification(">> Next");
 		} else if (musicPrevious.contains(x, y)) {
 			if (!previous.isEmpty()) {
 				SongMenu menu = (SongMenu) game.getState(Opsu.STATE_SONGMENU);
-				menu.setFocus(OsuGroupList.get().getBaseNode(previous.pop()), -1, true);
+				menu.setFocus(OsuGroupList.get().getBaseNode(previous.pop()), -1, true, false);
 				if (Options.isDynamicBackgroundEnabled())
 					bgAlpha = 0f;
 			} else
@@ -469,16 +459,21 @@ public class MainMenu extends BasicGameState {
 			game.enterState(Opsu.STATE_BUTTONMENU);
 			break;
 		case Input.KEY_P:
+			SoundController.playSound(SoundEffect.MENUHIT);
 			if (!logoClicked) {
 				logoClicked = true;
 				logoTimer = 0;
 				playButton.getImage().setAlpha(0f);
 				exitButton.getImage().setAlpha(0f);
-				SoundController.playSound(SoundEffect.MENUHIT);
-			} else {
-				SoundController.playSound(SoundEffect.MENUHIT);
+			} else
 				game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
-			}
+			break;
+		case Input.KEY_D:
+			SoundController.playSound(SoundEffect.MENUHIT);
+			game.enterState(Opsu.STATE_DOWNLOADSMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
+			break;
+		case Input.KEY_R:
+			nextTrack();
 			break;
 		case Input.KEY_UP:
 			UI.changeVolume(1);
@@ -525,5 +520,22 @@ public class MainMenu extends BasicGameState {
 		musicNext.resetHover();
 		musicPrevious.resetHover();
 		downloadsButton.resetHover();
+	}
+
+	/**
+	 * Plays the next track, and adds the previous one to the stack.
+	 */
+	private void nextTrack() {
+		boolean isTheme = MusicController.isThemePlaying();
+		SongMenu menu = (SongMenu) game.getState(Opsu.STATE_SONGMENU);
+		OsuGroupNode node = menu.setFocus(OsuGroupList.get().getRandomNode(), -1, true, false);
+		boolean sameAudio = false;
+		if (node != null) {
+			sameAudio = MusicController.getOsuFile().audioFilename.equals(node.osuFiles.get(0).audioFilename);
+			if (!isTheme && !sameAudio)
+				previous.add(node.index);
+		}
+		if (Options.isDynamicBackgroundEnabled() && !sameAudio && !MusicController.isThemePlaying())
+			bgAlpha = 0f;
 	}
 }

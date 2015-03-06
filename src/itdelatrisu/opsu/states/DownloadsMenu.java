@@ -517,7 +517,7 @@ public class DownloadsMenu extends BasicGameState {
 							// initialize song list
 							OsuGroupList.get().reset();
 							OsuGroupList.get().init();
-							((SongMenu) game.getState(Opsu.STATE_SONGMENU)).setFocus(node, -1, true);
+							((SongMenu) game.getState(Opsu.STATE_SONGMENU)).setFocus(node, -1, true, true);
 
 							// send notification
 							UI.sendBarNotification((dirs.length == 1) ? "Imported 1 new song." :
@@ -544,7 +544,7 @@ public class DownloadsMenu extends BasicGameState {
 			SoundController.playSound(SoundEffect.MENUCLICK);
 			rankedOnly = !rankedOnly;
 			lastQuery = null;
-			pageDir = Page.CURRENT;
+			pageDir = Page.RESET;
 			resetSearchTimer();
 			return;
 		}

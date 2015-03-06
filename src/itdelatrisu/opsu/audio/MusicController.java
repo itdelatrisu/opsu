@@ -67,8 +67,11 @@ public class MusicController {
 	/**
 	 * Plays an audio file at the preview position.
 	 * If the audio file is already playing, then nothing will happen.
+	 * @param osu the OsuFile to play
+	 * @param loop whether or not to loop the track
+	 * @param preview whether to start at the preview time (true) or beginning (false)
 	 */
-	public static void play(final OsuFile osu, final boolean loop) {
+	public static void play(final OsuFile osu, final boolean loop, final boolean preview) {
 		// new track: load and play
 		if (lastOsu == null || !osu.audioFilename.equals(lastOsu.audioFilename)) {
 			reset();
@@ -80,7 +83,7 @@ public class MusicController {
 				trackLoader = new Thread() {
 					@Override
 					public void run() {
-						loadTrack(osu.audioFilename, osu.previewTime, loop);
+						loadTrack(osu.audioFilename, (preview) ? osu.previewTime : 0, loop);
 					}
 				};
 				trackLoader.start();
@@ -279,7 +282,7 @@ public class MusicController {
 	public static void playThemeSong() {
 		OsuFile osu = Options.getOsuTheme();
 		if (osu != null) {
-			play(osu, true);
+			play(osu, true, false);
 			themePlaying = true;
 		}
 	}
