@@ -522,22 +522,25 @@ public class GameData {
 	 */
 	@SuppressWarnings("deprecation")
 	public void drawGameElements(Graphics g, boolean breakPeriod, boolean firstObject) {
+		boolean relaxAutoPilot = (GameMod.RELAX.isActive() || GameMod.AUTOPILOT.isActive());
 		int margin = (int) (width * 0.008f);
 
 		// score
-		drawFixedSizeSymbolString((scoreDisplay < 100000000) ? String.format("%08d", scoreDisplay) : Long.toString(scoreDisplay),
-				width - margin, 0, 1.0f, getScoreSymbolImage('0').getWidth() - 2, true);
+		if (!relaxAutoPilot)
+			drawFixedSizeSymbolString((scoreDisplay < 100000000) ? String.format("%08d", scoreDisplay) : Long.toString(scoreDisplay),
+					width - margin, 0, 1.0f, getScoreSymbolImage('0').getWidth() - 2, true);
 
 		// score percentage
 		int symbolHeight = getScoreSymbolImage('0').getHeight();
-		drawSymbolString(
-				String.format((scorePercentDisplay < 10f) ? "0%.2f%%" : "%.2f%%", scorePercentDisplay),
-				width - margin, symbolHeight, 0.60f, 1f, true);
+		if (!relaxAutoPilot)
+			drawSymbolString(
+					String.format((scorePercentDisplay < 10f) ? "0%.2f%%" : "%.2f%%", scorePercentDisplay),
+					width - margin, symbolHeight, 0.60f, 1f, true);
 
 		// map progress circle
-		g.setAntiAlias(true);
-		g.setLineWidth(2f);
-		g.setColor(Color.white);
+		OsuFile osu = MusicController.getOsuFile();
+		int firstObjectTime = osu.objects[0].getTime();
+		int trackPosition = MusicController.getPosition();
 		float circleDiameter = symbolHeight * 0.60f;
 		int circleX = (int) (width - margin - (  // max width: "100.00%"
 				getScoreSymbolImage('1').getWidth() +
@@ -545,22 +548,23 @@ public class GameData {
 				getScoreSymbolImage('.').getWidth() +
 				getScoreSymbolImage('%').getWidth()
 		) * 0.60f - circleDiameter);
-		g.drawOval(circleX, symbolHeight, circleDiameter, circleDiameter);
-
-		OsuFile osu = MusicController.getOsuFile();
-		int firstObjectTime = osu.objects[0].getTime();
-		int trackPosition = MusicController.getPosition();
-		if (trackPosition > firstObjectTime) {
-			// map progress (white)
-			g.fillArc(circleX, symbolHeight, circleDiameter, circleDiameter,
-					-90, -90 + (int) (360f * (trackPosition - firstObjectTime) / (osu.endTime - firstObjectTime))
-			);
-		} else {
-			// lead-in time (yellow)
-			g.setColor(Utils.COLOR_YELLOW_ALPHA);
-			g.fillArc(circleX, symbolHeight, circleDiameter, circleDiameter,
-					-90 + (int) (360f * trackPosition / firstObjectTime), -90
-			);
+		if (!relaxAutoPilot) {
+			g.setAntiAlias(true);
+			g.setLineWidth(2f);
+			g.setColor(Color.white);
+			g.drawOval(circleX, symbolHeight, circleDiameter, circleDiameter);
+			if (trackPosition > firstObjectTime) {
+				// map progress (white)
+				g.fillArc(circleX, symbolHeight, circleDiameter, circleDiameter,
+						-90, -90 + (int) (360f * (trackPosition - firstObjectTime) / (osu.endTime - firstObjectTime))
+				);
+			} else {
+				// lead-in time (yellow)
+				g.setColor(Utils.COLOR_YELLOW_ALPHA);
+				g.fillArc(circleX, symbolHeight, circleDiameter, circleDiameter,
+						-90 + (int) (360f * trackPosition / firstObjectTime), -90
+				);
+			}
 		}
 
 		// mod icons
@@ -624,7 +628,7 @@ public class GameData {
 			}
 		}
 
-		if (!breakPeriod) {
+		if (!breakPeriod && !relaxAutoPilot) {
 			// scorebar
 			float healthRatio = healthDisplay / 100f;
 			if (firstObject) {  // gradually move ki before map begins
@@ -671,7 +675,7 @@ public class GameData {
 					drawSymbolString(comboString, margin, height - margin - (symbolHeight * comboPopBack), comboPopBack, 0.5f, false);
 				drawSymbolString(comboString, margin, height - margin - (symbolHeight * comboPopFront), comboPopFront, 1f, false);
 			}
-		} else {
+		} else if (!relaxAutoPilot) {
 			// grade
 			Grade grade = getGrade();
 			if (grade != Grade.NULL) {
@@ -860,7 +864,8 @@ public class GameData {
 	 * If "No Fail" or "Auto" mods are active, this will always return true.
 	 */
 	public boolean isAlive() {
-		return (health > 0f || GameMod.NO_FAIL.isActive() || GameMod.AUTO.isActive());
+		return (health > 0f || GameMod.NO_FAIL.isActive() || GameMod.AUTO.isActive() ||
+		        GameMod.RELAX.isActive() || GameMod.AUTOPILOT.isActive());
 	}
 
 	/**
@@ -1043,7 +1048,7 @@ public class GameData {
 	 * Resets the combo streak to zero.
 	 */
 	private void resetComboStreak() {
-		if (combo >= 20)
+		if (combo >= 20 && !(GameMod.RELAX.isActive() || GameMod.AUTOPILOT.isActive()))
 			SoundController.playSound(SoundEffect.COMBOBREAK);
 		combo = 0;
 		if (GameMod.SUDDEN_DEATH.isActive())
@@ -1173,6 +1178,8 @@ public class GameData {
 
 		if (perfectHit && !Options.isPerfectHitBurstEnabled())
 			;  // hide perfect hit results
+		else if (result == HIT_MISS && (GameMod.RELAX.isActive() || GameMod.AUTOPILOT.isActive()))
+			;  // "relax" and "autopilot" mods: hide misses
 		else
 			hitResultList.add(new OsuHitObjectResult(time, result, x, y, color, hitObject.isSpinner()));
 	}

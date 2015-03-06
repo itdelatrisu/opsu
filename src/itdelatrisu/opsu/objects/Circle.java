@@ -175,6 +175,10 @@ public class Circle implements HitObject {
 			}
 		}
 
+		// "relax" mod: click automatically
+		else if (GameMod.RELAX.isActive() && trackPosition >= time)
+			return mousePressed(mouseX, mouseY);
+
 		return false;
 	}
 }

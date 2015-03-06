@@ -384,8 +384,9 @@ public class Game extends BasicGameState {
 
 		// returning from pause screen: must click previous mouse position
 		if (pauseTime > -1) {
-			// paused during lead-in or break: continue immediately
-			if (pausedMouseX < 0 && pausedMouseY < 0) {
+			// paused during lead-in or break, or "relax" or "autopilot": continue immediately
+			if ((pausedMouseX < 0 && pausedMouseY < 0) ||
+			    (GameMod.RELAX.isActive() || GameMod.AUTOPILOT.isActive())) {
 				pauseTime = -1;
 				if (!isLeadIn())
 					MusicController.resume();
@@ -429,7 +430,7 @@ public class Game extends BasicGameState {
 			else {  // go to ranking screen
 				((GameRanking) game.getState(Opsu.STATE_GAMERANKING)).setGameData(data);
 				ScoreData score = data.getScoreData(osu);
-				if (!GameMod.AUTO.isActive())
+				if (!GameMod.AUTO.isActive() && !GameMod.RELAX.isActive() && !GameMod.AUTOPILOT.isActive())
 					ScoreDB.addScore(score);
 				game.enterState(Opsu.STATE_GAMERANKING, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 			}
@@ -685,8 +686,8 @@ public class Game extends BasicGameState {
 				return;  // successfully skipped
 		}
 
-		// "auto" mod: ignore user actions
-		if (GameMod.AUTO.isActive())
+		// "auto" and "relax" mods: ignore user actions
+		if (GameMod.AUTO.isActive() || GameMod.RELAX.isActive())
 			return;
 
 		// circles

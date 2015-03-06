@@ -102,7 +102,7 @@ public class GameRanking extends BasicGameState {
 
 		// background
 		if (!osu.drawBG(width, height, 0.7f, true))
-			GameImage.MENU_BG.getImage().draw(0,0);
+			GameImage.PLAYFIELD.getImage().draw(0,0);
 
 		// ranking screen elements
 		data.drawRankingElements(g, osu);

@@ -344,6 +344,10 @@ public class Slider implements HitObject {
 							hitObject.getX(), hitObject.getY(), hitObject, currentRepeats);
 				}
 			}
+
+			// "relax" mod: click automatically
+			else if (GameMod.RELAX.isActive() && trackPosition >= time)
+				mousePressed(mouseX, mouseY);
 		}
 
 		// end of slider
@@ -351,7 +355,7 @@ public class Slider implements HitObject {
 			tickIntervals++;
 
 			// check if cursor pressed and within end circle
-			if (Utils.isGameKeyPressed()) {
+			if (Utils.isGameKeyPressed() || GameMod.RELAX.isActive()) {
 				float[] c = curve.pointAt(getT(trackPosition, false));
 				double distance = Math.hypot(c[0] - mouseX, c[1] - mouseY);
 				int followCircleRadius = GameImage.SLIDER_FOLLOWCIRCLE.getImage().getWidth() / 2;
@@ -400,7 +404,7 @@ public class Slider implements HitObject {
 		float[] c = curve.pointAt(getT(trackPosition, false));
 		double distance = Math.hypot(c[0] - mouseX, c[1] - mouseY);
 		int followCircleRadius = GameImage.SLIDER_FOLLOWCIRCLE.getImage().getWidth() / 2;
-		if ((Utils.isGameKeyPressed() && distance < followCircleRadius) || isAutoMod) {
+		if (((Utils.isGameKeyPressed() || GameMod.RELAX.isActive()) && distance < followCircleRadius) || isAutoMod) {
 			// mouse pressed and within follow circle
 			followCircleActive = true;
 			data.changeHealth(delta * GameData.HP_DRAIN_MULTIPLIER);
