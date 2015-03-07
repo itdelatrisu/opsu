@@ -106,21 +106,9 @@ public class Spinner implements HitObject {
 		this.hitObject = hitObject;
 		this.data = data;
 
-		//for a 4 sec spinner
-		// 477/60 = 7.95 rotation per sec
-		//15000 insane (10) 15 extra rotation //2*8 + 2*8  so requries 16 rotation in 4 sec ~ 4/s ~240/m
-		//20000 normal (5) 20 extra rotation
-		//24000 easy(0) 24 extra rotation //1*8 + 3*8  so requries 8 rotation in 4 sec ~ 2/s ~120/m
-		//but doesn't account for spin up time sooo what we had seems fine
-		
 		// calculate rotations needed
 		float spinsPerMinute = 100 + (data.getDifficulty() * 15);
-		//float spinsPerSecond = 1.8f + data.getDifficulty()/10f;
-		System.out.println((hitObject.getEndTime() - hitObject.getTime())+" "+data.getDifficulty());
-		
 		rotationsNeeded = spinsPerMinute * (hitObject.getEndTime() - hitObject.getTime()) / 60000f;
-		//rotationsNeeded = spinsPerSecond * (hitObject.getEndTime() - hitObject.getTime()) / 1000f;
-		
 	}
 
 	@Override
