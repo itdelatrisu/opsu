@@ -1,6 +1,2 @@
-# opsu! build info
 version=${pom.version}
 build.date=${timestamp}
-
-# slick build
-build=237

@@ -21,6 +21,7 @@ package itdelatrisu.opsu;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.downloads.DownloadList;
 
+import org.lwjgl.opengl.Display;
 import org.newdawn.slick.AppGameContainer;
 import org.newdawn.slick.Game;
 import org.newdawn.slick.SlickException;
@@ -79,6 +80,28 @@ public class Container extends AppGameContainer {
 			Opsu.exit();
 	}
 
+	@Override
+	protected void gameLoop() throws SlickException {
+		int delta = getDelta();
+		if (!Display.isVisible() && updateOnlyOnVisible) {
+			try { Thread.sleep(100); } catch (Exception e) {}
+		} else {
+			try {
+				updateAndRender(delta);
+			} catch (SlickException e) {
+				this.e = e;  // store exception to display later
+				running = false;
+				return;
+			}
+		}
+		updateFPS();
+		Display.update();
+		if (Display.isCloseRequested()) {
+			if (game.closeRequested())
+				running = false;
+		}
+	}
+
 	/**
 	 * Actions to perform before destroying the game container.
 	 */
@@ -100,16 +123,6 @@ public class Container extends AppGameContainer {
 		// reset OsuGroupList data
 		if (OsuGroupList.get() != null)
 			OsuGroupList.get().reset();
-	}
-
-	@Override
-	protected void updateAndRender(int delta) throws SlickException {
-		try {
-			super.updateAndRender(delta);
-		} catch (SlickException e) {
-			this.e = e;  // store exception to display later
-			throw e;     // re-throw exception
-		}
 	}
 
 	@Override
