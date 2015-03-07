@@ -191,12 +191,27 @@ public class OsuParser {
 						try {
 							switch (tokens[0]) {
 							case "AudioFilename":
-								File audioFileName = new File(file.getParent(), tokens[1]);
+								File audioFileName = new File(dir, tokens[1]);
 								if (!osuFiles.isEmpty()) {
 									// if possible, reuse the same File object from another OsuFile in the group
 									File groupAudioFileName = osuFiles.get(0).audioFilename;
-									if (audioFileName.equals(groupAudioFileName))
+									if (tokens[1].equalsIgnoreCase(groupAudioFileName.getName()))
 										audioFileName = groupAudioFileName;
+								}
+								if (!audioFileName.isFile()) {
+									// try to find the file with a case-insensitive match
+									boolean match = false;
+									for (String s : dir.list()) {
+										if (s.equalsIgnoreCase(tokens[1])) {
+											audioFileName = new File(dir, s);
+											match = true;
+											break;
+										}
+									}
+									if (!match) {
+										Log.error(String.format("File not found: '%s'", tokens[1]));
+										return null;
+									}
 								}
 								osu.audioFilename = audioFileName;
 								break;
