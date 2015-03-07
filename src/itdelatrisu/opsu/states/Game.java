@@ -341,7 +341,7 @@ public class Game extends BasicGameState {
 			stack.add(i);
 
 		while (!stack.isEmpty())
-			hitObjects[stack.pop()].draw(trackPosition, stack.isEmpty(), g);
+			hitObjects[stack.pop()].draw(g, trackPosition);
 
 		// draw OsuHitObjectResult objects
 		data.drawHitResults(trackPosition);

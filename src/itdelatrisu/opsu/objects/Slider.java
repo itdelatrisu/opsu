@@ -143,7 +143,7 @@ public class Slider implements HitObject {
 
 	@SuppressWarnings("deprecation")
 	@Override
-	public void draw(int trackPosition, boolean currentObject, Graphics g) {
+	public void draw(Graphics g, int trackPosition) {
 		int timeDiff = hitObject.getTime() - trackPosition;
 		float scale = timeDiff / (float) game.getApproachTime();
 		float approachScale = 1 + scale * 3;
@@ -158,7 +158,7 @@ public class Slider implements HitObject {
 		curve.draw();
 
 		// ticks
-		if (currentObject && ticksT != null) {
+		if (timeDiff < 0 && ticksT != null) {
 			Image tick = GameImage.SLIDER_TICK.getImage();
 			for (int i = 0; i < ticksT.length; i++) {
 				float[] c = curve.pointAt(ticksT[i]);

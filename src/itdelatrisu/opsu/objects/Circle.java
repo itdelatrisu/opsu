@@ -79,7 +79,7 @@ public class Circle implements HitObject {
 	}
 
 	@Override
-	public void draw(int trackPosition, boolean currentObject, Graphics g) {
+	public void draw(Graphics g, int trackPosition) {
 		int timeDiff = hitObject.getTime() - trackPosition;
 
 		if (timeDiff >= 0) {

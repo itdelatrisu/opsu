@@ -40,20 +40,16 @@ public class Spinner implements HitObject {
 	/** Container dimensions. */
 	private static int width, height;
 
-	
-	// Currently it takes about 200ms to spin up (4 * 50)
 	/** The number of rotation velocities to store. */
+	// note: currently takes about 200ms to spin up (4 * 50)
 	private static final int MAX_ROTATION_VELOCITIES = 50;
 
-	/** The amount of time in ms before another velocity is stored */
+	/** The amount of time, in milliseconds, before another velocity is stored. */
 	private static final int DELTA_UPDATE_TIME = 4;
-	
-	/** The amount of time in ms to fade in the spinner*/
-	private static final float FADE_IN_TIME = 500;
-	
-	/** The remaining amount of time that was not used */
-	private int deltaOverflow;
-	
+
+	/** The amount of time, in milliseconds, to fade in the spinner. */
+	private static final int FADE_IN_TIME = 500;
+
 	/** PI constants. */
 	private static final float TWO_PI  = (float) (Math.PI * 2);
 
@@ -68,12 +64,15 @@ public class Spinner implements HitObject {
 
 	/** The current number of rotations. */
 	private float rotations = 0f;
-	
-	/** The current rotation to draw */
+
+	/** The current rotation to draw. */
 	private float drawRotation = 0f;
 
 	/** The total number of rotations needed to clear the spinner. */
 	private float rotationsNeeded;
+
+	/** The remaining amount of time that was not used. */
+	private int deltaOverflow;
 
 	/** The sum of all the velocities in storedVelocities. */
 	private float sumVelocity = 0f;
@@ -112,32 +111,31 @@ public class Spinner implements HitObject {
 	}
 
 	@Override
-	public void draw(int trackPosition, boolean currentObject, Graphics g) {
+	public void draw(Graphics g, int trackPosition) {
+		// only draw spinners shortly before start time
 		int timeDiff = hitObject.getTime() - trackPosition;
+		if (timeDiff - FADE_IN_TIME > 0)
+			return;
+
 		boolean spinnerComplete = (rotations >= rotationsNeeded);
 
-		// only draw spinners if 
-		if (timeDiff - FADE_IN_TIME > 0 )
-			return;
-		
-		
 		// darken screen
-		float alpha = Utils.clamp(1 - timeDiff / FADE_IN_TIME, 0f, 1f);
-		if (timeDiff > 0) {
-			Color c = new Color(Utils.COLOR_BLACK_ALPHA);
-			c.a *= alpha;
-			g.setColor(c);
-		} else
-			g.setColor(Utils.COLOR_BLACK_ALPHA);
+		float alpha = Utils.clamp(1 - (float) timeDiff / FADE_IN_TIME, 0f, 1f);
+		float oldAlpha = Utils.COLOR_BLACK_ALPHA.a;
+		if (timeDiff > 0)
+			Utils.COLOR_BLACK_ALPHA.a *= alpha;
+		g.setColor(Utils.COLOR_BLACK_ALPHA);
 		g.fillRect(0, 0, width, height);
+		Utils.COLOR_BLACK_ALPHA.a = oldAlpha;
 
+		// rpm
 		int rpm = Math.abs(Math.round(sumVelocity / storedVelocities.length * 60));
 		Image rpmImg = GameImage.SPINNER_RPM.getImage();
 		rpmImg.setAlpha(alpha);
 		rpmImg.drawCentered(width / 2f, height - rpmImg.getHeight() / 2f);
-		if(timeDiff < 0)
-		data.drawSymbolString(Integer.toString(rpm), (int) ((width + rpmImg.getWidth() * 0.95f) / 2f),
-				(int) (height - data.getScoreSymbolImage('0').getHeight() * 1.025f), 1f, 1f, true);
+		if (timeDiff < 0)
+			data.drawSymbolString(Integer.toString(rpm), (int) ((width + rpmImg.getWidth() * 0.95f) / 2f),
+					(int) (height - data.getScoreSymbolImage('0').getHeight() * 1.025f), 1f, 1f, true);
 
 		// spinner meter (subimage)
 		Image spinnerMetre = GameImage.SPINNER_METRE.getImage();
@@ -150,8 +148,7 @@ public class Spinner implements HitObject {
 		spinnerMetreSub.draw(0, height - spinnerMetreSub.getHeight());
 
 		// main spinner elements
-		float approachScale = 1 - Utils.clamp( ((float) timeDiff / (hitObject.getTime() - hitObject.getEndTime())), 0f, 1f);
-		
+		float approachScale = 1 - Utils.clamp(((float) timeDiff / (hitObject.getTime() - hitObject.getEndTime())), 0f, 1f);
 		GameImage.SPINNER_CIRCLE.getImage().setAlpha(alpha);
 		GameImage.SPINNER_CIRCLE.getImage().setRotation(drawRotation * 360f);
 		GameImage.SPINNER_CIRCLE.getImage().drawCentered(width / 2, height / 2);
@@ -210,24 +207,22 @@ public class Spinner implements HitObject {
 		if (isSpinning && !(Utils.isGameKeyPressed() || GameMod.RELAX.isActive()))
 			isSpinning = false;
 
-		
-		float angle;
+		// spin automatically
 		// http://osu.ppy.sh/wiki/FAQ#Spinners
-		// spin automatically (TODO: correct rotation angles)
+		float angle;
 		if (GameMod.AUTO.isActive()) {
-			// "auto" mod (fast)
+			// "auto" mod (fast: 477rpm)
 			lastAngle = 0;
-			//angle = 477/60f * delta/1000f * TWO_PI; ~delta/20
-			angle = delta / 20f;
+			angle = delta / 20f;  // angle = 477/60f * delta/1000f * TWO_PI;
 			isSpinning = true;
 		} else if (GameMod.SPUN_OUT.isActive()) {
-			// "spun out" mod (slow)
+			// "spun out" mod (slow: 287rpm)
 			lastAngle = 0;
-			//angle = 287/60f * delta/1000f * TWO_PI;
-			angle = delta / 32f;
+			angle = delta / 33.25f;  // angle = 287/60f * delta/1000f * TWO_PI;
 			isSpinning = true;
 		} else {
 			angle = (float) Math.atan2(mouseY - (height / 2), mouseX - (width / 2));
+
 			// set initial angle to current mouse position to skip first click
 			if (!isSpinning && (Utils.isGameKeyPressed() || GameMod.RELAX.isActive())) {
 				lastAngle = angle;
@@ -235,12 +230,10 @@ public class Spinner implements HitObject {
 				return false;
 			}
 		}
-		
-
-		float angleDiff = angle - lastAngle;
 
 		// make angleDiff the smallest angle change possible
 		// (i.e. 1/4 rotation instead of 3/4 rotation)
+		float angleDiff = angle - lastAngle;
 		if (angleDiff < -Math.PI)
 			angleDiff += TWO_PI;
 		else if (angleDiff > Math.PI)
@@ -252,7 +245,7 @@ public class Spinner implements HitObject {
 			cursorVelocity = Utils.clamp(angleDiff / TWO_PI / delta * 1000, -8f, 8f);
 
 		deltaOverflow += delta;
-		while(deltaOverflow >= DELTA_UPDATE_TIME){
+		while (deltaOverflow >= DELTA_UPDATE_TIME) {
 			sumVelocity -= storedVelocities[velocityIndex];
 			sumVelocity += cursorVelocity;
 			storedVelocities[velocityIndex++] = cursorVelocity;
@@ -273,7 +266,7 @@ public class Spinner implements HitObject {
 	 * @param angle the angle to rotate (in radians)
 	 */
 	private void rotate(float angle) {
-		drawRotation += (angle / TWO_PI);
+		drawRotation += angle / TWO_PI;
 		angle = Math.abs(angle);
 		float newRotations = rotations + (angle / TWO_PI);
 

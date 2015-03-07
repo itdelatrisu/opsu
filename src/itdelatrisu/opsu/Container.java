@@ -135,7 +135,7 @@ public class Container extends AppGameContainer {
 			if (DownloadList.get().hasActiveDownloads() &&
 			    UI.showExitConfirmation(DownloadList.EXIT_CONFIRMATION))
 				return;
-			if (Updater.get().getStatus() == Updater.Status.UPDATE_DOWNLOADING && 
+			if (Updater.get().getStatus() == Updater.Status.UPDATE_DOWNLOADING &&
 			    UI.showExitConfirmation(Updater.EXIT_CONFIRMATION))
 				return;
 		}

@@ -18,13 +18,13 @@
 
 package itdelatrisu.opsu;
 
+import itdelatrisu.opsu.audio.SoundController;
+
 import java.util.Iterator;
 import java.util.LinkedList;
 
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
-
-import itdelatrisu.opsu.audio.SoundController;
 
 import org.newdawn.slick.Animation;
 import org.newdawn.slick.Color;
