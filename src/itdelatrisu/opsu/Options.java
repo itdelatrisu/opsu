@@ -133,7 +133,7 @@ public class Options {
 
 	/** Game options. */
 	public enum GameOption {
-		NULL (null, null),
+		NULL ("", ""),
 		SCREEN_RESOLUTION ("Screen Resolution", "Restart (Ctrl+Shift+F5) to apply resolution changes.") {
 			@Override
 			public String getValueString() { return resolution.toString(); }
@@ -564,8 +564,8 @@ public class Options {
 	 * <p>
 	 * By default, sound is disabled on Linux due to possible driver issues.
 	 */
-	private static boolean disableSound =
-		(System.getProperty("os.name").toLowerCase().indexOf("linux") > -1);
+	private static boolean disableSound = false;
+		//(System.getProperty("os.name").toLowerCase().indexOf("linux") > -1);
 
 	/** Whether or not to display non-English metadata. */
 	private static boolean showUnicode = false;

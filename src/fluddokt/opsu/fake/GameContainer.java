@@ -38,6 +38,7 @@ public class GameContainer {
 			music.dispose();
 		}
 		Gdx.app.exit();
+		System.exit(0);
 	}
 
 	protected void close_sub() {

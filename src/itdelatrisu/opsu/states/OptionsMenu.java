@@ -19,7 +19,6 @@
 package itdelatrisu.opsu.states;
 
 import fluddokt.opsu.fake.*;
-
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.MenuButton;
 import itdelatrisu.opsu.Opsu;
@@ -31,6 +30,8 @@ import itdelatrisu.opsu.audio.SoundEffect;
 
 import java.util.Arrays;
 import java.util.Collections;
+
+import com.badlogic.gdx.Application.ApplicationType;
 
 /*
 import org.newdawn.slick.Color;
@@ -51,12 +52,14 @@ public class OptionsMenu extends BasicGameState {
 	/** Option tabs. */
 	private enum OptionTab {
 		DISPLAY ("Display", new GameOption[] {
-			GameOption.SCREEN_RESOLUTION,
+			(com.badlogic.gdx.Gdx.app.getType() == ApplicationType.Desktop) ? 
+					GameOption.SCREEN_RESOLUTION : GameOption.NULL,
 //			GameOption.FULLSCREEN,
-			GameOption.TARGET_FPS,
+			(com.badlogic.gdx.Gdx.app.getType() == ApplicationType.Desktop) ? 
+					GameOption.TARGET_FPS : GameOption.NULL,
 			GameOption.SHOW_FPS,
 			GameOption.SHOW_UNICODE,
-			GameOption.SCREENSHOT_FORMAT,
+			//GameOption.SCREENSHOT_FORMAT,
 			GameOption.NEW_CURSOR,
 			GameOption.DYNAMIC_BACKGROUND,
 			GameOption.LOAD_VERBOSE
