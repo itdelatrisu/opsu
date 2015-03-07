@@ -243,9 +243,17 @@ public class OptionsMenu extends BasicGameState {
 			g.setColor(Utils.COLOR_BLACK_ALPHA);
 			g.fillRect(0, 0, width, height);
 			g.setColor(Color.white);
+
+			String prompt;
+			if (keyEntryLeft) {
+				prompt = "Please press the new left-click key";
+			} else {
+				prompt = "Please press the new right-click key";
+			}
+
 			Utils.FONT_LARGE.drawString(
-					(width / 2) - (Utils.FONT_LARGE.getWidth("Please enter a letter or digit.") / 2),
-					(height / 2) - Utils.FONT_LARGE.getLineHeight(), "Please enter a letter or digit."
+					(width / 2) - (Utils.FONT_LARGE.getWidth(prompt) / 2),
+					(height / 2) - Utils.FONT_LARGE.getLineHeight(), prompt
 			);
 		}
 
@@ -339,12 +347,10 @@ public class OptionsMenu extends BasicGameState {
 	public void keyPressed(int key, char c) {
 		// key entry state
 		if (keyEntryLeft || keyEntryRight) {
-			if (Character.isLetterOrDigit(c)) {
-				if (keyEntryLeft && Options.getGameKeyRight() != key)
-					Options.setGameKeyLeft(key);
-				else if (keyEntryRight && Options.getGameKeyLeft() != key)
-					Options.setGameKeyRight(key);
-			}
+			if (keyEntryLeft && Options.getGameKeyRight() != key)
+				Options.setGameKeyLeft(key);
+			else if (keyEntryRight && Options.getGameKeyLeft() != key)
+				Options.setGameKeyRight(key);
 			keyEntryLeft = keyEntryRight = false;
 			return;
 		}

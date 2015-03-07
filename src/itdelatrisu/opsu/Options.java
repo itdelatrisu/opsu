@@ -935,20 +935,14 @@ public class Options {
 						GameOption.DISABLE_SOUNDS.setValue(Boolean.parseBoolean(value));
 						break;
 					case "keyOsuLeft":
-						if ((value.length() == 1 && Character.isLetterOrDigit(value.charAt(0))) ||
-							(value.length() == 7 && value.startsWith("NUMPAD"))) {
-							i = Keyboard.getKeyIndex(value);
-							if (keyRight != i)
-								keyLeft = i;
-						}
+						i = Keyboard.getKeyIndex(value);
+						if (keyRight != i)
+							keyLeft = i;
 						break;
 					case "keyOsuRight":
-						if ((value.length() == 1 && Character.isLetterOrDigit(value.charAt(0))) ||
-							(value.length() == 7 && value.startsWith("NUMPAD"))) {
-							i = Keyboard.getKeyIndex(value);
-							if (keyLeft != i)
-								keyRight = i;
-						}
+						i = Keyboard.getKeyIndex(value);
+						if (keyLeft != i)
+							keyRight = i;
 						break;
 					case "MouseDisableWheel":
 						GameOption.DISABLE_MOUSE_WHEEL.setValue(Boolean.parseBoolean(value));
