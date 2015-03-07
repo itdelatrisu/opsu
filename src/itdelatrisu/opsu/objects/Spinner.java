@@ -123,7 +123,6 @@ public class Spinner implements HitObject {
 		
 		// darken screen
 		float alpha = Utils.clamp(1 - timeDiff / FADE_IN_TIME, 0f, 1f);
-		System.out.println(alpha);
 		if (timeDiff > 0) {
 			Color c = new Color(Utils.COLOR_BLACK_ALPHA);
 			c.a *= alpha;
