@@ -107,7 +107,12 @@ public class OsuDB {
 				"); " +
 				"CREATE TABLE IF NOT EXISTS info (" +
 					"key TEXT NOT NULL UNIQUE, value TEXT" +
-				")";
+				"); " +
+				"CREATE INDEX IF NOT EXISTS idx ON beatmaps (dir, file); " +
+
+				// extra optimizations
+				"PRAGMA locking_mode = EXCLUSIVE; " +
+				"PRAGMA journal_mode = WAL;";
 			stmt.executeUpdate(sql);
 		} catch (SQLException e) {
 			ErrorHandler.error("Could not create beatmap database.", e, true);
@@ -172,10 +177,14 @@ public class OsuDB {
 	 * @param batch a list of OsuFile objects
 	 */
 	public static void insert(List<OsuFile> batch) {
-		try {
+		try (Statement stmt = connection.createStatement()) {
 			// turn off auto-commit mode
 			boolean autoCommit = connection.getAutoCommit();
 			connection.setAutoCommit(false);
+
+			// drop indexes
+			String sql = "DROP INDEX IF EXISTS idx";
+			stmt.executeUpdate(sql);
 
 			// batch insert
 			for (OsuFile osu : batch) {
@@ -183,9 +192,13 @@ public class OsuDB {
 				insertStmt.addBatch();
 			}
 			insertStmt.executeBatch();
-			connection.commit();
+
+			// re-create indexes
+			sql = "CREATE INDEX idx ON beatmaps (dir, file)";
+			stmt.executeUpdate(sql);
 
 			// restore previous auto-commit mode
+			connection.commit();
 			connection.setAutoCommit(autoCommit);
 		} catch (SQLException e) {
 			ErrorHandler.error("Failed to add beatmaps to database.", e, true);

@@ -114,7 +114,8 @@ public class ScoreDB {
 					"combo INTEGER, " +
 					"perfect BOOLEAN, " +
 					"mods INTEGER" +
-				")";
+				");" +
+				"CREATE INDEX IF NOT EXISTS idx ON scores (MID, MSID, title, artist, creator, version);";
 			stmt.executeUpdate(sql);
 		} catch (SQLException e) {
 			ErrorHandler.error("Could not create score database.", e, true);

@@ -148,9 +148,11 @@ public class OsuParser {
 		stringdb = new HashMap<String, String>();
 
 		// add entries to database
-		updatingDatabase = true;
-		OsuDB.insert(parsedOsuFiles);
-		updatingDatabase = false;
+		if (!parsedOsuFiles.isEmpty()) {
+			updatingDatabase = true;
+			OsuDB.insert(parsedOsuFiles);
+			updatingDatabase = false;
+		}
 
 		currentFile = null;
 		currentDirectoryIndex = -1;
