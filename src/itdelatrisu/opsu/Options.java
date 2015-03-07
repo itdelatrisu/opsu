@@ -713,7 +713,7 @@ public class Options {
 	 */
 	public static int getGameKeyLeft() {
 		if (keyLeft == Keyboard.KEY_NONE)
-			keyLeft = Input.KEY_Z;
+			setGameKeyLeft(Input.KEY_Z);
 		return keyLeft;
 	}
 
@@ -723,21 +723,39 @@ public class Options {
 	 */
 	public static int getGameKeyRight() {
 		if (keyRight == Keyboard.KEY_NONE)
-			keyRight = Input.KEY_X;
+			setGameKeyRight(Input.KEY_X);
 		return keyRight;
 	}
 
 	/**
 	 * Sets the left game key.
+	 * This will not be set to the same key as the right game key, nor to reserved keys like ESCAPE.
 	 * @param key the keyboard key
+	 * @return {@code true} if the key was set, {@code false} if it was rejected
 	 */
-	public static void setGameKeyLeft(int key) { keyLeft = key; }
+	public static boolean setGameKeyLeft(int key) {
+		if (key == keyRight && key != Keyboard.KEY_NONE)
+			return false;
+		if (!isValidClickKey(key))
+			return false;
+		keyLeft = key;
+		return true;
+	}
 
 	/**
 	 * Sets the right game key.
+	 * This will not be set to the same key as the left game key, nor to reserved keys like ESCAPE.
 	 * @param key the keyboard key
+	 * @return {@code true} if the key was set, {@code false} if it was rejected
 	 */
-	public static void setGameKeyRight(int key) { keyRight = key; }
+	public static boolean setGameKeyRight(int key) {
+		if (key == keyLeft && key != Keyboard.KEY_NONE)
+			return false;
+		if (!isValidClickKey(key))
+			return false;
+		keyRight = key;
+		return true;
+	}
 
 	/**
 	 * Returns the beatmap directory.
@@ -823,6 +841,10 @@ public class Options {
 		}
 
 		return osu;
+	}
+
+	public static boolean isValidClickKey(int keyCode) {
+		return keyCode != Keyboard.KEY_ESCAPE;
 	}
 
 	/**
@@ -935,14 +957,10 @@ public class Options {
 						GameOption.DISABLE_SOUNDS.setValue(Boolean.parseBoolean(value));
 						break;
 					case "keyOsuLeft":
-						i = Keyboard.getKeyIndex(value);
-						if (keyRight != i)
-							keyLeft = i;
+						setGameKeyLeft(Keyboard.getKeyIndex(value));
 						break;
 					case "keyOsuRight":
-						i = Keyboard.getKeyIndex(value);
-						if (keyLeft != i)
-							keyRight = i;
+						setGameKeyRight(Keyboard.getKeyIndex(value));
 						break;
 					case "MouseDisableWheel":
 						GameOption.DISABLE_MOUSE_WHEEL.setValue(Boolean.parseBoolean(value));

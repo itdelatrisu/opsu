@@ -347,9 +347,9 @@ public class OptionsMenu extends BasicGameState {
 	public void keyPressed(int key, char c) {
 		// key entry state
 		if (keyEntryLeft || keyEntryRight) {
-			if (keyEntryLeft && Options.getGameKeyRight() != key)
+			if (keyEntryLeft)
 				Options.setGameKeyLeft(key);
-			else if (keyEntryRight && Options.getGameKeyLeft() != key)
+			else
 				Options.setGameKeyRight(key);
 			keyEntryLeft = keyEntryRight = false;
 			return;
