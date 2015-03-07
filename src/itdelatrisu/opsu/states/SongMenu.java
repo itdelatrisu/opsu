@@ -566,6 +566,10 @@ public class SongMenu extends BasicGameState {
 			hoverOffset = 0f;
 			hoverIndex = -1;
 		}
+		if (MusicController.trackEnded()) {
+			OsuFile osu = focusNode.osuFiles.get(focusNode.osuFileIndex);
+			MusicController.play(osu, false, true, true);
+		}
 	}
 
 	@Override
@@ -1163,7 +1167,7 @@ public class SongMenu extends BasicGameState {
 			startNode = node;
 		focusNode = OsuGroupList.get().getNode(node, osuFileIndex);
 		OsuFile osu = focusNode.osuFiles.get(focusNode.osuFileIndex);
-		MusicController.play(osu, true, preview);
+		MusicController.play(osu, false, preview, false);
 		Utils.loadGlyphs(osu);
 
 		// load scores

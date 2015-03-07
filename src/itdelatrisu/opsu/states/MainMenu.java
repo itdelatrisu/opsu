@@ -377,6 +377,9 @@ public class MainMenu extends BasicGameState {
 					logo.setX(container.getWidth() / 2);
 			}
 		}
+		
+		if (MusicController.trackEnded())
+			nextTrack();
 	}
 
 	@Override

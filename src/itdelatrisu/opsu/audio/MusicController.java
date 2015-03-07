@@ -70,8 +70,9 @@ public class MusicController {
 	 * @param osu the OsuFile to play
 	 * @param loop whether or not to loop the track
 	 * @param preview whether to start at the preview time (true) or beginning (false)
+	 * @param reset plays at the preview time even if it has the same preview time as the last
 	 */
-	public static void play(final OsuFile osu, final boolean loop, final boolean preview) {
+	public static void play(final OsuFile osu, final boolean loop, final boolean preview, final boolean reset) {
 		// new track: load and play
 		if (lastOsu == null || !osu.audioFilename.equals(lastOsu.audioFilename)) {
 			reset();
@@ -94,7 +95,7 @@ public class MusicController {
 		}
 
 		// new track position: play at position
-		else if (osu.previewTime != lastOsu.previewTime)
+		else if (osu.previewTime != lastOsu.previewTime || reset)
 			playAt(osu.previewTime, loop);
 
 		lastOsu = osu;
@@ -282,7 +283,7 @@ public class MusicController {
 	public static void playThemeSong() {
 		OsuFile osu = Options.getOsuTheme();
 		if (osu != null) {
-			play(osu, true, false);
+			play(osu, true, false, false);
 			themePlaying = true;
 		}
 	}
