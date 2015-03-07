@@ -119,7 +119,7 @@ public class ErrorHandler {
 						String issueTitle = (error != null) ? error : e.getMessage();
 						StringBuilder sb = new StringBuilder();
 						Properties props = new Properties();
-						props.load(ResourceLoader.getResourceAsStream("version"));
+						props.load(ResourceLoader.getResourceAsStream(Options.VERSION_FILE));
 						String version = props.getProperty("version");
 						if (version != null && !version.equals("${pom.version}")) {
 							sb.append("**Version:** ");

@@ -1,0 +1,219 @@
+/*
+ * opsu! - an open-source osu! client
+ * Copyright (C) 2014, 2015 Jeffrey Han
+ *
+ * opsu! is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * opsu! is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with opsu!.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package itdelatrisu.opsu.downloads;
+
+import itdelatrisu.opsu.ErrorHandler;
+import itdelatrisu.opsu.Options;
+import itdelatrisu.opsu.UI;
+import itdelatrisu.opsu.Utils;
+import itdelatrisu.opsu.downloads.Download.DownloadListener;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.StringReader;
+import java.net.URL;
+import java.util.Properties;
+
+import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
+import org.newdawn.slick.util.ResourceLoader;
+
+/**
+ * Handles automatic program updates.
+ */
+public class Updater {
+	/** The single instance of this class. */
+	private static Updater updater = new Updater();
+
+	/** The exit confirmation message. */
+	public static final String EXIT_CONFIRMATION = "An opsu! update is being downloaded.\nAre you sure you want to quit opsu!?";
+
+	/**
+	 * Returns the single instance of this class.
+	 */
+	public static Updater get() { return updater; }
+
+	/** Updater status. */
+	public enum Status {
+		INITIAL (""),
+		CHECKING ("Checking for updates..."),
+		CONNECTION_ERROR ("Connection error."),
+		INTERNAL_ERROR ("Internal error."),
+		UP_TO_DATE ("Up to date!"),
+		UPDATE_AVAILABLE ("Update available!\nClick to download."),
+		UPDATE_DOWNLOADING ("Downloading update...") {
+			@Override
+			public String getDescription() {
+				Download d = updater.download;
+				if (d != null && d.getStatus() == Download.Status.DOWNLOADING) {
+					return String.format("Downloading update...\n%.1f%% complete (%s/%s)",
+							d.getProgress(), Utils.bytesToString(d.readSoFar()), Utils.bytesToString(d.contentLength()));
+				} else
+					return super.getDescription();
+			}
+		},
+		UPDATE_DOWNLOADED ("Download complete.\nClick to restart."),
+		UPDATE_FINAL ("Update queued.");
+
+		/** The status description. */
+		private String description;
+
+		/**
+		 * Constructor.
+		 * @param description the status description
+		 */
+		Status(String description) {
+			this.description = description;
+		}
+
+		/**
+		 * Returns the status description.
+		 */
+		public String getDescription() { return description; }
+	};
+
+	/** The current updater status. */
+	private Status status;
+
+	/** The current and latest versions. */
+	private DefaultArtifactVersion currentVersion, latestVersion;
+
+	/** The download object. */
+	private Download download;
+
+	/**
+	 * Constructor.
+	 */
+	private Updater() {
+		status = Status.INITIAL;
+	}
+
+	/**
+	 * Returns the updater status.
+	 */
+	public Status getStatus() { return status; }
+
+	/**
+	 * Returns whether or not the updater button should be displayed.
+	 */
+	public boolean showButton() {
+		return (status == Status.UPDATE_AVAILABLE || status == Status.UPDATE_DOWNLOADED || status == Status.UPDATE_DOWNLOADING);
+	}
+
+	/**
+	 * Returns the version from a set of properties.
+	 * @param props the set of properties
+	 * @return the version, or null if not found
+	 */
+	private DefaultArtifactVersion getVersion(Properties props) {
+		String version = props.getProperty("version");
+		if (version == null || version.equals("${pom.version}")) {
+			status = Status.INTERNAL_ERROR;
+			return null;
+		} else
+			return new DefaultArtifactVersion(version);
+	}
+
+	/**
+	 * Checks the program version against the version file on the update server.
+	 */
+	public void checkForUpdates() throws IOException {
+		if (status != Status.INITIAL)
+			return;
+
+		status = Status.CHECKING;
+
+		// get current version
+		Properties props = new Properties();
+		props.load(ResourceLoader.getResourceAsStream(Options.VERSION_FILE));
+		if ((currentVersion = getVersion(props)) == null)
+			return;
+
+		// get latest version
+		String s = Utils.readDataFromUrl(new URL(Options.VERSION_REMOTE));
+		if (s == null) {
+			status = Status.CONNECTION_ERROR;
+			return;
+		}
+		props = new Properties();
+		props.load(new StringReader(s));
+		if ((latestVersion = getVersion(props)) == null)
+			return;
+
+		// compare versions
+		if (latestVersion.compareTo(currentVersion) <= 0)
+			status = Status.UP_TO_DATE;
+		else {
+			String updateURL = props.getProperty("file");
+			if (updateURL == null) {
+				status = Status.INTERNAL_ERROR;
+				return;
+			}
+			status = Status.UPDATE_AVAILABLE;
+			String localPath = String.format("%s%copsu-update-%s",
+					System.getProperty("user.dir"), File.separatorChar, latestVersion.toString());
+			String rename = String.format("opsu-%s.jar", latestVersion.toString());
+			download = new Download(updateURL, localPath, rename);
+			download.setListener(new DownloadListener() {
+				@Override
+				public void completed() {
+					status = Status.UPDATE_DOWNLOADED;
+					UI.sendBarNotification("Update has finished downloading.");
+				}
+			});
+		}
+	}
+
+	/**
+	 * Starts the download, if available.
+	 */
+	public void startDownload() {
+		if (status != Status.UPDATE_AVAILABLE || download == null || download.getStatus() != Download.Status.WAITING)
+			return;
+
+		status = Status.UPDATE_DOWNLOADING;
+		download.start();
+	}
+
+	/**
+	 * Prepares to run the update when the application closes.
+	 */
+	public void prepareUpdate() {
+		if (status != Status.UPDATE_DOWNLOADED || download == null || download.getStatus() != Download.Status.COMPLETE)
+			return;
+
+		status = Status.UPDATE_FINAL;
+	}
+
+	/**
+	 * Hands over execution to the updated file, if available.
+	 */
+	public void runUpdate() {
+		if (status != Status.UPDATE_FINAL)
+			return;
+
+		try {
+			// TODO: it is better to wait for the process? is this portable?
+			ProcessBuilder pb = new ProcessBuilder("java", "-jar", download.getLocalPath());
+			pb.start();
+		} catch (IOException e) {
+			status = Status.INTERNAL_ERROR;
+			ErrorHandler.error("Failed to start new process.", e, true);
+		}
+	}
+}

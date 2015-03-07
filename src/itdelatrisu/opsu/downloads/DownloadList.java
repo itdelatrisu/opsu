@@ -18,7 +18,6 @@
 
 package itdelatrisu.opsu.downloads;
 
-import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.downloads.Download.Status;
 
 import java.util.ArrayList;
@@ -27,15 +26,15 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import javax.swing.JOptionPane;
-import javax.swing.UIManager;
-
 /**
  * Maintains the current downloads list.
  */
 public class DownloadList {
 	/** The single instance of this class. */
 	private static DownloadList list = new DownloadList();
+
+	/** The exit confirmation message. */
+	public static final String EXIT_CONFIRMATION = "Beatmap downloads are in progress.\nAre you sure you want to quit opsu!?";
 
 	/** Current list of downloads. */
 	private List<DownloadNode> nodes;
@@ -159,21 +158,5 @@ public class DownloadList {
 				map.remove(node.getID());
 			}
 		}
-	}
-
-	/**
-	 * Shows a confirmation dialog (used before exiting the game).
-	 * @return true if user selects "yes", false otherwise
-	 */
-	public static boolean showExitConfirmation() {
-		try {
-			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-		} catch (Exception e) {
-			ErrorHandler.error("Could not set system look and feel for DownloadList.", e, true);
-		}
-		int n = JOptionPane.showConfirmDialog(null,
-				"Beatmap downloads are in progress.\nAre you sure you want to quit opsu!?",
-				"Warning", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
-		return (n != JOptionPane.YES_OPTION);
 	}
 }

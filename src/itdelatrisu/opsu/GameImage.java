@@ -447,6 +447,12 @@ public enum GameImage {
 		protected Image process_sub(Image img, int w, int h) {
 			return img.getScaledCopy((h / 17f) / img.getHeight());
 		}
+	},
+	BANG ("bang", "png", false, false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return REPOSITORY.process_sub(img, w, h);
+		}
 	};
 
 	/** Image file types. */

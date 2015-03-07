@@ -20,6 +20,7 @@ package itdelatrisu.opsu;
 
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.downloads.DownloadList;
+import itdelatrisu.opsu.downloads.Updater;
 
 import org.lwjgl.opengl.Display;
 import org.newdawn.slick.AppGameContainer;
@@ -76,8 +77,10 @@ public class Container extends AppGameContainer {
 			}
 		}
 
-		if (forceExit)
-			Opsu.exit();
+		if (forceExit) {
+			Opsu.close();
+			System.exit(0);
+		}
 	}
 
 	@Override
@@ -128,8 +131,14 @@ public class Container extends AppGameContainer {
 	@Override
 	public void exit() {
 		// show confirmation dialog if any downloads are active
-		if (forceExit && DownloadList.get().hasActiveDownloads() && DownloadList.showExitConfirmation())
-			return;
+		if (forceExit) {
+			if (DownloadList.get().hasActiveDownloads() &&
+			    UI.showExitConfirmation(DownloadList.EXIT_CONFIRMATION))
+				return;
+			if (Updater.get().getStatus() == Updater.Status.UPDATE_DOWNLOADING && 
+			    UI.showExitConfirmation(Updater.EXIT_CONFIRMATION))
+				return;
+		}
 
 		super.exit();
 	}

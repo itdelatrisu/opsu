@@ -138,8 +138,18 @@ public class Download {
 			return;
 		}
 		this.localPath = localPath;
-		this.rename = rename;
+		this.rename = Utils.cleanFileName(rename, '-');
 	}
+
+	/**
+	 * Returns the remote download URL.
+	 */
+	public URL getRemoteURL() { return url; }
+
+	/**
+	 * Returns the local path to save the download (after renamed).
+	 */
+	public String getLocalPath() { return (rename != null) ? rename : localPath; }
 
 	/**
 	 * Sets the download listener.
@@ -187,9 +197,8 @@ public class Download {
 						rbc.close();
 						fos.close();
 						if (rename != null) {
-							String cleanedName = Utils.cleanFileName(rename, '-');
 							Path source = new File(localPath).toPath();
-							Files.move(source, source.resolveSibling(cleanedName), StandardCopyOption.REPLACE_EXISTING);
+							Files.move(source, source.resolveSibling(rename), StandardCopyOption.REPLACE_EXISTING);
 						}
 						if (listener != null)
 							listener.completed();

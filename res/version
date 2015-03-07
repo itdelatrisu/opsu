@@ -1,2 +1,3 @@
 version=${pom.version}
+file=https://github.com/itdelatrisu/opsu/releases/download/${pom.version}/opsu-${pom.version}.jar
 build.date=${timestamp}

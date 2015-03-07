@@ -20,12 +20,19 @@ package itdelatrisu.opsu;
 
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
+import itdelatrisu.opsu.downloads.Download;
 import itdelatrisu.opsu.downloads.DownloadNode;
 
 import java.awt.Font;
 import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.SocketTimeoutException;
+import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.text.SimpleDateFormat;
@@ -394,6 +401,9 @@ public class Utils {
 	 * @author Sarel Botha (http://stackoverflow.com/a/5626340)
 	 */
 	public static String cleanFileName(String badFileName, char replace) {
+		if (badFileName == null)
+			return null;
+
 		boolean doReplace = (replace > 0 && Arrays.binarySearch(illegalChars, replace) < 0);
 	    StringBuilder cleanName = new StringBuilder();
 	    for (int i = 0, n = badFileName.length(); i < n; i++) {
@@ -500,4 +510,39 @@ public class Utils {
 			list.add(str);
 		return list;
     }
+
+	/**
+	 * Returns a the contents of a URL as a string.
+	 * @param url the remote URL
+	 * @return the contents as a string, or null if any error occurred
+	 */
+	public static String readDataFromUrl(URL url) throws IOException {
+		// open connection
+		HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+		conn.setConnectTimeout(Download.CONNECTION_TIMEOUT);
+		conn.setReadTimeout(Download.READ_TIMEOUT);
+		conn.setUseCaches(false);
+		try {
+			conn.connect();
+		} catch (SocketTimeoutException e) {
+			Log.warn("Connection to server timed out.", e);
+			throw e;
+		}
+
+		if (Thread.interrupted())
+			return null;
+
+		// read contents
+		try (InputStream in = conn.getInputStream()) {
+			BufferedReader rd = new BufferedReader(new InputStreamReader(in));
+			StringBuilder sb = new StringBuilder();
+			int c;
+			while ((c = rd.read()) != -1)
+				sb.append((char) c);
+			return sb.toString();
+		} catch (SocketTimeoutException e) {
+			Log.warn("Connection to server timed out.", e);
+			throw e;
+		}
+	}
 }

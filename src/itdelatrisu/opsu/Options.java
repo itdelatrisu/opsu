@@ -69,11 +69,17 @@ public class Options {
 	/** Font file name. */
 	public static final String FONT_NAME = "kochi-gothic.ttf";
 
+	/** Version file name. */
+	public static final String VERSION_FILE = "version";
+
 	/** Repository address. */
-	public static URI REPOSITORY_URI = URI.create("https://github.com/itdelatrisu/opsu");
+	public static final URI REPOSITORY_URI = URI.create("https://github.com/itdelatrisu/opsu");
 
 	/** Issue reporting address. */
-	public static String ISSUES_URL = "https://github.com/itdelatrisu/opsu/issues/new?title=%s&body=%s";
+	public static final String ISSUES_URL = "https://github.com/itdelatrisu/opsu/issues/new?title=%s&body=%s";
+
+	/** Address containing the latest version file. */
+	public static final String VERSION_REMOTE = "https://raw.githubusercontent.com/itdelatrisu/opsu/gh-pages/version";
 
 	/** The beatmap directory. */
 	private static File beatmapDir;

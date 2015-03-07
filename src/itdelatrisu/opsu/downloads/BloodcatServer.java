@@ -19,15 +19,11 @@
 package itdelatrisu.opsu.downloads;
 
 import itdelatrisu.opsu.ErrorHandler;
+import itdelatrisu.opsu.Utils;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
-import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.URLEncoder;
 
@@ -98,36 +94,15 @@ public class BloodcatServer implements DownloadServer {
 	 * @return the JSON object
 	 * @author Roland Illig (http://stackoverflow.com/a/4308662)
 	 */
-	public static JSONObject readJsonFromUrl(URL url) throws IOException {
-		// open connection
-		HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-		conn.setConnectTimeout(Download.CONNECTION_TIMEOUT);
-		conn.setReadTimeout(Download.READ_TIMEOUT);
-		conn.setUseCaches(false);
-		try {
-			conn.connect();
-		} catch (SocketTimeoutException e) {
-			ErrorHandler.error("Connection to server timed out.", e, false);
-			throw e;
-		}
-
-		if (Thread.interrupted())
-			return null;
-
-		// read JSON
+	private static JSONObject readJsonFromUrl(URL url) throws IOException {
+		String s = Utils.readDataFromUrl(url);
 		JSONObject json = null;
-		try (InputStream in = conn.getInputStream()) {
-			BufferedReader rd = new BufferedReader(new InputStreamReader(in));
-			StringBuilder sb = new StringBuilder();
-			int c;
-			while ((c = rd.read()) != -1)
-				sb.append((char) c);
-			json = new JSONObject(sb.toString());
-		} catch (SocketTimeoutException e) {
-			ErrorHandler.error("Connection to server timed out.", e, false);
-			throw e;
-		} catch (JSONException e1) {
-			ErrorHandler.error("Failed to create JSON object.", e1, true);
+		if (s != null) {
+			try {
+				json = new JSONObject(s);
+			} catch (JSONException e) {
+				ErrorHandler.error("Failed to create JSON object.", e, true);
+			}
 		}
 		return json;
 	}
