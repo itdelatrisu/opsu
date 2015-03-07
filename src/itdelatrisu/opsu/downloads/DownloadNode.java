@@ -24,7 +24,9 @@ import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.OsuGroupList;
+import itdelatrisu.opsu.UI;
 import itdelatrisu.opsu.Utils;
+import itdelatrisu.opsu.downloads.Download.DownloadListener;
 import itdelatrisu.opsu.downloads.Download.Status;
 
 /*
@@ -182,7 +184,7 @@ public class DownloadNode {
 	 * @param total the total number of buttons
 	 */
 	public static void drawResultScrollbar(Graphics g, int index, int total) {
-		Utils.drawScrollbar(g, index, total, maxResultsShown, buttonBaseX, buttonBaseY,
+		UI.drawScrollbar(g, index, total, maxResultsShown, buttonBaseX, buttonBaseY,
 				buttonWidth * 1.01f, buttonHeight, buttonOffset, BG_NORMAL, Color.white, true);
 	}
 
@@ -193,7 +195,7 @@ public class DownloadNode {
 	 * @param total the total number of downloads
 	 */
 	public static void drawDownloadScrollbar(Graphics g, int index, int total) {
-		Utils.drawScrollbar(g, index, total, maxDownloadsShown, infoBaseX, infoBaseY,
+		UI.drawScrollbar(g, index, total, maxDownloadsShown, infoBaseX, infoBaseY,
 				infoWidth, infoHeight, infoHeight, BG_NORMAL, Color.white, true);
 	}
 
@@ -222,6 +224,12 @@ public class DownloadNode {
 			File path =  new File(Options.getOSZDir(),Integer.toString(beatmapSetID));
 			String rename = String.format("%d %s - %s.osz", beatmapSetID, artist, title);
 			this.download = new Download(server.getURL(beatmapSetID), path, rename);
+			download.setListener(new DownloadListener() {
+				@Override
+				public void completed() {
+					UI.sendBarNotification(String.format("Download complete: %s", getTitle()));
+				}
+			});
 		}
 	}
 

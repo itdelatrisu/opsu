@@ -28,11 +28,10 @@ import fluddokt.opsu.fake.Graphics;
 public interface HitObject {
 	/**
 	 * Draws the hit object to the graphics context.
-	 * @param trackPosition the current track position
-	 * @param currentObject true if this is the current hit object
 	 * @param g the graphics context
+	 * @param trackPosition the current track position
 	 */
-	public void draw(int trackPosition, boolean currentObject, Graphics g);
+	public void draw(Graphics g, int trackPosition);
 
 	/**
 	 * Updates the hit object.

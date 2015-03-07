@@ -24,7 +24,9 @@ import itdelatrisu.opsu.GameData;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.MenuButton;
 import itdelatrisu.opsu.Opsu;
+import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.OsuFile;
+import itdelatrisu.opsu.UI;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
@@ -60,6 +62,7 @@ public class GameRanking extends BasicGameState {
 	private MenuButton retryButton, exitButton;
 
 	// game-related variables
+	private GameContainer container;
 	private StateBasedGame game;
 	private int state;
 	private Input input;
@@ -71,6 +74,7 @@ public class GameRanking extends BasicGameState {
 	@Override
 	public void init(GameContainer container, StateBasedGame game)
 			throws SlickException {
+		this.container = container;
 		this.game = game;
 		this.input = container.getInput();
 
@@ -102,7 +106,7 @@ public class GameRanking extends BasicGameState {
 
 		// background
 		if (!osu.drawBG(width, height, 0.7f, true))
-			GameImage.MENU_BG.getImage().draw(0,0);
+			GameImage.PLAYFIELD.getImage().draw(0,0);
 
 		// ranking screen elements
 		data.drawRankingElements(g, osu);
@@ -112,24 +116,21 @@ public class GameRanking extends BasicGameState {
 			retryButton.draw();
 			exitButton.draw();
 		}
-		Utils.getBackButton().draw();
+		UI.getBackButton().draw();
 
-		Utils.drawVolume(g);
-		Utils.drawFPS();
-		Utils.drawCursor();
+		UI.draw(g);
 	}
 
 	@Override
 	public void update(GameContainer container, StateBasedGame game, int delta)
 			throws SlickException {
-		Utils.updateCursor(delta);
-		Utils.updateVolumeDisplay(delta);
+		UI.update(delta);
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
 		if (data.isGameplay()) {
 			retryButton.hoverUpdate(delta, mouseX, mouseY);
 			exitButton.hoverUpdate(delta, mouseX, mouseY);
 		}
-		Utils.getBackButton().hoverUpdate(delta, mouseX, mouseY);
+		UI.getBackButton().hoverUpdate(delta, mouseX, mouseY);
 	}
 
 	@Override
@@ -140,6 +141,12 @@ public class GameRanking extends BasicGameState {
 		switch (key) {
 		case Input.KEY_ESCAPE:
 			returnToSongMenu();
+			break;
+		case Input.KEY_F7:
+			Options.setNextFPS(container);
+			break;
+		case Input.KEY_F10:
+			Options.toggleMouseDisabled();
 			break;
 		case Input.KEY_F12:
 			Utils.takeScreenShot();
@@ -165,12 +172,12 @@ public class GameRanking extends BasicGameState {
 				SoundController.playSound(SoundEffect.MENUBACK);
 				((MainMenu) game.getState(Opsu.STATE_MAINMENU)).reset();
 				((SongMenu) game.getState(Opsu.STATE_SONGMENU)).resetGameDataOnLoad();
-				Utils.resetCursor();
+				UI.resetCursor();
 				game.enterState(Opsu.STATE_MAINMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 				return;
 			}
 		}
-		if (Utils.getBackButton().contains(x, y)) {
+		if (UI.getBackButton().contains(x, y)) {
 			returnToSongMenu();
 			return;
 		}
@@ -179,8 +186,8 @@ public class GameRanking extends BasicGameState {
 	@Override
 	public void enter(GameContainer container, StateBasedGame game)
 			throws SlickException {
+		UI.enter();
 		Display.setTitle(game.getTitle());
-		Utils.getBackButton().resetHover();
 		if (!data.isGameplay()) {
 			if (!MusicController.isTrackDimmed())
 				MusicController.toggleTrackDimmed(0.5f);
@@ -207,7 +214,7 @@ public class GameRanking extends BasicGameState {
 			songMenu.resetGameDataOnLoad();
 			songMenu.resetTrackOnLoad();
 		}
-		Utils.resetCursor();
+		UI.resetCursor();
 		game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 	}
 

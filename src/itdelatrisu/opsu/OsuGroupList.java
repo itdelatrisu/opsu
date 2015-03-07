@@ -21,6 +21,7 @@ package itdelatrisu.opsu;
 import fluddokt.opsu.fake.File;
 
 import itdelatrisu.opsu.audio.MusicController;
+import itdelatrisu.opsu.db.OsuDB;
 
 //import java.io.File;
 import java.io.IOException;
@@ -182,6 +183,9 @@ public class OsuGroupList {
 			}
 		}
 
+		// remove entry from cache
+		OsuDB.delete(dir.getName());
+
 		// delete the associated directory
 		try {
 			Utils.deleteToTrash(dir);
@@ -226,9 +230,13 @@ public class OsuGroupList {
 		if (node.next != null)
 			node.next.prev = node.prev;
 
+		// remove entry from cache
+		File file = osu.getFile();
+		OsuDB.delete(file.getParentFile().getName(), file.getName());
+
 		// delete the associated file
 		try {
-			Utils.deleteToTrash(osu.getFile());
+			Utils.deleteToTrash(file);
 		} catch (IOException e) {
 			ErrorHandler.error("Could not delete song.", e, true);
 		}

@@ -60,4 +60,15 @@ public class Color {
 		return new Color(r, g, b, a * na);
 	}
 
+	public int getRed() {
+		return (int)(r * 255);
+	}
+	public int getGreen() {
+		return (int)(g * 255);
+	}
+	public int getBlue() {
+		return (int)(b * 255);
+	}
+
+	
 }

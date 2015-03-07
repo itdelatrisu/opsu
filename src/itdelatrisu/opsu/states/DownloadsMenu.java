@@ -26,6 +26,7 @@ import itdelatrisu.opsu.OsuGroupList;
 import itdelatrisu.opsu.OsuGroupNode;
 import itdelatrisu.opsu.OsuParser;
 import itdelatrisu.opsu.OszUnpacker;
+import itdelatrisu.opsu.UI;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
@@ -139,6 +140,7 @@ public class DownloadsMenu extends BasicGameState {
 	private Thread importThread;
 
 	// game-related variables
+	private GameContainer container;
 	private StateBasedGame game;
 	private Input input;
 	private int state;
@@ -150,6 +152,7 @@ public class DownloadsMenu extends BasicGameState {
 	@Override
 	public void init(GameContainer container, StateBasedGame game)
 			throws SlickException {
+		this.container = container;
 		this.game = game;
 		this.input = container.getInput();
 
@@ -305,25 +308,22 @@ public class DownloadsMenu extends BasicGameState {
 			g.setColor(Utils.COLOR_BLACK_ALPHA);
 			g.fillRect(0, 0, width, height);
 
-			Utils.drawLoadingProgress(g);
+			UI.drawLoadingProgress(g);
 		}
 
 		// back button
 		else
-			Utils.getBackButton().draw();
+			UI.getBackButton().draw();
 
-		Utils.drawVolume(g);
-		Utils.drawFPS();
-		Utils.drawCursor();
+		UI.draw(g);
 	}
 
 	@Override
 	public void update(GameContainer container, StateBasedGame game, int delta)
 			throws SlickException {
-		Utils.updateCursor(delta);
-		Utils.updateVolumeDisplay(delta);
+		UI.update(delta);
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
-		Utils.getBackButton().hoverUpdate(delta, mouseX, mouseY);
+		UI.getBackButton().hoverUpdate(delta, mouseX, mouseY);
 		prevPage.hoverUpdate(delta, mouseX, mouseY);
 		nextPage.hoverUpdate(delta, mouseX, mouseY);
 		clearButton.hoverUpdate(delta, mouseX, mouseY);
@@ -425,7 +425,7 @@ public class DownloadsMenu extends BasicGameState {
 			return;
 
 		// back
-		if (Utils.getBackButton().contains(x, y)) {
+		if (UI.getBackButton().contains(x, y)) {
 			SoundController.playSound(SoundEffect.MENUBACK);
 			((MainMenu) game.getState(Opsu.STATE_MAINMENU)).reset();
 			game.enterState(Opsu.STATE_MAINMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
@@ -520,7 +520,11 @@ public class DownloadsMenu extends BasicGameState {
 							// initialize song list
 							OsuGroupList.get().reset();
 							OsuGroupList.get().init();
-							((SongMenu) game.getState(Opsu.STATE_SONGMENU)).setFocus(node, -1, true);
+							((SongMenu) game.getState(Opsu.STATE_SONGMENU)).setFocus(node, -1, true, true);
+
+							// send notification
+							UI.sendBarNotification((dirs.length == 1) ? "Imported 1 new song." :
+									String.format("Imported %d new songs.", dirs.length));
 						}
 					}
 
@@ -543,7 +547,7 @@ public class DownloadsMenu extends BasicGameState {
 			SoundController.playSound(SoundEffect.MENUCLICK);
 			rankedOnly = !rankedOnly;
 			lastQuery = null;
-			pageDir = Page.CURRENT;
+			pageDir = Page.RESET;
 			resetSearchTimer();
 			return;
 		}
@@ -641,6 +645,12 @@ public class DownloadsMenu extends BasicGameState {
 			pageDir = Page.CURRENT;
 			resetSearchTimer();
 			break;
+		case Input.KEY_F7:
+			Options.setNextFPS(container);
+			break;
+		case Input.KEY_F10:
+			Options.toggleMouseDisabled();
+			break;
 		case Input.KEY_F12:
 			Utils.takeScreenShot();
 			break;
@@ -657,7 +667,7 @@ public class DownloadsMenu extends BasicGameState {
 	@Override
 	public void enter(GameContainer container, StateBasedGame game)
 			throws SlickException {
-		Utils.getBackButton().resetHover();
+		UI.enter();
 		prevPage.resetHover();
 		nextPage.resetHover();
 		clearButton.resetHover();

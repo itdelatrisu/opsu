@@ -25,6 +25,7 @@ import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.OsuGroupList;
 import itdelatrisu.opsu.OsuParser;
 import itdelatrisu.opsu.OszUnpacker;
+import itdelatrisu.opsu.UI;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
@@ -80,7 +81,7 @@ public class Splash extends BasicGameState {
 			throws SlickException {
 		g.setBackground(Color.black);
 		GameImage.MENU_LOGO.getImage().drawCentered(container.getWidth() / 2, container.getHeight() / 2);
-		Utils.drawLoadingProgress(g);
+		UI.drawLoadingProgress(g);
 	}
 
 	@Override
@@ -130,7 +131,7 @@ public class Splash extends BasicGameState {
 				if (Options.isThemeSongEnabled())
 					MusicController.playThemeSong();
 				else
-					((SongMenu) game.getState(Opsu.STATE_SONGMENU)).setFocus(OsuGroupList.get().getRandomNode(), -1, true);
+					((SongMenu) game.getState(Opsu.STATE_SONGMENU)).setFocus(OsuGroupList.get().getRandomNode(), -1, true, true);
 			}
 
 			// play the theme song

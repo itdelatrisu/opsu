@@ -82,7 +82,7 @@ public class Circle implements HitObject {
 	}
 
 	@Override
-	public void draw(int trackPosition, boolean currentObject, Graphics g) {
+	public void draw(Graphics g, int trackPosition) {
 		int timeDiff = hitObject.getTime() - trackPosition;
 
 		if (timeDiff >= 0) {
@@ -177,6 +177,10 @@ public class Circle implements HitObject {
 				return true;
 			}
 		}
+
+		// "relax" mod: click automatically
+		else if (GameMod.RELAX.isActive() && trackPosition >= time)
+			return mousePressed(mouseX, mouseY);
 
 		return false;
 	}

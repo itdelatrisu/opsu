@@ -34,6 +34,7 @@ import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 
 import org.lwjgl.BufferUtils;
+import org.lwjgl.Sys;
 import org.lwjgl.openal.AL10;
 import org.lwjgl.openal.OpenALException;
 import org.newdawn.slick.util.Log;
@@ -96,7 +97,7 @@ public class OpenALStreamPlayer {
 	long musicLength = -1;
 
 	/** The time of the last update, in ms. */
-	long lastUpdateTime = System.currentTimeMillis();
+	long lastUpdateTime = getTime();
 
 	/** The offset time. */
 	long offsetTime = 0;
@@ -241,7 +242,7 @@ public class OpenALStreamPlayer {
 			int bufferLength = AL10.alGetBufferi(bufferIndex, AL10.AL_SIZE);
 
 			playedPos += bufferLength;
-			lastUpdateTime = System.currentTimeMillis();
+			lastUpdateTime = getTime();
 
 			if (musicLength > 0 && playedPos > musicLength)
 				playedPos -= musicLength;
@@ -365,7 +366,7 @@ public class OpenALStreamPlayer {
 
 		AL10.alSourceQueueBuffers(source, bufferNames);
 		AL10.alSourcePlay(source);
-		lastUpdateTime = System.currentTimeMillis();
+		lastUpdateTime = getTime();
 	}
 
 	/**
@@ -375,7 +376,7 @@ public class OpenALStreamPlayer {
 	 */
 	public float getPosition() {
 		float playedTime = ((float) playedPos / (float) sampleSize) / sampleRate;
-		float timePosition = playedTime + (System.currentTimeMillis() - lastUpdateTime) / 1000f;
+		float timePosition = playedTime + (getTime() - lastUpdateTime) / 1000f;
 //		 + AL10.alGetSourcef(source, AL11.AL_SEC_OFFSET);
 		return timePosition;
 	}
@@ -384,14 +385,24 @@ public class OpenALStreamPlayer {
 	 * Processes a track pause.
 	 */
 	public void pausing() {
-		offsetTime = System.currentTimeMillis() - lastUpdateTime;
+		offsetTime = getTime() - lastUpdateTime;
 	}
 
 	/**
 	 * Processes a track resume.
 	 */
 	public void resuming() {
-		lastUpdateTime = System.currentTimeMillis() - offsetTime;
+		lastUpdateTime = getTime() - offsetTime;
+	}
+	
+	/**
+	 * http://wiki.lwjgl.org/index.php?title=LWJGL_Basics_4_%28Timing%29
+	 * Get the time in milliseconds
+	 *
+	 * @return The system time in milliseconds
+	 */
+	public long getTime() {
+	    return (Sys.getTime() * 1000) / Sys.getTimerResolution();
 	}
 
 	/**

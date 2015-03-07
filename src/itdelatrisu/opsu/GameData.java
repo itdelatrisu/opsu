@@ -46,6 +46,9 @@ public class GameData {
 	/** Time, in milliseconds, for a hit result to fade. */
 	public static final int HITRESULT_FADE_TIME = 500;
 
+	/** Time, in milliseconds, that a combo pops on the screen. */
+	private static final int COMBO_POP_TIME = 250;
+
 	/** Time, in milliseconds, for a hit error tick to fade. */
 	private static final int HIT_ERROR_FADE_TIME = 5000;
 
@@ -137,6 +140,9 @@ public class GameData {
 
 	/** The max combo streak obtained. */
 	private int comboMax;
+
+	/** The current combo pop timer, in milliseconds. */
+	private int comboPopTime;
 
 	/**
 	 * Hit result types accumulated this streak (bitmask), for Katu/Geki status.
@@ -337,6 +343,7 @@ public class GameData {
 		fullObjectCount = 0;
 		combo = 0;
 		comboMax = 0;
+		comboPopTime = COMBO_POP_TIME;
 		comboEnd = 0;
 		comboBurstIndex = -1;
 		scoreData = null;
@@ -452,25 +459,30 @@ public class GameData {
 	 * @param x the starting x coordinate
 	 * @param y the y coordinate
 	 * @param scale the scale to apply
+	 * @param alpha the alpha level
 	 * @param rightAlign align right (true) or left (false)
 	 */
-	public void drawSymbolString(String str, int x, int y, float scale, boolean rightAlign) {
+	public void drawSymbolString(String str, float x, float y, float scale, float alpha, boolean rightAlign) {
 		char[] c = str.toCharArray();
-		int cx = x;
+		float cx = x;
 		if (rightAlign) {
 			for (int i = c.length - 1; i >= 0; i--) {
 				Image digit = getScoreSymbolImage(c[i]);
 				if (scale != 1.0f)
 					digit = digit.getScaledCopy(scale);
 				cx -= digit.getWidth();
+				digit.setAlpha(alpha);
 				digit.draw(cx, y);
+				digit.setAlpha(1f);
 			}
 		} else {
 			for (int i = 0; i < c.length; i++) {
 				Image digit = getScoreSymbolImage(c[i]);
 				if (scale != 1.0f)
 					digit = digit.getScaledCopy(scale);
+				digit.setAlpha(alpha);
 				digit.draw(cx, y);
+				digit.setAlpha(1f);
 				cx += digit.getWidth();
 			}
 		}
@@ -485,9 +497,9 @@ public class GameData {
 	 * @param fixedsize the width to use for all symbols
 	 * @param rightAlign align right (true) or left (false)
 	 */
-	public void drawFixedSizeSymbolString(String str, int x, int y, float scale, float fixedsize, boolean rightAlign) {
+	public void drawFixedSizeSymbolString(String str, float x, float y, float scale, float fixedsize, boolean rightAlign) {
 		char[] c = str.toCharArray();
-		int cx = x;
+		float cx = x;
 		if (rightAlign) {
 			for (int i = c.length - 1; i >= 0; i--) {
 				Image digit = getScoreSymbolImage(c[i]);
@@ -517,45 +529,49 @@ public class GameData {
 	 */
 	@SuppressWarnings("deprecation")
 	public void drawGameElements(Graphics g, boolean breakPeriod, boolean firstObject) {
-		int marginX = (int) (width * 0.008f);
+		boolean relaxAutoPilot = (GameMod.RELAX.isActive() || GameMod.AUTOPILOT.isActive());
+		int margin = (int) (width * 0.008f);
 
 		// score
-		drawFixedSizeSymbolString((scoreDisplay < 100000000) ? String.format("%08d", scoreDisplay) : Long.toString(scoreDisplay),
-				width - marginX, 0, 1.0f, getScoreSymbolImage('0').getWidth() - 2, true);
+		if (!relaxAutoPilot)
+			drawFixedSizeSymbolString((scoreDisplay < 100000000) ? String.format("%08d", scoreDisplay) : Long.toString(scoreDisplay),
+					width - margin, 0, 1.0f, getScoreSymbolImage('0').getWidth() - 2, true);
 
 		// score percentage
 		int symbolHeight = getScoreSymbolImage('0').getHeight();
-		drawSymbolString(
-				String.format((scorePercentDisplay < 10f) ? "0%.2f%%" : "%.2f%%", scorePercentDisplay),
-				width - marginX, symbolHeight, 0.60f, true);
+		if (!relaxAutoPilot)
+			drawSymbolString(
+					String.format((scorePercentDisplay < 10f) ? "0%.2f%%" : "%.2f%%", scorePercentDisplay),
+					width - margin, symbolHeight, 0.60f, 1f, true);
 
 		// map progress circle
-		g.setAntiAlias(true);
-		g.setLineWidth(2f);
-		g.setColor(Color.white);
+		OsuFile osu = MusicController.getOsuFile();
+		int firstObjectTime = osu.objects[0].getTime();
+		int trackPosition = MusicController.getPosition();
 		float circleDiameter = symbolHeight * 0.60f;
-		int circleX = (int) (width - marginX - (  // max width: "100.00%"
+		int circleX = (int) (width - margin - (  // max width: "100.00%"
 				getScoreSymbolImage('1').getWidth() +
 				getScoreSymbolImage('0').getWidth() * 4 +
 				getScoreSymbolImage('.').getWidth() +
 				getScoreSymbolImage('%').getWidth()
 		) * 0.60f - circleDiameter);
-		g.drawOval(circleX, symbolHeight, circleDiameter, circleDiameter);
-
-		OsuFile osu = MusicController.getOsuFile();
-		int firstObjectTime = osu.objects[0].getTime();
-		int trackPosition = MusicController.getPosition();
-		if (trackPosition > firstObjectTime) {
-			// map progress (white)
-			g.fillArc(circleX, symbolHeight, circleDiameter, circleDiameter,
-					-90, -90 + (int) (360f * (trackPosition - firstObjectTime) / (osu.endTime - firstObjectTime))
-			);
-		} else {
-			// lead-in time (yellow)
-			g.setColor(Utils.COLOR_YELLOW_ALPHA);
-			g.fillArc(circleX, symbolHeight, circleDiameter, circleDiameter,
-					-90 + (int) (360f * trackPosition / firstObjectTime), -90
-			);
+		if (!relaxAutoPilot) {
+			g.setAntiAlias(true);
+			g.setLineWidth(2f);
+			g.setColor(Color.white);
+			g.drawOval(circleX, symbolHeight, circleDiameter, circleDiameter);
+			if (trackPosition > firstObjectTime) {
+				// map progress (white)
+				g.fillArc(circleX, symbolHeight, circleDiameter, circleDiameter,
+						-90, -90 + (int) (360f * (trackPosition - firstObjectTime) / (osu.endTime - firstObjectTime))
+				);
+			} else {
+				// lead-in time (yellow)
+				g.setColor(Utils.COLOR_YELLOW_ALPHA);
+				g.fillArc(circleX, symbolHeight, circleDiameter, circleDiameter,
+						-90 + (int) (360f * trackPosition / firstObjectTime), -90
+				);
+			}
 		}
 
 		// mod icons
@@ -583,7 +599,7 @@ public class GameData {
 				hitErrorAlpha = (HIT_ERROR_FADE_TIME - (trackPosition - hitErrorList.getFirst().time)) / (HIT_ERROR_FADE_TIME * 0.1f);
 
 			// draw bar
-			int hitErrorY = height - marginX - 30, hitErrorX = width / 2;
+			int hitErrorY = height - margin - 30, hitErrorX = width / 2;
 			float oldAlphaBlack = Utils.COLOR_BLACK_ALPHA.a;
 			Utils.COLOR_BLACK_ALPHA.a = hitErrorAlpha;
 			g.setColor(Utils.COLOR_BLACK_ALPHA);
@@ -619,7 +635,7 @@ public class GameData {
 			}
 		}
 
-		if (!breakPeriod) {
+		if (!breakPeriod && !relaxAutoPilot) {
 			// scorebar
 			float healthRatio = healthDisplay / 100f;
 			if (firstObject) {  // gradually move ki before map begins
@@ -657,9 +673,16 @@ public class GameData {
 			}
 
 			// combo count
-			if (combo > 0)  // 0 isn't a combo
-				drawSymbolString(String.format("%dx", combo), 10, height - 10 - symbolHeight, 1.0f, false);
-		} else {
+			if (combo > 0) {
+				float comboPop = 1 - ((float) comboPopTime / COMBO_POP_TIME);
+				float comboPopBack  = 1 + comboPop * 0.45f;
+				float comboPopFront = 1 + comboPop * 0.08f;
+				String comboString = String.format("%dx", combo);
+				if (comboPopTime != COMBO_POP_TIME)
+					drawSymbolString(comboString, margin, height - margin - (symbolHeight * comboPopBack), comboPopBack, 0.5f, false);
+				drawSymbolString(comboString, margin, height - margin - (symbolHeight * comboPopFront), comboPopFront, 1f, false);
+			}
+		} else if (!relaxAutoPilot) {
 			// grade
 			Grade grade = getGrade();
 			if (grade != Grade.NULL) {
@@ -720,11 +743,11 @@ public class GameData {
 			drawSymbolString(String.format("%dx", rankResultOrder[i]),
 					(int) (resultInitialX * GameImage.getUIscale()),
 					(int) ((resultInitialY + (resultOffsetY * (i / 2))) * GameImage.getUIscale()),
-					symbolTextScale, false);
+					symbolTextScale, 1f, false);
 			drawSymbolString(String.format("%dx", rankResultOrder[i+1]),
 					(int) ((resultInitialX + resultOffsetX) * GameImage.getUIscale()),
 					(int) ((resultInitialY + (resultOffsetY * (i / 2))) * GameImage.getUIscale()),
-					symbolTextScale, false);
+					symbolTextScale, 1f, false);
 		}
 
 		// combo and accuracy
@@ -733,10 +756,10 @@ public class GameData {
 		float numbersY = textY + 30;
 		drawSymbolString(String.format("%dx", comboMax),
 				(int) (25 * GameImage.getUIscale()),
-				(int) (numbersY * GameImage.getUIscale()), symbolTextScale, false);
+				(int) (numbersY * GameImage.getUIscale()), symbolTextScale, 1f, false);
 		drawSymbolString(String.format("%02.2f%%", getScorePercent()),
 				(int) ((accuracyX + 20) * GameImage.getUIscale()),
-				(int) (numbersY * GameImage.getUIscale()), symbolTextScale, false);
+				(int) (numbersY * GameImage.getUIscale()), symbolTextScale, 1f, false);
 		GameImage.RANKING_MAXCOMBO.getImage().draw(
 				(int) (10 * GameImage.getUIscale()),
 				(int) (textY * GameImage.getUIscale()));
@@ -848,7 +871,8 @@ public class GameData {
 	 * If "No Fail" or "Auto" mods are active, this will always return true.
 	 */
 	public boolean isAlive() {
-		return (health > 0f || GameMod.NO_FAIL.isActive() || GameMod.AUTO.isActive());
+		return (health > 0f || GameMod.NO_FAIL.isActive() || GameMod.AUTO.isActive() ||
+		        GameMod.RELAX.isActive() || GameMod.AUTOPILOT.isActive());
 	}
 
 	/**
@@ -985,6 +1009,11 @@ public class GameData {
 			}
 		}
 
+		// combo pop
+		comboPopTime += delta;
+		if (comboPopTime > COMBO_POP_TIME)
+			comboPopTime = COMBO_POP_TIME;
+
 		// hit error bar
 		if (Options.isHitErrorBarEnabled()) {
 			int trackPosition = MusicController.getPosition();
@@ -1003,6 +1032,7 @@ public class GameData {
 	 */
 	private void incrementComboStreak() {
 		combo++;
+		comboPopTime = 0;
 		if (combo > comboMax)
 			comboMax = combo;
 
@@ -1025,7 +1055,7 @@ public class GameData {
 	 * Resets the combo streak to zero.
 	 */
 	private void resetComboStreak() {
-		if (combo >= 20)
+		if (combo >= 20 && !(GameMod.RELAX.isActive() || GameMod.AUTOPILOT.isActive()))
 			SoundController.playSound(SoundEffect.COMBOBREAK);
 		combo = 0;
 		if (GameMod.SUDDEN_DEATH.isActive())
@@ -1155,6 +1185,8 @@ public class GameData {
 
 		if (perfectHit && !Options.isPerfectHitBurstEnabled())
 			;  // hide perfect hit results
+		else if (result == HIT_MISS && (GameMod.RELAX.isActive() || GameMod.AUTOPILOT.isActive()))
+			;  // "relax" and "autopilot" mods: hide misses
 		else
 			hitResultList.add(new OsuHitObjectResult(time, result, x, y, color, hitObject.isSpinner()));
 	}

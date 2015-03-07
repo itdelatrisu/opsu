@@ -138,7 +138,7 @@ public enum GameImage {
 	SPINNER_SPIN ("spinner-spin", "png"),
 	SPINNER_CLEAR ("spinner-clear", "png"),
 	SPINNER_OSU ("spinner-osu", "png"),
-	SPINNER_RPM ("spinner-rpm", "png", false, true) {
+	SPINNER_RPM ("spinner-rpm", "png") {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
 			return img.getScaledCopy((SCORE_0.getImage().getHeight() * 1.05f) / img.getHeight());
@@ -450,6 +450,12 @@ public enum GameImage {
 		protected Image process_sub(Image img, int w, int h) {
 			return img.getScaledCopy((h / 17f) / img.getHeight());
 		}
+	},
+	BANG ("bang", "png", false, false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return REPOSITORY.process_sub(img, w, h);
+		}
 	};
 
 	/** Image file types. */
@@ -584,7 +590,7 @@ public enum GameImage {
 	 * @param type the file types (separated by '|')
 	 */
 	GameImage(String filename, String type) {
-		this(filename, type, true, true);
+		this(filename, type, true, false);
 	}
 
 	/**
@@ -594,7 +600,7 @@ public enum GameImage {
 	 * @param type the file types (separated by '|')
 	 */
 	GameImage(String filename, String filenameFormat, String type) {
-		this(filename, type, true, true);
+		this(filename, type, true, false);
 		this.filenameFormat = filenameFormat;
 	}
 

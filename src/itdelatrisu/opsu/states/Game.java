@@ -30,13 +30,14 @@ import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.OsuFile;
 import itdelatrisu.opsu.OsuHitObject;
 import itdelatrisu.opsu.OsuTimingPoint;
-import itdelatrisu.opsu.ScoreDB;
 import itdelatrisu.opsu.ScoreData;
+import itdelatrisu.opsu.UI;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.HitSound;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
+import itdelatrisu.opsu.db.ScoreDB;
 import itdelatrisu.opsu.objects.Circle;
 import itdelatrisu.opsu.objects.HitObject;
 import itdelatrisu.opsu.objects.Slider;
@@ -262,8 +263,7 @@ public class Game extends BasicGameState {
 
 				if (GameMod.AUTO.isActive())
 					GameImage.UNRANKED.getImage().drawCentered(width / 2, height * 0.077f);
-				Utils.drawFPS();
-				Utils.drawCursor();
+				UI.draw(g);
 				return;
 			}
 		}
@@ -345,7 +345,7 @@ public class Game extends BasicGameState {
 			stack.add(i);
 
 		while (!stack.isEmpty())
-			hitObjects[stack.pop()].draw(trackPosition, stack.isEmpty(), g);
+			hitObjects[stack.pop()].draw(g, trackPosition);
 
 		// draw OsuHitObjectResult objects
 		data.drawHitResults(trackPosition);
@@ -369,16 +369,13 @@ public class Game extends BasicGameState {
 			cursorCirclePulse.drawCentered(pausedMouseX, pausedMouseY);
 		}
 
-		Utils.drawVolume(g);
-		Utils.drawFPS();
-		Utils.drawCursor();
+		UI.draw(g);
 	}
 
 	@Override
 	public void update(GameContainer container, StateBasedGame game, int delta)
 			throws SlickException {
-		Utils.updateCursor(delta);
-		Utils.updateVolumeDisplay(delta);
+		UI.update(delta);
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
 		skipButton.hoverUpdate(delta, mouseX, mouseY);
 
@@ -391,8 +388,9 @@ public class Game extends BasicGameState {
 
 		// returning from pause screen: must click previous mouse position
 		if (pauseTime > -1) {
-			// paused during lead-in or break: continue immediately
-			if (pausedMouseX < 0 && pausedMouseY < 0) {
+			// paused during lead-in or break, or "relax" or "autopilot": continue immediately
+			if ((pausedMouseX < 0 && pausedMouseY < 0) ||
+			    (GameMod.RELAX.isActive() || GameMod.AUTOPILOT.isActive())) {
 				pauseTime = -1;
 				if (!isLeadIn())
 					MusicController.resume();
@@ -436,7 +434,7 @@ public class Game extends BasicGameState {
 			else {  // go to ranking screen
 				((GameRanking) game.getState(Opsu.STATE_GAMERANKING)).setGameData(data);
 				ScoreData score = data.getScoreData(osu);
-				if (!GameMod.AUTO.isActive())
+				if (!GameMod.AUTO.isActive() && !GameMod.RELAX.isActive() && !GameMod.AUTOPILOT.isActive())
 					ScoreDB.addScore(score);
 				game.enterState(Opsu.STATE_GAMERANKING, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 			}
@@ -537,9 +535,9 @@ public class Game extends BasicGameState {
 		// game keys
 		if (!Keyboard.isRepeatEvent()) {
 			if (key == Options.getGameKeyLeft())
-				mousePressed(Input.MOUSE_LEFT_BUTTON, input.getMouseX(), input.getMouseY());
+				gameKeyPressed(Input.MOUSE_LEFT_BUTTON, input.getMouseX(), input.getMouseY());
 			else if (key == Options.getGameKeyRight())
-				mousePressed(Input.MOUSE_RIGHT_BUTTON, input.getMouseX(), input.getMouseY());
+				gameKeyPressed(Input.MOUSE_RIGHT_BUTTON, input.getMouseX(), input.getMouseY());
 		}
 
 		switch (key) {
@@ -586,8 +584,10 @@ public class Game extends BasicGameState {
 					break;
 
 				int position = (pauseTime > -1) ? pauseTime : trackPosition;
-				if (Options.setCheckpoint(position / 1000))
+				if (Options.setCheckpoint(position / 1000)) {
 					SoundController.playSound(SoundEffect.MENUCLICK);
+					UI.sendBarNotification("Checkpoint saved.");
+				}
 			}
 			break;
 		case Input.KEY_L:
@@ -605,6 +605,7 @@ public class Game extends BasicGameState {
 						MusicController.resume();
 					}
 					SoundController.playSound(SoundEffect.MENUHIT);
+					UI.sendBarNotification("Checkpoint loaded.");
 
 					// skip to checkpoint
 					MusicController.setPosition(checkpoint);
@@ -618,10 +619,16 @@ public class Game extends BasicGameState {
 			}
 			break;
 		case Input.KEY_UP:
-			Utils.changeVolume(1);
+			UI.changeVolume(1);
 			break;
 		case Input.KEY_DOWN:
-			Utils.changeVolume(-1);
+			UI.changeVolume(-1);
+			break;
+		case Input.KEY_F7:
+			Options.setNextFPS(container);
+			break;
+		case Input.KEY_F10:
+			Options.toggleMouseDisabled();
 			break;
 		case Input.KEY_F12:
 			Utils.takeScreenShot();
@@ -631,9 +638,33 @@ public class Game extends BasicGameState {
 
 	@Override
 	public void mousePressed(int button, int x, int y) {
-		if (button == Input.MOUSE_MIDDLE_BUTTON)
+		if (Options.isMouseDisabled())
 			return;
 
+		// mouse wheel: pause the game
+		if (button == Input.MOUSE_MIDDLE_BUTTON && !Options.isMouseWheelDisabled()) {
+			int trackPosition = MusicController.getPosition();
+			if (pauseTime < 0 && breakTime <= 0 && trackPosition >= osu.objects[0].getTime()) {
+				pausedMouseX = x;
+				pausedMouseY = y;
+				pausePulse = 0f;
+			}
+			if (MusicController.isPlaying() || isLeadIn())
+				pauseTime = trackPosition;
+			game.enterState(Opsu.STATE_GAMEPAUSEMENU, new EmptyTransition(), new FadeInTransition(Color.black));
+			return;
+		}
+
+		gameKeyPressed(button, x, y);
+	}
+
+	/**
+	 * Handles a game key pressed event.
+	 * @param button the index of the button pressed
+	 * @param x the mouse x coordinate
+	 * @param y the mouse y coordinate
+	 */
+	private void gameKeyPressed(int button, int x, int y) {
 		// returning from pause screen
 		if (pauseTime > -1) {
 			double distance = Math.hypot(pausedMouseX - x, pausedMouseY - y);
@@ -660,8 +691,8 @@ public class Game extends BasicGameState {
 				return;  // successfully skipped
 		}
 
-		// "auto" mod: ignore user actions
-		if (GameMod.AUTO.isActive())
+		// "auto" and "relax" mods: ignore user actions
+		if (GameMod.AUTO.isActive() || GameMod.RELAX.isActive())
 			return;
 
 		// circles
@@ -680,12 +711,16 @@ public class Game extends BasicGameState {
 
 	@Override
 	public void mouseWheelMoved(int newValue) {
-		Utils.changeVolume((newValue < 0) ? -1 : 1);
+		if (Options.isMouseWheelDisabled() || Options.isMouseDisabled())
+			return;
+
+		UI.changeVolume((newValue < 0) ? -1 : 1);
 	}
 
 	@Override
 	public void enter(GameContainer container, StateBasedGame game)
 			throws SlickException {
+		UI.enter();
 		if (restart == Restart.NEW)
 			osu = MusicController.getOsuFile();
 
@@ -814,8 +849,10 @@ public class Game extends BasicGameState {
 		// set images
 		File parent = osu.getFile().getParentFile();
 		for (GameImage img : GameImage.values()) {
-			if (img.isSkinnable())
+			if (img.isSkinnable()) {
+				img.setDefaultImage();
 				img.setSkinImage(parent);
+			}
 		}
 
 		// skip button

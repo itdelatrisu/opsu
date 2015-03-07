@@ -201,7 +201,12 @@ public class OsuHitObject {
 			if (index != -1)
 				tokens[5] = tokens[5].substring(0, index);
 			this.endTime = Integer.parseInt(tokens[5]);
-			/* TODO: 'addition' not implemented. */
+			if (tokens.length > 6) {
+				String[] additionTokens = tokens[6].split(":");
+				this.addition = new byte[additionTokens.length];
+				for (int j = 0; j < additionTokens.length; j++)
+					this.addition[j] = Byte.parseByte(additionTokens[j]);
+			}
 		}
 	}
 
@@ -237,11 +242,12 @@ public class OsuHitObject {
 
 	/**
 	 * Returns the edge hit sound type.
+	 * @param index the slider edge index (ignored for non-sliders)
 	 * @return the sound type (SOUND_* bitmask)
 	 */
-	public byte getEdgeHitSoundType(int i) {
+	public byte getEdgeHitSoundType(int index) {
 		if (edgeHitSound != null)
-			return edgeHitSound[i];
+			return edgeHitSound[index];
 		else
 			return hitSound;
 	}

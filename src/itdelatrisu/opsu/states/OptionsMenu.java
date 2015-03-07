@@ -24,6 +24,7 @@ import itdelatrisu.opsu.MenuButton;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.Options.GameOption;
+import itdelatrisu.opsu.UI;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
@@ -74,8 +75,6 @@ public class OptionsMenu extends BasicGameState {
 			GameOption.ENABLE_THEME_SONG
 		}),
 		GAMEPLAY ("Gameplay", new GameOption[] {
-			GameOption.KEY_LEFT,
-			GameOption.KEY_RIGHT,
 			GameOption.BACKGROUND_DIM,
 			GameOption.FORCE_DEFAULT_PLAYFIELD,
 			GameOption.IGNORE_BEATMAP_SKINS,
@@ -83,6 +82,12 @@ public class OptionsMenu extends BasicGameState {
 			GameOption.SHOW_COMBO_BURSTS,
 			GameOption.SHOW_PERFECT_HIT,
 			GameOption.SHOW_HIT_ERROR_BAR
+		}),
+		INPUT ("Input", new GameOption[] {
+			GameOption.KEY_LEFT,
+			GameOption.KEY_RIGHT,
+			GameOption.DISABLE_MOUSE_WHEEL,
+			GameOption.DISABLE_MOUSE_BUTTONS
 		}),
 		CUSTOM ("Custom", new GameOption[] {
 			GameOption.FIXED_CS,
@@ -181,7 +186,7 @@ public class OptionsMenu extends BasicGameState {
 		float tabX = (width / 50) + (tabImage.getWidth() / 2f);
 		float tabY = Utils.FONT_LARGE.getLineHeight() + Utils.FONT_DEFAULT.getLineHeight() +
 				height * 0.03f + (tabImage.getHeight() / 2f);
-		int tabOffset = Math.min(tabImage.getWidth(), (width / 2) / OptionTab.SIZE);
+		int tabOffset = Math.min(tabImage.getWidth(), width / OptionTab.SIZE);
 		for (OptionTab tab : OptionTab.values())
 			tab.button = new MenuButton(tabImage, tabX + (tab.ordinal() * tabOffset), tabY);
 
@@ -226,10 +231,10 @@ public class OptionsMenu extends BasicGameState {
 		}
 		for (OptionTab tab : OptionTab.VALUES_REVERSED) {
 			if (tab != currentTab)
-				Utils.drawTab(tab.button.getX(), tab.button.getY(),
+				UI.drawTab(tab.button.getX(), tab.button.getY(),
 						tab.getName(), false, tab == hoverTab);
 		}
-		Utils.drawTab(currentTab.button.getX(), currentTab.button.getY(),
+		UI.drawTab(currentTab.button.getX(), currentTab.button.getY(),
 				currentTab.getName(), true, false);
 		g.setColor(Color.white);
 		g.setLineWidth(2f);
@@ -237,31 +242,31 @@ public class OptionsMenu extends BasicGameState {
 		g.drawLine(0, lineY, width, lineY);
 		g.resetLineWidth();
 
-		Utils.getBackButton().draw();
+		UI.getBackButton().draw();
 
 		// key entry state
 		if (keyEntryLeft || keyEntryRight) {
 			g.setColor(Utils.COLOR_BLACK_ALPHA);
 			g.fillRect(0, 0, width, height);
 			g.setColor(Color.white);
+			String prompt = (keyEntryLeft) ?
+					"Please press the new left-click key." :
+					"Please press the new right-click key.";
 			Utils.FONT_LARGE.drawString(
-					(width / 2) - (Utils.FONT_LARGE.getWidth("Please enter a letter or digit.") / 2),
-					(height / 2) - Utils.FONT_LARGE.getLineHeight(), "Please enter a letter or digit."
+					(width / 2) - (Utils.FONT_LARGE.getWidth(prompt) / 2),
+					(height / 2) - Utils.FONT_LARGE.getLineHeight(), prompt
 			);
 		}
 
-		Utils.drawVolume(g);
-		Utils.drawFPS();
-		Utils.drawCursor();
+		UI.draw(g);
 	}
 
 	@Override
 	public void update(GameContainer container, StateBasedGame game, int delta)
 			throws SlickException {
-		Utils.updateCursor(delta);
-		Utils.updateVolumeDisplay(delta);
+		UI.update(delta);
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
-		Utils.getBackButton().hoverUpdate(delta, mouseX, mouseY);
+		UI.getBackButton().hoverUpdate(delta, mouseX, mouseY);
 	}
 
 	@Override
@@ -280,7 +285,7 @@ public class OptionsMenu extends BasicGameState {
 			return;
 
 		// back
-		if (Utils.getBackButton().contains(x, y)) {
+		if (UI.getBackButton().contains(x, y)) {
 			SoundController.playSound(SoundEffect.MENUBACK);
 			game.enterState(Opsu.STATE_SONGMENU, new EmptyTransition(), new FadeInTransition(Color.black));
 			return;
@@ -343,12 +348,10 @@ public class OptionsMenu extends BasicGameState {
 	public void keyPressed(int key, char c) {
 		// key entry state
 		if (keyEntryLeft || keyEntryRight) {
-			if (Character.isLetterOrDigit(c)) {
-				if (keyEntryLeft && Options.getGameKeyRight() != key)
-					Options.setGameKeyLeft(key);
-				else if (keyEntryRight && Options.getGameKeyLeft() != key)
-					Options.setGameKeyRight(key);
-			}
+			if (keyEntryLeft)
+				Options.setGameKeyLeft(key);
+			else
+				Options.setGameKeyRight(key);
 			keyEntryLeft = keyEntryRight = false;
 			return;
 		}
@@ -365,6 +368,12 @@ public class OptionsMenu extends BasicGameState {
 				container.setForceExit(false);
 				container.exit();
 			}
+			break;
+		case Input.KEY_F7:
+			Options.setNextFPS(container);
+			break;
+		case Input.KEY_F10:
+			Options.toggleMouseDisabled();
 			break;
 		case Input.KEY_F12:
 			Utils.takeScreenShot();
@@ -383,8 +392,8 @@ public class OptionsMenu extends BasicGameState {
 	@Override
 	public void enter(GameContainer container, StateBasedGame game)
 			throws SlickException {
+		UI.enter();
 		currentTab = OptionTab.DISPLAY;
-		Utils.getBackButton().resetHover();
 	}
 
 	/**

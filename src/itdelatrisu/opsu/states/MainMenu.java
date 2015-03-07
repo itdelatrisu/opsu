@@ -29,10 +29,12 @@ import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.OsuFile;
 import itdelatrisu.opsu.OsuGroupList;
 import itdelatrisu.opsu.OsuGroupNode;
+import itdelatrisu.opsu.UI;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
+import itdelatrisu.opsu.downloads.Updater;
 import itdelatrisu.opsu.states.ButtonMenu.MenuState;
 
 /*
@@ -87,6 +89,9 @@ public class MainMenu extends BasicGameState {
 	/** Button linking to repository. */
 	private MenuButton repoButton;
 
+	/** Button for installing updates. */
+	private MenuButton updateButton;
+
 	/** Application start time, for drawing the total running time. */
 	private long osuStartTime;
 
@@ -95,6 +100,9 @@ public class MainMenu extends BasicGameState {
 
 	/** Background alpha level (for fade-in effect). */
 	private float bgAlpha = 0f;
+
+	/** Whether or not an update notification was already sent. */
+	private boolean updateNotification = false;
 
 	/** Music position bar coordinates and dimensions. */
 	private float musicBarX, musicBarY, musicBarWidth, musicBarHeight;
@@ -167,13 +175,21 @@ public class MainMenu extends BasicGameState {
 		downloadsButton.setHoverExpand(1.03f, Expand.LEFT);
 
 		// initialize repository button
+		float startX = width * 0.997f, startY = height * 0.997f;
 		if (Desktop.isDesktopSupported()) {  // only if a webpage can be opened
 			Image repoImg = GameImage.REPOSITORY.getImage();
 			repoButton = new MenuButton(repoImg,
-					(width * 0.997f) - repoImg.getWidth(), (height * 0.997f) - repoImg.getHeight()
+					startX - repoImg.getWidth(), startY - repoImg.getHeight()
 			);
 			repoButton.setHoverExpand();
-		}
+			startX -= repoImg.getWidth() * 1.75f;
+		} else
+			startX -= width * 0.005f;
+
+		// initialize update button
+		Image bangImg = GameImage.BANG.getImage();
+		updateButton = new MenuButton(bangImg, startX - bangImg.getWidth(), startY - bangImg.getHeight());
+		updateButton.setHoverExpand(1.15f);
 
 		reset();
 	}
@@ -235,6 +251,27 @@ public class MainMenu extends BasicGameState {
 		if (repoButton != null)
 			repoButton.draw();
 
+		// draw update button
+		boolean showUpdateButton = Updater.get().showButton();
+		if (Updater.get().showButton()) {
+			Color updateColor = null;
+			switch (Updater.get().getStatus()) {
+			case UPDATE_AVAILABLE:
+				updateColor = Color.red;
+				break;
+			case UPDATE_DOWNLOADED:
+				updateColor = Color.green;
+				break;
+			case UPDATE_DOWNLOADING:
+				updateColor = Color.yellow;
+				break;
+			default:
+				updateColor = Color.white;
+				break;
+			}
+			updateButton.draw(updateColor);
+		}
+
 		// draw text
 		float marginX = width * 0.015f, marginY = height * 0.015f;
 		g.setFont(Utils.FONT_MEDIUM);
@@ -260,32 +297,32 @@ public class MainMenu extends BasicGameState {
 				new SimpleDateFormat("h:mm a").format(new Date())),
 				marginX, height - marginY - lineHeight);
 
-		Utils.drawVolume(g);
-		Utils.drawFPS();
-		Utils.drawCursor();
+		UI.draw(g);
 
 		// tooltips
 		if (musicPositionBarContains(mouseX, mouseY))
-			Utils.drawTooltip(g, "Click to seek to a specific point in the song.", false);
+			UI.drawTooltip(g, "Click to seek to a specific point in the song.", false);
 		else if (musicPlay.contains(mouseX, mouseY))
-			Utils.drawTooltip(g, (MusicController.isPlaying()) ? "Pause" : "Play", false);
+			UI.drawTooltip(g, (MusicController.isPlaying()) ? "Pause" : "Play", false);
 		else if (musicNext.contains(mouseX, mouseY))
-			Utils.drawTooltip(g, "Next track", false);
+			UI.drawTooltip(g, "Next track", false);
 		else if (musicPrevious.contains(mouseX, mouseY))
-			Utils.drawTooltip(g, "Previous track", false);
+			UI.drawTooltip(g, "Previous track", false);
+		else if (showUpdateButton && updateButton.contains(mouseX, mouseY))
+			UI.drawTooltip(g, Updater.get().getStatus().getDescription(), true);
 	}
 
 	@Override
 	public void update(GameContainer container, StateBasedGame game, int delta)
 			throws SlickException {
-		Utils.updateCursor(delta);
-		Utils.updateVolumeDisplay(delta);
+		UI.update(delta);
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
 		logo.hoverUpdate(delta, mouseX, mouseY, 0.25f);
 		playButton.hoverUpdate(delta, mouseX, mouseY, 0.25f);
 		exitButton.hoverUpdate(delta, mouseX, mouseY, 0.25f);
 		if (repoButton != null)
 			repoButton.hoverUpdate(delta, mouseX, mouseY);
+		updateButton.hoverUpdate(delta, mouseX, mouseY);
 		downloadsButton.hoverUpdate(delta, mouseX, mouseY);
 		// ensure only one button is in hover state at once
 		if (musicPositionBarContains(mouseX, mouseY))
@@ -352,6 +389,12 @@ public class MainMenu extends BasicGameState {
 	@Override
 	public void enter(GameContainer container, StateBasedGame game)
 			throws SlickException {
+		UI.enter();
+		if (!updateNotification && Updater.get().getStatus() == Updater.Status.UPDATE_AVAILABLE) {
+			UI.sendBarNotification("An opsu! update is available.");
+			updateNotification = true;
+		}
+
 		// reset button hover states if mouse is not currently hovering over the button
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
 		if (!logo.contains(mouseX, mouseY, 0.25f))
@@ -370,6 +413,8 @@ public class MainMenu extends BasicGameState {
 			musicPrevious.resetHover();
 		if (repoButton != null && !repoButton.contains(mouseX, mouseY))
 			repoButton.resetHover();
+		if (!updateButton.contains(mouseX, mouseY))
+			updateButton.resetHover();
 		if (!downloadsButton.contains(mouseX, mouseY))
 			downloadsButton.resetHover();
 	}
@@ -392,30 +437,25 @@ public class MainMenu extends BasicGameState {
 
 		// music button actions
 		if (musicPlay.contains(x, y)) {
-			if (MusicController.isPlaying())
+			if (MusicController.isPlaying()) {
 				MusicController.pause();
-			else if (!MusicController.isTrackLoading())
+				UI.sendBarNotification("Pause");
+			} else if (!MusicController.isTrackLoading()) {
 				MusicController.resume();
-		} else if (musicNext.contains(x, y)) {
-			boolean isTheme = MusicController.isThemePlaying();
-			SongMenu menu = (SongMenu) game.getState(Opsu.STATE_SONGMENU);
-			OsuGroupNode node = menu.setFocus(OsuGroupList.get().getRandomNode(), -1, true);
-			boolean sameAudio = false;
-			if (node != null) {
-				sameAudio = MusicController.getOsuFile().audioFilename.equals(node.osuFiles.get(0).audioFilename);
-				if (!isTheme && !sameAudio)
-					previous.add(node.index);
+				UI.sendBarNotification("Play");
 			}
-			if (Options.isDynamicBackgroundEnabled() && !sameAudio && !MusicController.isThemePlaying())
-				bgAlpha = 0f;
+		} else if (musicNext.contains(x, y)) {
+			nextTrack();
+			UI.sendBarNotification(">> Next");
 		} else if (musicPrevious.contains(x, y)) {
 			if (!previous.isEmpty()) {
 				SongMenu menu = (SongMenu) game.getState(Opsu.STATE_SONGMENU);
-				menu.setFocus(OsuGroupList.get().getBaseNode(previous.pop()), -1, true);
+				menu.setFocus(OsuGroupList.get().getBaseNode(previous.pop()), -1, true, false);
 				if (Options.isDynamicBackgroundEnabled())
 					bgAlpha = 0f;
 			} else
 				MusicController.setPosition(0);
+			UI.sendBarNotification("<< Previous");
 		}
 
 		// downloads button actions
@@ -430,6 +470,24 @@ public class MainMenu extends BasicGameState {
 				Desktop.getDesktop().browse(Options.REPOSITORY_URI);
 			} catch (IOException e) {
 				ErrorHandler.error("Could not browse to repository URI.", e, false);
+			}
+		}
+
+		// update button actions
+		else if (Updater.get().showButton() && updateButton.contains(x, y)) {
+			switch (Updater.get().getStatus()) {
+			case UPDATE_AVAILABLE:
+				SoundController.playSound(SoundEffect.MENUHIT);
+				Updater.get().startDownload();
+				break;
+			case UPDATE_DOWNLOADED:
+				SoundController.playSound(SoundEffect.MENUHIT);
+				Updater.get().prepareUpdate();
+				container.setForceExit(false);
+				container.exit();
+				break;
+			default:
+				break;
 			}
 		}
 
@@ -456,7 +514,7 @@ public class MainMenu extends BasicGameState {
 
 	@Override
 	public void mouseWheelMoved(int newValue) {
-		Utils.changeVolume((newValue < 0) ? -1 : 1);
+		UI.changeVolume((newValue < 0) ? -1 : 1);
 	}
 
 	@Override
@@ -469,22 +527,33 @@ public class MainMenu extends BasicGameState {
 			game.enterState(Opsu.STATE_BUTTONMENU);
 			break;
 		case Input.KEY_P:
+			SoundController.playSound(SoundEffect.MENUHIT);
 			if (!logoClicked) {
 				logoClicked = true;
 				logoTimer = 0;
 				playButton.getImage().setAlpha(0f);
 				exitButton.getImage().setAlpha(0f);
-				SoundController.playSound(SoundEffect.MENUHIT);
-			} else {
-				SoundController.playSound(SoundEffect.MENUHIT);
+			} else
 				game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
-			}
+			break;
+		case Input.KEY_D:
+			SoundController.playSound(SoundEffect.MENUHIT);
+			game.enterState(Opsu.STATE_DOWNLOADSMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
+			break;
+		case Input.KEY_R:
+			nextTrack();
 			break;
 		case Input.KEY_UP:
-			Utils.changeVolume(1);
+			UI.changeVolume(1);
 			break;
 		case Input.KEY_DOWN:
-			Utils.changeVolume(-1);
+			UI.changeVolume(-1);
+			break;
+		case Input.KEY_F7:
+			Options.setNextFPS(container);
+			break;
+		case Input.KEY_F10:
+			Options.toggleMouseDisabled();
 			break;
 		case Input.KEY_F12:
 			Utils.takeScreenShot();
@@ -518,6 +587,26 @@ public class MainMenu extends BasicGameState {
 		musicPause.resetHover();
 		musicNext.resetHover();
 		musicPrevious.resetHover();
+		if (repoButton != null)
+			repoButton.resetHover();
+		updateButton.resetHover();
 		downloadsButton.resetHover();
+	}
+
+	/**
+	 * Plays the next track, and adds the previous one to the stack.
+	 */
+	private void nextTrack() {
+		boolean isTheme = MusicController.isThemePlaying();
+		SongMenu menu = (SongMenu) game.getState(Opsu.STATE_SONGMENU);
+		OsuGroupNode node = menu.setFocus(OsuGroupList.get().getRandomNode(), -1, true, false);
+		boolean sameAudio = false;
+		if (node != null) {
+			sameAudio = MusicController.getOsuFile().audioFilename.equals(node.osuFiles.get(0).audioFilename);
+			if (!isTheme && !sameAudio)
+				previous.add(node.index);
+		}
+		if (Options.isDynamicBackgroundEnabled() && !sameAudio && !MusicController.isThemePlaying())
+			bgAlpha = 0f;
 	}
 }

@@ -20,6 +20,8 @@ package itdelatrisu.opsu;
 
 import fluddokt.opsu.fake.*;
 
+import itdelatrisu.opsu.db.OsuDB;
+
 import java.io.BufferedReader;
 /*
 import java.io.File;
@@ -37,6 +39,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.Map;
 /*
 import org.newdawn.slick.Color;
 import org.newdawn.slick.util.Log;
@@ -60,6 +63,9 @@ public class OsuParser {
 
 	/** The total number of directories to parse. */
 	private static int totalDirectories = -1;
+
+	/** Whether or not the database is currently being updated. */
+	private static boolean updatingDatabase = false;
 
 	// This class should not be instantiated.
 	private OsuParser() {}
@@ -92,7 +98,11 @@ public class OsuParser {
 		currentDirectoryIndex = 0;
 		totalDirectories = dirs.length;
 
+		// get last modified map from database
+		Map<String, Long> map = OsuDB.getLastModifiedMap();
+
 		// parse directories
+		LinkedList<OsuFile> parsedOsuFiles = new LinkedList<OsuFile>();
 		OsuGroupNode lastNode = null;
 		for (File dir : dirs) {
 			System.out.println("OsuParser Folder:"+dir);
@@ -115,9 +125,24 @@ public class OsuParser {
 			for (File file : files) {
 				currentFile = file;
 
+				// check if beatmap is cached
+				String path = String.format("%s/%s", dir.getName(), file.getName());
+				if (map.containsKey(path)) {
+					// check last modified times
+					long lastModified = map.get(path);
+					if (lastModified == file.lastModified()) {
+						osuFiles.add(OsuDB.getOsuFile(dir, file));
+						continue;
+					} else
+						OsuDB.delete(dir.getName(), file.getName());
+				}
+
 				// Parse hit objects only when needed to save time/memory.
 				// Change boolean to 'true' to parse them immediately.
-				parseFile(file, dir, osuFiles, false);
+				OsuFile osu = parseFile(file, dir, osuFiles, false);
+
+				if (osu != null)
+					parsedOsuFiles.add(osu);
 			}
 			if (!osuFiles.isEmpty()) {  // add entry if non-empty
 				osuFiles.trimToSize();
@@ -132,6 +157,13 @@ public class OsuParser {
 
 		// clear string DB
 		stringdb = new HashMap<String, String>();
+
+		// add entries to database
+		if (!parsedOsuFiles.isEmpty()) {
+			updatingDatabase = true;
+			OsuDB.insert(parsedOsuFiles);
+			updatingDatabase = false;
+		}
 
 		currentFile = null;
 		currentDirectoryIndex = -1;
@@ -152,9 +184,6 @@ public class OsuParser {
 
 		//try (BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF-8"))) {
 		try (BufferedReader in = file.reader(0xfff,"UTF-8")) {
-			// initialize timing point list
-			osu.timingPoints = new ArrayList<OsuTimingPoint>();
-
 			String line = in.readLine();
 			String tokens[] = null;
 			while (line != null) {
@@ -177,11 +206,27 @@ public class OsuParser {
 							switch (tokens[0]) {
 							case "AudioFilename":
 								File audioFileName = new File(file.getParentFile(), tokens[1]);
+								File audioFileName = new File(dir, tokens[1]);
 								if (!osuFiles.isEmpty()) {
 									// if possible, reuse the same File object from another OsuFile in the group
 									File groupAudioFileName = osuFiles.get(0).audioFilename;
-									if (audioFileName.equals(groupAudioFileName))
+									if (tokens[1].equalsIgnoreCase(groupAudioFileName.getName()))
 										audioFileName = groupAudioFileName;
+								}
+								if (!audioFileName.isFile()) {
+									// try to find the file with a case-insensitive match
+									boolean match = false;
+									for (String s : dir.list()) {
+										if (s.equalsIgnoreCase(tokens[1])) {
+											audioFileName = new File(dir, s);
+											match = true;
+											break;
+										}
+									}
+									if (!match) {
+										Log.error(String.format("File not found: '%s'", tokens[1]));
+										return null;
+									}
 								}
 								osu.audioFilename = audioFileName;
 								break;
@@ -373,7 +418,7 @@ public class OsuParser {
 							tokens[2] = tokens[2].replaceAll("^\"|\"$", "");
 							String ext = OsuParser.getExtension(tokens[2]);
 							if (ext.equals("jpg") || ext.equals("png"))
-								osu.bg = getDBString(file.getParent() + File.separator + tokens[2]);
+								osu.bg = getDBString(tokens[2]);
 							break;
 						case "2":  // break periods
 							try {
@@ -635,7 +680,10 @@ public class OsuParser {
 	 * Returns the name of the current file being parsed, or null if none.
 	 */
 	public static String getCurrentFileName() {
-		return (currentFile != null) ? currentFile.getName() : null;
+		if (updatingDatabase)
+			return "";
+		else
+			return (currentFile != null) ? currentFile.getName() : null;
 	}
 
 	/**
@@ -650,12 +698,17 @@ public class OsuParser {
 	}
 
 	/**
+	 * Returns whether or not the beatmap database is currently being updated.
+	 */
+	public static boolean isUpdatingDatabase() { return updatingDatabase; }
+
+	/**
 	 * Returns the String object in the database for the given String.
 	 * If none, insert the String into the database and return the original String.
 	 * @param s the string to retrieve
 	 * @return the string object
 	 */
-	private static String getDBString(String s) {
+	public static String getDBString(String s) {
 		String DBString = stringdb.get(s);
 		if (DBString == null) {
 			stringdb.put(s, s);

@@ -24,9 +24,11 @@ import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.GameMod;
 import itdelatrisu.opsu.MenuButton;
 import itdelatrisu.opsu.Opsu;
+import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.OsuGroupList;
 import itdelatrisu.opsu.OsuGroupNode;
 import itdelatrisu.opsu.ScoreData;
+import itdelatrisu.opsu.UI;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
@@ -185,7 +187,7 @@ public class ButtonMenu extends BasicGameState {
 
 				// tooltips
 				if (hoverMod != null && hoverMod.isImplemented())
-					Utils.drawTooltip(g, hoverMod.getDescription(), true);
+					UI.drawTooltip(g, hoverMod.getDescription(), true);
 			}
 
 			@Override
@@ -293,9 +295,7 @@ public class ButtonMenu extends BasicGameState {
 			for (int i = 0; i < buttons.length; i++)
 				menuButtons[i].draw(buttons[i].getColor());
 
-			Utils.drawVolume(g);
-			Utils.drawFPS();
-			Utils.drawCursor();
+			UI.draw(g);
 		}
 
 		/**
@@ -585,8 +585,7 @@ public class ButtonMenu extends BasicGameState {
 	@Override
 	public void update(GameContainer container, StateBasedGame game, int delta)
 			throws SlickException {
-		Utils.updateCursor(delta);
-		Utils.updateVolumeDisplay(delta);
+		UI.update(delta);
 		if (menuState != null)
 			menuState.update(container, delta, input.getMouseX(), input.getMouseY());
 	}
@@ -611,6 +610,12 @@ public class ButtonMenu extends BasicGameState {
 			if (menuState != null)
 				menuState.leave(container, game);
 			break;
+		case Input.KEY_F7:
+			Options.setNextFPS(container);
+			break;
+		case Input.KEY_F10:
+			Options.toggleMouseDisabled();
+			break;
 		case Input.KEY_F12:
 			Utils.takeScreenShot();
 			break;
@@ -624,6 +629,7 @@ public class ButtonMenu extends BasicGameState {
 	@Override
 	public void enter(GameContainer container, StateBasedGame game)
 			throws SlickException {
+		UI.enter();
 		if (menuState != null)
 			menuState.enter(container, game);
 	}

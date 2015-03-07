@@ -147,7 +147,7 @@ public class Slider implements HitObject {
 
 	@SuppressWarnings("deprecation")
 	@Override
-	public void draw(int trackPosition, boolean currentObject, Graphics g) {
+	public void draw(Graphics g, int trackPosition) {
 		int timeDiff = hitObject.getTime() - trackPosition;
 		float scale = timeDiff / (float) game.getApproachTime();
 		float approachScale = 1 + scale * 3;
@@ -162,7 +162,7 @@ public class Slider implements HitObject {
 		curve.draw();
 
 		// ticks
-		if (currentObject && ticksT != null) {
+		if (timeDiff < 0 && ticksT != null) {
 			Image tick = GameImage.SLIDER_TICK.getImage();
 			for (int i = 0; i < ticksT.length; i++) {
 				float[] c = curve.pointAt(ticksT[i]);
@@ -351,6 +351,10 @@ public class Slider implements HitObject {
 							hitObject.getX(), hitObject.getY(), hitObject, currentRepeats);
 				}
 			}
+
+			// "relax" mod: click automatically
+			else if (GameMod.RELAX.isActive() && trackPosition >= time)
+				mousePressed(mouseX, mouseY);
 		}
 
 		// end of slider
@@ -358,7 +362,7 @@ public class Slider implements HitObject {
 			tickIntervals++;
 
 			// check if cursor pressed and within end circle
-			if (Utils.isGameKeyPressed()) {
+			if (Utils.isGameKeyPressed() || GameMod.RELAX.isActive()) {
 				float[] c = curve.pointAt(getT(trackPosition, false));
 				double distance = Math.hypot(c[0] - mouseX, c[1] - mouseY);
 				int followCircleRadius = GameImage.SLIDER_FOLLOWCIRCLE.getImage().getWidth() / 2;
@@ -407,7 +411,7 @@ public class Slider implements HitObject {
 		float[] c = curve.pointAt(getT(trackPosition, false));
 		double distance = Math.hypot(c[0] - mouseX, c[1] - mouseY);
 		int followCircleRadius = GameImage.SLIDER_FOLLOWCIRCLE.getImage().getWidth() / 2;
-		if ((Utils.isGameKeyPressed() && distance < followCircleRadius) || isAutoMod) {
+		if (((Utils.isGameKeyPressed() || GameMod.RELAX.isActive()) && distance < followCircleRadius) || isAutoMod) {
 			// mouse pressed and within follow circle
 			followCircleActive = true;
 			data.changeHealth(delta * GameData.HP_DRAIN_MULTIPLIER);

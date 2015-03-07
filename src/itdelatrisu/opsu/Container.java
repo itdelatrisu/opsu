@@ -21,8 +21,10 @@ package itdelatrisu.opsu;
 import fluddokt.opsu.fake.*;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.downloads.DownloadList;
+import itdelatrisu.opsu.downloads.Updater;
 
 /*
+import org.lwjgl.opengl.Display;
 import org.newdawn.slick.AppGameContainer;
 import org.newdawn.slick.Game;
 import org.newdawn.slick.SlickException;
@@ -78,10 +80,34 @@ public class Container extends AppGameContainer {
 			}
 		}
 
-		if (forceExit)
-			Opsu.exit();
+		if (forceExit) {
+			Opsu.close();
+			System.exit(0);
+		}
 	}
-
+/*
+	@Override
+	protected void gameLoop() throws SlickException {
+		int delta = getDelta();
+		if (!Display.isVisible() && updateOnlyOnVisible) {
+			try { Thread.sleep(100); } catch (Exception e) {}
+		} else {
+			try {
+				updateAndRender(delta);
+			} catch (SlickException e) {
+				this.e = e;  // store exception to display later
+				running = false;
+				return;
+			}
+		}
+		updateFPS();
+		Display.update();
+		if (Display.isCloseRequested()) {
+			if (game.closeRequested())
+				running = false;
+		}
+	}
+/*
 	/**
 	 * Actions to perform before destroying the game container.
 	 */
@@ -107,20 +133,16 @@ public class Container extends AppGameContainer {
 	}
 
 	@Override
-	protected void updateAndRender(int delta) throws SlickException {
-		try {
-			super.updateAndRender(delta);
-		} catch (SlickException e) {
-			this.e = e;  // store exception to display later
-			throw e;     // re-throw exception
-		}
-	}
-
-	@Override
 	public void exit() {
 		// show confirmation dialog if any downloads are active
-		if (forceExit && DownloadList.get().hasActiveDownloads() && DownloadList.showExitConfirmation())
-			return;
+		if (forceExit) {
+			if (DownloadList.get().hasActiveDownloads() &&
+			    UI.showExitConfirmation(DownloadList.EXIT_CONFIRMATION))
+				return;
+			if (Updater.get().getStatus() == Updater.Status.UPDATE_DOWNLOADING &&
+			    UI.showExitConfirmation(Updater.EXIT_CONFIRMATION))
+				return;
+		}
 
 		super.exit();
 	}

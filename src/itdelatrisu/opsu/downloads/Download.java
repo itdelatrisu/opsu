@@ -76,6 +76,12 @@ public class Download {
 		public String getName() { return name; }
 	}
 
+	/** Download listener interface. */
+	public interface DownloadListener {
+		/** Indication that a download has completed. */
+		public void completed();
+	}
+
 	/** The local path. */
 	private File localFile;
 
@@ -84,6 +90,9 @@ public class Download {
 
 	/** The download URL. */
 	private URL url;
+
+	/** The download listener. */
+	private DownloadListener listener;
 
 	/** The readable byte channel. */
 	private ReadableByteChannelWrapper rbc;
@@ -135,8 +144,24 @@ public class Download {
 			return;
 		}
 		this.localFile = file;
-		this.rename = rename;
+		this.rename = Utils.cleanFileName(rename, '-');
 	}
+
+	/**
+	 * Returns the remote download URL.
+	 */
+	public URL getRemoteURL() { return url; }
+
+	/**
+	 * Returns the local path to save the download (after renamed).
+	 */
+	public String getLocalPath() { return (rename != null) ? rename : localPath; }
+
+	/**
+	 * Sets the download listener.
+	 * @param listener the listener to set
+	 */
+	public void setListener(DownloadListener listener) { this.listener = listener; }
 
 	/**
 	 * Starts the download from the "waiting" status.
@@ -195,13 +220,16 @@ public class Download {
 						rbc.close();
 						fos.close();
 						if (rename != null) {
-							String cleanedName = Utils.cleanFileName(rename, '-');
 							move(localFile, new File(localFile.getParentFile(),cleanedName));
 							//Path source = localFile.toPath();
-							//Files.move(source, source.resolveSibling(cleanedName), StandardCopyOption.REPLACE_EXISTING);
+							//Files.move(source, source.resolveSibling(rename), StandardCopyOption.REPLACE_EXISTING);
+							Path source = new File(localPath).toPath();
+							Files.move(source, source.resolveSibling(rename), StandardCopyOption.REPLACE_EXISTING);
 						}
 					}else{
 						status = Status.CANCELLED;
+						if (listener != null)
+							listener.completed();
 					}
 				} catch (Exception e) {
 					status = Status.ERROR;
