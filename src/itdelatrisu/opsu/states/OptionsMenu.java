@@ -243,14 +243,9 @@ public class OptionsMenu extends BasicGameState {
 			g.setColor(Utils.COLOR_BLACK_ALPHA);
 			g.fillRect(0, 0, width, height);
 			g.setColor(Color.white);
-
-			String prompt;
-			if (keyEntryLeft) {
-				prompt = "Please press the new left-click key";
-			} else {
-				prompt = "Please press the new right-click key";
-			}
-
+			String prompt = (keyEntryLeft) ?
+					"Please press the new left-click key." :
+					"Please press the new right-click key.";
 			Utils.FONT_LARGE.drawString(
 					(width / 2) - (Utils.FONT_LARGE.getWidth(prompt) / 2),
 					(height / 2) - Utils.FONT_LARGE.getLineHeight(), prompt

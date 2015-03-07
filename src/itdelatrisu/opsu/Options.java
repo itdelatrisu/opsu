@@ -735,14 +735,13 @@ public class Options {
 
 	/**
 	 * Sets the left game key.
-	 * This will not be set to the same key as the right game key, nor to reserved keys like ESCAPE.
+	 * This will not be set to the same key as the right game key, nor to any
+	 * reserved keys (see {@link #isValidGameKey(int)}).
 	 * @param key the keyboard key
 	 * @return {@code true} if the key was set, {@code false} if it was rejected
 	 */
 	public static boolean setGameKeyLeft(int key) {
-		if (key == keyRight && key != Keyboard.KEY_NONE)
-			return false;
-		if (!isValidClickKey(key))
+		if ((key == keyRight && key != Keyboard.KEY_NONE) || !isValidGameKey(key))
 			return false;
 		keyLeft = key;
 		return true;
@@ -750,17 +749,27 @@ public class Options {
 
 	/**
 	 * Sets the right game key.
-	 * This will not be set to the same key as the left game key, nor to reserved keys like ESCAPE.
+	 * This will not be set to the same key as the left game key, nor to any
+	 * reserved keys (see {@link #isValidGameKey(int)}).
 	 * @param key the keyboard key
 	 * @return {@code true} if the key was set, {@code false} if it was rejected
 	 */
 	public static boolean setGameKeyRight(int key) {
-		if (key == keyLeft && key != Keyboard.KEY_NONE)
-			return false;
-		if (!isValidClickKey(key))
+		if ((key == keyLeft && key != Keyboard.KEY_NONE) || !isValidGameKey(key))
 			return false;
 		keyRight = key;
 		return true;
+	}
+
+	/**
+	 * Checks if the given key is a valid game key.
+	 * @param key the keyboard key
+	 * @return {@code true} if valid, {@code false} otherwise
+	 */
+	private static boolean isValidGameKey(int key) {
+		return (key != Keyboard.KEY_ESCAPE && key != Keyboard.KEY_SPACE &&
+		        key != Keyboard.KEY_UP && key != Keyboard.KEY_DOWN &&
+		        key != Keyboard.KEY_F7 && key != Keyboard.KEY_F10 && key != Keyboard.KEY_F12);
 	}
 
 	/**
@@ -847,10 +856,6 @@ public class Options {
 		}
 
 		return osu;
-	}
-
-	public static boolean isValidClickKey(int keyCode) {
-		return keyCode != Keyboard.KEY_ESCAPE;
 	}
 
 	/**
