@@ -11,7 +11,7 @@ public class Music implements AbsMusicCompleteListener{
 
 	public Music(String path, boolean b) {
 		if (path.toLowerCase().endsWith(".mp3"))
-			music = new MusicJL(path, this);
+			music = new MusicJL2(path, this);
 		else
 			music = new MusicGdx(path, this);
 		GameContainer.setMusic(this);
