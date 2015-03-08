@@ -511,9 +511,10 @@ public class DownloadsMenu extends BasicGameState {
 			SoundController.playSound(SoundEffect.MENUCLICK);
 
 			// import songs in new thread
-			importThread = new Thread() {
+			importThread = new Thread(); /*{
 				@Override
 				public void run() {
+			*/
 					// invoke unpacker and parser
 					File[] dirs = OszUnpacker.unpackAllFiles(Options.getOSZDir(), Options.getBeatmapDir());
 					if (dirs != null && dirs.length > 0) {
@@ -532,9 +533,11 @@ public class DownloadsMenu extends BasicGameState {
 
 					DownloadList.get().clearDownloads(Download.Status.COMPLETE);
 					importThread = null;
+			/*
 				}
 			};
 			importThread.start();
+			*/
 			return;
 		}
 		if (resetButton.contains(x, y)) {

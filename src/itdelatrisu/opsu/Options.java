@@ -231,7 +231,8 @@ public class Options {
 			}
 		},
 		DISABLE_SOUNDS ("Disable All Sound Effects", "May resolve Linux sound driver issues.  Requires a restart.",
-				(System.getProperty("os.name").toLowerCase().indexOf("linux") > -1)),
+				false//(System.getProperty("os.name").toLowerCase().indexOf("linux") > -1)
+				),
 		KEY_LEFT ("Left Game Key", "Select this option to input a key.") {
 			@Override
 			public String getValueString() { return Keyboard.getKeyName(getGameKeyLeft()); }
