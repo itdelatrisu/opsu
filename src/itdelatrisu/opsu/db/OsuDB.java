@@ -45,10 +45,10 @@ public class OsuDB {
 	 * Current database version.
 	 * This value should be changed whenever the database format changes.
 	 */
-	private static final String DATABASE_VERSION = "2014-03-04";
+	private static final String DATABASE_VERSION = "2014-03-08";
 
-	/** Minimum batch size to invoke batch loading. */
-	private static final int LOAD_BATCH_MIN = 100;
+	/** Minimum batch size ratio ({@code batchSize/cacheSize}) to invoke batch loading. */
+	private static final float LOAD_BATCH_MIN_RATIO = 0.2f;
 
 	/** Minimum batch size to invoke batch insertion. */
 	private static final int INSERT_BATCH_MIN = 100;
@@ -60,7 +60,10 @@ public class OsuDB {
 	private static Connection connection;
 
 	/** Query statements. */
-	private static PreparedStatement insertStmt, selectStmt, deleteMapStmt, deleteGroupStmt;
+	private static PreparedStatement insertStmt, selectStmt, deleteMapStmt, deleteGroupStmt, updateSizeStmt;
+
+	/** Current size of beatmap cache table. */
+	private static int cacheSize = -1;
 
 	// This class should not be instantiated.
 	private OsuDB() {}
@@ -77,9 +80,6 @@ public class OsuDB {
 		// create the database
 		createDatabase();
 
-		// check the database version
-		checkVersion();
-
 		// prepare sql statements
 		try {
 			insertStmt = connection.prepareStatement(
@@ -90,9 +90,16 @@ public class OsuDB {
 			selectStmt = connection.prepareStatement("SELECT * FROM beatmaps WHERE dir = ? AND file = ?");
 			deleteMapStmt = connection.prepareStatement("DELETE FROM beatmaps WHERE dir = ? AND file = ?");
 			deleteGroupStmt = connection.prepareStatement("DELETE FROM beatmaps WHERE dir = ?");
+			updateSizeStmt = connection.prepareStatement("REPLACE INTO info (key, value) VALUES ('size', ?)");
 		} catch (SQLException e) {
 			ErrorHandler.error("Failed to prepare beatmap statements.", e, true);
 		}
+
+		// retrieve the cache size
+		getCacheSize();
+
+		// check the database version
+		checkVersion();
 	}
 
 	/**
@@ -139,9 +146,6 @@ public class OsuDB {
 	 * from the current version, then updates the version field.
 	 */
 	private static void checkVersion() {
-		if (connection == null)
-			return;
-
 		try (Statement stmt = connection.createStatement()) {
 			// get the stored version
 			String sql = "SELECT value FROM info WHERE key = 'version'";
@@ -164,6 +168,39 @@ public class OsuDB {
 	}
 
 	/**
+	 * Retrieves the size of the beatmap cache from the 'info' table.
+	 */
+	private static void getCacheSize() {
+		try (Statement stmt = connection.createStatement()) {
+			String sql = "SELECT value FROM info WHERE key = 'size'";
+			ResultSet rs = stmt.executeQuery(sql);
+			try {
+				cacheSize = (rs.next()) ? Integer.parseInt(rs.getString(1)) : 0;
+			} catch (NumberFormatException e) {
+				cacheSize = 0;
+			}
+			rs.close();
+		} catch (SQLException e) {
+			ErrorHandler.error("Could not get beatmap cache size.", e, true);
+		}
+	}
+
+	/**
+	 * Updates the size of the beatmap cache in the 'info' table.
+	 */
+	private static void updateCacheSize() {
+		if (connection == null)
+			return;
+
+		try {
+			updateSizeStmt.setString(1, Integer.toString(Math.max(cacheSize, 0)));
+			updateSizeStmt.executeUpdate();
+		} catch (SQLException e) {
+			ErrorHandler.error("Could not update beatmap cache size.", e, true);
+		}
+	}
+
+	/**
 	 * Clears the database.
 	 */
 	public static void clearDatabase() {
@@ -174,6 +211,8 @@ public class OsuDB {
 		try (Statement stmt = connection.createStatement()) {
 			String sql = "DROP TABLE beatmaps";
 			stmt.executeUpdate(sql);
+			cacheSize = 0;
+			updateCacheSize();
 		} catch (SQLException e) {
 			ErrorHandler.error("Could not drop beatmap database.", e, true);
 		}
@@ -190,7 +229,8 @@ public class OsuDB {
 
 		try {
 			setStatementFields(insertStmt, osu);
-			insertStmt.executeUpdate();
+			cacheSize += insertStmt.executeUpdate();
+			updateCacheSize();
 		} catch (SQLException e) {
 			ErrorHandler.error("Failed to add beatmap to database.", e, true);
 		}
@@ -221,7 +261,11 @@ public class OsuDB {
 				setStatementFields(insertStmt, osu);
 				insertStmt.addBatch();
 			}
-			insertStmt.executeBatch();
+			int[] results = insertStmt.executeBatch();
+			for (int i = 0; i < results.length; i++) {
+				if (results[i] > 0)
+					cacheSize += results[i];
+			}
 
 			// re-create indexes
 			if (recreateIndexes) {
@@ -232,6 +276,9 @@ public class OsuDB {
 			// restore previous auto-commit mode
 			connection.commit();
 			connection.setAutoCommit(autoCommit);
+
+			// update cache size
+			updateCacheSize();
 		} catch (SQLException e) {
 			ErrorHandler.error("Failed to add beatmaps to database.", e, true);
 		}
@@ -324,7 +371,7 @@ public class OsuDB {
 
 		// batch size too small
 		int size = batch.size();
-		if (size < LOAD_BATCH_MIN) {
+		if (size < cacheSize * LOAD_BATCH_MIN_RATIO) {
 			for (OsuFile osu : batch)
 				load(osu, flag);
 			return;
@@ -463,7 +510,8 @@ public class OsuDB {
 		try {
 			deleteMapStmt.setString(1, dir);
 			deleteMapStmt.setString(2, file);
-			deleteMapStmt.executeUpdate();
+			cacheSize -= deleteMapStmt.executeUpdate();
+			updateCacheSize();
 		} catch (SQLException e) {
 			ErrorHandler.error("Failed to delete beatmap entry from database.", e, true);
 		}
@@ -479,7 +527,8 @@ public class OsuDB {
 
 		try {
 			deleteGroupStmt.setString(1, dir);
-			deleteGroupStmt.executeUpdate();
+			cacheSize -= deleteGroupStmt.executeUpdate();
+			updateCacheSize();
 		} catch (SQLException e) {
 			ErrorHandler.error("Failed to delete beatmap group entry from database.", e, true);
 		}
@@ -497,6 +546,7 @@ public class OsuDB {
 			selectStmt.close();
 			deleteMapStmt.close();
 			deleteGroupStmt.close();
+			updateSizeStmt.close();
 			connection.close();
 			connection = null;
 		} catch (SQLException e) {
