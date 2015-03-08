@@ -144,5 +144,9 @@ public class GameContainer {
 		sbg.removeKeyListener(listener);
 		
 	}
+	public void setUpdateOnlyWhenVisible(boolean b) {
+		// TODO Auto-generated method stub
+		
+	}
 
 }
