@@ -225,6 +225,11 @@ public class DownloadNode {
 				public void completed() {
 					UI.sendBarNotification(String.format("Download complete: %s", getTitle()));
 				}
+
+				@Override
+				public void error() {
+					UI.sendBarNotification("Download failed due to a connection error.");
+				}
 			});
 		}
 	}

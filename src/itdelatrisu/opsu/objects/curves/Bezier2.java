@@ -103,23 +103,23 @@ public class Bezier2 {
 	 * Returns the total distances of this Bezier curve.
 	 */
 	public float totalDistance() { return totalDistance; }
-	
+
 	/**
+	 * Calculates the binomial coefficient.
 	 * http://en.wikipedia.org/wiki/Binomial_coefficient#Binomial_coefficient_in_programming_languages
-	 * 
 	 */
 	public static long binomialCoefficient(int n, int k) {
 		if (k < 0 || k > n)
 			return 0;
 		if (k == 0 || k == n)
 			return 1;
-		k = Math.min(k, n - k); // # take advantage of symmetry
+		k = Math.min(k, n - k);  // take advantage of symmetry
 		long c = 1;
-		for (int i = 0; i < k; i++) {
+		for (int i = 0; i < k; i++)
 			c = c * (n - i) / (i + 1);
-		}
 		return c;
 	}
+
 	/**
 	 * Calculates the Bernstein polynomial.
 	 * @param i the index
@@ -129,6 +129,4 @@ public class Bezier2 {
 	private static double bernstein(int i, int n, float t) {
 		return binomialCoefficient(n, i) * Math.pow(t, i) * Math.pow(1 - t, n - i);
 	}
-	
-
 }

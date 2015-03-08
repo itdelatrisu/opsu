@@ -175,6 +175,12 @@ public class Updater {
 					status = Status.UPDATE_DOWNLOADED;
 					UI.sendBarNotification("Update has finished downloading.");
 				}
+
+				@Override
+				public void error() {
+					status = Status.CONNECTION_ERROR;
+					UI.sendBarNotification("Update failed due to a connection error.");
+				}
 			});
 		}
 	}
