@@ -150,7 +150,14 @@ public class Options {
 		TARGET_FPS ("Frame Limiter", "Higher values may cause high CPU usage.") {
 			@Override
 			public String getValueString() {
-				return String.format((getTargetFPS() == 60) ? "%dfps (vsync)" : "%dfps", getTargetFPS());
+                            if(getTargetFPS()==60){
+                                return String.format("%dfps (vsync)", getTargetFPS());
+                            } else if(getTargetFPS()==3000) {
+                                return String.format("Unlimited");
+                            } else {
+                                return String.format("%dfps",getTargetFPS());
+                            }
+                            //return String.format((getTargetFPS() == 60) ? "%dfps (vsync)" : "%dfps", getTargetFPS());
 			}
 
 			@Override
