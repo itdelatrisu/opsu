@@ -149,6 +149,14 @@ public class OpenALStreamPlayer {
 				audio = new Mp3InputStream(ResourceLoader.getResourceAsStream(ref));
 			else
 				audio = new OggInputStream(ResourceLoader.getResourceAsStream(ref));
+			
+			if(audio.getRate() == 0 && audio.getChannels() == 0) {
+				if (ref.toLowerCase().endsWith(".mp3"))
+					audio = new OggInputStream(ResourceLoader.getResourceAsStream(ref));
+				else
+					audio = new Mp3InputStream(ResourceLoader.getResourceAsStream(ref));
+					
+			}
 		}
 		
 		this.audio = audio;
