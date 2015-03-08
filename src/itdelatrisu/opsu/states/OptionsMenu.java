@@ -26,6 +26,7 @@ import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.Options.GameOption;
 import itdelatrisu.opsu.UI;
 import itdelatrisu.opsu.Utils;
+import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
 
@@ -94,7 +95,8 @@ public class OptionsMenu extends BasicGameState {
 			GameOption.FIXED_HP,
 			GameOption.FIXED_AR,
 			GameOption.FIXED_OD,
-			GameOption.CHECKPOINT
+			GameOption.CHECKPOINT,
+			GameOption.IN_GAME_PAUSE
 		});
 
 		/** Total number of tabs. */
@@ -265,6 +267,7 @@ public class OptionsMenu extends BasicGameState {
 	public void update(GameContainer container, StateBasedGame game, int delta)
 			throws SlickException {
 		UI.update(delta);
+		MusicController.loopTrackIfEnded(false);
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
 		UI.getBackButton().hoverUpdate(delta, mouseX, mouseY);
 	}

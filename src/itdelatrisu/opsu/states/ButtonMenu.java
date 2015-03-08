@@ -30,6 +30,7 @@ import itdelatrisu.opsu.OsuGroupNode;
 import itdelatrisu.opsu.ScoreData;
 import itdelatrisu.opsu.UI;
 import itdelatrisu.opsu.Utils;
+import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
 
@@ -586,6 +587,7 @@ public class ButtonMenu extends BasicGameState {
 	public void update(GameContainer container, StateBasedGame game, int delta)
 			throws SlickException {
 		UI.update(delta);
+		MusicController.loopTrackIfEnded(false);
 		if (menuState != null)
 			menuState.update(container, delta, input.getMouseX(), input.getMouseY());
 	}

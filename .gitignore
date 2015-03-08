@@ -4,7 +4,7 @@
 /Songs/
 /.opsu.log
 /.opsu.cfg
-/.opsu.db
+/.opsu.db*
 /.opsu_scores.db
 
 # Eclipse

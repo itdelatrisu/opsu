@@ -283,6 +283,15 @@ public class MusicController {
 	public static boolean trackEnded() { return trackEnded; }
 
 	/**
+	 * Loops the current track if it has ended.
+	 * @param preview whether to start at the preview time (true) or beginning (false)
+	 */
+	public static void loopTrackIfEnded(boolean preview) {
+		if (trackEnded && trackExists())
+			playAt((preview) ? lastOsu.previewTime : 0, false);
+	}
+
+	/**
 	 * Plays the theme song.
 	 */
 	public static void playThemeSong() {

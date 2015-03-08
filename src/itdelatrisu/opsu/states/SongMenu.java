@@ -463,6 +463,7 @@ public class SongMenu extends BasicGameState {
 	public void update(GameContainer container, StateBasedGame game, int delta)
 			throws SlickException {
 		UI.update(delta);
+		MusicController.loopTrackIfEnded(true);
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
 		UI.getBackButton().hoverUpdate(delta, mouseX, mouseY);
 		selectModsButton.hoverUpdate(delta, mouseX, mouseY);
@@ -1167,7 +1168,7 @@ public class SongMenu extends BasicGameState {
 			startNode = node;
 		focusNode = OsuGroupList.get().getNode(node, osuFileIndex);
 		OsuFile osu = focusNode.osuFiles.get(focusNode.osuFileIndex);
-		MusicController.play(osu, true, preview);
+		MusicController.play(osu, false, preview);
 		Utils.loadGlyphs(osu);
 
 		// load scores
