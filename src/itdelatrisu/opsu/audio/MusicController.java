@@ -111,7 +111,10 @@ public class MusicController {
 			player = new Music(file.getPath(), true);
 			player.addListener(new MusicListener() {
 				@Override
-				public void musicEnded(Music music) { trackEnded = true; }
+				public void musicEnded(Music music) {
+					if (music == player)  // don't fire if music swapped
+						trackEnded = true;
+				}
 
 				@Override
 				public void musicSwapped(Music music, Music newMusic) {}

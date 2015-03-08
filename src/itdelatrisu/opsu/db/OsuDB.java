@@ -76,12 +76,6 @@ public class OsuDB {
 		// create the database
 		createDatabase();
 
-		// retrieve the cache size
-		getCacheSize();
-
-		// check the database version
-		checkVersion();
-
 		// prepare sql statements
 		try {
 			insertStmt = connection.prepareStatement(
@@ -96,6 +90,12 @@ public class OsuDB {
 		} catch (SQLException e) {
 			ErrorHandler.error("Failed to prepare beatmap statements.", e, true);
 		}
+
+		// retrieve the cache size
+		getCacheSize();
+
+		// check the database version
+		checkVersion();
 	}
 
 	/**

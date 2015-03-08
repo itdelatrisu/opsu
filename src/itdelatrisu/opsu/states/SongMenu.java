@@ -199,6 +199,9 @@ public class SongMenu extends BasicGameState {
 	/** Time, in milliseconds, for fading the search bar. */
 	private int searchTransitionTimer = SEARCH_TRANSITION_TIME;
 
+	/** The text length of the last string in the search TextField. */
+	private int lastSearchTextLength = -1;
+
 	// game-related variables
 	private GameContainer container;
 	private StateBasedGame game;
@@ -831,11 +834,14 @@ public class SongMenu extends BasicGameState {
 			if ((c > 31 && c < 127) || key == Input.KEY_BACK) {
 				searchTimer = 0;
 				int textLength = search.getText().length();
-				if (key == Input.KEY_BACK) {
-					if (textLength == 0)
+				if (lastSearchTextLength != textLength) {
+					if (key == Input.KEY_BACK) {
+						if (textLength == 0)
+							searchTransitionTimer = 0;
+					} else if (textLength == 1)
 						searchTransitionTimer = 0;
-				} else if (textLength == 1)
-					searchTransitionTimer = 0;
+					lastSearchTextLength = textLength;
+				}
 			}
 			break;
 		}

@@ -254,6 +254,7 @@ public class OsuGroupList {
 
 	/**
 	 * Returns the OsuGroupNode at an index, disregarding expansions.
+	 * @param index the node index
 	 */
 	public OsuGroupNode getBaseNode(int index) {
 		if (index < 0 || index >= size())

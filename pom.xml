@@ -115,6 +115,7 @@
 								<exclude>org/newdawn/slick/GameContainer.*</exclude>
 								<exclude>org/newdawn/slick/Image.*</exclude>
 								<exclude>org/newdawn/slick/Music.*</exclude>
+								<exclude>org/newdawn/slick/gui/TextField.*</exclude>
 								<exclude>org/newdawn/slick/openal/AudioInputStream*</exclude>
 								<exclude>org/newdawn/slick/openal/OpenALStreamPlayer*</exclude>
 								<exclude>org/newdawn/slick/openal/SoundStore*</exclude>
