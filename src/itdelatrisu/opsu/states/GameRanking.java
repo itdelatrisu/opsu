@@ -125,7 +125,8 @@ public class GameRanking extends BasicGameState {
 		if (data.isGameplay()) {
 			retryButton.hoverUpdate(delta, mouseX, mouseY);
 			exitButton.hoverUpdate(delta, mouseX, mouseY);
-		}
+		} else
+			MusicController.loopTrackIfEnded(true);
 		UI.getBackButton().hoverUpdate(delta, mouseX, mouseY);
 	}
 

@@ -312,6 +312,8 @@ public class MainMenu extends BasicGameState {
 	public void update(GameContainer container, StateBasedGame game, int delta)
 			throws SlickException {
 		UI.update(delta);
+		if (MusicController.trackEnded())
+			nextTrack();  // end of track: go to next track
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
 		logo.hoverUpdate(delta, mouseX, mouseY, 0.25f);
 		playButton.hoverUpdate(delta, mouseX, mouseY, 0.25f);
@@ -377,9 +379,6 @@ public class MainMenu extends BasicGameState {
 					logo.setX(container.getWidth() / 2);
 			}
 		}
-		
-		if (MusicController.trackEnded())
-			nextTrack();
 	}
 
 	@Override

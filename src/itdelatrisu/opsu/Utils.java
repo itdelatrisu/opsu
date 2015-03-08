@@ -138,6 +138,7 @@ public class Utils {
 		container.setShowFPS(false);
 		container.getInput().enableKeyRepeat();
 		container.setAlwaysRender(true);
+		container.setUpdateOnlyWhenVisible(false);
 
 		int width = container.getWidth();
 		int height = container.getHeight();

@@ -28,6 +28,7 @@ import itdelatrisu.opsu.OsuParser;
 import itdelatrisu.opsu.OszUnpacker;
 import itdelatrisu.opsu.UI;
 import itdelatrisu.opsu.Utils;
+import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
 import itdelatrisu.opsu.downloads.BloodcatServer;
@@ -319,6 +320,7 @@ public class DownloadsMenu extends BasicGameState {
 	public void update(GameContainer container, StateBasedGame game, int delta)
 			throws SlickException {
 		UI.update(delta);
+		MusicController.loopTrackIfEnded(false);
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
 		UI.getBackButton().hoverUpdate(delta, mouseX, mouseY);
 		prevPage.hoverUpdate(delta, mouseX, mouseY);
