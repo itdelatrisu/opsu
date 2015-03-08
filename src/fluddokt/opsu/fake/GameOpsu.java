@@ -1,5 +1,6 @@
 package fluddokt.opsu.fake;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -9,6 +10,7 @@ import java.net.URISyntaxException;
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.Opsu;
+import itdelatrisu.opsu.Options;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputMultiplexer;
@@ -88,12 +90,28 @@ public class GameOpsu extends com.badlogic.gdx.Game {
 				sbg = Opsu.opsu;
 				sbg.gc.width = Gdx.graphics.getWidth();
 				sbg.gc.height = Gdx.graphics.getHeight();
+				File beatMapDir = Options.getBeatmapDir();
+			
 				try {
 					sbg.init();
 				} catch (SlickException e) {
 					e.printStackTrace();
 					error("SlickErrorInit", e);
 				}
+				
+				if(beatMapDir.isExternal()){
+					File nomediafile = new File(beatMapDir, ".nomedia");
+					if(!nomediafile.exists())
+						new FileOutputStream(nomediafile.getIOFile()).close();
+				}
+				File skinDir = Options.getSkinDir();
+				if(skinDir.isExternal()){
+					File nomediafile = new File(skinDir, ".nomedia");
+					if(!nomediafile.exists())
+						new FileOutputStream(nomediafile.getIOFile()).close();
+				}
+				
+				
 				Gdx.input.setInputProcessor(new InputMultiplexer(stage, sbg));
 				inited = true;
 			}

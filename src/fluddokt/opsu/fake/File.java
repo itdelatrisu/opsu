@@ -204,4 +204,12 @@ public class File {
 		return newlist;
 	}
 
+	public boolean isExternal() {
+		return fh.type() == FileType.External|| 
+				(
+					fh.type() == FileType.Absolute 
+					&& fh.path().contains(Gdx.files.getExternalStoragePath())
+				);
+	}
+
 }

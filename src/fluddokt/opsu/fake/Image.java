@@ -20,7 +20,8 @@ public class Image {
 	String filename;
 	TextureInfo texinfo;
 	static HashMap<String, TextureInfo> texmap = new HashMap<String, TextureInfo>();
-
+	Image parentImage;
+	
 	private class TextureInfo {
 		Texture tex;
 		int pw, ph;
@@ -219,6 +220,7 @@ public class Image {
 	public Image(Image copy, float wid, float hei) {
 		//texinfo = copy.texinfo;
 		//texinfo.add(this);
+		parentImage = copy;
 
 		tex = copy.tex;
 		width = wid;
@@ -230,6 +232,7 @@ public class Image {
 	public Image(Image copy, int x, int y, int wid, int hei) {
 		//texinfo = copy.texinfo;
 		//texinfo.add(this);
+		parentImage = copy;
 
 		float dx = copy.tex.getRegionWidth() / (float) copy.width;
 		float dy = copy.tex.getRegionHeight() / (float) copy.height;
@@ -278,8 +281,12 @@ public class Image {
 
 	public void destroy() throws SlickException {
 		// System.out.println("Destroy :"+name);
-		if (!destroyed)
-			texinfo.remove(this);
+		if (!destroyed){
+			if(parentImage != null)
+				parentImage.destroy();
+			if(texinfo != null)
+				texinfo.remove(this);
+		}
 		destroyed = true;
 	}
 

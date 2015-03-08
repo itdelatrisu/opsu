@@ -90,11 +90,8 @@ public class MusicJL extends AbsMusic {
 
 		public void run() {
 			try {
-				System.out
-						.println("MusicJL Running Thread play " + file.path());
-				bitstream = new Bitstream(file.read()
-				// )
-				);
+				System.out.println("MusicJL Running Thread play " + file.path());
+				bitstream = new Bitstream(file.read());
 				position = 0;
 				started = true;
 				while (!toStop) {
@@ -208,6 +205,13 @@ public class MusicJL extends AbsMusic {
 				ad.dispose();
 				audioUsed = false;
 			}
+			if (bitstream != null) {
+				try {
+					bitstream.close();
+				} catch (BitstreamException e) {
+					e.printStackTrace();
+				}
+			}
 			toStop = true;
 			paused = true;
 			System.out.println("Done " + file.path());
@@ -299,29 +303,8 @@ public class MusicJL extends AbsMusic {
 
 	@Override
 	public void dispose() {
-
 		System.out.println("dispose " + (file != null ? file.path() : "null"));
-		try {
-			stop();
-			playThread.join();
-		} catch (InterruptedException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-
-		if (ad != null) {
-			if (audioUsed)
-				ad.dispose();
-
-		}
-
-		if (bitstream != null) {
-			try {
-				bitstream.close();
-			} catch (BitstreamException e) {
-				e.printStackTrace();
-			}
-		}
+		stop();
 	}
 
 }
