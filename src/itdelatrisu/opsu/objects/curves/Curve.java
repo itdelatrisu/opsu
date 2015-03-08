@@ -87,13 +87,4 @@ public abstract class Curve {
 		return a * (1 - t) + b * t;
 	}
 
-	/**
-	 * A recursive method to evaluate polynomials in Bernstein form or Bezier curves.
-	 * http://en.wikipedia.org/wiki/De_Casteljau%27s_algorithm
-	 */
-	protected float deCasteljau(float[] a, int i, int order, float t) {
-		if (order == 0)
-			return a[i];
-		return lerp(deCasteljau(a, i, order - 1, t), deCasteljau(a, i + 1, order - 1, t), t);
-	}
 }
