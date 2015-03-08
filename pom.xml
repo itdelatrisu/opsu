@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>itdelatrisu</groupId>
 	<artifactId>opsu</artifactId>
-	<version>0.6.0</version>
+	<version>0.7.0</version>
 	<properties>
 		<timestamp>${maven.build.timestamp}</timestamp>
 		<maven.build.timestamp.format>yyyy-MM-dd HH:mm</maven.build.timestamp.format>
