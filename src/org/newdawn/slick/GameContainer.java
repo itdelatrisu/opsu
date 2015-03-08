@@ -126,6 +126,7 @@ public abstract class GameContainer implements GUIContext {
 	protected GameContainer(Game game) {
 		this.game = game;
 		lastFrame = getTime();
+		lastTime = Sys.getTime() * 1000;
 
 		getBuildVersion();
 		Log.checkVerboseLogSetting();
@@ -617,17 +618,35 @@ public abstract class GameContainer implements GUIContext {
 	 */
 	public abstract boolean isMouseGrabbed();
 	
+	
 	/**
 	 * Retrieve the time taken to render the last frame, i.e. the change in time - delta.
 	 * 
 	 * @return The time taken to render the last frame
 	 */
+	long rounderror = 0;
+	long totalDelta = 0;
+	long lastTime;
 	protected int getDelta() {
+		/*
 		long time = getTime();
 		int delta = (int) (time - lastFrame);
 		lastFrame = time;
 		
 		return delta;
+		//*/ 
+		//*
+		long time = Sys.getTime() * 1000;
+		long timerResolution = Sys.getTimerResolution();
+		long delta = time - lastTime + rounderror;
+		long outdelta = delta / timerResolution;
+		rounderror = (delta - outdelta*timerResolution);
+		
+		totalDelta += outdelta;
+		lastTime = time;
+		return (int)outdelta;
+		//*/
+
 	}
 	
 	/**
@@ -638,6 +657,8 @@ public abstract class GameContainer implements GUIContext {
 			lastFPS = getTime();
 			recordedFPS = fps;
 			fps = 0;
+			System.out.println("TotalDelta: "+totalDelta);//should be ~1000
+			totalDelta = 0;
 		}
 		fps++;
 	}
