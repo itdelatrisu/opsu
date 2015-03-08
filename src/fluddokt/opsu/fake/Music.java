@@ -4,16 +4,16 @@ import java.util.ArrayList;
 
 import com.badlogic.gdx.utils.TimeUtils;
 
-public class Music {
+public class Music implements AbsMusicCompleteListener{
 
 	AbsMusic music;
 	ArrayList<MusicListener> musicListenerList = new ArrayList<MusicListener>();
 
 	public Music(String path, boolean b) {
 		if (path.toLowerCase().endsWith(".mp3"))
-			music = new MusicJL(path);
+			music = new MusicJL(path, this);
 		else
-			music = new MusicGdx(path);
+			music = new MusicGdx(path, this);
 		GameContainer.setMusic(this);
 		SoundStore.get().setMusic(this);
 
@@ -122,6 +122,13 @@ public class Music {
 
 	public void addListener(MusicListener musicListener) {
 		musicListenerList.add(musicListener);
+		
 	}
 
+	@Override
+	public void complete(AbsMusic mus) {
+		for (MusicListener musLis : musicListenerList){
+			musLis.musicEnded(this);
+		}
+	}
 }

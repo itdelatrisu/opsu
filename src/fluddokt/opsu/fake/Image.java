@@ -43,6 +43,7 @@ public class Image {
 		public void remove(Image img) {
 			refcnt--;
 			// if(set.size()<=0){
+			System.out.println("RefCnt :"+name+" "+refcnt);
 			if (refcnt <= 0) {
 				System.out.println("Remove TextureInfo :" + name);
 				tex.dispose();
@@ -216,8 +217,8 @@ public class Image {
 	}
 
 	public Image(Image copy, float wid, float hei) {
-		texinfo = copy.texinfo;
-		texinfo.add(this);
+		//texinfo = copy.texinfo;
+		//texinfo.add(this);
 
 		tex = copy.tex;
 		width = wid;
@@ -227,8 +228,8 @@ public class Image {
 	}
 
 	public Image(Image copy, int x, int y, int wid, int hei) {
-		texinfo = copy.texinfo;
-		texinfo.add(this);
+		//texinfo = copy.texinfo;
+		//texinfo.add(this);
 
 		float dx = copy.tex.getRegionWidth() / (float) copy.width;
 		float dy = copy.tex.getRegionHeight() / (float) copy.height;

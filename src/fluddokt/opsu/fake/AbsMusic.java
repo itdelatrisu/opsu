@@ -1,6 +1,14 @@
 package fluddokt.opsu.fake;
 
+import java.util.ArrayList;
+
 public class AbsMusic {
+	
+	AbsMusicCompleteListener lis;
+	public AbsMusic(AbsMusicCompleteListener lis) {
+		this.lis = lis;
+	}
+
 	public boolean setPosition(float f) {
 		return false;
 	}
@@ -40,4 +48,8 @@ public class AbsMusic {
 	public String getName() {
 		return null;
 	}
+	protected void fireMusicEnded(){
+		lis.complete(this);
+	}
+
 }

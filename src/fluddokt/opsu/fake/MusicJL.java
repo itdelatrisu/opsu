@@ -141,13 +141,13 @@ public class MusicJL extends AbsMusic {
 								decoder = new Decoder();
 								decoder.setOutputBuffer(buf);
 								if (header == null) {
-									System.out
-											.println("MusicJL Header is null still"
+									System.out.println("MusicJL Header is null still"
 													+ bitstream.header_pos());
 									break;
 								}
 							} else {
 								toStop = true;
+								fireMusicEnded();
 							}
 						} else {
 							if (!inited) {
@@ -215,7 +215,8 @@ public class MusicJL extends AbsMusic {
 
 	}
 
-	public MusicJL(String path) {
+	public MusicJL(String path, AbsMusicCompleteListener lis) {
+		super(lis);
 		System.out.println("New Song " + path);
 		file = ResourceLoader.getFileHandle(path);
 

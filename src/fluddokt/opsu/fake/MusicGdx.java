@@ -1,12 +1,15 @@
 package fluddokt.opsu.fake;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.audio.Music;
+import com.badlogic.gdx.audio.Music.OnCompletionListener;
 
-public class MusicGdx extends AbsMusic {
+public class MusicGdx extends AbsMusic implements OnCompletionListener{
 
 	com.badlogic.gdx.audio.Music music;
 
-	public MusicGdx(String path) {
+	public MusicGdx(String path, AbsMusicCompleteListener lis) {
+		super(lis);
 		music = Gdx.audio.newMusic(ResourceLoader.getFileHandle(path));
 	}
 
@@ -90,6 +93,11 @@ public class MusicGdx extends AbsMusic {
 
 	public void dispose() {
 		music.dispose();
+	}
+
+	@Override
+	public void onCompletion(Music music) {
+		fireMusicEnded();
 	}
 
 }
