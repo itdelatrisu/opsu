@@ -442,7 +442,7 @@ public class Options {
 	private static Resolution resolution = Resolution.RES_1024_768;
 
 	/** Frame limiters. */
-	private static final int[] targetFPS = { 60, 120, 240 };
+	private static final int[] targetFPS = { 60, 120, 240, 500, 1000, 3000 };
 
 	/** Index in targetFPS[] array. */
 	private static int targetFPSindex = 0;
