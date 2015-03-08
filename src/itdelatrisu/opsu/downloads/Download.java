@@ -38,6 +38,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 
+/*
+import org.newdawn.slick.util.Log;
+*/
+
 /**
  * File download.
  */
@@ -80,6 +84,9 @@ public class Download {
 	public interface DownloadListener {
 		/** Indication that a download has completed. */
 		public void completed();
+
+		/** Indication that an error has occurred. */
+		public void error();
 	}
 
 	/** The local path. */
@@ -187,7 +194,9 @@ public class Download {
 						throw new IOException("Negative content length");
 				} catch (IOException e) {
 					status = Status.ERROR;
-					ErrorHandler.error("Failed to open connection.", e, false);
+					Log.warn("Failed to open connection.", e);
+					if (listener != null)
+						listener.error();
 					return;
 				}
 
@@ -218,6 +227,7 @@ public class Download {
 					}
 					
 					if (status == Status.DOWNLOADING) {
+						// TODO: if connection is lost before a download finishes, it's still marked as "complete"
 						status = Status.COMPLETE;
 						rbc.close();
 						fos.close();
@@ -231,7 +241,9 @@ public class Download {
 					}
 				} catch (Exception e) {
 					status = Status.ERROR;
-					ErrorHandler.error("Failed to start download.", e, false);
+					Log.warn("Failed to start download.", e);
+					if (listener != null)
+						listener.error();
 				}
 			}
 

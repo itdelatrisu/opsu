@@ -24,7 +24,6 @@ import itdelatrisu.opsu.OsuFile;
 import itdelatrisu.opsu.ScoreData;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -60,12 +59,9 @@ public class ScoreDB {
 	 */
 	public static void init() {
 		// create a database connection
-		try {
-			connection = DriverManager.getConnection(String.format("jdbc:sqlite:%s", Options.SCORE_DB.getAbsolutePath()));
-		} catch (SQLException e) {
-			// if the error message is "out of memory", it probably means no database file is found
-			ErrorHandler.error("Could not connect to score database.", e, true);
-		}
+		connection = DBController.createConnection(Options.SCORE_DB.getAbsolutePath());
+		if (connection == null)
+			return;	
 
 		// create the database
 		createDatabase();
@@ -130,6 +126,9 @@ public class ScoreDB {
 	 * @param data the GameData object
 	 */
 	public static void addScore(ScoreData data) {
+		if (connection == null)
+			return;
+
 		try {
 			setStatementFields(insertStmt, data);
 			insertStmt.executeUpdate();
@@ -143,6 +142,9 @@ public class ScoreDB {
 	 * @param data the score to delete
 	 */
 	public static void deleteScore(ScoreData data) {
+		if (connection == null)
+			return;
+
 		try {
 			setStatementFields(deleteScoreStmt, data);
 			deleteScoreStmt.executeUpdate();
@@ -156,6 +158,9 @@ public class ScoreDB {
 	 * @param osu the OsuFile object
 	 */
 	public static void deleteScore(OsuFile osu) {
+		if (connection == null)
+			return;
+
 		try {
 			deleteSongStmt.setInt(1, osu.beatmapID);
 			deleteSongStmt.setString(2, osu.title);
@@ -198,9 +203,12 @@ public class ScoreDB {
 	/**
 	 * Retrieves the game scores for an OsuFile map.
 	 * @param osu the OsuFile
-	 * @return all scores for the beatmap
+	 * @return all scores for the beatmap, or null if any error occurred
 	 */
 	public static ScoreData[] getMapScores(OsuFile osu) {
+		if (connection == null)
+			return null;
+
 		List<ScoreData> list = new ArrayList<ScoreData>();
 		try {
 			selectMapStmt.setInt(1, osu.beatmapID);
@@ -224,9 +232,13 @@ public class ScoreDB {
 	/**
 	 * Retrieves the game scores for an OsuFile map set.
 	 * @param osu the OsuFile
-	 * @return all scores for the beatmap set (Version, ScoreData[])
+	 * @return all scores for the beatmap set (Version, ScoreData[]),
+	 *         or null if any error occurred
 	 */
 	public static Map<String, ScoreData[]> getMapSetScores(OsuFile osu) {
+		if (connection == null)
+			return null;
+
 		Map<String, ScoreData[]> map = new HashMap<String, ScoreData[]>();
 		try {
 			selectMapSetStmt.setInt(1, osu.beatmapSetID);
@@ -270,15 +282,17 @@ public class ScoreDB {
 	 * Closes the connection to the database.
 	 */
 	public static void closeConnection() {
-		if (connection != null) {
-			try {
-				insertStmt.close();
-				selectMapStmt.close();
-				selectMapSetStmt.close();
-				connection.close();
-			} catch (SQLException e) {
-				ErrorHandler.error("Failed to close score database.", e, true);
-			}
+		if (connection == null)
+			return;
+
+		try {
+			insertStmt.close();
+			selectMapStmt.close();
+			selectMapSetStmt.close();
+			connection.close();
+			connection = null;
+		} catch (SQLException e) {
+			ErrorHandler.error("Failed to close score database.", e, true);
 		}
 	}
 }

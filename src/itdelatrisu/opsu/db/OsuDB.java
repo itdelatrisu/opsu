@@ -28,7 +28,6 @@ import itdelatrisu.opsu.OsuParser;
 
 //import java.io.File;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -48,11 +47,20 @@ public class OsuDB {
 	 */
 	private static final String DATABASE_VERSION = "2014-03-04";
 
+	/** Minimum batch size to invoke batch loading. */
+	private static final int LOAD_BATCH_MIN = 100;
+
+	/** Minimum batch size to invoke batch insertion. */
+	private static final int INSERT_BATCH_MIN = 100;
+
+	/** OsuFile loading flags. */
+	public static final int LOAD_NONARRAY = 1, LOAD_ARRAY = 2, LOAD_ALL = 3;
+
 	/** Database connection. */
 	private static Connection connection;
 
 	/** Query statements. */
-	private static PreparedStatement insertStmt, selectStmt, lastModStmt, deleteMapStmt, deleteGroupStmt;
+	private static PreparedStatement insertStmt, selectStmt, deleteMapStmt, deleteGroupStmt;
 
 	// This class should not be instantiated.
 	private OsuDB() {}
@@ -62,12 +70,9 @@ public class OsuDB {
 	 */
 	public static void init() {
 		// create a database connection
-		try {
-			connection = DriverManager.getConnection(String.format("jdbc:sqlite:%s", Options.OSU_DB.getAbsolutePath()));
-		} catch (SQLException e) {
-			// if the error message is "out of memory", it probably means no database file is found
-			ErrorHandler.error("Could not connect to beatmap database.", e, true);
-		}
+		connection = DBController.createConnection(Options.OSU_DB.getAbsolutePath());
+		if (connection == null)
+			return;
 
 		// create the database
 		createDatabase();
@@ -82,7 +87,6 @@ public class OsuDB {
 				"?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, " +
 				"?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 			);
-			lastModStmt = connection.prepareStatement("SELECT dir, file, lastModified FROM beatmaps");
 			selectStmt = connection.prepareStatement("SELECT * FROM beatmaps WHERE dir = ? AND file = ?");
 			deleteMapStmt = connection.prepareStatement("DELETE FROM beatmaps WHERE dir = ? AND file = ?");
 			deleteGroupStmt = connection.prepareStatement("DELETE FROM beatmaps WHERE dir = ?");
@@ -135,6 +139,9 @@ public class OsuDB {
 	 * from the current version, then updates the version field.
 	 */
 	private static void checkVersion() {
+		if (connection == null)
+			return;
+
 		try (Statement stmt = connection.createStatement()) {
 			// get the stored version
 			String sql = "SELECT value FROM info WHERE key = 'version'";
@@ -160,6 +167,9 @@ public class OsuDB {
 	 * Clears the database.
 	 */
 	public static void clearDatabase() {
+		if (connection == null)
+			return;
+
 		// drop the table, then recreate it
 		try (Statement stmt = connection.createStatement()) {
 			String sql = "DROP TABLE beatmaps";
@@ -175,6 +185,9 @@ public class OsuDB {
 	 * @param osu the OsuFile object
 	 */
 	public static void insert(OsuFile osu) {
+		if (connection == null)
+			return;
+
 		try {
 			setStatementFields(insertStmt, osu);
 			insertStmt.executeUpdate();
@@ -188,14 +201,20 @@ public class OsuDB {
 	 * @param batch a list of OsuFile objects
 	 */
 	public static void insert(List<OsuFile> batch) {
+		if (connection == null)
+			return;
+
 		try (Statement stmt = connection.createStatement()) {
 			// turn off auto-commit mode
 			boolean autoCommit = connection.getAutoCommit();
 			connection.setAutoCommit(false);
 
 			// drop indexes
-			String sql = "DROP INDEX IF EXISTS idx";
-			stmt.executeUpdate(sql);
+			boolean recreateIndexes = (batch.size() >= INSERT_BATCH_MIN);
+			if (recreateIndexes) {
+				String sql = "DROP INDEX IF EXISTS idx";
+				stmt.executeUpdate(sql);
+			}
 
 			// batch insert
 			for (OsuFile osu : batch) {
@@ -205,8 +224,10 @@ public class OsuDB {
 			insertStmt.executeBatch();
 
 			// re-create indexes
-			sql = "CREATE INDEX idx ON beatmaps (dir, file)";
-			stmt.executeUpdate(sql);
+			if (recreateIndexes) {
+				String sql = "CREATE INDEX idx ON beatmaps (dir, file)";
+				stmt.executeUpdate(sql);
+			}
 
 			// restore previous auto-commit mode
 			connection.commit();
@@ -266,60 +287,142 @@ public class OsuDB {
 	}
 
 	/**
-	 * Returns an OsuFile from the database, or null if any error occurred.
-	 * @param dir the directory
-	 * @param file the file
+	 * Loads OsuFile fields from the database.
+	 * @param osu the OsuFile object
+	 * @param flag whether to load all fields (LOAD_ALL), non-array
+	 *        fields (LOAD_NONARRAY), or array fields (LOAD_ARRAY)
 	 */
-	public static OsuFile getOsuFile(File dir, File file) {
+	public static void load(OsuFile osu, int flag) {
+		if (connection == null)
+			return;
+
 		try {
-			OsuFile osu = new OsuFile(file);
-			selectStmt.setString(1, dir.getName());
-			selectStmt.setString(2, file.getName());
+			selectStmt.setString(1, osu.getFile().getParentFile().getName());
+			selectStmt.setString(2, osu.getFile().getName());
 			ResultSet rs = selectStmt.executeQuery();
-			while (rs.next()) {
-				osu.beatmapID = rs.getInt(4);
-				osu.beatmapSetID = rs.getInt(5);
-				osu.title = OsuParser.getDBString(rs.getString(6));
-				osu.titleUnicode = OsuParser.getDBString(rs.getString(7));
-				osu.artist = OsuParser.getDBString(rs.getString(8));
-				osu.artistUnicode = OsuParser.getDBString(rs.getString(9));
-				osu.creator = OsuParser.getDBString(rs.getString(10));
-				osu.version = OsuParser.getDBString(rs.getString(11));
-				osu.source = OsuParser.getDBString(rs.getString(12));
-				osu.tags = OsuParser.getDBString(rs.getString(13));
-				osu.hitObjectCircle = rs.getInt(14);
-				osu.hitObjectSlider = rs.getInt(15);
-				osu.hitObjectSpinner = rs.getInt(16);
-				osu.HPDrainRate = rs.getFloat(17);
-				osu.circleSize = rs.getFloat(18);
-				osu.overallDifficulty = rs.getFloat(19);
-				osu.approachRate = rs.getFloat(20);
-				osu.sliderMultiplier = rs.getFloat(21);
-				osu.sliderTickRate = rs.getFloat(22);
-				osu.bpmMin = rs.getInt(23);
-				osu.bpmMax = rs.getInt(24);
-				osu.endTime = rs.getInt(25);
-				osu.audioFilename = new File(dir, OsuParser.getDBString(rs.getString(26)));
-				osu.audioLeadIn = rs.getInt(27);
-				osu.previewTime = rs.getInt(28);
-				osu.countdown = rs.getByte(29);
-				osu.sampleSet = OsuParser.getDBString(rs.getString(30));
-				osu.stackLeniency = rs.getFloat(31);
-				osu.mode = rs.getByte(32);
-				osu.letterboxInBreaks = rs.getBoolean(33);
-				osu.widescreenStoryboard = rs.getBoolean(34);
-				osu.epilepsyWarning = rs.getBoolean(35);
-				osu.bg = OsuParser.getDBString(rs.getString(36));
-				osu.timingPointsFromString(rs.getString(37));
-				osu.breaksFromString(rs.getString(38));
-				osu.comboFromString(rs.getString(39));
+			if (rs.next()) {
+				if ((flag & LOAD_NONARRAY) > 0)
+					setOsuFileFields(rs, osu);
+				if ((flag & LOAD_ARRAY) > 0)
+					setOsuFileArrayFields(rs, osu);
 			}
 			rs.close();
-			return osu;
 		} catch (SQLException e) {
-			ErrorHandler.error("Failed to get OsuFile from database.", e, true);
-			return null;
+			ErrorHandler.error("Failed to load OsuFile from database.", e, true);
 		}
+	}
+
+	/**
+	 * Loads OsuFile fields from the database in a batch.
+	 * @param batch a list of OsuFile objects
+	 * @param flag whether to load all fields (LOAD_ALL), non-array
+	 *        fields (LOAD_NONARRAY), or array fields (LOAD_ARRAY)
+	 */
+	public static void load(List<OsuFile> batch, int flag) {
+		if (connection == null)
+			return;
+
+		// batch size too small
+		int size = batch.size();
+		if (size < LOAD_BATCH_MIN) {
+			for (OsuFile osu : batch)
+				load(osu, flag);
+			return;
+		}
+
+		try (Statement stmt = connection.createStatement()) {
+			// create map
+			HashMap<String, HashMap<String, OsuFile>> map = new HashMap<String, HashMap<String, OsuFile>>();
+			for (OsuFile osu : batch) {
+				String parent = osu.getFile().getParentFile().getName();
+				String name = osu.getFile().getName();
+				HashMap<String, OsuFile> m = map.get(parent);
+				if (m == null) {
+					m = new HashMap<String, OsuFile>();
+					map.put(parent, m);
+				}
+				m.put(name, osu);
+			}
+
+			// iterate through database to load OsuFiles
+			int count = 0;
+			stmt.setFetchSize(100);
+			String sql = "SELECT * FROM beatmaps";
+			ResultSet rs = stmt.executeQuery(sql);
+			while (rs.next()) {
+				String parent = rs.getString(1);
+				HashMap<String, OsuFile> m = map.get(parent);
+				if (m != null) {
+					String name = rs.getString(2);
+					OsuFile osu = m.get(name);
+					if (osu != null) {
+						if ((flag & LOAD_NONARRAY) > 0)
+							setOsuFileFields(rs, osu);
+						if ((flag & LOAD_ARRAY) > 0)
+							setOsuFileArrayFields(rs, osu);
+						if (++count >= size)
+							break;
+					}
+				}
+			}
+			rs.close();
+		} catch (SQLException e) {
+			ErrorHandler.error("Failed to load OsuFiles from database.", e, true);
+		}
+	}
+
+	/**
+	 * Sets all OsuFile non-array fields using a given result set.
+	 * @param rs the result set containing the fields
+	 * @param osu the OsuFile
+	 * @throws SQLException 
+	 */
+	private static void setOsuFileFields(ResultSet rs, OsuFile osu) throws SQLException {
+		osu.beatmapID = rs.getInt(4);
+		osu.beatmapSetID = rs.getInt(5);
+		osu.title = OsuParser.getDBString(rs.getString(6));
+		osu.titleUnicode = OsuParser.getDBString(rs.getString(7));
+		osu.artist = OsuParser.getDBString(rs.getString(8));
+		osu.artistUnicode = OsuParser.getDBString(rs.getString(9));
+		osu.creator = OsuParser.getDBString(rs.getString(10));
+		osu.version = OsuParser.getDBString(rs.getString(11));
+		osu.source = OsuParser.getDBString(rs.getString(12));
+		osu.tags = OsuParser.getDBString(rs.getString(13));
+		osu.hitObjectCircle = rs.getInt(14);
+		osu.hitObjectSlider = rs.getInt(15);
+		osu.hitObjectSpinner = rs.getInt(16);
+		osu.HPDrainRate = rs.getFloat(17);
+		osu.circleSize = rs.getFloat(18);
+		osu.overallDifficulty = rs.getFloat(19);
+		osu.approachRate = rs.getFloat(20);
+		osu.sliderMultiplier = rs.getFloat(21);
+		osu.sliderTickRate = rs.getFloat(22);
+		osu.bpmMin = rs.getInt(23);
+		osu.bpmMax = rs.getInt(24);
+		osu.endTime = rs.getInt(25);
+		osu.audioFilename = new File(osu.getFile().getParentFile(), OsuParser.getDBString(rs.getString(26)));
+		osu.audioLeadIn = rs.getInt(27);
+		osu.previewTime = rs.getInt(28);
+		osu.countdown = rs.getByte(29);
+		osu.sampleSet = OsuParser.getDBString(rs.getString(30));
+		osu.stackLeniency = rs.getFloat(31);
+		osu.mode = rs.getByte(32);
+		osu.letterboxInBreaks = rs.getBoolean(33);
+		osu.widescreenStoryboard = rs.getBoolean(34);
+		osu.epilepsyWarning = rs.getBoolean(35);
+		osu.bg = OsuParser.getDBString(rs.getString(36));
+	}
+
+	/**
+	 * Sets all OsuFile array fields using a given result set.
+	 * @param rs the result set containing the fields
+	 * @param osu the OsuFile
+	 * @throws SQLException 
+	 */
+	private static void setOsuFileArrayFields(ResultSet rs, OsuFile osu) throws SQLException {
+		osu.timingPointsFromString(rs.getString(37));
+		osu.breaksFromString(rs.getString(38));
+		osu.comboFromString(rs.getString(39));
 	}
 
 	/**
@@ -327,9 +430,14 @@ public class OsuDB {
 	 * null if any error occurred.
 	 */
 	public static Map<String, Long> getLastModifiedMap() {
-		try {
+		if (connection == null)
+			return null;
+
+		try (Statement stmt = connection.createStatement()) {
 			Map<String, Long> map = new HashMap<String, Long>();
-			ResultSet rs = lastModStmt.executeQuery();
+			String sql = "SELECT dir, file, lastModified FROM beatmaps";
+			ResultSet rs = stmt.executeQuery(sql);
+			stmt.setFetchSize(100);
 			while (rs.next()) {
 				String path = String.format("%s/%s", rs.getString(1), rs.getString(2));
 				long lastModified = rs.getLong(3);
@@ -349,6 +457,9 @@ public class OsuDB {
 	 * @param file the file
 	 */
 	public static void delete(String dir, String file) {
+		if (connection == null)
+			return;
+
 		try {
 			deleteMapStmt.setString(1, dir);
 			deleteMapStmt.setString(2, file);
@@ -363,6 +474,9 @@ public class OsuDB {
 	 * @param dir the directory
 	 */
 	public static void delete(String dir) {
+		if (connection == null)
+			return;
+
 		try {
 			deleteGroupStmt.setString(1, dir);
 			deleteGroupStmt.executeUpdate();
@@ -375,17 +489,18 @@ public class OsuDB {
 	 * Closes the connection to the database.
 	 */
 	public static void closeConnection() {
-		if (connection != null) {
-			try {
-				insertStmt.close();
-				lastModStmt.close();
-				selectStmt.close();
-				deleteMapStmt.close();
-				deleteGroupStmt.close();
-				connection.close();
-			} catch (SQLException e) {
-				ErrorHandler.error("Failed to close beatmap database.", e, true);
-			}
+		if (connection == null)
+			return;
+
+		try {
+			insertStmt.close();
+			selectStmt.close();
+			deleteMapStmt.close();
+			deleteGroupStmt.close();
+			connection.close();
+			connection = null;
+		} catch (SQLException e) {
+			ErrorHandler.error("Failed to close beatmap database.", e, true);
 		}
 	}
 }
