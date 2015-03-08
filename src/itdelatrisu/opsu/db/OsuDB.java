@@ -18,17 +18,21 @@
 
 package itdelatrisu.opsu.db;
 
+import fluddokt.opsu.fake.File;
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.OsuFile;
 import itdelatrisu.opsu.OsuParser;
 
-import java.io.File;
+
+
+//import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.SQLWarning;
 import java.sql.Statement;
 import java.util.HashMap;
 import java.util.List;
@@ -59,7 +63,7 @@ public class OsuDB {
 	public static void init() {
 		// create a database connection
 		try {
-			connection = DriverManager.getConnection(String.format("jdbc:sqlite:%s", Options.OSU_DB.getPath()));
+			connection = DriverManager.getConnection(String.format("jdbc:sqlite:%s", Options.OSU_DB.getAbsolutePath()));
 		} catch (SQLException e) {
 			// if the error message is "out of memory", it probably means no database file is found
 			ErrorHandler.error("Could not connect to beatmap database.", e, true);
@@ -104,16 +108,23 @@ public class OsuDB {
 					"audioFile TEXT, audioLeadIn INTEGER, previewTime INTEGER, countdown INTEGER, sampleSet TEXT, stackLeniency REAL, " +
 					"mode INTEGER, letterboxInBreaks BOOLEAN, widescreenStoryboard BOOLEAN, epilepsyWarning BOOLEAN, " +
 					"bg TEXT, timingPoints TEXT, breaks TEXT, combo TEXT" +
-				"); " +
+				");\n" +
 				"CREATE TABLE IF NOT EXISTS info (" +
 					"key TEXT NOT NULL UNIQUE, value TEXT" +
-				"); " +
-				"CREATE INDEX IF NOT EXISTS idx ON beatmaps (dir, file); " +
+				");\n" +
+				"CREATE INDEX IF NOT EXISTS idx ON beatmaps (dir, file);\n" +
 
 				// extra optimizations
-				"PRAGMA locking_mode = EXCLUSIVE; " +
+				"PRAGMA locking_mode = EXCLUSIVE;\n" +
 				"PRAGMA journal_mode = WAL;";
-			stmt.executeUpdate(sql);
+			for (String sqlStmt : sql.split(";\n")){
+				System.out.println("OsuDB SQLExec :"+sqlStmt+" "+stmt.execute(sqlStmt));
+			}
+			SQLWarning warning = stmt.getWarnings();
+			while(warning != null){
+				fluddokt.opsu.fake.Log.error(warning);
+				warning = warning.getNextWarning();
+			}
 		} catch (SQLException e) {
 			ErrorHandler.error("Could not create beatmap database.", e, true);
 		}

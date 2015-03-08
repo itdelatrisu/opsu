@@ -22,7 +22,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 
 public class GameOpsu extends com.badlogic.gdx.Game {
 
-	final String VERSION = "OpsuAnd0.6.1d";
+	final String VERSION = "OpsuAnd0.6.2e";
 	public StateBasedGame sbg;
 	
 	Stage stage;
@@ -192,7 +192,7 @@ public class GameOpsu extends com.badlogic.gdx.Game {
 			protected void result(Object object) {
 				System.out.println(object);
 				if("CloseOpsu".equals(object)){
-					Gdx.app.exit();
+					System.exit(0);
 				}
 				
 				if("R".equals(object)){

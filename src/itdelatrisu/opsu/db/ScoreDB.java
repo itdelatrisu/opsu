@@ -61,7 +61,7 @@ public class ScoreDB {
 	public static void init() {
 		// create a database connection
 		try {
-			connection = DriverManager.getConnection(String.format("jdbc:sqlite:%s", Options.SCORE_DB.getPath()));
+			connection = DriverManager.getConnection(String.format("jdbc:sqlite:%s", Options.SCORE_DB.getAbsolutePath()));
 		} catch (SQLException e) {
 			// if the error message is "out of memory", it probably means no database file is found
 			ErrorHandler.error("Could not connect to score database.", e, true);
@@ -114,9 +114,12 @@ public class ScoreDB {
 					"combo INTEGER, " +
 					"perfect BOOLEAN, " +
 					"mods INTEGER" +
-				");" +
+				");\n" +
 				"CREATE INDEX IF NOT EXISTS idx ON scores (MID, MSID, title, artist, creator, version);";
-			stmt.executeUpdate(sql);
+			for (String sqlStmt : sql.split(";\n")){
+				System.out.println("ScoreDB SQLExec :"+sqlStmt+" "+stmt.execute(sqlStmt));
+				//stmt.e
+			} 
 		} catch (SQLException e) {
 			ErrorHandler.error("Could not create score database.", e, true);
 		}

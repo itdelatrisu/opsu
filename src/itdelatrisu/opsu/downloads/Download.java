@@ -155,8 +155,10 @@ public class Download {
 	/**
 	 * Returns the local path to save the download (after renamed).
 	 */
+	/*
 	public String getLocalPath() { return (rename != null) ? rename : localPath; }
-
+	 */
+	
 	/**
 	 * Sets the download listener.
 	 * @param listener the listener to set
@@ -220,11 +222,7 @@ public class Download {
 						rbc.close();
 						fos.close();
 						if (rename != null) {
-							move(localFile, new File(localFile.getParentFile(),cleanedName));
-							//Path source = localFile.toPath();
-							//Files.move(source, source.resolveSibling(rename), StandardCopyOption.REPLACE_EXISTING);
-							Path source = new File(localPath).toPath();
-							Files.move(source, source.resolveSibling(rename), StandardCopyOption.REPLACE_EXISTING);
+							move(localFile, new File(localFile.getParentFile(), rename));
 						}
 					}else{
 						status = Status.CANCELLED;

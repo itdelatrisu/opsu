@@ -188,4 +188,20 @@ public class File {
 		return this.fh.path().equals(f.fh.path());
 	}
 
+	public long lastModified() {
+		return fh.lastModified();
+	}
+
+	public String[] list() {
+		return consturctStringList(fh.list());
+	}
+	private String[] consturctStringList(FileHandle[] list) {
+		if (list == null)
+			return null;
+		String[] newlist = new String[list.length];
+		for (int i = 0; i < list.length; i++)
+			newlist[i] = list[i].name();
+		return newlist;
+	}
+
 }

@@ -6,4 +6,9 @@ public class MultiClip extends Clip{
 		super(path);
 	}
 
+	public static void destroyExtraClips() {
+		// TODO Auto-generated method stub
+		
+	}
+
 }

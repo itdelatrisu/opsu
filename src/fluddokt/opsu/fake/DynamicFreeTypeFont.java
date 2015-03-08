@@ -69,8 +69,15 @@ class DynamicFreeType {
 
 	public void draw(SpriteBatch batch, String str, float x, float y) {
 		char prevchr = 0;
+		float ox = x;
 		for (int i = 0; i < str.length(); i++) {
 			char thischr = str.charAt(i);
+			if (thischr == '\n') {
+				y -= getLineHeight();
+				x = ox;
+				continue;
+			}
+				
 			CharInfo ci = getCharInfo(str.charAt(i));
 			TextureRegion tr = ci.region;
 			batch.draw(tr, x + ci.xbear// xoffset

@@ -35,6 +35,7 @@ public class Input {
 	public static final int KEY_SPACE = Keys.SPACE;
 	public static final int KEY_ENTER = Keys.ENTER;
 	public static final int KEY_TAB = Keys.TAB;
+	public static final int KEY_DELETE = Keys.DEL;
 
 	public static final int KEY_RCONTROL = Keys.CONTROL_RIGHT;
 	public static final int KEY_LCONTROL = Keys.CONTROL_LEFT;
@@ -81,6 +82,7 @@ public class Input {
 
 	public static final int ANDROID_BACK = Keys.BACK;
 	public static final int ANDROID_MENU = Keys.MENU;
+
 
 	public int getMouseY() {
 		return Gdx.input.getY();

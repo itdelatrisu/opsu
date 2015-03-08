@@ -33,7 +33,10 @@ public class DBController {
 	public static void init() {
 		// load the sqlite-JDBC driver using the current class loader
 		try {
-			Class.forName("org.sqlite.JDBC");
+			if(com.badlogic.gdx.Gdx.app.getType() == com.badlogic.gdx.Application.ApplicationType.Android)
+				Class.forName("org.sqldroid.SQLDroidDriver");
+			else
+				Class.forName("org.sqlite.JDBC");
 		} catch (ClassNotFoundException e) {
 			ErrorHandler.error("Could not load sqlite-JDBC driver.", e, true);
 		}

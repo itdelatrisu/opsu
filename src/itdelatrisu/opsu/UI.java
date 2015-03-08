@@ -18,6 +18,8 @@
 
 package itdelatrisu.opsu;
 
+import fluddokt.opsu.fake.*;
+
 import itdelatrisu.opsu.audio.SoundController;
 
 import java.util.Iterator;
@@ -25,7 +27,7 @@ import java.util.LinkedList;
 
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
-
+/*
 import org.newdawn.slick.Animation;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
@@ -34,7 +36,7 @@ import org.newdawn.slick.Image;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.StateBasedGame;
-
+*/
 /**
  * Class primarily used for drawing UI components.
  */

@@ -18,6 +18,7 @@
 
 package itdelatrisu.opsu.downloads;
 
+
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.UI;
@@ -30,8 +31,10 @@ import java.io.StringReader;
 import java.net.URL;
 import java.util.Properties;
 
+/*
 import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
 import org.newdawn.slick.util.ResourceLoader;
+*/
 
 /**
  * Handles automatic program updates.
@@ -91,7 +94,9 @@ public class Updater {
 	private Status status;
 
 	/** The current and latest versions. */
+	/*
 	private DefaultArtifactVersion currentVersion, latestVersion;
+	*/
 
 	/** The download object. */
 	private Download download;
@@ -120,6 +125,7 @@ public class Updater {
 	 * @param props the set of properties
 	 * @return the version, or null if not found
 	 */
+	/*
 	private DefaultArtifactVersion getVersion(Properties props) {
 		String version = props.getProperty("version");
 		if (version == null || version.equals("${pom.version}")) {
@@ -128,10 +134,12 @@ public class Updater {
 		} else
 			return new DefaultArtifactVersion(version);
 	}
+	*/
 
 	/**
 	 * Checks the program version against the version file on the update server.
 	 */
+	/*
 	public void checkForUpdates() throws IOException {
 		if (status != Status.INITIAL)
 			return;
@@ -178,10 +186,12 @@ public class Updater {
 			});
 		}
 	}
+	*/
 
 	/**
 	 * Starts the download, if available.
 	 */
+	
 	public void startDownload() {
 		if (status != Status.UPDATE_AVAILABLE || download == null || download.getStatus() != Download.Status.WAITING)
 			return;
@@ -189,10 +199,12 @@ public class Updater {
 		status = Status.UPDATE_DOWNLOADING;
 		download.start();
 	}
+	
 
 	/**
 	 * Prepares to run the update when the application closes.
 	 */
+	
 	public void prepareUpdate() {
 		if (status != Status.UPDATE_DOWNLOADED || download == null || download.getStatus() != Download.Status.COMPLETE)
 			return;
@@ -203,6 +215,7 @@ public class Updater {
 	/**
 	 * Hands over execution to the updated file, if available.
 	 */
+	/*
 	public void runUpdate() {
 		if (status != Status.UPDATE_FINAL)
 			return;
@@ -215,5 +228,6 @@ public class Updater {
 			status = Status.INTERNAL_ERROR;
 			ErrorHandler.error("Failed to start new process.", e, true);
 		}
-	}
+	}*/
 }
+
