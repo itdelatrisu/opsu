@@ -20,6 +20,10 @@ package itdelatrisu.opsu.db;
 
 import itdelatrisu.opsu.ErrorHandler;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+
 /**
  * Database controller.
  */
@@ -49,5 +53,20 @@ public class DBController {
 	public static void closeConnections() {
 		OsuDB.closeConnection();
 		ScoreDB.closeConnection();
+	}
+
+	/**
+	 * Establishes a connection to the database given by the path string.
+	 * @param path the database path
+	 * @return the Connection, or null if a connection could not be established
+	 */
+	public static Connection createConnection(String path) {
+		try {
+			return DriverManager.getConnection(String.format("jdbc:sqlite:%s", path));
+		} catch (SQLException e) {
+			// if the error message is "out of memory", it probably means no database file is found
+			ErrorHandler.error(String.format("Could not connect to database: '%s'.", path), e, true);
+			return null;
+		}
 	}
 }

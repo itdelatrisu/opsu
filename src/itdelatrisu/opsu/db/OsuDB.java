@@ -25,7 +25,6 @@ import itdelatrisu.opsu.OsuParser;
 
 import java.io.File;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -58,12 +57,9 @@ public class OsuDB {
 	 */
 	public static void init() {
 		// create a database connection
-		try {
-			connection = DriverManager.getConnection(String.format("jdbc:sqlite:%s", Options.OSU_DB.getPath()));
-		} catch (SQLException e) {
-			// if the error message is "out of memory", it probably means no database file is found
-			ErrorHandler.error("Could not connect to beatmap database.", e, true);
-		}
+		connection = DBController.createConnection(Options.OSU_DB.getPath());
+		if (connection == null)
+			return;
 
 		// create the database
 		createDatabase();
@@ -124,6 +120,9 @@ public class OsuDB {
 	 * from the current version, then updates the version field.
 	 */
 	private static void checkVersion() {
+		if (connection == null)
+			return;
+
 		try (Statement stmt = connection.createStatement()) {
 			// get the stored version
 			String sql = "SELECT value FROM info WHERE key = 'version'";
@@ -149,6 +148,9 @@ public class OsuDB {
 	 * Clears the database.
 	 */
 	public static void clearDatabase() {
+		if (connection == null)
+			return;
+
 		// drop the table, then recreate it
 		try (Statement stmt = connection.createStatement()) {
 			String sql = "DROP TABLE beatmaps";
@@ -164,6 +166,9 @@ public class OsuDB {
 	 * @param osu the OsuFile object
 	 */
 	public static void insert(OsuFile osu) {
+		if (connection == null)
+			return;
+
 		try {
 			setStatementFields(insertStmt, osu);
 			insertStmt.executeUpdate();
@@ -177,6 +182,9 @@ public class OsuDB {
 	 * @param batch a list of OsuFile objects
 	 */
 	public static void insert(List<OsuFile> batch) {
+		if (connection == null)
+			return;
+
 		try (Statement stmt = connection.createStatement()) {
 			// turn off auto-commit mode
 			boolean autoCommit = connection.getAutoCommit();
@@ -258,8 +266,12 @@ public class OsuDB {
 	 * Returns an OsuFile from the database, or null if any error occurred.
 	 * @param dir the directory
 	 * @param file the file
+	 * @return the OsuFile with all fields filled, or null if any error occurred
 	 */
 	public static OsuFile getOsuFile(File dir, File file) {
+		if (connection == null)
+			return null;
+
 		try {
 			OsuFile osu = new OsuFile(file);
 			selectStmt.setString(1, dir.getName());
@@ -316,6 +328,9 @@ public class OsuDB {
 	 * null if any error occurred.
 	 */
 	public static Map<String, Long> getLastModifiedMap() {
+		if (connection == null)
+			return null;
+
 		try {
 			Map<String, Long> map = new HashMap<String, Long>();
 			ResultSet rs = lastModStmt.executeQuery();
@@ -338,6 +353,9 @@ public class OsuDB {
 	 * @param file the file
 	 */
 	public static void delete(String dir, String file) {
+		if (connection == null)
+			return;
+
 		try {
 			deleteMapStmt.setString(1, dir);
 			deleteMapStmt.setString(2, file);
@@ -352,6 +370,9 @@ public class OsuDB {
 	 * @param dir the directory
 	 */
 	public static void delete(String dir) {
+		if (connection == null)
+			return;
+
 		try {
 			deleteGroupStmt.setString(1, dir);
 			deleteGroupStmt.executeUpdate();
@@ -364,17 +385,19 @@ public class OsuDB {
 	 * Closes the connection to the database.
 	 */
 	public static void closeConnection() {
-		if (connection != null) {
-			try {
-				insertStmt.close();
-				lastModStmt.close();
-				selectStmt.close();
-				deleteMapStmt.close();
-				deleteGroupStmt.close();
-				connection.close();
-			} catch (SQLException e) {
-				ErrorHandler.error("Failed to close beatmap database.", e, true);
-			}
+		if (connection == null)
+			return;
+
+		try {
+			insertStmt.close();
+			lastModStmt.close();
+			selectStmt.close();
+			deleteMapStmt.close();
+			deleteGroupStmt.close();
+			connection.close();
+			connection = null;
+		} catch (SQLException e) {
+			ErrorHandler.error("Failed to close beatmap database.", e, true);
 		}
 	}
 }
