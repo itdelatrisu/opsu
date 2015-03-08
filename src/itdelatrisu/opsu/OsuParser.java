@@ -163,7 +163,10 @@ public class OsuParser {
 		// load cached entries from database
 		if (!cachedOsuFiles.isEmpty()) {
 			status = Status.CACHE;
-			OsuDB.load(cachedOsuFiles);
+
+			// Load array fields only when needed to save time/memory.
+			// Change flag to 'LOAD_ALL' to load them immediately.
+			OsuDB.load(cachedOsuFiles, OsuDB.LOAD_NONARRAY);
 		}
 
 		// add group entries to OsuGroupList
@@ -198,6 +201,7 @@ public class OsuParser {
 	 */
 	private static OsuFile parseFile(File file, File dir, ArrayList<OsuFile> osuFiles, boolean parseObjects) {
 		OsuFile osu = new OsuFile(file);
+		osu.timingPoints = new ArrayList<OsuTimingPoint>();
 
 		try (BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF-8"))) {
 			String line = in.readLine();

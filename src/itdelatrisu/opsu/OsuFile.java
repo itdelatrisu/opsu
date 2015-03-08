@@ -165,7 +165,7 @@ public class OsuFile implements Comparable<OsuFile> {
 	 */
 
 	/** All timing points. */
-	public ArrayList<OsuTimingPoint> timingPoints = new ArrayList<OsuTimingPoint>();
+	public ArrayList<OsuTimingPoint> timingPoints;
 
 	/** Song BPM range. */
 	public int bpmMin = 0, bpmMax = 0;
@@ -374,6 +374,7 @@ public class OsuFile implements Comparable<OsuFile> {
 	 * @param s the string
 	 */
 	public void timingPointsFromString(String s) {
+		this.timingPoints = new ArrayList<OsuTimingPoint>();
 		if (s == null)
 			return;
 
@@ -390,10 +391,10 @@ public class OsuFile implements Comparable<OsuFile> {
 
 	/**
 	 * Returns the {@link #combo} field formatted as a string,
-	 * or null if the field is null.
+	 * or null if the field is null or the default combo.
 	 */
 	public String comboToString() {
-		if (combo == null)
+		if (combo == null || combo == Utils.DEFAULT_COMBO)
 			return null;
 
 		StringBuilder sb = new StringBuilder();
@@ -416,6 +417,7 @@ public class OsuFile implements Comparable<OsuFile> {
 	 * @param s the string
 	 */
 	public void comboFromString(String s) {
+		this.combo = Utils.DEFAULT_COMBO;
 		if (s == null)
 			return;
 

@@ -1284,8 +1284,13 @@ public class SongMenu extends BasicGameState {
 		SoundController.playSound(SoundEffect.MENUHIT);
 		OsuFile osu = MusicController.getOsuFile();
 		Display.setTitle(String.format("%s - %s", game.getTitle(), osu.toString()));
+
+		// load any missing data
+		if (osu.timingPoints == null || osu.combo == null)
+			OsuDB.load(osu, OsuDB.LOAD_ARRAY);
 		OsuParser.parseHitObjects(osu);
 		HitSound.setDefaultSampleSet(osu.sampleSet);
+
 		MultiClip.destroyExtraClips();
 		((Game) game.getState(Opsu.STATE_GAME)).setRestart(Game.Restart.NEW);
 		game.enterState(Opsu.STATE_GAME, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));

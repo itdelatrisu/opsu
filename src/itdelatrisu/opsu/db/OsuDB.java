@@ -49,11 +49,14 @@ public class OsuDB {
 	/** Minimum batch size to invoke batch insertion. */
 	private static final int INSERT_BATCH_MIN = 100;
 
+	/** OsuFile loading flags. */
+	public static final int LOAD_NONARRAY = 1, LOAD_ARRAY = 2, LOAD_ALL = 3;
+
 	/** Database connection. */
 	private static Connection connection;
 
 	/** Query statements. */
-	private static PreparedStatement insertStmt, selectStmt, selectAllStmt, lastModStmt, deleteMapStmt, deleteGroupStmt;
+	private static PreparedStatement insertStmt, selectStmt, deleteMapStmt, deleteGroupStmt;
 
 	// This class should not be instantiated.
 	private OsuDB() {}
@@ -80,8 +83,6 @@ public class OsuDB {
 				"?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, " +
 				"?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 			);
-			lastModStmt = connection.prepareStatement("SELECT dir, file, lastModified FROM beatmaps");
-			selectAllStmt = connection.prepareStatement("SELECT * FROM beatmaps");
 			selectStmt = connection.prepareStatement("SELECT * FROM beatmaps WHERE dir = ? AND file = ?");
 			deleteMapStmt = connection.prepareStatement("DELETE FROM beatmaps WHERE dir = ? AND file = ?");
 			deleteGroupStmt = connection.prepareStatement("DELETE FROM beatmaps WHERE dir = ?");
@@ -277,8 +278,10 @@ public class OsuDB {
 	/**
 	 * Loads OsuFile fields from the database.
 	 * @param osu the OsuFile object
+	 * @param flag whether to load all fields (LOAD_ALL), non-array
+	 *        fields (LOAD_NONARRAY), or array fields (LOAD_ARRAY)
 	 */
-	public static void load(OsuFile osu) {
+	public static void load(OsuFile osu, int flag) {
 		if (connection == null)
 			return;
 
@@ -286,8 +289,12 @@ public class OsuDB {
 			selectStmt.setString(1, osu.getFile().getParentFile().getName());
 			selectStmt.setString(2, osu.getFile().getName());
 			ResultSet rs = selectStmt.executeQuery();
-			if (rs.next())
-				setOsuFileFields(rs, osu);
+			if (rs.next()) {
+				if ((flag & LOAD_NONARRAY) > 0)
+					setOsuFileFields(rs, osu);
+				if ((flag & LOAD_ARRAY) > 0)
+					setOsuFileArrayFields(rs, osu);
+			}
 			rs.close();
 		} catch (SQLException e) {
 			ErrorHandler.error("Failed to load OsuFile from database.", e, true);
@@ -297,8 +304,10 @@ public class OsuDB {
 	/**
 	 * Loads OsuFile fields from the database in a batch.
 	 * @param batch a list of OsuFile objects
+	 * @param flag whether to load all fields (LOAD_ALL), non-array
+	 *        fields (LOAD_NONARRAY), or array fields (LOAD_ARRAY)
 	 */
-	public static void load(List<OsuFile> batch) {
+	public static void load(List<OsuFile> batch, int flag) {
 		if (connection == null)
 			return;
 
@@ -306,11 +315,11 @@ public class OsuDB {
 		int size = batch.size();
 		if (size < LOAD_BATCH_MIN) {
 			for (OsuFile osu : batch)
-				load(osu);
+				load(osu, flag);
 			return;
 		}
 
-		try {
+		try (Statement stmt = connection.createStatement()) {
 			// create map
 			HashMap<String, HashMap<String, OsuFile>> map = new HashMap<String, HashMap<String, OsuFile>>();
 			for (OsuFile osu : batch) {
@@ -326,8 +335,9 @@ public class OsuDB {
 
 			// iterate through database to load OsuFiles
 			int count = 0;
-			selectAllStmt.setFetchSize(100);
-			ResultSet rs = selectAllStmt.executeQuery();
+			stmt.setFetchSize(100);
+			String sql = "SELECT * FROM beatmaps";
+			ResultSet rs = stmt.executeQuery(sql);
 			while (rs.next()) {
 				String parent = rs.getString(1);
 				HashMap<String, OsuFile> m = map.get(parent);
@@ -335,7 +345,10 @@ public class OsuDB {
 					String name = rs.getString(2);
 					OsuFile osu = m.get(name);
 					if (osu != null) {
-						setOsuFileFields(rs, osu);
+						if ((flag & LOAD_NONARRAY) > 0)
+							setOsuFileFields(rs, osu);
+						if ((flag & LOAD_ARRAY) > 0)
+							setOsuFileArrayFields(rs, osu);
 						if (++count >= size)
 							break;
 					}
@@ -348,7 +361,7 @@ public class OsuDB {
 	}
 
 	/**
-	 * Sets all OsuFile fields using a given result set.
+	 * Sets all OsuFile non-array fields using a given result set.
 	 * @param rs the result set containing the fields
 	 * @param osu the OsuFile
 	 * @throws SQLException 
@@ -387,6 +400,15 @@ public class OsuDB {
 		osu.widescreenStoryboard = rs.getBoolean(34);
 		osu.epilepsyWarning = rs.getBoolean(35);
 		osu.bg = OsuParser.getDBString(rs.getString(36));
+	}
+
+	/**
+	 * Sets all OsuFile array fields using a given result set.
+	 * @param rs the result set containing the fields
+	 * @param osu the OsuFile
+	 * @throws SQLException 
+	 */
+	private static void setOsuFileArrayFields(ResultSet rs, OsuFile osu) throws SQLException {
 		osu.timingPointsFromString(rs.getString(37));
 		osu.breaksFromString(rs.getString(38));
 		osu.comboFromString(rs.getString(39));
@@ -400,10 +422,11 @@ public class OsuDB {
 		if (connection == null)
 			return null;
 
-		try {
+		try (Statement stmt = connection.createStatement()) {
 			Map<String, Long> map = new HashMap<String, Long>();
-			ResultSet rs = lastModStmt.executeQuery();
-			lastModStmt.setFetchSize(100);
+			String sql = "SELECT dir, file, lastModified FROM beatmaps";
+			ResultSet rs = stmt.executeQuery(sql);
+			stmt.setFetchSize(100);
 			while (rs.next()) {
 				String path = String.format("%s/%s", rs.getString(1), rs.getString(2));
 				long lastModified = rs.getLong(3);
@@ -460,9 +483,7 @@ public class OsuDB {
 
 		try {
 			insertStmt.close();
-			lastModStmt.close();
 			selectStmt.close();
-			selectAllStmt.close();
 			deleteMapStmt.close();
 			deleteGroupStmt.close();
 			connection.close();
