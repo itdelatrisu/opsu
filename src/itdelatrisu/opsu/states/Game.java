@@ -113,6 +113,9 @@ public class Game extends BasicGameState {
 
 	/** Skip button (displayed at song start, when necessary). */
 	private MenuButton skipButton;
+	
+	/** Pause button  */
+	private MenuButton pauseButton;
 
 	/** Current timing point index in timingPoints ArrayList. */
 	private int timingPointIndex;
@@ -145,6 +148,9 @@ public class Game extends BasicGameState {
 
 	/** Number of retries. */
 	private int retries = 0;
+	
+	/** The last Mouse positions. */
+	private int lastMouseX, lastMouseY;
 
 	// game-related variables
 	private GameContainer container;
@@ -272,6 +278,10 @@ public class Game extends BasicGameState {
 		    trackPosition < osu.objects[0].getTime() - SKIP_OFFSET)
 			skipButton.draw();
 
+		// draw pause button
+		if(Options.isInGamePauseEnabled())
+			pauseButton.draw();
+		
 		// show retries
 		if (retries >= 2 && timeDiff >= -1000) {
 			int retryHeight = Math.max(
@@ -545,14 +555,7 @@ public class Game extends BasicGameState {
 			}
 
 			// pause game
-			if (pauseTime < 0 && breakTime <= 0 && trackPosition >= osu.objects[0].getTime()) {
-				pausedMouseX = input.getMouseX();
-				pausedMouseY = input.getMouseY();
-				pausePulse = 0f;
-			}
-			if (MusicController.isPlaying() || isLeadIn())
-				pauseTime = trackPosition;
-			game.enterState(Opsu.STATE_GAMEPAUSEMENU, new EmptyTransition(), new FadeInTransition(Color.black));
+			pauseGame(input.getMouseX(), input.getMouseY());
 			break;
 		case Input.KEY_SPACE:
 			// skip intro
@@ -631,6 +634,20 @@ public class Game extends BasicGameState {
 		}
 	}
 
+	private void pauseGame(int x, int y) {
+		// pause game
+		int trackPosition = MusicController.getPosition();
+		if (pauseTime < 0 && breakTime <= 0 && trackPosition >= osu.objects[0].getTime()) {
+			pausedMouseX = x;
+			pausedMouseY = y;
+			pausePulse = 0f;
+		}
+		if (MusicController.isPlaying() || isLeadIn())
+			pauseTime = trackPosition;
+		game.enterState(Opsu.STATE_GAMEPAUSEMENU, new EmptyTransition(), new FadeInTransition(Color.black));
+					
+	}
+
 	@Override
 	public void mousePressed(int button, int x, int y) {
 		if (Options.isMouseDisabled())
@@ -638,19 +655,13 @@ public class Game extends BasicGameState {
 
 		// mouse wheel: pause the game
 		if (button == Input.MOUSE_MIDDLE_BUTTON && !Options.isMouseWheelDisabled()) {
-			int trackPosition = MusicController.getPosition();
-			if (pauseTime < 0 && breakTime <= 0 && trackPosition >= osu.objects[0].getTime()) {
-				pausedMouseX = x;
-				pausedMouseY = y;
-				pausePulse = 0f;
-			}
-			if (MusicController.isPlaying() || isLeadIn())
-				pauseTime = trackPosition;
-			game.enterState(Opsu.STATE_GAMEPAUSEMENU, new EmptyTransition(), new FadeInTransition(Color.black));
+			pauseGame(x, y);
 			return;
 		}
 
 		gameKeyPressed(button, x, y);
+		lastMouseX = x;
+		lastMouseY = y;
 	}
 
 	/**
@@ -684,6 +695,9 @@ public class Game extends BasicGameState {
 		if (skipButton.contains(x, y)) {
 			if (skipIntro())
 				return;  // successfully skipped
+		}
+		if (Options.isInGamePauseEnabled() && pauseButton.contains(x, y)) {
+			pauseGame(lastMouseX, lastMouseY);
 		}
 
 		// "auto" and "relax" mods: ignore user actions
@@ -855,6 +869,9 @@ public class Game extends BasicGameState {
 		}
 		skipButton.setHoverExpand(1.1f, MenuButton.Expand.UP_LEFT);
 
+		Image pause = GameImage.MUSIC_PAUSE.getImage().getScaledCopy(2);
+		pauseButton = new MenuButton(pause, width - pause.getWidth() / 2f, height - (pause.getHeight() / 2f));
+	
 		// load other images...
 		((GamePauseMenu) game.getState(Opsu.STATE_GAMEPAUSEMENU)).loadImages();
 		data.loadImages();

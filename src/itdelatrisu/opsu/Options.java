@@ -255,7 +255,8 @@ public class Options {
 		ENABLE_THEME_SONG ("Enable Theme Song", "Whether to play the theme song upon starting opsu!", true),
 		SHOW_HIT_ERROR_BAR ("Show Hit Error Bar", "Shows precisely how accurate you were with each hit.", false),
 		DISABLE_MOUSE_WHEEL ("Disable mouse wheel in play mode", "During play, you can use the mouse wheel to adjust the volume and pause the game.\nThis will disable that functionality.", false),
-		DISABLE_MOUSE_BUTTONS ("Disable mouse buttons in play mode", "This option will disable all mouse buttons.\nSpecifically for people who use their keyboard to click.", false);
+		DISABLE_MOUSE_BUTTONS ("Disable mouse buttons in play mode", "This option will disable all mouse buttons.\nSpecifically for people who use their keyboard to click.", false), 
+		IN_GAME_PAUSE("In game pause button", "Shows a in game pasue button.", false);
 
 		/** Option name. */
 		private String name;
@@ -673,6 +674,12 @@ public class Options {
 	public static boolean isThemeSongEnabled() { return GameOption.ENABLE_THEME_SONG.getBooleanValue(); }
 
 	/**
+	 * Returns whether or not in game pause is enabled.
+	 * @return true if enabled
+	 */
+	public static boolean isInGamePauseEnabled() { return GameOption.IN_GAME_PAUSE.getBooleanValue(); }
+
+	/**
 	 * Sets the track checkpoint time, if within bounds.
 	 * @param time the track position (in ms)
 	 * @return true if within bounds
@@ -1020,6 +1027,9 @@ public class Options {
 					case "MenuMusic":
 						GameOption.ENABLE_THEME_SONG.setValue(Boolean.parseBoolean(value));
 						break;
+					case "InGamePause":
+						GameOption.IN_GAME_PAUSE.setValue(Boolean.parseBoolean(value));
+						break;
 					}
 				} catch (NumberFormatException e) {
 					Log.warn(String.format("Format error in options file for line: '%s'.", line), e);
@@ -1123,6 +1133,8 @@ public class Options {
 			writer.write(String.format("Checkpoint = %d", GameOption.CHECKPOINT.getIntegerValue()));
 			writer.newLine();
 			writer.write(String.format("MenuMusic = %b", isThemeSongEnabled()));
+			writer.newLine();
+			writer.write(String.format("InGamePause = %b", isInGamePauseEnabled()));
 			writer.newLine();
 			writer.close();
 		} catch (IOException e) {
