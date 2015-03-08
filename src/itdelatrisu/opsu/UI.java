@@ -409,7 +409,8 @@ public class UI {
 			text = "Unpacking new beatmaps...";
 			progress = OszUnpacker.getUnpackerProgress();
 		} else if ((file = OsuParser.getCurrentFileName()) != null) {
-			text = (OsuParser.isUpdatingDatabase()) ? "Updating database..." : "Loading beatmaps...";
+			text = (OsuParser.getStatus() == OsuParser.Status.INSERTING) ?
+					"Updating database..." : "Loading beatmaps...";
 			progress = OsuParser.getParserProgress();
 		} else if ((file = SoundController.getCurrentFileName()) != null) {
 			text = "Loading sounds...";

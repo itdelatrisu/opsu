@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import org.newdawn.slick.Color;
@@ -55,8 +56,11 @@ public class OsuParser {
 	/** The total number of directories to parse. */
 	private static int totalDirectories = -1;
 
-	/** Whether or not the database is currently being updated. */
-	private static boolean updatingDatabase = false;
+	/** Parser statuses. */
+	public enum Status { NONE, PARSING, CACHE, INSERTING };
+
+	/** The current status. */
+	private static Status status = Status.NONE;
 
 	// This class should not be instantiated.
 	private OsuParser() {}
@@ -85,14 +89,19 @@ public class OsuParser {
 			return null;
 
 		// progress tracking
+		status = Status.PARSING;
 		currentDirectoryIndex = 0;
 		totalDirectories = dirs.length;
 
 		// get last modified map from database
 		Map<String, Long> map = OsuDB.getLastModifiedMap();
 
+		// OsuFile lists
+		List<ArrayList<OsuFile>> allOsuFiles = new LinkedList<ArrayList<OsuFile>>();
+		List<OsuFile> cachedOsuFiles = new LinkedList<OsuFile>();  // loaded from database
+		List<OsuFile> parsedOsuFiles = new LinkedList<OsuFile>();  // loaded from parser
+
 		// parse directories
-		LinkedList<OsuFile> parsedOsuFiles = new LinkedList<OsuFile>();
 		OsuGroupNode lastNode = null;
 		for (File dir : dirs) {
 			currentDirectoryIndex++;
@@ -120,7 +129,10 @@ public class OsuParser {
 					// check last modified times
 					long lastModified = map.get(path);
 					if (lastModified == file.lastModified()) {
-						osuFiles.add(OsuDB.getOsuFile(dir, file));
+						// add to cached beatmap list
+						OsuFile osu = new OsuFile(file);
+						osuFiles.add(osu);
+						cachedOsuFiles.add(osu);
 						continue;
 					} else
 						OsuDB.delete(dir.getName(), file.getName());
@@ -130,13 +142,17 @@ public class OsuParser {
 				// Change boolean to 'true' to parse them immediately.
 				OsuFile osu = parseFile(file, dir, osuFiles, false);
 
-				if (osu != null)
+				// add to parsed beatmap list
+				if (osu != null) {
+					osuFiles.add(osu);
 					parsedOsuFiles.add(osu);
+				}
 			}
-			if (!osuFiles.isEmpty()) {  // add entry if non-empty
+
+			// add group entry if non-empty
+			if (!osuFiles.isEmpty()) {
 				osuFiles.trimToSize();
-				Collections.sort(osuFiles);
-				lastNode = OsuGroupList.get().addSongGroup(osuFiles);
+				allOsuFiles.add(osuFiles);
 			}
 
 			// stop parsing files (interrupted)
@@ -144,16 +160,28 @@ public class OsuParser {
 				break;
 		}
 
+		// load cached entries from database
+		if (!cachedOsuFiles.isEmpty()) {
+			status = Status.CACHE;
+			OsuDB.load(cachedOsuFiles);
+		}
+
+		// add group entries to OsuGroupList
+		for (ArrayList<OsuFile> osuFiles : allOsuFiles) {
+			Collections.sort(osuFiles);
+			lastNode = OsuGroupList.get().addSongGroup(osuFiles);
+		}
+
 		// clear string DB
 		stringdb = new HashMap<String, String>();
 
-		// add entries to database
+		// add beatmap entries to database
 		if (!parsedOsuFiles.isEmpty()) {
-			updatingDatabase = true;
+			status = Status.INSERTING;
 			OsuDB.insert(parsedOsuFiles);
-			updatingDatabase = false;
 		}
 
+		status = Status.NONE;
 		currentFile = null;
 		currentDirectoryIndex = -1;
 		totalDirectories = -1;
@@ -197,7 +225,8 @@ public class OsuParser {
 								if (!osuFiles.isEmpty()) {
 									// if possible, reuse the same File object from another OsuFile in the group
 									File groupAudioFileName = osuFiles.get(0).audioFilename;
-									if (tokens[1].equalsIgnoreCase(groupAudioFileName.getName()))
+									if (groupAudioFileName != null &&
+									    tokens[1].equalsIgnoreCase(groupAudioFileName.getName()))
 										audioFileName = groupAudioFileName;
 								}
 								if (!audioFileName.isFile()) {
@@ -550,10 +579,6 @@ public class OsuParser {
 		if (parseObjects)
 			parseHitObjects(osu);
 
-		// add OsuFile to song group
-		if (osuFiles != null)
-			osuFiles.add(osu);
-
 		return osu;
 	}
 
@@ -666,10 +691,10 @@ public class OsuParser {
 	 * Returns the name of the current file being parsed, or null if none.
 	 */
 	public static String getCurrentFileName() {
-		if (updatingDatabase)
-			return "";
-		else
+		if (status == Status.PARSING)
 			return (currentFile != null) ? currentFile.getName() : null;
+		else
+			return (status == Status.NONE) ? null : "";
 	}
 
 	/**
@@ -684,9 +709,9 @@ public class OsuParser {
 	}
 
 	/**
-	 * Returns whether or not the beatmap database is currently being updated.
+	 * Returns the current parser status.
 	 */
-	public static boolean isUpdatingDatabase() { return updatingDatabase; }
+	public static Status getStatus() { return status; }
 
 	/**
 	 * Returns the String object in the database for the given String.

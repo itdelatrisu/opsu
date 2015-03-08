@@ -43,11 +43,17 @@ public class OsuDB {
 	 */
 	private static final String DATABASE_VERSION = "2014-03-04";
 
+	/** Minimum batch size to invoke batch loading. */
+	private static final int LOAD_BATCH_MIN = 100;
+
+	/** Minimum batch size to invoke batch insertion. */
+	private static final int INSERT_BATCH_MIN = 100;
+
 	/** Database connection. */
 	private static Connection connection;
 
 	/** Query statements. */
-	private static PreparedStatement insertStmt, selectStmt, lastModStmt, deleteMapStmt, deleteGroupStmt;
+	private static PreparedStatement insertStmt, selectStmt, selectAllStmt, lastModStmt, deleteMapStmt, deleteGroupStmt;
 
 	// This class should not be instantiated.
 	private OsuDB() {}
@@ -75,6 +81,7 @@ public class OsuDB {
 				"?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 			);
 			lastModStmt = connection.prepareStatement("SELECT dir, file, lastModified FROM beatmaps");
+			selectAllStmt = connection.prepareStatement("SELECT * FROM beatmaps");
 			selectStmt = connection.prepareStatement("SELECT * FROM beatmaps WHERE dir = ? AND file = ?");
 			deleteMapStmt = connection.prepareStatement("DELETE FROM beatmaps WHERE dir = ? AND file = ?");
 			deleteGroupStmt = connection.prepareStatement("DELETE FROM beatmaps WHERE dir = ?");
@@ -191,8 +198,11 @@ public class OsuDB {
 			connection.setAutoCommit(false);
 
 			// drop indexes
-			String sql = "DROP INDEX IF EXISTS idx";
-			stmt.executeUpdate(sql);
+			boolean recreateIndexes = (batch.size() >= INSERT_BATCH_MIN);
+			if (recreateIndexes) {
+				String sql = "DROP INDEX IF EXISTS idx";
+				stmt.executeUpdate(sql);
+			}
 
 			// batch insert
 			for (OsuFile osu : batch) {
@@ -202,8 +212,10 @@ public class OsuDB {
 			insertStmt.executeBatch();
 
 			// re-create indexes
-			sql = "CREATE INDEX idx ON beatmaps (dir, file)";
-			stmt.executeUpdate(sql);
+			if (recreateIndexes) {
+				String sql = "CREATE INDEX idx ON beatmaps (dir, file)";
+				stmt.executeUpdate(sql);
+			}
 
 			// restore previous auto-commit mode
 			connection.commit();
@@ -263,64 +275,121 @@ public class OsuDB {
 	}
 
 	/**
-	 * Returns an OsuFile from the database, or null if any error occurred.
-	 * @param dir the directory
-	 * @param file the file
-	 * @return the OsuFile with all fields filled, or null if any error occurred
+	 * Loads OsuFile fields from the database.
+	 * @param osu the OsuFile object
 	 */
-	public static OsuFile getOsuFile(File dir, File file) {
+	public static void load(OsuFile osu) {
 		if (connection == null)
-			return null;
+			return;
 
 		try {
-			OsuFile osu = new OsuFile(file);
-			selectStmt.setString(1, dir.getName());
-			selectStmt.setString(2, file.getName());
+			selectStmt.setString(1, osu.getFile().getParentFile().getName());
+			selectStmt.setString(2, osu.getFile().getName());
 			ResultSet rs = selectStmt.executeQuery();
+			if (rs.next())
+				setOsuFileFields(rs, osu);
+			rs.close();
+		} catch (SQLException e) {
+			ErrorHandler.error("Failed to load OsuFile from database.", e, true);
+		}
+	}
+
+	/**
+	 * Loads OsuFile fields from the database in a batch.
+	 * @param batch a list of OsuFile objects
+	 */
+	public static void load(List<OsuFile> batch) {
+		if (connection == null)
+			return;
+
+		// batch size too small
+		int size = batch.size();
+		if (size < LOAD_BATCH_MIN) {
+			for (OsuFile osu : batch)
+				load(osu);
+			return;
+		}
+
+		try {
+			// create map
+			HashMap<String, HashMap<String, OsuFile>> map = new HashMap<String, HashMap<String, OsuFile>>();
+			for (OsuFile osu : batch) {
+				String parent = osu.getFile().getParentFile().getName();
+				String name = osu.getFile().getName();
+				HashMap<String, OsuFile> m = map.get(parent);
+				if (m == null) {
+					m = new HashMap<String, OsuFile>();
+					map.put(parent, m);
+				}
+				m.put(name, osu);
+			}
+
+			// iterate through database to load OsuFiles
+			int count = 0;
+			selectAllStmt.setFetchSize(100);
+			ResultSet rs = selectAllStmt.executeQuery();
 			while (rs.next()) {
-				osu.beatmapID = rs.getInt(4);
-				osu.beatmapSetID = rs.getInt(5);
-				osu.title = OsuParser.getDBString(rs.getString(6));
-				osu.titleUnicode = OsuParser.getDBString(rs.getString(7));
-				osu.artist = OsuParser.getDBString(rs.getString(8));
-				osu.artistUnicode = OsuParser.getDBString(rs.getString(9));
-				osu.creator = OsuParser.getDBString(rs.getString(10));
-				osu.version = OsuParser.getDBString(rs.getString(11));
-				osu.source = OsuParser.getDBString(rs.getString(12));
-				osu.tags = OsuParser.getDBString(rs.getString(13));
-				osu.hitObjectCircle = rs.getInt(14);
-				osu.hitObjectSlider = rs.getInt(15);
-				osu.hitObjectSpinner = rs.getInt(16);
-				osu.HPDrainRate = rs.getFloat(17);
-				osu.circleSize = rs.getFloat(18);
-				osu.overallDifficulty = rs.getFloat(19);
-				osu.approachRate = rs.getFloat(20);
-				osu.sliderMultiplier = rs.getFloat(21);
-				osu.sliderTickRate = rs.getFloat(22);
-				osu.bpmMin = rs.getInt(23);
-				osu.bpmMax = rs.getInt(24);
-				osu.endTime = rs.getInt(25);
-				osu.audioFilename = new File(dir, OsuParser.getDBString(rs.getString(26)));
-				osu.audioLeadIn = rs.getInt(27);
-				osu.previewTime = rs.getInt(28);
-				osu.countdown = rs.getByte(29);
-				osu.sampleSet = OsuParser.getDBString(rs.getString(30));
-				osu.stackLeniency = rs.getFloat(31);
-				osu.mode = rs.getByte(32);
-				osu.letterboxInBreaks = rs.getBoolean(33);
-				osu.widescreenStoryboard = rs.getBoolean(34);
-				osu.epilepsyWarning = rs.getBoolean(35);
-				osu.bg = OsuParser.getDBString(rs.getString(36));
-				osu.timingPointsFromString(rs.getString(37));
-				osu.breaksFromString(rs.getString(38));
-				osu.comboFromString(rs.getString(39));
+				String parent = rs.getString(1);
+				HashMap<String, OsuFile> m = map.get(parent);
+				if (m != null) {
+					String name = rs.getString(2);
+					OsuFile osu = m.get(name);
+					if (osu != null) {
+						setOsuFileFields(rs, osu);
+						if (++count >= size)
+							break;
+					}
+				}
 			}
 			rs.close();
-			return osu;
 		} catch (SQLException e) {
-			ErrorHandler.error("Failed to get OsuFile from database.", e, true);
-			return null;
+			ErrorHandler.error("Failed to load OsuFiles from database.", e, true);
 		}
+	}
+
+	/**
+	 * Sets all OsuFile fields using a given result set.
+	 * @param rs the result set containing the fields
+	 * @param osu the OsuFile
+	 * @throws SQLException 
+	 */
+	private static void setOsuFileFields(ResultSet rs, OsuFile osu) throws SQLException {
+		osu.beatmapID = rs.getInt(4);
+		osu.beatmapSetID = rs.getInt(5);
+		osu.title = OsuParser.getDBString(rs.getString(6));
+		osu.titleUnicode = OsuParser.getDBString(rs.getString(7));
+		osu.artist = OsuParser.getDBString(rs.getString(8));
+		osu.artistUnicode = OsuParser.getDBString(rs.getString(9));
+		osu.creator = OsuParser.getDBString(rs.getString(10));
+		osu.version = OsuParser.getDBString(rs.getString(11));
+		osu.source = OsuParser.getDBString(rs.getString(12));
+		osu.tags = OsuParser.getDBString(rs.getString(13));
+		osu.hitObjectCircle = rs.getInt(14);
+		osu.hitObjectSlider = rs.getInt(15);
+		osu.hitObjectSpinner = rs.getInt(16);
+		osu.HPDrainRate = rs.getFloat(17);
+		osu.circleSize = rs.getFloat(18);
+		osu.overallDifficulty = rs.getFloat(19);
+		osu.approachRate = rs.getFloat(20);
+		osu.sliderMultiplier = rs.getFloat(21);
+		osu.sliderTickRate = rs.getFloat(22);
+		osu.bpmMin = rs.getInt(23);
+		osu.bpmMax = rs.getInt(24);
+		osu.endTime = rs.getInt(25);
+		osu.audioFilename = new File(osu.getFile().getParentFile(), OsuParser.getDBString(rs.getString(26)));
+		osu.audioLeadIn = rs.getInt(27);
+		osu.previewTime = rs.getInt(28);
+		osu.countdown = rs.getByte(29);
+		osu.sampleSet = OsuParser.getDBString(rs.getString(30));
+		osu.stackLeniency = rs.getFloat(31);
+		osu.mode = rs.getByte(32);
+		osu.letterboxInBreaks = rs.getBoolean(33);
+		osu.widescreenStoryboard = rs.getBoolean(34);
+		osu.epilepsyWarning = rs.getBoolean(35);
+		osu.bg = OsuParser.getDBString(rs.getString(36));
+		osu.timingPointsFromString(rs.getString(37));
+		osu.breaksFromString(rs.getString(38));
+		osu.comboFromString(rs.getString(39));
 	}
 
 	/**
@@ -334,6 +403,7 @@ public class OsuDB {
 		try {
 			Map<String, Long> map = new HashMap<String, Long>();
 			ResultSet rs = lastModStmt.executeQuery();
+			lastModStmt.setFetchSize(100);
 			while (rs.next()) {
 				String path = String.format("%s/%s", rs.getString(1), rs.getString(2));
 				long lastModified = rs.getLong(3);
@@ -392,6 +462,7 @@ public class OsuDB {
 			insertStmt.close();
 			lastModStmt.close();
 			selectStmt.close();
+			selectAllStmt.close();
 			deleteMapStmt.close();
 			deleteGroupStmt.close();
 			connection.close();
