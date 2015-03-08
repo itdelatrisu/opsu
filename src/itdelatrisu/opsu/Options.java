@@ -1082,7 +1082,8 @@ public class Options {
 			writer.write(String.format("NewCursor = %b", isNewCursorEnabled()));
 			writer.newLine();
 			writer.write(String.format("DynamicBackground = %b", isDynamicBackgroundEnabled()));
-			writer.newLine();
+			//writer.newLine();
+                        writer.newLine();
 			writer.write(String.format("LoadVerbose = %b", isLoadVerbose()));
 			writer.newLine();
 			writer.write(String.format("VolumeUniversal = %d", GameOption.MASTER_VOLUME.getIntegerValue()));
