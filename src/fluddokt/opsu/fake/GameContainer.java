@@ -106,7 +106,7 @@ public class GameContainer {
 	}
 	
 	static Music music;
-	public static void setMusic(Music imusic) {
+	public static synchronized void setMusic(Music imusic) {
 		if(music!=null)
 			music.dispose();
 		music = imusic;

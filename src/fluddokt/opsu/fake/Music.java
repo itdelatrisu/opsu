@@ -20,7 +20,7 @@ public class Music implements AbsMusicCompleteListener{
 	}
 
 	public boolean setPosition(float f) {
-		System.out.println("Music setPosition " + f);
+		//System.out.println("Music setPosition " + f);
 		boolean b = music.setPosition(f);
 		lastPosition = music.getPosition();
 		lastTime = TimeUtils.millis() - (long) (lastPosition * 1000);
@@ -29,14 +29,14 @@ public class Music implements AbsMusicCompleteListener{
 	}
 
 	public void loop() {
-		System.out.println("Music loop " + music.getName());
+		//System.out.println("Music loop " + music.getName());
 		music.loop();
 		lastPosition = music.getPosition();
 		lastTime = TimeUtils.millis();
 	}
 
 	public void play() {
-		System.out.println("Music play " + music.getName());
+		//System.out.println("Music play " + music.getName());
 		music.play();
 		lastPosition = music.getPosition();
 		lastTime = TimeUtils.millis();
@@ -47,12 +47,12 @@ public class Music implements AbsMusicCompleteListener{
 	}
 
 	public void pause() {
-		System.out.println("Music pause " + music.getName());
+		//System.out.println("Music pause " + music.getName());
 		music.pause();
 	}
 
 	public void resume() {
-		System.out.println("Music resume " + music.getName());
+		//System.out.println("Music resume " + music.getName());
 		music.resume();
 	}
 
@@ -60,12 +60,12 @@ public class Music implements AbsMusicCompleteListener{
 	}
 
 	public void stop() {
-		System.out.println("Music stop " + music.getName());
+		//System.out.println("Music stop " + music.getName());
 		music.stop();
 	}
 
 	public void fade(int duration, float f, boolean b) {
-		System.out.println("Music fade " + music.getName());
+		//System.out.println("Music fade " + music.getName());
 		music.fade(duration, f, b);
 	}
 
@@ -112,7 +112,7 @@ public class Music implements AbsMusicCompleteListener{
 	}
 
 	public void dispose() {
-		System.out.println("Music dispose " + music.getName());
+		//System.out.println("Music dispose " + music.getName());
 		music.dispose();
 	}
 

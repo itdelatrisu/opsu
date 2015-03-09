@@ -19,7 +19,6 @@
 package itdelatrisu.opsu.audio;
 
 import fluddokt.opsu.fake.*;
-
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.OsuFile;
@@ -84,13 +83,13 @@ public class MusicController {
 			switch (OsuParser.getExtension(osu.audioFilename.getName())) {
 			case "ogg":
 			case "mp3":
-				trackLoader = new Thread() {
-					@Override
-					public void run() {
+			//	trackLoader = new Thread() {
+			//		@Override
+			//		public void run() {
 						loadTrack(osu.audioFilename, (preview) ? osu.previewTime : 0, loop);
-					}
-				};
-				trackLoader.start();
+			//		}
+			//	};
+			//	trackLoader.start();
 				break;
 			default:
 				break;

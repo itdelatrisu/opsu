@@ -12,8 +12,7 @@ public class MusicJL2 extends AbsMusic {
 	boolean setNextPosition = false;
 	float nextPosition;
 	float volume = 0.1f;
-	boolean audioUsed = false;
-
+	
 	PlayThread playThread;
 	Bitstream bitstream;
 	Decoder decoder;
@@ -32,23 +31,41 @@ public class MusicJL2 extends AbsMusic {
 	long posUpdateTime;
 	
 	float latency;
-	int sampleRate = 44100;
+	int sampleRate = -1;
 	int channels;
 	
+	static int threadCount = 0;
+	static Object threadCountLock = new Object();
+	static int worstSleepAccuracy = 0;
+	
+	public void incrementThreadCount(){
+		synchronized (threadCountLock) {
+			threadCount++;
+		}
+	}
+	public void decrementThreadCount(){
+		synchronized (threadCountLock) {
+			threadCount--;
+		}
+	}
 	boolean initData = false;
 
 	class PlayThread extends Thread {
 		boolean toStop = false;
 		boolean initedAD = false;
+		boolean audioUsed = false;
+
 		AudioDevice ad;
 		public PlayThread(){
 			super("MusicJLThread");
 		}
 		public void run() {
-			try {
-				System.out.println("MusicJL Running Thread " + file.path());
+			
+				incrementThreadCount();
+				System.out.println("MusicJL Running Thread " + file.path()+" "+threadCount);
 				
-				while (!toStop) {
+				try {
+					while (!toStop) {
 					header = bitstream.readFrame();
 					if (setNextPosition) {
 						System.out.println("Next Positioning: " + position + " " + nextPosition);
@@ -90,6 +107,7 @@ public class MusicJL2 extends AbsMusic {
 							if (!initData) {
 								sampleRate = header.frequency();
 								channels = header.mode() == Header.SINGLE_CHANNEL ? 1: 2;
+								
 								initData = true;
 								buf = new SampleBuffer(sampleRate, channels);
 								decoder = new Decoder();
@@ -123,11 +141,20 @@ public class MusicJL2 extends AbsMusic {
 
 							position += 1000f * len / channels / sampleRate;// header.frequency();//header.ms_per_frame();
 							bitstream.closeFrame();
-							// Thread.sleep(16);//Math.max(1000*len/channels/sampleRate,1));
-
+							int prefSleep = Math.max(1000*len/channels/sampleRate/2 -worstSleepAccuracy,0);
+							long time = System.currentTimeMillis();
+							Thread.sleep(Math.max(prefSleep,0));
+							long deltaTime = System.currentTimeMillis() - time + 2;
+							if(deltaTime - prefSleep > worstSleepAccuracy){
+								worstSleepAccuracy = (int)(deltaTime -prefSleep);
+								System.out.println("worstSleepAccuracy"+worstSleepAccuracy+" "+prefSleep+" "+deltaTime);
+							}
 						}
 					}
 				}
+			} catch(InterruptedException e){
+				//e.printStackTrace();
+				System.out.println("Interrupted: "+file.path());
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -147,7 +174,8 @@ public class MusicJL2 extends AbsMusic {
 				}
 				fireMusicEnded();
 			}
-			System.out.println("Thread stoped " + file.path());
+			decrementThreadCount();
+			System.out.println("Thread stoped " + file.path()+" "+threadCount);
 		}
 
 	}
@@ -174,7 +202,7 @@ public class MusicJL2 extends AbsMusic {
 	}
 
 
-	private void startThread() {
+	private synchronized void startThread() {
 		if (playThread != null) {
 			try {
 				playThread.toStop = true;
@@ -190,9 +218,10 @@ public class MusicJL2 extends AbsMusic {
 			playThread.start();
 		}
 	}
-	private void stopThread() {
+	private synchronized void stopThread() {
 		if(playThread != null){
 			playThread.toStop = true;
+			playThread.interrupt();
 		}
 	}
 	
@@ -240,7 +269,7 @@ public class MusicJL2 extends AbsMusic {
 
 	
 	@Override
-	public void stop() {
+	public synchronized void stop() {
 		System.out.println("MusicJL stop");
 		stop = true;
 		stopThread();
