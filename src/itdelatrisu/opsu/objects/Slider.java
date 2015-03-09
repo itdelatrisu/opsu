@@ -294,7 +294,7 @@ public class Slider implements HitObject {
 	}
 
 	@Override
-	public boolean update(boolean overlap, int delta, int mouseX, int mouseY) {
+	public boolean update(boolean overlap, int delta, int mouseX, int mouseY, boolean keyPressed) {
 		int repeatCount = hitObject.getRepeatCount();
 
 		// slider time and tick calculations
@@ -355,7 +355,7 @@ public class Slider implements HitObject {
 			tickIntervals++;
 
 			// check if cursor pressed and within end circle
-			if (Utils.isGameKeyPressed() || GameMod.RELAX.isActive()) {
+			if (keyPressed || GameMod.RELAX.isActive()) {
 				float[] c = curve.pointAt(getT(trackPosition, false));
 				double distance = Math.hypot(c[0] - mouseX, c[1] - mouseY);
 				int followCircleRadius = GameImage.SLIDER_FOLLOWCIRCLE.getImage().getWidth() / 2;
@@ -404,7 +404,7 @@ public class Slider implements HitObject {
 		float[] c = curve.pointAt(getT(trackPosition, false));
 		double distance = Math.hypot(c[0] - mouseX, c[1] - mouseY);
 		int followCircleRadius = GameImage.SLIDER_FOLLOWCIRCLE.getImage().getWidth() / 2;
-		if (((Utils.isGameKeyPressed() || GameMod.RELAX.isActive()) && distance < followCircleRadius) || isAutoMod) {
+		if (((keyPressed || GameMod.RELAX.isActive()) && distance < followCircleRadius) || isAutoMod) {
 			// mouse pressed and within follow circle
 			followCircleActive = true;
 			data.changeHealth(delta * GameData.HP_DRAIN_MULTIPLIER);

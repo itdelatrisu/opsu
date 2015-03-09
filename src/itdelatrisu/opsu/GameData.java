@@ -1212,12 +1212,7 @@ public class GameData {
 		scoreData.score = score;
 		scoreData.combo = comboMax;
 		scoreData.perfect = (comboMax == fullObjectCount);
-		int mods = 0;
-		for (GameMod mod : GameMod.values()) {
-			if (mod.isActive())
-				mods |= mod.getBit();
-		}
-		scoreData.mods = mods;
+		scoreData.mods = GameMod.getModState();
 		return scoreData;
 	}
 

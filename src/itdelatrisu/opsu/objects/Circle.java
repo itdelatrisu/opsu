@@ -150,7 +150,7 @@ public class Circle implements HitObject {
 	}
 
 	@Override
-	public boolean update(boolean overlap, int delta, int mouseX, int mouseY) {
+	public boolean update(boolean overlap, int delta, int mouseX, int mouseY, boolean keyPressed) {
 		int time = hitObject.getTime();
 		float x = hitObject.getX(), y = hitObject.getY();
 

@@ -41,6 +41,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Scanner;
 
 import javax.imageio.ImageIO;
 
@@ -544,6 +545,17 @@ public class Utils {
 		} catch (SocketTimeoutException e) {
 			Log.warn("Connection to server timed out.", e);
 			throw e;
+		}
+	}
+
+	/**
+	 * Converts an input stream to a string.
+	 * @param is the input stream
+	 * @author Pavel Repin, earcam (http://stackoverflow.com/a/5445161)
+	 */
+	public static String convertStreamToString(InputStream is) {
+		try (Scanner s = new Scanner(is)) {
+			return s.useDelimiter("\\A").hasNext() ? s.next() : "";
 		}
 	}
 }

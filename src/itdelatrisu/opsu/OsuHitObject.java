@@ -130,6 +130,16 @@ public class OsuHitObject {
 	public static float getYMultiplier() { return yMultiplier; }
 
 	/**
+	 * Returns the X offset for coordinates.
+	 */
+	public static int getXOffset() { return xOffset; }
+
+	/**
+	 * Returns the Y offset for coordinates.
+	 */
+	public static int getYOffset() { return yOffset; }
+
+	/**
 	 * Constructor.
 	 * @param line the line to be parsed
 	 */

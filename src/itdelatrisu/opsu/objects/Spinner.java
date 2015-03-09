@@ -194,7 +194,7 @@ public class Spinner implements HitObject {
 	public boolean mousePressed(int x, int y) { return false; }  // not used
 
 	@Override
-	public boolean update(boolean overlap, int delta, int mouseX, int mouseY) {
+	public boolean update(boolean overlap, int delta, int mouseX, int mouseY, boolean keyPressed) {
 		int trackPosition = MusicController.getPosition();
 
 		// end of spinner
@@ -204,7 +204,7 @@ public class Spinner implements HitObject {
 		}
 
 		// game button is released
-		if (isSpinning && !(Utils.isGameKeyPressed() || GameMod.RELAX.isActive()))
+		if (isSpinning && !(keyPressed || GameMod.RELAX.isActive()))
 			isSpinning = false;
 
 		// spin automatically
@@ -224,7 +224,7 @@ public class Spinner implements HitObject {
 			angle = (float) Math.atan2(mouseY - (height / 2), mouseX - (width / 2));
 
 			// set initial angle to current mouse position to skip first click
-			if (!isSpinning && (Utils.isGameKeyPressed() || GameMod.RELAX.isActive())) {
+			if (!isSpinning && (keyPressed || GameMod.RELAX.isActive())) {
 				lastAngle = angle;
 				isSpinning = true;
 				return false;
