@@ -33,6 +33,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.newdawn.slick.util.Log;
+
 /**
  * Handles connections and queries with the cached beatmap database.
  */
@@ -247,7 +249,11 @@ public class OsuDB {
 
 			// batch insert
 			for (OsuFile osu : batch) {
-				setStatementFields(insertStmt, osu);
+				try {
+					setStatementFields(insertStmt, osu);
+				} catch (SQLException e) {
+					Log.error(String.format("Failed to insert map '%s' into database.", osu.getFile().getPath()), e);
+				}
 				insertStmt.addBatch();
 			}
 			int[] results = insertStmt.executeBatch();
@@ -281,45 +287,51 @@ public class OsuDB {
 	 */
 	private static void setStatementFields(PreparedStatement stmt, OsuFile osu)
 			throws SQLException {
-		stmt.setString(1, osu.getFile().getParentFile().getName());
-		stmt.setString(2, osu.getFile().getName());
-		stmt.setLong(3, osu.getFile().lastModified());
-		stmt.setInt(4, osu.beatmapID);
-		stmt.setInt(5, osu.beatmapSetID);
-		stmt.setString(6, osu.title);
-		stmt.setString(7, osu.titleUnicode);
-		stmt.setString(8, osu.artist);
-		stmt.setString(9, osu.artistUnicode);
-		stmt.setString(10, osu.creator);
-		stmt.setString(11, osu.version);
-		stmt.setString(12, osu.source);
-		stmt.setString(13, osu.tags);
-		stmt.setInt(14, osu.hitObjectCircle);
-		stmt.setInt(15, osu.hitObjectSlider);
-		stmt.setInt(16, osu.hitObjectSpinner);
-		stmt.setFloat(17, osu.HPDrainRate);
-		stmt.setFloat(18, osu.circleSize);
-		stmt.setFloat(19, osu.overallDifficulty);
-		stmt.setFloat(20, osu.approachRate);
-		stmt.setFloat(21, osu.sliderMultiplier);
-		stmt.setFloat(22, osu.sliderTickRate);
-		stmt.setInt(23, osu.bpmMin);
-		stmt.setInt(24, osu.bpmMax);
-		stmt.setInt(25, osu.endTime);
-		stmt.setString(26, osu.audioFilename.getName());
-		stmt.setInt(27, osu.audioLeadIn);
-		stmt.setInt(28, osu.previewTime);
-		stmt.setByte(29, osu.countdown);
-		stmt.setString(30, osu.sampleSet);
-		stmt.setFloat(31, osu.stackLeniency);
-		stmt.setByte(32, osu.mode);
-		stmt.setBoolean(33, osu.letterboxInBreaks);
-		stmt.setBoolean(34, osu.widescreenStoryboard);
-		stmt.setBoolean(35, osu.epilepsyWarning);
-		stmt.setString(36, osu.bg);
-		stmt.setString(37, osu.timingPointsToString());
-		stmt.setString(38, osu.breaksToString());
-		stmt.setString(39, osu.comboToString());
+		try {
+			stmt.setString(1, osu.getFile().getParentFile().getName());
+			stmt.setString(2, osu.getFile().getName());
+			stmt.setLong(3, osu.getFile().lastModified());
+			stmt.setInt(4, osu.beatmapID);
+			stmt.setInt(5, osu.beatmapSetID);
+			stmt.setString(6, osu.title);
+			stmt.setString(7, osu.titleUnicode);
+			stmt.setString(8, osu.artist);
+			stmt.setString(9, osu.artistUnicode);
+			stmt.setString(10, osu.creator);
+			stmt.setString(11, osu.version);
+			stmt.setString(12, osu.source);
+			stmt.setString(13, osu.tags);
+			stmt.setInt(14, osu.hitObjectCircle);
+			stmt.setInt(15, osu.hitObjectSlider);
+			stmt.setInt(16, osu.hitObjectSpinner);
+			stmt.setFloat(17, osu.HPDrainRate);
+			stmt.setFloat(18, osu.circleSize);
+			stmt.setFloat(19, osu.overallDifficulty);
+			stmt.setFloat(20, osu.approachRate);
+			stmt.setFloat(21, osu.sliderMultiplier);
+			stmt.setFloat(22, osu.sliderTickRate);
+			stmt.setInt(23, osu.bpmMin);
+			stmt.setInt(24, osu.bpmMax);
+			stmt.setInt(25, osu.endTime);
+			stmt.setString(26, osu.audioFilename.getName());
+			stmt.setInt(27, osu.audioLeadIn);
+			stmt.setInt(28, osu.previewTime);
+			stmt.setByte(29, osu.countdown);
+			stmt.setString(30, osu.sampleSet);
+			stmt.setFloat(31, osu.stackLeniency);
+			stmt.setByte(32, osu.mode);
+			stmt.setBoolean(33, osu.letterboxInBreaks);
+			stmt.setBoolean(34, osu.widescreenStoryboard);
+			stmt.setBoolean(35, osu.epilepsyWarning);
+			stmt.setString(36, osu.bg);
+			stmt.setString(37, osu.timingPointsToString());
+			stmt.setString(38, osu.breaksToString());
+			stmt.setString(39, osu.comboToString());
+		} catch (SQLException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new SQLException(e);
+		}
 	}
 
 	/**
@@ -392,10 +404,14 @@ public class OsuDB {
 					String name = rs.getString(2);
 					OsuFile osu = m.get(name);
 					if (osu != null) {
-						if ((flag & LOAD_NONARRAY) > 0)
-							setOsuFileFields(rs, osu);
-						if ((flag & LOAD_ARRAY) > 0)
-							setOsuFileArrayFields(rs, osu);
+						try {
+							if ((flag & LOAD_NONARRAY) > 0)
+								setOsuFileFields(rs, osu);
+							if ((flag & LOAD_ARRAY) > 0)
+								setOsuFileArrayFields(rs, osu);
+						} catch (SQLException e) {
+							Log.error(String.format("Failed to load map '%s/%s' from database.", parent, name), e);
+						}
 						if (++count >= size)
 							break;
 					}
@@ -414,39 +430,45 @@ public class OsuDB {
 	 * @throws SQLException 
 	 */
 	private static void setOsuFileFields(ResultSet rs, OsuFile osu) throws SQLException {
-		osu.beatmapID = rs.getInt(4);
-		osu.beatmapSetID = rs.getInt(5);
-		osu.title = OsuParser.getDBString(rs.getString(6));
-		osu.titleUnicode = OsuParser.getDBString(rs.getString(7));
-		osu.artist = OsuParser.getDBString(rs.getString(8));
-		osu.artistUnicode = OsuParser.getDBString(rs.getString(9));
-		osu.creator = OsuParser.getDBString(rs.getString(10));
-		osu.version = OsuParser.getDBString(rs.getString(11));
-		osu.source = OsuParser.getDBString(rs.getString(12));
-		osu.tags = OsuParser.getDBString(rs.getString(13));
-		osu.hitObjectCircle = rs.getInt(14);
-		osu.hitObjectSlider = rs.getInt(15);
-		osu.hitObjectSpinner = rs.getInt(16);
-		osu.HPDrainRate = rs.getFloat(17);
-		osu.circleSize = rs.getFloat(18);
-		osu.overallDifficulty = rs.getFloat(19);
-		osu.approachRate = rs.getFloat(20);
-		osu.sliderMultiplier = rs.getFloat(21);
-		osu.sliderTickRate = rs.getFloat(22);
-		osu.bpmMin = rs.getInt(23);
-		osu.bpmMax = rs.getInt(24);
-		osu.endTime = rs.getInt(25);
-		osu.audioFilename = new File(osu.getFile().getParentFile(), OsuParser.getDBString(rs.getString(26)));
-		osu.audioLeadIn = rs.getInt(27);
-		osu.previewTime = rs.getInt(28);
-		osu.countdown = rs.getByte(29);
-		osu.sampleSet = OsuParser.getDBString(rs.getString(30));
-		osu.stackLeniency = rs.getFloat(31);
-		osu.mode = rs.getByte(32);
-		osu.letterboxInBreaks = rs.getBoolean(33);
-		osu.widescreenStoryboard = rs.getBoolean(34);
-		osu.epilepsyWarning = rs.getBoolean(35);
-		osu.bg = OsuParser.getDBString(rs.getString(36));
+		try {
+			osu.beatmapID = rs.getInt(4);
+			osu.beatmapSetID = rs.getInt(5);
+			osu.title = OsuParser.getDBString(rs.getString(6));
+			osu.titleUnicode = OsuParser.getDBString(rs.getString(7));
+			osu.artist = OsuParser.getDBString(rs.getString(8));
+			osu.artistUnicode = OsuParser.getDBString(rs.getString(9));
+			osu.creator = OsuParser.getDBString(rs.getString(10));
+			osu.version = OsuParser.getDBString(rs.getString(11));
+			osu.source = OsuParser.getDBString(rs.getString(12));
+			osu.tags = OsuParser.getDBString(rs.getString(13));
+			osu.hitObjectCircle = rs.getInt(14);
+			osu.hitObjectSlider = rs.getInt(15);
+			osu.hitObjectSpinner = rs.getInt(16);
+			osu.HPDrainRate = rs.getFloat(17);
+			osu.circleSize = rs.getFloat(18);
+			osu.overallDifficulty = rs.getFloat(19);
+			osu.approachRate = rs.getFloat(20);
+			osu.sliderMultiplier = rs.getFloat(21);
+			osu.sliderTickRate = rs.getFloat(22);
+			osu.bpmMin = rs.getInt(23);
+			osu.bpmMax = rs.getInt(24);
+			osu.endTime = rs.getInt(25);
+			osu.audioFilename = new File(osu.getFile().getParentFile(), OsuParser.getDBString(rs.getString(26)));
+			osu.audioLeadIn = rs.getInt(27);
+			osu.previewTime = rs.getInt(28);
+			osu.countdown = rs.getByte(29);
+			osu.sampleSet = OsuParser.getDBString(rs.getString(30));
+			osu.stackLeniency = rs.getFloat(31);
+			osu.mode = rs.getByte(32);
+			osu.letterboxInBreaks = rs.getBoolean(33);
+			osu.widescreenStoryboard = rs.getBoolean(34);
+			osu.epilepsyWarning = rs.getBoolean(35);
+			osu.bg = OsuParser.getDBString(rs.getString(36));
+		} catch (SQLException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new SQLException(e);
+		}
 	}
 
 	/**
@@ -456,9 +478,15 @@ public class OsuDB {
 	 * @throws SQLException 
 	 */
 	private static void setOsuFileArrayFields(ResultSet rs, OsuFile osu) throws SQLException {
-		osu.timingPointsFromString(rs.getString(37));
-		osu.breaksFromString(rs.getString(38));
-		osu.comboFromString(rs.getString(39));
+		try {
+			osu.timingPointsFromString(rs.getString(37));
+			osu.breaksFromString(rs.getString(38));
+			osu.comboFromString(rs.getString(39));
+		} catch (SQLException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new SQLException(e);
+		}
 	}
 
 	/**

@@ -575,6 +575,10 @@ public class OsuParser {
 			ErrorHandler.error(String.format("Failed to read file '%s'.", file.getAbsolutePath()), e, false);
 		}
 
+		// no associated audio file?
+		if (osu.audioFilename == null)
+			return null;
+
 		// if no custom colors, use the default color scheme
 		if (osu.combo == null)
 			osu.combo = Utils.DEFAULT_COMBO;
