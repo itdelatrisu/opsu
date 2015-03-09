@@ -49,12 +49,16 @@ public class File {
 			return;
 		}
 
-		if(Gdx.files.isExternalStorageAvailable()){
-			fh = Gdx.files.external(name);
-		} else if(Gdx.files.isLocalStorageAvailable()){
+		if (Gdx.app.getType() == ApplicationType.Desktop)
 			fh = Gdx.files.local(name);
-		} else {
-			//no storage available ...
+		else{
+			if(Gdx.files.isExternalStorageAvailable()){
+				fh = Gdx.files.external(name);
+			} else if(Gdx.files.isLocalStorageAvailable()){
+				fh = Gdx.files.local(name);
+			} else {
+				//no storage available ...
+			}
 		}
 		//fh = Gdx.files.external(name);
 		System.out.println("new nonexist file:"+info());

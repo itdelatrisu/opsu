@@ -18,7 +18,7 @@
 
 package itdelatrisu.opsu.db;
 
-import fluddokt.opsu.fake.File;
+import fluddokt.opsu.fake.*;
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.OsuFile;
@@ -37,7 +37,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/*
 import org.newdawn.slick.util.Log;
+*/
 
 /**
  * Handles connections and queries with the cached beatmap database.
