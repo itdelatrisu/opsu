@@ -48,19 +48,19 @@ public class Options {
 	private static final File CONFIG_DIR = getXDGBaseDir("XDG_CONFIG_HOME", ".config");
 
 	/** The data directory. */
-	private static final File DATA_DIR = getXDGBaseDir("XDG_DATA_HOME", ".local/share");
+	public static final File DATA_DIR = getXDGBaseDir("XDG_DATA_HOME", ".local/share");
 
 	/** File for logging errors. */
 	public static final File LOG_FILE = new File(CONFIG_DIR, ".opsu.log");
 
 	/** File for storing user options. */
-	private static final File OPTIONS_FILE = new File(CONFIG_DIR, ".opsu.cfg");
+	private static final File OPTIONS_FILE = new File(CONFIG_DIR, "../.opsu.cfg");
 
 	/** Beatmap directories (where to search for files).  */
-	private static final String[] BEATMAP_DIRS = {
-		"C:/Program Files (x86)/osu!/Songs/",
-		"C:/Program Files/osu!/Songs/",
-		new File(DATA_DIR, "Songs/").getPath()
+	private static final File[] BEATMAP_DIRS = {
+		//"C:/Program Files (x86)/osu!/Songs/",
+		//"C:/Program Files/osu!/Songs/",
+		new File(DATA_DIR, "Songs/")
 	};
 
 	/** Cached beatmap database name. */
@@ -108,7 +108,7 @@ public class Options {
 	 */
 	private static File getXDGBaseDir(String env, String fallback) {
 		if (System.getProperty("XDG") == null)
-			return new File("./");
+			return new File("./opsu");
 
 		String OS = System.getProperty("os.name").toLowerCase();
 		if (OS.indexOf("nix") >= 0 || OS.indexOf("nux") >= 0 || OS.indexOf("aix") > 0) {
@@ -124,7 +124,7 @@ public class Options {
 				dir.mkdir();
 			return dir;
 		} else
-			return new File("./");
+			return new File("./opsu");
 	}
 
 	/**
@@ -796,7 +796,7 @@ public class Options {
 
 		// search for directory
 		for (int i = 0; i < BEATMAP_DIRS.length; i++) {
-			beatmapDir = new File(BEATMAP_DIRS[i]);
+			beatmapDir = BEATMAP_DIRS[i];
 			if (beatmapDir.isDirectory())
 				return beatmapDir;
 		}

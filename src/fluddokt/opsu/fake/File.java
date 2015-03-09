@@ -20,7 +20,6 @@ public class File {
 			fh = Gdx.files.local(name);
 		else
 			fh = Gdx.files.external(name);
-		System.out.println(fh+" "+fh.exists()+" "+fh.type());
 		if (fh.exists()) {
 			System.out.println("new file:"+info());
 			return;
@@ -38,18 +37,18 @@ public class File {
 			return;
 		}
 		
-		fh = Gdx.files.internal(name);
-		if (fh.exists()) {
-			System.out.println("new file:"+info());
-			return;
-		}
-		
 		fh = Gdx.files.absolute(name);
 		if (fh.exists()) {
 			System.out.println("new file:"+info());
 			return;
 		}
 		
+		fh = Gdx.files.internal(name);
+		if (fh.exists()) {
+			System.out.println("new file:"+info());
+			return;
+		}
+
 		if(Gdx.files.isExternalStorageAvailable()){
 			fh = Gdx.files.external(name);
 		} else if(Gdx.files.isLocalStorageAvailable()){

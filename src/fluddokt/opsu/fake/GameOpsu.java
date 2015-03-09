@@ -24,7 +24,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 
 public class GameOpsu extends com.badlogic.gdx.Game {
 
-	final String VERSION = "OpsuAnd0.6.2e";
+	final String VERSION = "OpsuAnd0.7.0a";
 	public StateBasedGame sbg;
 	
 	Stage stage;
@@ -90,7 +90,7 @@ public class GameOpsu extends com.badlogic.gdx.Game {
 				sbg = Opsu.opsu;
 				sbg.gc.width = Gdx.graphics.getWidth();
 				sbg.gc.height = Gdx.graphics.getHeight();
-				File beatMapDir = Options.getBeatmapDir();
+				
 			
 				try {
 					sbg.init();
@@ -98,18 +98,14 @@ public class GameOpsu extends com.badlogic.gdx.Game {
 					e.printStackTrace();
 					error("SlickErrorInit", e);
 				}
+				File dataDir = Options.DATA_DIR;
+				System.out.println("dataDir :"+dataDir+" "+dataDir.isExternal()+" "+dataDir.exists());
+				if(dataDir.isExternal()){
+					File nomediafile = new File(dataDir, ".nomedia");
+					if(!nomediafile.exists())
+						new FileOutputStream(nomediafile.getIOFile()).close();
+				}
 				
-				if(beatMapDir.isExternal()){
-					File nomediafile = new File(beatMapDir, ".nomedia");
-					if(!nomediafile.exists())
-						new FileOutputStream(nomediafile.getIOFile()).close();
-				}
-				File skinDir = Options.getSkinDir();
-				if(skinDir.isExternal()){
-					File nomediafile = new File(skinDir, ".nomedia");
-					if(!nomediafile.exists())
-						new FileOutputStream(nomediafile.getIOFile()).close();
-				}
 				
 				
 				Gdx.input.setInputProcessor(new InputMultiplexer(stage, sbg));

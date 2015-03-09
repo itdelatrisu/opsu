@@ -298,8 +298,8 @@ public class MusicJL2 extends AbsMusic {
 
 	@Override
 	public void fade(int duration, float f, boolean b) {
-		// TODO Auto-generated method stub
 		super.fade(duration, f, b);
+		pause();
 	}
 
 	@Override
