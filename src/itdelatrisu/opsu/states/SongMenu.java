@@ -41,7 +41,6 @@ import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
 import itdelatrisu.opsu.db.OsuDB;
 import itdelatrisu.opsu.db.ScoreDB;
-import itdelatrisu.opsu.replay.Replay;
 import itdelatrisu.opsu.states.ButtonMenu.MenuState;
 
 import java.io.File;

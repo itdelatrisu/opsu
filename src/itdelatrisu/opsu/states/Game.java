@@ -696,8 +696,12 @@ public class Game extends BasicGameState {
 			return;
 
 		// watching replay
-		if (replay != null)
+		if (replay != null) {
+			// only allow skip button
+			if (button != Input.MOUSE_MIDDLE_BUTTON && skipButton.contains(x, y))
+				skipIntro();
 			return;
+		}
 
 		// mouse wheel: pause the game
 		if (button == Input.MOUSE_MIDDLE_BUTTON && !Options.isMouseWheelDisabled()) {
@@ -834,6 +838,9 @@ public class Game extends BasicGameState {
 
 			// load replay frames
 			if (replay != null) {
+				// unhide cursor
+				UI.showCursor();
+
 				// load mods
 				previousMods = GameMod.getModState();
 				GameMod.loadModState(replay.mods);
@@ -869,9 +876,11 @@ public class Game extends BasicGameState {
 			throws SlickException {
 //		container.setMouseGrabbed(false);
 
-		// reset previous mod state
-		if (replay != null)
+		// reset previous mod state and re-hide cursor
+		if (replay != null) {
 			GameMod.loadModState(previousMods);
+			UI.hideCursor();
+		}
 	}
 
 	/**

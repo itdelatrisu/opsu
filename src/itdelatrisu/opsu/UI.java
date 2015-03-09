@@ -20,12 +20,16 @@ package itdelatrisu.opsu;
 
 import itdelatrisu.opsu.audio.SoundController;
 
+import java.nio.IntBuffer;
 import java.util.Iterator;
 import java.util.LinkedList;
 
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 
+import org.lwjgl.BufferUtils;
+import org.lwjgl.LWJGLException;
+import org.lwjgl.input.Cursor;
 import org.newdawn.slick.Animation;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
@@ -41,6 +45,9 @@ import org.newdawn.slick.state.StateBasedGame;
 public class UI {
 	/** Back button. */
 	private static MenuButton backButton;
+
+	/** Empty cursor. */
+	private static Cursor emptyCursor;
 
 	/** Last cursor coordinates. */
 	private static int lastX = -1, lastY = -1;
@@ -87,6 +94,16 @@ public class UI {
 		UI.container = container;
 		UI.game = game;
 		UI.input = container.getInput();
+
+		// hide native cursor
+		try {
+			int min = Cursor.getMinCursorSize();
+			IntBuffer tmp = BufferUtils.createIntBuffer(min * min);
+			emptyCursor = new Cursor(min, min, min/2, min/2, 1, tmp, null);
+			hideCursor();
+		} catch (LWJGLException e) {
+			ErrorHandler.error("Failed to create hidden cursor.", e, true);
+		}
 
 		// back button
 		if (GameImage.MENU_BACK.getImages() != null) {
@@ -341,6 +358,26 @@ public class UI {
 		cursorX.clear();
 		cursorY.clear();
 		GameImage.CURSOR.getImage().setRotation(0f);
+	}
+
+	/**
+	 * Hides the cursor, if possible.
+	 */
+	public static void hideCursor() {
+		if (emptyCursor != null) {
+			try {
+				container.setMouseCursor(emptyCursor, 0, 0);
+			} catch (SlickException e) {
+				ErrorHandler.error("Failed to hide the cursor.", e, true);
+			}
+		}
+	}
+
+	/**
+	 * Unhides the cursor.
+	 */
+	public static void showCursor() {
+		container.setDefaultMouseCursor();
 	}
 
 	/**
