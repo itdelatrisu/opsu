@@ -253,6 +253,7 @@ public class OsuDB {
 					setStatementFields(insertStmt, osu);
 				} catch (SQLException e) {
 					Log.error(String.format("Failed to insert map '%s' into database.", osu.getFile().getPath()), e);
+					continue;
 				}
 				insertStmt.addBatch();
 			}
