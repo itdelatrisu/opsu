@@ -44,6 +44,7 @@ import itdelatrisu.opsu.replay.Replay;
 import itdelatrisu.opsu.replay.ReplayFrame;
 
 import java.io.File;
+import java.util.LinkedList;
 import java.util.Stack;
 import java.util.concurrent.TimeUnit;
 
@@ -174,6 +175,9 @@ public class Game extends BasicGameState {
 
 	/** The previous game mod state (before the replay). */
 	private int previousMods = 0;
+
+	/** The list of current replay frames (for recording replays). */
+	private LinkedList<ReplayFrame> frameList;
 
 	// game-related variables
 	private GameContainer container;
@@ -468,7 +472,8 @@ public class Game extends BasicGameState {
 				game.closeRequested();
 			else {  // go to ranking screen
 				((GameRanking) game.getState(Opsu.STATE_GAMERANKING)).setGameData(data);
-				ScoreData score = data.getScoreData(osu);
+				ScoreData score = data.getScoreData(osu, (frameList == null) ? null :
+						 frameList.toArray(new ReplayFrame[frameList.size()]));
 				if (!GameMod.AUTO.isActive() && !GameMod.RELAX.isActive() && !GameMod.AUTOPILOT.isActive() && !isReplay)
 					ScoreDB.addScore(score);
 				game.enterState(Opsu.STATE_GAMERANKING, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
@@ -893,7 +898,8 @@ public class Game extends BasicGameState {
 				};
 				replayThreadRunning = true;
 				replayThread.start();
-			}
+			} else
+				frameList = new LinkedList<ReplayFrame>();
 
 			leadInTime = osu.audioLeadIn + approachTime;
 			restart = Restart.FALSE;
@@ -938,6 +944,7 @@ public class Game extends BasicGameState {
 		checkpointLoaded = false;
 		deaths = 0;
 		deathTime = -1;
+		frameList = null;
 
 		System.gc();
 	}

@@ -22,10 +22,13 @@ import itdelatrisu.opsu.audio.HitSound;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
+import itdelatrisu.opsu.downloads.Updater;
+import itdelatrisu.opsu.replay.Replay;
+import itdelatrisu.opsu.replay.ReplayFrame;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.concurrent.LinkedBlockingDeque;
 
 import org.newdawn.slick.Animation;
@@ -275,6 +278,9 @@ public class GameData {
 	/** The associated score data. */
 	private ScoreData scoreData;
 
+	/** The associated replay. */
+	private Replay replay;
+
 	/** Whether this object is used for gameplay (true) or score viewing (false). */
 	private boolean gameplay;
 
@@ -319,6 +325,7 @@ public class GameData {
 		hitResultCount[HIT_300K] = 0;
 		hitResultCount[HIT_100K] = s.katu;
 		hitResultCount[HIT_MISS] = s.miss;
+		this.replay = s.replay;
 
 		loadImages();
 	}
@@ -342,6 +349,7 @@ public class GameData {
 		comboEnd = 0;
 		comboBurstIndex = -1;
 		scoreData = null;
+		replay = null;
 	}
 
 	/**
@@ -1190,9 +1198,10 @@ public class GameData {
 	 * If score data already exists, the existing object will be returned
 	 * (i.e. this will not overwrite existing data).
 	 * @param osu the OsuFile
+	 * @param frames the replay frames
 	 * @return the ScoreData object
 	 */
-	public ScoreData getScoreData(OsuFile osu) {
+	public ScoreData getScoreData(OsuFile osu, ReplayFrame[] frames) {
 		if (scoreData != null)
 			return scoreData;
 
@@ -1214,7 +1223,42 @@ public class GameData {
 		scoreData.combo = comboMax;
 		scoreData.perfect = (comboMax == fullObjectCount);
 		scoreData.mods = GameMod.getModState();
+		scoreData.replay = getReplay(frames);
 		return scoreData;
+	}
+
+	/**
+	 * Returns a Replay object encapsulating all game data.
+	 * If a replay already exists, the existing object will be returned
+	 * (i.e. this will not overwrite existing data).
+	 * @param frames the replay frames
+	 * @return the Replay object
+	 */
+	public Replay getReplay(ReplayFrame[] frames) {
+		if (replay != null)
+			return replay;
+
+		replay = new Replay();
+		replay.mode = OsuFile.MODE_OSU;
+		replay.version = Updater.get().getBuildDate();
+		replay.beatmapHash = "";  // TODO
+		replay.playerName = "";  // TODO
+		replay.replayHash = "";  // TODO
+		replay.hit300 = (short) hitResultCount[HIT_300];
+		replay.hit100 = (short) hitResultCount[HIT_100];
+		replay.hit50 = (short) hitResultCount[HIT_50];
+		replay.geki = (short) hitResultCount[HIT_300G];
+		replay.katu = (short) (hitResultCount[HIT_300K] + hitResultCount[HIT_100K]);
+		replay.miss = (short) hitResultCount[HIT_MISS];
+		replay.score = (int) score;
+		replay.combo = (short) comboMax;
+		replay.perfect = (comboMax == fullObjectCount);
+		replay.mods = GameMod.getModState();
+		replay.lifeFrames = null;  // TODO
+		replay.timestamp = new Date();
+		replay.frames = frames;
+		replay.seed = 0;  // TODO
+		return replay;
 	}
 
 	/**

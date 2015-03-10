@@ -78,9 +78,19 @@ public class ReplayFrame {
 	public int getX() { return (int) (x * OsuHitObject.getXMultiplier() + OsuHitObject.getXOffset()); }
 
 	/**
-	 * Returns the scaled cursor Y coordinate.
+	 * Returns the scaled cursor y coordinate.
 	 */
 	public int getY() { return (int) (y * OsuHitObject.getYMultiplier() + OsuHitObject.getYOffset()); }
+
+	/**
+	 * Returns the raw cursor x coordinate.
+	 */
+	public float getRawX() { return x; }
+
+	/**
+	 * Returns the raw cursor y coordinate.
+	 */
+	public float getRawY() { return y; }
 
 	/**
 	 * Returns the keys pressed (KEY_* bitmask).

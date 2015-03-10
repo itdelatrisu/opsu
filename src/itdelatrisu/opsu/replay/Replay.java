@@ -18,14 +18,25 @@
 
 package itdelatrisu.opsu.replay;
 
+import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.OsuReader;
+import itdelatrisu.opsu.OsuWriter;
 import itdelatrisu.opsu.Utils;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.CharBuffer;
+import java.nio.charset.CharsetEncoder;
+import java.nio.charset.StandardCharsets;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
+import lzma.streams.LzmaOutputStream;
 
 import org.apache.commons.compress.compressors.lzma.LZMACompressorInputStream;
 import org.newdawn.slick.util.Log;
@@ -59,7 +70,7 @@ public class Replay {
 	public short hit300, hit100, hit50, geki, katu, miss;
 
 	/** The score. */
-	public long score;
+	public int score;
 
 	/** The max combo. */
 	public short combo;
@@ -82,19 +93,36 @@ public class Replay {
 	/** Replay frames. */
 	public ReplayFrame[] frames;
 
+	/** Seed. (?) */
+	public int seed;
+
+	/** Seed string. */
+	private static final String SEED_STRING = "-12345";
+
+	/**
+	 * Empty constructor.
+	 */
+	public Replay() {}
+
 	/**
 	 * Constructor.
 	 * @param file the file to load from
 	 */
 	public Replay(File file) {
 		this.file = file;
+	}
+
+	/**
+	 * Loads the replay data.
+	 */
+	public void load() {
 		try {
 			OsuReader reader = new OsuReader(file);
 			loadHeader(reader);
 			loadData(reader);
 			reader.close();
 		} catch (IOException e) {
-			e.printStackTrace();
+			ErrorHandler.error("Could not load replay data.", e, true);
 		}
 	}
 
@@ -138,8 +166,8 @@ public class Replay {
 				int time = Integer.parseInt(tokens[0]);
 				float percentage = Float.parseFloat(tokens[1]);
 				lifeFrameList.add(new LifeFrame(time, percentage));
-			} catch (NumberFormatException | NullPointerException e) {
-				Log.warn(String.format("Failed to life frame: '%s'", frame), e);
+			} catch (NumberFormatException e) {
+				Log.warn(String.format("Failed to load life frame: '%s'", frame), e);
 			}
 		}
 		this.lifeFrames = lifeFrameList.toArray(new LifeFrame[lifeFrameList.size()]);
@@ -152,6 +180,7 @@ public class Replay {
 		if (replayLength > 0) {
 			LZMACompressorInputStream lzma = new LZMACompressorInputStream(reader.getInputStream());
 			String[] replayFrames = Utils.convertStreamToString(lzma).split(",");
+			lzma.close();
 			List<ReplayFrame> replayFrameList = new ArrayList<ReplayFrame>(replayFrames.length);
 			int lastTime = 0;
 			for (String frame : replayFrames) {
@@ -161,6 +190,10 @@ public class Replay {
 				if (tokens.length < 4)
 					continue;
 				try {
+					if (tokens[0].equals(SEED_STRING)) {
+						seed = Integer.parseInt(tokens[3]);
+						continue;
+					}
 					int timeDiff = Integer.parseInt(tokens[0]);
 					int time = timeDiff + lastTime;
 					float x = Float.parseFloat(tokens[1]);
@@ -168,7 +201,7 @@ public class Replay {
 					int keys = Integer.parseInt(tokens[3]);
 					replayFrameList.add(new ReplayFrame(timeDiff, time, x, y, keys));
 					lastTime = time;
-				} catch (NumberFormatException | NullPointerException e) {
+				} catch (NumberFormatException e) {
 					Log.warn(String.format("Failed to parse frame: '%s'", frame), e);
 				}
 			}
@@ -176,9 +209,94 @@ public class Replay {
 		}
 	}
 
+	/**
+	 * Saves the replay data to a file.
+	 * @param file the file to write to
+	 */
+	public void save(File file) {
+		try (FileOutputStream out = new FileOutputStream(file)) {
+			OsuWriter writer = new OsuWriter(out);
+
+			// header
+			writer.write(mode);
+			writer.write(version);
+			writer.write(beatmapHash);
+			writer.write(playerName);
+			writer.write(replayHash);
+			writer.write(hit300);
+			writer.write(hit100);
+			writer.write(hit50);
+			writer.write(geki);
+			writer.write(katu);
+			writer.write(miss);
+			writer.write(score);
+			writer.write(combo);
+			writer.write(perfect);
+			writer.write(mods);
+
+			// life data
+			StringBuilder sb = new StringBuilder();
+			if (lifeFrames != null) {
+		        NumberFormat nf = new DecimalFormat("##.##");
+				for (int i = 0; i < lifeFrames.length; i++) {
+			        LifeFrame frame = lifeFrames[i];
+					sb.append(String.format("%d|%s,",
+							frame.getTime(), nf.format(frame.getPercentage())));
+				}
+			}
+			writer.write(sb.toString());
+
+			// timestamp
+			writer.write(timestamp);
+
+			// LZMA-encoded replay data
+			if (frames != null && frames.length > 0) {
+				// build full frame string
+				NumberFormat nf = new DecimalFormat("###.#####");
+				sb = new StringBuilder();
+				for (int i = 0; i < frames.length; i++) {
+					ReplayFrame frame = frames[i];
+					sb.append(String.format("%d|%s|%s|%d,",
+							frame.getTimeDiff(), nf.format(frame.getRawX()),
+							nf.format(frame.getRawY()), frame.getKeys()));
+				}
+				sb.append(String.format("%s|0|0|%d", SEED_STRING, seed));
+
+				// get bytes from string
+				CharsetEncoder encoder = StandardCharsets.US_ASCII.newEncoder();
+				CharBuffer buffer = CharBuffer.wrap(sb);
+				byte[] bytes = encoder.encode(buffer).array();
+
+				// compress data
+				ByteArrayOutputStream bout = new ByteArrayOutputStream();
+				LzmaOutputStream compressedOut = new LzmaOutputStream.Builder(bout).useMediumDictionarySize().build();
+				try {
+					compressedOut.write(bytes);
+				} catch (IOException e) {
+					// possible OOM: https://github.com/jponge/lzma-java/issues/9
+					ErrorHandler.error("LZMA compression failed (possible out-of-memory error).", e, true);
+				}
+				compressedOut.close();
+				bout.close();
+
+				// write to file
+				byte[] compressed = bout.toByteArray();
+				writer.write(compressed.length);
+				writer.write(compressed);
+			} else
+				writer.write(0);
+
+			writer.close();
+		} catch (IOException e) {
+			ErrorHandler.error("Could not save replay data.", e, true);
+		}
+	}
+
 	@Override
 	public String toString() {
-		final int LINE_SPLIT = 10;
+		final int LINE_SPLIT = 5;
+		final int MAX_LINES = LINE_SPLIT * 10;
+
 		StringBuilder sb = new StringBuilder();
 		sb.append("File: "); sb.append(file.getName()); sb.append('\n');
 		sb.append("Mode: "); sb.append(mode); sb.append('\n');
@@ -197,8 +315,8 @@ public class Replay {
 		sb.append("Max combo: "); sb.append(combo); sb.append('\n');
 		sb.append("Perfect: "); sb.append(perfect); sb.append('\n');
 		sb.append("Mods: "); sb.append(mods); sb.append('\n');
-		sb.append("Life data:\n");
-		for (int i = 0; i < lifeFrames.length; i++) {
+		sb.append("Life data ("); sb.append(lifeFrames.length); sb.append(" total):\n");
+		for (int i = 0; i < lifeFrames.length && i < MAX_LINES; i++) {
 			if (i % LINE_SPLIT == 0)
 				sb.append('\t');
 			sb.append(lifeFrames[i]);
@@ -208,14 +326,16 @@ public class Replay {
 		sb.append("Timestamp: "); sb.append(timestamp); sb.append('\n');
 		sb.append("Replay length: "); sb.append(replayLength); sb.append('\n');
 		if (frames != null) {
-			sb.append("Frames:\n");
-			for (int i = 0; i < frames.length; i++) {
+			sb.append("Frames ("); sb.append(frames.length); sb.append(" total):\n");
+			for (int i = 0; i < frames.length && i < MAX_LINES; i++) {
 				if (i % LINE_SPLIT == 0)
 					sb.append('\t');
 				sb.append(frames[i]);
 				sb.append((i % LINE_SPLIT == LINE_SPLIT - 1) ? '\n' : ' ');
 			}
+			sb.append('\n');
 		}
+		sb.append("Seed: "); sb.append(seed); sb.append('\n');
 		return sb.toString();
 	}
 }

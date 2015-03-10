@@ -32,6 +32,9 @@ import org.newdawn.slick.util.Log;
  * Data type storing parsed data from OSU files.
  */
 public class OsuFile implements Comparable<OsuFile> {
+	/** Game modes. */
+	public static final byte MODE_OSU = 0, MODE_TAIKO = 1, MODE_CTB = 2, MODE_MANIA = 3;
+
 	/** Map of all loaded background images. */
 	private static HashMap<OsuFile, Image> bgImageMap = new HashMap<OsuFile, Image>();
 
@@ -66,8 +69,8 @@ public class OsuFile implements Comparable<OsuFile> {
 	/** How often closely placed hit objects will be stacked together. */
 	public float stackLeniency = 0.7f;
 
-	/** Game mode (0:osu!, 1:taiko, 2:catch the beat, 3:osu!mania). */
-	public byte mode = 0;
+	/** Game mode (MODE_* constants). */
+	public byte mode = MODE_OSU;
 
 	/** Whether the letterbox (top/bottom black bars) appears during breaks. */
 	public boolean letterboxInBreaks = false;

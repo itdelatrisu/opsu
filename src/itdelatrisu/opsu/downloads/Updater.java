@@ -28,6 +28,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
 import java.net.URL;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 import java.util.Properties;
 
 import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
@@ -93,6 +97,9 @@ public class Updater {
 	/** The current and latest versions. */
 	private DefaultArtifactVersion currentVersion, latestVersion;
 
+	/** The build date. */
+	private int buildDate = -1;
+
 	/** The download object. */
 	private Download download;
 
@@ -113,6 +120,32 @@ public class Updater {
 	 */
 	public boolean showButton() {
 		return (status == Status.UPDATE_AVAILABLE || status == Status.UPDATE_DOWNLOADED || status == Status.UPDATE_DOWNLOADING);
+	}
+
+	/**
+	 * Returns the build date, or the current date if not available.
+	 */
+	public int getBuildDate() {
+		if (buildDate == -1) {
+			Date date = null;
+			try {
+				Properties props = new Properties();
+				props.load(ResourceLoader.getResourceAsStream(Options.VERSION_FILE));
+				String build = props.getProperty("build.date");
+				if (build == null || build.equals("${timestamp}") || build.equals("${maven.build.timestamp}"))
+					date = new Date();
+				else {
+					DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.ENGLISH);
+					date = format.parse(build);
+				}
+			} catch (Exception e) {
+				date = new Date();
+			} finally {
+				DateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
+				buildDate = Integer.parseInt(dateFormat.format(date));
+			}
+		}
+		return buildDate;
 	}
 
 	/**
