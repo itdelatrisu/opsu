@@ -239,6 +239,8 @@ public class OpenALStreamPlayer {
 			return;
 		}
 
+		long playedPos_ = playedPos;
+		long lastUpdateTime_ = lastUpdateTime;
 		int processed = AL10.alGetSourcei(source, AL10.AL_BUFFERS_PROCESSED);
 		while (processed > 0) {
 			unqueued.clear();
@@ -248,11 +250,11 @@ public class OpenALStreamPlayer {
 
 			int bufferLength = AL10.alGetBufferi(bufferIndex, AL10.AL_SIZE);
 
-			playedPos += bufferLength;
-			lastUpdateTime = getTime();
+			playedPos_ += bufferLength;
+			lastUpdateTime_ = getTime();
 
-			if (musicLength > 0 && playedPos > musicLength)
-				playedPos -= musicLength;
+			if (musicLength > 0 && playedPos_ > musicLength)
+				playedPos_ -= musicLength;
 
 			if (stream(bufferIndex)) {
 				AL10.alSourceQueueBuffers(source, unqueued);
@@ -264,6 +266,8 @@ public class OpenALStreamPlayer {
 			}
 			processed--;
 		}
+		playedPos = playedPos_;
+		lastUpdateTime = lastUpdateTime_;
 		
 		int state = AL10.alGetSourcei(source, AL10.AL_SOURCE_STATE);
 		
@@ -382,7 +386,7 @@ public class OpenALStreamPlayer {
 	 * @return The current position in seconds.
 	 */
 	public float getPosition() {
-		float playedTime = ((float) playedPos / (float) sampleSize) / sampleRate;
+		float playedTime = ((float) playedPos / sampleSize) / sampleRate;
 		float timePosition = playedTime + (getTime() - lastUpdateTime) / 1000f;
 //		 + AL10.alGetSourcef(source, AL11.AL_SEC_OFFSET);
 		return timePosition;

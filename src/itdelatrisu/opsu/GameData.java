@@ -26,6 +26,7 @@ import itdelatrisu.opsu.audio.SoundEffect;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.concurrent.LinkedBlockingDeque;
 
 import org.newdawn.slick.Animation;
 import org.newdawn.slick.Color;
@@ -165,7 +166,7 @@ public class GameData {
 	private int[] hitResultOffset;
 
 	/** List of hit result objects associated with hit objects. */
-	private LinkedList<OsuHitObjectResult> hitResultList;
+	private LinkedBlockingDeque<OsuHitObjectResult> hitResultList;
 
 	/**
 	 * Class to store hit error information.
@@ -198,7 +199,7 @@ public class GameData {
 	}
 
 	/** List containing recent hit error information. */
-	private LinkedList<HitErrorInfo> hitErrorList;
+	private LinkedBlockingDeque<HitErrorInfo> hitErrorList;
 
 	/**
 	 * Hit result helper class.
@@ -332,8 +333,8 @@ public class GameData {
 		health = 100f;
 		healthDisplay = 100f;
 		hitResultCount = new int[HIT_MAX];
-		hitResultList = new LinkedList<OsuHitObjectResult>();
-		hitErrorList = new LinkedList<HitErrorInfo>();
+		hitResultList = new LinkedBlockingDeque<OsuHitObjectResult>();
+		hitErrorList = new LinkedBlockingDeque<HitErrorInfo>();
 		fullObjectCount = 0;
 		combo = 0;
 		comboMax = 0;

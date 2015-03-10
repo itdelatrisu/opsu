@@ -148,6 +148,9 @@ public class Game extends BasicGameState {
 	/** Number of retries. */
 	private int retries = 0;
 
+	/** Whether or not this game is a replay. */
+	private boolean isReplay = false;
+
 	/** The replay, if any. */
 	private Replay replay;
 
@@ -162,6 +165,12 @@ public class Game extends BasicGameState {
 
 	/** The replay skip time, or -1 if none. */
 	private int replaySkipTime = -1;
+
+	/** The thread updating the replay frames. */
+	private Thread replayThread;
+
+	/** Whether or not the replay thread should continue running. */
+	private boolean replayThreadRunning;
 
 	/** The previous game mod state (before the replay). */
 	private int previousMods = 0;
@@ -385,7 +394,7 @@ public class Game extends BasicGameState {
 			cursorCirclePulse.drawCentered(pausedMouseX, pausedMouseY);
 		}
 
-		if (replay == null)
+		if (!isReplay)
 			UI.draw(g);
 		else
 			UI.draw(g, replayX, replayY, replayKeyPressed);
@@ -396,7 +405,7 @@ public class Game extends BasicGameState {
 			throws SlickException {
 		UI.update(delta);
 		int mouseX, mouseY;
-		if (replay == null) {
+		if (!isReplay) {
 			mouseX = input.getMouseX();
 			mouseY = input.getMouseY();
 		} else {
@@ -460,7 +469,7 @@ public class Game extends BasicGameState {
 			else {  // go to ranking screen
 				((GameRanking) game.getState(Opsu.STATE_GAMERANKING)).setGameData(data);
 				ScoreData score = data.getScoreData(osu);
-				if (!GameMod.AUTO.isActive() && !GameMod.RELAX.isActive() && !GameMod.AUTOPILOT.isActive() && replay == null)
+				if (!GameMod.AUTO.isActive() && !GameMod.RELAX.isActive() && !GameMod.AUTOPILOT.isActive() && !isReplay)
 					ScoreDB.addScore(score);
 				game.enterState(Opsu.STATE_GAMERANKING, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 			}
@@ -484,29 +493,12 @@ public class Game extends BasicGameState {
 		}
 
 		// replays
-		if (replay != null) {
+		if (isReplay) {
 			// skip intro
 			if (replaySkipTime > 0 && trackPosition > replaySkipTime) {
 				skipIntro();
 				replaySkipTime = -1;
 			}
-
-			// load next frame(s)
-			int replayKey = ReplayFrame.KEY_NONE;
-			while (replayIndex < replay.frames.length && trackPosition >= replay.frames[replayIndex].getTime()) {
-				ReplayFrame frame = replay.frames[replayIndex];
-				replayX = frame.getX();
-				replayY = frame.getY();
-				replayKeyPressed = frame.isKeyPressed();
-				if (replayKeyPressed)
-					replayKey = frame.getKeys();
-				replayIndex++;
-			}
-
-			// send a key press
-			if (replayKey != ReplayFrame.KEY_NONE)
-				gameKeyPressed(((replayKey & ReplayFrame.KEY_M1) > 0) ?
-						Input.MOUSE_LEFT_BUTTON : Input.MOUSE_RIGHT_BUTTON, replayX, replayY);
 		}
 
 		// song beginning
@@ -534,7 +526,7 @@ public class Game extends BasicGameState {
 		}
 
 		// pause game if focus lost
-		if (!container.hasFocus() && !GameMod.AUTO.isActive() && replay == null) {
+		if (!container.hasFocus() && !GameMod.AUTO.isActive() && !isReplay) {
 			if (pauseTime < 0) {
 				pausedMouseX = mouseX;
 				pausedMouseY = mouseY;
@@ -559,14 +551,14 @@ public class Game extends BasicGameState {
 			}
 
 			// game over, force a restart
-			if (replay == null) {
+			if (!isReplay) {
 				restart = Restart.LOSE;
 				game.enterState(Opsu.STATE_GAMEPAUSEMENU);
 			}
 		}
 
 		// update objects (loop in unlikely event of any skipped indexes)
-		boolean keyPressed = ((replay != null && replayKeyPressed) || Utils.isGameKeyPressed());
+		boolean keyPressed = ((isReplay && replayKeyPressed) || Utils.isGameKeyPressed());
 		while (objectIndex < hitObjects.length && trackPosition > osu.objects[objectIndex].getTime()) {
 			// check if we've already passed the next object's start time
 			boolean overlap = (objectIndex + 1 < hitObjects.length &&
@@ -588,7 +580,7 @@ public class Game extends BasicGameState {
 		int trackPosition = MusicController.getPosition();
 
 		// game keys
-		if (!Keyboard.isRepeatEvent() && replay == null) {
+		if (!Keyboard.isRepeatEvent() && !isReplay) {
 			if (key == Options.getGameKeyLeft())
 				gameKeyPressed(Input.MOUSE_LEFT_BUTTON, input.getMouseX(), input.getMouseY());
 			else if (key == Options.getGameKeyRight())
@@ -598,7 +590,7 @@ public class Game extends BasicGameState {
 		switch (key) {
 		case Input.KEY_ESCAPE:
 			// "auto" mod or watching replay: go back to song menu
-			if (GameMod.AUTO.isActive() || replay != null) {
+			if (GameMod.AUTO.isActive() || isReplay) {
 				game.closeRequested();
 				break;
 			}
@@ -696,7 +688,7 @@ public class Game extends BasicGameState {
 			return;
 
 		// watching replay
-		if (replay != null) {
+		if (isReplay) {
 			// only allow skip button
 			if (button != Input.MOUSE_MIDDLE_BUTTON && skipButton.contains(x, y))
 				skipIntro();
@@ -837,7 +829,7 @@ public class Game extends BasicGameState {
 			}
 
 			// load replay frames
-			if (replay != null) {
+			if (isReplay) {
 				// unhide cursor
 				UI.showCursor();
 
@@ -862,6 +854,44 @@ public class Game extends BasicGameState {
 					} else
 						break;
 				}
+
+				// run frame updates in another thread
+				killReplayThread();
+				replayThread = new Thread() {
+					@Override
+					public void run() {
+						while (replayThreadRunning) {
+							// update frames
+							int trackPosition = MusicController.getPosition();
+							int keys = ReplayFrame.KEY_NONE;
+							while (replayIndex < replay.frames.length && trackPosition >= replay.frames[replayIndex].getTime()) {
+								ReplayFrame frame = replay.frames[replayIndex];
+								replayX = frame.getX();
+								replayY = frame.getY();
+								replayKeyPressed = frame.isKeyPressed();
+								if (replayKeyPressed)
+									keys = frame.getKeys();
+								replayIndex++;
+							}
+
+							// send a key press
+							if (replayKeyPressed && keys != ReplayFrame.KEY_NONE)
+								gameKeyPressed(((keys & ReplayFrame.KEY_M1) > 0) ?
+										Input.MOUSE_LEFT_BUTTON : Input.MOUSE_RIGHT_BUTTON, replayX, replayY);
+
+							// out of frames
+							if (replayIndex >= replay.frames.length)
+								break;
+
+							// sleep execution
+							try {
+								Thread.sleep(0, 512000);
+							} catch (InterruptedException e) {}
+						}
+					}
+				};
+				replayThreadRunning = true;
+				replayThread.start();
 			}
 
 			leadInTime = osu.audioLeadIn + approachTime;
@@ -876,10 +906,11 @@ public class Game extends BasicGameState {
 			throws SlickException {
 //		container.setMouseGrabbed(false);
 
-		// reset previous mod state and re-hide cursor
-		if (replay != null) {
+		// replays
+		if (isReplay) {
 			GameMod.loadModState(previousMods);
 			UI.hideCursor();
+			killReplayThread();
 		}
 	}
 
@@ -914,7 +945,7 @@ public class Game extends BasicGameState {
 	 * Skips the beginning of a track.
 	 * @return true if skipped, false otherwise
 	 */
-	private boolean skipIntro() {
+	private synchronized boolean skipIntro() {
 		int firstObjectTime = osu.objects[0].getTime();
 		int trackPosition = MusicController.getPosition();
 		if (objectIndex == 0 && trackPosition < firstObjectTime - SKIP_OFFSET) {
@@ -923,6 +954,8 @@ public class Game extends BasicGameState {
 				MusicController.resume();
 			}
 			replaySkipTime = -1;
+			if (replayThread != null && replayThread.isAlive())
+				replayThread.interrupt();
 			MusicController.setPosition(firstObjectTime - SKIP_OFFSET);
 			SoundController.playSound(SoundEffect.MENUHIT);
 			return true;
@@ -1053,8 +1086,22 @@ public class Game extends BasicGameState {
 	public float getTimingPointMultiplier() { return beatLength / beatLengthBase; }
 
 	/**
+	 * Kills the running replay updating thread, if any.
+	 */
+	private void killReplayThread() {
+		if (replayThread != null && replayThread.isAlive()) {
+			replayThreadRunning = false;
+			replayThread.interrupt();
+		}
+		replayThread = null;
+	}
+
+	/**
 	 * Sets a replay to view.
 	 * @param replay the replay
 	 */
-	public void setReplay(Replay replay) { this.replay = replay; }
+	public void setReplay(Replay replay) {
+		this.isReplay = true;
+		this.replay = replay;
+	}
 }
