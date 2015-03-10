@@ -643,6 +643,7 @@ public class Game extends BasicGameState {
 				if (checkpoint == 0 || checkpoint > osu.endTime)
 					break;  // invalid checkpoint
 				try {
+					killReplayThread();
 					restart = Restart.MANUAL;
 					enter(container, game);
 					checkpointLoaded = true;
