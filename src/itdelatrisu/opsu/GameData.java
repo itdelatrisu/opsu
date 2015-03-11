@@ -349,7 +349,6 @@ public class GameData {
 		comboEnd = 0;
 		comboBurstIndex = -1;
 		scoreData = null;
-		replay = null;
 	}
 
 	/**
@@ -1229,13 +1228,13 @@ public class GameData {
 
 	/**
 	 * Returns a Replay object encapsulating all game data.
-	 * If a replay already exists, the existing object will be returned
-	 * (i.e. this will not overwrite existing data).
+	 * If a replay already exists and frames is null, the existing object will
+	 * be returned.
 	 * @param frames the replay frames
-	 * @return the Replay object
+	 * @return the Replay object, or null if none exists and frames is null
 	 */
 	public Replay getReplay(ReplayFrame[] frames) {
-		if (replay != null)
+		if (replay != null && frames == null)
 			return replay;
 
 		if (frames == null)
@@ -1261,6 +1260,7 @@ public class GameData {
 		replay.timestamp = new Date();
 		replay.frames = frames;
 		replay.seed = 0;  // TODO
+		replay.loaded = true;
 		return replay;
 	}
 

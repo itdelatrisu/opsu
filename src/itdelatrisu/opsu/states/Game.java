@@ -74,6 +74,8 @@ public class Game extends BasicGameState {
 		NEW,
 		/** Manual retry. */
 		MANUAL,
+		/** Replay. */
+		REPLAY,
 		/** Health is zero: no-continue/force restart. */
 		LOSE;
 	}
@@ -844,10 +846,11 @@ public class Game extends BasicGameState {
 				loadImages();
 				setMapModifiers();
 				retries = 0;
-			} else {
+			} else if (restart == Restart.MANUAL) {
 				// retry
 				retries++;
-			}
+			} else if (restart == Restart.REPLAY)
+				retries = 0;
 
 			// reset game data
 			resetGameData();
@@ -937,7 +940,7 @@ public class Game extends BasicGameState {
 
 							// sleep execution
 							try {
-								Thread.sleep(0, 512000);
+								Thread.sleep(0, 256000);
 							} catch (InterruptedException e) {}
 						}
 					}
@@ -1159,16 +1162,21 @@ public class Game extends BasicGameState {
 	}
 
 	/**
-	 * Sets a replay to view.
+	 * Sets a replay to view, or resets the replay if null.
 	 * @param replay the replay
 	 */
 	public void setReplay(Replay replay) {
-		if (replay.frames == null) {
-			ErrorHandler.error("Invalid replay.", null, false);
-			return;
+		if (replay == null) {
+			this.isReplay = false;
+			this.replay = null;
+		} else {
+			if (replay.frames == null) {
+				ErrorHandler.error("Invalid replay.", null, false);
+				return;
+			}
+			this.isReplay = true;
+			this.replay = replay;
 		}
-		this.isReplay = true;
-		this.replay = replay;
 	}
 
 	/**

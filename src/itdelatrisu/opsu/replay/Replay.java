@@ -51,6 +51,9 @@ public class Replay {
 	/** The associated file. */
 	private File file;
 
+	/** Whether or not the replay data has been loaded from the file. */
+	public boolean loaded = false;
+
 	/** The game mode. */
 	public byte mode;
 
@@ -116,11 +119,15 @@ public class Replay {
 	 * Loads the replay data.
 	 */
 	public void load() {
+		if (loaded)
+			return;
+
 		try {
 			OsuReader reader = new OsuReader(file);
 			loadHeader(reader);
 			loadData(reader);
 			reader.close();
+			loaded = true;
 		} catch (IOException e) {
 			ErrorHandler.error("Could not load replay data.", e, true);
 		}

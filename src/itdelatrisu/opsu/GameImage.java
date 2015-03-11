@@ -87,6 +87,7 @@ public enum GameImage {
 	PAUSE_CONTINUE ("pause-continue", "png"),
 	PAUSE_RETRY ("pause-retry", "png"),
 	PAUSE_BACK ("pause-back", "png"),
+	PAUSE_REPLAY ("pause-replay", "png"),
 	PAUSE_OVERLAY ("pause-overlay", "png|jpg") {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
@@ -414,8 +415,6 @@ public enum GameImage {
 			return MUSIC_PLAY.process_sub(img, w, h);
 		}
 	},
-	RANKING_RETRY ("ranking-retry", "png", false, false),
-	RANKING_EXIT ("ranking-back", "png", false, false),
 	DOWNLOADS ("downloads", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {

@@ -1298,7 +1298,9 @@ public class SongMenu extends BasicGameState {
 		HitSound.setDefaultSampleSet(osu.sampleSet);
 
 		MultiClip.destroyExtraClips();
-		((Game) game.getState(Opsu.STATE_GAME)).setRestart(Game.Restart.NEW);
+		Game gameState = (Game) game.getState(Opsu.STATE_GAME);
+		gameState.setRestart(Game.Restart.NEW);
+		gameState.setReplay(null);
 		game.enterState(Opsu.STATE_GAME, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 	}
 }
