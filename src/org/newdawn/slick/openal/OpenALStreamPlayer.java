@@ -36,9 +36,11 @@ import java.nio.IntBuffer;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.Sys;
 import org.lwjgl.openal.AL10;
+import org.lwjgl.openal.AL11;
 import org.lwjgl.openal.OpenALException;
 import org.newdawn.slick.util.Log;
 import org.newdawn.slick.util.ResourceLoader;
+
 
 /**
  * A generic tool to work on a supplied stream, pulling out PCM data and buffered it to OpenAL
@@ -96,12 +98,20 @@ public class OpenALStreamPlayer {
 	/** The music length. */
 	long musicLength = -1;
 
-	/** The time of the last update, in ms. */
-	long lastUpdateTime = getTime();
-
-	/** The offset time. */
-	long offsetTime = 0;
-
+	
+	/** The assumed time of when the music position would be 0 */
+	long syncStartTime; 
+	
+	/** The last value that was returned the music position */
+	float lastUpdatePosition = 0;
+	
+	/** The average difference between the sync time and the music position */
+	float avgDiff;
+	
+	/** The time when it was paused */
+	long pauseTime;
+	
+	
 	/**
 	 * Create a new player to work on an audio stream
 	 * 
@@ -207,6 +217,7 @@ public class OpenALStreamPlayer {
 		AL10.alSourceStop(source);
 		
 		startPlayback();
+		syncStartTime = getTime();
 	}
 	
 	/**
@@ -249,7 +260,6 @@ public class OpenALStreamPlayer {
 			int bufferLength = AL10.alGetBufferi(bufferIndex, AL10.AL_SIZE);
 
 			playedPos += bufferLength;
-			lastUpdateTime = getTime();
 
 			if (musicLength > 0 && playedPos > musicLength)
 				playedPos -= musicLength;
@@ -347,6 +357,7 @@ public class OpenALStreamPlayer {
 			}
 
 			playedPos = streamPos;
+			syncStartTime = getTime() - playedPos*1000/sampleSize/sampleRate;
 
 			startPlayback(); 
 
@@ -373,7 +384,17 @@ public class OpenALStreamPlayer {
 
 		AL10.alSourceQueueBuffers(source, bufferNames);
 		AL10.alSourcePlay(source);
-		lastUpdateTime = getTime();
+	}
+
+	/**
+	 * Return the current playing position in the sound
+	 * 
+	 * @return The current position in seconds.
+	 */
+	public float getALPosition() {
+		float playedTime = ((float) playedPos / (float) sampleSize) / sampleRate;
+		float timePosition = playedTime + AL10.alGetSourcef(source, AL11.AL_SEC_OFFSET);
+		return timePosition;
 	}
 
 	/**
@@ -382,24 +403,39 @@ public class OpenALStreamPlayer {
 	 * @return The current position in seconds.
 	 */
 	public float getPosition() {
-		float playedTime = ((float) playedPos / (float) sampleSize) / sampleRate;
-		float timePosition = playedTime + (getTime() - lastUpdateTime) / 1000f;
-//		 + AL10.alGetSourcef(source, AL11.AL_SEC_OFFSET);
-		return timePosition;
-	}
+		float thisPosition = getALPosition();
+		long thisTime = getTime();
+		float dxPosition = thisPosition - lastUpdatePosition;
+		long dxTime = thisTime - syncStartTime;
 
+		//hard reset
+		if (Math.abs(thisPosition - dxTime / 1000f) > 1 / 2f) {
+			syncStartTime = thisTime - ((long) (thisPosition * 1000));
+			dxTime = thisTime - syncStartTime;
+			avgDiff = 0;
+		}
+		if ((int) (dxPosition * 1000) != 0) { // lastPosition != thisPosition
+			float diff = thisPosition * 1000 - (dxTime);
+			avgDiff = (diff + avgDiff * 9) / 10;
+			syncStartTime -= (int) (avgDiff/2);
+			dxTime = thisTime - syncStartTime;
+			lastUpdatePosition = thisPosition;
+		}
+		
+		return dxTime / 1000f;
+	}
 	/**
 	 * Processes a track pause.
 	 */
 	public void pausing() {
-		offsetTime = getTime() - lastUpdateTime;
+		pauseTime = getTime();
 	}
 
 	/**
 	 * Processes a track resume.
 	 */
 	public void resuming() {
-		lastUpdateTime = getTime() - offsetTime;
+		syncStartTime += getTime() - pauseTime;
 	}
 	
 	/**
