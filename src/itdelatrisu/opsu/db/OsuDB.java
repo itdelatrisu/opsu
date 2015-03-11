@@ -428,7 +428,7 @@ public class OsuDB {
 	 * Sets all OsuFile non-array fields using a given result set.
 	 * @param rs the result set containing the fields
 	 * @param osu the OsuFile
-	 * @throws SQLException 
+	 * @throws SQLException
 	 */
 	private static void setOsuFileFields(ResultSet rs, OsuFile osu) throws SQLException {
 		try {
@@ -476,7 +476,7 @@ public class OsuDB {
 	 * Sets all OsuFile array fields using a given result set.
 	 * @param rs the result set containing the fields
 	 * @param osu the OsuFile
-	 * @throws SQLException 
+	 * @throws SQLException
 	 */
 	private static void setOsuFileArrayFields(ResultSet rs, OsuFile osu) throws SQLException {
 		try {

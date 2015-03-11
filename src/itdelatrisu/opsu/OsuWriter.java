@@ -40,7 +40,7 @@ public class OsuWriter {
 	/**
 	 * Constructor.
 	 * @param file the file to write to
-	 * @throws FileNotFoundException 
+	 * @throws FileNotFoundException
 	 */
 	public OsuWriter(File file) throws FileNotFoundException {
 		this(new FileOutputStream(file));
@@ -61,7 +61,7 @@ public class OsuWriter {
 
 	/**
 	 * Closes the output stream.
-	 * @throws IOException 
+	 * @throws IOException
 	 */
 	public void close() throws IOException { writer.close(); }
 

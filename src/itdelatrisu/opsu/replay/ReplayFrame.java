@@ -44,8 +44,16 @@ public class ReplayFrame {
 	private float x, y;
 
 	/** Keys pressed (bitmask). */
-    private int keys;
- 
+	private int keys;
+
+	/**
+	 * Returns the start frame.
+	 * @param t the value for the {@code time} and {@code timeDiff} fields
+	 */
+	public static ReplayFrame getStartFrame(int t) {
+		return new ReplayFrame(t, t, 256, -500, 0);
+	}
+
 	/**
 	 * Constructor.
 	 * @param timeDiff time since the previous action (in ms)
@@ -71,6 +79,11 @@ public class ReplayFrame {
 	 * Returns the time since the previous action, in milliseconds.
 	 */
 	public int getTimeDiff() { return timeDiff; }
+
+	/**
+	 * Sets the time since the previous action, in milliseconds.
+	 */
+	public void setTimeDiff(int diff) { this.timeDiff = diff; }
 
 	/**
 	 * Returns the scaled cursor x coordinate.

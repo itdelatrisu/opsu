@@ -237,9 +237,9 @@ public class Replay {
 			// life data
 			StringBuilder sb = new StringBuilder();
 			if (lifeFrames != null) {
-		        NumberFormat nf = new DecimalFormat("##.##");
+				NumberFormat nf = new DecimalFormat("##.##");
 				for (int i = 0; i < lifeFrames.length; i++) {
-			        LifeFrame frame = lifeFrames[i];
+					LifeFrame frame = lifeFrames[i];
 					sb.append(String.format("%d|%s,",
 							frame.getTime(), nf.format(frame.getPercentage())));
 				}

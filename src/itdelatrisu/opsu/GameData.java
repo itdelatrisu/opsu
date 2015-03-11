@@ -1238,6 +1238,9 @@ public class GameData {
 		if (replay != null)
 			return replay;
 
+		if (frames == null)
+			return null;
+
 		replay = new Replay();
 		replay.mode = OsuFile.MODE_OSU;
 		replay.version = Updater.get().getBuildDate();
