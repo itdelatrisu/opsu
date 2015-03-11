@@ -41,7 +41,6 @@ import org.lwjgl.openal.OpenALException;
 import org.newdawn.slick.util.Log;
 import org.newdawn.slick.util.ResourceLoader;
 
-
 /**
  * A generic tool to work on a supplied stream, pulling out PCM data and buffered it to OpenAL
  * as required.
@@ -98,20 +97,18 @@ public class OpenALStreamPlayer {
 	/** The music length. */
 	long musicLength = -1;
 
-	
-	/** The assumed time of when the music position would be 0 */
+	/** The assumed time of when the music position would be 0. */
 	long syncStartTime; 
-	
-	/** The last value that was returned the music position */
+
+	/** The last value that was returned for the music position. */
 	float lastUpdatePosition = 0;
-	
-	/** The average difference between the sync time and the music position */
+
+	/** The average difference between the sync time and the music position. */
 	float avgDiff;
-	
-	/** The time when it was paused */
+
+	/** The time when the music was paused. */
 	long pauseTime;
-	
-	
+
 	/**
 	 * Create a new player to work on an audio stream
 	 * 
@@ -357,7 +354,7 @@ public class OpenALStreamPlayer {
 			}
 
 			playedPos = streamPos;
-			syncStartTime = getTime() - playedPos*1000/sampleSize/sampleRate;
+			syncStartTime = getTime() - playedPos * 1000 / sampleSize / sampleRate;
 
 			startPlayback(); 
 
@@ -408,7 +405,7 @@ public class OpenALStreamPlayer {
 		float dxPosition = thisPosition - lastUpdatePosition;
 		long dxTime = thisTime - syncStartTime;
 
-		//hard reset
+		// hard reset
 		if (Math.abs(thisPosition - dxTime / 1000f) > 1 / 2f) {
 			syncStartTime = thisTime - ((long) (thisPosition * 1000));
 			dxTime = thisTime - syncStartTime;
@@ -421,9 +418,10 @@ public class OpenALStreamPlayer {
 			dxTime = thisTime - syncStartTime;
 			lastUpdatePosition = thisPosition;
 		}
-		
+
 		return dxTime / 1000f;
 	}
+
 	/**
 	 * Processes a track pause.
 	 */
