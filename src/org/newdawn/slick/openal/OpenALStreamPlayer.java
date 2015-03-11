@@ -36,9 +36,11 @@ import java.nio.IntBuffer;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.Sys;
 import org.lwjgl.openal.AL10;
+import org.lwjgl.openal.AL11;
 import org.lwjgl.openal.OpenALException;
 import org.newdawn.slick.util.Log;
 import org.newdawn.slick.util.ResourceLoader;
+
 
 /**
  * A generic tool to work on a supplied stream, pulling out PCM data and buffered it to OpenAL
@@ -207,6 +209,7 @@ public class OpenALStreamPlayer {
 		AL10.alSourceStop(source);
 		
 		startPlayback();
+		syncStartTime = getTime();
 	}
 	
 	/**
@@ -347,6 +350,7 @@ public class OpenALStreamPlayer {
 			}
 
 			playedPos = streamPos;
+			syncStartTime = getTime() - playedPos*1000/sampleSize/sampleRate;
 
 			startPlayback(); 
 
@@ -381,18 +385,53 @@ public class OpenALStreamPlayer {
 	 * 
 	 * @return The current position in seconds.
 	 */
-	public float getPosition() {
+	public float getALPosition() {
 		float playedTime = ((float) playedPos / (float) sampleSize) / sampleRate;
-		float timePosition = playedTime + (getTime() - lastUpdateTime) / 1000f;
-//		 + AL10.alGetSourcef(source, AL11.AL_SEC_OFFSET);
+		float timePosition = playedTime + AL10.alGetSourcef(source, AL11.AL_SEC_OFFSET);
 		return timePosition;
 	}
 
+	float lastUpdatePosition = 0;
+	long syncStartTime = getTime(); //the assumed start time of the music
+	float avgDiff;
+	long pauseTime;
+
+	public float getPosition() {
+		float thisPosition = getALPosition();
+		long thisTime = getTime();
+		float dxPosition = thisPosition - lastUpdatePosition;
+
+		long dxTime = thisTime - syncStartTime;
+
+		//hard reset
+		if (Math.abs(thisPosition - dxTime / 1000f) > 1 / 2f) {
+			System.out.println("Time HARD Reset" + " " + thisPosition + " "
+					+ (dxTime / 1000f) + " "
+					+ (int) (thisPosition * 1000 - (dxTime)) + " "
+					+ (int) (thisPosition * 1000 - (thisTime - syncStartTime)));
+			syncStartTime = thisTime - ((long) (thisPosition * 1000));
+			dxTime = thisTime - syncStartTime;
+			avgDiff = 0;
+		}
+		if ((int) (dxPosition * 1000) != 0) { // lastPosition != thisPosition
+			float diff = thisPosition * 1000 - (dxTime);
+			avgDiff = (diff + avgDiff * 9) / 10;
+			syncStartTime -= (int) (avgDiff/2);
+			dxTime = thisTime - syncStartTime;
+			lastUpdatePosition = thisPosition;
+			//System.out.println(diff);
+			
+		}
+		//System.out.println("AL2Tme:"+(dxTime/1000f)+" "+thisPosition+" time:"+getTime()+" "+avgDiff+" "+syncStartTime);
+
+		return dxTime / 1000f;
+	}
 	/**
 	 * Processes a track pause.
 	 */
 	public void pausing() {
 		offsetTime = getTime() - lastUpdateTime;
+		pauseTime = getTime();
 	}
 
 	/**
@@ -400,6 +439,7 @@ public class OpenALStreamPlayer {
 	 */
 	public void resuming() {
 		lastUpdateTime = getTime() - offsetTime;
+		syncStartTime += getTime() - pauseTime;
 	}
 	
 	/**
