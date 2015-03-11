@@ -98,12 +98,20 @@ public class OpenALStreamPlayer {
 	/** The music length. */
 	long musicLength = -1;
 
-	/** The time of the last update, in ms. */
-	long lastUpdateTime = getTime();
-
-	/** The offset time. */
-	long offsetTime = 0;
-
+	
+	/** The assumed time of when the music position would be 0 */
+	long syncStartTime; 
+	
+	/** The last value that was returned the music position */
+	float lastUpdatePosition = 0;
+	
+	/** The average difference between the sync time and the music position */
+	float avgDiff;
+	
+	/** The time when it was paused */
+	long pauseTime;
+	
+	
 	/**
 	 * Create a new player to work on an audio stream
 	 * 
@@ -252,7 +260,6 @@ public class OpenALStreamPlayer {
 			int bufferLength = AL10.alGetBufferi(bufferIndex, AL10.AL_SIZE);
 
 			playedPos += bufferLength;
-			lastUpdateTime = getTime();
 
 			if (musicLength > 0 && playedPos > musicLength)
 				playedPos -= musicLength;
@@ -377,7 +384,6 @@ public class OpenALStreamPlayer {
 
 		AL10.alSourceQueueBuffers(source, bufferNames);
 		AL10.alSourcePlay(source);
-		lastUpdateTime = getTime();
 	}
 
 	/**
@@ -391,24 +397,19 @@ public class OpenALStreamPlayer {
 		return timePosition;
 	}
 
-	float lastUpdatePosition = 0;
-	long syncStartTime = getTime(); //the assumed start time of the music
-	float avgDiff;
-	long pauseTime;
-
+	/**
+	 * Return the current playing position in the sound
+	 * 
+	 * @return The current position in seconds.
+	 */
 	public float getPosition() {
 		float thisPosition = getALPosition();
 		long thisTime = getTime();
 		float dxPosition = thisPosition - lastUpdatePosition;
-
 		long dxTime = thisTime - syncStartTime;
 
 		//hard reset
 		if (Math.abs(thisPosition - dxTime / 1000f) > 1 / 2f) {
-			System.out.println("Time HARD Reset" + " " + thisPosition + " "
-					+ (dxTime / 1000f) + " "
-					+ (int) (thisPosition * 1000 - (dxTime)) + " "
-					+ (int) (thisPosition * 1000 - (thisTime - syncStartTime)));
 			syncStartTime = thisTime - ((long) (thisPosition * 1000));
 			dxTime = thisTime - syncStartTime;
 			avgDiff = 0;
@@ -419,18 +420,14 @@ public class OpenALStreamPlayer {
 			syncStartTime -= (int) (avgDiff/2);
 			dxTime = thisTime - syncStartTime;
 			lastUpdatePosition = thisPosition;
-			//System.out.println(diff);
-			
 		}
-		//System.out.println("AL2Tme:"+(dxTime/1000f)+" "+thisPosition+" time:"+getTime()+" "+avgDiff+" "+syncStartTime);
-
+		
 		return dxTime / 1000f;
 	}
 	/**
 	 * Processes a track pause.
 	 */
 	public void pausing() {
-		offsetTime = getTime() - lastUpdateTime;
 		pauseTime = getTime();
 	}
 
@@ -438,7 +435,6 @@ public class OpenALStreamPlayer {
 	 * Processes a track resume.
 	 */
 	public void resuming() {
-		lastUpdateTime = getTime() - offsetTime;
 		syncStartTime += getTime() - pauseTime;
 	}
 	
