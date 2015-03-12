@@ -31,6 +31,9 @@ import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
 import itdelatrisu.opsu.replay.Replay;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+
 import org.lwjgl.opengl.Display;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
@@ -42,6 +45,7 @@ import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.state.transition.FadeInTransition;
 import org.newdawn.slick.state.transition.FadeOutTransition;
+import org.newdawn.slick.util.Log;
 
 /**
  * "Game Ranking" (score card) state.
@@ -168,10 +172,17 @@ public class GameRanking extends BasicGameState {
 		if (replayButton.contains(x, y)) {
 			Replay r = data.getReplay(null);
 			if (r != null) {
-				r.load();
-				gameState.setReplay(r);
-				gameState.setRestart((data.isGameplay()) ? Game.Restart.REPLAY : Game.Restart.NEW);
-				returnToGame = true;
+				try {
+					r.load();
+					gameState.setReplay(r);
+					gameState.setRestart((data.isGameplay()) ? Game.Restart.REPLAY : Game.Restart.NEW);
+					returnToGame = true;
+				} catch (FileNotFoundException e) {
+					UI.sendBarNotification("Replay file not found.");
+				} catch (IOException e) {
+					Log.error("Failed to load replay data.", e);
+					UI.sendBarNotification("Failed to load replay data. See log for details.");
+				}
 			} else
 				UI.sendBarNotification("Replay file not found.");
 		}

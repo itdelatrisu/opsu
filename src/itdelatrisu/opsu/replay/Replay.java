@@ -118,20 +118,17 @@ public class Replay {
 
 	/**
 	 * Loads the replay data.
+	 * @throws IOException failure to load the data
 	 */
-	public void load() {
+	public void load() throws IOException {
 		if (loaded)
 			return;
 
-		try {
-			OsuReader reader = new OsuReader(file);
-			loadHeader(reader);
-			loadData(reader);
-			reader.close();
-			loaded = true;
-		} catch (IOException e) {
-			ErrorHandler.error("Could not load replay data.", e, true);
-		}
+		OsuReader reader = new OsuReader(file);
+		loadHeader(reader);
+		loadData(reader);
+		reader.close();
+		loaded = true;
 	}
 
 	/**
