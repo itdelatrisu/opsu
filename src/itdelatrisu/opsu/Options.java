@@ -90,6 +90,9 @@ public class Options {
 	/** The screenshot directory (created when needed). */
 	private static File screenshotDir;
 
+	/** The replay directory (created when needed). */
+	private static File replayDir;
+
 	/** The current skin directory (for user skins). */
 	private static File skinDir;
 
@@ -820,6 +823,19 @@ public class Options {
 	}
 
 	/**
+	 * Returns the replay directory.
+	 * If invalid, this will return a "Replay" directory.
+	 * @return the replay directory
+	 */
+	public static File getReplayDir() {
+		if (replayDir != null && replayDir.isDirectory())
+			return replayDir;
+
+		replayDir = new File(DATA_DIR, "Replays/");
+		return replayDir;
+	}
+
+	/**
 	 * Returns the current skin directory.
 	 * If invalid, this will create a "Skins" folder in the root directory.
 	 * @return the skin directory
@@ -891,6 +907,9 @@ public class Options {
 						break;
 					case "ScreenshotDirectory":
 						screenshotDir = new File(value);
+						break;
+					case "ReplayDirectory":
+						replayDir = new File(value);
 						break;
 					case "Skin":
 						skinDir = new File(value);
@@ -1053,6 +1072,8 @@ public class Options {
 			writer.write(String.format("OSZDirectory = %s", getOSZDir().getAbsolutePath()));
 			writer.newLine();
 			writer.write(String.format("ScreenshotDirectory = %s", getScreenshotDir().getAbsolutePath()));
+			writer.newLine();
+			writer.write(String.format("ReplayDirectory = %s", getReplayDir().getAbsolutePath()));
 			writer.newLine();
 			writer.write(String.format("Skin = %s", getSkinDir().getAbsolutePath()));
 			writer.newLine();

@@ -26,6 +26,7 @@ import itdelatrisu.opsu.downloads.Updater;
 import itdelatrisu.opsu.replay.Replay;
 import itdelatrisu.opsu.replay.ReplayFrame;
 
+import java.io.File;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -325,7 +326,8 @@ public class GameData {
 		hitResultCount[HIT_300K] = 0;
 		hitResultCount[HIT_100K] = s.katu;
 		hitResultCount[HIT_MISS] = s.miss;
-		this.replay = s.replay;
+		this.replay = (s.replayString == null) ? null :
+			new Replay(new File(Options.getReplayDir(), String.format("%s.osr", s.replayString)));
 
 		loadImages();
 	}
@@ -1197,10 +1199,9 @@ public class GameData {
 	 * If score data already exists, the existing object will be returned
 	 * (i.e. this will not overwrite existing data).
 	 * @param osu the OsuFile
-	 * @param frames the replay frames
 	 * @return the ScoreData object
 	 */
-	public ScoreData getScoreData(OsuFile osu, ReplayFrame[] frames) {
+	public ScoreData getScoreData(OsuFile osu) {
 		if (scoreData != null)
 			return scoreData;
 
@@ -1222,7 +1223,7 @@ public class GameData {
 		scoreData.combo = comboMax;
 		scoreData.perfect = (comboMax == fullObjectCount);
 		scoreData.mods = GameMod.getModState();
-		scoreData.replay = getReplay(frames);
+		scoreData.replayString = (replay == null) ? null : replay.getReplayFilename();
 		return scoreData;
 	}
 
@@ -1245,7 +1246,7 @@ public class GameData {
 		replay.version = Updater.get().getBuildDate();
 		replay.beatmapHash = "";  // TODO
 		replay.playerName = "";  // TODO
-		replay.replayHash = "";  // TODO
+		replay.replayHash = Long.toString(System.currentTimeMillis());  // TODO
 		replay.hit300 = (short) hitResultCount[HIT_300];
 		replay.hit100 = (short) hitResultCount[HIT_100];
 		replay.hit50 = (short) hitResultCount[HIT_50];
@@ -1261,6 +1262,7 @@ public class GameData {
 		replay.frames = frames;
 		replay.seed = 0;  // TODO
 		replay.loaded = true;
+
 		return replay;
 	}
 

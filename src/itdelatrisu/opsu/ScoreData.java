@@ -19,7 +19,6 @@
 package itdelatrisu.opsu;
 
 import itdelatrisu.opsu.GameData.Grade;
-import itdelatrisu.opsu.replay.Replay;
 import itdelatrisu.opsu.states.SongMenu;
 
 import java.sql.ResultSet;
@@ -60,8 +59,8 @@ public class ScoreData implements Comparable<ScoreData> {
 	/** Game mod bitmask. */
 	public int mods;
 
-	/** The replay. */
-	public Replay replay;
+	/** The replay string. */
+	public String replayString;
 
 	/** Time since the score was achieved. */
 	private String timeSince;
@@ -157,7 +156,7 @@ public class ScoreData implements Comparable<ScoreData> {
 		this.combo = rs.getInt(15);
 		this.perfect = rs.getBoolean(16);
 		this.mods = rs.getInt(17);
-//		this.replay = ;  // TODO
+		this.replayString = rs.getString(18);
 	}
 
 	/**

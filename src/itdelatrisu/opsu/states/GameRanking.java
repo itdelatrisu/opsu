@@ -163,27 +163,29 @@ public class GameRanking extends BasicGameState {
 		}
 
 		// replay
+		Game gameState = (Game) game.getState(Opsu.STATE_GAME);
 		boolean returnToGame = false;
 		if (replayButton.contains(x, y)) {
 			Replay r = data.getReplay(null);
 			if (r != null) {
 				r.load();
-				((Game) game.getState(Opsu.STATE_GAME)).setReplay(r);
-				((Game) game.getState(Opsu.STATE_GAME)).setRestart(Game.Restart.REPLAY);
+				gameState.setReplay(r);
+				gameState.setRestart((data.isGameplay()) ? Game.Restart.REPLAY : Game.Restart.NEW);
 				returnToGame = true;
-			}
+			} else
+				UI.sendBarNotification("Replay file not found.");
 		}
 
 		// retry
 		else if (data.isGameplay() && retryButton.contains(x, y)) {
-			((Game) game.getState(Opsu.STATE_GAME)).setReplay(null);
-			((Game) game.getState(Opsu.STATE_GAME)).setRestart(Game.Restart.MANUAL);
+			gameState.setReplay(null);
+			gameState.setRestart(Game.Restart.MANUAL);
 			returnToGame = true;
 		}
 
 		if (returnToGame) {
 			OsuFile osu = MusicController.getOsuFile();
-			Display.setTitle(String.format("%s - %s", game.getTitle(), osu.toString()));
+			gameState.loadOsuFile(osu);
 			SoundController.playSound(SoundEffect.MENUHIT);
 			game.enterState(Opsu.STATE_GAME, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 			return;
@@ -211,6 +213,8 @@ public class GameRanking extends BasicGameState {
 	public void leave(GameContainer container, StateBasedGame game)
 			throws SlickException {
 		this.data = null;
+		if (MusicController.isTrackDimmed())
+			MusicController.toggleTrackDimmed(1f);
 	}
 
 	/**

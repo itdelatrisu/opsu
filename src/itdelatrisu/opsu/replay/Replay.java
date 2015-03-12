@@ -19,6 +19,7 @@
 package itdelatrisu.opsu.replay;
 
 import itdelatrisu.opsu.ErrorHandler;
+import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.OsuReader;
 import itdelatrisu.opsu.OsuWriter;
 import itdelatrisu.opsu.Utils;
@@ -217,10 +218,20 @@ public class Replay {
 	}
 
 	/**
-	 * Saves the replay data to a file.
-	 * @param file the file to write to
+	 * Saves the replay data to a file in the replays directory.
 	 */
-	public void save(File file) {
+	public void save() {
+		// create replay directory
+		File dir = Options.getReplayDir();
+		if (!dir.isDirectory()) {
+			if (!dir.mkdir()) {
+				ErrorHandler.error("Failed to create replay directory.", null, false);
+				return;
+			}
+		}
+
+		// write file
+		File file = new File(dir, String.format("%s.osr", getReplayFilename()));
 		try (FileOutputStream out = new FileOutputStream(file)) {
 			OsuWriter writer = new OsuWriter(out);
 
@@ -297,6 +308,18 @@ public class Replay {
 		} catch (IOException e) {
 			ErrorHandler.error("Could not save replay data.", e, true);
 		}
+	}
+
+	/**
+	 * Returns the file name of where the replay should be saved and loaded,
+	 * or null if the required fields are not set.
+	 */
+	public String getReplayFilename() {
+		if (replayHash == null)
+			return null;
+
+		return String.format("%s-%d%d%d%d%d%d",
+				replayHash, hit300, hit100, hit50, geki, katu, miss);
 	}
 
 	@Override

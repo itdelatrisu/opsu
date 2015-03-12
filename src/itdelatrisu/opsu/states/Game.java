@@ -27,6 +27,7 @@ import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.OsuFile;
 import itdelatrisu.opsu.OsuHitObject;
+import itdelatrisu.opsu.OsuParser;
 import itdelatrisu.opsu.OsuTimingPoint;
 import itdelatrisu.opsu.ScoreData;
 import itdelatrisu.opsu.UI;
@@ -35,6 +36,7 @@ import itdelatrisu.opsu.audio.HitSound;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
+import itdelatrisu.opsu.db.OsuDB;
 import itdelatrisu.opsu.db.ScoreDB;
 import itdelatrisu.opsu.objects.Circle;
 import itdelatrisu.opsu.objects.HitObject;
@@ -49,6 +51,7 @@ import java.util.Stack;
 import java.util.concurrent.TimeUnit;
 
 import org.lwjgl.input.Keyboard;
+import org.lwjgl.opengl.Display;
 import org.newdawn.slick.Animation;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
@@ -483,16 +486,17 @@ public class Game extends BasicGameState {
 			// go to ranking screen
 			else {
 				((GameRanking) game.getState(Opsu.STATE_GAMERANKING)).setGameData(data);
-				ReplayFrame[] rf = null;
 				if (!isReplay && replayFrames != null) {
 					// finalize replay frames with start/skip frames
 					if (!replayFrames.isEmpty())
 						replayFrames.getFirst().setTimeDiff(replaySkipTime * -1);
 					replayFrames.addFirst(ReplayFrame.getStartFrame(replaySkipTime));
 					replayFrames.addFirst(ReplayFrame.getStartFrame(0));
-					rf = replayFrames.toArray(new ReplayFrame[replayFrames.size()]);
+					Replay r = data.getReplay(replayFrames.toArray(new ReplayFrame[replayFrames.size()]));
+					if (r != null)
+						r.save();
 				}
-				ScoreData score = data.getScoreData(osu, rf);
+				ScoreData score = data.getScoreData(osu);
 
 				// add score to database
 				if (!GameMod.AUTO.isActive() && !GameMod.RELAX.isActive() && !GameMod.AUTOPILOT.isActive() && !isReplay)
@@ -830,8 +834,6 @@ public class Game extends BasicGameState {
 	public void enter(GameContainer container, StateBasedGame game)
 			throws SlickException {
 		UI.enter();
-		if (restart == Restart.NEW)
-			osu = MusicController.getOsuFile();
 
 		if (osu == null || osu.objects == null)
 			throw new RuntimeException("Running game with no OsuFile loaded.");
@@ -976,6 +978,19 @@ public class Game extends BasicGameState {
 			UI.hideCursor();
 			killReplayThread();
 		}
+	}
+
+	/**
+	 * Loads all required data from an OsuFile.
+	 * @param osu the OsuFile to load
+	 */
+	public void loadOsuFile(OsuFile osu) {
+		this.osu = osu;
+		Display.setTitle(String.format("%s - %s", game.getTitle(), osu.toString()));
+		if (osu.timingPoints == null || osu.combo == null)
+			OsuDB.load(osu, OsuDB.LOAD_ARRAY);
+		OsuParser.parseHitObjects(osu);
+		HitSound.setDefaultSampleSet(osu.sampleSet);
 	}
 
 	/**
