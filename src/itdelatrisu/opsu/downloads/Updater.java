@@ -97,6 +97,9 @@ public class Updater {
 	/** The current and latest versions. */
 	private DefaultArtifactVersion currentVersion, latestVersion;
 
+	/** The version information if the program was just updated. */
+	private String updatedFromVersion, updatedToVersion;
+
 	/** The build date. */
 	private int buildDate = -1;
 
@@ -147,6 +150,31 @@ public class Updater {
 		}
 		return buildDate;
 	}
+
+	/**
+	 * Sets the version information if the program was just updated.
+	 * @param fromVersion the previous version
+	 * @param toVersion the new version
+	 */
+	public void setUpdateInfo(String fromVersion, String toVersion) {
+		this.updatedFromVersion = fromVersion;
+		this.updatedToVersion = toVersion;
+	}
+
+	/**
+	 * Returns whether or not the program was just updated.
+	 */
+	public boolean justUpdated() { return (updatedFromVersion != null && updatedToVersion != null); }
+
+	/**
+	 * Returns the version the program was just updated from, or null if not updated.
+	 */
+	public String updatedFromVersion() { return (justUpdated()) ? updatedFromVersion : null; }
+
+	/**
+	 * Returns the version the program was just updated to, or null if not updated.
+	 */
+	public String updatedToVersion() { return (justUpdated()) ? updatedToVersion : null; }
 
 	/**
 	 * Returns the version from a set of properties.
@@ -248,7 +276,10 @@ public class Updater {
 
 		try {
 			// TODO: it is better to wait for the process? is this portable?
-			ProcessBuilder pb = new ProcessBuilder("java", "-jar", download.getLocalPath());
+			ProcessBuilder pb = new ProcessBuilder(
+					"java", "-jar", download.getLocalPath(),
+					currentVersion.toString(), latestVersion.toString()
+			);
 			pb.start();
 		} catch (IOException e) {
 			status = Status.INTERNAL_ERROR;
