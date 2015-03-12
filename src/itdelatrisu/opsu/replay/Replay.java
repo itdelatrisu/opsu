@@ -230,84 +230,89 @@ public class Replay {
 			}
 		}
 
-		// write file
-		File file = new File(dir, String.format("%s.osr", getReplayFilename()));
-		try (FileOutputStream out = new FileOutputStream(file)) {
-			OsuWriter writer = new OsuWriter(out);
+		// write file in new thread
+		final File file = new File(dir, String.format("%s.osr", getReplayFilename()));
+		new Thread() {
+			@Override
+			public void run() {
+				try (FileOutputStream out = new FileOutputStream(file)) {
+					OsuWriter writer = new OsuWriter(out);
 
-			// header
-			writer.write(mode);
-			writer.write(version);
-			writer.write(beatmapHash);
-			writer.write(playerName);
-			writer.write(replayHash);
-			writer.write(hit300);
-			writer.write(hit100);
-			writer.write(hit50);
-			writer.write(geki);
-			writer.write(katu);
-			writer.write(miss);
-			writer.write(score);
-			writer.write(combo);
-			writer.write(perfect);
-			writer.write(mods);
+					// header
+					writer.write(mode);
+					writer.write(version);
+					writer.write(beatmapHash);
+					writer.write(playerName);
+					writer.write(replayHash);
+					writer.write(hit300);
+					writer.write(hit100);
+					writer.write(hit50);
+					writer.write(geki);
+					writer.write(katu);
+					writer.write(miss);
+					writer.write(score);
+					writer.write(combo);
+					writer.write(perfect);
+					writer.write(mods);
 
-			// life data
-			StringBuilder sb = new StringBuilder();
-			if (lifeFrames != null) {
-				NumberFormat nf = new DecimalFormat("##.##");
-				for (int i = 0; i < lifeFrames.length; i++) {
-					LifeFrame frame = lifeFrames[i];
-					sb.append(String.format("%d|%s,",
-							frame.getTime(), nf.format(frame.getPercentage())));
+					// life data
+					StringBuilder sb = new StringBuilder();
+					if (lifeFrames != null) {
+						NumberFormat nf = new DecimalFormat("##.##");
+						for (int i = 0; i < lifeFrames.length; i++) {
+							LifeFrame frame = lifeFrames[i];
+							sb.append(String.format("%d|%s,",
+									frame.getTime(), nf.format(frame.getPercentage())));
+						}
+					}
+					writer.write(sb.toString());
+
+					// timestamp
+					writer.write(timestamp);
+
+					// LZMA-encoded replay data
+					if (frames != null && frames.length > 0) {
+						// build full frame string
+						NumberFormat nf = new DecimalFormat("###.#####");
+						sb = new StringBuilder();
+						for (int i = 0; i < frames.length; i++) {
+							ReplayFrame frame = frames[i];
+							sb.append(String.format("%d|%s|%s|%d,",
+									frame.getTimeDiff(), nf.format(frame.getRawX()),
+									nf.format(frame.getRawY()), frame.getKeys()));
+						}
+						sb.append(String.format("%s|0|0|%d", SEED_STRING, seed));
+
+						// get bytes from string
+						CharsetEncoder encoder = StandardCharsets.US_ASCII.newEncoder();
+						CharBuffer buffer = CharBuffer.wrap(sb);
+						byte[] bytes = encoder.encode(buffer).array();
+
+						// compress data
+						ByteArrayOutputStream bout = new ByteArrayOutputStream();
+						LzmaOutputStream compressedOut = new LzmaOutputStream.Builder(bout).useMediumDictionarySize().build();
+						try {
+							compressedOut.write(bytes);
+						} catch (IOException e) {
+							// possible OOM: https://github.com/jponge/lzma-java/issues/9
+							ErrorHandler.error("LZMA compression failed (possible out-of-memory error).", e, true);
+						}
+						compressedOut.close();
+						bout.close();
+
+						// write to file
+						byte[] compressed = bout.toByteArray();
+						writer.write(compressed.length);
+						writer.write(compressed);
+					} else
+						writer.write(0);
+
+					writer.close();
+				} catch (IOException e) {
+					ErrorHandler.error("Could not save replay data.", e, true);
 				}
 			}
-			writer.write(sb.toString());
-
-			// timestamp
-			writer.write(timestamp);
-
-			// LZMA-encoded replay data
-			if (frames != null && frames.length > 0) {
-				// build full frame string
-				NumberFormat nf = new DecimalFormat("###.#####");
-				sb = new StringBuilder();
-				for (int i = 0; i < frames.length; i++) {
-					ReplayFrame frame = frames[i];
-					sb.append(String.format("%d|%s|%s|%d,",
-							frame.getTimeDiff(), nf.format(frame.getRawX()),
-							nf.format(frame.getRawY()), frame.getKeys()));
-				}
-				sb.append(String.format("%s|0|0|%d", SEED_STRING, seed));
-
-				// get bytes from string
-				CharsetEncoder encoder = StandardCharsets.US_ASCII.newEncoder();
-				CharBuffer buffer = CharBuffer.wrap(sb);
-				byte[] bytes = encoder.encode(buffer).array();
-
-				// compress data
-				ByteArrayOutputStream bout = new ByteArrayOutputStream();
-				LzmaOutputStream compressedOut = new LzmaOutputStream.Builder(bout).useMediumDictionarySize().build();
-				try {
-					compressedOut.write(bytes);
-				} catch (IOException e) {
-					// possible OOM: https://github.com/jponge/lzma-java/issues/9
-					ErrorHandler.error("LZMA compression failed (possible out-of-memory error).", e, true);
-				}
-				compressedOut.close();
-				bout.close();
-
-				// write to file
-				byte[] compressed = bout.toByteArray();
-				writer.write(compressed.length);
-				writer.write(compressed);
-			} else
-				writer.write(0);
-
-			writer.close();
-		} catch (IOException e) {
-			ErrorHandler.error("Could not save replay data.", e, true);
-		}
+		}.start();
 	}
 
 	/**
