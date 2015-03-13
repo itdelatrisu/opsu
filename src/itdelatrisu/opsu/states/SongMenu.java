@@ -353,14 +353,17 @@ public class SongMenu extends BasicGameState {
 		}
 
 		// score buttons
+		ScoreData hoverScore = null;
 		if (focusScores != null) {
 			for (int i = 0; i < MAX_SCORE_BUTTONS; i++) {
 				int rank = startScore + i;
 				if (rank >= focusScores.length)
 					break;
-				long prevScore = (rank + 1 < focusScores.length) ?
-						focusScores[rank + 1].score : -1;
-				focusScores[rank].draw(g, i, rank, prevScore, ScoreData.buttonContains(mouseX, mouseY, i));
+				long prevScore = (rank + 1 < focusScores.length) ? focusScores[rank + 1].score : -1;
+				boolean contains = ScoreData.buttonContains(mouseX, mouseY, i);
+				focusScores[rank].draw(g, i, rank, prevScore, contains);
+				if (contains)
+					hoverScore = focusScores[rank];
 			}
 
 			// scroll bar
@@ -456,6 +459,10 @@ public class SongMenu extends BasicGameState {
 			UI.getBackButton().draw();
 
 		UI.draw(g);
+
+		// tooltips
+		if (hoverScore != null)
+			hoverScore.drawTooltip(g);
 	}
 
 	@Override

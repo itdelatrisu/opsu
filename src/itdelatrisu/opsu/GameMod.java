@@ -30,33 +30,33 @@ import org.newdawn.slick.Input;
  */
 public enum GameMod {
 	EASY          (Category.EASY, 0, GameImage.MOD_EASY, "EZ", 2, Input.KEY_Q, 0.5f,
-	              "Reduces overall difficulty - larger circles, more forgiving HP drain, less accuracy required."),
+	              "Easy", "Reduces overall difficulty - larger circles, more forgiving HP drain, less accuracy required."),
 	NO_FAIL       (Category.EASY, 1, GameImage.MOD_NO_FAIL, "NF", 1, Input.KEY_W, 0.5f,
-	              "You can't fail.  No matter what."),
+	              "NoFail", "You can't fail.  No matter what."),
 	HALF_TIME     (Category.EASY, 2, GameImage.MOD_HALF_TIME, "HT", 256, Input.KEY_E, 0.3f, false,
-	              "Less zoom."),
+	              "HalfTime", "Less zoom."),
 	HARD_ROCK     (Category.HARD, 0, GameImage.MOD_HARD_ROCK, "HR", 16, Input.KEY_A, 1.06f,
-	              "Everything just got a bit harder..."),
+	              "HardRock", "Everything just got a bit harder..."),
 	SUDDEN_DEATH  (Category.HARD, 1, GameImage.MOD_SUDDEN_DEATH, "SD", 32, Input.KEY_S, 1f,
-	              "Miss a note and fail."),
+	              "SuddenDeath", "Miss a note and fail."),
 //	PERFECT       (Category.HARD, 1, GameImage.MOD_PERFECT, "PF", 64, Input.KEY_S, 1f,
-//	              "SS or quit."),
+//	              "Perfect", "SS or quit."),
 	DOUBLE_TIME   (Category.HARD, 2, GameImage.MOD_DOUBLE_TIME, "DT", 64, Input.KEY_D, 1.12f, false,
-	              "Zoooooooooom."),
+	              "DoubleTime", "Zoooooooooom."),
 //	NIGHTCORE     (Category.HARD, 2, GameImage.MOD_NIGHTCORE, "NT", 64, Input.KEY_D, 1.12f,
-//	              "uguuuuuuuu"),
+//	              "Nightcore", "uguuuuuuuu"),
 	HIDDEN        (Category.HARD, 3, GameImage.MOD_HIDDEN, "HD", 8, Input.KEY_F, 1.06f, false,
-	              "Play with no approach circles and fading notes for a slight score advantage."),
+	              "Hidden", "Play with no approach circles and fading notes for a slight score advantage."),
 	FLASHLIGHT    (Category.HARD, 4, GameImage.MOD_FLASHLIGHT, "FL", 1024, Input.KEY_G, 1.12f, false,
-	              "Restricted view area."),
+	              "Flashlight", "Restricted view area."),
 	RELAX         (Category.SPECIAL, 0, GameImage.MOD_RELAX, "RL", 128, Input.KEY_Z, 0f,
-	              "You don't need to click.\nGive your clicking/tapping finger a break from the heat of things.\n**UNRANKED**"),
+	              "Relax", "You don't need to click.\nGive your clicking/tapping finger a break from the heat of things.\n**UNRANKED**"),
 	AUTOPILOT     (Category.SPECIAL, 1, GameImage.MOD_AUTOPILOT, "AP", 8192, Input.KEY_X, 0f, false,
-	              "Automatic cursor movement - just follow the rhythm.\n**UNRANKED**"),
+	              "Relax2", "Automatic cursor movement - just follow the rhythm.\n**UNRANKED**"),
 	SPUN_OUT      (Category.SPECIAL, 2, GameImage.MOD_SPUN_OUT, "SO", 4096, Input.KEY_V, 0.9f,
-	              "Spinners will be automatically completed."),
+	              "SpunOut", "Spinners will be automatically completed."),
 	AUTO          (Category.SPECIAL, 3, GameImage.MOD_AUTO, "", 2048, Input.KEY_B, 1f,
-	              "Watch a perfect automated play through the song.");
+	              "Autoplay", "Watch a perfect automated play through the song.");
 
 	/** Mod categories. */
 	public enum Category {
@@ -148,6 +148,9 @@ public enum GameMod {
 	/** Whether or not the mod is implemented. */
 	private boolean implemented;
 
+	/** The name of the mod. */
+	private String name;
+
 	/** The description of the mod. */
 	private String description;
 
@@ -235,6 +238,25 @@ public enum GameMod {
 	}
 
 	/**
+	 * Returns a comma-separated string of mod names of active mods in the given state.
+	 * @param state the state (bitwise OR of active mods)
+	 */
+	public static String getModString(int state) {
+		StringBuilder sb = new StringBuilder();
+		for (GameMod mod : GameMod.values()) {
+			if ((state & mod.getBit()) > 0) {
+				sb.append(mod.getName());
+				sb.append(',');
+			}
+		}
+		if (sb.length() > 0) {
+			sb.setLength(sb.length() - 1);
+			return sb.toString();
+		} else
+			return "None";
+	}
+
+	/**
 	 * Constructor.
 	 * @param category the category for the mod
 	 * @param categoryIndex the index in the category
@@ -243,11 +265,12 @@ public enum GameMod {
 	 * @param bit the bit
 	 * @param key the shortcut key
 	 * @param multiplier the score multiplier
+	 * @param name the name
 	 * @param description the description
 	 */
 	GameMod(Category category, int categoryIndex, GameImage image, String abbrev,
-			int bit, int key, float multiplier, String description) {
-		this(category, categoryIndex, image, abbrev, bit, key, multiplier, true, description);
+			int bit, int key, float multiplier, String name, String description) {
+		this(category, categoryIndex, image, abbrev, bit, key, multiplier, true, name, description);
 	}
 
 	/**
@@ -260,10 +283,11 @@ public enum GameMod {
 	 * @param key the shortcut key
 	 * @param multiplier the score multiplier
 	 * @param implemented whether the mod is implemented
+	 * @param name the name
 	 * @param description the description
 	 */
 	GameMod(Category category, int categoryIndex, GameImage image, String abbrev,
-			int bit, int key, float multiplier, boolean implemented, String description) {
+			int bit, int key, float multiplier, boolean implemented, String name, String description) {
 		this.category = category;
 		this.categoryIndex = categoryIndex;
 		this.image = image;
@@ -272,6 +296,7 @@ public enum GameMod {
 		this.key = key;
 		this.multiplier = multiplier;
 		this.implemented = implemented;
+		this.name = name;
 		this.description = description;
 	}
 
@@ -299,6 +324,12 @@ public enum GameMod {
 	 * @return the multiplier
 	 */
 	public float getMultiplier() { return multiplier; }
+
+	/**
+	 * Returns the name of the mod.
+	 * @return the name
+	 */
+	public String getName() { return name; }
 
 	/**
 	 * Returns a description of the mod.

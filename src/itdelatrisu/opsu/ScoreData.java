@@ -71,6 +71,12 @@ public class ScoreData implements Comparable<ScoreData> {
 	/** The score percent. */
 	private float scorePercent = -1f;
 
+	/** A formatted string of the timestamp. */
+	private String timeString;
+
+	/** A formatted string of the mods. */
+	private String modString;
+
 	/** Drawing values. */
 	private static float baseX, baseY, buttonWidth, buttonHeight, buttonOffset;
 
@@ -163,7 +169,9 @@ public class ScoreData implements Comparable<ScoreData> {
 	 * Returns the timestamp as a string.
 	 */
 	public String getTimeString() {
-		return new SimpleDateFormat("M/d/yyyy h:mm:ss a").format(new Date(timestamp * 1000L));
+		if (timeString == null)
+			timeString = new SimpleDateFormat("M/d/yyyy h:mm:ss a").format(new Date(timestamp * 1000L));
+		return timeString;
 	}
 
 	/**
@@ -205,6 +213,15 @@ public class ScoreData implements Comparable<ScoreData> {
 				timeSince = "";
 		}
 		return (timeSince.isEmpty()) ? null : timeSince;
+	}
+
+	/**
+	 * Returns a comma-separated string of mod names.
+	 */
+	private String getModString() {
+		if (modString == null)
+			modString = GameMod.getModString(mods);
+		return modString;
 	}
 
 	/**
@@ -300,13 +317,25 @@ public class ScoreData implements Comparable<ScoreData> {
 		}
 	}
 
+	/**
+	 * Draws the a tooltip containing the score information.
+	 * @param g the graphics context
+	 */
+	public void drawTooltip(Graphics g) {
+		String text = String.format(
+				"Achieved on %s\n300:%d 100:%d 50:%d Miss:%d\nAccuracy: %.2f%%\nMods: %s",
+				getTimeString(), hit300, hit100, hit50, miss,
+				getScorePercent(), getModString());
+		UI.drawTooltip(g, text, true);
+	}
+
 	@Override
 	public String toString() {
 		return String.format(
 			"%s | ID: (%d, %d) | %s - %s [%s] (by %s) | " +
-			"Hits: (%d, %d, %d, %d, %d, %d) | Score: %d (%d combo%s) | Mods: %d",
+			"Hits: (%d, %d, %d, %d, %d, %d) | Score: %d (%d combo%s) | Mods: %s",
 			getTimeString(), MID, MSID, artist, title, version, creator,
-			hit300, hit100, hit50, geki, katu, miss, score, combo, perfect ? ", FC" : "", mods
+			hit300, hit100, hit50, geki, katu, miss, score, combo, perfect ? ", FC" : "", getModString()
 		);
 	}
 
