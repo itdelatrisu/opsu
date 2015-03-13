@@ -197,5 +197,15 @@
 			<artifactId>maven-artifact</artifactId>
 			<version>3.0.3</version>
 		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-compress</artifactId>
+			<version>1.8</version>
+		</dependency>
+		<dependency>
+			<groupId>com.github.jponge</groupId>
+			<artifactId>lzma-java</artifactId>
+			<version>1.2</version>
+		</dependency>
 	</dependencies>
 </project>

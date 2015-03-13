@@ -214,6 +214,27 @@ public enum GameMod {
 	}
 
 	/**
+	 * Returns the current game mod state (bitwise OR of active mods).
+	 */
+	public static int getModState() {
+		int state = 0;
+		for (GameMod mod : GameMod.values()) {
+			if (mod.isActive())
+				state |= mod.getBit();
+		}
+		return state;
+	}
+
+	/**
+	 * Sets the active states of all game mods to the given state.
+	 * @param state the state (bitwise OR of active mods)
+	 */
+	public static void loadModState(int state) {
+		for (GameMod mod : GameMod.values())
+			mod.active = ((state & mod.getBit()) > 0);
+	}
+
+	/**
 	 * Constructor.
 	 * @param category the category for the mod
 	 * @param categoryIndex the index in the category

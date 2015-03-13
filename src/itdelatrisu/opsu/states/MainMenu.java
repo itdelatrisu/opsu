@@ -97,8 +97,8 @@ public class MainMenu extends BasicGameState {
 	/** Background alpha level (for fade-in effect). */
 	private float bgAlpha = 0f;
 
-	/** Whether or not an update notification was already sent. */
-	private boolean updateNotification = false;
+	/** Whether or not a notification was already sent upon entering. */
+	private boolean enterNotification = false;
 
 	/** Music position bar coordinates and dimensions. */
 	private float musicBarX, musicBarY, musicBarWidth, musicBarHeight;
@@ -388,9 +388,14 @@ public class MainMenu extends BasicGameState {
 	public void enter(GameContainer container, StateBasedGame game)
 			throws SlickException {
 		UI.enter();
-		if (!updateNotification && Updater.get().getStatus() == Updater.Status.UPDATE_AVAILABLE) {
-			UI.sendBarNotification("An opsu! update is available.");
-			updateNotification = true;
+		if (!enterNotification) {
+			if (Updater.get().getStatus() == Updater.Status.UPDATE_AVAILABLE) {
+				UI.sendBarNotification("An opsu! update is available.");
+				enterNotification = true;
+			} else if (Updater.get().justUpdated()) {
+				UI.sendBarNotification("opsu! is now up to date!");
+				enterNotification = true;
+			}
 		}
 
 		// reset button hover states if mouse is not currently hovering over the button

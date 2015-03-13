@@ -22,10 +22,15 @@ import itdelatrisu.opsu.audio.HitSound;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
+import itdelatrisu.opsu.downloads.Updater;
+import itdelatrisu.opsu.replay.Replay;
+import itdelatrisu.opsu.replay.ReplayFrame;
 
+import java.io.File;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedList;
+import java.util.concurrent.LinkedBlockingDeque;
 
 import org.newdawn.slick.Animation;
 import org.newdawn.slick.Color;
@@ -165,7 +170,7 @@ public class GameData {
 	private int[] hitResultOffset;
 
 	/** List of hit result objects associated with hit objects. */
-	private LinkedList<OsuHitObjectResult> hitResultList;
+	private LinkedBlockingDeque<OsuHitObjectResult> hitResultList;
 
 	/**
 	 * Class to store hit error information.
@@ -198,7 +203,7 @@ public class GameData {
 	}
 
 	/** List containing recent hit error information. */
-	private LinkedList<HitErrorInfo> hitErrorList;
+	private LinkedBlockingDeque<HitErrorInfo> hitErrorList;
 
 	/**
 	 * Hit result helper class.
@@ -274,6 +279,9 @@ public class GameData {
 	/** The associated score data. */
 	private ScoreData scoreData;
 
+	/** The associated replay. */
+	private Replay replay;
+
 	/** Whether this object is used for gameplay (true) or score viewing (false). */
 	private boolean gameplay;
 
@@ -318,6 +326,8 @@ public class GameData {
 		hitResultCount[HIT_300K] = 0;
 		hitResultCount[HIT_100K] = s.katu;
 		hitResultCount[HIT_MISS] = s.miss;
+		this.replay = (s.replayString == null) ? null :
+			new Replay(new File(Options.getReplayDir(), String.format("%s.osr", s.replayString)));
 
 		loadImages();
 	}
@@ -332,8 +342,8 @@ public class GameData {
 		health = 100f;
 		healthDisplay = 100f;
 		hitResultCount = new int[HIT_MAX];
-		hitResultList = new LinkedList<OsuHitObjectResult>();
-		hitErrorList = new LinkedList<HitErrorInfo>();
+		hitResultList = new LinkedBlockingDeque<OsuHitObjectResult>();
+		hitErrorList = new LinkedBlockingDeque<HitErrorInfo>();
 		fullObjectCount = 0;
 		combo = 0;
 		comboMax = 0;
@@ -1219,13 +1229,48 @@ public class GameData {
 		scoreData.score = score;
 		scoreData.combo = comboMax;
 		scoreData.perfect = (comboMax == fullObjectCount);
-		int mods = 0;
-		for (GameMod mod : GameMod.values()) {
-			if (mod.isActive())
-				mods |= mod.getBit();
-		}
-		scoreData.mods = mods;
+		scoreData.mods = GameMod.getModState();
+		scoreData.replayString = (replay == null) ? null : replay.getReplayFilename();
 		return scoreData;
+	}
+
+	/**
+	 * Returns a Replay object encapsulating all game data.
+	 * If a replay already exists and frames is null, the existing object will
+	 * be returned.
+	 * @param frames the replay frames
+	 * @return the Replay object, or null if none exists and frames is null
+	 */
+	public Replay getReplay(ReplayFrame[] frames) {
+		if (replay != null && frames == null)
+			return replay;
+
+		if (frames == null)
+			return null;
+
+		replay = new Replay();
+		replay.mode = OsuFile.MODE_OSU;
+		replay.version = Updater.get().getBuildDate();
+		replay.beatmapHash = "";  // TODO
+		replay.playerName = "";  // TODO
+		replay.replayHash = Long.toString(System.currentTimeMillis());  // TODO
+		replay.hit300 = (short) hitResultCount[HIT_300];
+		replay.hit100 = (short) hitResultCount[HIT_100];
+		replay.hit50 = (short) hitResultCount[HIT_50];
+		replay.geki = (short) hitResultCount[HIT_300G];
+		replay.katu = (short) (hitResultCount[HIT_300K] + hitResultCount[HIT_100K]);
+		replay.miss = (short) hitResultCount[HIT_MISS];
+		replay.score = (int) score;
+		replay.combo = (short) comboMax;
+		replay.perfect = (comboMax == fullObjectCount);
+		replay.mods = GameMod.getModState();
+		replay.lifeFrames = null;  // TODO
+		replay.timestamp = new Date();
+		replay.frames = frames;
+		replay.seed = 0;  // TODO
+		replay.loaded = true;
+
+		return replay;
 	}
 
 	/**

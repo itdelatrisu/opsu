@@ -29,6 +29,10 @@ import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
+import itdelatrisu.opsu.replay.Replay;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
 
 import org.lwjgl.opengl.Display;
 import org.newdawn.slick.Color;
@@ -41,12 +45,13 @@ import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.state.transition.FadeInTransition;
 import org.newdawn.slick.state.transition.FadeOutTransition;
+import org.newdawn.slick.util.Log;
 
 /**
  * "Game Ranking" (score card) state.
  * <ul>
  * <li>[Retry]    - restart game (return to game state)
- * <li>[Exit]     - return to main menu state
+ * <li>[Replay]   - watch replay (return to game state)
  * <li>[Back]     - return to song menu state
  * </ul>
  */
@@ -54,8 +59,11 @@ public class GameRanking extends BasicGameState {
 	/** Associated GameData object. */
 	private GameData data;
 
-	/** "Retry" and "Exit" buttons. */
-	private MenuButton retryButton, exitButton;
+	/** "Retry" and "Replay" buttons. */
+	private MenuButton retryButton, replayButton;
+
+	/** Button coordinates. */
+	private float retryY, replayY;
 
 	// game-related variables
 	private GameContainer container;
@@ -78,18 +86,14 @@ public class GameRanking extends BasicGameState {
 		int height = container.getHeight();
 
 		// buttons
-		Image retry = GameImage.RANKING_RETRY.getImage();
-		Image exit  = GameImage.RANKING_EXIT.getImage();
-		retryButton = new MenuButton(retry,
-				width - (retry.getWidth() / 2f),
-				(height * 0.97f) - (exit.getHeight() * 1.5f)
-		);
-		exitButton  = new MenuButton(exit,
-				width - (exit.getWidth() / 2f),
-				(height * 0.97f) - (exit.getHeight() / 2f)
-		);
-		retryButton.setHoverFade(0.6f);
-		exitButton.setHoverFade(0.6f);
+		Image retry = GameImage.PAUSE_RETRY.getImage();
+		Image replay = GameImage.PAUSE_REPLAY.getImage();
+		replayY = (height * 0.985f) - replay.getHeight() / 2f;
+		retryY = replayY - (replay.getHeight() / 2f) - (retry.getHeight() / 1.975f);
+		retryButton = new MenuButton(retry, width - (retry.getWidth() / 2f), retryY);
+		replayButton = new MenuButton(replay, width - (replay.getWidth() / 2f), replayY);
+		retryButton.setHoverFade();
+		replayButton.setHoverFade();
 	}
 
 	@Override
@@ -108,10 +112,9 @@ public class GameRanking extends BasicGameState {
 		data.drawRankingElements(g, osu);
 
 		// buttons
-		if (data.isGameplay()) {
+		replayButton.draw();
+		if (data.isGameplay())
 			retryButton.draw();
-			exitButton.draw();
-		}
 		UI.getBackButton().draw();
 
 		UI.draw(g);
@@ -122,10 +125,10 @@ public class GameRanking extends BasicGameState {
 			throws SlickException {
 		UI.update(delta);
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
-		if (data.isGameplay()) {
+		replayButton.hoverUpdate(delta, mouseX, mouseY);
+		if (data.isGameplay())
 			retryButton.hoverUpdate(delta, mouseX, mouseY);
-			exitButton.hoverUpdate(delta, mouseX, mouseY);
-		} else
+		else
 			MusicController.loopTrackIfEnded(true);
 		UI.getBackButton().hoverUpdate(delta, mouseX, mouseY);
 	}
@@ -157,25 +160,45 @@ public class GameRanking extends BasicGameState {
 		if (button == Input.MOUSE_MIDDLE_BUTTON)
 			return;
 
-		if (data.isGameplay()) {
-			if (retryButton.contains(x, y)) {
-				OsuFile osu = MusicController.getOsuFile();
-				Display.setTitle(String.format("%s - %s", game.getTitle(), osu.toString()));
-				((Game) game.getState(Opsu.STATE_GAME)).setRestart(Game.Restart.MANUAL);
-				SoundController.playSound(SoundEffect.MENUHIT);
-				game.enterState(Opsu.STATE_GAME, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
-				return;
-			} else if (exitButton.contains(x, y)) {
-				SoundController.playSound(SoundEffect.MENUBACK);
-				((MainMenu) game.getState(Opsu.STATE_MAINMENU)).reset();
-				((SongMenu) game.getState(Opsu.STATE_SONGMENU)).resetGameDataOnLoad();
-				UI.resetCursor();
-				game.enterState(Opsu.STATE_MAINMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
-				return;
-			}
-		}
+		// back to menu
 		if (UI.getBackButton().contains(x, y)) {
 			returnToSongMenu();
+			return;
+		}
+
+		// replay
+		Game gameState = (Game) game.getState(Opsu.STATE_GAME);
+		boolean returnToGame = false;
+		if (replayButton.contains(x, y)) {
+			Replay r = data.getReplay(null);
+			if (r != null) {
+				try {
+					r.load();
+					gameState.setReplay(r);
+					gameState.setRestart((data.isGameplay()) ? Game.Restart.REPLAY : Game.Restart.NEW);
+					returnToGame = true;
+				} catch (FileNotFoundException e) {
+					UI.sendBarNotification("Replay file not found.");
+				} catch (IOException e) {
+					Log.error("Failed to load replay data.", e);
+					UI.sendBarNotification("Failed to load replay data. See log for details.");
+				}
+			} else
+				UI.sendBarNotification("Replay file not found.");
+		}
+
+		// retry
+		else if (data.isGameplay() && retryButton.contains(x, y)) {
+			gameState.setReplay(null);
+			gameState.setRestart(Game.Restart.MANUAL);
+			returnToGame = true;
+		}
+
+		if (returnToGame) {
+			OsuFile osu = MusicController.getOsuFile();
+			gameState.loadOsuFile(osu);
+			SoundController.playSound(SoundEffect.MENUHIT);
+			game.enterState(Opsu.STATE_GAME, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 			return;
 		}
 	}
@@ -188,17 +211,21 @@ public class GameRanking extends BasicGameState {
 		if (!data.isGameplay()) {
 			if (!MusicController.isTrackDimmed())
 				MusicController.toggleTrackDimmed(0.5f);
+			replayButton.setY(retryY);
 		} else {
 			SoundController.playSound(SoundEffect.APPLAUSE);
 			retryButton.resetHover();
-			exitButton.resetHover();
+			replayButton.setY(replayY);
 		}
+		replayButton.resetHover();
 	}
 
 	@Override
 	public void leave(GameContainer container, StateBasedGame game)
 			throws SlickException {
 		this.data = null;
+		if (MusicController.isTrackDimmed())
+			MusicController.toggleTrackDimmed(1f);
 	}
 
 	/**

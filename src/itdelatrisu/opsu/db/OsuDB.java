@@ -127,6 +127,10 @@ public class OsuDB {
 				"PRAGMA locking_mode = EXCLUSIVE; " +
 				"PRAGMA journal_mode = WAL;";
 			stmt.executeUpdate(sql);
+
+			// set the version key, if empty
+			sql = String.format("INSERT OR IGNORE INTO info(key, value) VALUES('version', '%s')", DATABASE_VERSION);
+			stmt.executeUpdate(sql);
 		} catch (SQLException e) {
 			ErrorHandler.error("Could not create beatmap database.", e, true);
 		}
@@ -145,14 +149,15 @@ public class OsuDB {
 			rs.close();
 
 			// if different from current version, clear the database
-			if (!version.equals(DATABASE_VERSION))
+			if (!version.equals(DATABASE_VERSION)) {
 				clearDatabase();
 
-			// update version
-			PreparedStatement ps = connection.prepareStatement("REPLACE INTO info (key, value) VALUES ('version', ?)");
-			ps.setString(1, DATABASE_VERSION);
-			ps.executeUpdate();
-			ps.close();
+				// update version
+				PreparedStatement ps = connection.prepareStatement("REPLACE INTO info (key, value) VALUES ('version', ?)");
+				ps.setString(1, DATABASE_VERSION);
+				ps.executeUpdate();
+				ps.close();
+			}
 		} catch (SQLException e) {
 			ErrorHandler.error("Beatmap database version checks failed.", e, true);
 		}
@@ -428,7 +433,7 @@ public class OsuDB {
 	 * Sets all OsuFile non-array fields using a given result set.
 	 * @param rs the result set containing the fields
 	 * @param osu the OsuFile
-	 * @throws SQLException 
+	 * @throws SQLException
 	 */
 	private static void setOsuFileFields(ResultSet rs, OsuFile osu) throws SQLException {
 		try {
@@ -476,7 +481,7 @@ public class OsuDB {
 	 * Sets all OsuFile array fields using a given result set.
 	 * @param rs the result set containing the fields
 	 * @param osu the OsuFile
-	 * @throws SQLException 
+	 * @throws SQLException
 	 */
 	private static void setOsuFileArrayFields(ResultSet rs, OsuFile osu) throws SQLException {
 		try {

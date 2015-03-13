@@ -272,7 +272,7 @@ public class OsuParser {
 								osu.mode = Byte.parseByte(tokens[1]);
 
 								/* Non-Opsu! standard files not implemented (obviously). */
-								if (osu.mode != 0)
+								if (osu.mode != OsuFile.MODE_OSU)
 									return null;
 
 								break;

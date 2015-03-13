@@ -34,6 +34,12 @@ public abstract class Curve {
 	/** The color of this curve. */
 	protected Color color;
 
+	/** The scaled starting x, y coordinates. */
+	protected float x, y;
+
+	/** The scaled slider x, y coordinate lists. */
+	protected float[] sliderX, sliderY;
+
 	/**
 	 * Constructor.
 	 * @param hitObject the associated OsuHitObject
@@ -41,6 +47,10 @@ public abstract class Curve {
 	 */
 	protected Curve(OsuHitObject hitObject, Color color) {
 		this.hitObject = hitObject;
+		this.x = hitObject.getScaledX();
+		this.y = hitObject.getScaledY();
+		this.sliderX = hitObject.getScaledSliderX();
+		this.sliderY = hitObject.getScaledSliderY();
 		this.color = color;
 	}
 
@@ -67,18 +77,16 @@ public abstract class Curve {
 	public abstract float getStartAngle();
 
 	/**
-	 * Returns the x coordinate of the control point at index i.
+	 * Returns the scaled x coordinate of the control point at index i.
+	 * @param i the control point index
 	 */
-	protected float getX(int i) {
-		return (i == 0) ? hitObject.getX() : hitObject.getSliderX()[i - 1];
-	}
+	public float getX(int i) { return (i == 0) ? x : sliderX[i - 1]; }
 
 	/**
-	 * Returns the y coordinate of the control point at index i.
+	 * Returns the scaled y coordinate of the control point at index i.
+	 * @param i the control point index
 	 */
-	protected float getY(int i) {
-		return (i == 0) ? hitObject.getY() : hitObject.getSliderY()[i - 1];
-	}
+	public float getY(int i) { return (i == 0) ? y : sliderY[i - 1]; }
 
 	/**
 	 * Linear interpolation of a and b at t.

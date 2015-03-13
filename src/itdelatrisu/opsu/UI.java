@@ -20,12 +20,16 @@ package itdelatrisu.opsu;
 
 import itdelatrisu.opsu.audio.SoundController;
 
+import java.nio.IntBuffer;
 import java.util.Iterator;
 import java.util.LinkedList;
 
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 
+import org.lwjgl.BufferUtils;
+import org.lwjgl.LWJGLException;
+import org.lwjgl.input.Cursor;
 import org.newdawn.slick.Animation;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
@@ -41,6 +45,9 @@ import org.newdawn.slick.state.StateBasedGame;
 public class UI {
 	/** Back button. */
 	private static MenuButton backButton;
+
+	/** Empty cursor. */
+	private static Cursor emptyCursor;
 
 	/** Last cursor coordinates. */
 	private static int lastX = -1, lastY = -1;
@@ -88,6 +95,16 @@ public class UI {
 		UI.game = game;
 		UI.input = container.getInput();
 
+		// hide native cursor
+		try {
+			int min = Cursor.getMinCursorSize();
+			IntBuffer tmp = BufferUtils.createIntBuffer(min * min);
+			emptyCursor = new Cursor(min, min, min/2, min/2, 1, tmp, null);
+			hideCursor();
+		} catch (LWJGLException e) {
+			ErrorHandler.error("Failed to create hidden cursor.", e, true);
+		}
+
 		// back button
 		if (GameImage.MENU_BACK.getImages() != null) {
 			Animation back = GameImage.MENU_BACK.getAnimation(120);
@@ -118,6 +135,20 @@ public class UI {
 		drawVolume(g);
 		drawFPS();
 		drawCursor();
+	}
+
+	/**
+	 * Draws the global UI components: cursor, FPS, volume bar, bar notifications.
+	 * @param g the graphics context
+	 * @param mouseX the mouse x coordinate
+	 * @param mouseY the mouse y coordinate
+	 * @param mousePressed whether or not the mouse button is pressed
+	 */
+	public static void draw(Graphics g, int mouseX, int mouseY, boolean mousePressed) {
+		drawBarNotification(g);
+		drawVolume(g);
+		drawFPS();
+		drawCursor(mouseX, mouseY, mousePressed);
 	}
 
 	/**
@@ -161,6 +192,21 @@ public class UI {
 	 * Draws the cursor.
 	 */
 	public static void drawCursor() {
+		int state = game.getCurrentStateID();
+		boolean mousePressed =
+			(((state == Opsu.STATE_GAME || state == Opsu.STATE_GAMEPAUSEMENU) && Utils.isGameKeyPressed()) ||
+			((input.isMouseButtonDown(Input.MOUSE_LEFT_BUTTON) || input.isMouseButtonDown(Input.MOUSE_RIGHT_BUTTON)) &&
+			!(state == Opsu.STATE_GAME && Options.isMouseDisabled())));
+		drawCursor(input.getMouseX(), input.getMouseY(), mousePressed);
+	}
+
+	/**
+	 * Draws the cursor.
+	 * @param mouseX the mouse x coordinate
+	 * @param mouseY the mouse y coordinate
+	 * @param mousePressed whether or not the mouse button is pressed
+	 */
+	public static void drawCursor(int mouseX, int mouseY, boolean mousePressed) {
 		// determine correct cursor image
 		// TODO: most beatmaps don't skin CURSOR_MIDDLE, so how to determine style?
 		Image cursor = null, cursorMiddle = null, cursorTrail = null;
@@ -176,7 +222,6 @@ public class UI {
 		if (newStyle)
 			cursorMiddle = GameImage.CURSOR_MIDDLE.getImage();
 
-		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
 		int removeCount = 0;
 		int FPSmod = (Options.getTargetFPS() / 60);
 
@@ -226,10 +271,7 @@ public class UI {
 
 		// increase the cursor size if pressed
 		final float scale = 1.25f;
-		int state = game.getCurrentStateID();
-		if (((state == Opsu.STATE_GAME || state == Opsu.STATE_GAMEPAUSEMENU) && Utils.isGameKeyPressed()) ||
-		    ((input.isMouseButtonDown(Input.MOUSE_LEFT_BUTTON) || input.isMouseButtonDown(Input.MOUSE_RIGHT_BUTTON)) &&
-		    !(state == Opsu.STATE_GAME && Options.isMouseDisabled()))) {
+		if (mousePressed) {
 			cursor = cursor.getScaledCopy(scale);
 			if (newStyle)
 				cursorMiddle = cursorMiddle.getScaledCopy(scale);
@@ -316,6 +358,26 @@ public class UI {
 		cursorX.clear();
 		cursorY.clear();
 		GameImage.CURSOR.getImage().setRotation(0f);
+	}
+
+	/**
+	 * Hides the cursor, if possible.
+	 */
+	public static void hideCursor() {
+		if (emptyCursor != null) {
+			try {
+				container.setMouseCursor(emptyCursor, 0, 0);
+			} catch (SlickException e) {
+				ErrorHandler.error("Failed to hide the cursor.", e, true);
+			}
+		}
+	}
+
+	/**
+	 * Unhides the cursor.
+	 */
+	public static void showCursor() {
+		container.setDefaultMouseCursor();
 	}
 
 	/**

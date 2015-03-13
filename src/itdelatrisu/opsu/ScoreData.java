@@ -59,6 +59,9 @@ public class ScoreData implements Comparable<ScoreData> {
 	/** Game mod bitmask. */
 	public int mods;
 
+	/** The replay string. */
+	public String replayString;
+
 	/** Time since the score was achieved. */
 	private String timeSince;
 
@@ -153,6 +156,7 @@ public class ScoreData implements Comparable<ScoreData> {
 		this.combo = rs.getInt(15);
 		this.perfect = rs.getBoolean(16);
 		this.mods = rs.getInt(17);
+		this.replayString = rs.getString(18);
 	}
 
 	/**

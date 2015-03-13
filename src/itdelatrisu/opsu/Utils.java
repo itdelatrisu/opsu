@@ -34,19 +34,17 @@ import java.net.HttpURLConnection;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Scanner;
 
 import javax.imageio.ImageIO;
 
 import org.lwjgl.BufferUtils;
-import org.lwjgl.LWJGLException;
-import org.lwjgl.input.Cursor;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 import org.newdawn.slick.Animation;
@@ -130,6 +128,8 @@ public class Utils {
 	public static void init(GameContainer container, StateBasedGame game)
 			throws SlickException {
 		input = container.getInput();
+		int width = container.getWidth();
+		int height = container.getHeight();
 
 		// game settings
 		container.setTargetFrameRate(Options.getTargetFPS());
@@ -139,20 +139,6 @@ public class Utils {
 		container.getInput().enableKeyRepeat();
 		container.setAlwaysRender(true);
 		container.setUpdateOnlyWhenVisible(false);
-
-		int width = container.getWidth();
-		int height = container.getHeight();
-
-		// set the cursor
-		try {
-			// hide the native cursor
-			int min = Cursor.getMinCursorSize();
-			IntBuffer tmp = BufferUtils.createIntBuffer(min * min);
-			Cursor emptyCursor = new Cursor(min, min, min/2, min/2, 1, tmp, null);
-			container.setMouseCursor(emptyCursor, 0, 0);
-		} catch (LWJGLException e) {
-			ErrorHandler.error("Failed to set the cursor.", e, true);
-		}
 
 		GameImage.init(width, height);
 		
@@ -537,6 +523,17 @@ public class Utils {
 		} catch (SocketTimeoutException e) {
 			Log.warn("Connection to server timed out.", e);
 			throw e;
+		}
+	}
+
+	/**
+	 * Converts an input stream to a string.
+	 * @param is the input stream
+	 * @author Pavel Repin, earcam (http://stackoverflow.com/a/5445161)
+	 */
+	public static String convertStreamToString(InputStream is) {
+		try (Scanner s = new Scanner(is)) {
+			return s.useDelimiter("\\A").hasNext() ? s.next() : "";
 		}
 	}
 }

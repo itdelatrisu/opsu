@@ -28,6 +28,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
 import java.net.URL;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 import java.util.Properties;
 
 import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
@@ -93,6 +97,12 @@ public class Updater {
 	/** The current and latest versions. */
 	private DefaultArtifactVersion currentVersion, latestVersion;
 
+	/** The version information if the program was just updated. */
+	private String updatedFromVersion, updatedToVersion;
+
+	/** The build date. */
+	private int buildDate = -1;
+
 	/** The download object. */
 	private Download download;
 
@@ -114,6 +124,57 @@ public class Updater {
 	public boolean showButton() {
 		return (status == Status.UPDATE_AVAILABLE || status == Status.UPDATE_DOWNLOADED || status == Status.UPDATE_DOWNLOADING);
 	}
+
+	/**
+	 * Returns the build date, or the current date if not available.
+	 */
+	public int getBuildDate() {
+		if (buildDate == -1) {
+			Date date = null;
+			try {
+				Properties props = new Properties();
+				props.load(ResourceLoader.getResourceAsStream(Options.VERSION_FILE));
+				String build = props.getProperty("build.date");
+				if (build == null || build.equals("${timestamp}") || build.equals("${maven.build.timestamp}"))
+					date = new Date();
+				else {
+					DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.ENGLISH);
+					date = format.parse(build);
+				}
+			} catch (Exception e) {
+				date = new Date();
+			} finally {
+				DateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
+				buildDate = Integer.parseInt(dateFormat.format(date));
+			}
+		}
+		return buildDate;
+	}
+
+	/**
+	 * Sets the version information if the program was just updated.
+	 * @param fromVersion the previous version
+	 * @param toVersion the new version
+	 */
+	public void setUpdateInfo(String fromVersion, String toVersion) {
+		this.updatedFromVersion = fromVersion;
+		this.updatedToVersion = toVersion;
+	}
+
+	/**
+	 * Returns whether or not the program was just updated.
+	 */
+	public boolean justUpdated() { return (updatedFromVersion != null && updatedToVersion != null); }
+
+	/**
+	 * Returns the version the program was just updated from, or null if not updated.
+	 */
+	public String updatedFromVersion() { return (justUpdated()) ? updatedFromVersion : null; }
+
+	/**
+	 * Returns the version the program was just updated to, or null if not updated.
+	 */
+	public String updatedToVersion() { return (justUpdated()) ? updatedToVersion : null; }
 
 	/**
 	 * Returns the version from a set of properties.
@@ -215,7 +276,10 @@ public class Updater {
 
 		try {
 			// TODO: it is better to wait for the process? is this portable?
-			ProcessBuilder pb = new ProcessBuilder("java", "-jar", download.getLocalPath());
+			ProcessBuilder pb = new ProcessBuilder(
+					"java", "-jar", download.getLocalPath(),
+					currentVersion.toString(), latestVersion.toString()
+			);
 			pb.start();
 		} catch (IOException e) {
 			status = Status.INTERNAL_ERROR;

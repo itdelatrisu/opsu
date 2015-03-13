@@ -137,6 +137,10 @@ public class Opsu extends StateBasedGame {
 		// initialize databases
 		DBController.init();
 
+		// check if just updated
+		if (args.length >= 2)
+			Updater.get().setUpdateInfo(args[0], args[1]);
+
 		// check for updates
 		new Thread() {
 			@Override

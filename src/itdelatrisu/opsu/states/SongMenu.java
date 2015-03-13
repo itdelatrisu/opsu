@@ -34,7 +34,6 @@ import itdelatrisu.opsu.ScoreData;
 import itdelatrisu.opsu.SongSort;
 import itdelatrisu.opsu.UI;
 import itdelatrisu.opsu.Utils;
-import itdelatrisu.opsu.audio.HitSound;
 import itdelatrisu.opsu.audio.MultiClip;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
@@ -1288,17 +1287,12 @@ public class SongMenu extends BasicGameState {
 			return;
 
 		SoundController.playSound(SoundEffect.MENUHIT);
-		OsuFile osu = MusicController.getOsuFile();
-		Display.setTitle(String.format("%s - %s", game.getTitle(), osu.toString()));
-
-		// load any missing data
-		if (osu.timingPoints == null || osu.combo == null)
-			OsuDB.load(osu, OsuDB.LOAD_ARRAY);
-		OsuParser.parseHitObjects(osu);
-		HitSound.setDefaultSampleSet(osu.sampleSet);
-
 		MultiClip.destroyExtraClips();
-		((Game) game.getState(Opsu.STATE_GAME)).setRestart(Game.Restart.NEW);
+		OsuFile osu = MusicController.getOsuFile();
+		Game gameState = (Game) game.getState(Opsu.STATE_GAME);
+		gameState.loadOsuFile(osu);
+		gameState.setRestart(Game.Restart.NEW);
+		gameState.setReplay(null);
 		game.enterState(Opsu.STATE_GAME, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 	}
 }

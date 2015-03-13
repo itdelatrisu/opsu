@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -39,6 +40,29 @@ import java.util.Map;
  * Handles connections and queries with the scores database.
  */
 public class ScoreDB {
+	/**
+	 * Current database version.
+	 * This value should be changed whenever the database format changes.
+	 * Add any update queries to the {@link #getUpdateQueries(int)} method.
+	 */
+	private static final int DATABASE_VERSION = 20140311;
+
+	/**
+	 * Returns a list of SQL queries to apply, in order, to update from
+	 * the given database version to the latest version.
+	 * @param version the current version
+	 * @return a list of SQL queries
+	 */
+	private static List<String> getUpdateQueries(int version) {
+		List<String> list = new LinkedList<String>();
+		if (version < 20140311)
+			list.add("ALTER TABLE scores ADD COLUMN replay TEXT");
+
+		/* add future updates here */
+
+		return list;
+	}
+
 	/** Database connection. */
 	private static Connection connection;
 
@@ -63,13 +87,16 @@ public class ScoreDB {
 		if (connection == null)
 			return;
 
+		// run any database updates
+		updateDatabase();
+
 		// create the database
 		createDatabase();
 
 		// prepare sql statements
 		try {
 			insertStmt = connection.prepareStatement(
-				"INSERT INTO scores VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+				"INSERT INTO scores VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 			);
 			selectMapStmt = connection.prepareStatement(
 				"SELECT * FROM scores WHERE " +
@@ -109,12 +136,72 @@ public class ScoreDB {
 					"score INTEGER, " +
 					"combo INTEGER, " +
 					"perfect BOOLEAN, " +
-					"mods INTEGER" +
+					"mods INTEGER, " +
+					"replay TEXT" +
 				");" +
+				"CREATE TABLE IF NOT EXISTS info (" +
+					"key TEXT NOT NULL UNIQUE, value TEXT" +
+				"); " +
 				"CREATE INDEX IF NOT EXISTS idx ON scores (MID, MSID, title, artist, creator, version);";
+			stmt.executeUpdate(sql);
+
+			// set the version key, if empty
+			sql = String.format("INSERT OR IGNORE INTO info(key, value) VALUES('version', %d)", DATABASE_VERSION);
 			stmt.executeUpdate(sql);
 		} catch (SQLException e) {
 			ErrorHandler.error("Could not create score database.", e, true);
+		}
+	}
+
+	/**
+	 * Applies any database updates by comparing the current version to the
+	 * stored version.  Does nothing if tables have not been created.
+	 */
+	private static void updateDatabase() {
+		try (Statement stmt = connection.createStatement()) {
+			int version = 0;
+
+			// if 'info' table does not exist, assume version 0 and apply all updates
+			String sql = "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'info'";
+			ResultSet rs = stmt.executeQuery(sql);
+			boolean infoExists = rs.isBeforeFirst();
+			rs.close();
+			if (!infoExists) {
+				// if 'scores' table also does not exist, databases not yet created
+				sql = "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'scores'";
+				ResultSet scoresRS = stmt.executeQuery(sql);
+				boolean scoresExists = scoresRS.isBeforeFirst();
+				scoresRS.close();
+				if (!scoresExists)
+					return;
+			} else {
+				// try to retrieve stored version
+				sql = "SELECT value FROM info WHERE key = 'version'";
+				ResultSet versionRS = stmt.executeQuery(sql);
+				String versionString = (versionRS.next()) ? versionRS.getString(1) : "0";
+				versionRS.close();
+				try {
+					version = Integer.parseInt(versionString);
+				} catch (NumberFormatException e) {}
+			}
+
+			// database versions match
+			if (version >= DATABASE_VERSION)
+				return;
+
+			// apply updates
+			for (String query : getUpdateQueries(version))
+				stmt.executeUpdate(query);
+
+			// update version
+			if (infoExists) {
+				PreparedStatement ps = connection.prepareStatement("REPLACE INTO info (key, value) VALUES ('version', ?)");
+				ps.setString(1, Integer.toString(DATABASE_VERSION));
+				ps.executeUpdate();
+				ps.close();
+			}
+		} catch (SQLException e) {
+			ErrorHandler.error("Failed to update score database.", e, true);
 		}
 	}
 
@@ -128,6 +215,7 @@ public class ScoreDB {
 
 		try {
 			setStatementFields(insertStmt, data);
+			insertStmt.setString(18, data.replayString);
 			insertStmt.executeUpdate();
 		} catch (SQLException e) {
 			ErrorHandler.error("Failed to save score to database.", e, true);

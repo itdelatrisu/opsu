@@ -52,6 +52,9 @@ public class Slider implements HitObject {
 	/** The associated OsuHitObject. */
 	private OsuHitObject hitObject;
 
+	/** The scaled starting x, y coordinates. */
+	protected float x, y;
+
 	/** The associated Game object. */
 	private Game game;
 
@@ -130,6 +133,8 @@ public class Slider implements HitObject {
 	 */
 	public Slider(OsuHitObject hitObject, Game game, GameData data, Color color, boolean comboEnd) {
 		this.hitObject = hitObject;
+		this.x = hitObject.getScaledX();
+		this.y = hitObject.getScaledY();
 		this.game = game;
 		this.data = data;
 		this.color = color;
@@ -147,7 +152,6 @@ public class Slider implements HitObject {
 		int timeDiff = hitObject.getTime() - trackPosition;
 		float scale = timeDiff / (float) game.getApproachTime();
 		float approachScale = 1 + scale * 3;
-		float x = hitObject.getX(), y = hitObject.getY();
 		float alpha = Utils.clamp(1 - scale, 0, 1);
 
 		float oldAlpha = color.a;
@@ -256,7 +260,7 @@ public class Slider implements HitObject {
 					lastPos[0], lastPos[1], color, comboEnd, hitObject, currentRepeats + 1);
 		} else {  // first circle
 			data.hitResult(hitObject.getTime() + (int) sliderTimeTotal, result,
-					hitObject.getX(), hitObject.getY(), color, comboEnd, hitObject, currentRepeats + 1);
+					x, y, color, comboEnd, hitObject, currentRepeats + 1);
 		}
 
 		return result;
@@ -267,7 +271,7 @@ public class Slider implements HitObject {
 		if (sliderClickedInitial)  // first circle already processed
 			return false;
 
-		double distance = Math.hypot(hitObject.getX() - x, hitObject.getY() - y);
+		double distance = Math.hypot(this.x - x, this.y - y);
 		int circleRadius = GameImage.HITCIRCLE.getImage().getWidth() / 2;
 		if (distance < circleRadius) {
 			int trackPosition = MusicController.getPosition();
@@ -285,8 +289,7 @@ public class Slider implements HitObject {
 			if (result > -1) {
 				data.addHitError(hitObject.getTime(), x,y,trackPosition - hitObject.getTime());
 				sliderClickedInitial = true;
-				data.sliderTickResult(hitObject.getTime(), result,
-						hitObject.getX(), hitObject.getY(), hitObject, currentRepeats);
+				data.sliderTickResult(hitObject.getTime(), result, this.x, this.y, hitObject, currentRepeats);
 				return true;
 			}
 		}
@@ -294,7 +297,7 @@ public class Slider implements HitObject {
 	}
 
 	@Override
-	public boolean update(boolean overlap, int delta, int mouseX, int mouseY) {
+	public boolean update(boolean overlap, int delta, int mouseX, int mouseY, boolean keyPressed) {
 		int repeatCount = hitObject.getRepeatCount();
 
 		// slider time and tick calculations
@@ -317,7 +320,6 @@ public class Slider implements HitObject {
 
 		int trackPosition = MusicController.getPosition();
 		int[] hitResultOffset = game.getHitResultOffsets();
-		int lastIndex = hitObject.getSliderX().length - 1;
 		boolean isAutoMod = GameMod.AUTO.isActive();
 
 		if (!sliderClickedInitial) {
@@ -328,11 +330,9 @@ public class Slider implements HitObject {
 				sliderClickedInitial = true;
 				if (isAutoMod) {  // "auto" mod: catch any missed notes due to lag
 					ticksHit++;
-					data.sliderTickResult(time, GameData.HIT_SLIDER30,
-							hitObject.getX(), hitObject.getY(), hitObject, currentRepeats);
+					data.sliderTickResult(time, GameData.HIT_SLIDER30, x, y, hitObject, currentRepeats);
 				} else
-					data.sliderTickResult(time, GameData.HIT_MISS,
-							hitObject.getX(), hitObject.getY(), hitObject, currentRepeats);
+					data.sliderTickResult(time, GameData.HIT_MISS, x, y, hitObject, currentRepeats);
 			}
 
 			// "auto" mod: send a perfect hit result
@@ -340,8 +340,7 @@ public class Slider implements HitObject {
 				if (Math.abs(trackPosition - time) < hitResultOffset[GameData.HIT_300]) {
 					ticksHit++;
 					sliderClickedInitial = true;
-					data.sliderTickResult(time, GameData.HIT_SLIDER30,
-							hitObject.getX(), hitObject.getY(), hitObject, currentRepeats);
+					data.sliderTickResult(time, GameData.HIT_SLIDER30, x, y, hitObject, currentRepeats);
 				}
 			}
 
@@ -355,7 +354,7 @@ public class Slider implements HitObject {
 			tickIntervals++;
 
 			// check if cursor pressed and within end circle
-			if (Utils.isGameKeyPressed() || GameMod.RELAX.isActive()) {
+			if (keyPressed || GameMod.RELAX.isActive()) {
 				float[] c = curve.pointAt(getT(trackPosition, false));
 				double distance = Math.hypot(c[0] - mouseX, c[1] - mouseY);
 				int followCircleRadius = GameImage.SLIDER_FOLLOWCIRCLE.getImage().getWidth() / 2;
@@ -404,7 +403,7 @@ public class Slider implements HitObject {
 		float[] c = curve.pointAt(getT(trackPosition, false));
 		double distance = Math.hypot(c[0] - mouseX, c[1] - mouseY);
 		int followCircleRadius = GameImage.SLIDER_FOLLOWCIRCLE.getImage().getWidth() / 2;
-		if (((Utils.isGameKeyPressed() || GameMod.RELAX.isActive()) && distance < followCircleRadius) || isAutoMod) {
+		if (((keyPressed || GameMod.RELAX.isActive()) && distance < followCircleRadius) || isAutoMod) {
 			// mouse pressed and within follow circle
 			followCircleActive = true;
 			data.changeHealth(delta * GameData.HP_DRAIN_MULTIPLIER);
@@ -412,11 +411,11 @@ public class Slider implements HitObject {
 			// held during new repeat
 			if (isNewRepeat) {
 				ticksHit++;
-				if (currentRepeats % 2 > 0)  // last circle
+				if (currentRepeats % 2 > 0) {  // last circle
+					int lastIndex = hitObject.getSliderX().length;
 					data.sliderTickResult(trackPosition, GameData.HIT_SLIDER30,
-							hitObject.getSliderX()[lastIndex], hitObject.getSliderY()[lastIndex],
-							hitObject, currentRepeats);
-				else  // first circle
+							curve.getX(lastIndex), curve.getY(lastIndex), hitObject, currentRepeats);
+				} else  // first circle
 					data.sliderTickResult(trackPosition, GameData.HIT_SLIDER30,
 							c[0], c[1], hitObject, currentRepeats);
 			}
