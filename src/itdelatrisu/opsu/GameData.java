@@ -47,7 +47,7 @@ public class GameData {
 	/** Time, in milliseconds, for a hit result to fade. */
 	public static final int HITRESULT_FADE_TIME = 500;
 
-	/** Time, in milliseconds, that a combo pops on the screen. */
+	/** Duration, in milliseconds, of a combo pop effect. */
 	private static final int COMBO_POP_TIME = 250;
 
 	/** Time, in milliseconds, for a hit error tick to fade. */
@@ -671,6 +671,8 @@ public class GameData {
 				ki = GameImage.SCOREBAR_KI_DANGER.getImage();
 			else
 				ki = GameImage.SCOREBAR_KI_DANGER2.getImage();
+			if (comboPopTime < COMBO_POP_TIME)
+				ki = ki.getScaledCopy(1f + (0.45f * (1f - (float) comboPopTime / COMBO_POP_TIME)));
 			ki.drawCentered(colourX + colourCropped.getWidth(), colourY);
 
 			// combo burst
@@ -1264,6 +1266,11 @@ public class GameData {
 
 		return replay;
 	}
+
+	/**
+	 * Sets the replay object.
+	 */
+	public void setReplay(Replay replay) { this.replay = replay; }
 
 	/**
 	 * Returns whether or not this object is used for gameplay.

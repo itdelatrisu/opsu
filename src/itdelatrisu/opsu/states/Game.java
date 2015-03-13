@@ -489,7 +489,9 @@ public class Game extends BasicGameState {
 			// go to ranking screen
 			else {
 				((GameRanking) game.getState(Opsu.STATE_GAMERANKING)).setGameData(data);
-				if (!isReplay && replayFrames != null) {
+				if (isReplay)
+					data.setReplay(replay);
+				else if (replayFrames != null) {
 					// finalize replay frames with start/skip frames
 					if (!replayFrames.isEmpty())
 						replayFrames.getFirst().setTimeDiff(replaySkipTime * -1);
@@ -945,7 +947,11 @@ public class Game extends BasicGameState {
 
 							// sleep execution
 							try {
-								Thread.sleep(0, 256000);
+								int diff = replay.frames[replayIndex].getTime() - trackPosition - 1;
+								if (diff < 1)
+									Thread.sleep(0, 256000);
+								else
+									Thread.sleep(diff);
 							} catch (InterruptedException e) {}
 						}
 					}
@@ -1036,10 +1042,13 @@ public class Game extends BasicGameState {
 				leadInTime = 0;
 				MusicController.resume();
 			}
-			replaySkipTime = (isReplay) ? -1 : trackPosition;
-			if (replayThread != null && replayThread.isAlive())
-				replayThread.interrupt();
 			MusicController.setPosition(firstObjectTime - SKIP_OFFSET);
+			replaySkipTime = (isReplay) ? -1 : trackPosition;
+			if (replayThread != null && replayThread.isAlive()) {
+				replayX = (int) skipButton.getX();
+				replayY = (int) skipButton.getY();
+				replayThread.interrupt();
+			}
 			SoundController.playSound(SoundEffect.MENUHIT);
 			return true;
 		}
