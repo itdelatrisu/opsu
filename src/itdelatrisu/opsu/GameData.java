@@ -534,6 +534,7 @@ public class GameData {
 	public void drawGameElements(Graphics g, boolean breakPeriod, boolean firstObject) {
 		boolean relaxAutoPilot = (GameMod.RELAX.isActive() || GameMod.AUTOPILOT.isActive());
 		int margin = (int) (width * 0.008f);
+		float uiScale = GameImage.getUIscale();
 
 		// score
 		if (!relaxAutoPilot)
@@ -602,46 +603,43 @@ public class GameData {
 				hitErrorAlpha = (HIT_ERROR_FADE_TIME - (trackPosition - hitErrorList.getFirst().time)) / (HIT_ERROR_FADE_TIME * 0.1f);
 
 			// draw bar
-			float hitErrorY = height/GameImage.getUIscale() - margin - 10, hitErrorX = width/GameImage.getUIscale() / 2;
+			float hitErrorX = width / uiScale / 2;
+			float hitErrorY = height / uiScale - margin - 10;
+			float barY = (hitErrorY - 3) * uiScale, barHeight = 6 * uiScale;
+			float tickY = (hitErrorY - 10) * uiScale, tickHeight = 20 * uiScale;
 			float oldAlphaBlack = Utils.COLOR_BLACK_ALPHA.a;
 			Utils.COLOR_BLACK_ALPHA.a = hitErrorAlpha;
 			g.setColor(Utils.COLOR_BLACK_ALPHA);
-			g.fillRect((hitErrorX - 3 - hitResultOffset[HIT_50] ) * GameImage.getUIscale(),
-					(hitErrorY - 10 ) * GameImage.getUIscale(), 
-					(hitResultOffset[HIT_50] * 2 ) * GameImage.getUIscale(), 20  * GameImage.getUIscale());
+			g.fillRect((hitErrorX - 3 - hitResultOffset[HIT_50]) * uiScale, tickY,
+					(hitResultOffset[HIT_50] * 2) * uiScale, tickHeight);
 			Utils.COLOR_BLACK_ALPHA.a = oldAlphaBlack;
 			Utils.COLOR_LIGHT_ORANGE.a = hitErrorAlpha;
 			g.setColor(Utils.COLOR_LIGHT_ORANGE);
-			g.fillRect((hitErrorX - 3 - hitResultOffset[HIT_50]) * GameImage.getUIscale(),
-					(hitErrorY - 3) * GameImage.getUIscale(), 
-					(hitResultOffset[HIT_50] * 2) * GameImage.getUIscale(), 6 * GameImage.getUIscale());
+			g.fillRect((hitErrorX - 3 - hitResultOffset[HIT_50]) * uiScale, barY,
+					(hitResultOffset[HIT_50] * 2) * uiScale, barHeight);
 			Utils.COLOR_LIGHT_ORANGE.a = 1f;
 			Utils.COLOR_LIGHT_GREEN.a = hitErrorAlpha;
 			g.setColor(Utils.COLOR_LIGHT_GREEN);
-			g.fillRect((hitErrorX - 3 - hitResultOffset[HIT_100]) * GameImage.getUIscale(),
-					(hitErrorY - 3) * GameImage.getUIscale(), 
-					(hitResultOffset[HIT_100] * 2) * GameImage.getUIscale(), 6 * GameImage.getUIscale());
+			g.fillRect((hitErrorX - 3 - hitResultOffset[HIT_100]) * uiScale, barY,
+					(hitResultOffset[HIT_100] * 2) * uiScale, barHeight);
 			Utils.COLOR_LIGHT_GREEN.a = 1f;
 			Utils.COLOR_LIGHT_BLUE.a = hitErrorAlpha;
 			g.setColor(Utils.COLOR_LIGHT_BLUE);
-			g.fillRect((hitErrorX - 3 - hitResultOffset[HIT_300]) * GameImage.getUIscale(),
-					(hitErrorY - 3) * GameImage.getUIscale(),
-					(hitResultOffset[HIT_300] * 2) * GameImage.getUIscale(), 6 * GameImage.getUIscale());
+			g.fillRect((hitErrorX - 3 - hitResultOffset[HIT_300]) * uiScale, barY,
+					(hitResultOffset[HIT_300] * 2) * uiScale, barHeight);
 			Utils.COLOR_LIGHT_BLUE.a = 1f;
 			white.a = hitErrorAlpha;
 			g.setColor(white);
-			g.fillRect((hitErrorX - 1.5f) * GameImage.getUIscale(), (hitErrorY - 10) * GameImage.getUIscale(),
-			3 * GameImage.getUIscale(), 20 * GameImage.getUIscale());
+			g.fillRect((hitErrorX - 1.5f) * uiScale, tickY, 3 * uiScale, tickHeight);
 
 			// draw ticks
+			float tickWidth = 2 * uiScale;
 			for (HitErrorInfo info : hitErrorList) {
 				int time = info.time;
 				float alpha = 1 - ((float) (trackPosition - time) / HIT_ERROR_FADE_TIME);
 				white.a = alpha * hitErrorAlpha;
 				g.setColor(white);
-				g.fillRect((hitErrorX + info.timeDiff - 1) * GameImage.getUIscale(),
-						(hitErrorY - 10) * GameImage.getUIscale(),
-						2 * GameImage.getUIscale(), 20 * GameImage.getUIscale());
+				g.fillRect((hitErrorX + info.timeDiff - 1) * uiScale, tickY, tickWidth, tickHeight);
 			}
 		}
 
@@ -659,8 +657,8 @@ public class GameData {
 				colour = scorebarColour.getCurrentFrame();
 			} else
 				colour = GameImage.SCOREBAR_COLOUR.getImage();
-			float colourX = 4 * GameImage.getUIscale(), colourY = 15 * GameImage.getUIscale();
-			Image colourCropped = colour.getSubImage(0, 0, (int) (645 * GameImage.getUIscale() * healthRatio), colour.getHeight());
+			float colourX = 4 * uiScale, colourY = 15 * uiScale;
+			Image colourCropped = colour.getSubImage(0, 0, (int) (645 * uiScale * healthRatio), colour.getHeight());
 
 			scorebar.setAlpha(1f);
 			scorebar.draw(0, 0);
@@ -716,17 +714,17 @@ public class GameData {
 		float scoreTextScale = 1.0f;
 		float symbolTextScale = 1.15f;
 		float rankResultScale = 0.5f;
+		float uiScale = GameImage.getUIscale();
 
 		// ranking panel
-		GameImage.RANKING_PANEL.getImage().draw(0, (int) (rankingHeight * GameImage.getUIscale()));
+		GameImage.RANKING_PANEL.getImage().draw(0, (int) (rankingHeight * uiScale));
 
 		// score
 		drawFixedSizeSymbolString(
 				(score < 100000000) ? String.format("%08d", score) : Long.toString(score),
-				(int) (210 * GameImage.getUIscale()),
-				(int) ((rankingHeight + 50) * GameImage.getUIscale()),
-				scoreTextScale,
-				getScoreSymbolImage('0').getWidth() * scoreTextScale - 2, false);
+				210 * uiScale, (rankingHeight + 50) * uiScale,
+				scoreTextScale, getScoreSymbolImage('0').getWidth() * scoreTextScale - 2, false
+		);
 
 		// result counts
 		float resultInitialX = 130;
@@ -745,18 +743,18 @@ public class GameData {
 
 		for (int i = 0; i < rankDrawOrder.length; i += 2) {
 			hitResults[rankDrawOrder[i]].getScaledCopy(rankResultScale).drawCentered(
-					(resultHitInitialX * GameImage.getUIscale()),
-					((resultHitInitialY  + (resultOffsetY * (i / 2))) * GameImage.getUIscale()));
+					resultHitInitialX * uiScale,
+					(resultHitInitialY + (resultOffsetY * (i / 2))) * uiScale);
 			hitResults[rankDrawOrder[i+1]].getScaledCopy(rankResultScale).drawCentered(
-					((resultHitInitialX + resultOffsetX) * GameImage.getUIscale()),
-					((resultHitInitialY  + (resultOffsetY * (i / 2))) * GameImage.getUIscale()));
+					(resultHitInitialX + resultOffsetX) * uiScale,
+					(resultHitInitialY  + (resultOffsetY * (i / 2))) * uiScale);
 			drawSymbolString(String.format("%dx", rankResultOrder[i]),
-					(int) (resultInitialX * GameImage.getUIscale()),
-					(int) ((resultInitialY + (resultOffsetY * (i / 2))) * GameImage.getUIscale()),
+					resultInitialX * uiScale,
+					(resultInitialY + (resultOffsetY * (i / 2))) * uiScale,
 					symbolTextScale, 1f, false);
 			drawSymbolString(String.format("%dx", rankResultOrder[i+1]),
-					(int) ((resultInitialX + resultOffsetX) * GameImage.getUIscale()),
-					(int) ((resultInitialY + (resultOffsetY * (i / 2))) * GameImage.getUIscale()),
+					(resultInitialX + resultOffsetX) * uiScale,
+					(resultInitialY + (resultOffsetY * (i / 2))) * uiScale,
 					symbolTextScale, 1f, false);
 		}
 
@@ -765,17 +763,11 @@ public class GameData {
 		float textY = rankingHeight + 425;
 		float numbersY = textY + 30;
 		drawSymbolString(String.format("%dx", comboMax),
-				(int) (25 * GameImage.getUIscale()),
-				(int) (numbersY * GameImage.getUIscale()), symbolTextScale, 1f, false);
+				25 * uiScale, numbersY * uiScale, symbolTextScale, 1f, false);
 		drawSymbolString(String.format("%02.2f%%", getScorePercent()),
-				(int) ((accuracyX + 20) * GameImage.getUIscale()),
-				(int) (numbersY * GameImage.getUIscale()), symbolTextScale, 1f, false);
-		GameImage.RANKING_MAXCOMBO.getImage().draw(
-				(int) (10 * GameImage.getUIscale()),
-				(int) (textY * GameImage.getUIscale()));
-		GameImage.RANKING_ACCURACY.getImage().draw(
-				(int) (accuracyX * GameImage.getUIscale()),
-				(int) (textY * GameImage.getUIscale()));
+				(accuracyX + 20) * uiScale, numbersY * uiScale, symbolTextScale, 1f, false);
+		GameImage.RANKING_MAXCOMBO.getImage().draw(10 * uiScale, textY * uiScale);
+		GameImage.RANKING_ACCURACY.getImage().draw(accuracyX * uiScale, textY * uiScale);
 
 		// full combo
 		if (comboMax == fullObjectCount) {
@@ -793,7 +785,7 @@ public class GameData {
 		// header
 		Image rankingTitle = GameImage.RANKING_TITLE.getImage();
 		g.setColor(Utils.COLOR_BLACK_ALPHA);
-		g.fillRect(0, 0, width, 100 * GameImage.getUIscale());
+		g.fillRect(0, 0, width, 100 * uiScale);
 		rankingTitle.draw((width * 0.97f) - rankingTitle.getWidth(), 0);
 		float c = width * 0.01f;
 		Utils.FONT_LARGE.drawString(c, c,

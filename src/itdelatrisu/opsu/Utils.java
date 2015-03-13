@@ -140,11 +140,11 @@ public class Utils {
 		container.setAlwaysRender(true);
 		container.setUpdateOnlyWhenVisible(false);
 
+		// calculate UI scale
 		GameImage.init(width, height);
-		
+
 		// create fonts
 		float fontBase = 12f * GameImage.getUIscale();
-
 		try {
 			Font javaFont = Font.createFont(Font.TRUETYPE_FONT, ResourceLoader.getResourceAsStream(Options.FONT_NAME));
 			Font font    = javaFont.deriveFont(Font.PLAIN, (int) (fontBase * 4 / 3));

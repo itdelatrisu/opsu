@@ -133,7 +133,7 @@ public class MainMenu extends BasicGameState {
 
 		// initialize menu buttons
 		Image logoImg = GameImage.MENU_LOGO.getImage();
-		Image playImg = GameImage.MENU_PlAY.getImage();
+		Image playImg = GameImage.MENU_PLAY.getImage();
 		Image exitImg = GameImage.MENU_EXIT.getImage();
 		float exitOffset = (playImg.getWidth() - exitImg.getWidth()) / 3f;
 		logo = new MenuButton(logoImg, width / 2f, height / 2f);
