@@ -303,7 +303,10 @@ public class Game extends BasicGameState {
 
 				if (GameMod.AUTO.isActive())
 					GameImage.UNRANKED.getImage().drawCentered(width / 2, height * 0.077f);
-				UI.draw(g);
+				if (!isReplay)
+					UI.draw(g);
+				else
+					UI.draw(g, replayX, replayY, replayKeyPressed);
 				return;
 			}
 		}

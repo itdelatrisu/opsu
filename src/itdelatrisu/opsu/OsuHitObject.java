@@ -59,6 +59,9 @@ public class OsuHitObject {
 		xOffset,   // offset right of border
 		yOffset;   // offset below health bar
 
+	/** The container height. */
+	private static int containerHeight;
+
 	/** Starting coordinates. */
 	private float x, y;
 
@@ -107,6 +110,7 @@ public class OsuHitObject {
 	 * @param height the container height
 	 */
 	public static void init(int width, int height) {
+		containerHeight = height;
 		int swidth = width;
 		int sheight = height;
 		if (swidth * 3 > sheight * 4)
@@ -238,7 +242,12 @@ public class OsuHitObject {
 	/**
 	 * Returns the scaled starting y coordinate.
 	 */
-	public float getScaledY() { return y * yMultiplier + yOffset; }
+	public float getScaledY() {
+		if (GameMod.HARD_ROCK.isActive())
+			return containerHeight - (y * yMultiplier + yOffset);
+		else
+			return y * yMultiplier + yOffset;
+	}
 
 	/**
 	 * Returns the start time.
@@ -309,8 +318,13 @@ public class OsuHitObject {
 			return null;
 
 		float[] y = new float[sliderY.length];
-		for (int i = 0; i < y.length; i++)
-			y[i] = sliderY[i] * yMultiplier + yOffset;
+		if (GameMod.HARD_ROCK.isActive()) {
+			for (int i = 0; i < y.length; i++)
+				y[i] = containerHeight - (sliderY[i] * yMultiplier + yOffset);
+		} else {
+			for (int i = 0; i < y.length; i++)
+				y[i] = sliderY[i] * yMultiplier + yOffset;
+		}
 		return y;
 	}
 
