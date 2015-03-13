@@ -59,7 +59,7 @@ public class OsuHitObject {
 		xOffset,   // offset right of border
 		yOffset;   // offset below health bar
 
-	/** Starting coordinates (scaled). */
+	/** Starting coordinates. */
 	private float x, y;
 
 	/** Start time (in ms). */
@@ -77,7 +77,7 @@ public class OsuHitObject {
 	/** Slider curve type (SLIDER_* constant). */
 	private char sliderType;
 
-	/** Slider coordinate lists (scaled). */
+	/** Slider coordinate lists. */
 	private float[] sliderX, sliderY;
 
 	/** Slider repeat count. */
@@ -163,8 +163,8 @@ public class OsuHitObject {
 		String tokens[] = line.split(",");
 
 		// common fields
-		this.x = Float.parseFloat(tokens[0]) * xMultiplier + xOffset;
-		this.y = Float.parseFloat(tokens[1]) * yMultiplier + yOffset;
+		this.x = Float.parseFloat(tokens[0]);
+		this.y = Float.parseFloat(tokens[1]);
 		this.time = Integer.parseInt(tokens[2]);
 		this.type = Integer.parseInt(tokens[3]);
 		this.hitSound = Byte.parseByte(tokens[4]);
@@ -185,8 +185,8 @@ public class OsuHitObject {
 			this.sliderY = new float[sliderTokens.length - 1];
 			for (int j = 1; j < sliderTokens.length; j++) {
 				String[] sliderXY = sliderTokens[j].split(":");
-				this.sliderX[j - 1] = Integer.parseInt(sliderXY[0]) * xMultiplier + xOffset;
-				this.sliderY[j - 1] = Integer.parseInt(sliderXY[1]) * yMultiplier + yOffset;
+				this.sliderX[j - 1] = Integer.parseInt(sliderXY[0]);
+				this.sliderY[j - 1] = Integer.parseInt(sliderXY[1]);
 			}
 			this.repeat = Integer.parseInt(tokens[6]);
 			this.pixelLength = Float.parseFloat(tokens[7]);
@@ -221,16 +221,24 @@ public class OsuHitObject {
 	}
 
 	/**
-	 * Returns the starting x coordinate.
-	 * @return the x coordinate
+	 * Returns the raw starting x coordinate.
 	 */
 	public float getX() { return x; }
 
 	/**
-	 * Returns the starting y coordinate.
-	 * @return the y coordinate
+	 * Returns the raw starting y coordinate.
 	 */
 	public float getY() { return y; }
+
+	/**
+	 * Returns the scaled starting x coordinate.
+	 */
+	public float getScaledX() { return x * xMultiplier + xOffset; }
+
+	/**
+	 * Returns the scaled starting y coordinate.
+	 */
+	public float getScaledY() { return y * yMultiplier + yOffset; }
 
 	/**
 	 * Returns the start time.
@@ -269,16 +277,42 @@ public class OsuHitObject {
 	public char getSliderType() { return sliderType; }
 
 	/**
-	 * Returns a list of slider x coordinates.
-	 * @return the slider x coordinates
+	 * Returns a list of raw slider x coordinates.
 	 */
 	public float[] getSliderX() { return sliderX; }
 
 	/**
-	 * Returns a list of slider y coordinates.
-	 * @return the slider y coordinates
+	 * Returns a list of raw slider y coordinates.
 	 */
 	public float[] getSliderY() { return sliderY; }
+
+	/**
+	 * Returns a list of scaled slider x coordinates.
+	 * Note that this method will create a new array.
+	 */
+	public float[] getScaledSliderX() {
+		if (sliderX == null)
+			return null;
+
+		float[] x = new float[sliderX.length];
+		for (int i = 0; i < x.length; i++)
+			x[i] = sliderX[i] * xMultiplier + xOffset;
+		return x;
+	}
+
+	/**
+	 * Returns a list of scaled slider y coordinates.
+	 * Note that this method will create a new array.
+	 */
+	public float[] getScaledSliderY() {
+		if (sliderY == null)
+			return null;
+
+		float[] y = new float[sliderY.length];
+		for (int i = 0; i < y.length; i++)
+			y[i] = sliderY[i] * yMultiplier + yOffset;
+		return y;
+	}
 
 	/**
 	 * Returns the slider repeat count.

@@ -86,24 +86,24 @@ public class ReplayFrame {
 	public void setTimeDiff(int diff) { this.timeDiff = diff; }
 
 	/**
-	 * Returns the scaled cursor x coordinate.
-	 */
-	public int getX() { return (int) (x * OsuHitObject.getXMultiplier() + OsuHitObject.getXOffset()); }
-
-	/**
-	 * Returns the scaled cursor y coordinate.
-	 */
-	public int getY() { return (int) (y * OsuHitObject.getYMultiplier() + OsuHitObject.getYOffset()); }
-
-	/**
 	 * Returns the raw cursor x coordinate.
 	 */
-	public float getRawX() { return x; }
+	public float getX() { return x; }
 
 	/**
 	 * Returns the raw cursor y coordinate.
 	 */
-	public float getRawY() { return y; }
+	public float getY() { return y; }
+
+	/**
+	 * Returns the scaled cursor x coordinate.
+	 */
+	public int getScaledX() { return (int) (x * OsuHitObject.getXMultiplier() + OsuHitObject.getXOffset()); }
+
+	/**
+	 * Returns the scaled cursor y coordinate.
+	 */
+	public int getScaledY() { return (int) (y * OsuHitObject.getYMultiplier() + OsuHitObject.getYOffset()); }
 
 	/**
 	 * Returns the keys pressed (KEY_* bitmask).

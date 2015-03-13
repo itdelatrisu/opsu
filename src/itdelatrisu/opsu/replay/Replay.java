@@ -275,8 +275,8 @@ public class Replay {
 						for (int i = 0; i < frames.length; i++) {
 							ReplayFrame frame = frames[i];
 							sb.append(String.format("%d|%s|%s|%d,",
-									frame.getTimeDiff(), nf.format(frame.getRawX()),
-									nf.format(frame.getRawY()), frame.getKeys()));
+									frame.getTimeDiff(), nf.format(frame.getX()),
+									nf.format(frame.getY()), frame.getKeys()));
 						}
 						sb.append(String.format("%s|0|0|%d", SEED_STRING, seed));
 

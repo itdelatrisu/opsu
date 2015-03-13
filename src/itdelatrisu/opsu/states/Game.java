@@ -911,8 +911,8 @@ public class Game extends BasicGameState {
 						if (frame.getTime() > 0)
 							replaySkipTime = frame.getTime();
 					} else if (frame.getTime() == 0) {
-						replayX = frame.getX();
-						replayY = frame.getY();
+						replayX = frame.getScaledX();
+						replayY = frame.getScaledY();
 						replayKeyPressed = frame.isKeyPressed();
 					} else
 						break;
@@ -928,8 +928,8 @@ public class Game extends BasicGameState {
 							int trackPosition = MusicController.getPosition();
 							while (replayIndex < replay.frames.length && trackPosition >= replay.frames[replayIndex].getTime()) {
 								ReplayFrame frame = replay.frames[replayIndex];
-								replayX = frame.getX();
-								replayY = frame.getY();
+								replayX = frame.getScaledX();
+								replayY = frame.getScaledY();
 								replayKeyPressed = frame.isKeyPressed();
 								if (replayKeyPressed)  // send a key press
 									gameKeyPressed(frame.getKeys(), replayX, replayY);
