@@ -154,16 +154,10 @@ public class Utils {
 			ErrorHandler.error("Failed to set the cursor.", e, true);
 		}
 
+		GameImage.init(width, height);
+		
 		// create fonts
-		float fontBase;
-		if (height <= 600)
-			fontBase = 10f;
-		else if (height < 800)
-			fontBase = 11f;
-		else if (height <= 900)
-			fontBase = 13f;
-		else
-			fontBase = 15f;
+		float fontBase = 12f * GameImage.getUIscale();
 
 		try {
 			Font javaFont = Font.createFont(Font.TRUETYPE_FONT, ResourceLoader.getResourceAsStream(Options.FONT_NAME));
@@ -186,7 +180,6 @@ public class Utils {
 		}
 
 		// initialize game images
-		GameImage.init(width, height);
 		for (GameImage img : GameImage.values()) {
 			if (img.isPreload())
 				img.setDefaultImage();
