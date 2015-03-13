@@ -84,7 +84,8 @@ public class Utils {
 		COLOR_LIGHT_ORANGE    = new Color(255,192,128),
 		COLOR_LIGHT_GREEN     = new Color(128,255,128),
 		COLOR_LIGHT_BLUE      = new Color(128,128,255),
-		COLOR_GREEN_SEARCH    = new Color(173, 255, 47);
+		COLOR_GREEN_SEARCH    = new Color(173, 255, 47),
+		COLOR_DARK_GRAY       = new Color(0.3f, 0.3f, 0.3f, 1f);
 
 	/** The default map colors, used when a map does not provide custom colors. */
 	public static final Color[] DEFAULT_COMBO = {

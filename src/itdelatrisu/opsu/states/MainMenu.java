@@ -248,7 +248,6 @@ public class MainMenu extends BasicGameState {
 			repoButton.draw();
 
 		// draw update button
-		boolean showUpdateButton = Updater.get().showButton();
 		if (Updater.get().showButton()) {
 			Color updateColor = null;
 			switch (Updater.get().getStatus()) {
@@ -294,18 +293,6 @@ public class MainMenu extends BasicGameState {
 				marginX, height - marginY - lineHeight);
 
 		UI.draw(g);
-
-		// tooltips
-		if (musicPositionBarContains(mouseX, mouseY))
-			UI.drawTooltip(g, "Click to seek to a specific point in the song.", false);
-		else if (musicPlay.contains(mouseX, mouseY))
-			UI.drawTooltip(g, (MusicController.isPlaying()) ? "Pause" : "Play", false);
-		else if (musicNext.contains(mouseX, mouseY))
-			UI.drawTooltip(g, "Next track", false);
-		else if (musicPrevious.contains(mouseX, mouseY))
-			UI.drawTooltip(g, "Previous track", false);
-		else if (showUpdateButton && updateButton.contains(mouseX, mouseY))
-			UI.drawTooltip(g, Updater.get().getStatus().getDescription(), true);
 	}
 
 	@Override
@@ -323,14 +310,13 @@ public class MainMenu extends BasicGameState {
 		updateButton.hoverUpdate(delta, mouseX, mouseY);
 		downloadsButton.hoverUpdate(delta, mouseX, mouseY);
 		// ensure only one button is in hover state at once
-		if (musicPositionBarContains(mouseX, mouseY))
-			mouseX = mouseY = -1;
-		musicPlay.hoverUpdate(delta, mouseX, mouseY);
-		musicPause.hoverUpdate(delta, mouseX, mouseY);
-		if (musicPlay.contains(mouseX, mouseY))
-			mouseX = mouseY = -1;
-		musicNext.hoverUpdate(delta, mouseX, mouseY);
-		musicPrevious.hoverUpdate(delta, mouseX, mouseY);
+		boolean noHoverUpdate = musicPositionBarContains(mouseX, mouseY);
+		boolean contains = musicPlay.contains(mouseX, mouseY);
+		musicPlay.hoverUpdate(delta, !noHoverUpdate && contains);
+		musicPause.hoverUpdate(delta, !noHoverUpdate && contains);
+		noHoverUpdate |= contains;
+		musicNext.hoverUpdate(delta, !noHoverUpdate && musicNext.contains(mouseX, mouseY));
+		musicPrevious.hoverUpdate(delta, !noHoverUpdate && musicPrevious.contains(mouseX, mouseY));
 
 		// window focus change: increase/decrease theme song volume
 		if (MusicController.isThemePlaying() &&
@@ -379,6 +365,18 @@ public class MainMenu extends BasicGameState {
 					logo.setX(container.getWidth() / 2);
 			}
 		}
+
+		// tooltips
+		if (musicPositionBarContains(mouseX, mouseY))
+			UI.updateTooltip(delta, "Click to seek to a specific point in the song.", false);
+		else if (musicPlay.contains(mouseX, mouseY))
+			UI.updateTooltip(delta, (MusicController.isPlaying()) ? "Pause" : "Play", false);
+		else if (musicNext.contains(mouseX, mouseY))
+			UI.updateTooltip(delta, "Next track", false);
+		else if (musicPrevious.contains(mouseX, mouseY))
+			UI.updateTooltip(delta, "Previous track", false);
+		else if (Updater.get().showButton() && updateButton.contains(mouseX, mouseY))
+			UI.updateTooltip(delta, Updater.get().getStatus().getDescription(), true);
 	}
 
 	@Override

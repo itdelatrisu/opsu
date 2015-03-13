@@ -173,27 +173,25 @@ public class ButtonMenu extends BasicGameState {
 				}
 
 				// buttons
-				Input input = container.getInput();
-				int mouseX = input.getMouseX(), mouseY = input.getMouseY();
-				GameMod hoverMod = null;
-				for (GameMod mod : GameMod.values()) {
+				for (GameMod mod : GameMod.values())
 					mod.draw();
-					if (hoverMod == null && mod.contains(mouseX, mouseY))
-						hoverMod = mod;
-				}
 
 				super.draw(container, game, g);
-
-				// tooltips
-				if (hoverMod != null && hoverMod.isImplemented())
-					UI.drawTooltip(g, hoverMod.getDescription(), true);
 			}
 
 			@Override
 			public void update(GameContainer container, int delta, int mouseX, int mouseY) {
 				super.update(container, delta, mouseX, mouseY);
-				for (GameMod mod : GameMod.values())
+				GameMod hoverMod = null;
+				for (GameMod mod : GameMod.values()) {
 					mod.hoverUpdate(delta, mod.isActive());
+					if (hoverMod == null && mod.contains(mouseX, mouseY))
+						hoverMod = mod;
+				}
+
+				// tooltips
+				if (hoverMod != null && hoverMod.isImplemented())
+					UI.updateTooltip(delta, hoverMod.getDescription(), true);
 			}
 
 			@Override

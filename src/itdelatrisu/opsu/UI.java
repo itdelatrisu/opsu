@@ -75,6 +75,18 @@ public class UI {
 	/** Duration, in milliseconds, to display bar notifications. */
 	private static final int BAR_NOTIFICATION_TIME = 1250;
 
+	/** The current tooltip. */
+	private static String tooltip;
+
+	/** Whether or not to check the current tooltip for line breaks. */
+	private static boolean tooltipNewlines;
+
+	/** The current tooltip timer. */
+	private static int tooltipTimer = -1;
+
+	/** Duration, in milliseconds, to fade tooltips. */
+	private static final int TOOLTIP_FADE_TIME = 200;
+
 	// game-related variables
 	private static GameContainer container;
 	private static StateBasedGame game;
@@ -124,6 +136,8 @@ public class UI {
 		updateCursor(delta);
 		updateVolumeDisplay(delta);
 		updateBarNotification(delta);
+		if (tooltipTimer > 0)
+			tooltipTimer -= delta;
 	}
 
 	/**
@@ -135,6 +149,7 @@ public class UI {
 		drawVolume(g);
 		drawFPS();
 		drawCursor();
+		drawTooltip(g);
 	}
 
 	/**
@@ -149,6 +164,7 @@ public class UI {
 		drawVolume(g);
 		drawFPS();
 		drawCursor(mouseX, mouseY, mousePressed);
+		drawTooltip(g);
 	}
 
 	/**
@@ -157,6 +173,7 @@ public class UI {
 	public static void enter() {
 		backButton.resetHover();
 		resetBarNotification();
+		resetTooltip();
 	}
 
 	/**
@@ -535,20 +552,41 @@ public class UI {
 	}
 
 	/**
-	 * Draws a tooltip near the current mouse coordinates, bounded by the
-	 * container dimensions.
-	 * @param g the graphics context
-	 * @param text the tooltip text
+	 * Sets or updates a tooltip for drawing.
+	 * Must be called with {@link #drawTooltip(Graphics)}.
+	 * @param delta the delta interval since the last call
+	 * @param s the tooltip text
 	 * @param newlines whether to check for line breaks ('\n')
 	 */
-	public static void drawTooltip(Graphics g, String text, boolean newlines) {
+	public static void updateTooltip(int delta, String s, boolean newlines) {
+		if (s != null) {
+			tooltip = s;
+			tooltipNewlines = newlines;
+			if (tooltipTimer <= 0)
+				tooltipTimer = delta;
+			else
+				tooltipTimer += delta * 2;
+			if (tooltipTimer > TOOLTIP_FADE_TIME)
+				tooltipTimer = TOOLTIP_FADE_TIME;
+		}
+	}
+
+	/**
+	 * Draws a tooltip, if any, near the current mouse coordinates,
+	 * bounded by the container dimensions.
+	 * @param g the graphics context
+	 */
+	public static void drawTooltip(Graphics g) {
+		if (tooltipTimer <= 0 || tooltip == null)
+			return;
+
 		int containerWidth = container.getWidth(), containerHeight = container.getHeight();
 		int margin = containerWidth / 100, textMarginX = 2;
 		int offset = GameImage.CURSOR_MIDDLE.getImage().getWidth() / 2;
 		int lineHeight = Utils.FONT_SMALL.getLineHeight();
 		int textWidth = textMarginX * 2, textHeight = lineHeight;
-		if (newlines) {
-			String[] lines = text.split("\\n");
+		if (tooltipNewlines) {
+			String[] lines = tooltip.split("\\n");
 			int maxWidth = Utils.FONT_SMALL.getWidth(lines[0]);
 			for (int i = 1; i < lines.length; i++) {
 				int w = Utils.FONT_SMALL.getWidth(lines[i]);
@@ -558,7 +596,7 @@ public class UI {
 			textWidth += maxWidth;
 			textHeight += lineHeight * (lines.length - 1);
 		} else
-			textWidth += Utils.FONT_SMALL.getWidth(text);
+			textWidth += Utils.FONT_SMALL.getWidth(tooltip);
 
 		// get drawing coordinates
 		int x = input.getMouseX() + offset, y = input.getMouseY() + offset;
@@ -572,12 +610,30 @@ public class UI {
 			y = margin;
 
 		// draw tooltip text inside a filled rectangle
-		g.setColor(Color.black);
+		float alpha = (float) tooltipTimer / TOOLTIP_FADE_TIME;
+		float oldAlpha = Utils.COLOR_BLACK_ALPHA.a;
+		Utils.COLOR_BLACK_ALPHA.a = alpha;
+		g.setColor(Utils.COLOR_BLACK_ALPHA);
+		Utils.COLOR_BLACK_ALPHA.a = oldAlpha;
 		g.fillRect(x, y, textWidth, textHeight);
-		g.setColor(Color.darkGray);
+		oldAlpha = Utils.COLOR_DARK_GRAY.a;
+		Utils.COLOR_DARK_GRAY.a = alpha;
+		g.setColor(Utils.COLOR_DARK_GRAY);
 		g.setLineWidth(1);
 		g.drawRect(x, y, textWidth, textHeight);
-		Utils.FONT_SMALL.drawString(x + textMarginX, y, text, Color.white);
+		Utils.COLOR_DARK_GRAY.a = oldAlpha;
+		oldAlpha = Utils.COLOR_WHITE_ALPHA.a;
+		Utils.COLOR_WHITE_ALPHA.a = alpha;
+		Utils.FONT_SMALL.drawString(x + textMarginX, y, tooltip, Utils.COLOR_WHITE_ALPHA);
+		Utils.COLOR_WHITE_ALPHA.a = oldAlpha;
+	}
+
+	/**
+	 * Resets the tooltip.
+	 */
+	public static void resetTooltip() {
+		tooltipTimer = -1;
+		tooltip = null;
 	}
 
 	/**

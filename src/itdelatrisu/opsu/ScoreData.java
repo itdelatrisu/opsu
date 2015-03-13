@@ -74,8 +74,8 @@ public class ScoreData implements Comparable<ScoreData> {
 	/** A formatted string of the timestamp. */
 	private String timeString;
 
-	/** A formatted string of the mods. */
-	private String modString;
+	/** The tooltip string. */
+	private String tooltip;
 
 	/** Drawing values. */
 	private static float baseX, baseY, buttonWidth, buttonHeight, buttonOffset;
@@ -216,15 +216,6 @@ public class ScoreData implements Comparable<ScoreData> {
 	}
 
 	/**
-	 * Returns a comma-separated string of mod names.
-	 */
-	private String getModString() {
-		if (modString == null)
-			modString = GameMod.getModString(mods);
-		return modString;
-	}
-
-	/**
 	 * Draws the score data as a rectangular button.
 	 * @param g the graphics context
 	 * @param index the index (to offset the button from the topmost button)
@@ -318,15 +309,14 @@ public class ScoreData implements Comparable<ScoreData> {
 	}
 
 	/**
-	 * Draws the a tooltip containing the score information.
-	 * @param g the graphics context
+	 * Returns the tooltip string for this score.
 	 */
-	public void drawTooltip(Graphics g) {
-		String text = String.format(
-				"Achieved on %s\n300:%d 100:%d 50:%d Miss:%d\nAccuracy: %.2f%%\nMods: %s",
-				getTimeString(), hit300, hit100, hit50, miss,
-				getScorePercent(), getModString());
-		UI.drawTooltip(g, text, true);
+	public String getTooltipString() {
+		if (tooltip == null)
+			tooltip = String.format(
+					"Achieved on %s\n300:%d 100:%d 50:%d Miss:%d\nAccuracy: %.2f%%\nMods: %s",
+					getTimeString(), hit300, hit100, hit50, miss, getScorePercent(), GameMod.getModString(mods));
+		return tooltip;
 	}
 
 	@Override
@@ -335,7 +325,7 @@ public class ScoreData implements Comparable<ScoreData> {
 			"%s | ID: (%d, %d) | %s - %s [%s] (by %s) | " +
 			"Hits: (%d, %d, %d, %d, %d, %d) | Score: %d (%d combo%s) | Mods: %s",
 			getTimeString(), MID, MSID, artist, title, version, creator,
-			hit300, hit100, hit50, geki, katu, miss, score, combo, perfect ? ", FC" : "", getModString()
+			hit300, hit100, hit50, geki, katu, miss, score, combo, perfect ? ", FC" : "", GameMod.getModString(mods)
 		);
 	}
 
