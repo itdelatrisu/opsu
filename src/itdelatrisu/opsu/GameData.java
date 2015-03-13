@@ -602,31 +602,36 @@ public class GameData {
 				hitErrorAlpha = (HIT_ERROR_FADE_TIME - (trackPosition - hitErrorList.getFirst().time)) / (HIT_ERROR_FADE_TIME * 0.1f);
 
 			// draw bar
-			int hitErrorY = height - margin - 30, hitErrorX = width / 2;
+			float hitErrorY = height/GameImage.getUIscale() - margin - 10, hitErrorX = width/GameImage.getUIscale() / 2;
 			float oldAlphaBlack = Utils.COLOR_BLACK_ALPHA.a;
 			Utils.COLOR_BLACK_ALPHA.a = hitErrorAlpha;
 			g.setColor(Utils.COLOR_BLACK_ALPHA);
-			g.fillRect(hitErrorX - 3 - hitResultOffset[HIT_50],
-					hitErrorY - 10, hitResultOffset[HIT_50] * 2, 20);
+			g.fillRect((hitErrorX - 3 - hitResultOffset[HIT_50] ) * GameImage.getUIscale(),
+					(hitErrorY - 10 ) * GameImage.getUIscale(), 
+					(hitResultOffset[HIT_50] * 2 ) * GameImage.getUIscale(), 20  * GameImage.getUIscale());
 			Utils.COLOR_BLACK_ALPHA.a = oldAlphaBlack;
 			Utils.COLOR_LIGHT_ORANGE.a = hitErrorAlpha;
 			g.setColor(Utils.COLOR_LIGHT_ORANGE);
-			g.fillRect(hitErrorX - 3 - hitResultOffset[HIT_50],
-					hitErrorY - 3, hitResultOffset[HIT_50] * 2, 6);
+			g.fillRect((hitErrorX - 3 - hitResultOffset[HIT_50]) * GameImage.getUIscale(),
+					(hitErrorY - 3) * GameImage.getUIscale(), 
+					(hitResultOffset[HIT_50] * 2) * GameImage.getUIscale(), 6 * GameImage.getUIscale());
 			Utils.COLOR_LIGHT_ORANGE.a = 1f;
 			Utils.COLOR_LIGHT_GREEN.a = hitErrorAlpha;
 			g.setColor(Utils.COLOR_LIGHT_GREEN);
-			g.fillRect(hitErrorX - 3 - hitResultOffset[HIT_100],
-					hitErrorY - 3, hitResultOffset[HIT_100] * 2, 6);
+			g.fillRect((hitErrorX - 3 - hitResultOffset[HIT_100]) * GameImage.getUIscale(),
+					(hitErrorY - 3) * GameImage.getUIscale(), 
+					(hitResultOffset[HIT_100] * 2) * GameImage.getUIscale(), 6 * GameImage.getUIscale());
 			Utils.COLOR_LIGHT_GREEN.a = 1f;
 			Utils.COLOR_LIGHT_BLUE.a = hitErrorAlpha;
 			g.setColor(Utils.COLOR_LIGHT_BLUE);
-			g.fillRect(hitErrorX - 3 - hitResultOffset[HIT_300],
-					hitErrorY - 3, hitResultOffset[HIT_300] * 2, 6);
+			g.fillRect((hitErrorX - 3 - hitResultOffset[HIT_300]) * GameImage.getUIscale(),
+					(hitErrorY - 3) * GameImage.getUIscale(),
+					(hitResultOffset[HIT_300] * 2) * GameImage.getUIscale(), 6 * GameImage.getUIscale());
 			Utils.COLOR_LIGHT_BLUE.a = 1f;
 			white.a = hitErrorAlpha;
 			g.setColor(white);
-			g.fillRect(hitErrorX - 1.5f, hitErrorY - 10, 3, 20);
+			g.fillRect((hitErrorX - 1.5f) * GameImage.getUIscale(), (hitErrorY - 10) * GameImage.getUIscale(),
+			3 * GameImage.getUIscale(), 20 * GameImage.getUIscale());
 
 			// draw ticks
 			for (HitErrorInfo info : hitErrorList) {
@@ -634,7 +639,9 @@ public class GameData {
 				float alpha = 1 - ((float) (trackPosition - time) / HIT_ERROR_FADE_TIME);
 				white.a = alpha * hitErrorAlpha;
 				g.setColor(white);
-				g.fillRect(hitErrorX + info.timeDiff - 1, hitErrorY - 10, 2, 20);
+				g.fillRect((hitErrorX + info.timeDiff - 1) * GameImage.getUIscale(),
+						(hitErrorY - 10) * GameImage.getUIscale(),
+						2 * GameImage.getUIscale(), 20 * GameImage.getUIscale());
 			}
 		}
 
