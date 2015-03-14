@@ -372,6 +372,9 @@ public enum GameImage {
 
 	/** The unscaled container height that uiscale is based on. */
 	private static final int UNSCALED_HEIGHT = 768;
+	
+	/** Image Sizes suffixes to try to load images with */
+	private static String[] imageSizeSuffix;
 
 	/**
 	 * Initializes the GameImage class with container dimensions.
@@ -382,6 +385,11 @@ public enum GameImage {
 		containerWidth = width;
 		containerHeight = height;
 		uiscale = (float) containerHeight / UNSCALED_HEIGHT;
+		if (Options.is2xImagesEnabled() && uiscale >= 1) {
+			imageSizeSuffix = new String[]{"@2x",""};
+		} else {
+			imageSizeSuffix = new String[]{""};
+		}
 	}
 
 	/**
@@ -563,52 +571,33 @@ public enum GameImage {
 	public void setDefaultImage() {
 		if (defaultImage != null || defaultImages != null)
 			return;
-
-		// load image array
+		
 		if (filenameFormat != null) {
-			List<Image> list = new ArrayList<Image>();
-			File dir = Options.getSkinDir();
-			int i = 0;
-			while (true) {
-				// look for next image
-				String filenameFormatted = String.format(filenameFormat, i++);
-				String name = getImageFileName(filenameFormatted, dir, type, true);
-				if (i == 1 && name == null) {  // first image: check other location
-					dir = null;
-					name = getImageFileName(filenameFormatted, dir, type, true);
-				}
-				if (name == null)
-					break;
-
-				// add image to list
-				try {
-					Image img = new Image(name);
-					list.add(img);
-				} catch (SlickException e) {
-					ErrorHandler.error(String.format("Failed to set default image '%s'.", name), null, false);
-					break;
-				}
+			defaultImages = getMutliImages(Options.getSkinDir());
+			if (defaultImages != null) {
+				process();
+				return;
 			}
-			if (!list.isEmpty()) {
-				this.defaultImages = list.toArray(new Image[list.size()]);
+			defaultImages = getMutliImages(null);
+			if (defaultImages != null) {
 				process();
 				return;
 			}
 		}
-
-		// load single image
-		String name = getImageFileName(filename, Options.getSkinDir(), type, false);
-		if (name == null) {
-			ErrorHandler.error(String.format("Could not find image '%s'.", filename), null, false);
+		
+		defaultImage = getSingleImage(Options.getSkinDir());
+		if (defaultImage  != null) {
+			process();
 			return;
 		}
-		try {
-			Image img = new Image(name);
-			this.defaultImage = img;
+		
+		defaultImage = getSingleImage(null);
+		if (defaultImage  != null) {
 			process();
-		} catch (SlickException e) {
-			ErrorHandler.error(String.format("Failed to set default image '%s'.", filename), null, false);
+			return;
 		}
+	
+		ErrorHandler.error(String.format("Could not find default image '%s'.", filename), null, false);
 	}
 
 	/**
@@ -627,47 +616,79 @@ public enum GameImage {
 		if (Options.isBeatmapSkinIgnored())
 			return false;
 
-		// look for multiple skin images
-		if (filenameFormat != null) {
-			List<Image> list = new ArrayList<Image>();
-			int i = 0;
-			while (true) {
-				// look for next image
-				String filenameFormatted = String.format(filenameFormat, i++);
-				String name = getImageFileName(filenameFormatted, dir, type, true);
-				if (name == null)
-					break;
-
-				// add image to list
-				try {
-					Image img = new Image(name);
-					list.add(img);
-				} catch (SlickException e) {
-					ErrorHandler.error(String.format("Failed to set skin image '%s'.", name), null, false);
-					break;
-				}
-			}
-			if (!list.isEmpty()) {
-				this.skinImages = list.toArray(new Image[list.size()]);
-				process();
-				return true;
-			}
-		}
-
-		// look for a skin image
-		String name = getImageFileName(filename, dir, type, true);
-		if (name == null)
-			return false;
-		try {
-			Image img = new Image(name);
-			this.skinImage = img;
+		skinImages = getMutliImages(dir);
+		if (skinImages != null) {
 			process();
 			return true;
-		} catch (SlickException e) {
-			skinImage = null;
-			ErrorHandler.error(String.format("Failed to set skin image '%s'.", name), null, false);
 		}
+		
+		skinImage = getSingleImage(dir);
+		if (skinImage != null) {
+			process();
+			return true;
+		}
+		
 		return false;
+	}
+	
+	/**
+	 * Attempts to load GameImage with multiple images.
+	 * @return an array of images or null if not found.
+	 */
+	public Image[] getMutliImages(File dir){
+		// load image array
+		if (filenameFormat != null) {
+			for (String suf : imageSizeSuffix) {
+				List<Image> list = new ArrayList<Image>();
+				int i = 0;
+				while (true) {
+					// look for next image
+					String filenameFormatted = String.format(filenameFormat+suf, i++);
+					String name = getImageFileName(filenameFormatted, dir, type, true);
+					if (name == null)
+						break;
+	
+					// add image to list
+					try {
+						System.out.println(name);
+						Image img = new Image(name);
+						if(suf.equals("@2x"))
+							img = img.getScaledCopy(0.5f);
+						list.add(img);
+					} catch (SlickException e) {
+						ErrorHandler.error(String.format("Failed to set image '%s'.", name), null, false);
+						break;
+					}
+				}
+				if (!list.isEmpty()) {
+					return list.toArray(new Image[list.size()]);
+				}
+			}
+		}
+		return null;
+	}
+	
+	/**
+	 * Attempts to load GameImage with a single image.
+	 * @return an image or null if not found.
+	 */
+	public Image getSingleImage(File dir){
+		for (String suf : imageSizeSuffix) {
+			// load single image
+			String name = getImageFileName(filename+suf, dir, type, true);
+			if (name != null) {
+				try {
+					Image img = new Image(name);
+					System.out.println(name);
+					if(suf.equals("@2x"))
+						img = img.getScaledCopy(0.5f);
+					return img;
+				} catch (SlickException e) {
+					ErrorHandler.error(String.format("Failed to set image '%s'.", filename), null, false);
+				}
+			}
+		}
+		return null;
 	}
 
 	/**
