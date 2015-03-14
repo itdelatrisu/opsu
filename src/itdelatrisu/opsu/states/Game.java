@@ -166,6 +166,9 @@ public class Game extends BasicGameState {
 	/** The replay cursor coordinates. */
 	private int replayX, replayY;
 
+	/** The replay keys pressed. */
+	private int replayKeys;
+
 	/** Whether a replay key is currently pressed. */
 	private boolean replayKeyPressed;
 
@@ -594,7 +597,7 @@ public class Game extends BasicGameState {
 		}
 
 		// update objects (loop in unlikely event of any skipped indexes)
-		boolean keyPressed = ((isReplay && replayKeyPressed) || Utils.isGameKeyPressed());
+		boolean keyPressed = (isReplay) ? replayKeyPressed : Utils.isGameKeyPressed();
 		while (objectIndex < hitObjects.length && trackPosition > osu.objects[objectIndex].getTime()) {
 			// check if we've already passed the next object's start time
 			boolean overlap = (objectIndex + 1 < hitObjects.length &&
@@ -786,7 +789,8 @@ public class Game extends BasicGameState {
 		if (GameMod.AUTO.isActive() || GameMod.RELAX.isActive())
 			return;
 
-		addReplayFrame(x, y, lastKeysPressed | keys);
+		if (!isReplay)
+			addReplayFrame(x, y, lastKeysPressed | keys);
 
 		// circles
 		if (hitObject.isCircle() && hitObjects[objectIndex].mousePressed(x, y))
@@ -805,26 +809,26 @@ public class Game extends BasicGameState {
 		if (button == Input.MOUSE_MIDDLE_BUTTON)
 			return;
 
-		int key = (button == Input.MOUSE_LEFT_BUTTON) ? ReplayFrame.KEY_M1 : ReplayFrame.KEY_M2;
-		if ((lastKeysPressed & key) > 0)
+		if (!isReplay && lastKeysPressed != ReplayFrame.KEY_NONE)
 			addReplayFrame(x, y, ReplayFrame.KEY_NONE);
 	}
 
 	@Override
 	public void keyReleased(int key, char c) {
-		if ((key == Options.getGameKeyLeft() && (lastKeysPressed & ReplayFrame.KEY_K1) > 0) ||
-		    (key == Options.getGameKeyRight() && (lastKeysPressed & ReplayFrame.KEY_K2) > 0))
+		if (!isReplay && lastKeysPressed != ReplayFrame.KEY_NONE && (key == Options.getGameKeyLeft() || key == Options.getGameKeyRight()))
 			addReplayFrame(input.getMouseX(), input.getMouseY(), ReplayFrame.KEY_NONE);
 	}
 
 	@Override
 	public void mouseMoved(int oldx, int oldy, int newx, int newy) {
-		addReplayFrame(newx, newy, lastKeysPressed);
+		if (!isReplay)
+			addReplayFrame(newx, newy, lastKeysPressed);
 	}
 
 	@Override
 	public void mouseDragged(int oldx, int oldy, int newx, int newy) {
-		addReplayFrame(newx, newy, lastKeysPressed);
+		if (!isReplay)
+			addReplayFrame(newx, newy, lastKeysPressed);
 	}
 
 	@Override
@@ -908,6 +912,7 @@ public class Game extends BasicGameState {
 				// load initial data
 				replayX = container.getWidth() / 2;
 				replayY = container.getHeight() / 2;
+				replayKeys = ReplayFrame.KEY_NONE;
 				replayKeyPressed = false;
 				replaySkipTime = -1;
 				for (replayIndex = 0; replayIndex < replay.frames.length; replayIndex++) {
@@ -918,6 +923,7 @@ public class Game extends BasicGameState {
 					} else if (frame.getTime() == 0) {
 						replayX = frame.getScaledX();
 						replayY = frame.getScaledY();
+						replayKeys = frame.getKeys();
 						replayKeyPressed = frame.isKeyPressed();
 					} else
 						break;
@@ -936,8 +942,10 @@ public class Game extends BasicGameState {
 								replayX = frame.getScaledX();
 								replayY = frame.getScaledY();
 								replayKeyPressed = frame.isKeyPressed();
-								if (replayKeyPressed)  // send a key press
+								int keys = frame.getKeys();
+								if (replayKeyPressed && keys != replayKeys)  // send a key press
 									gameKeyPressed(frame.getKeys(), replayX, replayY);
+								replayKeys = keys;
 								replayIndex++;
 							}
 
@@ -1213,9 +1221,6 @@ public class Game extends BasicGameState {
 	 * @param keys the keys pressed
 	 */
 	private void addReplayFrame(int x, int y, int keys) {
-		if (isReplay)
-			return;
-
 		int time = MusicController.getPosition();
 		int timeDiff = time - lastReplayTime;
 		lastReplayTime = time;
