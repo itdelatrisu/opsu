@@ -54,17 +54,17 @@ public class OptionsMenu extends BasicGameState {
 	/** Option tabs. */
 	private enum OptionTab {
 		DISPLAY ("Display", new GameOption[] {
-			(com.badlogic.gdx.Gdx.app.getType() == ApplicationType.Desktop) ? 
-					GameOption.SCREEN_RESOLUTION : GameOption.NULL,
-//			GameOption.FULLSCREEN,
-			(com.badlogic.gdx.Gdx.app.getType() == ApplicationType.Desktop) ? 
-					GameOption.TARGET_FPS : GameOption.NULL,
 			GameOption.SHOW_FPS,
 			GameOption.SHOW_UNICODE,
 			//GameOption.SCREENSHOT_FORMAT,
 			GameOption.NEW_CURSOR,
 			GameOption.DYNAMIC_BACKGROUND,
-			GameOption.LOAD_VERBOSE
+			GameOption.LOAD_VERBOSE,
+			(com.badlogic.gdx.Gdx.app.getType() == ApplicationType.Desktop) ? 
+					GameOption.SCREEN_RESOLUTION : GameOption.NULL,
+//			GameOption.FULLSCREEN,
+			(com.badlogic.gdx.Gdx.app.getType() == ApplicationType.Desktop) ? 
+					GameOption.TARGET_FPS : GameOption.NULL,
 		}),
 		MUSIC ("Music", new GameOption[] {
 			GameOption.MASTER_VOLUME,
@@ -406,6 +406,8 @@ public class OptionsMenu extends BasicGameState {
 	 * @param focus whether the option is currently focused
 	 */
 	private void drawOption(GameOption option, int pos, boolean focus) {
+		if (option == GameOption.NULL)
+			return;
 		int width = container.getWidth();
 		int textHeight = Utils.FONT_LARGE.getLineHeight();
 		float y = textY + (pos * offsetY);

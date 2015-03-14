@@ -21,7 +21,7 @@ public class File {
 		else
 			fh = Gdx.files.external(name);
 		if (fh.exists()) {
-			System.out.println("new file:"+info());
+			//System.out.println("new file:"+info());
 			return;
 		}
 		
@@ -33,19 +33,19 @@ public class File {
 			//no storage available ...
 		}
 		if (fh.exists()) {
-			System.out.println("new file:"+info());
+			//System.out.println("new file:"+info());
 			return;
 		}
 		
 		fh = Gdx.files.absolute(name);
 		if (fh.exists()) {
-			System.out.println("new file:"+info());
+			//System.out.println("new file:"+info());
 			return;
 		}
 		
 		fh = Gdx.files.internal(name);
 		if (fh.exists()) {
-			System.out.println("new file:"+info());
+			//System.out.println("new file:"+info());
 			return;
 		}
 
@@ -61,7 +61,7 @@ public class File {
 			}
 		}
 		//fh = Gdx.files.external(name);
-		System.out.println("new nonexist file:"+info());
+		//System.out.println("new nonexist file:"+info());
 		
 	}
 
@@ -70,7 +70,7 @@ public class File {
 	}
 
 	public File(File parent, String child) {
-		System.out.println("new child file:"+parent.info()+" "+child);
+		//System.out.println("new child file:"+parent.info()+" "+child);
 		fh = parent.fh.child(child);
 	}
 
@@ -188,6 +188,8 @@ public class File {
 	}
 
 	public boolean equals(File f) {
+		if(f == null)
+			return false;
 		return this.fh.path().equals(f.fh.path());
 	}
 

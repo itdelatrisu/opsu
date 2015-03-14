@@ -234,10 +234,10 @@ public class Download {
 						if (rename != null) {
 							move(localFile, new File(localFile.getParentFile(), rename));
 						}
-					}else{
-						status = Status.CANCELLED;
 						if (listener != null)
 							listener.completed();
+					}else{
+						status = Status.CANCELLED;
 					}
 				} catch (Exception e) {
 					status = Status.ERROR;

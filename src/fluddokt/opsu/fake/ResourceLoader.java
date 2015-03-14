@@ -16,7 +16,7 @@ public class ResourceLoader {
 	public static FileHandle getFileHandle(String file) {
 		if (file == null)
 			throw new Error("null file name");
-		System.out.print("ResourceLoader: getFileHandle:" + file + " ");
+		//System.out.print("ResourceLoader: getFileHandle:" + file + " ");
 		FileHandle fh = Gdx.files.absolute(file);
 		if (fh.exists()) {
 			System.out.println("QFOUNDED");
@@ -28,7 +28,7 @@ public class ResourceLoader {
 			if (t.internalExist){
 				child = t.internal.child(file);
 				if (child.exists()) {
-					System.out.println("FOUNDED internal " + t.f);
+					//System.out.println("FOUNDED internal " + t.f);
 					return child;
 				}
 			}
@@ -36,7 +36,7 @@ public class ResourceLoader {
 			if (t.localExist){
 				child = t.local.child(file);
 				if (child.exists()) {
-					System.out.println("FOUNDED local " + t.f);
+					//System.out.println("FOUNDED local " + t.f);
 					return child;
 				}
 			}
@@ -44,12 +44,12 @@ public class ResourceLoader {
 			if (t.externalExist){
 				child = t.external.child(file);
 				if (child.exists()) {
-					System.out.println("FOUNDED external " + t.f);
+					//System.out.println("FOUNDED external " + t.f);
 					return child;
 			}
 			}
 		}
-		System.out.println("CNF");
+		//System.out.println("CNF");
 		return null;
 	}
 

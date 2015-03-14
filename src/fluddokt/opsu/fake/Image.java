@@ -60,11 +60,17 @@ public class Image {
 		texinfo = texmap.get(filename);
 		int pw, ph;
 		if (texinfo == null) {
+			//*
 			SqPixmapTextureData td = new SqPixmapTextureData(
 					ResourceLoader.getFileHandle(filename));
 			texture = new Texture(td);
 			pw = td.getImgWidth();
 			ph = td.getImgHeight();
+			/*/
+			texture = new Texture(ResourceLoader.getFileHandle(filename));
+			pw = texture.getWidth();
+			ph = texture.getHeight();
+			//*/
 			texture.setFilter(TextureFilter.Linear, TextureFilter.Linear);
 			texinfo = new TextureInfo(filename, texture, pw, ph);
 			texmap.put(filename, texinfo);
@@ -107,6 +113,8 @@ public class Image {
 			}
 			pw = p.getWidth();
 			ph = p.getHeight();
+			//int pw4 = gpow2(pw);
+			//int ph4 = gpow2(ph);
 			int pw4 = nextmultipleof4(pw);
 			int ph4 = nextmultipleof4(ph);
 			if ((pw != pw4 || ph != ph4)

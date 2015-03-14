@@ -590,7 +590,7 @@ public enum GameImage {
 	 * @param type the file types (separated by '|')
 	 */
 	GameImage(String filename, String type) {
-		this(filename, type, true, false);
+		this(filename, type, true, true);
 	}
 
 	/**
@@ -600,7 +600,7 @@ public enum GameImage {
 	 * @param type the file types (separated by '|')
 	 */
 	GameImage(String filename, String filenameFormat, String type) {
-		this(filename, type, true, false);
+		this(filename, type, true, true);
 		this.filenameFormat = filenameFormat;
 	}
 

@@ -40,7 +40,7 @@ public abstract class StateBasedGame extends Game implements InputProcessor {
 		nextState = bgs.get(newState);
 	}
 
-	private void enterNextState() throws SlickException {
+	private boolean enterNextState() throws SlickException {
 		if (nextState != null) {
 			if (gc == null) {
 				throw new Error("");
@@ -53,8 +53,9 @@ public abstract class StateBasedGame extends Game implements InputProcessor {
 				currentState.inited = true;
 			}
 			currentState.enter(gc, this);
-
+			return true;
 		}
+		return false;
 	}
 
 	public int getCurrentStateID() {
@@ -73,11 +74,24 @@ public abstract class StateBasedGame extends Game implements InputProcessor {
 		// gs.init(gc, this);
 	}
 
+	int lastEnteredState = 0;
 	public void render() throws SlickException {
-		enterNextState();
+		int deltaTime = (int) (Gdx.graphics.getDeltaTime() * 1000);
+		
+		if(lastEnteredState > 0){
+			if(deltaTime > 32) {
+				deltaTime = 0;
+				lastEnteredState--;
+			}
+			else
+				lastEnteredState = 0;
+		}
+			
+		if(enterNextState())
+			lastEnteredState = 20;
+		
 		if (currentState != null) {
-			currentState.update(gc, this,
-				(int) (Gdx.graphics.getDeltaTime() * 1000));
+			currentState.update(gc, this, deltaTime);
 			currentState.render(gc, this, Graphics.getGraphics());
 		}
 	}
@@ -98,8 +112,8 @@ public abstract class StateBasedGame extends Game implements InputProcessor {
 		for (InputListener keylis : keyListeners) {
 			keylis.keyDown(keycode);
 		}
-		currentState.keyPressed(keycode,
-				com.badlogic.gdx.Input.Keys.toString(keycode).charAt(0));
+		currentState.keyPressed(keycode, (char)0);
+				//com.badlogic.gdx.Input.Keys.toString(keycode).charAt(0));
 
 		return false;
 	}
@@ -109,8 +123,8 @@ public abstract class StateBasedGame extends Game implements InputProcessor {
 		for (InputListener keylis : keyListeners) {
 			keylis.keyUp(keycode);
 		}
-		currentState.keyReleased(keycode,
-				com.badlogic.gdx.Input.Keys.toString(keycode).charAt(0));
+		currentState.keyReleased(keycode, (char)0);
+				//com.badlogic.gdx.Input.Keys.toString(keycode).charAt(0));
 
 		return false;
 	}
@@ -129,7 +143,7 @@ public abstract class StateBasedGame extends Game implements InputProcessor {
 			keylis.touchDown(screenX, screenY, pointer, button);
 		}
 		if (pointer > 0) {
-			currentState.mousePressed(button, oldx, oldy );
+			currentState.mousePressed(Input.MOUSE_RIGHT_BUTTON, oldx, oldy );
 		} else {
 			currentState.mousePressed(button, screenX, screenY);
 			oldx = screenX;

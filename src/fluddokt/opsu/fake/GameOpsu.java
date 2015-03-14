@@ -69,6 +69,7 @@ public class GameOpsu extends com.badlogic.gdx.Game {
 		System.out.println("Game Dispose");
 		if(!inited)
 			return;
+		sbg.gc.close_sub();
 		super.dispose();
 		for (GameImage img : GameImage.values()) {
 			try {
@@ -105,9 +106,6 @@ public class GameOpsu extends com.badlogic.gdx.Game {
 					if(!nomediafile.exists())
 						new FileOutputStream(nomediafile.getIOFile()).close();
 				}
-				
-				
-				
 				Gdx.input.setInputProcessor(new InputMultiplexer(stage, sbg));
 				inited = true;
 			}

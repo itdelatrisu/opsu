@@ -182,6 +182,9 @@ public class OsuParser {
 
 		// add group entries to OsuGroupList
 		for (ArrayList<OsuFile> osuFiles : allOsuFiles) {
+			for(OsuFile osu : osuFiles)
+				System.out.println("osuFiles "+osu);
+
 			Collections.sort(osuFiles);
 			lastNode = OsuGroupList.get().addSongGroup(osuFiles);
 		}
@@ -192,6 +195,9 @@ public class OsuParser {
 		// add beatmap entries to database
 		if (!parsedOsuFiles.isEmpty()) {
 			status = Status.INSERTING;
+			for( OsuFile osu: parsedOsuFiles){
+				System.out.println("OsuDB insert "+osu);
+			}
 			OsuDB.insert(parsedOsuFiles);
 		}
 

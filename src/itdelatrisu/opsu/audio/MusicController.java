@@ -75,6 +75,14 @@ public class MusicController {
 	 * @param preview whether to start at the preview time (true) or beginning (false)
 	 */
 	public static void play(final OsuFile osu, final boolean loop, final boolean preview) {
+		if(osu == null){
+			throw new Error("Null osu");
+		}
+		if(osu.audioFilename == null)
+		{
+			System.out.println("Null osu filename "+osu.title+" "+osu+" "+osu.artist);
+			return;
+		}
 		// new track: load and play
 		if (lastOsu == null || !osu.audioFilename.equals(lastOsu.audioFilename)) {
 			reset();

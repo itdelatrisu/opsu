@@ -57,7 +57,7 @@ public class MusicJL2 extends AbsMusic {
 
 		AudioDevice ad;
 		public PlayThread(){
-			super("MusicJLThread");
+			super("MusicJLThread "+file.path());
 		}
 		public void run() {
 			
@@ -122,6 +122,8 @@ public class MusicJL2 extends AbsMusic {
 
 							// write 0's to start with to get rid of garbage
 							ad.writeSamples(new short[4096], 0, 4096);
+							audioUsed = true;
+							
 							System.out
 									.println("Latency: " + ad.getLatency()
 											+ " sr:" + sampleRate);
@@ -136,11 +138,11 @@ public class MusicJL2 extends AbsMusic {
 							posUpdateTime = TimeUtils.millis();
 							if (len > 0) {
 								ad.writeSamples(buf.getBuffer(), 0, len);// buf.channelPointer2[0]);
-								audioUsed = true;
 							}
 
 							position += 1000f * len / channels / sampleRate;// header.frequency();//header.ms_per_frame();
 							bitstream.closeFrame();
+							/*
 							int prefSleep = Math.max(1000*len/channels/sampleRate/2 -worstSleepAccuracy,0);
 							long time = System.currentTimeMillis();
 							Thread.sleep(Math.max(prefSleep,0));
@@ -148,15 +150,17 @@ public class MusicJL2 extends AbsMusic {
 							if(deltaTime - prefSleep > worstSleepAccuracy){
 								worstSleepAccuracy = (int)(deltaTime -prefSleep);
 								System.out.println("worstSleepAccuracy"+worstSleepAccuracy+" "+prefSleep+" "+deltaTime);
-							}
+							}*/
+							
+							//Thread.sleep(1);
 						}
 					}
 				}
-			} catch(InterruptedException e){
-				//e.printStackTrace();
-				System.out.println("Interrupted: "+file.path());
+			//} catch(InterruptedException e){
+			//	System.out.println("Interrupted: "+file.path());
 			} catch (Exception e) {
 				e.printStackTrace();
+				System.out.println(e+" "+file.path());
 			}
 			if (ad != null && audioUsed) {
 				ad.dispose();
@@ -203,25 +207,25 @@ public class MusicJL2 extends AbsMusic {
 
 
 	private synchronized void startThread() {
-		if (playThread != null) {
-			try {
-				playThread.toStop = true;
-				playThread.join();
-				playThread = null;
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
+		stopThread();
+		if(bitstream == null)
+			resetStream();
 		if (playThread == null){
 			playThread = new PlayThread();
 			playThread.start();
 		}
 	}
 	private synchronized void stopThread() {
-		if(playThread != null){
-			playThread.toStop = true;
-			playThread.interrupt();
+		if (playThread != null) {
+			try {
+				playThread.toStop = true;
+				playThread.interrupt();
+				playThread.join();
+				Thread.sleep(1);
+				playThread = null;
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 	
@@ -255,6 +259,7 @@ public class MusicJL2 extends AbsMusic {
 	@Override
 	public void play() {
 		System.out.println("MusicJL Play "+file.path());
+		stopThread();
 		resetStream();
 		setLoop(false);
 		startThread();
@@ -262,6 +267,7 @@ public class MusicJL2 extends AbsMusic {
 	@Override
 	public void loop() {
 		System.out.println("MusicJL Loop "+file.path());
+		stopThread();
 		resetStream();
 		setLoop(true);
 		startThread();
