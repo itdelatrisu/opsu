@@ -90,7 +90,7 @@ public class OptionsMenu extends BasicGameState {
 			GameOption.FIXED_AR,
 			GameOption.FIXED_OD,
 			GameOption.CHECKPOINT,
-			GameOption.USE_2X_IMAGE
+			GameOption.LOAD_HD_IMAGES
 		});
 
 		/** Total number of tabs. */

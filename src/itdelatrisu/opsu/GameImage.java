@@ -372,9 +372,11 @@ public enum GameImage {
 
 	/** The unscaled container height that uiscale is based on. */
 	private static final int UNSCALED_HEIGHT = 768;
-	
-	/** Image Sizes suffixes to try to load images with */
-	private static String[] imageSizeSuffix;
+
+	/** Image HD/SD suffixes. */
+	private static final String[]
+			SUFFIXES_HD = new String[] { "@2x", "" },
+			SUFFIXES_SD = new String[] { "" };
 
 	/**
 	 * Initializes the GameImage class with container dimensions.
@@ -385,11 +387,6 @@ public enum GameImage {
 		containerWidth = width;
 		containerHeight = height;
 		uiscale = (float) containerHeight / UNSCALED_HEIGHT;
-		if (Options.is2xImagesEnabled() && uiscale >= 1) {
-			imageSizeSuffix = new String[]{"@2x",""};
-		} else {
-			imageSizeSuffix = new String[]{""};
-		}
 	}
 
 	/**
@@ -461,6 +458,14 @@ public enum GameImage {
 		}
 
 		return null;
+	}
+
+	/**
+	 * Returns an array of HD/SD file name suffixes based on the current options
+	 * and UI scale.
+	 */
+	private static String[] getSuffixes() {
+		return (Options.loadHDImages() && uiscale >= 1) ? SUFFIXES_HD : SUFFIXES_SD;
 	}
 
 	/**
@@ -571,32 +576,23 @@ public enum GameImage {
 	public void setDefaultImage() {
 		if (defaultImage != null || defaultImages != null)
 			return;
-		
+
+		// try to load multiple images
 		if (filenameFormat != null) {
-			defaultImages = getMutliImages(Options.getSkinDir());
-			if (defaultImages != null) {
-				process();
-				return;
-			}
-			defaultImages = getMutliImages(null);
-			if (defaultImages != null) {
+			if (((defaultImages = loadImageArray(Options.getSkinDir())) != null) ||
+			    ((defaultImages = loadImageArray(null)) != null)) {
 				process();
 				return;
 			}
 		}
-		
-		defaultImage = getSingleImage(Options.getSkinDir());
-		if (defaultImage  != null) {
+
+		// try to load a single image
+		if (((defaultImage = loadImageSingle(Options.getSkinDir())) != null) ||
+		    ((defaultImage = loadImageSingle(null)) != null)) {
 			process();
 			return;
 		}
-		
-		defaultImage = getSingleImage(null);
-		if (defaultImage  != null) {
-			process();
-			return;
-		}
-	
+
 		ErrorHandler.error(String.format("Could not find default image '%s'.", filename), null, false);
 	}
 
@@ -616,43 +612,41 @@ public enum GameImage {
 		if (Options.isBeatmapSkinIgnored())
 			return false;
 
-		skinImages = getMutliImages(dir);
-		if (skinImages != null) {
+		// try to load multiple images
+		if ((skinImages = loadImageArray(dir)) != null) {
 			process();
 			return true;
 		}
-		
-		skinImage = getSingleImage(dir);
-		if (skinImage != null) {
+
+		// try to load a single image
+		if ((skinImage = loadImageSingle(dir)) != null) {
 			process();
 			return true;
 		}
-		
+
 		return false;
 	}
-	
+
 	/**
-	 * Attempts to load GameImage with multiple images.
-	 * @return an array of images or null if not found.
+	 * Attempts to load multiple Images from the GameImage.
+	 * @return an array of the loaded images, or null if not found
 	 */
-	public Image[] getMutliImages(File dir){
-		// load image array
+	private Image[] loadImageArray(File dir) {
 		if (filenameFormat != null) {
-			for (String suf : imageSizeSuffix) {
+			for (String suffix : getSuffixes()) {
 				List<Image> list = new ArrayList<Image>();
 				int i = 0;
 				while (true) {
 					// look for next image
-					String filenameFormatted = String.format(filenameFormat+suf, i++);
+					String filenameFormatted = String.format(filenameFormat + suffix, i++);
 					String name = getImageFileName(filenameFormatted, dir, type, true);
 					if (name == null)
 						break;
-	
+
 					// add image to list
 					try {
-						System.out.println(name);
 						Image img = new Image(name);
-						if(suf.equals("@2x"))
+						if (suffix.equals("@2x"))
 							img = img.getScaledCopy(0.5f);
 						list.add(img);
 					} catch (SlickException e) {
@@ -660,27 +654,24 @@ public enum GameImage {
 						break;
 					}
 				}
-				if (!list.isEmpty()) {
+				if (!list.isEmpty())
 					return list.toArray(new Image[list.size()]);
-				}
 			}
 		}
 		return null;
 	}
-	
+
 	/**
-	 * Attempts to load GameImage with a single image.
-	 * @return an image or null if not found.
+	 * Attempts to load a single Image from the GameImage.
+	 * @return the loaded image, or null if not found
 	 */
-	public Image getSingleImage(File dir){
-		for (String suf : imageSizeSuffix) {
-			// load single image
-			String name = getImageFileName(filename+suf, dir, type, true);
+	private Image loadImageSingle(File dir) {
+		for (String suffix : getSuffixes()) {
+			String name = getImageFileName(filename + suffix, dir, type, true);
 			if (name != null) {
 				try {
 					Image img = new Image(name);
-					System.out.println(name);
-					if(suf.equals("@2x"))
+					if (suffix.equals("@2x"))
 						img = img.getScaledCopy(0.5f);
 					return img;
 				} catch (SlickException e) {
@@ -734,9 +725,7 @@ public enum GameImage {
 	 * @param h the container height
 	 * @return the processed image
 	 */
-	protected Image process_sub(Image img, int w, int h) {
-		return img;
-	}
+	protected Image process_sub(Image img, int w, int h) { return img; }
 
 	/**
 	 * Performs individual post-loading actions on the image.
