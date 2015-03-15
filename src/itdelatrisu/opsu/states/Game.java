@@ -46,6 +46,8 @@ import itdelatrisu.opsu.replay.Replay;
 import itdelatrisu.opsu.replay.ReplayFrame;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.util.LinkedList;
 import java.util.Stack;
 import java.util.concurrent.TimeUnit;
@@ -198,6 +200,8 @@ public class Game extends BasicGameState {
 	private StateBasedGame game;
 	private Input input;
 	private int state;
+
+	private PrintWriter replayLog;
 
 	public Game(int state) {
 		this.state = state;
@@ -425,22 +429,43 @@ public class Game extends BasicGameState {
 	public void update(GameContainer container, StateBasedGame game, int delta)
 			throws SlickException {
 		UI.update(delta);
+		
 		int mouseX, mouseY;
-		if (!isReplay) {
-			mouseX = input.getMouseX();
-			mouseY = input.getMouseY();
-		} else {
-			mouseX = replayX;
-			mouseY = replayY;
-		}
-		skipButton.hoverUpdate(delta, mouseX, mouseY);
-
 		if (isLeadIn()) {  // stop updating during song lead-in
 			leadInTime -= delta;
 			if (!isLeadIn())
 				MusicController.resume();
 			return;
 		}
+		int trackPosition = MusicController.getPosition();
+		if (!isReplay) {
+			mouseX = input.getMouseX();
+			mouseY = input.getMouseY();
+			frameAndRun(mouseX, mouseY, lastKeysPressed, trackPosition);
+		} else {
+			//if(trackPosition<5000)
+			//	MusicController.setPosition(85000);
+			while (replayIndex < replay.frames.length && trackPosition >= replay.frames[replayIndex].getTime()) {
+				ReplayFrame frame = replay.frames[replayIndex];
+				runFrame(frame);
+				replayX = frame.getScaledX();
+				replayY = frame.getScaledY();
+				replayIndex++;
+			}
+			System.out.println("MCP "+MusicController.getPosition());
+			mouseX = replayX;
+			mouseY = replayY;
+			if (replayIndex >= replay.frames.length){
+				updateGame(replayX, replayY, delta, MusicController.getPosition(), lastKeysPressed);
+			}
+		}
+
+	}
+	public void updateGame(int mouseX, int mouseY, int delta, int trackPosition, int keysPressed){
+		//if (!isReplay)
+		//	addReplayFrame(mouseX, mouseY, keysPressed, trackPosition);
+		skipButton.hoverUpdate(delta, mouseX, mouseY);
+
 
 		// returning from pause screen: must click previous mouse position
 		if (pauseTime > -1) {
@@ -483,7 +508,7 @@ public class Game extends BasicGameState {
 		if (objectIndex >= hitObjects.length || (MusicController.trackEnded() && objectIndex > 0)) {
 			// track ended before last object was processed: force a hit result
 			if (MusicController.trackEnded() && objectIndex < hitObjects.length)
-				hitObjects[objectIndex].update(true, delta, mouseX, mouseY, false);
+				hitObjects[objectIndex].update(true, delta, mouseX, mouseY, false, trackPosition);
 
 			// if checkpoint used, skip ranking screen
 			if (checkpointLoaded)
@@ -514,8 +539,6 @@ public class Game extends BasicGameState {
 			}
 			return;
 		}
-
-		int trackPosition = MusicController.getPosition();
 
 		// timing points
 		if (timingPointIndex < osu.timingPoints.size()) {
@@ -597,14 +620,14 @@ public class Game extends BasicGameState {
 		}
 
 		// update objects (loop in unlikely event of any skipped indexes)
-		boolean keyPressed = (isReplay) ? replayKeyPressed : Utils.isGameKeyPressed();
+		boolean keyPressed = keysPressed != ReplayFrame.KEY_NONE;//(isReplay) ? replayKeyPressed : Utils.isGameKeyPressed();
 		while (objectIndex < hitObjects.length && trackPosition > osu.objects[objectIndex].getTime()) {
 			// check if we've already passed the next object's start time
 			boolean overlap = (objectIndex + 1 < hitObjects.length &&
 					trackPosition > osu.objects[objectIndex + 1].getTime() - hitResultOffset[GameData.HIT_300]);
 
 			// update hit object and check completion status
-			if (hitObjects[objectIndex].update(overlap, delta, mouseX, mouseY, keyPressed))
+			if (hitObjects[objectIndex].update(overlap, delta, mouseX, mouseY, keyPressed, trackPosition))
 				objectIndex++;  // done, so increment object index
 			else
 				break;
@@ -619,11 +642,17 @@ public class Game extends BasicGameState {
 		int trackPosition = MusicController.getPosition();
 
 		// game keys
+		int mouseX = input.getMouseX();
+		int mouseY = input.getMouseY();
 		if (!Keyboard.isRepeatEvent() && !isReplay) {
-			if (key == Options.getGameKeyLeft())
-				gameKeyPressed(ReplayFrame.KEY_K1, input.getMouseX(), input.getMouseY());
-			else if (key == Options.getGameKeyRight())
-				gameKeyPressed(ReplayFrame.KEY_K2, input.getMouseX(), input.getMouseY());
+			if (key == Options.getGameKeyLeft()){
+				lastKeysPressed |= ReplayFrame.KEY_K1;
+				frameAndRun(mouseX, mouseY, lastKeysPressed, trackPosition);
+			}
+			else if (key == Options.getGameKeyRight()){
+				lastKeysPressed |= ReplayFrame.KEY_K2;
+				frameAndRun(mouseX, mouseY, lastKeysPressed, trackPosition);
+			}
 		}
 
 		switch (key) {
@@ -636,8 +665,8 @@ public class Game extends BasicGameState {
 
 			// pause game
 			if (pauseTime < 0 && breakTime <= 0 && trackPosition >= osu.objects[0].getTime()) {
-				pausedMouseX = input.getMouseX();
-				pausedMouseY = input.getMouseY();
+				pausedMouseX = mouseX;
+				pausedMouseY = mouseY;
 				pausePulse = 0f;
 			}
 			if (MusicController.isPlaying() || isLeadIn())
@@ -749,7 +778,8 @@ public class Game extends BasicGameState {
 			return;
 		}
 
-		gameKeyPressed((button == Input.MOUSE_LEFT_BUTTON) ? ReplayFrame.KEY_M1 : ReplayFrame.KEY_M2, x, y);
+		lastKeysPressed |= (button == Input.MOUSE_LEFT_BUTTON) ? ReplayFrame.KEY_M1 : ReplayFrame.KEY_M2;
+		frameAndRun(x, y, lastKeysPressed, MusicController.getPosition());
 	}
 
 	/**
@@ -757,8 +787,9 @@ public class Game extends BasicGameState {
 	 * @param keys the game keys pressed
 	 * @param x the mouse x coordinate
 	 * @param y the mouse y coordinate
+	 * @param trackPosition TODO
 	 */
-	private void gameKeyPressed(int keys, int x, int y) {
+	private void gameKeyPressed(int keys, int x, int y, int trackPosition) {
 		// returning from pause screen
 		if (pauseTime > -1) {
 			double distance = Math.hypot(pausedMouseX - x, pausedMouseY - y);
@@ -789,16 +820,13 @@ public class Game extends BasicGameState {
 		if (GameMod.AUTO.isActive() || GameMod.RELAX.isActive())
 			return;
 
-		if (!isReplay)
-			addReplayFrame(x, y, lastKeysPressed | keys);
-
 		// circles
-		if (hitObject.isCircle() && hitObjects[objectIndex].mousePressed(x, y))
+		if (hitObject.isCircle() && hitObjects[objectIndex].mousePressed(x, y, trackPosition))
 			objectIndex++;  // circle hit
 
 		// sliders
 		else if (hitObject.isSlider())
-			hitObjects[objectIndex].mousePressed(x, y);
+			hitObjects[objectIndex].mousePressed(x, y, trackPosition);
 	}
 
 	@Override
@@ -809,26 +837,37 @@ public class Game extends BasicGameState {
 		if (button == Input.MOUSE_MIDDLE_BUTTON)
 			return;
 
-		if (!isReplay && lastKeysPressed != ReplayFrame.KEY_NONE)
-			addReplayFrame(x, y, ReplayFrame.KEY_NONE);
+		if (!isReplay) {
+			if (button == Input.MOUSE_LEFT_BUTTON) 
+				lastKeysPressed &= ~ReplayFrame.KEY_M1;
+			else if (button == Input.MOUSE_RIGHT_BUTTON) 
+				lastKeysPressed &= ~ReplayFrame.KEY_M2;
+				
+			frameAndRun(x, y, lastKeysPressed, MusicController.getPosition());
+		}
 	}
 
 	@Override
 	public void keyReleased(int key, char c) {
-		if (!isReplay && lastKeysPressed != ReplayFrame.KEY_NONE && (key == Options.getGameKeyLeft() || key == Options.getGameKeyRight()))
-			addReplayFrame(input.getMouseX(), input.getMouseY(), ReplayFrame.KEY_NONE);
+		if (!isReplay && (key == Options.getGameKeyLeft() || key == Options.getGameKeyRight())) {
+			if (key == Options.getGameKeyLeft())
+				lastKeysPressed &= ~ReplayFrame.KEY_K1;
+			else if (key == Options.getGameKeyRight())
+				lastKeysPressed &= ~ReplayFrame.KEY_K2;
+			int mouseX = scaleX(unscaleX(input.getMouseX()));
+			int mouseY = scaleY(unscaleY(input.getMouseY()));
+			int trackPosition = MusicController.getPosition();
+			frameAndRun(mouseX, mouseY, lastKeysPressed, trackPosition);
+		}
 	}
 
 	@Override
 	public void mouseMoved(int oldx, int oldy, int newx, int newy) {
-		if (!isReplay)
-			addReplayFrame(newx, newy, lastKeysPressed);
+		
 	}
 
 	@Override
 	public void mouseDragged(int oldx, int oldy, int newx, int newy) {
-		if (!isReplay)
-			addReplayFrame(newx, newy, lastKeysPressed);
 	}
 
 	@Override
@@ -844,6 +883,13 @@ public class Game extends BasicGameState {
 			throws SlickException {
 		UI.enter();
 
+		try {
+			replayLog = new PrintWriter("replayLog.txt");
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 		if (osu == null || osu.objects == null)
 			throw new RuntimeException("Running game with no OsuFile loaded.");
 
@@ -910,6 +956,7 @@ public class Game extends BasicGameState {
 				GameMod.loadModState(replay.mods);
 
 				// load initial data
+				lastReplayTime = 0;
 				replayX = container.getWidth() / 2;
 				replayY = container.getHeight() / 2;
 				replayKeys = ReplayFrame.KEY_NONE;
@@ -928,8 +975,10 @@ public class Game extends BasicGameState {
 					} else
 						break;
 				}
+				
 
 				// run frame updates in another thread
+				/*
 				killReplayThread();
 				replayThread = new Thread() {
 					@Override
@@ -943,8 +992,11 @@ public class Game extends BasicGameState {
 								replayY = frame.getScaledY();
 								replayKeyPressed = frame.isKeyPressed();
 								int keys = frame.getKeys();
-								if (replayKeyPressed && keys != replayKeys)  // send a key press
-									gameKeyPressed(frame.getKeys(), replayX, replayY);
+								if (replayKeyPressed && keys != replayKeys) { // send a key press
+									System.out.println("Replay Pos:"+trackPosition+" "+replay.frames[replayIndex].getTime());
+									
+									gameKeyPressed(frame.getKeys(), replayX, replayY, replay.frames[replayIndex].getTime());
+								}
 								replayKeys = keys;
 								replayIndex++;
 							}
@@ -955,6 +1007,7 @@ public class Game extends BasicGameState {
 
 							// sleep execution
 							try {
+								//Thread.sleep(1);//, 256000);
 								int diff = replay.frames[replayIndex].getTime() - trackPosition - 1;
 								if (diff < 1)
 									Thread.sleep(0, 256000);
@@ -966,6 +1019,7 @@ public class Game extends BasicGameState {
 				};
 				replayThreadRunning = true;
 				replayThread.start();
+				*/
 			}
 
 			// initialize replay-recording structures
@@ -989,6 +1043,7 @@ public class Game extends BasicGameState {
 			throws SlickException {
 //		container.setMouseGrabbed(false);
 
+		replayLog.close();
 		// replays
 		if (isReplay) {
 			GameMod.loadModState(previousMods);
@@ -1213,20 +1268,56 @@ public class Game extends BasicGameState {
 			this.replay = replay;
 		}
 	}
+	
+	public synchronized void frameAndRun(int x, int y, int keys, int time){
+		ReplayFrame frame = addReplayFrame(x, y, keys, time);
+		if(frame != null)
+			runFrame(frame);
+	}
 
+	int prevRunKeys = 0;
+	private void runFrame(ReplayFrame frame){
+		int keys = frame.getKeys();
+		int replayX = frame.getScaledX();
+		int replayY = frame.getScaledY();
+		int deltaKeys = (keys & ~prevRunKeys );
+		replayLog.println("run frame:"+" "+replayX+" "+replayY+" "+(frame.getTimeDiff())+" "+keys+" "+frame.getTime());
+		if (deltaKeys > 0) { // send a key press
+			gameKeyPressed(deltaKeys, replayX, replayY, frame.getTime());
+		//} else if(keys != prevRunKeys){
+		} else {
+			updateGame(replayX, replayY, frame.getTimeDiff(), frame.getTime(), keys);
+		}
+		prevRunKeys = keys;
+		
+	}
 	/**
 	 * Adds a replay frame to the list.
 	 * @param x the cursor x coordinate
 	 * @param y the cursor y coordinate
 	 * @param keys the keys pressed
+	 * @param trackPosition TODO
 	 */
-	private void addReplayFrame(int x, int y, int keys) {
-		int time = MusicController.getPosition();
+	private ReplayFrame addReplayFrame(int x, int y, int keys, int time) {
 		int timeDiff = time - lastReplayTime;
 		lastReplayTime = time;
-		lastKeysPressed = keys;
-		int cx = (int) ((x - OsuHitObject.getXOffset()) / OsuHitObject.getXMultiplier());
-		int cy = (int) ((y - OsuHitObject.getYOffset()) / OsuHitObject.getYMultiplier());
-		replayFrames.add(new ReplayFrame(timeDiff, time, cx, cy, lastKeysPressed));
+		//lastKeysPressed = keys;
+		int cx = unscaleX(x);
+		int cy = unscaleY(y);
+		ReplayFrame tFrame = new ReplayFrame(timeDiff, time, cx, cy, keys);
+		replayFrames.add(tFrame);
+		return tFrame;
+	}
+	public int unscaleX(int x){
+		return (int) ((x - OsuHitObject.getXOffset()) / OsuHitObject.getXMultiplier());
+	}
+	public int unscaleY(int y){
+		return (int) ((y - OsuHitObject.getYOffset()) / OsuHitObject.getYMultiplier());
+	}
+	public int scaleX(int x){
+		return (int) (x * OsuHitObject.getXMultiplier() + OsuHitObject.getXOffset());
+	}
+	public int scaleY(int y){
+		return (int) (y * OsuHitObject.getYMultiplier() + OsuHitObject.getYOffset());
 	}
 }

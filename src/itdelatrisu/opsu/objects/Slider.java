@@ -267,14 +267,13 @@ public class Slider implements HitObject {
 	}
 
 	@Override
-	public boolean mousePressed(int x, int y) {
+	public boolean mousePressed(int x, int y, int trackPosition) {
 		if (sliderClickedInitial)  // first circle already processed
 			return false;
 
 		double distance = Math.hypot(this.x - x, this.y - y);
 		int circleRadius = GameImage.HITCIRCLE.getImage().getWidth() / 2;
 		if (distance < circleRadius) {
-			int trackPosition = MusicController.getPosition();
 			int timeDiff = Math.abs(trackPosition - hitObject.getTime());
 			int[] hitResultOffset = game.getHitResultOffsets();
 
@@ -297,7 +296,7 @@ public class Slider implements HitObject {
 	}
 
 	@Override
-	public boolean update(boolean overlap, int delta, int mouseX, int mouseY, boolean keyPressed) {
+	public boolean update(boolean overlap, int delta, int mouseX, int mouseY, boolean keyPressed, int trackPosition) {
 		int repeatCount = hitObject.getRepeatCount();
 
 		// slider time and tick calculations
@@ -318,7 +317,6 @@ public class Slider implements HitObject {
 			}
 		}
 
-		int trackPosition = MusicController.getPosition();
 		int[] hitResultOffset = game.getHitResultOffsets();
 		boolean isAutoMod = GameMod.AUTO.isActive();
 
@@ -346,7 +344,7 @@ public class Slider implements HitObject {
 
 			// "relax" mod: click automatically
 			else if (GameMod.RELAX.isActive() && trackPosition >= time)
-				mousePressed(mouseX, mouseY);
+				mousePressed(mouseX, mouseY, trackPosition);
 		}
 
 		// end of slider
