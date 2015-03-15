@@ -193,6 +193,15 @@ public class Game extends BasicGameState {
 	/** The list of current replay frames (for recording replays). */
 	private LinkedList<ReplayFrame> replayFrames;
 
+	/** The offscreen image rendered to. */
+	private Image offscreen;
+
+	/** The offscreen graphics. */
+	private Graphics gOffscreen;
+
+	/** The current flashlight area radius. */
+	private int flashlightRadius;
+
 	// game-related variables
 	private GameContainer container;
 	private StateBasedGame game;
@@ -213,6 +222,11 @@ public class Game extends BasicGameState {
 		int width = container.getWidth();
 		int height = container.getHeight();
 
+		// create offscreen graphics
+		offscreen = new Image(width, height);
+		gOffscreen = offscreen.getGraphics();
+		gOffscreen.setBackground(Color.black);
+
 		// create the associated GameData object
 		data = new GameData(width, height);
 	}
@@ -222,9 +236,15 @@ public class Game extends BasicGameState {
 			throws SlickException {
 		int width = container.getWidth();
 		int height = container.getHeight();
+		g.setBackground(Color.black);
+
+		// "flashlight" mod: initialize offscreen graphics
+		if (GameMod.FLASHLIGHT.isActive()) {
+			gOffscreen.clear();
+			Graphics.setCurrent(gOffscreen);
+		}
 
 		// background
-		g.setBackground(Color.black);
 		float dimLevel = Options.getBackgroundDim();
 		if (Options.isDefaultPlayfieldForced() || !osu.drawBG(width, height, dimLevel, false)) {
 			Image playfield = GameImage.PLAYFIELD.getImage();
@@ -232,6 +252,9 @@ public class Game extends BasicGameState {
 			playfield.draw();
 			playfield.setAlpha(1f);
 		}
+
+		if (GameMod.FLASHLIGHT.isActive())
+			Graphics.setCurrent(g);
 
 		int trackPosition = MusicController.getPosition();
 		if (pauseTime > -1)  // returning from pause screen
@@ -257,144 +280,167 @@ public class Game extends BasicGameState {
 			);
 		}
 
+		// "flashlight" mod: restricted view of hit objects around cursor
+		if (GameMod.FLASHLIGHT.isActive()) {
+			// render hit objects offscreen
+			Graphics.setCurrent(gOffscreen);
+			int trackPos = (isLeadIn()) ? (leadInTime - Options.getMusicOffset()) * -1 : trackPosition;
+			drawHitObjects(gOffscreen, trackPos);
+
+			// restore original graphics context
+			gOffscreen.flush();
+			Graphics.setCurrent(g);
+
+			// draw alpha map around cursor
+			g.setDrawMode(Graphics.MODE_ALPHA_MAP);
+			g.clearAlphaMap();
+			int mouseX, mouseY;
+			if (pauseTime > -1 && pausedMouseX > -1 && pausedMouseY > -1) {
+				mouseX = pausedMouseX;
+				mouseY = pausedMouseY;
+			} else if (isReplay) {
+				mouseX = replayX;
+				mouseY = replayY;
+			} else {
+				mouseX = input.getMouseX();
+				mouseY = input.getMouseY();
+			}
+			int alphaX = mouseX - flashlightRadius / 2;
+			int alphaY = mouseY - flashlightRadius / 2;
+			GameImage.ALPHA_MAP.getImage().draw(alphaX, alphaY, flashlightRadius, flashlightRadius);
+
+			// blend offscreen image
+			g.setDrawMode(Graphics.MODE_ALPHA_BLEND);
+			g.setClip(alphaX, alphaY, flashlightRadius, flashlightRadius);
+			g.drawImage(offscreen, 0, 0);
+			g.clearClip();
+			g.setDrawMode(Graphics.MODE_NORMAL);
+		}
+
 		// break periods
-		if (osu.breaks != null && breakIndex < osu.breaks.size()) {
-			if (breakTime > 0) {
-				int endTime = osu.breaks.get(breakIndex);
-				int breakLength = endTime - breakTime;
+		if (osu.breaks != null && breakIndex < osu.breaks.size() && breakTime > 0) {
+			int endTime = osu.breaks.get(breakIndex);
+			int breakLength = endTime - breakTime;
 
-				// letterbox effect (black bars on top/bottom)
-				if (osu.letterboxInBreaks && breakLength >= 4000) {
-					g.setColor(Color.black);
-					g.fillRect(0, 0, width, height * 0.125f);
-					g.fillRect(0, height * 0.875f, width, height * 0.125f);
-				}
-
-				data.drawGameElements(g, true, objectIndex == 0);
-
-				if (breakLength >= 8000 &&
-					trackPosition - breakTime > 2000 &&
-					trackPosition - breakTime < 5000) {
-					// show break start
-					if (data.getHealth() >= 50) {
-						GameImage.SECTION_PASS.getImage().drawCentered(width / 2f, height / 2f);
-						if (!breakSound) {
-							SoundController.playSound(SoundEffect.SECTIONPASS);
-							breakSound = true;
-						}
-					} else {
-						GameImage.SECTION_FAIL.getImage().drawCentered(width / 2f, height / 2f);
-						if (!breakSound) {
-							SoundController.playSound(SoundEffect.SECTIONFAIL);
-							breakSound = true;
-						}
-					}
-				} else if (breakLength >= 4000) {
-					// show break end (flash twice for 500ms)
-					int endTimeDiff = endTime - trackPosition;
-					if ((endTimeDiff > 1500 && endTimeDiff < 2000) ||
-						(endTimeDiff > 500 && endTimeDiff < 1000)) {
-						Image arrow = GameImage.WARNINGARROW.getImage();
-						arrow.setRotation(0);
-						arrow.draw(width * 0.15f, height * 0.15f);
-						arrow.draw(width * 0.15f, height * 0.75f);
-						arrow.setRotation(180);
-						arrow.draw(width * 0.75f, height * 0.15f);
-						arrow.draw(width * 0.75f, height * 0.75f);
-					}
-				}
-
-				if (GameMod.AUTO.isActive())
-					GameImage.UNRANKED.getImage().drawCentered(width / 2, height * 0.077f);
-				if (!isReplay)
-					UI.draw(g);
-				else
-					UI.draw(g, replayX, replayY, replayKeyPressed);
-				return;
+			// letterbox effect (black bars on top/bottom)
+			if (osu.letterboxInBreaks && breakLength >= 4000) {
+				g.setColor(Color.black);
+				g.fillRect(0, 0, width, height * 0.125f);
+				g.fillRect(0, height * 0.875f, width, height * 0.125f);
 			}
-		}
 
-		// game elements
-		data.drawGameElements(g, false, objectIndex == 0);
+			data.drawGameElements(g, true, objectIndex == 0);
 
-		// skip beginning
-		if (objectIndex == 0 &&
-		    trackPosition < osu.objects[0].getTime() - SKIP_OFFSET)
-			skipButton.draw();
-
-		// show retries
-		if (retries >= 2 && timeDiff >= -1000) {
-			int retryHeight = Math.max(
-					GameImage.SCOREBAR_BG.getImage().getHeight(),
-					GameImage.SCOREBAR_KI.getImage().getHeight()
-			);
-			float oldAlpha = Utils.COLOR_WHITE_FADE.a;
-			if (timeDiff < -500)
-				Utils.COLOR_WHITE_FADE.a = (1000 + timeDiff) / 500f;
-			Utils.FONT_MEDIUM.drawString(
-					2 + (width / 100), retryHeight,
-					String.format("%d retries and counting...", retries),
-					Utils.COLOR_WHITE_FADE
-			);
-			Utils.COLOR_WHITE_FADE.a = oldAlpha;
-		}
-
-		if (isLeadIn())
-			trackPosition = (leadInTime - Options.getMusicOffset()) * -1;  // render approach circles during song lead-in
-
-		// countdown
-		if (osu.countdown > 0) {  // TODO: implement half/double rate settings
-			timeDiff = firstObjectTime - trackPosition;
-			if (timeDiff >= 500 && timeDiff < 3000) {
-				if (timeDiff >= 1500) {
-					GameImage.COUNTDOWN_READY.getImage().drawCentered(width / 2, height / 2);
-					if (!countdownReadySound) {
-						SoundController.playSound(SoundEffect.READY);
-						countdownReadySound = true;
+			if (breakLength >= 8000 &&
+				trackPosition - breakTime > 2000 &&
+				trackPosition - breakTime < 5000) {
+				// show break start
+				if (data.getHealth() >= 50) {
+					GameImage.SECTION_PASS.getImage().drawCentered(width / 2f, height / 2f);
+					if (!breakSound) {
+						SoundController.playSound(SoundEffect.SECTIONPASS);
+						breakSound = true;
+					}
+				} else {
+					GameImage.SECTION_FAIL.getImage().drawCentered(width / 2f, height / 2f);
+					if (!breakSound) {
+						SoundController.playSound(SoundEffect.SECTIONFAIL);
+						breakSound = true;
 					}
 				}
-				if (timeDiff < 2000) {
-					GameImage.COUNTDOWN_3.getImage().draw(0, 0);
-					if (!countdown3Sound) {
-						SoundController.playSound(SoundEffect.COUNT3);
-						countdown3Sound = true;
-					}
-				}
-				if (timeDiff < 1500) {
-					GameImage.COUNTDOWN_2.getImage().draw(width - GameImage.COUNTDOWN_2.getImage().getWidth(), 0);
-					if (!countdown2Sound) {
-						SoundController.playSound(SoundEffect.COUNT2);
-						countdown2Sound = true;
-					}
-				}
-				if (timeDiff < 1000) {
-					GameImage.COUNTDOWN_1.getImage().drawCentered(width / 2, height / 2);
-					if (!countdown1Sound) {
-						SoundController.playSound(SoundEffect.COUNT1);
-						countdown1Sound = true;
-					}
-				}
-			} else if (timeDiff >= -500 && timeDiff < 500) {
-				Image go = GameImage.COUNTDOWN_GO.getImage();
-				go.setAlpha((timeDiff < 0) ? 1 - (timeDiff / -1000f) : 1);
-				go.drawCentered(width / 2, height / 2);
-				if (!countdownGoSound) {
-					SoundController.playSound(SoundEffect.GO);
-					countdownGoSound = true;
+			} else if (breakLength >= 4000) {
+				// show break end (flash twice for 500ms)
+				int endTimeDiff = endTime - trackPosition;
+				if ((endTimeDiff > 1500 && endTimeDiff < 2000) ||
+					(endTimeDiff > 500 && endTimeDiff < 1000)) {
+					Image arrow = GameImage.WARNINGARROW.getImage();
+					arrow.setRotation(0);
+					arrow.draw(width * 0.15f, height * 0.15f);
+					arrow.draw(width * 0.15f, height * 0.75f);
+					arrow.setRotation(180);
+					arrow.draw(width * 0.75f, height * 0.15f);
+					arrow.draw(width * 0.75f, height * 0.75f);
 				}
 			}
 		}
 
-		// draw hit objects in reverse order, or else overlapping objects are unreadable
-		Stack<Integer> stack = new Stack<Integer>();
-		for (int i = objectIndex; i < hitObjects.length && osu.objects[i].getTime() < trackPosition + approachTime; i++)
-			stack.add(i);
+		// non-break
+		else {
+			// game elements
+			data.drawGameElements(g, false, objectIndex == 0);
+	
+			// skip beginning
+			if (objectIndex == 0 &&
+			    trackPosition < osu.objects[0].getTime() - SKIP_OFFSET)
+				skipButton.draw();
 
-		while (!stack.isEmpty())
-			hitObjects[stack.pop()].draw(g, trackPosition);
+			// show retries
+			if (retries >= 2 && timeDiff >= -1000) {
+				int retryHeight = Math.max(
+						GameImage.SCOREBAR_BG.getImage().getHeight(),
+						GameImage.SCOREBAR_KI.getImage().getHeight()
+				);
+				float oldAlpha = Utils.COLOR_WHITE_FADE.a;
+				if (timeDiff < -500)
+					Utils.COLOR_WHITE_FADE.a = (1000 + timeDiff) / 500f;
+				Utils.FONT_MEDIUM.drawString(
+						2 + (width / 100), retryHeight,
+						String.format("%d retries and counting...", retries),
+						Utils.COLOR_WHITE_FADE
+				);
+				Utils.COLOR_WHITE_FADE.a = oldAlpha;
+			}
 
-		// draw OsuHitObjectResult objects
-		data.drawHitResults(trackPosition);
+			if (isLeadIn())
+				trackPosition = (leadInTime - Options.getMusicOffset()) * -1;  // render approach circles during song lead-in
+
+			// countdown
+			if (osu.countdown > 0) {  // TODO: implement half/double rate settings
+				timeDiff = firstObjectTime - trackPosition;
+				if (timeDiff >= 500 && timeDiff < 3000) {
+					if (timeDiff >= 1500) {
+						GameImage.COUNTDOWN_READY.getImage().drawCentered(width / 2, height / 2);
+						if (!countdownReadySound) {
+							SoundController.playSound(SoundEffect.READY);
+							countdownReadySound = true;
+						}
+					}
+					if (timeDiff < 2000) {
+						GameImage.COUNTDOWN_3.getImage().draw(0, 0);
+						if (!countdown3Sound) {
+							SoundController.playSound(SoundEffect.COUNT3);
+							countdown3Sound = true;
+						}
+					}
+					if (timeDiff < 1500) {
+						GameImage.COUNTDOWN_2.getImage().draw(width - GameImage.COUNTDOWN_2.getImage().getWidth(), 0);
+						if (!countdown2Sound) {
+							SoundController.playSound(SoundEffect.COUNT2);
+							countdown2Sound = true;
+						}
+					}
+					if (timeDiff < 1000) {
+						GameImage.COUNTDOWN_1.getImage().drawCentered(width / 2, height / 2);
+						if (!countdown1Sound) {
+							SoundController.playSound(SoundEffect.COUNT1);
+							countdown1Sound = true;
+						}
+					}
+				} else if (timeDiff >= -500 && timeDiff < 500) {
+					Image go = GameImage.COUNTDOWN_GO.getImage();
+					go.setAlpha((timeDiff < 0) ? 1 - (timeDiff / -1000f) : 1);
+					go.drawCentered(width / 2, height / 2);
+					if (!countdownGoSound) {
+						SoundController.playSound(SoundEffect.GO);
+						countdownGoSound = true;
+					}
+				}
+			}
+
+			// draw hit objects
+			if (!GameMod.FLASHLIGHT.isActive())
+				drawHitObjects(g, trackPosition);
+		}
 
 		if (GameMod.AUTO.isActive())
 			GameImage.UNRANKED.getImage().drawCentered(width / 2, height * 0.077f);
@@ -434,6 +480,62 @@ public class Game extends BasicGameState {
 			mouseY = replayY;
 		}
 		skipButton.hoverUpdate(delta, mouseX, mouseY);
+		int trackPosition = MusicController.getPosition();
+
+		// "flashlight" mod: calculate visible area radius
+		if (GameMod.FLASHLIGHT.isActive()) {
+			int width = container.getWidth(), height = container.getHeight();
+			boolean firstObject = (objectIndex == 0 && trackPosition < osu.objects[0].getTime());
+			if (isLeadIn()) {
+				// lead-in: expand area
+				float progress = Math.max((float) (leadInTime - osu.audioLeadIn) / approachTime, 0f);
+				flashlightRadius = (int) (width / (1 + progress));
+			} else if (firstObject) {
+				// before first object: shrink area
+				int timeDiff = osu.objects[0].getTime() - trackPosition;
+				flashlightRadius = width;
+				if (timeDiff < approachTime) {
+					float progress = (float) timeDiff / approachTime;
+					flashlightRadius -= (width - (height * 2 / 3)) * (1 - progress);
+				}
+			} else {
+				// gameplay: size based on combo
+				int targetRadius;
+				int combo = data.getComboStreak();
+				if (combo < 100)
+					targetRadius = height * 2 / 3;
+				else if (combo < 200)
+					targetRadius = height / 2;
+				else
+					targetRadius = height / 3;
+				if (osu.breaks != null && breakIndex < osu.breaks.size() && breakTime > 0) {
+					// breaks: expand at beginning, shrink at end
+					flashlightRadius = targetRadius;
+					int endTime = osu.breaks.get(breakIndex);
+					int breakLength = endTime - breakTime;
+					if (breakLength > approachTime * 3) {
+						float progress = 1f;
+						if (trackPosition - breakTime < approachTime)
+							progress = (float) (trackPosition - breakTime) / approachTime;
+						else if (endTime - trackPosition < approachTime)
+							progress = (float) (endTime - trackPosition) / approachTime;
+						flashlightRadius += (width - flashlightRadius) * progress;
+					}
+				} else if (flashlightRadius != targetRadius) {
+					// radius size change
+					float radiusDiff = height * delta / 2000f;
+					if (flashlightRadius > targetRadius) {
+						flashlightRadius -= radiusDiff;
+						if (flashlightRadius < targetRadius)
+							flashlightRadius = targetRadius;
+					} else {
+						flashlightRadius += radiusDiff;
+						if (flashlightRadius > targetRadius)
+							flashlightRadius = targetRadius;
+					}
+				}
+			}
+		}
 
 		if (isLeadIn()) {  // stop updating during song lead-in
 			leadInTime -= delta;
@@ -514,8 +616,6 @@ public class Game extends BasicGameState {
 			}
 			return;
 		}
-
-		int trackPosition = MusicController.getPosition();
 
 		// timing points
 		if (timingPointIndex < osu.timingPoints.size()) {
@@ -995,6 +1095,24 @@ public class Game extends BasicGameState {
 			UI.hideCursor();
 			killReplayThread();
 		}
+	}
+
+	/**
+	 * Draws hit objects and hit results.
+	 * @param g the graphics context
+	 * @param trackPosition the track position
+	 */
+	private void drawHitObjects(Graphics g, int trackPosition) {
+		// draw hit objects in reverse order, or else overlapping objects are unreadable
+		Stack<Integer> stack = new Stack<Integer>();
+		for (int i = objectIndex; i < hitObjects.length && osu.objects[i].getTime() < trackPosition + approachTime; i++)
+			stack.add(i);
+
+		while (!stack.isEmpty())
+			hitObjects[stack.pop()].draw(g, trackPosition);
+
+		// draw OsuHitObjectResult objects
+		data.drawHitResults(trackPosition);
 	}
 
 	/**
