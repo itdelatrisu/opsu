@@ -140,7 +140,7 @@ public class Slider implements HitObject {
 		this.color = color;
 		this.comboEnd = comboEnd;
 
-		if (hitObject.getSliderType() == 'P' && hitObject.getSliderX().length == 2)
+		if (hitObject.getSliderType() == OsuHitObject.SLIDER_PASSTHROUGH && hitObject.getSliderX().length == 2)
 			this.curve = new CircumscribedCircle(hitObject, color);
 		else
 			this.curve = new LinearBezier(hitObject, color);

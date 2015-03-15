@@ -257,6 +257,7 @@ public class Options {
 		},
 		ENABLE_THEME_SONG ("Enable Theme Song", "Whether to play the theme song upon starting opsu!", true),
 		SHOW_HIT_ERROR_BAR ("Show Hit Error Bar", "Shows precisely how accurate you were with each hit.", false),
+		USE_2X_IMAGE ("Use @2x Images", "Uses @2x images if available.", true),
 		DISABLE_MOUSE_WHEEL ("Disable mouse wheel in play mode", "During play, you can use the mouse wheel to adjust the volume and pause the game.\nThis will disable that functionality.", false),
 		DISABLE_MOUSE_BUTTONS ("Disable mouse buttons in play mode", "This option will disable all mouse buttons.\nSpecifically for people who use their keyboard to click.", false);
 
@@ -693,6 +694,14 @@ public class Options {
 	 * @return true if enabled
 	 */
 	public static boolean isHitErrorBarEnabled() { return GameOption.SHOW_HIT_ERROR_BAR.getBooleanValue(); }
+	
+
+	/**
+	 * Returns whether or not to use 2x Images
+	 * @return true if ignored
+	 */
+	public static boolean is2xImagesEnabled() { return GameOption.USE_2X_IMAGE.getBooleanValue(); }
+
 
 	/**
 	 * Returns whether or not the mouse wheel is disabled during gameplay.
@@ -1021,6 +1030,9 @@ public class Options {
 					case "ScoreMeter":
 						GameOption.SHOW_HIT_ERROR_BAR.setValue(Boolean.parseBoolean(value));
 						break;
+					case "Use2xImage":
+						GameOption.USE_2X_IMAGE.setValue(Boolean.parseBoolean(value));
+						break;
 					case "FixedCS":
 						GameOption.FIXED_CS.setValue((int) (Float.parseFloat(value) * 10f));
 						break;
@@ -1132,6 +1144,8 @@ public class Options {
 			writer.write(String.format("PerfectHit = %b", isPerfectHitBurstEnabled()));
 			writer.newLine();
 			writer.write(String.format("ScoreMeter = %b", isHitErrorBarEnabled()));
+			writer.newLine();
+			writer.write(String.format("Use2xImage = %b", is2xImagesEnabled()));
 			writer.newLine();
 			writer.write(String.format(Locale.US, "FixedCS = %.1f", getFixedCS()));
 			writer.newLine();

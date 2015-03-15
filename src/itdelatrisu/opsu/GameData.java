@@ -164,7 +164,7 @@ public class GameData {
 	private float comboBurstAlpha;
 
 	/** Current x coordinate of the combo burst image (for sliding animation). */
-	private int comboBurstX;
+	private float comboBurstX;
 
 	/** Time offsets for obtaining each hit result (indexed by HIT_* constants). */
 	private int[] hitResultOffset;
@@ -999,11 +999,11 @@ public class GameData {
 			int leftX  = 0;
 			int rightX = width - comboBurstImages[comboBurstIndex].getWidth();
 			if (comboBurstX < leftX) {
-				comboBurstX += (delta / 2f);
+				comboBurstX += (delta / 2f) * GameImage.getUIscale();
 				if (comboBurstX > leftX)
 					comboBurstX = leftX;
 			} else if (comboBurstX > rightX) {
-				comboBurstX -= (delta / 2f);
+				comboBurstX -= (delta / 2f) * GameImage.getUIscale();
 				if (comboBurstX < rightX)
 					comboBurstX = rightX;
 			} else if (comboBurstAlpha > 0f) {
