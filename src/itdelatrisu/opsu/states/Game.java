@@ -48,7 +48,6 @@ import itdelatrisu.opsu.replay.ReplayFrame;
 import java.io.File;
 import java.util.LinkedList;
 import java.util.Stack;
-import java.util.concurrent.TimeUnit;
 
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.Display;
@@ -264,22 +263,6 @@ public class Game extends BasicGameState {
 		int firstObjectTime = osu.objects[0].getTime();
 		int timeDiff = firstObjectTime - trackPosition;
 
-		// checkpoint
-		if (checkpointLoaded) {
-			int checkpoint = Options.getCheckpoint();
-			String checkpointText = String.format(
-					"Playing from checkpoint at %02d:%02d.",
-					TimeUnit.MILLISECONDS.toMinutes(checkpoint),
-					TimeUnit.MILLISECONDS.toSeconds(checkpoint) -
-					TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(checkpoint))
-			);
-			Utils.FONT_MEDIUM.drawString(
-					(width - Utils.FONT_MEDIUM.getWidth(checkpointText)) / 2,
-					height - 15 - Utils.FONT_MEDIUM.getLineHeight(),
-					checkpointText, Color.white
-			);
-		}
-
 		// "flashlight" mod: restricted view of hit objects around cursor
 		if (GameMod.FLASHLIGHT.isActive()) {
 			// render hit objects offscreen
@@ -305,13 +288,14 @@ public class Game extends BasicGameState {
 				mouseX = input.getMouseX();
 				mouseY = input.getMouseY();
 			}
-			int alphaX = mouseX - flashlightRadius / 2;
-			int alphaY = mouseY - flashlightRadius / 2;
-			GameImage.ALPHA_MAP.getImage().draw(alphaX, alphaY, flashlightRadius, flashlightRadius);
+			int alphaRadius = flashlightRadius * 256 / 215;
+			int alphaX = mouseX - alphaRadius / 2;
+			int alphaY = mouseY - alphaRadius / 2;
+			GameImage.ALPHA_MAP.getImage().draw(alphaX, alphaY, alphaRadius, alphaRadius);
 
 			// blend offscreen image
 			g.setDrawMode(Graphics.MODE_ALPHA_BLEND);
-			g.setClip(alphaX, alphaY, flashlightRadius, flashlightRadius);
+			g.setClip(alphaX, alphaY, alphaRadius, alphaRadius);
 			g.drawImage(offscreen, 0, 0);
 			g.clearClip();
 			g.setDrawMode(Graphics.MODE_NORMAL);
@@ -489,7 +473,7 @@ public class Game extends BasicGameState {
 			if (isLeadIn()) {
 				// lead-in: expand area
 				float progress = Math.max((float) (leadInTime - osu.audioLeadIn) / approachTime, 0f);
-				flashlightRadius = (int) (width / (1 + progress));
+				flashlightRadius = width - (int) ((width - (height * 2 / 3)) * progress);
 			} else if (firstObject) {
 				// before first object: shrink area
 				int timeDiff = osu.objects[0].getTime() - trackPosition;
