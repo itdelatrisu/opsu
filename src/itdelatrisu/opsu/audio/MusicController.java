@@ -24,8 +24,14 @@ import itdelatrisu.opsu.OsuFile;
 import itdelatrisu.opsu.OsuParser;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.nio.IntBuffer;
+import java.util.Map;
+
+import javax.sound.sampled.AudioFileFormat;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.UnsupportedAudioFileException;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.openal.AL;
@@ -35,6 +41,7 @@ import org.newdawn.slick.MusicListener;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.openal.Audio;
 import org.newdawn.slick.openal.SoundStore;
+import org.tritonus.share.sampled.file.TAudioFileFormat;
 
 /**
  * Controller for all music.
@@ -250,6 +257,30 @@ public class MusicController {
 	 */
 	public static boolean setPosition(int position) {
 		return (trackExists() && position >= 0 && player.setPosition(position / 1000f));
+	}
+
+	/**
+	 * Returns the duration of the current track, in milliseconds.
+	 * Currently only works for MP3s.
+	 * @return the duration, or -1 if no track exists, else the {@code endTime}
+	 *         field of the OsuFile loaded
+	 * @author Tom Brito (http://stackoverflow.com/a/3056161)
+	 */
+	public static int getDuration() {
+		if (!trackExists() || lastOsu == null)
+			return -1;
+
+		if (lastOsu.audioFilename.getName().endsWith(".mp3")) {
+			try {
+				AudioFileFormat fileFormat = AudioSystem.getAudioFileFormat(lastOsu.audioFilename);
+				if (fileFormat instanceof TAudioFileFormat) {
+					Map<?, ?> properties = ((TAudioFileFormat) fileFormat).properties();
+					Long microseconds = (Long) properties.get("duration");
+					return (int) (microseconds / 1000);
+				}
+			} catch (UnsupportedAudioFileException | IOException e) {}
+		}
+		return lastOsu.endTime;
 	}
 
 	/**
