@@ -24,13 +24,11 @@ import itdelatrisu.opsu.GameMod;
 import itdelatrisu.opsu.OsuFile;
 import itdelatrisu.opsu.OsuHitObject;
 import itdelatrisu.opsu.Utils;
-import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.objects.curves.CircumscribedCircle;
 import itdelatrisu.opsu.objects.curves.Curve;
 import itdelatrisu.opsu.objects.curves.LinearBezier;
 import itdelatrisu.opsu.states.Game;
 
-import org.newdawn.slick.Animation;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
@@ -41,8 +39,8 @@ import org.newdawn.slick.Image;
  */
 public class Slider implements HitObject {
 	/** Slider ball animation. */
-	private static Animation sliderBall;
-
+	private static Image[] sliderBallImages;
+	
 	/** Slider movement speed multiplier. */
 	private static float sliderMultiplier = 1.0f;
 
@@ -105,7 +103,6 @@ public class Slider implements HitObject {
 		diameter = (int) (diameter * OsuHitObject.getXMultiplier());  // convert from Osupixels (640x480)
 
 		// slider ball
-		Image[] sliderBallImages;
 		if (GameImage.SLIDER_BALL.hasSkinImages() ||
 		    (!GameImage.SLIDER_BALL.hasSkinImage() && GameImage.SLIDER_BALL.getImages() != null))
 			sliderBallImages = GameImage.SLIDER_BALL.getImages();
@@ -113,8 +110,7 @@ public class Slider implements HitObject {
 			sliderBallImages = new Image[]{ GameImage.SLIDER_BALL.getImage() };
 		for (int i = 0; i < sliderBallImages.length; i++)
 			sliderBallImages[i] = sliderBallImages[i].getScaledCopy(diameter * 118 / 128, diameter * 118 / 128);
-		sliderBall = new Animation(sliderBallImages, 30);
-
+		
 		GameImage.SLIDER_FOLLOWCIRCLE.setImage(GameImage.SLIDER_FOLLOWCIRCLE.getImage().getScaledCopy(diameter * 259 / 128, diameter * 259 / 128));
 		GameImage.REVERSEARROW.setImage(GameImage.REVERSEARROW.getImage().getScaledCopy(diameter, diameter));
 		GameImage.SLIDER_TICK.setImage(GameImage.SLIDER_TICK.getImage().getScaledCopy(diameter / 4, diameter / 4));
@@ -196,7 +192,9 @@ public class Slider implements HitObject {
 			if (hitObject.getRepeatCount() - 1 > tcurRepeat) {
 				Image arrow = GameImage.REVERSEARROW.getImage();
 				if (tcurRepeat != currentRepeats) {
-					float t = getT(trackPosition, true);
+					if (sliderTime == 0)
+						continue;
+					float t = Math.max(getT(trackPosition, true), 0);
 					arrow.setAlpha((float) (t - Math.floor(t)));
 				} else
 					arrow.setAlpha(1f);
@@ -211,23 +209,26 @@ public class Slider implements HitObject {
 				}
 			}
 		}
+		
 
 		if (timeDiff >= 0) {
 			// approach circle
 			color.a = 1 - scale;
 			GameImage.APPROACHCIRCLE.getImage().getScaledCopy(approachScale).drawCentered(x, y, color);
 		} else {
+			//since update might not have run before drawing during replay, 
+			//the slider time may not have been calculated.
+			//Which will cause NAN numbers and cause flicker.
+			if (sliderTime == 0)
+				return;
 			float[] c = curve.pointAt(getT(trackPosition, false));
 			float[] c2 = curve.pointAt(getT(trackPosition, false) + 0.01f);
 
-			// slider ball
-			// TODO: deprecated method
-			// TODO 2: update the animation based on the distance traveled?
-			sliderBall.updateNoDraw();
-			Image sliderBallFrame = sliderBall.getCurrentFrame();
+			float t = getT(trackPosition, false);
+			//float dis = hitObject.getPixelLength()*OsuHitObject.getXMultiplier() * (t -(int)t);
+			//Image sliderBallFrame = sliderBallImages[ (int)(dis/ (diameter*Math.PI) *30)%sliderBallImages.length];
+			Image sliderBallFrame = sliderBallImages[(int) (t * sliderTime * 60 / 1000)	% sliderBallImages.length];
 			float angle = (float) (Math.atan2(c2[1] - c[1], c2[0] - c[0]) * 180 / Math.PI);
-			if (currentRepeats % 2 == 1)
-				angle += 180;
 			sliderBallFrame.setRotation(angle);
 			sliderBallFrame.drawCentered(c[0], c[1]);
 

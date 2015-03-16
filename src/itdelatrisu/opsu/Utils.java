@@ -25,8 +25,10 @@ import itdelatrisu.opsu.downloads.DownloadNode;
 
 import java.awt.Font;
 import java.awt.image.BufferedImage;
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -34,6 +36,8 @@ import java.net.HttpURLConnection;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.nio.ByteBuffer;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -536,5 +540,38 @@ public class Utils {
 		try (Scanner s = new Scanner(is)) {
 			return s.useDelimiter("\\A").hasNext() ? s.next() : "";
 		}
+	}
+	
+
+	/**
+	 * Returns the md5 hash of a file in hex form.
+	 * @param file
+	 * @return the md5 hash
+	 */
+	public static String getMD5(File file){
+		try {
+			InputStream in = new BufferedInputStream(new FileInputStream(file));
+			MessageDigest md = MessageDigest.getInstance("MD5");
+			byte[] buf = new byte[4096];
+			
+			while(true) {
+				int len = in.read(buf);
+				if (len < 0)
+					break;
+				md.update(buf, 0, len);
+			}
+			in.close();
+			
+			byte[] md5byte = md.digest();
+			StringBuilder result = new StringBuilder();
+			for (byte b : md5byte) {
+				result.append(String.format("%02x", b));
+			}
+			return result.toString();
+		} catch (NoSuchAlgorithmException | IOException e) {
+			e.printStackTrace();
+			Log.error(e);
+		}
+		return null;
 	}
 }

@@ -170,7 +170,7 @@ public class GameRanking extends BasicGameState {
 		Game gameState = (Game) game.getState(Opsu.STATE_GAME);
 		boolean returnToGame = false;
 		if (replayButton.contains(x, y)) {
-			Replay r = data.getReplay(null);
+			Replay r = data.getReplay(null, null);
 			if (r != null) {
 				try {
 					r.load();
