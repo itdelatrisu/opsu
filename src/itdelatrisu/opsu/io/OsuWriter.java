@@ -16,7 +16,7 @@
  * along with opsu!.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package itdelatrisu.opsu;
+package itdelatrisu.opsu.io;
 
 import java.io.DataOutputStream;
 import java.io.File;
