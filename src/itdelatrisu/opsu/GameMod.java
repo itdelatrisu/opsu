@@ -355,17 +355,16 @@ public enum GameMod {
 		scoreMultiplier = -1f;
 
 		if (checkInverse) {
-			boolean b = (this == SUDDEN_DEATH || this == NO_FAIL || this == RELAX || this == AUTOPILOT);
 			if (AUTO.isActive()) {
 				if (this == AUTO) {
 					SPUN_OUT.active = false;
 					SUDDEN_DEATH.active = false;
 					RELAX.active = false;
 					AUTOPILOT.active = false;
-				} else if (b)
+				} else if (this == SPUN_OUT || this == SUDDEN_DEATH || this == RELAX || this == AUTOPILOT)
 					this.active = false;
 			}
-			if (active && b) {
+			if (active && (this == SUDDEN_DEATH || this == NO_FAIL || this == RELAX || this == AUTOPILOT)) {
 				SUDDEN_DEATH.active = false;
 				NO_FAIL.active = false;
 				RELAX.active = false;
@@ -383,6 +382,12 @@ public enum GameMod {
 					HARD_ROCK.active = false;
 				else
 					EASY.active = false;
+			}
+			if (HALF_TIME.isActive() && DOUBLE_TIME.isActive()) {
+				if (this == HALF_TIME)
+					DOUBLE_TIME.active = false;
+				else
+					HALF_TIME.active = false;
 			}
 		}
 	}
