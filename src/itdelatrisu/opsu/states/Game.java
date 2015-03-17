@@ -201,6 +201,12 @@ public class Game extends BasicGameState {
 	/** The current flashlight area radius. */
 	private int flashlightRadius;
 
+	/** The cursor coordinates using the "auto" or "relax" mods. */
+	private int autoMouseX = 0, autoMouseY = 0;
+
+	/** Whether or not the cursor should be pressed using the "auto" mod. */
+	private boolean autoMousePressed;
+
 	// game-related variables
 	private GameContainer container;
 	private StateBasedGame game;
@@ -263,10 +269,12 @@ public class Game extends BasicGameState {
 		int firstObjectTime = osu.objects[0].getTime();
 		int timeDiff = firstObjectTime - trackPosition;
 
-		// "auto" mod: move cursor automatically
-		int autoMouseX = width / 2, autoMouseY = height / 2;
-		boolean autoMousePress = false;
-		if (GameMod.AUTO.isActive()) {
+		// "auto" and "autopilot" mods: move cursor automatically
+		// TODO: this should really be in update(), not render()
+		autoMouseX = width / 2;
+		autoMouseY = height / 2;
+		autoMousePressed = false;
+		if (GameMod.AUTO.isActive() || GameMod.AUTOPILOT.isActive()) {
 			float[] autoXY = null;
 			if (isLeadIn()) {
 				// lead-in
@@ -306,11 +314,11 @@ public class Game extends BasicGameState {
 						int offset300 = hitResultOffset[GameData.HIT_300];
 						if ((osu.objects[objectIndex].isCircle() && objectTime - trackPosition < offset300) ||
 						    (osu.objects[objectIndex - 1].isCircle() && trackPosition - osu.objects[objectIndex - 1].getTime() < offset300))
-							autoMousePress = true;
+							autoMousePressed = true;
 					}
 				} else {
 					autoXY = hitObjects[objectIndex].getPointAt(trackPosition);
-					autoMousePress = true;
+					autoMousePressed = true;
 				}
 			} else {
 				// last object
@@ -342,7 +350,7 @@ public class Game extends BasicGameState {
 			if (pauseTime > -1 && pausedMouseX > -1 && pausedMouseY > -1) {
 				mouseX = pausedMouseX;
 				mouseY = pausedMouseY;
-			} else if (GameMod.AUTO.isActive()) {
+			} else if (GameMod.AUTO.isActive() || GameMod.AUTOPILOT.isActive()) {
 				mouseX = autoMouseX;
 				mouseY = autoMouseY;
 			} else if (isReplay) {
@@ -510,7 +518,9 @@ public class Game extends BasicGameState {
 		}
 
 		if (GameMod.AUTO.isActive())
-			UI.draw(g, autoMouseX, autoMouseY, autoMousePress);
+			UI.draw(g, autoMouseX, autoMouseY, autoMousePressed);
+		else if (GameMod.AUTOPILOT.isActive())
+			UI.draw(g, autoMouseX, autoMouseY, Utils.isGameKeyPressed());
 		else if (!isReplay)
 			UI.draw(g);
 		else
@@ -522,7 +532,10 @@ public class Game extends BasicGameState {
 			throws SlickException {
 		UI.update(delta);
 		int mouseX, mouseY;
-		if (!isReplay) {
+		if (GameMod.AUTO.isActive() || GameMod.AUTOPILOT.isActive()) {
+			mouseX = autoMouseX;
+			mouseY = autoMouseY;
+		} else if (!isReplay) {
 			mouseX = input.getMouseX();
 			mouseY = input.getMouseY();
 		} else {
@@ -940,16 +953,26 @@ public class Game extends BasicGameState {
 		if (GameMod.AUTO.isActive() || GameMod.RELAX.isActive())
 			return;
 
+		// "autopilot" mod: ignore actual cursor coordinates
+		int cx, cy;
+		if (GameMod.AUTOPILOT.isActive()) {
+			cx = autoMouseX;
+			cy = autoMouseY;
+		} else {
+			cx = x;
+			cy = y;
+		}
+
 		if (!isReplay)
-			addReplayFrame(x, y, lastKeysPressed | keys);
+			addReplayFrame(cx, cy, lastKeysPressed | keys);
 
 		// circles
-		if (hitObject.isCircle() && hitObjects[objectIndex].mousePressed(x, y))
+		if (hitObject.isCircle() && hitObjects[objectIndex].mousePressed(cx, cy))
 			objectIndex++;  // circle hit
 
 		// sliders
 		else if (hitObject.isSlider())
-			hitObjects[objectIndex].mousePressed(x, y);
+			hitObjects[objectIndex].mousePressed(cx, cy);
 	}
 
 	@Override
@@ -1209,6 +1232,9 @@ public class Game extends BasicGameState {
 		deaths = 0;
 		deathTime = -1;
 		replayFrames = null;
+		autoMouseX = 0;
+		autoMouseY = 0;
+		autoMousePressed = false;
 
 		System.gc();
 	}
@@ -1415,6 +1441,10 @@ public class Game extends BasicGameState {
 	 * @return the [x,y] coordinates
 	 */
 	private float[] getPointAt(float startX, float startY, float endX, float endY, float t) {
+		// "autopilot" mod: move quicker between objects
+		if (GameMod.AUTOPILOT.isActive())
+			t = Utils.clamp(t * 2f, 0f, 1f);
+
 		float[] xy = new float[2];
 		xy[0] = startX + (endX - startX) * t;
 		xy[1] = startY + (endY - startY) * t;

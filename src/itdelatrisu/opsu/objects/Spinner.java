@@ -50,6 +50,11 @@ public class Spinner implements HitObject {
 	/** The amount of time, in milliseconds, to fade in the spinner. */
 	private static final int FADE_IN_TIME = 500;
 
+	/** Angle mod multipliers: "auto" (477rpm), "spun out" (287rpm) */
+	private static final float
+		AUTO_MULTIPLIER = 1 / 20f,         // angle = 477/60f * delta/1000f * TWO_PI;
+		SPUN_OUT_MULTIPLIER = 1 / 33.25f;  // angle = 287/60f * delta/1000f * TWO_PI;
+
 	/** PI constants. */
 	private static final float
 		TWO_PI  = (float) (Math.PI * 2),
@@ -176,8 +181,7 @@ public class Spinner implements HitObject {
 		// TODO: verify ratios
 		int result;
 		float ratio = rotations / rotationsNeeded;
-		if (ratio >= 1.0f ||
-			GameMod.AUTO.isActive() || GameMod.SPUN_OUT.isActive()) {
+		if (ratio >= 1.0f || GameMod.AUTO.isActive() || GameMod.AUTOPILOT.isActive() || GameMod.SPUN_OUT.isActive()) {
 			result = GameData.HIT_300;
 			SoundController.playSound(SoundEffect.SPINNEROSU);
 		} else if (ratio >= 0.9f)
@@ -213,14 +217,12 @@ public class Spinner implements HitObject {
 		// http://osu.ppy.sh/wiki/FAQ#Spinners
 		float angle;
 		if (GameMod.AUTO.isActive()) {
-			// "auto" mod (fast: 477rpm)
 			lastAngle = 0;
-			angle = delta / 20f;  // angle = 477/60f * delta/1000f * TWO_PI;
+			angle = delta * AUTO_MULTIPLIER;
 			isSpinning = true;
-		} else if (GameMod.SPUN_OUT.isActive()) {
-			// "spun out" mod (slow: 287rpm)
+		} else if (GameMod.SPUN_OUT.isActive() || GameMod.AUTOPILOT.isActive()) {
 			lastAngle = 0;
-			angle = delta / 33.25f;  // angle = 287/60f * delta/1000f * TWO_PI;
+			angle = delta * SPUN_OUT_MULTIPLIER;
 			isSpinning = true;
 		} else {
 			angle = (float) Math.atan2(mouseY - (height / 2), mouseX - (width / 2));
@@ -276,7 +278,8 @@ public class Spinner implements HitObject {
 			timeDiff = trackPosition - hitObject.getTime();
 
 		// calculate point
-		float angle = timeDiff / 20f - HALF_PI;
+		float multiplier = (GameMod.AUTO.isActive()) ? AUTO_MULTIPLIER : SPUN_OUT_MULTIPLIER;
+		float angle = (timeDiff * multiplier) - HALF_PI;
 		final float r = height / 10f;
 		return new float[] {
 			(float) (x + r * Math.cos(angle)),
