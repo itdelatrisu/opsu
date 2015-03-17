@@ -458,6 +458,24 @@ public class Slider implements HitObject {
 		return false;
 	}
 
+	@Override
+	public float[] getPointAt(int trackPosition) {
+		if (trackPosition <= hitObject.getTime())
+			return new float[] { x, y };
+		else if (trackPosition >= hitObject.getTime() + sliderTimeTotal) {
+			if (hitObject.getRepeatCount() % 2 == 0)
+				return new float[] { x, y };
+			else {
+				int lastIndex = hitObject.getSliderX().length;
+				return new float[] { curve.getX(lastIndex), curve.getY(lastIndex) };
+			}
+		} else
+			return curve.pointAt(getT(trackPosition, false));
+	}
+
+	@Override
+	public int getEndTime() { return hitObject.getTime() + (int) sliderTimeTotal; }
+
 	/**
 	 * Returns the t value based on the given track position.
 	 * @param trackPosition the current track position

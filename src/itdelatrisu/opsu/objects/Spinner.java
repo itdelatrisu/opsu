@@ -51,7 +51,9 @@ public class Spinner implements HitObject {
 	private static final int FADE_IN_TIME = 500;
 
 	/** PI constants. */
-	private static final float TWO_PI  = (float) (Math.PI * 2);
+	private static final float
+		TWO_PI  = (float) (Math.PI * 2),
+		HALF_PI = (float) (Math.PI / 2);
 
 	/** The associated OsuHitObject. */
 	private OsuHitObject hitObject;
@@ -260,6 +262,30 @@ public class Spinner implements HitObject {
 		lastAngle = angle;
 		return false;
 	}
+
+	@Override
+	public float[] getPointAt(int trackPosition) {
+		// get spinner time
+		int timeDiff;
+		float x = hitObject.getScaledX(), y = hitObject.getScaledY();
+		if (trackPosition <= hitObject.getTime())
+			timeDiff = 0;
+		else if (trackPosition >= hitObject.getEndTime())
+			timeDiff = hitObject.getEndTime() - hitObject.getTime();
+		else
+			timeDiff = trackPosition - hitObject.getTime();
+
+		// calculate point
+		float angle = timeDiff / 20f - HALF_PI;
+		final float r = height / 10f;
+		return new float[] {
+			(float) (x + r * Math.cos(angle)),
+			(float) (y + r * Math.sin(angle))
+		};
+	}
+
+	@Override
+	public int getEndTime() { return hitObject.getEndTime(); }
 
 	/**
 	 * Rotates the spinner by an angle.

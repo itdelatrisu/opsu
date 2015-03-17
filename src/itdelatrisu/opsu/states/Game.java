@@ -263,6 +263,67 @@ public class Game extends BasicGameState {
 		int firstObjectTime = osu.objects[0].getTime();
 		int timeDiff = firstObjectTime - trackPosition;
 
+		// "auto" mod: move cursor automatically
+		int autoMouseX = width / 2, autoMouseY = height / 2;
+		boolean autoMousePress = false;
+		if (GameMod.AUTO.isActive()) {
+			float[] autoXY = null;
+			if (isLeadIn()) {
+				// lead-in
+				float progress = Math.max((float) (leadInTime - osu.audioLeadIn) / approachTime, 0f);
+				autoMouseY = (int) (height / (2f - progress));
+			} else if (objectIndex == 0 && trackPosition < firstObjectTime) {
+				// before first object
+				timeDiff = firstObjectTime - trackPosition;
+				if (timeDiff < approachTime) {
+					float[] xy = hitObjects[0].getPointAt(trackPosition);
+					autoXY = getPointAt(autoMouseX, autoMouseY, xy[0], xy[1], 1f - ((float) timeDiff / approachTime));
+				}
+			} else if (objectIndex < osu.objects.length) {
+				// normal object
+				int objectTime = osu.objects[objectIndex].getTime();
+				if (trackPosition < objectTime) {
+					float[] xyStart = hitObjects[objectIndex - 1].getPointAt(trackPosition);
+					int startTime = hitObjects[objectIndex - 1].getEndTime();
+					if (osu.breaks != null && breakIndex < osu.breaks.size()) {
+						// starting a break: keep cursor at previous hit object position
+						if (breakTime > 0 || objectTime > osu.breaks.get(breakIndex))
+							autoXY = xyStart;
+
+						// after a break ends: move startTime to break end time
+						else if (breakIndex > 1) {
+							int lastBreakEndTime = osu.breaks.get(breakIndex - 1);
+							if (objectTime > lastBreakEndTime && startTime < lastBreakEndTime)
+								startTime = lastBreakEndTime;
+						}
+					}
+					if (autoXY == null) {
+						float[] xyEnd = hitObjects[objectIndex].getPointAt(trackPosition);
+						int totalTime = objectTime - startTime;
+						autoXY = getPointAt(xyStart[0], xyStart[1], xyEnd[0], xyEnd[1], (float) (trackPosition - startTime) / totalTime);
+
+						// hit circles: show a mouse press
+						int offset300 = hitResultOffset[GameData.HIT_300];
+						if ((osu.objects[objectIndex].isCircle() && objectTime - trackPosition < offset300) ||
+						    (osu.objects[objectIndex - 1].isCircle() && trackPosition - osu.objects[objectIndex - 1].getTime() < offset300))
+							autoMousePress = true;
+					}
+				} else {
+					autoXY = hitObjects[objectIndex].getPointAt(trackPosition);
+					autoMousePress = true;
+				}
+			} else {
+				// last object
+				autoXY = hitObjects[objectIndex - 1].getPointAt(trackPosition);
+			}
+
+			// set mouse coordinates
+			if (autoXY != null) {
+				autoMouseX = (int) autoXY[0];
+				autoMouseY = (int) autoXY[1];
+			}
+		}
+
 		// "flashlight" mod: restricted view of hit objects around cursor
 		if (GameMod.FLASHLIGHT.isActive()) {
 			// render hit objects offscreen
@@ -281,6 +342,9 @@ public class Game extends BasicGameState {
 			if (pauseTime > -1 && pausedMouseX > -1 && pausedMouseY > -1) {
 				mouseX = pausedMouseX;
 				mouseY = pausedMouseY;
+			} else if (GameMod.AUTO.isActive()) {
+				mouseX = autoMouseX;
+				mouseY = autoMouseY;
 			} else if (isReplay) {
 				mouseX = replayX;
 				mouseY = replayY;
@@ -445,7 +509,9 @@ public class Game extends BasicGameState {
 			cursorCirclePulse.drawCentered(pausedMouseX, pausedMouseY);
 		}
 
-		if (!isReplay)
+		if (GameMod.AUTO.isActive())
+			UI.draw(g, autoMouseX, autoMouseY, autoMousePress);
+		else if (!isReplay)
 			UI.draw(g);
 		else
 			UI.draw(g, replayX, replayY, replayKeyPressed);
@@ -577,6 +643,7 @@ public class Game extends BasicGameState {
 
 			// go to ranking screen
 			else {
+				boolean unranked = (GameMod.AUTO.isActive() || GameMod.RELAX.isActive() || GameMod.AUTOPILOT.isActive());
 				((GameRanking) game.getState(Opsu.STATE_GAMERANKING)).setGameData(data);
 				if (isReplay)
 					data.setReplay(replay);
@@ -587,13 +654,13 @@ public class Game extends BasicGameState {
 					replayFrames.addFirst(ReplayFrame.getStartFrame(replaySkipTime));
 					replayFrames.addFirst(ReplayFrame.getStartFrame(0));
 					Replay r = data.getReplay(replayFrames.toArray(new ReplayFrame[replayFrames.size()]));
-					if (r != null)
+					if (r != null && !unranked)
 						r.save();
 				}
 				ScoreData score = data.getScoreData(osu);
 
 				// add score to database
-				if (!GameMod.AUTO.isActive() && !GameMod.RELAX.isActive() && !GameMod.AUTOPILOT.isActive() && !isReplay)
+				if (!unranked && !isReplay)
 					ScoreDB.addScore(score);
 
 				game.enterState(Opsu.STATE_GAMERANKING, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
@@ -984,11 +1051,12 @@ public class Game extends BasicGameState {
 				}
 			}
 
-			// load replay frames
-			if (isReplay) {
-				// unhide cursor
+			// unhide cursor for "auto" mod and replays
+			if (GameMod.AUTO.isActive() || isReplay)
 				UI.showCursor();
 
+			// load replay frames
+			if (isReplay) {
 				// load mods
 				previousMods = GameMod.getModState();
 				GameMod.loadModState(replay.mods);
@@ -1048,8 +1116,10 @@ public class Game extends BasicGameState {
 						}
 					}
 				};
-				replayThreadRunning = true;
-				replayThread.start();
+				if (!GameMod.AUTO.isActive()) {  // "auto" mod: ignore replay frames
+					replayThreadRunning = true;
+					replayThread.start();
+				}
 			}
 
 			// initialize replay-recording structures
@@ -1073,10 +1143,13 @@ public class Game extends BasicGameState {
 			throws SlickException {
 //		container.setMouseGrabbed(false);
 
+		// re-hide cursor
+		if (GameMod.AUTO.isActive() || isReplay)
+			UI.hideCursor();
+
 		// replays
 		if (isReplay) {
 			GameMod.loadModState(previousMods);
-			UI.hideCursor();
 			killReplayThread();
 		}
 	}
@@ -1330,5 +1403,21 @@ public class Game extends BasicGameState {
 		int cx = (int) ((x - OsuHitObject.getXOffset()) / OsuHitObject.getXMultiplier());
 		int cy = (int) ((y - OsuHitObject.getYOffset()) / OsuHitObject.getYMultiplier());
 		replayFrames.add(new ReplayFrame(timeDiff, time, cx, cy, lastKeysPressed));
+	}
+
+	/**
+	 * Returns the point at the t value between a start and end point.
+	 * @param startX the starting x coordinate
+	 * @param startY the starting y coordinate
+	 * @param endX the ending x coordinate
+	 * @param endY the ending y coordinate
+	 * @param t the t value [0, 1]
+	 * @return the [x,y] coordinates
+	 */
+	private float[] getPointAt(float startX, float startY, float endX, float endY, float t) {
+		float[] xy = new float[2];
+		xy[0] = startX + (endX - startX) * t;
+		xy[1] = startY + (endY - startY) * t;
+		return xy;
 	}
 }
