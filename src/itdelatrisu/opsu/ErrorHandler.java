@@ -133,6 +133,14 @@ public class ErrorHandler {
 							sb.append(timestamp);
 							sb.append('\n');
 						}
+						sb.append("**OS:** ");
+						sb.append(System.getProperty("os.name"));
+						sb.append(" (");
+						sb.append(System.getProperty("os.arch"));
+						sb.append(")\n");
+						sb.append("**JRE:** ");
+						sb.append(System.getProperty("java.version"));
+						sb.append('\n');
 						if (error != null) {
 							sb.append("**Error:** `");
 							sb.append(error);
