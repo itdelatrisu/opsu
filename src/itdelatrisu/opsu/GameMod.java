@@ -47,11 +47,11 @@ public enum GameMod {
 //	              "Nightcore", "uguuuuuuuu"),
 	HIDDEN        (Category.HARD, 3, GameImage.MOD_HIDDEN, "HD", 8, Input.KEY_F, 1.06f, false,
 	              "Hidden", "Play with no approach circles and fading notes for a slight score advantage."),
-	FLASHLIGHT    (Category.HARD, 4, GameImage.MOD_FLASHLIGHT, "FL", 1024, Input.KEY_G, 1.12f, false,
+	FLASHLIGHT    (Category.HARD, 4, GameImage.MOD_FLASHLIGHT, "FL", 1024, Input.KEY_G, 1.12f,
 	              "Flashlight", "Restricted view area."),
 	RELAX         (Category.SPECIAL, 0, GameImage.MOD_RELAX, "RL", 128, Input.KEY_Z, 0f,
 	              "Relax", "You don't need to click.\nGive your clicking/tapping finger a break from the heat of things.\n**UNRANKED**"),
-	AUTOPILOT     (Category.SPECIAL, 1, GameImage.MOD_AUTOPILOT, "AP", 8192, Input.KEY_X, 0f, false,
+	AUTOPILOT     (Category.SPECIAL, 1, GameImage.MOD_AUTOPILOT, "AP", 8192, Input.KEY_X, 0f,
 	              "Relax2", "Automatic cursor movement - just follow the rhythm.\n**UNRANKED**"),
 	SPUN_OUT      (Category.SPECIAL, 2, GameImage.MOD_SPUN_OUT, "SO", 4096, Input.KEY_V, 0.9f,
 	              "SpunOut", "Spinners will be automatically completed."),
@@ -355,17 +355,16 @@ public enum GameMod {
 		scoreMultiplier = -1f;
 
 		if (checkInverse) {
-			boolean b = (this == SUDDEN_DEATH || this == NO_FAIL || this == RELAX || this == AUTOPILOT);
 			if (AUTO.isActive()) {
 				if (this == AUTO) {
 					SPUN_OUT.active = false;
 					SUDDEN_DEATH.active = false;
 					RELAX.active = false;
 					AUTOPILOT.active = false;
-				} else if (b)
+				} else if (this == SPUN_OUT || this == SUDDEN_DEATH || this == RELAX || this == AUTOPILOT)
 					this.active = false;
 			}
-			if (active && b) {
+			if (active && (this == SUDDEN_DEATH || this == NO_FAIL || this == RELAX || this == AUTOPILOT)) {
 				SUDDEN_DEATH.active = false;
 				NO_FAIL.active = false;
 				RELAX.active = false;
@@ -383,6 +382,12 @@ public enum GameMod {
 					HARD_ROCK.active = false;
 				else
 					EASY.active = false;
+			}
+			if (HALF_TIME.isActive() && DOUBLE_TIME.isActive()) {
+				if (this == HALF_TIME)
+					DOUBLE_TIME.active = false;
+				else
+					HALF_TIME.active = false;
 			}
 		}
 	}

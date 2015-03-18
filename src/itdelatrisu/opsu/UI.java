@@ -173,6 +173,7 @@ public class UI {
 	public static void enter() {
 		backButton.resetHover();
 		resetBarNotification();
+		resetCursorLocations();
 		resetTooltip();
 	}
 
@@ -371,10 +372,16 @@ public class UI {
 		GameImage.CURSOR_MIDDLE.destroySkinImage();
 		GameImage.CURSOR_TRAIL.destroySkinImage();
 		cursorAngle = 0f;
+		GameImage.CURSOR.getImage().setRotation(0f);
+	}
+
+	/**
+	 * Resets all cursor location data.
+	 */
+	private static void resetCursorLocations() {
 		lastX = lastY = -1;
 		cursorX.clear();
 		cursorY.clear();
-		GameImage.CURSOR.getImage().setRotation(0f);
 	}
 
 	/**

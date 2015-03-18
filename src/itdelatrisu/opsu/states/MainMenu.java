@@ -239,7 +239,7 @@ public class MainMenu extends BasicGameState {
 		g.fillRoundRect(musicBarX, musicBarY, musicBarWidth, musicBarHeight, 4);
 		g.setColor(Color.white);
 		if (!MusicController.isTrackLoading() && osu != null) {
-			float musicBarPosition = Math.min((float) MusicController.getPosition() / osu.endTime, 1f);
+			float musicBarPosition = Math.min((float) MusicController.getPosition() / MusicController.getDuration(), 1f);
 			g.fillRoundRect(musicBarX, musicBarY, musicBarWidth * musicBarPosition, musicBarHeight, 4);
 		}
 
@@ -430,8 +430,7 @@ public class MainMenu extends BasicGameState {
 		if (MusicController.isPlaying()) {
 			if (musicPositionBarContains(x, y)) {
 				float pos = (x - musicBarX) / musicBarWidth;
-				OsuFile osu = MusicController.getOsuFile();
-				MusicController.setPosition((int) (pos * osu.endTime));
+				MusicController.setPosition((int) (pos * MusicController.getDuration()));
 				return;
 			}
 		}

@@ -20,9 +20,9 @@ package itdelatrisu.opsu.replay;
 
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.Options;
-import itdelatrisu.opsu.OsuReader;
-import itdelatrisu.opsu.OsuWriter;
 import itdelatrisu.opsu.Utils;
+import itdelatrisu.opsu.io.OsuReader;
+import itdelatrisu.opsu.io.OsuWriter;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;

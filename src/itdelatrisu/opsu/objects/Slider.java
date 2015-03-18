@@ -92,6 +92,9 @@ public class Slider implements HitObject {
 	/** Number of ticks hit and tick intervals so far. */
 	private int ticksHit = 0, tickIntervals = 1;
 
+	/** Container dimensions. */
+	private static int containerWidth, containerHeight;
+
 	/**
 	 * Initializes the Slider data type with images and dimensions.
 	 * @param container the game container
@@ -99,6 +102,9 @@ public class Slider implements HitObject {
 	 * @param osu the associated OsuFile object
 	 */
 	public static void init(GameContainer container, float circleSize, OsuFile osu) {
+		containerWidth = container.getWidth();
+		containerHeight = container.getHeight();
+
 		int diameter = (int) (104 - (circleSize * 8));
 		diameter = (int) (diameter * OsuHitObject.getXMultiplier());  // convert from Osupixels (640x480)
 
@@ -188,7 +194,7 @@ public class Slider implements HitObject {
 		color.a = oldAlpha;
 
 		// repeats
-		for(int tcurRepeat = currentRepeats; tcurRepeat<=currentRepeats+1; tcurRepeat++){
+		for (int tcurRepeat = currentRepeats; tcurRepeat <= currentRepeats + 1; tcurRepeat++) {
 			if (hitObject.getRepeatCount() - 1 > tcurRepeat) {
 				Image arrow = GameImage.REVERSEARROW.getImage();
 				if (tcurRepeat != currentRepeats) {
@@ -233,8 +239,18 @@ public class Slider implements HitObject {
 			sliderBallFrame.drawCentered(c[0], c[1]);
 
 			// follow circle
-			if (followCircleActive)
+			if (followCircleActive) {
 				GameImage.SLIDER_FOLLOWCIRCLE.getImage().drawCentered(c[0], c[1]);
+
+				// "flashlight" mod: dim the screen
+				if (GameMod.FLASHLIGHT.isActive()) {
+					float oldAlphaBlack = Utils.COLOR_BLACK_ALPHA.a;
+					Utils.COLOR_BLACK_ALPHA.a = 0.75f;
+					g.setColor(Utils.COLOR_BLACK_ALPHA);
+					g.fillRect(0, 0, containerWidth, containerHeight);
+					Utils.COLOR_BLACK_ALPHA.a = oldAlphaBlack;
+				}
+			}
 		}
 	}
 
@@ -440,6 +456,24 @@ public class Slider implements HitObject {
 
 		return false;
 	}
+
+	@Override
+	public float[] getPointAt(int trackPosition) {
+		if (trackPosition <= hitObject.getTime())
+			return new float[] { x, y };
+		else if (trackPosition >= hitObject.getTime() + sliderTimeTotal) {
+			if (hitObject.getRepeatCount() % 2 == 0)
+				return new float[] { x, y };
+			else {
+				int lastIndex = hitObject.getSliderX().length;
+				return new float[] { curve.getX(lastIndex), curve.getY(lastIndex) };
+			}
+		} else
+			return curve.pointAt(getT(trackPosition, false));
+	}
+
+	@Override
+	public int getEndTime() { return hitObject.getTime() + (int) sliderTimeTotal; }
 
 	/**
 	 * Returns the t value based on the given track position.

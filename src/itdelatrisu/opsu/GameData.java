@@ -917,22 +917,22 @@ public class GameData {
 	 * @param hit100 the number of 100s
 	 * @param hit50 the number of 50s
 	 * @param miss the number of misses
+	 * @param silver whether or not a silver SS/S should be awarded (if applicable)
 	 * @return the current Grade
 	 */
-	public static Grade getGrade(int hit300, int hit100, int hit50, int miss) {
+	public static Grade getGrade(int hit300, int hit100, int hit50, int miss, boolean silver) {
 		int objectCount = hit300 + hit100 + hit50 + miss;
 		if (objectCount < 1)  // avoid division by zero
 			return Grade.NULL;
 
-		// TODO: silvers
 		float percent = getScorePercent(hit300, hit100, hit50, miss);
 		float hit300ratio = hit300 * 100f / objectCount;
-		float hit50ratio  = hit50 * 100f / objectCount;
-		boolean noMiss    = (miss == 0);
+		float hit50ratio = hit50 * 100f / objectCount;
+		boolean noMiss = (miss == 0);
 		if (percent >= 100f)
-			return Grade.SS;
+			return (silver) ? Grade.SSH : Grade.SS;
 		else if (hit300ratio >= 90f && hit50ratio < 1.0f && noMiss)
-			return Grade.S;
+			return (silver) ? Grade.SH : Grade.S;
 		else if ((hit300ratio >= 80f && noMiss) || hit300ratio >= 90f)
 			return Grade.A;
 		else if ((hit300ratio >= 70f && noMiss) || hit300ratio >= 80f)
@@ -950,7 +950,8 @@ public class GameData {
 	private Grade getGrade() {
 		return getGrade(
 			hitResultCount[HIT_300], hitResultCount[HIT_100],
-			hitResultCount[HIT_50], hitResultCount[HIT_MISS]
+			hitResultCount[HIT_50], hitResultCount[HIT_MISS],
+			(GameMod.HIDDEN.isActive() || GameMod.FLASHLIGHT.isActive())
 		);
 	}
 
@@ -1030,6 +1031,11 @@ public class GameData {
 			}
 		}
 	}
+
+	/**
+	 * Returns the current combo streak.
+	 */
+	public int getComboStreak() { return combo; }
 
 	/**
 	 * Increases the combo streak by one.

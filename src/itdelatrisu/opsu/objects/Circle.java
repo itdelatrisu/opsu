@@ -178,4 +178,10 @@ public class Circle implements HitObject {
 
 		return false;
 	}
+
+	@Override
+	public float[] getPointAt(int trackPosition) { return new float[] { x, y }; }
+
+	@Override
+	public int getEndTime() { return hitObject.getTime(); }
 }

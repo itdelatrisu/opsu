@@ -327,7 +327,9 @@ public enum GameImage {
 		protected Image process_sub(Image img, int w, int h) {
 			return REPOSITORY.process_sub(img, w, h);
 		}
-	};
+	},
+	// TODO: ensure this image hasn't been modified (checksum?)
+	ALPHA_MAP ("alpha", "png", false, false);
 
 	/** Image file types. */
 	private static final byte

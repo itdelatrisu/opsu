@@ -51,4 +51,17 @@ public interface HitObject {
 	 * @return true if a hit result was processed
 	 */
 	public boolean mousePressed(int x, int y, int trackPosition);
+
+	/**
+	 * Returns the coordinates of the hit object at a given track position.
+	 * @param trackPosition the track position
+	 * @return the [x,y] coordinates
+	 */
+	public float[] getPointAt(int trackPosition);
+
+	/**
+	 * Returns the end time of the hit object.
+	 * @return the end time, in milliseconds
+	 */
+	public int getEndTime();
 }

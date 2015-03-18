@@ -187,11 +187,12 @@ public class ScoreData implements Comparable<ScoreData> {
 	/**
 	 * Returns letter grade based on score data,
 	 * or Grade.NULL if no objects have been processed.
-	 * @see GameData#getGrade(int, int, int, int)
+	 * @see GameData#getGrade(int, int, int, int, boolean)
 	 */
 	public Grade getGrade() {
 		if (grade == null)
-			grade = GameData.getGrade(hit300, hit100, hit50, miss);
+			grade = GameData.getGrade(hit300, hit100, hit50, miss,
+					((mods & GameMod.HIDDEN.getBit()) > 0 || (mods & GameMod.FLASHLIGHT.getBit()) > 0));
 		return grade;
 	}
 
