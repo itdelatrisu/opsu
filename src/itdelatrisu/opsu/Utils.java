@@ -42,6 +42,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Scanner;
@@ -102,8 +103,8 @@ public class Utils {
 		FONT_DEFAULT, FONT_BOLD,
 		FONT_XLARGE, FONT_LARGE, FONT_MEDIUM, FONT_SMALL;
 
-	/** Set of all Unicode strings already loaded. */
-	private static HashSet<String> loadedGlyphs = new HashSet<String>();
+	/** Set of all Unicode strings already loaded per font. */
+	private static HashMap<UnicodeFont, HashSet<String>> loadedGlyphs = new HashMap<UnicodeFont, HashSet<String>>();
 
 	/**
 	 * List of illegal filename characters.
@@ -331,33 +332,34 @@ public class Utils {
 	}
 
 	/**
-	 * Adds and loads glyphs for an OsuFile's Unicode title and artist strings.
-	 * @param osu the OsuFile
+	 * Adds and loads glyphs for a beatmap's Unicode title and artist strings.
+	 * @param font the font to add the glyphs to
+	 * @param title the title string
+	 * @param artist the artist string
 	 */
-	public static void loadGlyphs(OsuFile osu) {
-		if (!Options.useUnicodeMetadata())
-			return;
+	public static void loadGlyphs(UnicodeFont font, String title, String artist) {
+		// get set of added strings
+		HashSet<String> set = loadedGlyphs.get(font);
+		if (set == null) {
+			set = new HashSet<String>();
+			loadedGlyphs.put(font, set);
+		}
 
+		// add glyphs if not in set
 		boolean glyphsAdded = false;
-		if (!osu.titleUnicode.isEmpty() && !loadedGlyphs.contains(osu.titleUnicode)) {
-			Utils.FONT_LARGE.addGlyphs(osu.titleUnicode);
-			Utils.FONT_MEDIUM.addGlyphs(osu.titleUnicode);
-			Utils.FONT_DEFAULT.addGlyphs(osu.titleUnicode);
-			loadedGlyphs.add(osu.titleUnicode);
+		if (title != null && !title.isEmpty() && !set.contains(title)) {
+			font.addGlyphs(title);
+			set.add(title);
 			glyphsAdded = true;
 		}
-		if (!osu.artistUnicode.isEmpty() && !loadedGlyphs.contains(osu.artistUnicode)) {
-			Utils.FONT_LARGE.addGlyphs(osu.artistUnicode);
-			Utils.FONT_MEDIUM.addGlyphs(osu.artistUnicode);
-			Utils.FONT_DEFAULT.addGlyphs(osu.artistUnicode);
-			loadedGlyphs.add(osu.artistUnicode);
+		if (artist != null && !artist.isEmpty() && !set.contains(artist)) {
+			font.addGlyphs(artist);
+			set.add(artist);
 			glyphsAdded = true;
 		}
 		if (glyphsAdded) {
 			try {
-				Utils.FONT_LARGE.loadGlyphs();
-				Utils.FONT_MEDIUM.loadGlyphs();
-				Utils.FONT_DEFAULT.loadGlyphs();
+				font.loadGlyphs();
 			} catch (SlickException e) {
 				Log.warn("Failed to load glyphs.", e);
 			}

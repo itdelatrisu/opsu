@@ -172,24 +172,6 @@ public class MusicController {
 	public static OsuFile getOsuFile() { return lastOsu; }
 
 	/**
-	 * Returns the name of the current track.
-	 */
-	public static String getTrackName() {
-		if (!trackExists() || lastOsu == null)
-			return null;
-		return lastOsu.getTitle();
-	}
-
-	/**
-	 * Returns the artist of the current track.
-	 */
-	public static String getArtistName() {
-		if (!trackExists() || lastOsu == null)
-			return null;
-		return lastOsu.getArtist();
-	}
-
-	/**
 	 * Returns true if the current track is playing.
 	 */
 	public static boolean isPlaying() {

@@ -276,11 +276,10 @@ public class MainMenu extends BasicGameState {
 		if (MusicController.isTrackLoading())
 			g.drawString("Track loading...", marginX, marginY + lineHeight);
 		else if (MusicController.trackExists()) {
+			if (Options.useUnicodeMetadata())  // load glyphs
+				Utils.loadGlyphs(Utils.FONT_MEDIUM, osu.titleUnicode, osu.artistUnicode);
 			g.drawString((MusicController.isPlaying()) ? "Now Playing:" : "Paused:", marginX, marginY + lineHeight);
-			g.drawString(String.format("%s: %s",
-					MusicController.getArtistName(),
-					MusicController.getTrackName()),
-					marginX + 25, marginY + (lineHeight * 2));
+			g.drawString(String.format("%s: %s", osu.getArtist(), osu.getTitle()), marginX + 25, marginY + (lineHeight * 2));
 		}
 		long time = System.currentTimeMillis() - osuStartTime;
 		g.drawString(String.format("opsu! has been running for %d minutes, %d seconds.",

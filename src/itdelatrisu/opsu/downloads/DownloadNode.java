@@ -332,6 +332,8 @@ public class DownloadNode {
 		textX += img.getWidth() + buttonWidth * 0.001f;
 
 		// text
+		if (Options.useUnicodeMetadata())  // load glyphs
+			Utils.loadGlyphs(Utils.FONT_BOLD, getTitle(), getArtist());
 		Utils.FONT_BOLD.drawString(
 				textX, y + marginY,
 				String.format("%s - %s%s", getArtist(), getTitle(),

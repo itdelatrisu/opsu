@@ -91,6 +91,10 @@ public class OsuGroupNode {
 		}
 
 		// draw text
+		if (Options.useUnicodeMetadata()) {  // load glyphs
+			Utils.loadGlyphs(Utils.FONT_MEDIUM, osu.titleUnicode, null);
+			Utils.loadGlyphs(Utils.FONT_DEFAULT, null, osu.artistUnicode);
+		}
 		Utils.FONT_MEDIUM.drawString(cx, cy, osu.getTitle(), textColor);
 		Utils.FONT_DEFAULT.drawString(cx, cy + Utils.FONT_MEDIUM.getLineHeight() - 4,
 				String.format("%s // %s", osu.getArtist(), osu.creator), textColor);

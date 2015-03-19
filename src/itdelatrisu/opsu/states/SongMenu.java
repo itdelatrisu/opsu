@@ -311,9 +311,6 @@ public class SongMenu extends BasicGameState {
 			ScoreData[] scores = getScoreDataForNode(node, false);
 			node.draw(buttonX - offset, buttonY + (i*buttonOffset) + DIVIDER_LINE_WIDTH / 2,
 			          (scores == null) ? Grade.NULL : scores[0].getGrade(), (node == focusNode));
-
-			// load glyphs
-			Utils.loadGlyphs(node.osuFiles.get(0));
 		}
 		g.clearClip();
 
@@ -329,6 +326,7 @@ public class SongMenu extends BasicGameState {
 
 		// header
 		if (focusNode != null) {
+			// music/loader icon
 			float marginX = width * 0.005f, marginY = height * 0.005f;
 			Image musicNote = GameImage.MENU_MUSICNOTE.getImage();
 			if (MusicController.isTrackLoading())
@@ -337,8 +335,14 @@ public class SongMenu extends BasicGameState {
 				musicNote.draw(marginX, marginY);
 			int iconWidth = musicNote.getWidth();
 
-			if (songInfo == null)
+			// song info text
+			if (songInfo == null) {
 				songInfo = focusNode.getInfo();
+				if (Options.useUnicodeMetadata()) {  // load glyphs
+					OsuFile osu = focusNode.osuFiles.get(0);
+					Utils.loadGlyphs(Utils.FONT_LARGE, osu.titleUnicode, osu.artistUnicode);
+				}
+			}
 			marginX += 5;
 			float headerTextY = marginY;
 			Utils.FONT_LARGE.drawString(marginX + iconWidth * 1.05f, headerTextY, songInfo[0], Color.white);
@@ -1183,7 +1187,6 @@ public class SongMenu extends BasicGameState {
 		focusNode = OsuGroupList.get().getNode(node, osuFileIndex);
 		OsuFile osu = focusNode.osuFiles.get(focusNode.osuFileIndex);
 		MusicController.play(osu, false, preview);
-		Utils.loadGlyphs(osu);
 
 		// load scores
 		scoreMap = ScoreDB.getMapSetScores(osu);
