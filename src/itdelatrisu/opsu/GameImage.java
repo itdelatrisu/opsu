@@ -75,6 +75,7 @@ public enum GameImage {
 	},
 	HITCIRCLE_SELECT ("hitcircleselect", "png"),
 	UNRANKED ("play-unranked", "png"),
+	FOLLOWPOINT ("followpoint", "png"),
 	PLAYFIELD ("playfield", "png|jpg", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {

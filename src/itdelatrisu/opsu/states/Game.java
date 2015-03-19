@@ -1178,15 +1178,71 @@ public class Game extends BasicGameState {
 	}
 
 	/**
-	 * Draws hit objects and hit results.
+	 * Draws hit objects, hit results, and follow points.
 	 * @param g the graphics context
 	 * @param trackPosition the track position
 	 */
 	private void drawHitObjects(Graphics g, int trackPosition) {
+		// include previous object in follow points
+		int lastObjectIndex = -1;
+		if (objectIndex > 0 && objectIndex < osu.objects.length &&
+		    trackPosition < osu.objects[objectIndex].getTime() && !osu.objects[objectIndex - 1].isSpinner())
+			lastObjectIndex = objectIndex - 1;
+
 		// draw hit objects in reverse order, or else overlapping objects are unreadable
 		Stack<Integer> stack = new Stack<Integer>();
-		for (int i = objectIndex; i < hitObjects.length && osu.objects[i].getTime() < trackPosition + approachTime; i++)
-			stack.add(i);
+		for (int index = objectIndex; index < hitObjects.length && osu.objects[index].getTime() < trackPosition + approachTime; index++) {
+			stack.add(index);
+
+			// draw follow points
+			if (osu.objects[index].isSpinner()) {
+				lastObjectIndex = -1;
+				continue;
+			}
+			if (lastObjectIndex != -1 && !osu.objects[index].isNewCombo()) {
+				// calculate points
+				final int followPointInterval = container.getHeight() / 14;
+				int lastObjectEndTime = hitObjects[lastObjectIndex].getEndTime() + 1;
+				int objectStartTime = osu.objects[index].getTime();
+				float[] startXY = hitObjects[lastObjectIndex].getPointAt(lastObjectEndTime);
+				float[] endXY = hitObjects[index].getPointAt(objectStartTime);
+				float xDiff = endXY[0] - startXY[0];
+				float yDiff = endXY[1] - startXY[1];
+				float dist = (float) Math.hypot(xDiff, yDiff);
+				int numPoints = (int) ((dist - GameImage.HITCIRCLE.getImage().getWidth()) / followPointInterval);
+				if (numPoints > 0) {
+					// set the image angle
+					Image followPoint = GameImage.FOLLOWPOINT.getImage();
+					float angle = (float) Math.toDegrees(Math.atan2(yDiff, xDiff));
+					followPoint.setRotation(angle);
+
+					// draw points
+					float progress = 0f;
+					if (lastObjectIndex < objectIndex)
+						progress = (float) (trackPosition - lastObjectEndTime) / (objectStartTime - lastObjectEndTime);
+					float step = 1f / (numPoints + 1);
+					float t = step;
+					for (int i = 0; i < numPoints; i++) {
+						float x = startXY[0] + xDiff * t;
+						float y = startXY[1] + yDiff * t;
+						float nextT = t + step;
+						if (lastObjectIndex < objectIndex) {  // fade the previous trail
+							if (progress < nextT) {
+								if (progress > t)
+									followPoint.setAlpha(1f - ((progress - t + step) / (step * 2f)));
+								else if (progress > t - step)
+									followPoint.setAlpha(1f - ((progress - (t - step)) / (step * 2f)));
+								followPoint.draw(x, y);
+								followPoint.setAlpha(1f);
+							}
+						} else
+							followPoint.draw(x, y);
+						t = nextT;
+					}
+				}
+			}
+			lastObjectIndex = index;
+		}
 
 		while (!stack.isEmpty())
 			hitObjects[stack.pop()].draw(g, trackPosition);
