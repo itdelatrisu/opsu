@@ -669,7 +669,17 @@ public class Game extends BasicGameState {
 		}
 
 	}
-	public void updateGame(int mouseX, int mouseY, int delta, int trackPosition, int keysPressed){
+
+
+	/**
+	 * Updates the game
+	 * @param mouseX the mouse x position
+	 * @param mouseY
+	 * @param delta 
+	 * @param trackPosition the track position
+	 * @param keysPressed the keys that are pressed
+	 */
+	private void updateGame(int mouseX, int mouseY, int delta, int trackPosition, int keysPressed) {
 		// "Easy" mod: multiple "lives"
 		if (GameMod.EASY.isActive() && deathTime > -1) {
 			if (data.getHealth() < 99f)
@@ -1005,6 +1015,7 @@ public class Game extends BasicGameState {
 			keys = ReplayFrame.KEY_K2;
 		gameKeyReleased(keys, input.getMouseX(), input.getMouseY(), MusicController.getPosition());
 	}
+
 	/**
 	 * Handles a game key Released event.
 	 * @param keys the game keys released
@@ -1419,6 +1430,13 @@ public class Game extends BasicGameState {
 		
 	}
 	
+	/**
+	 * Updates the games mouse pressed
+	 * @param mouseX the mouse x position
+	 * @param mouseY
+	 * @param trackPosition the track position
+	 * @param keysPressed the keys that are pressed
+	 */
 	private void updateGameKeyPress(int keys, int x, int y, int trackPosition) {
 		if (objectIndex >= hitObjects.length)  // nothing left to do here
 			return;
@@ -1434,6 +1452,7 @@ public class Game extends BasicGameState {
 			hitObjects[objectIndex].mousePressed(x, y, trackPosition);
 		
 	}
+	
 	/**
 	 * Adds a replay frame to the list if able.
 	 * @param x the cursor x coordinate
