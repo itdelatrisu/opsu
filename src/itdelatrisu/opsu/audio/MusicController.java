@@ -53,6 +53,9 @@ public class MusicController {
 	/** The last OsuFile passed to play(). */
 	private static OsuFile lastOsu;
 
+	/** The track duration. */
+	private static int duration = -1;
+
 	/** Thread for loading tracks. */
 	private static Thread trackLoader;
 
@@ -270,17 +273,21 @@ public class MusicController {
 		if (!trackExists() || lastOsu == null)
 			return -1;
 
-		if (lastOsu.audioFilename.getName().endsWith(".mp3")) {
-			try {
-				AudioFileFormat fileFormat = AudioSystem.getAudioFileFormat(lastOsu.audioFilename);
-				if (fileFormat instanceof TAudioFileFormat) {
-					Map<?, ?> properties = ((TAudioFileFormat) fileFormat).properties();
-					Long microseconds = (Long) properties.get("duration");
-					return (int) (microseconds / 1000);
-				}
-			} catch (UnsupportedAudioFileException | IOException e) {}
+		if (duration == -1) {
+			if (lastOsu.audioFilename.getName().endsWith(".mp3")) {
+				try {
+					AudioFileFormat fileFormat = AudioSystem.getAudioFileFormat(lastOsu.audioFilename);
+					if (fileFormat instanceof TAudioFileFormat) {
+						Map<?, ?> properties = ((TAudioFileFormat) fileFormat).properties();
+						Long microseconds = (Long) properties.get("duration");
+						duration = (int) (microseconds / 1000);
+						return duration;
+					}
+				} catch (UnsupportedAudioFileException | IOException e) {}
+			}
+			duration = lastOsu.endTime;
 		}
-		return lastOsu.endTime;
+		return duration;
 	}
 
 	/**
@@ -376,6 +383,7 @@ public class MusicController {
 
 		// reset state
 		lastOsu = null;
+		duration = -1;
 		trackEnded = false;
 		themePlaying = false;
 		pauseTime = 0f;
