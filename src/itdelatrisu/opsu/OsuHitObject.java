@@ -18,6 +18,9 @@
 
 package itdelatrisu.opsu;
 
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+
 /**
  * Data type representing a hit object.
  */
@@ -28,6 +31,13 @@ public class OsuHitObject {
 		TYPE_SLIDER   = 2,
 		TYPE_NEWCOMBO = 4,  // not an object
 		TYPE_SPINNER  = 8;
+
+	/** Hit object type names. */
+	private static final String
+		CIRCLE = "circle",
+		SLIDER = "slider",
+		SPINNER = "spinner",
+		UNKNOWN = "unknown object";
 
 	/** Hit sound types (bits). */
 	public static final byte
@@ -174,14 +184,12 @@ public class OsuHitObject {
 		this.hitSound = Byte.parseByte(tokens[4]);
 
 		// type-specific fields
-		if ((type & OsuHitObject.TYPE_CIRCLE) > 0) {
-			if (tokens.length > 5) {
-				String[] additionTokens = tokens[5].split(":");
-				this.addition = new byte[additionTokens.length];
-				for (int j = 0; j < additionTokens.length; j++)
-					this.addition[j] = Byte.parseByte(additionTokens[j]);
-			}
-		} else if ((type & OsuHitObject.TYPE_SLIDER) > 0) {
+		int additionIndex;
+		if ((type & OsuHitObject.TYPE_CIRCLE) > 0)
+			additionIndex = 5;
+		else if ((type & OsuHitObject.TYPE_SLIDER) > 0) {
+			additionIndex = 10;
+
 			// slider curve type and coordinates
 			String[] sliderTokens = tokens[5].split("\\|");
 			this.sliderType = sliderTokens[0].charAt(0);
@@ -210,17 +218,21 @@ public class OsuHitObject {
 				}
 			}
 		} else { //if ((type & OsuHitObject.TYPE_SPINNER) > 0) {
+			additionIndex = 6;
+
 			// some 'endTime' fields contain a ':' character (?)
 			int index = tokens[5].indexOf(':');
 			if (index != -1)
 				tokens[5] = tokens[5].substring(0, index);
 			this.endTime = Integer.parseInt(tokens[5]);
-			if (tokens.length > 6) {
-				String[] additionTokens = tokens[6].split(":");
-				this.addition = new byte[additionTokens.length];
-				for (int j = 0; j < additionTokens.length; j++)
-					this.addition[j] = Byte.parseByte(additionTokens[j]);
-			}
+		}
+
+		// addition
+		if (tokens.length > additionIndex) {
+			String[] additionTokens = tokens[additionIndex].split(":");
+			this.addition = new byte[additionTokens.length];
+			for (int j = 0; j < additionTokens.length; j++)
+				this.addition[j] = Byte.parseByte(additionTokens[j]);
 		}
 	}
 
@@ -260,6 +272,20 @@ public class OsuHitObject {
 	 * @return the object type (TYPE_* bitmask)
 	 */
 	public int getType() { return type; }
+
+	/**
+	 * Returns the name of the hit object type.
+	 */
+	public String getTypeName() {
+		if (isCircle())
+			return CIRCLE;
+		else if (isSlider())
+			return SLIDER;
+		else if (isSpinner())
+			return SPINNER;
+		else
+			return UNKNOWN;
+	}
 
 	/**
 	 * Returns the hit sound type.
@@ -423,5 +449,60 @@ public class OsuHitObject {
 		if (addition != null)
 			return addition[1];
 		return 0;
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		NumberFormat nf = new DecimalFormat("###.#####");
+
+		// common fields
+		sb.append(nf.format(x)); sb.append(',');
+		sb.append(nf.format(y)); sb.append(',');
+		sb.append(time); sb.append(',');
+		sb.append(type); sb.append(',');
+		sb.append(hitSound); sb.append(',');
+
+		// type-specific fields
+		if (isCircle())
+			;
+		else if (isSlider()) {
+			sb.append(getSliderType());
+			sb.append('|');
+			for (int i = 0; i < sliderX.length; i++) {
+				sb.append(nf.format(sliderX[i])); sb.append(':');
+				sb.append(nf.format(sliderY[i])); sb.append('|');
+			}
+			sb.setCharAt(sb.length() - 1, ',');
+			sb.append(repeat); sb.append(',');
+			sb.append(pixelLength); sb.append(',');
+			if (edgeHitSound != null) {
+				for (int i = 0; i < edgeHitSound.length; i++) {
+					sb.append(edgeHitSound[i]); sb.append('|');
+				}
+				sb.setCharAt(sb.length() - 1, ',');
+			}
+			if (edgeAddition != null) {
+				for (int i = 0; i < edgeAddition.length; i++) {
+					sb.append(edgeAddition[i][0]); sb.append(':');
+					sb.append(edgeAddition[i][1]); sb.append('|');
+				}
+				sb.setCharAt(sb.length() - 1, ',');
+			}
+		} else if (isSpinner()) {
+			sb.append(endTime);
+			sb.append(',');
+		}
+
+		// addition
+		if (addition != null) {
+			for (int i = 0; i < addition.length; i++) {
+				sb.append(addition[i]);
+				sb.append(':');
+			}
+		} else
+			sb.setLength(sb.length() - 1);
+
+		return sb.toString();
 	}
 }

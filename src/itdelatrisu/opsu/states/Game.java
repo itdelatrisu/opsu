@@ -39,6 +39,7 @@ import itdelatrisu.opsu.audio.SoundEffect;
 import itdelatrisu.opsu.db.OsuDB;
 import itdelatrisu.opsu.db.ScoreDB;
 import itdelatrisu.opsu.objects.Circle;
+import itdelatrisu.opsu.objects.DummyObject;
 import itdelatrisu.opsu.objects.HitObject;
 import itdelatrisu.opsu.objects.Slider;
 import itdelatrisu.opsu.objects.Spinner;
@@ -530,12 +531,45 @@ public class Game extends BasicGameState {
 		skipButton.hoverUpdate(delta, mouseX, mouseY);
 		int trackPosition = MusicController.getPosition();
 
+		// returning from pause screen: must click previous mouse position
+		if (pauseTime > -1) {
+			// paused during lead-in or break, or "relax" or "autopilot": continue immediately
+			if ((pausedMouseX < 0 && pausedMouseY < 0) ||
+			    (GameMod.RELAX.isActive() || GameMod.AUTOPILOT.isActive())) {
+				pauseTime = -1;
+				if (!isLeadIn())
+					MusicController.resume();
+			}
+
+			// focus lost: go back to pause screen
+			else if (!container.hasFocus()) {
+				game.enterState(Opsu.STATE_GAMEPAUSEMENU);
+				pausePulse = 0f;
+			}
+
+			// advance pulse animation
+			else {
+				pausePulse += delta / 750f;
+				if (pausePulse > 1f)
+					pausePulse = 0f;
+			}
+			return;
+		}
+
+		// replays: skip intro
+		if (isReplay && replaySkipTime > -1 && trackPosition >= replaySkipTime) {
+			if (skipIntro())
+				trackPosition = MusicController.getPosition();
+		}
+
+		// "flashlight" mod: calculate visible area radius
+		updateFlashlightRadius(delta, trackPosition);
+
 		// stop updating during song lead-in
 		if (isLeadIn()) {
 			leadInTime -= delta;
 			if (!isLeadIn())
 				MusicController.resume();
-			updateFlashlightRadius(delta, trackPosition);
 			return;
 		}
 
@@ -563,53 +597,7 @@ public class Game extends BasicGameState {
 			mouseY = replayY;
 		}
 
-		// "flashlight" mod: calculate visible area radius
-		updateFlashlightRadius(delta, trackPosition);
-
-		// returning from pause screen: must click previous mouse position
-		if (pauseTime > -1) {
-			// paused during lead-in or break, or "relax" or "autopilot": continue immediately
-			if ((pausedMouseX < 0 && pausedMouseY < 0) ||
-			    (GameMod.RELAX.isActive() || GameMod.AUTOPILOT.isActive())) {
-				pauseTime = -1;
-				if (!isLeadIn())
-					MusicController.resume();
-			}
-
-			// focus lost: go back to pause screen
-			else if (!container.hasFocus()) {
-				game.enterState(Opsu.STATE_GAMEPAUSEMENU);
-				pausePulse = 0f;
-			}
-
-			// advance pulse animation
-			else {
-				pausePulse += delta / 750f;
-				if (pausePulse > 1f)
-					pausePulse = 0f;
-			}
-			return;
-		}
-
 		data.updateDisplays(delta);
-
-		// replays: skip intro
-		if (isReplay && replaySkipTime > 0 && trackPosition > replaySkipTime) {
-			skipIntro();
-			replaySkipTime = -1;
-		}
-
-		// pause game if focus lost
-		if (!container.hasFocus() && !GameMod.AUTO.isActive() && !isReplay) {
-			if (pauseTime < 0) {
-				pausedMouseX = mouseX;
-				pausedMouseY = mouseY;
-				pausePulse = 0f;
-			}
-			if (MusicController.isPlaying() || isLeadIn())
-				pauseTime = trackPosition;
-			game.enterState(Opsu.STATE_GAMEPAUSEMENU);
-		}
 	}
 
 	/**
@@ -704,6 +692,18 @@ public class Game extends BasicGameState {
 				breakIndex++;
 				return;
 			}
+		}
+
+		// pause game if focus lost
+		if (!container.hasFocus() && !GameMod.AUTO.isActive() && !isReplay) {
+			if (pauseTime < 0) {
+				pausedMouseX = mouseX;
+				pausedMouseY = mouseY;
+				pausePulse = 0f;
+			}
+			if (MusicController.isPlaying() || isLeadIn())
+				pauseTime = trackPosition;
+			game.enterState(Opsu.STATE_GAMEPAUSEMENU);
 		}
 
 		// drain health
@@ -970,7 +970,7 @@ public class Game extends BasicGameState {
 	 * @param trackPosition the track position
 	 */
 	private void gameKeyReleased(int keys, int x, int y, int trackPosition) {
-		if (!isReplay && keys != ReplayFrame.KEY_NONE) {
+		if (!isReplay && keys != ReplayFrame.KEY_NONE && !isLeadIn() && pauseTime == -1) {
 			lastKeysPressed &= ~keys;  // clear keys bits
 			addReplayFrameAndRun(x, y, lastKeysPressed, trackPosition);
 		}
@@ -1026,12 +1026,21 @@ public class Game extends BasicGameState {
 					comboEnd = true;
 
 				Color color = osu.combo[hitObject.getComboIndex()];
-				if (hitObject.isCircle())
-					hitObjects[i] = new Circle(hitObject, this, data, color, comboEnd);
-				else if (hitObject.isSlider())
-					hitObjects[i] = new Slider(hitObject, this, data, color, comboEnd);
-				else if (hitObject.isSpinner())
-					hitObjects[i] = new Spinner(hitObject, this, data);
+
+				try {
+					if (hitObject.isCircle())
+						hitObjects[i] = new Circle(hitObject, this, data, color, comboEnd);
+					else if (hitObject.isSlider())
+						hitObjects[i] = new Slider(hitObject, this, data, color, comboEnd);
+					else if (hitObject.isSpinner())
+						hitObjects[i] = new Spinner(hitObject, this, data);
+				} catch (Exception e) {
+					// try to handle the error gracefully: substitute in a dummy HitObject
+					ErrorHandler.error(String.format("Failed to create %s at index %d:\n%s",
+							hitObject.getTypeName(), i, hitObject.toString()), e, true);
+					hitObjects[i] = new DummyObject(hitObject);
+					continue;
+				}
 			}
 
 			// load the first timingPoint
@@ -1063,7 +1072,7 @@ public class Game extends BasicGameState {
 				for (replayIndex = 0; replayIndex < replay.frames.length; replayIndex++) {
 					ReplayFrame frame = replay.frames[replayIndex];
 					if (frame.getY() < 0) {  // skip time (?)
-						if (frame.getTime() > 0)
+						if (frame.getTime() >= 0 && replayIndex > 0)
 							replaySkipTime = frame.getTime();
 					} else if (frame.getTime() == 0) {
 						replayX = frame.getScaledX();
