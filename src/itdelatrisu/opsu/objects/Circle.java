@@ -132,11 +132,10 @@ public class Circle implements HitObject {
 	}
 
 	@Override
-	public boolean mousePressed(int x, int y) {
+	public boolean mousePressed(int x, int y, int trackPosition) {
 		double distance = Math.hypot(this.x - x, this.y - y);
 		int circleRadius = GameImage.HITCIRCLE.getImage().getWidth() / 2;
 		if (distance < circleRadius) {
-			int trackPosition = MusicController.getPosition();
 			int timeDiff = trackPosition - hitObject.getTime();
 			int result = hitResult(timeDiff);
 
@@ -150,10 +149,9 @@ public class Circle implements HitObject {
 	}
 
 	@Override
-	public boolean update(boolean overlap, int delta, int mouseX, int mouseY, boolean keyPressed) {
+	public boolean update(boolean overlap, int delta, int mouseX, int mouseY, boolean keyPressed, int trackPosition) {
 		int time = hitObject.getTime();
 
-		int trackPosition = MusicController.getPosition();
 		int[] hitResultOffset = game.getHitResultOffsets();
 		boolean isAutoMod = GameMod.AUTO.isActive();
 
@@ -176,7 +174,7 @@ public class Circle implements HitObject {
 
 		// "relax" mod: click automatically
 		else if (GameMod.RELAX.isActive() && trackPosition >= time)
-			return mousePressed(mouseX, mouseY);
+			return mousePressed(mouseX, mouseY, trackPosition);
 
 		return false;
 	}

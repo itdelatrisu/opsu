@@ -197,11 +197,10 @@ public class Spinner implements HitObject {
 	}
 
 	@Override
-	public boolean mousePressed(int x, int y) { return false; }  // not used
+	public boolean mousePressed(int x, int y, int trackPosition) { return false; }  // not used
 
 	@Override
-	public boolean update(boolean overlap, int delta, int mouseX, int mouseY, boolean keyPressed) {
-		int trackPosition = MusicController.getPosition();
+	public boolean update(boolean overlap, int delta, int mouseX, int mouseY, boolean keyPressed, int trackPosition) {
 
 		// end of spinner
 		if (overlap || trackPosition > hitObject.getEndTime()) {
