@@ -1217,9 +1217,14 @@ public class Game extends BasicGameState {
 					followPoint.setRotation(angle);
 
 					// draw points
-					float progress = 0f;
+					float progress = 0f, alpha = 1f;
 					if (lastObjectIndex < objectIndex)
 						progress = (float) (trackPosition - lastObjectEndTime) / (objectStartTime - lastObjectEndTime);
+					else {
+						alpha = Utils.clamp((1f - ((objectStartTime - trackPosition) / (float) approachTime)) * 2f, 0, 1);
+						followPoint.setAlpha(alpha);
+					}
+
 					float step = 1f / (numPoints + 1);
 					float t = step;
 					for (int i = 0; i < numPoints; i++) {
@@ -1232,13 +1237,15 @@ public class Game extends BasicGameState {
 									followPoint.setAlpha(1f - ((progress - t + step) / (step * 2f)));
 								else if (progress > t - step)
 									followPoint.setAlpha(1f - ((progress - (t - step)) / (step * 2f)));
+								else
+									followPoint.setAlpha(1f);
 								followPoint.draw(x, y);
-								followPoint.setAlpha(1f);
 							}
 						} else
 							followPoint.draw(x, y);
 						t = nextT;
 					}
+					followPoint.setAlpha(1f);
 				}
 			}
 			lastObjectIndex = index;
