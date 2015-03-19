@@ -54,7 +54,7 @@ public class MusicController {
 	private static OsuFile lastOsu;
 
 	/** The track duration. */
-	private static int duration = -1;
+	private static int duration = 0;
 
 	/** Thread for loading tracks. */
 	private static Thread trackLoader;
@@ -273,7 +273,7 @@ public class MusicController {
 		if (!trackExists() || lastOsu == null)
 			return -1;
 
-		if (duration == -1) {
+		if (duration == 0) {
 			if (lastOsu.audioFilename.getName().endsWith(".mp3")) {
 				try {
 					AudioFileFormat fileFormat = AudioSystem.getAudioFileFormat(lastOsu.audioFilename);
@@ -383,7 +383,7 @@ public class MusicController {
 
 		// reset state
 		lastOsu = null;
-		duration = -1;
+		duration = 0;
 		trackEnded = false;
 		themePlaying = false;
 		pauseTime = 0f;

@@ -1099,9 +1099,8 @@ public class Game extends BasicGameState {
 			UI.hideCursor();
 
 		// replays
-		if (isReplay) {
+		if (isReplay)
 			GameMod.loadModState(previousMods);
-		}
 	}
 
 	/**

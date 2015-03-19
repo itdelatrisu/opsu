@@ -21,15 +21,18 @@ package itdelatrisu.opsu.downloads;
 import java.io.IOException;
 
 /**
- * Interface for beatmap download servers.
+ * Abstract class for beatmap download servers.
  */
-public interface DownloadServer {
+public abstract class DownloadServer {
+	/** Track preview URL. */
+	private static final String PREVIEW_URL = "http://b.ppy.sh/preview/%d.mp3";
+
 	/**
 	 * Returns a web address to download the given beatmap.
 	 * @param beatmapSetID the beatmap set ID
 	 * @return the URL string
 	 */
-	public String getURL(int beatmapSetID);
+	public abstract String getURL(int beatmapSetID);
 
 	/**
 	 * Returns a list of results for a given search query, or null if the
@@ -40,7 +43,7 @@ public interface DownloadServer {
 	 * @return the result array
 	 * @throws IOException if any connection problem occurs
 	 */
-	public DownloadNode[] resultList(String query, int page, boolean rankedOnly) throws IOException;
+	public abstract DownloadNode[] resultList(String query, int page, boolean rankedOnly) throws IOException;
 
 	/**
 	 * Returns the total number of results for the last search query.
@@ -48,5 +51,14 @@ public interface DownloadServer {
 	 * {@link #resultList(String, int, boolean)} if multiple pages exist.
 	 * @return the result count, or -1 if no query
 	 */
-	public int totalResults();
+	public abstract int totalResults();
+
+	/**
+	 * Returns a web address to preview the given beatmap.
+	 * @param beatmapSetID the beatmap set ID
+	 * @return the URL string
+	 */
+	public String getPreviewURL(int beatmapSetID) {
+		return String.format(PREVIEW_URL, beatmapSetID);
+	}
 }

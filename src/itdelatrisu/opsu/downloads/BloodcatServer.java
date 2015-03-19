@@ -34,7 +34,7 @@ import org.json.JSONObject;
 /**
  * Download server: http://bloodcat.com/osu/
  */
-public class BloodcatServer implements DownloadServer {
+public class BloodcatServer extends DownloadServer {
 	/** Formatted download URL: {@code beatmapSetID} */
 	private static final String DOWNLOAD_URL = "http://bloodcat.com/osu/s/%d";
 

@@ -1,5 +1,7 @@
 package itdelatrisu.opsu.audio;
 
+import itdelatrisu.opsu.ErrorHandler;
+
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -9,6 +11,7 @@ import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
 import javax.sound.sampled.FloatControl;
+import javax.sound.sampled.LineListener;
 import javax.sound.sampled.LineUnavailableException;
 
 /**
@@ -36,6 +39,9 @@ public class MultiClip {
 	/** A list of clips used for this audio sample. */
 	private LinkedList<Clip> clips = new LinkedList<Clip>();
 
+	/** The audio input stream. */
+	private AudioInputStream audioIn;
+
 	/** The format of this audio sample. */
 	private AudioFormat format;
 
@@ -52,6 +58,7 @@ public class MultiClip {
 	 */
 	public MultiClip(String name, AudioInputStream audioIn) throws IOException, LineUnavailableException {
 		this.name = name;
+		this.audioIn = audioIn;
 		if (audioIn != null) {
 			format = audioIn.getFormat();
 
@@ -97,8 +104,9 @@ public class MultiClip {
 	/**
 	 * Plays the clip with the specified volume.
 	 * @param volume the volume the play at
+	 * @param listener the line listener
 	 */
-	public void start(float volume) throws LineUnavailableException {
+	public void start(float volume, LineListener listener) throws LineUnavailableException {
 		Clip clip = getClip();
 		if (clip == null)
 			return;
@@ -111,6 +119,8 @@ public class MultiClip {
 			gainControl.setValue(dB);
 		}
 
+		if (listener != null)
+			clip.addLineListener(listener);
 		clip.setFramePosition(0);
 		clip.start();
 	}
@@ -157,6 +167,29 @@ public class MultiClip {
 				extraClips++;
 		}
 		return c;
+	}
+
+	/**
+	 * Destroys the MultiClip and releases all resources.
+	 */
+	public void destroy() {
+		if (clips.size() > 0) {
+			for (Clip c : clips) {
+				c.stop();
+				c.flush();
+				c.close();
+			}
+			extraClips -= clips.size() - 1;
+			clips = new LinkedList<Clip>();
+		}
+		audioData = null;
+		if (audioIn != null) {
+			try {
+				audioIn.close();
+			} catch (IOException e) {
+				ErrorHandler.error(String.format("Could not close AudioInputStream for MultiClip %s.", name), e, true);
+			}
+		}
 	}
 
 	/**
