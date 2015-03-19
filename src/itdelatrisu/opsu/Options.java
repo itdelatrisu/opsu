@@ -194,6 +194,7 @@ public class Options {
 		SHOW_HIT_LIGHTING ("Show Hit Lighting", "Adds an effect behind hit explosions.", true),
 		SHOW_COMBO_BURSTS ("Show Combo Bursts", "A character image is displayed at combo milestones.", true),
 		SHOW_PERFECT_HIT ("Show Perfect Hits", "Whether to show perfect hit result bursts (300s, slider ticks).", true),
+		SHOW_FOLLOW_POINTS ("Show Follow Points", "Whether to show follow points between hit objects.", true),
 		NEW_CURSOR ("Enable New Cursor", "Use the new cursor style (may cause higher CPU usage).", true) {
 			@Override
 			public void click(GameContainer container) {
@@ -603,6 +604,12 @@ public class Options {
 	 * @return true if enabled
 	 */
 	public static boolean isPerfectHitBurstEnabled() { return GameOption.SHOW_PERFECT_HIT.getBooleanValue(); }
+
+	/**
+	 * Returns whether or not to show follow points.
+	 * @return true if enabled
+	 */
+	public static boolean isFollowPointEnabled() { return GameOption.SHOW_FOLLOW_POINTS.getBooleanValue(); }
 
 	/**
 	 * Returns the background dim level.
@@ -1025,6 +1032,9 @@ public class Options {
 					case "PerfectHit":
 						GameOption.SHOW_PERFECT_HIT.setValue(Boolean.parseBoolean(value));
 						break;
+					case "FollowPoints":
+						GameOption.SHOW_FOLLOW_POINTS.setValue(Boolean.parseBoolean(value));
+						break;
 					case "ScoreMeter":
 						GameOption.SHOW_HIT_ERROR_BAR.setValue(Boolean.parseBoolean(value));
 						break;
@@ -1140,6 +1150,8 @@ public class Options {
 			writer.write(String.format("ComboBurst = %b", isComboBurstEnabled()));
 			writer.newLine();
 			writer.write(String.format("PerfectHit = %b", isPerfectHitBurstEnabled()));
+			writer.newLine();
+			writer.write(String.format("FollowPoints = %b", isFollowPointEnabled()));
 			writer.newLine();
 			writer.write(String.format("ScoreMeter = %b", isHitErrorBarEnabled()));
 			writer.newLine();

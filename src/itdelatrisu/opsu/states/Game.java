@@ -1195,6 +1195,8 @@ public class Game extends BasicGameState {
 			stack.add(index);
 
 			// draw follow points
+			if (!Options.isFollowPointEnabled())
+				continue;
 			if (osu.objects[index].isSpinner()) {
 				lastObjectIndex = -1;
 				continue;
