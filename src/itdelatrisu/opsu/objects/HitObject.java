@@ -38,7 +38,7 @@ public interface HitObject {
 	 * @param mouseX the x coordinate of the mouse
 	 * @param mouseY the y coordinate of the mouse
 	 * @param keyPressed whether or not a game key is currently pressed
-	 * @param trackPosition the track Position
+	 * @param trackPosition the track position
 	 * @return true if object ended
 	 */
 	public boolean update(boolean overlap, int delta, int mouseX, int mouseY, boolean keyPressed, int trackPosition);
@@ -47,7 +47,7 @@ public interface HitObject {
 	 * Processes a mouse click.
 	 * @param x the x coordinate of the mouse
 	 * @param y the y coordinate of the mouse
-	 * @param trackPosition the track Position
+	 * @param trackPosition the track position
 	 * @return true if a hit result was processed
 	 */
 	public boolean mousePressed(int x, int y, int trackPosition);

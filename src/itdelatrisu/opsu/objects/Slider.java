@@ -38,9 +38,9 @@ import org.newdawn.slick.Image;
  * Data type representing a slider object.
  */
 public class Slider implements HitObject {
-	/** Slider ball animation. */
+	/** Slider ball frames. */
 	private static Image[] sliderBallImages;
-	
+
 	/** Slider movement speed multiplier. */
 	private static float sliderMultiplier = 1.0f;
 
@@ -116,7 +116,7 @@ public class Slider implements HitObject {
 			sliderBallImages = new Image[]{ GameImage.SLIDER_BALL.getImage() };
 		for (int i = 0; i < sliderBallImages.length; i++)
 			sliderBallImages[i] = sliderBallImages[i].getScaledCopy(diameter * 118 / 128, diameter * 118 / 128);
-		
+
 		GameImage.SLIDER_FOLLOWCIRCLE.setImage(GameImage.SLIDER_FOLLOWCIRCLE.getImage().getScaledCopy(diameter * 259 / 128, diameter * 259 / 128));
 		GameImage.REVERSEARROW.setImage(GameImage.REVERSEARROW.getImage().getScaledCopy(diameter, diameter));
 		GameImage.SLIDER_TICK.setImage(GameImage.SLIDER_TICK.getImage().getScaledCopy(diameter / 4, diameter / 4));
@@ -148,7 +148,6 @@ public class Slider implements HitObject {
 			this.curve = new LinearBezier(hitObject, color);
 	}
 
-	@SuppressWarnings("deprecation")
 	@Override
 	public void draw(Graphics g, int trackPosition) {
 		int timeDiff = hitObject.getTime() - trackPosition;
@@ -215,25 +214,24 @@ public class Slider implements HitObject {
 				}
 			}
 		}
-		
 
 		if (timeDiff >= 0) {
 			// approach circle
 			color.a = 1 - scale;
 			GameImage.APPROACHCIRCLE.getImage().getScaledCopy(approachScale).drawCentered(x, y, color);
 		} else {
-			//since update might not have run before drawing during replay, 
-			//the slider time may not have been calculated.
-			//Which will cause NAN numbers and cause flicker.
+			// Since update() might not have run before drawing during a replay, the
+			// slider time may not have been calculated, which causes NAN numbers and flicker.
 			if (sliderTime == 0)
 				return;
+
 			float[] c = curve.pointAt(getT(trackPosition, false));
 			float[] c2 = curve.pointAt(getT(trackPosition, false) + 0.01f);
 
 			float t = getT(trackPosition, false);
-			//float dis = hitObject.getPixelLength()*OsuHitObject.getXMultiplier() * (t -(int)t);
-			//Image sliderBallFrame = sliderBallImages[ (int)(dis/ (diameter*Math.PI) *30)%sliderBallImages.length];
-			Image sliderBallFrame = sliderBallImages[(int) (t * sliderTime * 60 / 1000)	% sliderBallImages.length];
+//			float dis = hitObject.getPixelLength() * OsuHitObject.getXMultiplier() * (t - (int) t);
+//			Image sliderBallFrame = sliderBallImages[(int) (dis / (diameter * Math.PI) * 30) % sliderBallImages.length];
+			Image sliderBallFrame = sliderBallImages[(int) (t * sliderTime * 60 / 1000) % sliderBallImages.length];
 			float angle = (float) (Math.atan2(c2[1] - c[1], c2[0] - c[0]) * 180 / Math.PI);
 			sliderBallFrame.setRotation(angle);
 			sliderBallFrame.drawCentered(c[0], c[1]);

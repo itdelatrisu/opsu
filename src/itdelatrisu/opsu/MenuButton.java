@@ -200,7 +200,7 @@ public class MenuButton {
 				if ((hoverEffect & EFFECT_ROTATE) > 0)
 					image.setRotation(angle);
 				image.draw(x - xRadius, y - yRadius, filter);
-				if (image != this.img) {
+				if (image == this.img) {
 					image.setAlpha(oldAlpha);
 					image.setRotation(oldAngle);
 				}

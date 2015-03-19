@@ -1236,12 +1236,12 @@ public class GameData {
 
 	/**
 	 * Returns a Replay object encapsulating all game data.
-	 * If a replay already exists and frames is null, the existing object will
-	 * be returned.
+	 * If a replay already exists and frames is null, the existing object will be returned.
 	 * @param frames the replay frames
+	 * @param osu the associated OsuFile
 	 * @return the Replay object, or null if none exists and frames is null
 	 */
-	public Replay getReplay(ReplayFrame[] frames, OsuFile file) {
+	public Replay getReplay(ReplayFrame[] frames, OsuFile osu) {
 		if (replay != null && frames == null)
 			return replay;
 
@@ -1251,7 +1251,7 @@ public class GameData {
 		replay = new Replay();
 		replay.mode = OsuFile.MODE_OSU;
 		replay.version = Updater.get().getBuildDate();
-		replay.beatmapHash = Utils.getMD5(file.getFile());
+		replay.beatmapHash = (osu == null) ? "" : Utils.getMD5(osu.getFile());
 		replay.playerName = "";  // TODO
 		replay.replayHash = Long.toString(System.currentTimeMillis());  // TODO
 		replay.hit300 = (short) hitResultCount[HIT_300];
