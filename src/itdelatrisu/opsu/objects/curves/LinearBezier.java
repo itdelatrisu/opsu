@@ -127,7 +127,7 @@ public class LinearBezier extends Curve {
 			} else
 				curve[i] = thisCurve;
 		}
-	
+
 //		if (hitObject.getRepeatCount() > 1) {
 			Vec2f c1 = curve[0];
 			int cnt = 1;
@@ -135,11 +135,11 @@ public class LinearBezier extends Curve {
 			while (cnt <= ncurve && c2.cpy().sub(c1).len() < 1)
 				c2 = curve[cnt++];
 			this.startAngle = (float) (Math.atan2(c2.y - c1.y, c2.x - c1.x) * 180 / Math.PI);
-			
+
 			c1 = curve[ncurve];
 			cnt = ncurve - 1;
 			c2 = curve[cnt--];
-			while (cnt >= 0  && c2.cpy().sub(c1).len() < 1)
+			while (cnt >= 0 && c2.cpy().sub(c1).len() < 1)
 				c2 = curve[cnt--];
 			this.endAngle = (float) (Math.atan2(c2.y - c1.y, c2.x - c1.x) * 180 / Math.PI);
 //		}
