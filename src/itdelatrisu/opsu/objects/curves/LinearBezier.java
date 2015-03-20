@@ -124,26 +124,25 @@ public class LinearBezier extends Curve {
 			if (distanceAt - lastDistanceAt > 1) {
 				float t = (prefDistance - lastDistanceAt) / (distanceAt - lastDistanceAt);
 				curve[i] = new Vec2f(lerp(lastCurve.x, thisCurve.x, t), lerp(lastCurve.y, thisCurve.y, t));
-//				System.out.println("Dis "+i+" "+prefDistance+" "+lastDistanceAt+" "+distanceAt+" "+curPoint+" "+t);
 			} else
 				curve[i] = thisCurve;
 		}
-
+	
 //		if (hitObject.getRepeatCount() > 1) {
 			Vec2f c1 = curve[0];
 			int cnt = 1;
 			Vec2f c2 = curve[cnt++];
-			while (c2.cpy().sub(c1).len() < 1)
+			while (cnt <= ncurve && c2.cpy().sub(c1).len() < 1)
 				c2 = curve[cnt++];
 			this.startAngle = (float) (Math.atan2(c2.y - c1.y, c2.x - c1.x) * 180 / Math.PI);
-			c1 = curve[ncurve - 1];
-			cnt = ncurve - 2;
-			c2 = curve[cnt];
-			while (c2.cpy().sub(c1).len() < 1)
+			
+			c1 = curve[ncurve];
+			cnt = ncurve - 1;
+			c2 = curve[cnt--];
+			while (cnt >= 0  && c2.cpy().sub(c1).len() < 1)
 				c2 = curve[cnt--];
 			this.endAngle = (float) (Math.atan2(c2.y - c1.y, c2.x - c1.x) * 180 / Math.PI);
 //		}
-//		System.out.println("Total Distance: "+totalDistance+" "+distanceAt+" "+beziers.size()+" "+hitObject.getPixelLength()+" "+OsuHitObject.getXMultiplier());
 	}
 
 	@Override
@@ -151,7 +150,7 @@ public class LinearBezier extends Curve {
 		float indexF = t * ncurve;
 		int index = (int) indexF;
 		if (index >= ncurve) {
-			Vec2f poi = curve[ncurve - 1];
+			Vec2f poi = curve[ncurve];
 			return new float[] { poi.x, poi.y };
 		} else {
 			Vec2f poi = curve[index];
