@@ -583,6 +583,10 @@ public class DownloadsMenu extends BasicGameState {
 					if (dirs != null && dirs.length > 0) {
 						OsuGroupNode node = OsuParser.parseDirectories(dirs);
 						if (node != null) {
+							// stop preview
+							previewID = -1;
+							SoundController.stopTrack();
+
 							// initialize song list
 							OsuGroupList.get().reset();
 							OsuGroupList.get().init();
