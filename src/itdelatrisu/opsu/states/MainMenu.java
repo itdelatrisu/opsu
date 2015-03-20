@@ -40,7 +40,6 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Stack;
-import java.util.concurrent.TimeUnit;
 
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
@@ -281,13 +280,10 @@ public class MainMenu extends BasicGameState {
 			g.drawString((MusicController.isPlaying()) ? "Now Playing:" : "Paused:", marginX, marginY + lineHeight);
 			g.drawString(String.format("%s: %s", osu.getArtist(), osu.getTitle()), marginX + 25, marginY + (lineHeight * 2));
 		}
-		long time = System.currentTimeMillis() - osuStartTime;
-		g.drawString(String.format("opsu! has been running for %d minutes, %d seconds.",
-				TimeUnit.MILLISECONDS.toMinutes(time),
-				TimeUnit.MILLISECONDS.toSeconds(time) -
-				TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(time))),
+		g.drawString(String.format("opsu! has been running for %s.",
+				Utils.getTimeString((int) (System.currentTimeMillis() - osuStartTime) / 1000)),
 				marginX, height - marginY - (lineHeight * 2));
-		g.drawString(String.format("The current time is %s.",
+		g.drawString(String.format("It is currently %s.",
 				new SimpleDateFormat("h:mm a").format(new Date())),
 				marginX, height - marginY - lineHeight);
 
@@ -505,7 +501,7 @@ public class MainMenu extends BasicGameState {
 		else if (logoClicked) {
 			if (logo.contains(x, y, 0.25f) || playButton.contains(x, y, 0.25f)) {
 				SoundController.playSound(SoundEffect.MENUHIT);
-				game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
+				enterSongMenu();
 			} else if (exitButton.contains(x, y, 0.25f))
 				container.exit();
 		}
@@ -532,7 +528,7 @@ public class MainMenu extends BasicGameState {
 				playButton.getImage().setAlpha(0f);
 				exitButton.getImage().setAlpha(0f);
 			} else
-				game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
+				enterSongMenu();
 			break;
 		case Input.KEY_D:
 			SoundController.playSound(SoundEffect.MENUHIT);
@@ -606,5 +602,17 @@ public class MainMenu extends BasicGameState {
 		}
 		if (Options.isDynamicBackgroundEnabled() && !sameAudio && !MusicController.isThemePlaying())
 			bgAlpha = 0f;
+	}
+
+	/**
+	 * Enters the song menu, or the downloads menu if no beatmaps are loaded.
+	 */
+	private void enterSongMenu() {
+		int state = Opsu.STATE_SONGMENU;
+		if (OsuGroupList.get().getMapSetCount() == 0) {
+			((DownloadsMenu) game.getState(Opsu.STATE_DOWNLOADSMENU)).notifyOnLoad("Download some beatmaps to get started!");
+			state = Opsu.STATE_DOWNLOADSMENU;
+		}
+		game.enterState(state, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 	}
 }

@@ -573,4 +573,18 @@ public class Utils {
 		}
 		return null;
 	}
+
+	/**
+	 * Returns a formatted time string for a given number of seconds.
+	 * @param seconds the number of seconds
+	 * @return the time as a readable string
+	 */
+	public static String getTimeString(int seconds) {
+		if (seconds < 60)
+			return (seconds == 1) ? "1 second" : String.format("%d seconds", seconds);
+		else if (seconds < 3600)
+			return String.format("%02d:%02d", seconds / 60, seconds % 60);
+		else
+			return String.format("%02d:%02d:%02d", seconds / 3600, (seconds / 60) % 60, seconds % 60);
+	}
 }

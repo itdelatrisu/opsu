@@ -680,7 +680,7 @@ public class UI {
 	 * @param g the graphics context
 	 */
 	public static void drawBarNotification(Graphics g) {
-		if (barNotifTimer == -1 || barNotifTimer >= BAR_NOTIFICATION_TIME)
+		if (barNotifTimer <= 0 || barNotifTimer >= BAR_NOTIFICATION_TIME)
 			return;
 
 		float alpha = 1f;
