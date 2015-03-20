@@ -150,6 +150,14 @@ public class DownloadNode {
 	}
 
 	/**
+	 * Sets a clip to the download result button area.
+	 * @param g the graphics context
+	 */
+	public static void clipToResultArea(Graphics g) {
+		g.setClip((int) buttonBaseX, (int) buttonBaseY, (int) buttonWidth, (int) (buttonOffset * maxResultsShown));
+	}
+
+	/**
 	 * Returns true if the coordinates are within the bounds of the
 	 * download information button at the given index.
 	 * @param cx the x coordinate
@@ -332,6 +340,7 @@ public class DownloadNode {
 		textX += img.getWidth() + buttonWidth * 0.001f;
 
 		// text
+		// TODO: if the title/artist line is too long, shorten it (e.g. add "...")
 		if (Options.useUnicodeMetadata())  // load glyphs
 			Utils.loadGlyphs(Utils.FONT_BOLD, getTitle(), getArtist());
 		Utils.FONT_BOLD.drawString(

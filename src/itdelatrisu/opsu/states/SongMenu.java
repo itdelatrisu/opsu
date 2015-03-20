@@ -465,7 +465,8 @@ public class SongMenu extends BasicGameState {
 	public void update(GameContainer container, StateBasedGame game, int delta)
 			throws SlickException {
 		UI.update(delta);
-		MusicController.loopTrackIfEnded(true);
+		if (reloadThread == null)
+			MusicController.loopTrackIfEnded(true);
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
 		UI.getBackButton().hoverUpdate(delta, mouseX, mouseY);
 		selectModsButton.hoverUpdate(delta, mouseX, mouseY);

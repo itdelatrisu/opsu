@@ -255,6 +255,7 @@ public class DownloadsMenu extends BasicGameState {
 		// search results
 		DownloadNode[] nodes = resultList;
 		if (nodes != null) {
+			DownloadNode.clipToResultArea(g);
 			int maxResultsShown = DownloadNode.maxResultsShown();
 			for (int i = 0; i < maxResultsShown; i++) {
 				int index = startResult + i;
@@ -263,6 +264,7 @@ public class DownloadsMenu extends BasicGameState {
 				nodes[index].drawResult(g, i, DownloadNode.resultContains(mouseX, mouseY, i),
 						(index == focusResult), (previewID == nodes[index].getID()));
 			}
+			g.clearClip();
 
 			// scroll bar
 			if (nodes.length > maxResultsShown)
@@ -333,7 +335,8 @@ public class DownloadsMenu extends BasicGameState {
 	public void update(GameContainer container, StateBasedGame game, int delta)
 			throws SlickException {
 		UI.update(delta);
-		MusicController.loopTrackIfEnded(false);
+		if (importThread == null)
+			MusicController.loopTrackIfEnded(false);
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
 		UI.getBackButton().hoverUpdate(delta, mouseX, mouseY);
 		prevPage.hoverUpdate(delta, mouseX, mouseY);
