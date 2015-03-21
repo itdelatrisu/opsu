@@ -18,6 +18,8 @@
 
 package itdelatrisu.opsu.states;
 
+import fluddokt.opsu.fake.*;
+
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.MenuButton;
 import itdelatrisu.opsu.Opsu;
@@ -39,10 +41,13 @@ import itdelatrisu.opsu.downloads.DownloadServer;
 
 //import java.io.File;
 import java.io.IOException;
-
-import fluddokt.opsu.fake.*;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 /*
+import javax.sound.sampled.LineEvent;
+import javax.sound.sampled.LineListener;
+
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
@@ -54,6 +59,7 @@ import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.state.transition.FadeInTransition;
 import org.newdawn.slick.state.transition.FadeOutTransition;
+import org.newdawn.slick.util.Log;
 */
 /**
  * Downloads menu.
@@ -139,6 +145,12 @@ public class DownloadsMenu extends BasicGameState {
 
 	/** Beatmap importing thread. */
 	private Thread importThread;
+
+	/** Beatmap set ID of the current beatmap being previewed, or -1 if none. */
+	private int previewID = -1;
+
+	/** The bar notification to send upon entering the state. */
+	private String barNotificationOnLoad;
 
 	// game-related variables
 	private GameContainer container;
@@ -246,13 +258,16 @@ public class DownloadsMenu extends BasicGameState {
 		// search results
 		DownloadNode[] nodes = resultList;
 		if (nodes != null) {
+			DownloadNode.clipToResultArea(g);
 			int maxResultsShown = DownloadNode.maxResultsShown();
 			for (int i = 0; i < maxResultsShown; i++) {
 				int index = startResult + i;
 				if (index >= nodes.length)
 					break;
-				nodes[index].drawResult(g, i, DownloadNode.resultContains(mouseX, mouseY, i), (index == focusResult));
+				nodes[index].drawResult(g, i, DownloadNode.resultContains(mouseX, mouseY, i),
+						(index == focusResult), (previewID == nodes[index].getID()));
 			}
+			g.clearClip();
 
 			// scroll bar
 			if (nodes.length > maxResultsShown)
@@ -323,7 +338,8 @@ public class DownloadsMenu extends BasicGameState {
 	public void update(GameContainer container, StateBasedGame game, int delta)
 			throws SlickException {
 		UI.update(delta);
-		MusicController.loopTrackIfEnded(false);
+		if (importThread == null)
+			MusicController.loopTrackIfEnded(false);
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
 		UI.getBackButton().hoverUpdate(delta, mouseX, mouseY);
 		prevPage.hoverUpdate(delta, mouseX, mouseY);
@@ -444,10 +460,61 @@ public class DownloadsMenu extends BasicGameState {
 					if (index >= nodes.length)
 						break;
 					if (DownloadNode.resultContains(x, y, i)) {
-						DownloadNode node = nodes[index];
+						final DownloadNode node = nodes[index];
 
 						// check if map is already loaded
-						if (OsuGroupList.get().containsBeatmapSetID(node.getID()))
+						boolean isLoaded = OsuGroupList.get().containsBeatmapSetID(node.getID());
+
+						// track preview
+						if (DownloadNode.resultIconContains(x, y, i)) {
+							// set focus
+							if (!isLoaded) {
+								SoundController.playSound(SoundEffect.MENUCLICK);
+								focusResult = index;
+								focusTimer = FOCUS_DELAY;
+							}
+
+							if (previewID == node.getID()) {
+								// stop preview
+								previewID = -1;
+								SoundController.stopTrack();
+							} else {
+								// play preview
+								try {
+									final URL url = new URL(server.getPreviewURL(node.getID()));
+									MusicController.pause();
+									new Thread() {
+										@Override
+										public void run() {
+											try {
+												previewID = -1;
+												SoundController.playTrack(url, true, new LineListener() {
+													@Override
+													public void update(LineEvent event) {
+														if (event.getType() == LineEvent.Type.STOP) {
+															if (previewID != -1) {
+																SoundController.stopTrack();
+																previewID = -1;
+															}
+														}
+													}
+												});
+												previewID = node.getID();
+											} catch (SlickException e) {
+												UI.sendBarNotification("Failed to load track preview.");
+												Log.error(e);
+											}
+										}
+									}.start();
+								} catch (MalformedURLException e) {
+									UI.sendBarNotification("Could not load track preview (bad URL).");
+									Log.error(e);
+								}
+							}
+							return;
+						}
+
+						if (isLoaded)
 							return;
 
 						SoundController.playSound(SoundEffect.MENUCLICK);
@@ -520,6 +587,10 @@ public class DownloadsMenu extends BasicGameState {
 					if (dirs != null && dirs.length > 0) {
 						OsuGroupNode node = OsuParser.parseDirectories(dirs);
 						if (node != null) {
+							// stop preview
+							previewID = -1;
+							SoundController.stopTrack();
+
 							// initialize song list
 							OsuGroupList.get().reset();
 							OsuGroupList.get().init();
@@ -683,12 +754,19 @@ public class DownloadsMenu extends BasicGameState {
 		startResult = 0;
 		startDownloadIndex = 0;
 		pageDir = Page.RESET;
+		previewID = -1;
+		if (barNotificationOnLoad != null) {
+			UI.sendBarNotification(barNotificationOnLoad);
+			barNotificationOnLoad = null;
+		}
 	}
 	
 	@Override
 	public void leave(GameContainer container, StateBasedGame game)
 			throws SlickException {
 		search.setFocus(false);
+		SoundController.stopTrack();
+		MusicController.resume();
 	}
 
 	/**
@@ -731,4 +809,10 @@ public class DownloadsMenu extends BasicGameState {
 			}
 		}
 	}
+
+	/**
+	 * Sends a bar notification upon entering the state.
+	 * @param s the notification string
+	 */
+	public void notifyOnLoad(String s) { barNotificationOnLoad = s; }
 }

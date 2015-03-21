@@ -78,6 +78,7 @@ public enum GameImage {
 	},
 	HITCIRCLE_SELECT ("hitcircleselect", "png"),
 	UNRANKED ("play-unranked", "png"),
+	FOLLOWPOINT ("followpoint", "png"),
 	PLAYFIELD ("playfield", "png|jpg", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
@@ -90,6 +91,7 @@ public enum GameImage {
 	PAUSE_CONTINUE ("pause-continue", "png"),
 	PAUSE_RETRY ("pause-retry", "png"),
 	PAUSE_BACK ("pause-back", "png"),
+	PAUSE_REPLAY ("pause-replay", "png"),
 	PAUSE_OVERLAY ("pause-overlay", "png|jpg") {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
@@ -117,16 +119,11 @@ public enum GameImage {
 	SLIDER_TICK ("sliderscorepoint", "png"),
 
 	// Spinner
-	SPINNER_CIRCLE ("spinner-circle", "png") {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy(h * 9 / 10, h * 9 / 10);
-		}
-	},
+	SPINNER_CIRCLE ("spinner-circle", "png"),
 	SPINNER_APPROACHCIRCLE ("spinner-approachcircle", "png") {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy(h * 9 / 10, h * 9 / 10);
+			return img.getScaledCopy(1.8f);
 		}
 	},
 	SPINNER_METRE ("spinner-metre", "png") {
@@ -141,7 +138,7 @@ public enum GameImage {
 	SPINNER_RPM ("spinner-rpm", "png") {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((SCORE_0.getImage().getHeight() * 1.05f) / img.getHeight());
+			return img.getScaledCopy(0.8f);
 		}
 	},
 
@@ -211,128 +208,28 @@ public enum GameImage {
 	LIGHTING1 ("lighting1", "png"),
 
 	// Game Mods
-	MOD_EASY ("selection-mod-easy", "png", false, false) {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h / 12f) / img.getHeight());
-		}
-	},
-	MOD_NO_FAIL ("selection-mod-nofail", "png", false, false) {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return MOD_EASY.process_sub(img, w, h);
-		}
-	},
-	MOD_HARD_ROCK ("selection-mod-hardrock", "png", false, false) {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return MOD_EASY.process_sub(img, w, h);
-		}
-	},
-	MOD_SUDDEN_DEATH ("selection-mod-suddendeath", "png", false, false) {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return MOD_EASY.process_sub(img, w, h);
-		}
-	},
-	MOD_SPUN_OUT ("selection-mod-spunout", "png", false, false) {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return MOD_EASY.process_sub(img, w, h);
-		}
-	},
-	MOD_AUTO ("selection-mod-autoplay", "png", false, false) {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return MOD_EASY.process_sub(img, w, h);
-		}
-	},
-	MOD_HALF_TIME ("selection-mod-halftime", "png", false, false) {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return MOD_EASY.process_sub(img, w, h);
-		}
-	},
-	MOD_DOUBLE_TIME ("selection-mod-doubletime", "png", false, false) {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return MOD_EASY.process_sub(img, w, h);
-		}
-	},
-	MOD_HIDDEN ("selection-mod-hidden", "png", false, false) {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return MOD_EASY.process_sub(img, w, h);
-		}
-	},
-	MOD_FLASHLIGHT ("selection-mod-flashlight", "png", false, false) {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return MOD_EASY.process_sub(img, w, h);
-		}
-	},
-	MOD_RELAX ("selection-mod-relax", "png", false, false) {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return MOD_EASY.process_sub(img, w, h);
-		}
-	},
-	MOD_AUTOPILOT ("selection-mod-relax2", "png", false, false) {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return MOD_EASY.process_sub(img, w, h);
-		}
-	},
+	MOD_EASY ("selection-mod-easy", "png", false, false),
+	MOD_NO_FAIL ("selection-mod-nofail", "png", false, false),
+	MOD_HARD_ROCK ("selection-mod-hardrock", "png", false, false),
+	MOD_SUDDEN_DEATH ("selection-mod-suddendeath", "png", false, false),
+	MOD_SPUN_OUT ("selection-mod-spunout", "png", false, false),
+	MOD_AUTO ("selection-mod-autoplay", "png", false, false),
+	MOD_HALF_TIME ("selection-mod-halftime", "png", false, false),
+	MOD_DOUBLE_TIME ("selection-mod-doubletime", "png", false, false),
+	MOD_HIDDEN ("selection-mod-hidden", "png", false, false),
+	MOD_FLASHLIGHT ("selection-mod-flashlight", "png", false, false),
+	MOD_RELAX ("selection-mod-relax", "png", false, false),
+	MOD_AUTOPILOT ("selection-mod-relax2", "png", false, false),
 
 	// Selection Buttons
-	SELECTION_MODS ("selection-mods", "png", false, false) {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h * 0.115f) / img.getHeight());
-		}
-	},
-	SELECTION_MODS_OVERLAY ("selection-mods-over", "png", false, false) {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return SELECTION_MODS.process_sub(img, w, h);
-		}
-	},
-	SELECTION_RANDOM ("selection-random", "png", false, false) {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return SELECTION_MODS.process_sub(img, w, h);
-		}
-	},
-	SELECTION_RANDOM_OVERLAY ("selection-random-over", "png", false, false) {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return SELECTION_MODS.process_sub(img, w, h);
-		}
-	},
-	SELECTION_OPTIONS ("selection-options", "png", false, false) {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return SELECTION_MODS.process_sub(img, w, h);
-		}
-	},
-	SELECTION_OPTIONS_OVERLAY ("selection-options-over", "png", false, false) {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return SELECTION_MODS.process_sub(img, w, h);
-		}
-	},
-	SELECTION_OTHER_OPTIONS ("selection-selectoptions", "png", false, false) {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return SELECTION_MODS.process_sub(img, w, h);
-		}
-	},
-	SELECTION_OTHER_OPTIONS_OVERLAY ("selection-selectoptions-over", "png", false, false) {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return SELECTION_MODS.process_sub(img, w, h);
-		}
-	},
+	SELECTION_MODS ("selection-mods", "png", false, false),
+	SELECTION_MODS_OVERLAY ("selection-mods-over", "png", false, false),
+	SELECTION_RANDOM ("selection-random", "png", false, false),
+	SELECTION_RANDOM_OVERLAY ("selection-random-over", "png", false, false),
+	SELECTION_OPTIONS ("selection-options", "png", false, false),
+	SELECTION_OPTIONS_OVERLAY ("selection-options-over", "png", false, false),
+	SELECTION_OTHER_OPTIONS ("selection-selectoptions", "png", false, false),
+	SELECTION_OTHER_OPTIONS_OVERLAY ("selection-selectoptions-over", "png", false, false),
 
 	// Non-Game Components
 	VOLUME ("volume-bg", "png", false, false) {
@@ -373,19 +270,19 @@ public enum GameImage {
 	MENU_LOGO ("logo", "png", false, true) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h / 1.2f) / img.getHeight());
+			return img.getScaledCopy(0.8f);
 		}
 	},
-	MENU_PlAY ("menu-play", "png", false, false) {
+	MENU_PLAY ("menu-play", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy(MENU_LOGO.getImage().getWidth() * 0.83f / img.getWidth());
+			return img.getScaledCopy(0.8f);
 		}
 	},
 	MENU_EXIT ("menu-exit", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy(MENU_LOGO.getImage().getWidth() * 0.66f / img.getWidth());
+			return img.getScaledCopy(0.8f);
 		}
 	},
 	MENU_BUTTON_MID ("button-middle", "png", false, false),
@@ -393,32 +290,10 @@ public enum GameImage {
 	MENU_BUTTON_RIGHT ("button-right", "png", false, false),
 
 	// Music Player Buttons
-	MUSIC_PLAY ("music-play", "png", false, false) {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h / 18f) / img.getHeight());
-		}
-	},
-	MUSIC_PAUSE ("music-pause", "png", false, false) {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return MUSIC_PLAY.process_sub(img, w, h);
-		}
-	},
-	MUSIC_NEXT ("music-next", "png", false, false) {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return MUSIC_PLAY.process_sub(img, w, h);
-		}
-	},
-	MUSIC_PREVIOUS ("music-previous", "png", false, false) {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			return MUSIC_PLAY.process_sub(img, w, h);
-		}
-	},
-	RANKING_RETRY ("ranking-retry", "png", false, false),
-	RANKING_EXIT ("ranking-back", "png", false, false),
+	MUSIC_PLAY ("music-play", "png", false, false),
+	MUSIC_PAUSE ("music-pause", "png", false, false),
+	MUSIC_NEXT ("music-next", "png", false, false),
+	MUSIC_PREVIOUS ("music-previous", "png", false, false),
 	DOWNLOADS ("downloads", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
@@ -456,7 +331,9 @@ public enum GameImage {
 		protected Image process_sub(Image img, int w, int h) {
 			return REPOSITORY.process_sub(img, w, h);
 		}
-	};
+	},
+	// TODO: ensure this image hasn't been modified (checksum?)
+	ALPHA_MAP ("alpha", "png", false, false);
 
 	/** Image file types. */
 	private static final byte
@@ -501,6 +378,11 @@ public enum GameImage {
 
 	/** The unscaled container height that uiscale is based on. */
 	private static final int UNSCALED_HEIGHT = 768;
+
+	/** Image HD/SD suffixes. */
+	private static final String[]
+			SUFFIXES_HD = new String[] { "@2x", "" },
+			SUFFIXES_SD = new String[] { "" };
 
 	/**
 	 * Initializes the GameImage class with container dimensions.
@@ -582,6 +464,14 @@ public enum GameImage {
 		}
 
 		return null;
+	}
+
+	/**
+	 * Returns an array of HD/SD file name suffixes based on the current options
+	 * and UI scale.
+	 */
+	private static String[] getSuffixes() {
+		return (Options.loadHDImages() && uiscale >= 1) ? SUFFIXES_HD : SUFFIXES_SD;
 	}
 
 	/**
@@ -693,51 +583,23 @@ public enum GameImage {
 		if (defaultImage != null || defaultImages != null)
 			return;
 
-		// load image array
+		// try to load multiple images
 		if (filenameFormat != null) {
-			List<Image> list = new ArrayList<Image>();
-			File dir = Options.getSkinDir();
-			int i = 0;
-			while (true) {
-				// look for next image
-				String filenameFormatted = String.format(filenameFormat, i++);
-				String name = getImageFileName(filenameFormatted, dir, type, true);
-				if (i == 1 && name == null) {  // first image: check other location
-					dir = null;
-					name = getImageFileName(filenameFormatted, dir, type, true);
-				}
-				if (name == null)
-					break;
-
-				// add image to list
-				try {
-					Image img = new Image(name);
-					list.add(img);
-				} catch (SlickException e) {
-					ErrorHandler.error(String.format("Failed to set default image '%s'.", name), null, false);
-					break;
-				}
-			}
-			if (!list.isEmpty()) {
-				this.defaultImages = list.toArray(new Image[list.size()]);
+			if (((defaultImages = loadImageArray(Options.getSkinDir())) != null) ||
+			    ((defaultImages = loadImageArray(null)) != null)) {
 				process();
 				return;
 			}
 		}
 
-		// load single image
-		String name = getImageFileName(filename, Options.getSkinDir(), type, false);
-		if (name == null) {
-			ErrorHandler.error(String.format("Could not find image '%s'.", filename), null, false);
+		// try to load a single image
+		if (((defaultImage = loadImageSingle(Options.getSkinDir())) != null) ||
+		    ((defaultImage = loadImageSingle(null)) != null)) {
+			process();
 			return;
 		}
-		try {
-			Image img = new Image(name);
-			this.defaultImage = img;
-			process();
-		} catch (SlickException e) {
-			ErrorHandler.error(String.format("Failed to set default image '%s'.", filename), null, false);
-		}
+
+		ErrorHandler.error(String.format("Could not find default image '%s'.", filename), null, false);
 	}
 
 	/**
@@ -756,47 +618,74 @@ public enum GameImage {
 		if (Options.isBeatmapSkinIgnored())
 			return false;
 
-		// look for multiple skin images
-		if (filenameFormat != null) {
-			List<Image> list = new ArrayList<Image>();
-			int i = 0;
-			while (true) {
-				// look for next image
-				String filenameFormatted = String.format(filenameFormat, i++);
-				String name = getImageFileName(filenameFormatted, dir, type, true);
-				if (name == null)
-					break;
-
-				// add image to list
-				try {
-					Image img = new Image(name);
-					list.add(img);
-				} catch (SlickException e) {
-					ErrorHandler.error(String.format("Failed to set skin image '%s'.", name), null, false);
-					break;
-				}
-			}
-			if (!list.isEmpty()) {
-				this.skinImages = list.toArray(new Image[list.size()]);
-				process();
-				return true;
-			}
-		}
-
-		// look for a skin image
-		String name = getImageFileName(filename, dir, type, true);
-		if (name == null)
-			return false;
-		try {
-			Image img = new Image(name);
-			this.skinImage = img;
+		// try to load multiple images
+		if ((skinImages = loadImageArray(dir)) != null) {
 			process();
 			return true;
-		} catch (SlickException e) {
-			skinImage = null;
-			ErrorHandler.error(String.format("Failed to set skin image '%s'.", name), null, false);
 		}
+
+		// try to load a single image
+		if ((skinImage = loadImageSingle(dir)) != null) {
+			process();
+			return true;
+		}
+
 		return false;
+	}
+
+	/**
+	 * Attempts to load multiple Images from the GameImage.
+	 * @return an array of the loaded images, or null if not found
+	 */
+	private Image[] loadImageArray(File dir) {
+		if (filenameFormat != null) {
+			for (String suffix : getSuffixes()) {
+				List<Image> list = new ArrayList<Image>();
+				int i = 0;
+				while (true) {
+					// look for next image
+					String filenameFormatted = String.format(filenameFormat + suffix, i++);
+					String name = getImageFileName(filenameFormatted, dir, type, true);
+					if (name == null)
+						break;
+
+					// add image to list
+					try {
+						Image img = new Image(name);
+						if (suffix.equals("@2x"))
+							img = img.getScaledCopy(0.5f);
+						list.add(img);
+					} catch (SlickException e) {
+						ErrorHandler.error(String.format("Failed to set image '%s'.", name), null, false);
+						break;
+					}
+				}
+				if (!list.isEmpty())
+					return list.toArray(new Image[list.size()]);
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Attempts to load a single Image from the GameImage.
+	 * @return the loaded image, or null if not found
+	 */
+	private Image loadImageSingle(File dir) {
+		for (String suffix : getSuffixes()) {
+			String name = getImageFileName(filename + suffix, dir, type, true);
+			if (name != null) {
+				try {
+					Image img = new Image(name);
+					if (suffix.equals("@2x"))
+						img = img.getScaledCopy(0.5f);
+					return img;
+				} catch (SlickException e) {
+					ErrorHandler.error(String.format("Failed to set image '%s'.", filename), null, false);
+				}
+			}
+		}
+		return null;
 	}
 
 	/**
@@ -855,9 +744,7 @@ public enum GameImage {
 	 * @param h the container height
 	 * @return the processed image
 	 */
-	protected Image process_sub(Image img, int w, int h) {
-		return img;
-	}
+	protected Image process_sub(Image img, int w, int h) { return img; }
 
 	/**
 	 * Performs individual post-loading actions on the image.

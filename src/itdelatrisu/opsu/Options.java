@@ -93,6 +93,9 @@ public class Options {
 	/** The screenshot directory (created when needed). */
 	private static File screenshotDir;
 
+	/** The replay directory (created when needed). */
+	private static File replayDir;
+
 	/** The current skin directory (for user skins). */
 	private static File skinDir;
 
@@ -179,7 +182,7 @@ public class Options {
 		},
 		EFFECT_VOLUME ("Effect Volume", "Volume of menu and game sounds.", 70, 0, 100),
 		HITSOUND_VOLUME ("Hit Sound Volume", "Volume of hit sounds.", 30, 0, 100),
-		MUSIC_OFFSET ("Music Offset", "Adjust this value if hit objects are out of sync.", -150, -500, 500) {
+		MUSIC_OFFSET ("Music Offset", "Adjust this value if hit objects are out of sync.", -75, -500, 500) {
 			@Override
 			public String getValueString() { return String.format("%dms", val); }
 		},
@@ -194,6 +197,7 @@ public class Options {
 		SHOW_HIT_LIGHTING ("Show Hit Lighting", "Adds an effect behind hit explosions.", true),
 		SHOW_COMBO_BURSTS ("Show Combo Bursts", "A character image is displayed at combo milestones.", true),
 		SHOW_PERFECT_HIT ("Show Perfect Hits", "Whether to show perfect hit result bursts (300s, slider ticks).", true),
+		SHOW_FOLLOW_POINTS ("Show Follow Points", "Whether to show follow points between hit objects.", true),
 		NEW_CURSOR ("Enable New Cursor", "Use the new cursor style (may cause higher CPU usage).", true) {
 			@Override
 			public void click(GameContainer container) {
@@ -258,6 +262,7 @@ public class Options {
 		},
 		ENABLE_THEME_SONG ("Enable Theme Song", "Whether to play the theme song upon starting opsu!", true),
 		SHOW_HIT_ERROR_BAR ("Show Hit Error Bar", "Shows precisely how accurate you were with each hit.", false),
+		LOAD_HD_IMAGES ("Load HD Images", "Loads HD (@2x) images when available. Increases memory usage and loading times.", true),
 		DISABLE_MOUSE_WHEEL ("Disable mouse wheel in play mode", "During play, you can use the mouse wheel to adjust the volume and pause the game.\nThis will disable that functionality.", false),
 		DISABLE_MOUSE_BUTTONS ("Disable mouse buttons in play mode", "This option will disable all mouse buttons.\nSpecifically for people who use their keyboard to click.", false), 
 		IN_GAME_PAUSE("In game pause button", "Shows a in game pasue button.", false);
@@ -607,6 +612,12 @@ public class Options {
 	public static boolean isPerfectHitBurstEnabled() { return GameOption.SHOW_PERFECT_HIT.getBooleanValue(); }
 
 	/**
+	 * Returns whether or not to show follow points.
+	 * @return true if enabled
+	 */
+	public static boolean isFollowPointEnabled() { return GameOption.SHOW_FOLLOW_POINTS.getBooleanValue(); }
+
+	/**
 	 * Returns the background dim level.
 	 * @return the alpha level [0, 1]
 	 */
@@ -702,6 +713,12 @@ public class Options {
 	 * @return true if enabled
 	 */
 	public static boolean isHitErrorBarEnabled() { return GameOption.SHOW_HIT_ERROR_BAR.getBooleanValue(); }
+
+	/**
+	 * Returns whether or not to load HD (@2x) images.
+	 * @return true if HD images are enabled, false if only SD images should be loaded
+	 */
+	public static boolean loadHDImages() { return GameOption.LOAD_HD_IMAGES.getBooleanValue(); }
 
 	/**
 	 * Returns whether or not the mouse wheel is disabled during gameplay.
@@ -832,6 +849,19 @@ public class Options {
 	}
 
 	/**
+	 * Returns the replay directory.
+	 * If invalid, this will return a "Replay" directory.
+	 * @return the replay directory
+	 */
+	public static File getReplayDir() {
+		if (replayDir != null && replayDir.isDirectory())
+			return replayDir;
+
+		replayDir = new File(DATA_DIR, "Replays/");
+		return replayDir;
+	}
+
+	/**
 	 * Returns the current skin directory.
 	 * If invalid, this will create a "Skins" folder in the root directory.
 	 * @return the skin directory
@@ -903,6 +933,9 @@ public class Options {
 						break;
 					case "ScreenshotDirectory":
 						screenshotDir = new File(value);
+						break;
+					case "ReplayDirectory":
+						replayDir = new File(value);
 						break;
 					case "Skin":
 						skinDir = new File(value);
@@ -1011,8 +1044,14 @@ public class Options {
 					case "PerfectHit":
 						GameOption.SHOW_PERFECT_HIT.setValue(Boolean.parseBoolean(value));
 						break;
+					case "FollowPoints":
+						GameOption.SHOW_FOLLOW_POINTS.setValue(Boolean.parseBoolean(value));
+						break;
 					case "ScoreMeter":
 						GameOption.SHOW_HIT_ERROR_BAR.setValue(Boolean.parseBoolean(value));
+						break;
+					case "LoadHDImages":
+						GameOption.LOAD_HD_IMAGES.setValue(Boolean.parseBoolean(value));
 						break;
 					case "FixedCS":
 						GameOption.FIXED_CS.setValue((int) (Float.parseFloat(value) * 10f));
@@ -1072,6 +1111,8 @@ public class Options {
 			writer.newLine();
 			writer.write(String.format("ScreenshotDirectory = %s", getScreenshotDir().getAbsolutePath()));
 			writer.newLine();
+			writer.write(String.format("ReplayDirectory = %s", getReplayDir().getAbsolutePath()));
+			writer.newLine();
 			writer.write(String.format("Skin = %s", getSkinDir().getAbsolutePath()));
 			writer.newLine();
 			writer.write(String.format("ThemeSong = %s", themeString));
@@ -1128,7 +1169,11 @@ public class Options {
 			writer.newLine();
 			writer.write(String.format("PerfectHit = %b", isPerfectHitBurstEnabled()));
 			writer.newLine();
+			writer.write(String.format("FollowPoints = %b", isFollowPointEnabled()));
+			writer.newLine();
 			writer.write(String.format("ScoreMeter = %b", isHitErrorBarEnabled()));
+			writer.newLine();
+			writer.write(String.format("LoadHDImages = %b", loadHDImages()));
 			writer.newLine();
 			writer.write(String.format(Locale.US, "FixedCS = %.1f", getFixedCS()));
 			writer.newLine();

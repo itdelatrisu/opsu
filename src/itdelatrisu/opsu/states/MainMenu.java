@@ -44,7 +44,6 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Stack;
-import java.util.concurrent.TimeUnit;
 /*
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
@@ -101,8 +100,8 @@ public class MainMenu extends BasicGameState {
 	/** Background alpha level (for fade-in effect). */
 	private float bgAlpha = 0f;
 
-	/** Whether or not an update notification was already sent. */
-	private boolean updateNotification = false;
+	/** Whether or not a notification was already sent upon entering. */
+	private boolean enterNotification = false;
 
 	/** Music position bar coordinates and dimensions. */
 	private float musicBarX, musicBarY, musicBarWidth, musicBarHeight;
@@ -137,7 +136,7 @@ public class MainMenu extends BasicGameState {
 
 		// initialize menu buttons
 		Image logoImg = GameImage.MENU_LOGO.getImage();
-		Image playImg = GameImage.MENU_PlAY.getImage();
+		Image playImg = GameImage.MENU_PLAY.getImage();
 		Image exitImg = GameImage.MENU_EXIT.getImage();
 		float exitOffset = (playImg.getWidth() - exitImg.getWidth()) / 3f;
 		logo = new MenuButton(logoImg, width / 2f, height / 2f);
@@ -243,7 +242,7 @@ public class MainMenu extends BasicGameState {
 		g.fillRoundRect(musicBarX, musicBarY, musicBarWidth, musicBarHeight, 4);
 		g.setColor(Color.white);
 		if (!MusicController.isTrackLoading() && osu != null) {
-			float musicBarPosition = Math.min((float) MusicController.getPosition() / osu.endTime, 1f);
+			float musicBarPosition = Math.min((float) MusicController.getPosition() / MusicController.getDuration(), 1f);
 			g.fillRoundRect(musicBarX, musicBarY, musicBarWidth * musicBarPosition, musicBarHeight, 4);
 		}
 
@@ -252,7 +251,6 @@ public class MainMenu extends BasicGameState {
 			repoButton.draw();
 
 		// draw update button
-		boolean showUpdateButton = Updater.get().showButton();
 		if (Updater.get().showButton()) {
 			Color updateColor = null;
 			switch (Updater.get().getStatus()) {
@@ -281,35 +279,19 @@ public class MainMenu extends BasicGameState {
 		if (MusicController.isTrackLoading())
 			g.drawString("Track loading...", marginX, marginY + lineHeight);
 		else if (MusicController.trackExists()) {
+			if (Options.useUnicodeMetadata())  // load glyphs
+				Utils.loadGlyphs(Utils.FONT_MEDIUM, osu.titleUnicode, osu.artistUnicode);
 			g.drawString((MusicController.isPlaying()) ? "Now Playing:" : "Paused:", marginX, marginY + lineHeight);
-			g.drawString(String.format("%s: %s",
-					MusicController.getArtistName(),
-					MusicController.getTrackName()),
-					marginX + 25, marginY + (lineHeight * 2));
+			g.drawString(String.format("%s: %s", osu.getArtist(), osu.getTitle()), marginX + 25, marginY + (lineHeight * 2));
 		}
-		long time = System.currentTimeMillis() - osuStartTime;
-		g.drawString(String.format("opsu! has been running for %d minutes, %d seconds.",
-				TimeUnit.MILLISECONDS.toMinutes(time),
-				TimeUnit.MILLISECONDS.toSeconds(time) -
-				TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(time))),
+		g.drawString(String.format("opsu! has been running for %s.",
+				Utils.getTimeString((int) (System.currentTimeMillis() - osuStartTime) / 1000)),
 				marginX, height - marginY - (lineHeight * 2));
-		g.drawString(String.format("The current time is %s.",
+		g.drawString(String.format("It is currently %s.",
 				new SimpleDateFormat("h:mm a").format(new Date())),
 				marginX, height - marginY - lineHeight);
 
 		UI.draw(g);
-
-		// tooltips
-		if (musicPositionBarContains(mouseX, mouseY))
-			UI.drawTooltip(g, "Click to seek to a specific point in the song.", false);
-		else if (musicPlay.contains(mouseX, mouseY))
-			UI.drawTooltip(g, (MusicController.isPlaying()) ? "Pause" : "Play", false);
-		else if (musicNext.contains(mouseX, mouseY))
-			UI.drawTooltip(g, "Next track", false);
-		else if (musicPrevious.contains(mouseX, mouseY))
-			UI.drawTooltip(g, "Previous track", false);
-		else if (showUpdateButton && updateButton.contains(mouseX, mouseY))
-			UI.drawTooltip(g, Updater.get().getStatus().getDescription(), true);
 	}
 
 	@Override
@@ -327,14 +309,13 @@ public class MainMenu extends BasicGameState {
 		updateButton.hoverUpdate(delta, mouseX, mouseY);
 		downloadsButton.hoverUpdate(delta, mouseX, mouseY);
 		// ensure only one button is in hover state at once
-		if (musicPositionBarContains(mouseX, mouseY))
-			mouseX = mouseY = -1;
-		musicPlay.hoverUpdate(delta, mouseX, mouseY);
-		musicPause.hoverUpdate(delta, mouseX, mouseY);
-		if (musicPlay.contains(mouseX, mouseY))
-			mouseX = mouseY = -1;
-		musicNext.hoverUpdate(delta, mouseX, mouseY);
-		musicPrevious.hoverUpdate(delta, mouseX, mouseY);
+		boolean noHoverUpdate = musicPositionBarContains(mouseX, mouseY);
+		boolean contains = musicPlay.contains(mouseX, mouseY);
+		musicPlay.hoverUpdate(delta, !noHoverUpdate && contains);
+		musicPause.hoverUpdate(delta, !noHoverUpdate && contains);
+		noHoverUpdate |= contains;
+		musicNext.hoverUpdate(delta, !noHoverUpdate && musicNext.contains(mouseX, mouseY));
+		musicPrevious.hoverUpdate(delta, !noHoverUpdate && musicPrevious.contains(mouseX, mouseY));
 
 		// window focus change: increase/decrease theme song volume
 		if (MusicController.isThemePlaying() &&
@@ -383,6 +364,18 @@ public class MainMenu extends BasicGameState {
 					logo.setX(container.getWidth() / 2);
 			}
 		}
+
+		// tooltips
+		if (musicPositionBarContains(mouseX, mouseY))
+			UI.updateTooltip(delta, "Click to seek to a specific point in the song.", false);
+		else if (musicPlay.contains(mouseX, mouseY))
+			UI.updateTooltip(delta, (MusicController.isPlaying()) ? "Pause" : "Play", false);
+		else if (musicNext.contains(mouseX, mouseY))
+			UI.updateTooltip(delta, "Next track", false);
+		else if (musicPrevious.contains(mouseX, mouseY))
+			UI.updateTooltip(delta, "Previous track", false);
+		else if (Updater.get().showButton() && updateButton.contains(mouseX, mouseY))
+			UI.updateTooltip(delta, Updater.get().getStatus().getDescription(), true);
 	}
 
 	@Override
@@ -392,9 +385,14 @@ public class MainMenu extends BasicGameState {
 	public void enter(GameContainer container, StateBasedGame game)
 			throws SlickException {
 		UI.enter();
-		if (!updateNotification && Updater.get().getStatus() == Updater.Status.UPDATE_AVAILABLE) {
-			UI.sendBarNotification("An opsu! update is available.");
-			updateNotification = true;
+		if (!enterNotification) {
+			if (Updater.get().getStatus() == Updater.Status.UPDATE_AVAILABLE) {
+				UI.sendBarNotification("An opsu! update is available.");
+				enterNotification = true;
+			} else if (Updater.get().justUpdated()) {
+				UI.sendBarNotification("opsu! is now up to date!");
+				enterNotification = true;
+			}
 		}
 
 		// reset button hover states if mouse is not currently hovering over the button
@@ -431,8 +429,7 @@ public class MainMenu extends BasicGameState {
 		if (MusicController.isPlaying()) {
 			if (musicPositionBarContains(x, y)) {
 				float pos = (x - musicBarX) / musicBarWidth;
-				OsuFile osu = MusicController.getOsuFile();
-				MusicController.setPosition((int) (pos * osu.endTime));
+				MusicController.setPosition((int) (pos * MusicController.getDuration()));
 				return;
 			}
 		}
@@ -508,7 +505,7 @@ public class MainMenu extends BasicGameState {
 		else if (logoClicked) {
 			if (logo.contains(x, y, 0.25f) || playButton.contains(x, y, 0.25f)) {
 				SoundController.playSound(SoundEffect.MENUHIT);
-				game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
+				enterSongMenu();
 			} else if (exitButton.contains(x, y, 0.25f))
 				container.exit();
 		}
@@ -536,7 +533,7 @@ public class MainMenu extends BasicGameState {
 				playButton.getImage().setAlpha(0f);
 				exitButton.getImage().setAlpha(0f);
 			} else
-				game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
+				enterSongMenu();
 			break;
 		case Input.KEY_D:
 			SoundController.playSound(SoundEffect.MENUHIT);
@@ -610,5 +607,17 @@ public class MainMenu extends BasicGameState {
 		}
 		if (Options.isDynamicBackgroundEnabled() && !sameAudio && !MusicController.isThemePlaying())
 			bgAlpha = 0f;
+	}
+
+	/**
+	 * Enters the song menu, or the downloads menu if no beatmaps are loaded.
+	 */
+	private void enterSongMenu() {
+		int state = Opsu.STATE_SONGMENU;
+		if (OsuGroupList.get().getMapSetCount() == 0) {
+			((DownloadsMenu) game.getState(Opsu.STATE_DOWNLOADSMENU)).notifyOnLoad("Download some beatmaps to get started!");
+			state = Opsu.STATE_DOWNLOADSMENU;
+		}
+		game.enterState(state, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 	}
 }

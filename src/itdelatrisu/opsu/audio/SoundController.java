@@ -38,9 +38,11 @@ import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
 import javax.sound.sampled.DataLine;
+import javax.sound.sampled.LineListener;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
+import org.newdawn.slick.SlickException;
 import org.newdawn.slick.util.ResourceLoader;
 */
 
@@ -57,6 +59,9 @@ public class SoundController {
 		 */
 		public MultiClip getClip();
 	}
+
+	/** The current track being played, if any. */
+	private static MultiClip currentTrack;
 
 	/** Sample volume multiplier, from timing points [0, 1]. */
 	private static float sampleVolumeMultiplier = 1f;
@@ -91,9 +96,22 @@ public class SoundController {
 			in.close();
 
 			AudioInputStream audioIn = AudioSystem.getAudioInputStream(url);
+			return loadClip(ref, audioIn, isMP3);
+		} catch (UnsupportedAudioFileException | IOException | LineUnavailableException | RuntimeException e) {
+			ErrorHandler.error(String.format("Failed to load file '%s'.", ref), e, true);
+			return null;
+		}
+	}
 
-			// GNU/Linux workaround
-//			Clip clip = AudioSystem.getClip();
+	/**
+	 * Loads and returns a Clip from an audio input stream.
+	 * @param ref the resource name
+	 * @param audioIn the audio input stream
+	 * @param isMP3 true if MP3, false if WAV
+	 * @return the loaded and opened clip
+	 */
+	private static MultiClip loadClip(String ref, AudioInputStream audioIn, boolean isMP3) {
+		try {
 			AudioFormat format = audioIn.getFormat();
 			if (isMP3) {
 				AudioFormat decodedFormat = new AudioFormat(
@@ -159,7 +177,7 @@ public class SoundController {
 					// still couldn't find anything, try the default clip format
 					return new MultiClip(ref, AudioSystem.getAudioInputStream(clip.getFormat(), audioIn));
 			}
-		} catch (UnsupportedAudioFileException | IOException | LineUnavailableException | RuntimeException e) {
+		} catch (IOException | LineUnavailableException | RuntimeException e) {
 			ErrorHandler.error(String.format("Failed to load file '%s'.", ref), e, true);
 		}*/
 		//return null;
@@ -234,14 +252,15 @@ public class SoundController {
 	 * Plays a sound clip.
 	 * @param clip the Clip to play
 	 * @param volume the volume [0, 1]
+	 * @param listener the line listener
 	 */
-	private static void playClip(MultiClip clip, float volume) {
+	private static void playClip(MultiClip clip, float volume, LineListener listener) {
 		if (clip == null)  // clip failed to load properly
 			return;
 
 		if (volume > 0f) {
 			//try {
-				clip.start(volume);
+				clip.start(volume, listener);
 			//} catch (LineUnavailableException e) {
 			//	ErrorHandler.error(String.format("Could not start a clip '%s'.", clip.getName()), e, true);
 			//}
@@ -253,7 +272,7 @@ public class SoundController {
 	 * @param s the sound effect
 	 */
 	public static void playSound(SoundComponent s) {
-		playClip(s.getClip(), Options.getEffectVolume() * Options.getMasterVolume());
+		playClip(s.getClip(), Options.getEffectVolume() * Options.getMasterVolume(), null);
 	}
 
 	/**
@@ -272,15 +291,15 @@ public class SoundController {
 
 		// play all sounds
 		HitSound.setSampleSet(sampleSet);
-		playClip(HitSound.NORMAL.getClip(), volume);
+		playClip(HitSound.NORMAL.getClip(), volume, null);
 
 		HitSound.setSampleSet(additionSampleSet);
 		if ((hitSound & OsuHitObject.SOUND_WHISTLE) > 0)
-			playClip(HitSound.WHISTLE.getClip(), volume);
+			playClip(HitSound.WHISTLE.getClip(), volume, null);
 		if ((hitSound & OsuHitObject.SOUND_FINISH) > 0)
-			playClip(HitSound.FINISH.getClip(), volume);
+			playClip(HitSound.FINISH.getClip(), volume, null);
 		if ((hitSound & OsuHitObject.SOUND_CLAP) > 0)
-			playClip(HitSound.CLAP.getClip(), volume);
+			playClip(HitSound.CLAP.getClip(), volume, null);
 	}
 
 	/**
@@ -288,7 +307,7 @@ public class SoundController {
 	 * @param s the hit sound
 	 */
 	public static void playHitSound(SoundComponent s) {
-		playClip(s.getClip(), Options.getHitSoundVolume() * sampleVolumeMultiplier * Options.getMasterVolume());
+		playClip(s.getClip(), Options.getHitSoundVolume() * sampleVolumeMultiplier * Options.getMasterVolume(), null);
 	}
 
 	/**
@@ -307,5 +326,36 @@ public class SoundController {
 			return -1;
 
 		return currentFileIndex * 100 / (SoundEffect.SIZE + (HitSound.SIZE * SampleSet.SIZE));
+	}
+
+	/**
+	 * Plays a track from a URL.
+	 * If a track is currently playing, it will be stopped.
+	 * @param url the resource URL
+	 * @param isMP3 true if MP3, false if WAV
+	 * @param listener the line listener
+	 * @return the MultiClip being played
+	 * @throws SlickException if any error occurred (UnsupportedAudioFileException, IOException, RuntimeException)
+	 */
+	public static synchronized MultiClip playTrack(URL url, boolean isMP3, LineListener listener) throws SlickException {
+		stopTrack();
+		try {
+			AudioInputStream audioIn = AudioSystem.getAudioInputStream(url);
+			currentTrack = loadClip(url.getFile(), audioIn, isMP3);
+			playClip(currentTrack, Options.getMusicVolume() * Options.getMasterVolume(), listener);
+			return currentTrack;
+		} catch (UnsupportedAudioFileException | IOException | RuntimeException e) {
+			throw new SlickException(String.format("Failed to load clip '%s'.", url.getFile(), e));
+		}
+	}
+
+	/**
+	 * Stops the current track playing, if any.
+	 */
+	public static synchronized void stopTrack() {
+		if (currentTrack != null) {
+			currentTrack.destroy();
+			currentTrack = null;
+		}
 	}
 }

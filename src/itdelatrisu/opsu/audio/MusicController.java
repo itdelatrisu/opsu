@@ -26,8 +26,14 @@ import itdelatrisu.opsu.OsuParser;
 
 /*
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.nio.IntBuffer;
+import java.util.Map;
+
+import javax.sound.sampled.AudioFileFormat;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.UnsupportedAudioFileException;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.openal.AL;
@@ -38,6 +44,7 @@ import org.newdawn.slick.SlickException;
 import org.newdawn.slick.openal.Audio;
 import org.newdawn.slick.openal.SoundStore;
 */
+import org.tritonus.share.sampled.file.TAudioFileFormat;
 
 /**
  * Controller for all music.
@@ -48,6 +55,9 @@ public class MusicController {
 
 	/** The last OsuFile passed to play(). */
 	private static OsuFile lastOsu;
+
+	/** The track duration. */
+	private static int duration = 0;
 
 	/** Thread for loading tracks. */
 	private static Thread trackLoader;
@@ -175,24 +185,6 @@ public class MusicController {
 	public static OsuFile getOsuFile() { return lastOsu; }
 
 	/**
-	 * Returns the name of the current track.
-	 */
-	public static String getTrackName() {
-		if (!trackExists() || lastOsu == null)
-			return null;
-		return lastOsu.getTitle();
-	}
-
-	/**
-	 * Returns the artist of the current track.
-	 */
-	public static String getArtistName() {
-		if (!trackExists() || lastOsu == null)
-			return null;
-		return lastOsu.getArtist();
-	}
-
-	/**
 	 * Returns true if the current track is playing.
 	 */
 	public static boolean isPlaying() {
@@ -263,6 +255,34 @@ public class MusicController {
 	 */
 	public static boolean setPosition(int position) {
 		return (trackExists() && position >= 0 && player.setPosition(position / 1000f));
+	}
+
+	/**
+	 * Returns the duration of the current track, in milliseconds.
+	 * Currently only works for MP3s.
+	 * @return the duration, or -1 if no track exists, else the {@code endTime}
+	 *         field of the OsuFile loaded
+	 * @author Tom Brito (http://stackoverflow.com/a/3056161)
+	 */
+	public static int getDuration() {
+		if (!trackExists() || lastOsu == null)
+			return -1;
+
+		if (duration == 0) {
+			if (lastOsu.audioFilename.getName().endsWith(".mp3")) {
+				try {
+					AudioFileFormat fileFormat = AudioSystem.getAudioFileFormat(lastOsu.audioFilename);
+					if (fileFormat instanceof TAudioFileFormat) {
+						Map<?, ?> properties = ((TAudioFileFormat) fileFormat).properties();
+						Long microseconds = (Long) properties.get("duration");
+						duration = (int) (microseconds / 1000);
+						return duration;
+					}
+				} catch (UnsupportedAudioFileException | IOException e) {}
+			}
+			duration = lastOsu.endTime;
+		}
+		return duration;
 	}
 
 	/**
@@ -362,6 +382,7 @@ public class MusicController {
 
 		// reset state
 		lastOsu = null;
+		duration = 0;
 		trackEnded = false;
 		themePlaying = false;
 		pauseTime = 0f;

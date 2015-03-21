@@ -25,7 +25,6 @@ import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.GameMod;
 import itdelatrisu.opsu.OsuHitObject;
 import itdelatrisu.opsu.Utils;
-import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.states.Game;
 
 /*
@@ -39,6 +38,9 @@ import org.newdawn.slick.Graphics;
 public class Circle implements HitObject {
 	/** The associated OsuHitObject. */
 	private OsuHitObject hitObject;
+
+	/** The scaled starting x, y coordinates. */
+	private float x, y;
 
 	/** The associated Game object. */
 	private Game game;
@@ -75,6 +77,8 @@ public class Circle implements HitObject {
 	 */
 	public Circle(OsuHitObject hitObject, Game game, GameData data, Color color, boolean comboEnd) {
 		this.hitObject = hitObject;
+		this.x = hitObject.getScaledX();
+		this.y = hitObject.getScaledY();
 		this.game = game;
 		this.data = data;
 		this.color = color;
@@ -87,7 +91,6 @@ public class Circle implements HitObject {
 
 		if (timeDiff >= 0) {
 			float oldAlpha = color.a;
-			float x = hitObject.getX(), y = hitObject.getY();
 			float scale = timeDiff / (float)game.getApproachTime();
 
 			float approachScale = 1 + scale * 3;
@@ -114,7 +117,7 @@ public class Circle implements HitObject {
 	 */
 	private int hitResult(int time) {
 		int timeDiff = Math.abs(time);
-		
+
 		int[] hitResultOffset = game.getHitResultOffsets();
 		int result = -1;
 		if (timeDiff < hitResultOffset[GameData.HIT_300])
@@ -131,21 +134,16 @@ public class Circle implements HitObject {
 	}
 
 	@Override
-	public boolean mousePressed(int x, int y) {
-		double distance = Math.hypot(hitObject.getX() - x, hitObject.getY() - y);
+	public boolean mousePressed(int x, int y, int trackPosition) {
+		double distance = Math.hypot(this.x - x, this.y - y);
 		int circleRadius = GameImage.HITCIRCLE.getImage().getWidth() / 2;
 		if (distance < circleRadius) {
-			int trackPosition = MusicController.getPosition();
 			int timeDiff = trackPosition - hitObject.getTime();
 			int result = hitResult(timeDiff);
 
 			if (result > -1) {
 				data.addHitError(hitObject.getTime(), x, y, timeDiff);
-				data.hitResult(
-						hitObject.getTime(), result,
-						hitObject.getX(), hitObject.getY(),
-						color, comboEnd, hitObject, 0
-				);
+				data.hitResult(hitObject.getTime(), result, this.x, this.y, color, comboEnd, hitObject, 0);
 				return true;
 			}
 		}
@@ -153,11 +151,9 @@ public class Circle implements HitObject {
 	}
 
 	@Override
-	public boolean update(boolean overlap, int delta, int mouseX, int mouseY) {
+	public boolean update(boolean overlap, int delta, int mouseX, int mouseY, boolean keyPressed, int trackPosition) {
 		int time = hitObject.getTime();
-		float x = hitObject.getX(), y = hitObject.getY();
 
-		int trackPosition = MusicController.getPosition();
 		int[] hitResultOffset = game.getHitResultOffsets();
 		boolean isAutoMod = GameMod.AUTO.isActive();
 
@@ -180,8 +176,15 @@ public class Circle implements HitObject {
 
 		// "relax" mod: click automatically
 		else if (GameMod.RELAX.isActive() && trackPosition >= time)
-			return mousePressed(mouseX, mouseY);
+			return mousePressed(mouseX, mouseY, trackPosition);
 
 		return false;
 	}
+	
+	@Override
+	public float[] getPointAt(int trackPosition) { return new float[] { x, y }; }
+
+	@Override
+	public int getEndTime() { return hitObject.getTime(); }
 }
+

@@ -22,12 +22,16 @@ import fluddokt.opsu.fake.*;
 
 import itdelatrisu.opsu.audio.SoundController;
 
+import java.nio.IntBuffer;
 import java.util.Iterator;
 import java.util.LinkedList;
 
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 /*
+import org.lwjgl.BufferUtils;
+import org.lwjgl.LWJGLException;
+import org.lwjgl.input.Cursor;
 import org.newdawn.slick.Animation;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
@@ -43,6 +47,9 @@ import org.newdawn.slick.state.StateBasedGame;
 public class UI {
 	/** Back button. */
 	private static MenuButton backButton;
+
+	/** Empty cursor. */
+	private static Cursor emptyCursor;
 
 	/** Last cursor coordinates. */
 	private static int lastX = -1, lastY = -1;
@@ -70,6 +77,18 @@ public class UI {
 	/** Duration, in milliseconds, to display bar notifications. */
 	private static final int BAR_NOTIFICATION_TIME = 1250;
 
+	/** The current tooltip. */
+	private static String tooltip;
+
+	/** Whether or not to check the current tooltip for line breaks. */
+	private static boolean tooltipNewlines;
+
+	/** The current tooltip timer. */
+	private static int tooltipTimer = -1;
+
+	/** Duration, in milliseconds, to fade tooltips. */
+	private static final int TOOLTIP_FADE_TIME = 200;
+
 	// game-related variables
 	private static GameContainer container;
 	private static StateBasedGame game;
@@ -90,6 +109,16 @@ public class UI {
 		UI.game = game;
 		UI.input = container.getInput();
 
+		// hide native cursor
+		try {
+			int min = Cursor.getMinCursorSize();
+			IntBuffer tmp = BufferUtils.createIntBuffer(min * min);
+			emptyCursor = new Cursor(min, min, min/2, min/2, 1, tmp, null);
+			hideCursor();
+		} catch (LWJGLException e) {
+			ErrorHandler.error("Failed to create hidden cursor.", e, true);
+		}
+
 		// back button
 		if (GameImage.MENU_BACK.getImages() != null) {
 			Animation back = GameImage.MENU_BACK.getAnimation(120);
@@ -109,6 +138,8 @@ public class UI {
 		updateCursor(delta);
 		updateVolumeDisplay(delta);
 		updateBarNotification(delta);
+		if (tooltipTimer > 0)
+			tooltipTimer -= delta;
 	}
 
 	/**
@@ -120,6 +151,22 @@ public class UI {
 		drawVolume(g);
 		drawFPS();
 		drawCursor();
+		drawTooltip(g);
+	}
+
+	/**
+	 * Draws the global UI components: cursor, FPS, volume bar, bar notifications.
+	 * @param g the graphics context
+	 * @param mouseX the mouse x coordinate
+	 * @param mouseY the mouse y coordinate
+	 * @param mousePressed whether or not the mouse button is pressed
+	 */
+	public static void draw(Graphics g, int mouseX, int mouseY, boolean mousePressed) {
+		drawBarNotification(g);
+		drawVolume(g);
+		drawFPS();
+		drawCursor(mouseX, mouseY, mousePressed);
+		drawTooltip(g);
 	}
 
 	/**
@@ -128,6 +175,8 @@ public class UI {
 	public static void enter() {
 		backButton.resetHover();
 		resetBarNotification();
+		resetCursorLocations();
+		resetTooltip();
 	}
 
 	/**
@@ -163,6 +212,21 @@ public class UI {
 	 * Draws the cursor.
 	 */
 	public static void drawCursor() {
+		int state = game.getCurrentStateID();
+		boolean mousePressed =
+			(((state == Opsu.STATE_GAME || state == Opsu.STATE_GAMEPAUSEMENU) && Utils.isGameKeyPressed()) ||
+			((input.isMouseButtonDown(Input.MOUSE_LEFT_BUTTON) || input.isMouseButtonDown(Input.MOUSE_RIGHT_BUTTON)) &&
+			!(state == Opsu.STATE_GAME && Options.isMouseDisabled())));
+		drawCursor(input.getMouseX(), input.getMouseY(), mousePressed);
+	}
+
+	/**
+	 * Draws the cursor.
+	 * @param mouseX the mouse x coordinate
+	 * @param mouseY the mouse y coordinate
+	 * @param mousePressed whether or not the mouse button is pressed
+	 */
+	public static void drawCursor(int mouseX, int mouseY, boolean mousePressed) {
 		// determine correct cursor image
 		// TODO: most beatmaps don't skin CURSOR_MIDDLE, so how to determine style?
 		Image cursor = null, cursorMiddle = null, cursorTrail = null;
@@ -178,7 +242,6 @@ public class UI {
 		if (newStyle)
 			cursorMiddle = GameImage.CURSOR_MIDDLE.getImage();
 
-		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
 		int removeCount = 0;
 		int FPSmod = (Options.getTargetFPS() / 60);
 
@@ -228,10 +291,7 @@ public class UI {
 
 		// increase the cursor size if pressed
 		final float scale = 1.25f;
-		int state = game.getCurrentStateID();
-		if (((state == Opsu.STATE_GAME || state == Opsu.STATE_GAMEPAUSEMENU) && Utils.isGameKeyPressed()) ||
-		    ((input.isMouseButtonDown(Input.MOUSE_LEFT_BUTTON) || input.isMouseButtonDown(Input.MOUSE_RIGHT_BUTTON)) &&
-		    !(state == Opsu.STATE_GAME && Options.isMouseDisabled()))) {
+		if (mousePressed) {
 			cursor = cursor.getScaledCopy(scale);
 			if (newStyle)
 				cursorMiddle = cursorMiddle.getScaledCopy(scale);
@@ -314,10 +374,36 @@ public class UI {
 		GameImage.CURSOR_MIDDLE.destroySkinImage();
 		GameImage.CURSOR_TRAIL.destroySkinImage();
 		cursorAngle = 0f;
+		GameImage.CURSOR.getImage().setRotation(0f);
+	}
+
+	/**
+	 * Resets all cursor location data.
+	 */
+	private static void resetCursorLocations() {
 		lastX = lastY = -1;
 		cursorX.clear();
 		cursorY.clear();
-		GameImage.CURSOR.getImage().setRotation(0f);
+	}
+
+	/**
+	 * Hides the cursor, if possible.
+	 */
+	public static void hideCursor() {
+		if (emptyCursor != null) {
+			try {
+				container.setMouseCursor(emptyCursor, 0, 0);
+			} catch (SlickException e) {
+				ErrorHandler.error("Failed to hide the cursor.", e, true);
+			}
+		}
+	}
+
+	/**
+	 * Unhides the cursor.
+	 */
+	public static void showCursor() {
+		container.setDefaultMouseCursor();
 	}
 
 	/**
@@ -475,20 +561,41 @@ public class UI {
 	}
 
 	/**
-	 * Draws a tooltip near the current mouse coordinates, bounded by the
-	 * container dimensions.
-	 * @param g the graphics context
-	 * @param text the tooltip text
+	 * Sets or updates a tooltip for drawing.
+	 * Must be called with {@link #drawTooltip(Graphics)}.
+	 * @param delta the delta interval since the last call
+	 * @param s the tooltip text
 	 * @param newlines whether to check for line breaks ('\n')
 	 */
-	public static void drawTooltip(Graphics g, String text, boolean newlines) {
+	public static void updateTooltip(int delta, String s, boolean newlines) {
+		if (s != null) {
+			tooltip = s;
+			tooltipNewlines = newlines;
+			if (tooltipTimer <= 0)
+				tooltipTimer = delta;
+			else
+				tooltipTimer += delta * 2;
+			if (tooltipTimer > TOOLTIP_FADE_TIME)
+				tooltipTimer = TOOLTIP_FADE_TIME;
+		}
+	}
+
+	/**
+	 * Draws a tooltip, if any, near the current mouse coordinates,
+	 * bounded by the container dimensions.
+	 * @param g the graphics context
+	 */
+	public static void drawTooltip(Graphics g) {
+		if (tooltipTimer <= 0 || tooltip == null)
+			return;
+
 		int containerWidth = container.getWidth(), containerHeight = container.getHeight();
 		int margin = containerWidth / 100, textMarginX = 2;
 		int offset = GameImage.CURSOR_MIDDLE.getImage().getWidth() / 2;
 		int lineHeight = Utils.FONT_SMALL.getLineHeight();
 		int textWidth = textMarginX * 2, textHeight = lineHeight;
-		if (newlines) {
-			String[] lines = text.split("\\n");
+		if (tooltipNewlines) {
+			String[] lines = tooltip.split("\\n");
 			int maxWidth = Utils.FONT_SMALL.getWidth(lines[0]);
 			for (int i = 1; i < lines.length; i++) {
 				int w = Utils.FONT_SMALL.getWidth(lines[i]);
@@ -498,7 +605,7 @@ public class UI {
 			textWidth += maxWidth;
 			textHeight += lineHeight * (lines.length - 1);
 		} else
-			textWidth += Utils.FONT_SMALL.getWidth(text);
+			textWidth += Utils.FONT_SMALL.getWidth(tooltip);
 
 		// get drawing coordinates
 		int x = input.getMouseX() + offset, y = input.getMouseY() + offset;
@@ -512,12 +619,30 @@ public class UI {
 			y = margin;
 
 		// draw tooltip text inside a filled rectangle
-		g.setColor(Color.black);
+		float alpha = (float) tooltipTimer / TOOLTIP_FADE_TIME;
+		float oldAlpha = Utils.COLOR_BLACK_ALPHA.a;
+		Utils.COLOR_BLACK_ALPHA.a = alpha;
+		g.setColor(Utils.COLOR_BLACK_ALPHA);
+		Utils.COLOR_BLACK_ALPHA.a = oldAlpha;
 		g.fillRect(x, y, textWidth, textHeight);
-		g.setColor(Color.darkGray);
+		oldAlpha = Utils.COLOR_DARK_GRAY.a;
+		Utils.COLOR_DARK_GRAY.a = alpha;
+		g.setColor(Utils.COLOR_DARK_GRAY);
 		g.setLineWidth(1);
 		g.drawRect(x, y, textWidth, textHeight);
-		Utils.FONT_SMALL.drawString(x + textMarginX, y, text, Color.white);
+		Utils.COLOR_DARK_GRAY.a = oldAlpha;
+		oldAlpha = Utils.COLOR_WHITE_ALPHA.a;
+		Utils.COLOR_WHITE_ALPHA.a = alpha;
+		Utils.FONT_SMALL.drawString(x + textMarginX, y, tooltip, Utils.COLOR_WHITE_ALPHA);
+		Utils.COLOR_WHITE_ALPHA.a = oldAlpha;
+	}
+
+	/**
+	 * Resets the tooltip.
+	 */
+	public static void resetTooltip() {
+		tooltipTimer = -1;
+		tooltip = null;
 	}
 
 	/**
@@ -557,7 +682,7 @@ public class UI {
 	 * @param g the graphics context
 	 */
 	public static void drawBarNotification(Graphics g) {
-		if (barNotifTimer == -1 || barNotifTimer >= BAR_NOTIFICATION_TIME)
+		if (barNotifTimer <= 0 || barNotifTimer >= BAR_NOTIFICATION_TIME)
 			return;
 
 		float alpha = 1f;

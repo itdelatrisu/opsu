@@ -128,6 +128,21 @@ public class DownloadNode {
 
 	/**
 	 * Returns true if the coordinates are within the bounds of the
+	 * download result action icon at the given index.
+	 * @param cx the x coordinate
+	 * @param cy the y coordinate
+	 * @param index the index (to offset the button from the topmost button)
+	 */
+	public static boolean resultIconContains(float cx, float cy, int index) {
+		int iconWidth = GameImage.MUSIC_PLAY.getImage().getWidth();
+		float x = buttonBaseX + buttonWidth * 0.001f;
+		float y = buttonBaseY + (index * buttonOffset) + buttonHeight / 2f;
+		return ((cx > x && cx < x + iconWidth) &&
+		        (cy > y - iconWidth / 2 && cy < y + iconWidth / 2));
+	}
+
+	/**
+	 * Returns true if the coordinates are within the bounds of the
 	 * download result button area.
 	 * @param cx the x coordinate
 	 * @param cy the y coordinate
@@ -135,6 +150,14 @@ public class DownloadNode {
 	public static boolean resultAreaContains(float cx, float cy) {
 		return ((cx > buttonBaseX && cx < buttonBaseX + buttonWidth) &&
 		        (cy > buttonBaseY && cy < buttonBaseY + buttonOffset * maxResultsShown));
+	}
+
+	/**
+	 * Sets a clip to the download result button area.
+	 * @param g the graphics context
+	 */
+	public static void clipToResultArea(Graphics g) {
+		g.setClip((int) buttonBaseX, (int) buttonBaseY, (int) buttonWidth, (int) (buttonOffset * maxResultsShown));
 	}
 
 	/**
@@ -287,9 +310,10 @@ public class DownloadNode {
 	 * @param index the index (to offset the button from the topmost button)
 	 * @param hover true if the mouse is hovering over this button
 	 * @param focus true if the button is focused
+	 * @param previewing true if the beatmap is currently being previewed
 	 */
-	public void drawResult(Graphics g, int index, boolean hover, boolean focus) {
-		float textX = buttonBaseX + buttonWidth * 0.02f;
+	public void drawResult(Graphics g, int index, boolean hover, boolean focus, boolean previewing) {
+		float textX = buttonBaseX + buttonWidth * 0.001f;
 		float edgeX = buttonBaseX + buttonWidth * 0.985f;
 		float y = buttonBaseY + index * buttonOffset;
 		float marginY = buttonHeight * 0.04f;
@@ -314,7 +338,15 @@ public class DownloadNode {
 			}
 		}
 
+		// preview button
+		Image img = (previewing) ? GameImage.MUSIC_PAUSE.getImage() : GameImage.MUSIC_PLAY.getImage();
+		img.drawCentered(textX + img.getWidth() / 2, y + buttonHeight / 2f);
+		textX += img.getWidth() + buttonWidth * 0.001f;
+
 		// text
+		// TODO: if the title/artist line is too long, shorten it (e.g. add "...")
+		if (Options.useUnicodeMetadata())  // load glyphs
+			Utils.loadGlyphs(Utils.FONT_BOLD, getTitle(), getArtist());
 		Utils.FONT_BOLD.drawString(
 				textX, y + marginY,
 				String.format("%s - %s%s", getArtist(), getTitle(),

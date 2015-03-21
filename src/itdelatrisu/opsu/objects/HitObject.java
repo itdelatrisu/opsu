@@ -39,15 +39,31 @@ public interface HitObject {
 	 * @param delta the delta interval since the last call
 	 * @param mouseX the x coordinate of the mouse
 	 * @param mouseY the y coordinate of the mouse
+	 * @param keyPressed whether or not a game key is currently pressed
+	 * @param trackPosition the track position
 	 * @return true if object ended
 	 */
-	public boolean update(boolean overlap, int delta, int mouseX, int mouseY);
+	public boolean update(boolean overlap, int delta, int mouseX, int mouseY, boolean keyPressed, int trackPosition);
 
 	/**
 	 * Processes a mouse click.
 	 * @param x the x coordinate of the mouse
 	 * @param y the y coordinate of the mouse
+	 * @param trackPosition the track position
 	 * @return true if a hit result was processed
 	 */
-	public boolean mousePressed(int x, int y);
+	public boolean mousePressed(int x, int y, int trackPosition);
+
+	/**
+	 * Returns the coordinates of the hit object at a given track position.
+	 * @param trackPosition the track position
+	 * @return the [x,y] coordinates
+	 */
+	public float[] getPointAt(int trackPosition);
+
+	/**
+	 * Returns the end time of the hit object.
+	 * @return the end time, in milliseconds
+	 */
+	public int getEndTime();
 }

@@ -15,6 +15,7 @@ The images included in opsu! belong to their respective authors.
 * Misaki Louize - "Yukino II"
 * Alic1a - "AL's IA -Blue-"
 * Xiaounlimited - "Nexus Ivory"
+* noClue - "Vocaloid Project Skin [LIGHT]"
 * pictuga - "osu! web"
 * sherrie__fay
 * kouyang

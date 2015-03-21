@@ -36,7 +36,6 @@ import itdelatrisu.opsu.ScoreData;
 import itdelatrisu.opsu.SongSort;
 import itdelatrisu.opsu.UI;
 import itdelatrisu.opsu.Utils;
-import itdelatrisu.opsu.audio.HitSound;
 //import itdelatrisu.opsu.audio.MultiClip;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
@@ -315,9 +314,6 @@ public class SongMenu extends BasicGameState {
 			ScoreData[] scores = getScoreDataForNode(node, false);
 			node.draw(buttonX - offset, buttonY + (i*buttonOffset) + DIVIDER_LINE_WIDTH / 2,
 			          (scores == null) ? Grade.NULL : scores[0].getGrade(), (node == focusNode));
-
-			// load glyphs
-			Utils.loadGlyphs(node.osuFiles.get(0));
 		}
 		g.clearClip();
 
@@ -333,6 +329,7 @@ public class SongMenu extends BasicGameState {
 
 		// header
 		if (focusNode != null) {
+			// music/loader icon
 			float marginX = width * 0.005f, marginY = height * 0.005f;
 			Image musicNote = GameImage.MENU_MUSICNOTE.getImage();
 			if (MusicController.isTrackLoading())
@@ -341,8 +338,14 @@ public class SongMenu extends BasicGameState {
 				musicNote.draw(marginX, marginY);
 			int iconWidth = musicNote.getWidth();
 
-			if (songInfo == null)
+			// song info text
+			if (songInfo == null) {
 				songInfo = focusNode.getInfo();
+				if (Options.useUnicodeMetadata()) {  // load glyphs
+					OsuFile osu = focusNode.osuFiles.get(0);
+					Utils.loadGlyphs(Utils.FONT_LARGE, osu.titleUnicode, osu.artistUnicode);
+				}
+			}
 			marginX += 5;
 			float headerTextY = marginY;
 			Utils.FONT_LARGE.drawString(marginX + iconWidth * 1.05f, headerTextY, songInfo[0], Color.white);
@@ -362,8 +365,7 @@ public class SongMenu extends BasicGameState {
 				int rank = startScore + i;
 				if (rank >= focusScores.length)
 					break;
-				long prevScore = (rank + 1 < focusScores.length) ?
-						focusScores[rank + 1].score : -1;
+				long prevScore = (rank + 1 < focusScores.length) ? focusScores[rank + 1].score : -1;
 				focusScores[rank].draw(g, i, rank, prevScore, ScoreData.buttonContains(mouseX, mouseY, i));
 			}
 
@@ -466,7 +468,8 @@ public class SongMenu extends BasicGameState {
 	public void update(GameContainer container, StateBasedGame game, int delta)
 			throws SlickException {
 		UI.update(delta);
-		MusicController.loopTrackIfEnded(true);
+		if (reloadThread == null)
+			MusicController.loopTrackIfEnded(true);
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
 		UI.getBackButton().hoverUpdate(delta, mouseX, mouseY);
 		selectModsButton.hoverUpdate(delta, mouseX, mouseY);
@@ -572,6 +575,20 @@ public class SongMenu extends BasicGameState {
 		if (!isHover) {
 			hoverOffset = 0f;
 			hoverIndex = -1;
+		} else
+			return;
+
+		// tooltips
+		if (focusScores != null) {
+			for (int i = 0; i < MAX_SCORE_BUTTONS; i++) {
+				int rank = startScore + i;
+				if (rank >= focusScores.length)
+					break;
+				if (ScoreData.buttonContains(mouseX, mouseY, i)) {
+					UI.updateTooltip(delta, focusScores[rank].getTooltipString(), true);
+					break;
+				}
+			}
 		}
 	}
 
@@ -1175,7 +1192,6 @@ public class SongMenu extends BasicGameState {
 		focusNode = OsuGroupList.get().getNode(node, osuFileIndex);
 		OsuFile osu = focusNode.osuFiles.get(focusNode.osuFileIndex);
 		MusicController.play(osu, false, preview);
-		Utils.loadGlyphs(osu);
 
 		// load scores
 		scoreMap = ScoreDB.getMapSetScores(osu);
@@ -1292,17 +1308,12 @@ public class SongMenu extends BasicGameState {
 			return;
 
 		SoundController.playSound(SoundEffect.MENUHIT);
-		OsuFile osu = MusicController.getOsuFile();
-		Display.setTitle(String.format("%s - %s", game.getTitle(), osu.toString()));
-
-		// load any missing data
-		if (osu.timingPoints == null || osu.combo == null)
-			OsuDB.load(osu, OsuDB.LOAD_ARRAY);
-		OsuParser.parseHitObjects(osu);
-		HitSound.setDefaultSampleSet(osu.sampleSet);
-
 		MultiClip.destroyExtraClips();
-		((Game) game.getState(Opsu.STATE_GAME)).setRestart(Game.Restart.NEW);
+		OsuFile osu = MusicController.getOsuFile();
+		Game gameState = (Game) game.getState(Opsu.STATE_GAME);
+		gameState.loadOsuFile(osu);
+		gameState.setRestart(Game.Restart.NEW);
+		gameState.setReplay(null);
 		game.enterState(Opsu.STATE_GAME, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 	}
 }

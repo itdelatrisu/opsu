@@ -82,6 +82,7 @@ public class OptionsMenu extends BasicGameState {
 			GameOption.SHOW_HIT_LIGHTING,
 			GameOption.SHOW_COMBO_BURSTS,
 			GameOption.SHOW_PERFECT_HIT,
+			GameOption.SHOW_FOLLOW_POINTS,
 			GameOption.SHOW_HIT_ERROR_BAR
 		}),
 		INPUT ("Input", new GameOption[] {
@@ -96,7 +97,8 @@ public class OptionsMenu extends BasicGameState {
 			GameOption.FIXED_AR,
 			GameOption.FIXED_OD,
 			GameOption.CHECKPOINT,
-			GameOption.IN_GAME_PAUSE
+			GameOption.IN_GAME_PAUSE,
+			GameOption.LOAD_HD_IMAGES,
 		});
 
 		/** Total number of tabs. */

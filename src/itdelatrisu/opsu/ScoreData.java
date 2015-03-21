@@ -64,6 +64,9 @@ public class ScoreData implements Comparable<ScoreData> {
 	/** Game mod bitmask. */
 	public int mods;
 
+	/** The replay string. */
+	public String replayString;
+
 	/** Time since the score was achieved. */
 	private String timeSince;
 
@@ -72,6 +75,12 @@ public class ScoreData implements Comparable<ScoreData> {
 
 	/** The score percent. */
 	private float scorePercent = -1f;
+
+	/** A formatted string of the timestamp. */
+	private String timeString;
+
+	/** The tooltip string. */
+	private String tooltip;
 
 	/** Drawing values. */
 	private static float baseX, baseY, buttonWidth, buttonHeight, buttonOffset;
@@ -158,13 +167,16 @@ public class ScoreData implements Comparable<ScoreData> {
 		this.combo = rs.getInt(15);
 		this.perfect = rs.getBoolean(16);
 		this.mods = rs.getInt(17);
+		this.replayString = rs.getString(18);
 	}
 
 	/**
 	 * Returns the timestamp as a string.
 	 */
 	public String getTimeString() {
-		return new SimpleDateFormat("M/d/yyyy h:mm:ss a").format(new Date(timestamp * 1000L));
+		if (timeString == null)
+			timeString = new SimpleDateFormat("M/d/yyyy h:mm:ss a").format(new Date(timestamp * 1000L));
+		return timeString;
 	}
 
 	/**
@@ -180,11 +192,12 @@ public class ScoreData implements Comparable<ScoreData> {
 	/**
 	 * Returns letter grade based on score data,
 	 * or Grade.NULL if no objects have been processed.
-	 * @see GameData#getGrade(int, int, int, int)
+	 * @see GameData#getGrade(int, int, int, int, boolean)
 	 */
 	public Grade getGrade() {
 		if (grade == null)
-			grade = GameData.getGrade(hit300, hit100, hit50, miss);
+			grade = GameData.getGrade(hit300, hit100, hit50, miss,
+					((mods & GameMod.HIDDEN.getBit()) > 0 || (mods & GameMod.FLASHLIGHT.getBit()) > 0));
 		return grade;
 	}
 
@@ -301,13 +314,24 @@ public class ScoreData implements Comparable<ScoreData> {
 		}
 	}
 
+	/**
+	 * Returns the tooltip string for this score.
+	 */
+	public String getTooltipString() {
+		if (tooltip == null)
+			tooltip = String.format(
+					"Achieved on %s\n300:%d 100:%d 50:%d Miss:%d\nAccuracy: %.2f%%\nMods: %s",
+					getTimeString(), hit300, hit100, hit50, miss, getScorePercent(), GameMod.getModString(mods));
+		return tooltip;
+	}
+
 	@Override
 	public String toString() {
 		return String.format(
 			"%s | ID: (%d, %d) | %s - %s [%s] (by %s) | " +
-			"Hits: (%d, %d, %d, %d, %d, %d) | Score: %d (%d combo%s) | Mods: %d",
+			"Hits: (%d, %d, %d, %d, %d, %d) | Score: %d (%d combo%s) | Mods: %s",
 			getTimeString(), MID, MSID, artist, title, version, creator,
-			hit300, hit100, hit50, geki, katu, miss, score, combo, perfect ? ", FC" : "", mods
+			hit300, hit100, hit50, geki, katu, miss, score, combo, perfect ? ", FC" : "", GameMod.getModString(mods)
 		);
 	}
 

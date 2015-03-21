@@ -60,6 +60,9 @@ public class CircumscribedCircle extends Curve {
 	/** The number of steps in the curve to draw. */
 	private float step;
 
+	/** Points along the curve. */
+	private Vec2f[] curve;
+
 	/**
 	 * Constructor.
 	 * @param hitObject the associated OsuHitObject
@@ -124,6 +127,13 @@ public class CircumscribedCircle extends Curve {
 		// finds the angles to draw for repeats
 		this.drawEndAngle   = (float) ((endAng   + (startAng > endAng ? HALF_PI : -HALF_PI)) * 180 / Math.PI);
 		this.drawStartAngle = (float) ((startAng + (startAng > endAng ? -HALF_PI : HALF_PI)) * 180 / Math.PI);
+
+		// calculate points
+		curve = new Vec2f[(int) step + 1];
+		for (int i = 0; i < curve.length; i++) {
+			float[] xy = pointAt(i / step);
+			curve[i] = new Vec2f(xy[0], xy[1]);
+		}
 	}
 
 	/**
@@ -176,13 +186,10 @@ public class CircumscribedCircle extends Curve {
 	public void draw() {
 		Image hitCircle = GameImage.HITCIRCLE.getImage();
 		Image hitCircleOverlay = GameImage.HITCIRCLE_OVERLAY.getImage();
-		float[][] xy = new float[(int) step + 1][];
-		for (int i = 0; i < step; i++) {
-			xy[i] = pointAt(i / step);
-			hitCircleOverlay.drawCentered(xy[i][0], xy[i][1], Utils.COLOR_WHITE_FADE);
-		}
 		for (int i = 0; i < step; i++)
-			hitCircle.drawCentered(xy[i][0], xy[i][1], color);
+			hitCircleOverlay.drawCentered(curve[i].x, curve[i].y, Utils.COLOR_WHITE_FADE);
+		for (int i = 0; i < step; i++)
+			hitCircle.drawCentered(curve[i].x, curve[i].y, color);
 	}
 
 	@Override

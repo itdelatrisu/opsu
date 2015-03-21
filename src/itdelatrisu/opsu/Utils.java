@@ -24,14 +24,13 @@ import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
 import itdelatrisu.opsu.downloads.Download;
 import itdelatrisu.opsu.downloads.DownloadNode;
-/*
+
 import java.awt.Font;
 import java.awt.image.BufferedImage;
-*/
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
-/*
 import java.io.File;
- */
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -39,20 +38,21 @@ import java.net.HttpURLConnection;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Scanner;
+
 /*
 import javax.imageio.ImageIO;
 
-
 import org.lwjgl.BufferUtils;
-import org.lwjgl.LWJGLException;
-import org.lwjgl.input.Cursor;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 import org.newdawn.slick.Animation;
@@ -93,7 +93,8 @@ public class Utils {
 		COLOR_LIGHT_ORANGE    = new Color(255,192,128),
 		COLOR_LIGHT_GREEN     = new Color(128,255,128),
 		COLOR_LIGHT_BLUE      = new Color(128,128,255),
-		COLOR_GREEN_SEARCH    = new Color(173, 255, 47);
+		COLOR_GREEN_SEARCH    = new Color(173, 255, 47),
+		COLOR_DARK_GRAY       = new Color(0.3f, 0.3f, 0.3f, 1f);
 
 	/** The default map colors, used when a map does not provide custom colors. */
 	public static final Color[] DEFAULT_COMBO = {
@@ -106,8 +107,8 @@ public class Utils {
 		FONT_DEFAULT, FONT_BOLD,
 		FONT_XLARGE, FONT_LARGE, FONT_MEDIUM, FONT_SMALL;
 
-	/** Set of all Unicode strings already loaded. */
-	private static HashSet<String> loadedGlyphs = new HashSet<String>();
+	/** Set of all Unicode strings already loaded per font. */
+	private static HashMap<UnicodeFont, HashSet<String>> loadedGlyphs = new HashMap<UnicodeFont, HashSet<String>>();
 
 	/**
 	 * List of illegal filename characters.
@@ -137,6 +138,8 @@ public class Utils {
 	public static void init(GameContainer container, StateBasedGame game)
 			throws SlickException {
 		input = container.getInput();
+		int width = container.getWidth();
+		int height = container.getHeight();
 
 		// game settings
 		container.setTargetFrameRate(Options.getTargetFPS());
@@ -147,34 +150,12 @@ public class Utils {
 		container.setAlwaysRender(true);
 		container.setUpdateOnlyWhenVisible(false);
 
-		int width = container.getWidth();
-		int height = container.getHeight();
+		// calculate UI scale
+		GameImage.init(width, height);
 		System.out.println("Utils init"+" "+width+" "+height);
-		
-		// set the cursor
-		/*
-		try {
-			// hide the native cursor
-			int min = Cursor.getMinCursorSize();
-			IntBuffer tmp = BufferUtils.createIntBuffer(min * min);
-			Cursor emptyCursor = new Cursor(min, min, min/2, min/2, 1, tmp, null);
-			container.setMouseCursor(emptyCursor, 0, 0);
-		} catch (LWJGLException e) {
-			ErrorHandler.error("Failed to set the cursor.", e, true);
-		}
-		*/
 
 		// create fonts
-		float fontBase;
-		if (height <= 600)
-			fontBase = 10f;
-		else if (height < 800)
-			fontBase = 11f;
-		else if (height <= 900)
-			fontBase = 13f;
-		else
-			fontBase = 15f;
-
+		float fontBase = 12f * GameImage.getUIscale();
 		try {
 			//Font javaFont = Font.createFont(Font.TRUETYPE_FONT, ResourceLoader.getResourceAsStream(Options.FONT_NAME));
 			Font javaFont = new Font(Options.FONT_NAME);
@@ -197,7 +178,6 @@ public class Utils {
 		}
 
 		// initialize game images
-		GameImage.init(width, height);
 		for (GameImage img : GameImage.values()) {
 			if (img.isPreload())
 				img.setDefaultImage();
@@ -360,33 +340,34 @@ public class Utils {
 	}
 
 	/**
-	 * Adds and loads glyphs for an OsuFile's Unicode title and artist strings.
-	 * @param osu the OsuFile
+	 * Adds and loads glyphs for a beatmap's Unicode title and artist strings.
+	 * @param font the font to add the glyphs to
+	 * @param title the title string
+	 * @param artist the artist string
 	 */
-	public static void loadGlyphs(OsuFile osu) {
-		if (!Options.useUnicodeMetadata())
-			return;
+	public static void loadGlyphs(UnicodeFont font, String title, String artist) {
+		// get set of added strings
+		HashSet<String> set = loadedGlyphs.get(font);
+		if (set == null) {
+			set = new HashSet<String>();
+			loadedGlyphs.put(font, set);
+		}
 
+		// add glyphs if not in set
 		boolean glyphsAdded = false;
-		if (!osu.titleUnicode.isEmpty() && !loadedGlyphs.contains(osu.titleUnicode)) {
-			Utils.FONT_LARGE.addGlyphs(osu.titleUnicode);
-			Utils.FONT_MEDIUM.addGlyphs(osu.titleUnicode);
-			Utils.FONT_DEFAULT.addGlyphs(osu.titleUnicode);
-			loadedGlyphs.add(osu.titleUnicode);
+		if (title != null && !title.isEmpty() && !set.contains(title)) {
+			font.addGlyphs(title);
+			set.add(title);
 			glyphsAdded = true;
 		}
-		if (!osu.artistUnicode.isEmpty() && !loadedGlyphs.contains(osu.artistUnicode)) {
-			Utils.FONT_LARGE.addGlyphs(osu.artistUnicode);
-			Utils.FONT_MEDIUM.addGlyphs(osu.artistUnicode);
-			Utils.FONT_DEFAULT.addGlyphs(osu.artistUnicode);
-			loadedGlyphs.add(osu.artistUnicode);
+		if (artist != null && !artist.isEmpty() && !set.contains(artist)) {
+			font.addGlyphs(artist);
+			set.add(artist);
 			glyphsAdded = true;
 		}
 		if (glyphsAdded) {
 			try {
-				Utils.FONT_LARGE.loadGlyphs();
-				Utils.FONT_MEDIUM.loadGlyphs();
-				Utils.FONT_DEFAULT.loadGlyphs();
+				font.loadGlyphs();
 			} catch (SlickException e) {
 				Log.warn("Failed to load glyphs.", e);
 			}
@@ -560,5 +541,60 @@ public class Utils {
 			Log.warn("Connection to server timed out.", e);
 			throw e;
 		}
+	}
+
+	/**
+	 * Converts an input stream to a string.
+	 * @param is the input stream
+	 * @author Pavel Repin, earcam (http://stackoverflow.com/a/5445161)
+	 */
+	public static String convertStreamToString(InputStream is) {
+		try (Scanner s = new Scanner(is)) {
+			return s.useDelimiter("\\A").hasNext() ? s.next() : "";
+		}
+	}
+
+	/**
+	 * Returns the md5 hash of a file in hex form.
+	 * @param file the file to hash
+	 * @return the md5 hash
+	 */
+	public static String getMD5(File file) {
+		try {
+			InputStream in = new BufferedInputStream(new FileInputStream(file));
+			MessageDigest md = MessageDigest.getInstance("MD5");
+			byte[] buf = new byte[4096];
+
+			while (true) {
+				int len = in.read(buf);
+				if (len < 0)
+					break;
+				md.update(buf, 0, len);
+			}
+			in.close();
+
+			byte[] md5byte = md.digest();
+			StringBuilder result = new StringBuilder();
+			for (byte b : md5byte)
+				result.append(String.format("%02x", b));
+			return result.toString();
+		} catch (NoSuchAlgorithmException | IOException e) {
+			ErrorHandler.error("Failed to calculate MD5 hash.", e, true);
+		}
+		return null;
+	}
+
+	/**
+	 * Returns a formatted time string for a given number of seconds.
+	 * @param seconds the number of seconds
+	 * @return the time as a readable string
+	 */
+	public static String getTimeString(int seconds) {
+		if (seconds < 60)
+			return (seconds == 1) ? "1 second" : String.format("%d seconds", seconds);
+		else if (seconds < 3600)
+			return String.format("%02d:%02d", seconds / 60, seconds % 60);
+		else
+			return String.format("%02d:%02d:%02d", seconds / 3600, (seconds / 60) % 60, seconds % 60);
 	}
 }
