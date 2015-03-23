@@ -2,13 +2,13 @@ package fluddokt.opsu.fake;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.AudioDevice;
-import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.utils.TimeUtils;
 
 import javazoom.jl.decoder.*;
 
-public class MusicJL2 extends AbsMusic {
+public class AudioDevicePlayer {
 
+	private final AudioDevicePlayer thisAudioDevicePlayer = this;
 	boolean setNextPosition = false;
 	float nextPosition;
 	float volume = 0.1f;
@@ -18,7 +18,10 @@ public class MusicJL2 extends AbsMusic {
 	Decoder decoder;
 	Header header;
 	SampleBuffer buf;
-	FileHandle file;
+	InputStreamFactory inputStreamFactory;
+	String name;
+	
+	AudioDeviceListener adl;
 
 	boolean started = false;
 	boolean paused = true;
@@ -57,18 +60,18 @@ public class MusicJL2 extends AbsMusic {
 
 		AudioDevice ad;
 		public PlayThread(){
-			super("MusicJLThread "+file.path());
+			super("PlayThread "+name);
 		}
 		public void run() {
 			
 				incrementThreadCount();
-				System.out.println("MusicJL Running Thread " + file.path()+" "+threadCount);
+				System.out.println("PlayThread Running Thread " + name +" "+threadCount);
 				
 				try {
 					while (!toStop) {
 					header = bitstream.readFrame();
 					if (setNextPosition) {
-						System.out.println("Next Positioning: " + position + " " + nextPosition);
+						System.out.println("PlayThread Next Positioning: " + position + " " + nextPosition);
 						if (position > nextPosition) {
 							resetStream();
 							header = bitstream.readFrame();
@@ -81,11 +84,12 @@ public class MusicJL2 extends AbsMusic {
 						setNextPosition = false;
 					}
 					if (header == null) {
+						System.out.println("Header is null");
 						if (toLoop) {
 							bitstream.closeFrame();
 							resetStream();
 							if (header == null) {
-								System.out.println("MusicJL Header is null still"
+								System.out.println("PlayThread Header is null still"
 												+ bitstream.header_pos());
 								break;
 							}
@@ -106,7 +110,7 @@ public class MusicJL2 extends AbsMusic {
 							decoder = new Decoder();
 							decoder.setOutputBuffer(buf);
 							buf.clear_buffer();
-							System.out.println("MusicJL initData");
+							System.out.println("PlayThread initData");
 
 						}
 
@@ -117,7 +121,7 @@ public class MusicJL2 extends AbsMusic {
 							buf.clear_buffer();
 							if (!initedAD) {
 								initedAD = true;
-								System.out.println("MusicJL Music Init");
+								System.out.println("PlayThread Music Init");
 								if (ad != null && audioUsed) {
 									ad.dispose();
 								}
@@ -160,7 +164,7 @@ public class MusicJL2 extends AbsMusic {
 			//	System.out.println("Interrupted: "+file.path());
 			} catch (Exception e) {
 				e.printStackTrace();
-				System.out.println(e+" "+file.path());
+				System.out.println(e+" "+name);
 			}
 			if (ad != null && audioUsed) {
 				ad.dispose();
@@ -176,10 +180,11 @@ public class MusicJL2 extends AbsMusic {
 						e.printStackTrace();
 					}
 				}
-				fireMusicEnded();
+				if(adl != null)
+					adl.complete(thisAudioDevicePlayer);
 			}
 			decrementThreadCount();
-			System.out.println("Thread stoped " + file.path()+" "+threadCount);
+			System.out.println("Thread stoped " + name+" "+threadCount);
 		}
 
 	}
@@ -193,16 +198,16 @@ public class MusicJL2 extends AbsMusic {
 			}
 		}
 		decoder = new Decoder();
-		bitstream = new Bitstream(file.read());
+		bitstream = new Bitstream(inputStreamFactory.getNewInputStream());
 		decoder.setOutputBuffer(buf);
 		position = 0;
 		stop = false;
 	}
 
-	public MusicJL2(String path, AbsMusicCompleteListener lis) {
-		super(lis);
-		System.out.println("New Song " + path);
-		file = ResourceLoader.getFileHandle(path);
+	public AudioDevicePlayer(InputStreamFactory in, String name) {
+		System.out.println("New Song " + name);
+		this.inputStreamFactory = in;
+		this.name = name;
 	}
 
 
@@ -221,16 +226,15 @@ public class MusicJL2 extends AbsMusic {
 			try {
 				playThread.toStop = true;
 				playThread.interrupt();
-				playThread.join();
-				Thread.sleep(1);
+//				playThread.join();
 				playThread = null;
+				Thread.sleep(1);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
 		}
 	}
 	
-	@Override
 	public boolean setPosition(float f) {
 		// System.out.println("setPosition "+f);
 		nextPosition = f * 1000;
@@ -238,7 +242,6 @@ public class MusicJL2 extends AbsMusic {
 		return true;
 	}
 
-	@Override
 	public float getPosition() {
 		if (setNextPosition) {
 			return nextPosition / 1000f;
@@ -246,28 +249,24 @@ public class MusicJL2 extends AbsMusic {
 		return (position) / 1000f - latency;
 	}
 
-	@Override
 	public boolean playing() {
 		return playThread!=null && !playThread.toStop;
 	}
 
-	@Override
 	public void setVolume(float nvolume) {
 		volume = nvolume;
 	}
 
 
-	@Override
 	public void play() {
-		System.out.println("MusicJL Play "+file.path());
+		System.out.println("PlayThread Play "+name);
 		stopThread();
 		resetStream();
 		setLoop(false);
 		startThread();
 	}
-	@Override
 	public void loop() {
-		System.out.println("MusicJL Loop "+file.path());
+		System.out.println("PlayThread Loop "+name);
 		stopThread();
 		resetStream();
 		setLoop(true);
@@ -275,49 +274,43 @@ public class MusicJL2 extends AbsMusic {
 	}
 
 	
-	@Override
 	public synchronized void stop() {
-		System.out.println("MusicJL stop");
+		System.out.println("PlayThread stop");
 		stop = true;
 		stopThread();
 	}
 
-	@Override
 	public void pause() {
-		System.out.println("MusicJL pause");
+		System.out.println("PlayThread pause");
 		paused = true;
 		stopThread();
 	}
 
-	@Override
 	public void resume() {
-		System.out.println("MusicJL resume");
+		System.out.println("PlayThread resume");
 		paused = false;
 		startThread();
 	}
 
-
-
-	@Override
 	public String getName() {
-		return file != null ? file.path() : "NULL";
+		return name;
 	}
 
-	@Override
 	public void fade(int duration, float f, boolean b) {
-		super.fade(duration, f, b);
+		//TODO
 		pause();
 	}
 
-	@Override
 	public void dispose() {
-		System.out.println("dispose " + (file != null ? file.path() : "null"));
+		System.out.println("PlayThread dispose " + name);
 		stop();
 	}
 	
-
 	private void setLoop(boolean loop) {
 		toLoop = loop;
 	}
 
+	public void setAudioDeviceListener(AudioDeviceListener audioDeviceListener){
+		adl = audioDeviceListener;
+	}
 }

@@ -32,11 +32,14 @@ public class GameContainer {
 		return height;
 	}
 
-	public void exit() {
-		close_sub();
+	public void closing(){
 		if(music != null){
 			music.dispose();
 		}
+		close_sub();
+	}
+	public void exit() {
+		closing();
 		Gdx.app.exit();
 		System.exit(0);
 	}
@@ -146,6 +149,14 @@ public class GameContainer {
 	}
 	public void setUpdateOnlyWhenVisible(boolean b) {
 		// TODO Auto-generated method stub
+		
+	}
+	public void setDefaultMouseCursor() {
+		Gdx.input.setCursorImage(null, 0, 0);
+		
+	}
+	public void setMouseCursor(Cursor cursor, int x, int y) throws SlickException {
+		Gdx.input.setCursorImage(cursor.getPixmap(), x, y);
 		
 	}
 

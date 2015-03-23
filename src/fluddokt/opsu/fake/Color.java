@@ -57,9 +57,19 @@ public class Color {
 		a = color.a;
 	}
 
+	public Color() {
+		// TODO Auto-generated constructor stub
+	}
+
 	protected Color multAlpha(float na) {
 		return new Color(r, g, b, a * na);
 	}
+	
+	protected Color multAlphaSelf(float na) {
+		a *= na;
+		return this;
+	}
+
 
 	public int getRed() {
 		return (int)(r * 255);
@@ -69,6 +79,14 @@ public class Color {
 	}
 	public int getBlue() {
 		return (int)(b * 255);
+	}
+
+	public Color copy(Color ocol) {
+		r = ocol.r;
+		g = ocol.g;
+		b = ocol.b;
+		a = ocol.a;
+		return this;
 	}
 
 	

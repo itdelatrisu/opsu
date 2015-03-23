@@ -1,20 +1,21 @@
 package fluddokt.opsu.fake;
 
+import java.net.URL;
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.utils.GdxRuntimeException;
 
 public class Clip {
 
-	Sound sound;
-	long id;
-
+	ClipImplementation sound;
+	int id;
 	public Clip(String path) {
-		try {
-			sound = Gdx.audio.newSound(ResourceLoader.getFileHandle(path));
-		} catch (GdxRuntimeException e) {
-			Log.warn("error loading sound " + path + " ", e);
-		}
+		sound = new ClipGDXSound(path);
+	}
+
+	public Clip(URL url, boolean isMP3, LineListener listener) {
+		sound = new ClipGDXAudioDev(url, isMP3, listener);
 	}
 
 	public void stop() {
@@ -22,9 +23,9 @@ public class Clip {
 			sound.stop();
 	}
 
-	public void start(float volume) {
+	public void start(float volume, LineListener listener) {
 		if (sound != null)
-			id = sound.play(volume);
+			id = sound.play(volume, listener);
 	}
 
 	public void setFramePosition(int i) {
@@ -39,6 +40,11 @@ public class Clip {
 
 	public void flush() {
 		// TODO Auto-generated method stub
+	}
+
+	public void destroy() {
+		sound.destroy();
+		
 	}
 
 }

@@ -7,9 +7,11 @@ import com.badlogic.gdx.audio.Music.OnCompletionListener;
 public class MusicGdx extends AbsMusic implements OnCompletionListener{
 
 	com.badlogic.gdx.audio.Music music;
+	String path;
 
 	public MusicGdx(String path, AbsMusicCompleteListener lis) {
 		super(lis);
+		this.path = path;
 		music = Gdx.audio.newMusic(ResourceLoader.getFileHandle(path));
 	}
 
@@ -98,6 +100,11 @@ public class MusicGdx extends AbsMusic implements OnCompletionListener{
 	@Override
 	public void onCompletion(Music music) {
 		fireMusicEnded();
+	}
+
+	@Override
+	public String getName() {
+		return path;
 	}
 
 }

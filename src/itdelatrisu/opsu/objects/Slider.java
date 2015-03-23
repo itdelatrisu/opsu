@@ -111,7 +111,7 @@ public class Slider implements HitObject {
 
 		int diameter = (int) (104 - (circleSize * 8));
 		diameter = (int) (diameter * OsuHitObject.getXMultiplier());  // convert from Osupixels (640x480)
-		
+
 		// slider ball
 		if (GameImage.SLIDER_BALL.hasSkinImages() ||
 		    (!GameImage.SLIDER_BALL.hasSkinImage() && GameImage.SLIDER_BALL.getImages() != null))
@@ -222,8 +222,6 @@ public class Slider implements HitObject {
 		if (timeDiff >= 0) {
 			// approach circle
 			color.a = 1 - scale;
-			
-			color.a = 1 - scale;
 			GameImage.APPROACHCIRCLE.getImage().getScaledCopy(approachScale).drawCentered(x, y, color);
 		} else {
 			// Since update() might not have run before drawing during a replay, the
@@ -233,7 +231,6 @@ public class Slider implements HitObject {
 
 			float[] c = curve.pointAt(getT(trackPosition, false));
 			float[] c2 = curve.pointAt(getT(trackPosition, false) + 0.01f);
-
 
 			float t = getT(trackPosition, false);
 //			float dis = hitObject.getPixelLength() * OsuHitObject.getXMultiplier() * (t - (int) t);

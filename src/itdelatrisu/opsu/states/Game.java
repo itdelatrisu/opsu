@@ -48,9 +48,9 @@ import itdelatrisu.opsu.objects.Spinner;
 import itdelatrisu.opsu.replay.Replay;
 import itdelatrisu.opsu.replay.ReplayFrame;
 
-/*
-import java.io.File;
-*/
+
+//import java.io.File;
+import java.util.LinkedList;
 import java.util.Stack;
 /*
 import org.lwjgl.input.Keyboard;
@@ -248,22 +248,13 @@ public class Game extends BasicGameState {
 		g.setBackground(Color.black);
 
 		// "flashlight" mod: initialize offscreen graphics
-		if (GameMod.FLASHLIGHT.isActive()) {
-			gOffscreen.clear();
-			Graphics.setCurrent(gOffscreen);
-		}
+		//if (GameMod.FLASHLIGHT.isActive()) {
+		//	gOffscreen.clear();
+		//	Graphics.setCurrent(gOffscreen);
+		//}
 
-		// background
-		float dimLevel = Options.getBackgroundDim();
-		if (Options.isDefaultPlayfieldForced() || !osu.drawBG(width, height, dimLevel, false)) {
-			Image playfield = GameImage.PLAYFIELD.getImage();
-			playfield.setAlpha(dimLevel);
-			playfield.draw();
-			playfield.setAlpha(1f);
-		}
-
-		if (GameMod.FLASHLIGHT.isActive())
-			Graphics.setCurrent(g);
+		//if (GameMod.FLASHLIGHT.isActive())
+		//	Graphics.setCurrent(g);
 
 		int trackPosition = MusicController.getPosition();
 		if (pauseTime > -1)  // returning from pause screen
@@ -336,20 +327,22 @@ public class Game extends BasicGameState {
 			}
 		}
 
+
 		// "flashlight" mod: restricted view of hit objects around cursor
-		if (GameMod.FLASHLIGHT.isActive()) {
+		//if (GameMod.FLASHLIGHT.isActive()) {
 			// render hit objects offscreen
-			Graphics.setCurrent(gOffscreen);
+			//Graphics.setCurrent(gOffscreen);
+			//gOffscreen.setDrawMode(Graphics.MODE_NORMAL);
 			int trackPos = (isLeadIn()) ? (leadInTime - Options.getMusicOffset()) * -1 : trackPosition;
-			drawHitObjects(gOffscreen, trackPos);
+			//GameImage.ALPHA_MAP.getImage().draw(alphaY, alphaRadius, alphaRadius);
 
 			// restore original graphics context
-			gOffscreen.flush();
-			Graphics.setCurrent(g);
+			//gOffscreen.flush();
+			//Graphics.setCurrent(g);
 
 			// draw alpha map around cursor
-			g.setDrawMode(Graphics.MODE_ALPHA_MAP);
-			g.clearAlphaMap();
+			//g.setDrawMode(Graphics.MODE_ALPHA_MAP);
+			//g.clearAlphaMap();
 			int mouseX, mouseY;
 			if (pauseTime > -1 && pausedMouseX > -1 && pausedMouseY > -1) {
 				mouseX = pausedMouseX;
@@ -367,18 +360,33 @@ public class Game extends BasicGameState {
 			int alphaRadius = flashlightRadius * 256 / 215;
 			int alphaX = mouseX - alphaRadius / 2;
 			int alphaY = mouseY - alphaRadius / 2;
-			GameImage.ALPHA_MAP.getImage().draw(alphaX, alphaY, alphaRadius, alphaRadius);
-
-		// draw pause button
-		if(Options.isInGamePauseEnabled())
-			pauseButton.draw();
+		//}
+			
+		if (GameMod.FLASHLIGHT.isActive()) {
+			g.setClip(alphaX+2, alphaY+2, alphaRadius-4, alphaRadius-4);
+			
+		}
 		
-			// blend offscreen image
-			g.setDrawMode(Graphics.MODE_ALPHA_BLEND);
-			g.setClip(alphaX, alphaY, alphaRadius, alphaRadius);
-			g.drawImage(offscreen, 0, 0);
+		// background
+		float dimLevel = Options.getBackgroundDim();
+		if (Options.isDefaultPlayfieldForced() || !osu.drawBG(width, height, dimLevel, false)) {
+			Image playfield = GameImage.PLAYFIELD.getImage();
+			playfield.setAlpha(dimLevel);
+			playfield.draw();
+			playfield.setAlpha(1f);
+		}
+		
+		if (GameMod.FLASHLIGHT.isActive()) {
+			drawHitObjects(gOffscreen, trackPos);
+			GameImage.ALPHA_MAP.getImage().draw(alphaX, alphaY, alphaRadius, alphaRadius);
 			g.clearClip();
-			g.setDrawMode(Graphics.MODE_NORMAL);
+			
+			// blend offscreen image
+			//g.setDrawMode(Graphics.MODE_ALPHA_BLEND);
+			//g.setClip(alphaX, alphaY, alphaRadius, alphaRadius);
+			//g.drawImage(offscreen, 0, 0);
+			//g.clearClip();
+			//g.setDrawMode(Graphics.MODE_NORMAL);
 		}
 
 		// break periods
@@ -505,6 +513,10 @@ public class Game extends BasicGameState {
 			if (!GameMod.FLASHLIGHT.isActive())
 				drawHitObjects(g, trackPosition);
 		}
+		
+		// draw pause button
+		if(Options.isInGamePauseEnabled())
+			pauseButton.draw();
 
 		if (GameMod.AUTO.isActive())
 			GameImage.UNRANKED.getImage().drawCentered(width / 2, height * 0.077f);
@@ -784,15 +796,7 @@ public class Game extends BasicGameState {
 			}
 
 			// pause game
-			pauseGame(input.getMouseX(), input.getMouseY());
-			if (pauseTime < 0 && breakTime <= 0 && trackPosition >= osu.objects[0].getTime()) {
-				pausedMouseX = mouseX;
-				pausedMouseY = mouseY;
-				pausePulse = 0f;
-			}
-			if (MusicController.isPlaying() || isLeadIn())
-				pauseTime = trackPosition;
-			game.enterState(Opsu.STATE_GAMEPAUSEMENU, new EmptyTransition(), new FadeInTransition(Color.black));
+			pauseGame(mouseX, mouseY);
 			break;
 		case Input.KEY_SPACE:
 			// skip intro
@@ -916,6 +920,14 @@ public class Game extends BasicGameState {
 		lastMouseX = x;
 		lastMouseY = y;
 	}
+	
+	
+
+	@Override
+	public void mouseDragged(int oldx, int oldy, int newx, int newy) {
+		lastMouseX = newx;
+		lastMouseY = newy;
+	}
 
 	/**
 	 * Handles a game key pressed event.
@@ -987,15 +999,7 @@ public class Game extends BasicGameState {
 		if (keys != ReplayFrame.KEY_NONE)
 			gameKeyReleased(keys, input.getMouseX(), input.getMouseY(), MusicController.getPosition());
 	}
-
-		// sliders
-		else if (hitObject.isSlider() && hitObjects[objectIndex].mousePressed(x, y)){
-			
-		}
-
-		//Nothing hit
-		else
-			data.addMouseMissPoint(MusicController.getPosition(), x,y,button);
+	
 	/**
 	 * Handles a game key released event.
 	 * @param keys the game keys released

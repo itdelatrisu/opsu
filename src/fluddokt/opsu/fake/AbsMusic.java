@@ -1,53 +1,38 @@
 package fluddokt.opsu.fake;
 
-import java.util.ArrayList;
-
-public class AbsMusic {
+public abstract class AbsMusic {
 	
 	AbsMusicCompleteListener lis;
 	public AbsMusic(AbsMusicCompleteListener lis) {
 		this.lis = lis;
 	}
 
-	public boolean setPosition(float f) {
-		return false;
+	public abstract boolean setPosition(float f);
+
+	public abstract void loop() ;
+
+	public abstract void play() ;
+
+	public abstract boolean playing() ;
+
+	public abstract void pause() ;
+
+	public abstract void resume();
+
+	public abstract void setVolume(float volume) ;
+
+	public abstract void stop() ;
+
+	public void fade(int duration, float f, boolean b){
+		stop();
 	}
 
-	public void loop() {
-	}
+	public abstract float getPosition() ;
 
-	public void play() {
-	}
+	public abstract void dispose() ;
 
-	public boolean playing() {
-		return false;
-	}
-
-	public void pause() {
-	}
-
-	public void resume() {
-	}
-
-	public void setVolume(float volume) {
-	}
-
-	public void stop() {
-	}
-
-	public void fade(int duration, float f, boolean b) {
-	}
-
-	public float getPosition() {
-		return 0;
-	}
-
-	public void dispose() {
-	}
-
-	public String getName() {
-		return null;
-	}
+	public abstract String getName();
+	
 	protected void fireMusicEnded(){
 		lis.complete(this);
 	}

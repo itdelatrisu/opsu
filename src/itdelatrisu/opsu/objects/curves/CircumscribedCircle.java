@@ -18,6 +18,8 @@
 
 package itdelatrisu.opsu.objects.curves;
 
+import fluddokt.opsu.fake.*;
+
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.OsuHitObject;
@@ -27,7 +29,6 @@ import itdelatrisu.opsu.Utils;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Image;
 */
-import fluddokt.opsu.fake.*;
 
 
 /**

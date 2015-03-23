@@ -28,7 +28,7 @@ import itdelatrisu.opsu.downloads.Updater;
 import itdelatrisu.opsu.replay.Replay;
 import itdelatrisu.opsu.replay.ReplayFrame;
 
-import java.io.File;
+//import java.io.File;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -208,8 +208,6 @@ public class GameData {
 
 	/** List containing recent hit error information. */
 	private LinkedBlockingDeque<HitErrorInfo> hitErrorList;
-	/** List containing recent hit error information. */
-	private LinkedList<HitErrorInfo> mouseMissList;
 
 	/**
 	 * Hit result helper class.
@@ -357,7 +355,6 @@ public class GameData {
 		comboEnd = 0;
 		comboBurstIndex = -1;
 		scoreData = null;
-		mouseMissList = new LinkedList<HitErrorInfo>();
 	}
 
 	/**
@@ -1290,12 +1287,6 @@ public class GameData {
 	 * @return true if gameplay, false if score viewing
 	 */
 	public boolean isGameplay() { return gameplay; }
-	
-	public void addMouseMissPoint(int time, int x, int y, int button) {
-		System.out.println("addMouseMissPoint "+x+" "+y+" "+button);
-		mouseMissList.add(new HitErrorInfo(time, x, y, 0));
-	}
-
 
 	/**
 	 * Adds the hit into the list of hit error information.

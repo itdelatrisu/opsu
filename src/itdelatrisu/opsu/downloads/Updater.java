@@ -18,6 +18,7 @@
 
 package itdelatrisu.opsu.downloads;
 
+import fluddokt.opsu.fake.*;
 
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.Options;

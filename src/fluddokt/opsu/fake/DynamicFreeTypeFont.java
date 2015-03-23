@@ -73,7 +73,7 @@ class DynamicFreeType {
 		for (int i = 0; i < str.length(); i++) {
 			char thischr = str.charAt(i);
 			if (thischr == '\n') {
-				y -= getLineHeight();
+				y += getLineHeight();
 				x = ox;
 				continue;
 			}
@@ -81,7 +81,7 @@ class DynamicFreeType {
 			CharInfo ci = getCharInfo(str.charAt(i));
 			TextureRegion tr = ci.region;
 			batch.draw(tr, x + ci.xbear// xoffset
-			, y - ascent + ci.yoffset);// ci.yoffset);//-
+			, y - ci.bitmaptop + ascent);// ci.yoffset);//-
 													// tr.getRegionHeight() +
 													// ci.ybear );//-
 			if (FreeType.hasKerning(face)) {
@@ -202,6 +202,7 @@ class DynamicFreeType {
 
 		TextureRegion tr = new TextureRegion(curTexture, x, y,
 				pixmap.getWidth(), pixmap.getHeight());
+		tr.flip(false, true);
 		x += pixmap.getWidth();
 
 		GlyphMetrics metrics = slot.getMetrics();

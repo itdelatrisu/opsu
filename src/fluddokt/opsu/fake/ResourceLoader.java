@@ -1,5 +1,6 @@
 package fluddokt.opsu.fake;
 
+import java.io.Reader;
 import java.util.LinkedList;
 
 import com.badlogic.gdx.Gdx;
@@ -19,7 +20,7 @@ public class ResourceLoader {
 		//System.out.print("ResourceLoader: getFileHandle:" + file + " ");
 		FileHandle fh = Gdx.files.absolute(file);
 		if (fh.exists()) {
-			System.out.println("QFOUNDED");
+			//System.out.println("QFOUNDED");
 			return fh;
 		}
 		for (FileSystemLocation t : loc) {
@@ -59,6 +60,10 @@ public class ResourceLoader {
 
 	public static boolean resourceExists(String string) {
 		return getFileHandle(string) != null;
+	}
+
+	public static Reader getResourceAsStream(String file) {
+		return getFileHandle(file).reader();
 	}
 
 }

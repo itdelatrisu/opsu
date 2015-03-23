@@ -11,7 +11,7 @@ public class Music implements AbsMusicCompleteListener{
 
 	public Music(String path, boolean b) {
 		if (path.toLowerCase().endsWith(".mp3"))
-			music = new MusicJL2(path, this);
+			music = new MusicJL3(path, this);
 		else
 			music = new MusicGdx(path, this);
 		GameContainer.setMusic(this);
@@ -75,6 +75,7 @@ public class Music implements AbsMusicCompleteListener{
 	long lastUpdateTime = TimeUtils.millis();
 	float deltaTime = 0;
 	float avgDiff;
+	int diffCnt = 0;
 
 	public float getPosition() {
 		float thisPosition = music.getPosition();
@@ -99,9 +100,12 @@ public class Music implements AbsMusicCompleteListener{
 		}
 		if ((int) (dxPosition2 * 1000) != 0) {// && thisTime-lastUpdateTime>8
 			float diff = thisPosition * 1000 - (dxTime);
-			avgDiff = (diff + avgDiff * 9) / 10;
-			lastTime -= (int) (avgDiff / 4);
-			// if((int)(avgDiff/4)>=1)
+			if(diffCnt<10)
+				diffCnt++;
+			avgDiff = (diff + avgDiff * (diffCnt-1)) / diffCnt;
+			lastTime -= (int) (avgDiff / 2);
+			avgDiff -= (int) (avgDiff / 2);
+			// if((int)(avgDiff/2)>=1)
 			// System.out.println("getPosition: mpos:"+thisPosition+"\t "+(dxTime/1000f)+"\t "+(int)(thisPosition*1000-(dxTime))+"\t "+(int)avgDiff+"\t "+lastTime);
 			dxTime = thisTime - lastTime;
 			lastUpdatePosition = thisPosition;

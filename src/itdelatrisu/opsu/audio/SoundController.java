@@ -19,8 +19,7 @@
 package itdelatrisu.opsu.audio;
 
 import fluddokt.opsu.fake.MultiClip;
-import fluddokt.opsu.fake.File;
-import fluddokt.opsu.fake.ResourceLoader;
+import fluddokt.opsu.fake.*;
 
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.Options;
@@ -31,8 +30,10 @@ import itdelatrisu.opsu.audio.HitSound.SampleSet;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+*/
 import java.net.URL;
 
+/*
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
@@ -41,7 +42,9 @@ import javax.sound.sampled.DataLine;
 import javax.sound.sampled.LineListener;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.UnsupportedAudioFileException;
+*/
 
+/*
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.util.ResourceLoader;
 */
@@ -100,9 +103,10 @@ public class SoundController {
 		} catch (UnsupportedAudioFileException | IOException | LineUnavailableException | RuntimeException e) {
 			ErrorHandler.error(String.format("Failed to load file '%s'.", ref), e, true);
 			return null;
-		}
+		}*/
 	}
 
+	
 	/**
 	 * Loads and returns a Clip from an audio input stream.
 	 * @param ref the resource name
@@ -110,6 +114,7 @@ public class SoundController {
 	 * @param isMP3 true if MP3, false if WAV
 	 * @return the loaded and opened clip
 	 */
+	/*
 	private static MultiClip loadClip(String ref, AudioInputStream audioIn, boolean isMP3) {
 		try {
 			AudioFormat format = audioIn.getFormat();
@@ -179,9 +184,10 @@ public class SoundController {
 			}
 		} catch (IOException | LineUnavailableException | RuntimeException e) {
 			ErrorHandler.error(String.format("Failed to load file '%s'.", ref), e, true);
-		}*/
+		}
 		//return null;
 	}
+	*/
 
 	/**
 	 * Returns the sound file name, with extension, by first looking through
@@ -339,12 +345,19 @@ public class SoundController {
 	 */
 	public static synchronized MultiClip playTrack(URL url, boolean isMP3, LineListener listener) throws SlickException {
 		stopTrack();
-		try {
+		/*try {
 			AudioInputStream audioIn = AudioSystem.getAudioInputStream(url);
 			currentTrack = loadClip(url.getFile(), audioIn, isMP3);
 			playClip(currentTrack, Options.getMusicVolume() * Options.getMasterVolume(), listener);
 			return currentTrack;
 		} catch (UnsupportedAudioFileException | IOException | RuntimeException e) {
+			throw new SlickException(String.format("Failed to load clip '%s'.", url.getFile(), e));
+		}*/
+		try {
+			currentTrack = new MultiClip(url, isMP3, listener);
+			playClip(currentTrack, Options.getMusicVolume() * Options.getMasterVolume(), listener);
+			return currentTrack;
+		} catch ( Exception e) {
 			throw new SlickException(String.format("Failed to load clip '%s'.", url.getFile(), e));
 		}
 	}

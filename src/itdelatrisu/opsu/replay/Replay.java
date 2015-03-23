@@ -18,6 +18,7 @@
 
 package itdelatrisu.opsu.replay;
 
+import fluddokt.opsu.fake.*;
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.Utils;
@@ -25,12 +26,13 @@ import itdelatrisu.opsu.io.OsuReader;
 import itdelatrisu.opsu.io.OsuWriter;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
+//import java.io.File;
+//import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.CharBuffer;
+import java.nio.charset.Charset;
 import java.nio.charset.CharsetEncoder;
-import java.nio.charset.StandardCharsets;
+//import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -40,7 +42,7 @@ import java.util.List;
 import lzma.streams.LzmaOutputStream;
 
 import org.apache.commons.compress.compressors.lzma.LZMACompressorInputStream;
-import org.newdawn.slick.util.Log;
+//import org.newdawn.slick.util.Log;
 
 /**
  * Captures osu! replay data.
@@ -281,7 +283,7 @@ public class Replay {
 						sb.append(String.format("%s|0|0|%d", SEED_STRING, seed));
 
 						// get bytes from string
-						CharsetEncoder encoder = StandardCharsets.US_ASCII.newEncoder();
+						CharsetEncoder encoder = Charset.forName("US-ASCII").newEncoder();//StandardCharsets.US_ASCII.newEncoder();
 						CharBuffer buffer = CharBuffer.wrap(sb);
 						byte[] bytes = encoder.encode(buffer).array();
 

@@ -19,7 +19,6 @@
 package itdelatrisu.opsu.states;
 
 import fluddokt.opsu.fake.*;
-
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.MenuButton;
 import itdelatrisu.opsu.Opsu;
@@ -39,15 +38,15 @@ import itdelatrisu.opsu.downloads.DownloadList;
 import itdelatrisu.opsu.downloads.DownloadNode;
 import itdelatrisu.opsu.downloads.DownloadServer;
 
+
 //import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+//import javax.sound.sampled.LineEvent;
+//import javax.sound.sampled.LineListener;
 /*
-import javax.sound.sampled.LineEvent;
-import javax.sound.sampled.LineListener;
-
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
@@ -502,7 +501,7 @@ public class DownloadsMenu extends BasicGameState {
 												previewID = node.getID();
 											} catch (SlickException e) {
 												UI.sendBarNotification("Failed to load track preview.");
-												Log.error(e);
+												Log.warn("",e);
 											}
 										}
 									}.start();
@@ -578,10 +577,9 @@ public class DownloadsMenu extends BasicGameState {
 			SoundController.playSound(SoundEffect.MENUCLICK);
 
 			// import songs in new thread
-			importThread = new Thread(); /*{
+			importThread = new Thread() {
 				@Override
 				public void run() {
-			*/
 					// invoke unpacker and parser
 					File[] dirs = OszUnpacker.unpackAllFiles(Options.getOSZDir(), Options.getBeatmapDir());
 					if (dirs != null && dirs.length > 0) {
@@ -602,13 +600,11 @@ public class DownloadsMenu extends BasicGameState {
 						}
 					}
 
-					DownloadList.get().clearDownloads(Download.Status.COMPLETE);
+					//DownloadList.get().clearDownloads(Download.Status.COMPLETE);
 					importThread = null;
-			/*
 				}
 			};
 			importThread.start();
-			*/
 			return;
 		}
 		if (resetButton.contains(x, y)) {
@@ -760,7 +756,7 @@ public class DownloadsMenu extends BasicGameState {
 			barNotificationOnLoad = null;
 		}
 	}
-	
+
 	@Override
 	public void leave(GameContainer container, StateBasedGame game)
 			throws SlickException {

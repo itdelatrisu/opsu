@@ -150,7 +150,7 @@ public class MultiClip {
 		}
 
 		Clip c = null;
-		if (extraClips >= MAX_CLIPS) {
+		/*if (extraClips >= MAX_CLIPS) {
 			// use an existing clip
 			if (clips.isEmpty())
 				return null;
@@ -165,7 +165,7 @@ public class MultiClip {
 			clips.add(c);
 			if (clips.size() != 1)
 				extraClips++;
-		}
+		}*/
 		return c;
 	}
 

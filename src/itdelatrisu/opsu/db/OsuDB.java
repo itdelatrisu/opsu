@@ -26,10 +26,12 @@ import itdelatrisu.opsu.OsuParser;
 
 
 
+
 //import java.io.File;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.SQLWarning;
 import java.sql.Statement;
@@ -239,11 +241,37 @@ public class OsuDB {
 		try {
 			setStatementFields(insertStmt, osu);
 			cacheSize += insertStmt.executeUpdate();
+			//printBeatmapTable();
 			updateCacheSize();
 		} catch (SQLException e) {
 			ErrorHandler.error("Failed to add beatmap to database.", e, true);
 		}
 	}
+	
+	public static void printBeatmapTable() {
+		try (Statement stmt = connection.createStatement()) {
+			String sql = "SELECT * FROM beatmaps";
+			ResultSet rs = stmt.executeQuery(sql);
+			ResultSetMetaData md = rs.getMetaData();
+			System.out.println("beatmaps table");
+			for(int i=1; i<=md.getColumnCount(); i++) {
+				System.out.print(md.getColumnLabel(i)+"\t ");
+			}
+			System.out.println();
+			System.out.println("PT:");
+			while(rs.next()){
+				for(int i=1; i<=2; i++) {
+					System.out.print("PT:"+rs.getString(i)+"\t ");
+				}
+				System.out.println();
+
+			}
+			rs.close();
+		} catch (SQLException e) {
+			ErrorHandler.error("Could not print beatmap table.", e, true);
+		}
+	}
+	
 
 	/**
 	 * Adds the OsuFiles to the database in a batch.
@@ -264,6 +292,13 @@ public class OsuDB {
 				String sql = "DROP INDEX IF EXISTS idx";
 				stmt.executeUpdate(sql);
 			}
+			
+			//insertStmt batch doesn't seem to get cleared after execution and clearing seem to crash
+			insertStmt = connection.prepareStatement(
+					"INSERT INTO beatmaps VALUES (" +
+					"?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, " +
+					"?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+				);
 
 			// batch insert
 			for (OsuFile osu : batch) {
@@ -275,6 +310,7 @@ public class OsuDB {
 				}
 				insertStmt.addBatch();
 			}
+			
 			int[] results = insertStmt.executeBatch();
 			for (int i = 0; i < results.length; i++) {
 				if (results[i] > 0)
@@ -286,6 +322,7 @@ public class OsuDB {
 				String sql = "CREATE INDEX idx ON beatmaps (dir, file)";
 				stmt.executeUpdate(sql);
 			}
+			stmt.close();
 
 			// restore previous auto-commit mode
 			connection.commit();
@@ -293,6 +330,9 @@ public class OsuDB {
 
 			// update cache size
 			updateCacheSize();
+			
+			//printBeatmapTable();
+			
 		} catch (SQLException e) {
 			ErrorHandler.error("Failed to add beatmaps to database.", e, true);
 		}
@@ -389,6 +429,7 @@ public class OsuDB {
 		if (connection == null)
 			return;
 
+		//printBeatmapTable();
 		// batch size too small
 		int size = batch.size();
 		if (size < cacheSize * LOAD_BATCH_MIN_RATIO) {
@@ -408,6 +449,7 @@ public class OsuDB {
 					m = new HashMap<String, OsuFile>();
 					map.put(parent, m);
 				}
+				//System.out.println("Map: "+parent);
 				m.put(name, osu);
 			}
 
@@ -437,6 +479,7 @@ public class OsuDB {
 				}
 			}
 			rs.close();
+			stmt.close();
 		} catch (SQLException e) {
 			ErrorHandler.error("Failed to load OsuFiles from database.", e, true);
 		}

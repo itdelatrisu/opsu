@@ -34,9 +34,12 @@ import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
+
+/*
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+*/
 
 /*
 import org.newdawn.slick.util.Log;
@@ -249,6 +252,9 @@ public class Download {
 
 			//http://stackoverflow.com/questions/4770004/how-to-move-rename-file-from-internal-app-storage-to-external-storage-on-android
 			private void move(File src, File dst) throws IOException {
+				if(src.getIOFile().renameTo(dst.getIOFile())){
+					return;
+				}
 				FileInputStream instream = new FileInputStream(src.getIOFile());
 				FileOutputStream outstream = new FileOutputStream(dst.getIOFile());
 				FileChannel inChannel = instream.getChannel();

@@ -17,6 +17,7 @@ public abstract class StateBasedGame extends Game implements InputProcessor {
 	LinkedList<BasicGameState> orderedbgs = new LinkedList<BasicGameState>();
 	String title;
 	OrderedSet<InputListener> keyListeners = new OrderedSet<InputListener>();
+	boolean rightIsPressed;
 
 	public StateBasedGame(String name) {
 		this.title = name;
@@ -139,15 +140,24 @@ public abstract class StateBasedGame extends Game implements InputProcessor {
 
 	@Override
 	public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-		for (InputListener keylis : keyListeners) {
-			keylis.touchDown(screenX, screenY, pointer, button);
-		}
-		if (pointer > 0) {
-			currentState.mousePressed(Input.MOUSE_RIGHT_BUTTON, oldx, oldy );
-		} else {
-			currentState.mousePressed(button, screenX, screenY);
-			oldx = screenX;
-			oldy = screenY;
+		try {
+			for (InputListener keylis : keyListeners) {
+				keylis.touchDown(screenX, screenY, pointer, button);
+			}
+			if (pointer > 0) {
+				if(rightIsPressed){
+					currentState.mouseReleased(Input.MOUSE_RIGHT_BUTTON, oldx, oldy);
+				}
+				currentState.mousePressed(Input.MOUSE_RIGHT_BUTTON, oldx, oldy );
+				rightIsPressed = true;
+			} else {
+				currentState.mousePressed(button, screenX, screenY);
+				oldx = screenX;
+				oldy = screenY;
+			}
+		} catch (Throwable e) {
+			e.printStackTrace();
+			GameOpsu.error("touchDown", e);
 		}
 		return false;
 	}
@@ -158,7 +168,8 @@ public abstract class StateBasedGame extends Game implements InputProcessor {
 			keylis.touchUp(screenX, screenY, pointer, button);
 		}
 		if (pointer > 0){
-			currentState.mouseReleased(button, oldx, oldy);
+			currentState.mouseReleased(Input.MOUSE_RIGHT_BUTTON, oldx, oldy);
+			rightIsPressed = false;
 		} else {
 			currentState.mouseReleased(button, screenX, screenY);
 			oldx = screenX;

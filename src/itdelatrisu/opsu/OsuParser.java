@@ -114,7 +114,7 @@ public class OsuParser {
 		// parse directories
 		OsuGroupNode lastNode = null;
 		for (File dir : dirs) {
-			System.out.println("OsuParser Folder:"+dir);
+			//System.out.println("OsuParser Folder:"+dir);
 			currentDirectoryIndex++;
 			if (!dir.isDirectory())
 				continue;
@@ -182,8 +182,8 @@ public class OsuParser {
 
 		// add group entries to OsuGroupList
 		for (ArrayList<OsuFile> osuFiles : allOsuFiles) {
-			for(OsuFile osu : osuFiles)
-				System.out.println("osuFiles "+osu);
+			//for(OsuFile osu : osuFiles)
+			//	System.out.println("osuFiles "+osu);
 
 			Collections.sort(osuFiles);
 			lastNode = OsuGroupList.get().addSongGroup(osuFiles);

@@ -29,12 +29,14 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.nio.IntBuffer;
+
 import java.util.Map;
 
 import javax.sound.sampled.AudioFileFormat;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.UnsupportedAudioFileException;
-
+*/
+/*
 import org.lwjgl.BufferUtils;
 import org.lwjgl.openal.AL;
 import org.lwjgl.openal.AL10;
@@ -44,7 +46,7 @@ import org.newdawn.slick.SlickException;
 import org.newdawn.slick.openal.Audio;
 import org.newdawn.slick.openal.SoundStore;
 */
-import org.tritonus.share.sampled.file.TAudioFileFormat;
+//import org.tritonus.share.sampled.file.TAudioFileFormat;
 
 /**
  * Controller for all music.
@@ -269,9 +271,9 @@ public class MusicController {
 			return -1;
 
 		if (duration == 0) {
-			if (lastOsu.audioFilename.getName().endsWith(".mp3")) {
+			/*if (lastOsu.audioFilename.getName().endsWith(".mp3")) {
 				try {
-					AudioFileFormat fileFormat = AudioSystem.getAudioFileFormat(lastOsu.audioFilename);
+					AudioFileFormat fileFormat = AudioSystem.getAudioFileFormat(lastOsu.audioFilename.getIOFile());
 					if (fileFormat instanceof TAudioFileFormat) {
 						Map<?, ?> properties = ((TAudioFileFormat) fileFormat).properties();
 						Long microseconds = (Long) properties.get("duration");
@@ -279,7 +281,7 @@ public class MusicController {
 						return duration;
 					}
 				} catch (UnsupportedAudioFileException | IOException e) {}
-			}
+			}*/
 			duration = lastOsu.endTime;
 		}
 		return duration;

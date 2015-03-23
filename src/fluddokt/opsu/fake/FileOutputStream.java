@@ -12,9 +12,35 @@ public class FileOutputStream extends OutputStream {
 		out = file.fh.write(b);
 	}
 
-	@Override
-	public void write(int arg0) throws IOException {
-		out.write(arg0);
+	public FileOutputStream(File file) throws FileNotFoundException {
+		this(file, false);
 	}
+
+	@Override
+	public void write(int b) throws IOException {
+		out.write(b);
+	}
+	
+	@Override
+	public void close() throws IOException {
+		out.close();
+	}
+
+	@Override
+	public void flush() throws IOException {
+		out.flush();
+	}
+
+	@Override
+	public void write(byte[] b, int off, int len) throws IOException {
+		out.write(b, off, len);
+	}
+
+	@Override
+	public void write(byte[] b) throws IOException {
+		out.write(b);
+	}
+
+	
 
 }

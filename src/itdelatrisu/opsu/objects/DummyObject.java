@@ -18,9 +18,13 @@
 
 package itdelatrisu.opsu.objects;
 
+import fluddokt.opsu.fake.*;
+
 import itdelatrisu.opsu.OsuHitObject;
 
+/*
 import org.newdawn.slick.Graphics;
+*/
 
 /**
  * Dummy hit object, used when another HitObject class cannot be created.

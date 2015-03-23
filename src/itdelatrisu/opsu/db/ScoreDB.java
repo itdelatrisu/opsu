@@ -27,6 +27,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.SQLWarning;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -85,8 +86,9 @@ public class ScoreDB {
 		// create a database connection
 		connection = DBController.createConnection(Options.SCORE_DB.getAbsolutePath());
 		if (connection == null)
-			return;	
+			return;
 
+		
 		// run any database updates
 		updateDatabase();
 
@@ -141,7 +143,7 @@ public class ScoreDB {
 				");\n" +
 				"CREATE TABLE IF NOT EXISTS info (" +
 					"key TEXT NOT NULL UNIQUE, value TEXT" +
-				"); " +
+				");\n " +
 				"CREATE INDEX IF NOT EXISTS idx ON scores (MID, MSID, title, artist, creator, version);";
 			for (String sqlStmt : sql.split(";\n")){
 				System.out.println("ScoreDB SQLExec :"+sqlStmt+" "+stmt.execute(sqlStmt));
@@ -150,7 +152,7 @@ public class ScoreDB {
 
 			// set the version key, if empty
 			sql = String.format("INSERT OR IGNORE INTO info(key, value) VALUES('version', %d)", DATABASE_VERSION);
-			stmt.executeUpdate(sql);
+			stmt.execute(sql);
 		} catch (SQLException e) {
 			ErrorHandler.error("Could not create score database.", e, true);
 		}
@@ -167,13 +169,14 @@ public class ScoreDB {
 			// if 'info' table does not exist, assume version 0 and apply all updates
 			String sql = "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'info'";
 			ResultSet rs = stmt.executeQuery(sql);
-			boolean infoExists = rs.isBeforeFirst();
+			boolean infoExists = rs.next();
+			
 			rs.close();
 			if (!infoExists) {
 				// if 'scores' table also does not exist, databases not yet created
 				sql = "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'scores'";
 				ResultSet scoresRS = stmt.executeQuery(sql);
-				boolean scoresExists = scoresRS.isBeforeFirst();
+				boolean scoresExists = scoresRS.next();
 				scoresRS.close();
 				if (!scoresExists)
 					return;

@@ -21,10 +21,11 @@ import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 public class GameOpsu extends com.badlogic.gdx.Game {
 
-	final String VERSION = "OpsuAnd0.7.0a";
+	final String VERSION = "OpsuAnd0.8.0a";
 	public StateBasedGame sbg;
 	
 	Stage stage;
@@ -34,7 +35,7 @@ public class GameOpsu extends com.badlogic.gdx.Game {
 	
 	boolean inited = false;
 
-	private boolean pause;
+	private int dialogCnt;
 	public GameOpsu() {
 		gameOpsu = this;
 	}
@@ -69,7 +70,8 @@ public class GameOpsu extends com.badlogic.gdx.Game {
 		System.out.println("Game Dispose");
 		if(!inited)
 			return;
-		sbg.gc.close_sub();
+		
+		sbg.gc.closing();
 		super.dispose();
 		for (GameImage img : GameImage.values()) {
 			try {
@@ -83,10 +85,10 @@ public class GameOpsu extends com.badlogic.gdx.Game {
 	@Override
 	public void render() {
 		super.render();
-		if(!pause){
+		if (dialogCnt == 0){
 		try{
-		if(!inited){
-			if(Gdx.graphics.getWidth() > Gdx.graphics.getHeight()){
+		if (!inited){
+			if (Gdx.graphics.getWidth() > Gdx.graphics.getHeight()){
 				Opsu.main(new String[0]);
 				sbg = Opsu.opsu;
 				sbg.gc.width = Gdx.graphics.getWidth();
@@ -122,16 +124,16 @@ public class GameOpsu extends com.badlogic.gdx.Game {
 			}
 			Graphics.checkMode(0);
 		}
-		}catch(Throwable e){
+		} catch (Throwable e){
 			e.printStackTrace();
 			error("RenderError", e);
 		}
-		}else{
+		} else {
 			Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 		}
-		
 		stage.act(Gdx.graphics.getDeltaTime());
 		stage.draw();
+		//table.debugAll();
 	}
 
 	@Override
@@ -140,17 +142,19 @@ public class GameOpsu extends com.badlogic.gdx.Game {
 
 		super.resize(width, height);
 		Graphics.resize(width, height);
+		//stage.getViewport().setCamera(Graphics.camera);
+		stage.getViewport().update(width, height, true);
+		table.invalidate();
 		if(!inited)
 			return;
 		sbg.gc.width = width;
 		sbg.gc.height = height;
-		stage.getViewport().update(width, height);
 	}
 
 	@Override
 	public void create() {
 
-		stage = new Stage();
+		stage = new Stage(new ScreenViewport());
 		Gdx.input.setInputProcessor(stage);
 		table = new Table();
 		table.setFillParent(true);
@@ -189,7 +193,7 @@ public class GameOpsu extends com.badlogic.gdx.Game {
 	}
 
 	private void errorDialog(final String string, final Throwable e) {
-		pause = true;
+		dialogCnt++;
 		String tbodyString = "X";
 		if(e != null){
 			StringWriter sw = new StringWriter();
@@ -203,6 +207,7 @@ public class GameOpsu extends com.badlogic.gdx.Game {
 			@Override
 			protected void result(Object object) {
 				System.out.println(object);
+				
 				if("CloseOpsu".equals(object)){
 					System.exit(0);
 				}
@@ -224,20 +229,24 @@ public class GameOpsu extends com.badlogic.gdx.Game {
 						e.printStackTrace();
 					}
 				}
-				pause = false;
 				if("S".equals(object)){
 					
 				}
 				
+				dialogCnt--;
+				System.out.println("Dialog count:"+dialogCnt);
 			}
 			
-		}.button("Close this Dialog Box and Continue","S").button("Report on github","R").button("Close Opsu", "CloseOpsu");;
+		}.button("Ignore and Continue","S").button("Report on github","R").button("Close Opsu", "CloseOpsu");;
 		dialog.getContentTable().row();
 		Label tex =new Label(string+"\n"+bodyString, skin);
 		
-		dialog.getContentTable().add(new ScrollPane(tex)).width(Gdx.graphics.getWidth());
+		dialog.getContentTable().add(new ScrollPane(tex))
+			.width(Gdx.graphics.getWidth())
+			.height(Gdx.graphics.getHeight()-60);
 		dialog.pack();
 		table.addActor(dialog);
+		
 		table.validate();
 		
 		

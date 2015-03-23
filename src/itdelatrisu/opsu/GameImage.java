@@ -333,7 +333,7 @@ public enum GameImage {
 		}
 	},
 	// TODO: ensure this image hasn't been modified (checksum?)
-	ALPHA_MAP ("alpha", "png", false, false);
+	ALPHA_MAP ("alphaInvert", "png", false, false);
 
 	/** Image file types. */
 	private static final byte

@@ -25,7 +25,6 @@ import java.util.Collections;
 import java.util.Comparator;
 
 /*
-import org.newdawn.slick.Color;
 import org.newdawn.slick.Image;
 */
 

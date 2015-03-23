@@ -9,6 +9,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.Texture.TextureFilter;
 import com.badlogic.gdx.graphics.TextureData;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.graphics.glutils.FrameBuffer;
 import com.badlogic.gdx.utils.GdxRuntimeException;
 
 public class Image {
@@ -21,6 +22,26 @@ public class Image {
 	TextureInfo texinfo;
 	static HashMap<String, TextureInfo> texmap = new HashMap<String, TextureInfo>();
 	Image parentImage;
+	FrameBuffer fb;
+	FBGraphics fbg;
+	
+	private class FBGraphics extends Graphics{
+		FrameBuffer fb;
+		public FBGraphics(FrameBuffer fb) {
+			this.fb = fb;
+		}
+
+		@Override
+		protected void bind() {
+			fb.bind();
+		}
+
+		@Override
+		protected void unbind() {
+			FrameBuffer.unbind();
+		}
+		
+	}
 	
 	private class TextureInfo {
 		Texture tex;
@@ -81,6 +102,7 @@ public class Image {
 		texture = texinfo.tex;
 		texinfo.add(this);
 		tex = new TextureRegion(texture, pw, ph);
+		tex.flip(false, true);
 		width = tex.getRegionWidth();
 		height = tex.getRegionHeight();
 		name = filename;
@@ -245,7 +267,8 @@ public class Image {
 		float dx = copy.tex.getRegionWidth() / (float) copy.width;
 		float dy = copy.tex.getRegionHeight() / (float) copy.height;
 		tex = new TextureRegion(copy.tex, Math.round(x * dy),
-				Math.round(y * dy), Math.round(wid * dx), Math.round(hei * dy));
+				-Math.round(y * dy), Math.round(wid * dx), -Math.round(hei * dy));
+		tex.flip(false, true);
 		width = (tex.getRegionWidth() / dx);
 		height = (tex.getRegionHeight() / dy);
 		filename = copy.filename;
@@ -258,7 +281,10 @@ public class Image {
 	public Image(int width, int height) {
 		this.width = width;
 		this.height = height;
-		name = "null image";
+		fb = new FrameBuffer(Pixmap.Format.RGBA8888, width, height, false);
+		fbg = new FBGraphics(fb);
+		tex = new TextureRegion(fb.getColorBufferTexture());
+		name = "FrameBuffer image";
 	}
 
 	public int getHeight() {
@@ -294,7 +320,12 @@ public class Image {
 				parentImage.destroy();
 			if(texinfo != null)
 				texinfo.remove(this);
+			
+			if(fb != null){
+				fb.dispose();
+			}
 		}
+		
 		destroyed = true;
 	}
 
@@ -306,31 +337,32 @@ public class Image {
 		this.rotation = rotation;
 	}
 
+	static Color tempColor = new Color();
 	public void draw() {
-		Graphics.getGraphics().setColor(Color.white.multAlpha(alpha));
-		Graphics.getGraphics().drawTexture(getTextureRegion(), 0, 0,
-				getWidth(), getHeight(), rotation);
+		draw(0, 0, Color.white);
 	}
 
 	public void draw(float x, float y) {
-		Graphics.getGraphics().setColor(Color.white.multAlpha(alpha));
-		Graphics.getGraphics().drawTexture(getTextureRegion(), x, y,
-				getWidth(), getHeight(), rotation);
+		draw(x, y, Color.white);
 	}
 
-	public void draw(float x, float y, Color filter) {
-		Graphics.getGraphics().setColor(filter.multAlpha(alpha));
+	public void draw(float x, float y, Color color) {
+		Graphics.getGraphics().setColorAlpha(color, alpha);
 		Graphics.getGraphics().drawTexture(getTextureRegion(), x, y,
 				getWidth(), getHeight(), rotation);
 	}
 
 
 	public void drawCentered(float x, float y, Color color) {
-		Graphics.getGraphics().setColor(color.multAlpha(alpha));
-		Graphics.getGraphics().drawTexture(getTextureRegion(),
-				x - getWidth() / 2, y - getHeight() / 2, getWidth(),
-				getHeight(), rotation);
+		draw(x - getWidth() / 2, y - getHeight() / 2, color);
 	}
+
+	public void draw(float x, float y, float w, float h) {
+		Graphics.getGraphics().setColorAlpha(Color.white, alpha);
+		Graphics.getGraphics().drawTexture(getTextureRegion(), x, y,
+				w, h, rotation);
+	}
+	
 	public void drawCentered(float x, float y) {
 		drawCentered(x, y, Color.white);
 	}
@@ -341,7 +373,7 @@ public class Image {
 
 	public Image getSubImage(int x, int y, int w, int h) {
 		Image img = new Image(this, x, y, w, h);
-
+		
 		return img;
 	}
 
@@ -361,6 +393,15 @@ public class Image {
 	public float getAlphaAt(int i, int j) {
 		return 1;
 	}
+
+	public Graphics getGraphics() {
+		if(fb != null && fbg != null){
+			return fbg;
+		}else{
+			throw new Error("Getting graphics for non framebuffer image");
+		}
+	}
+
 
 
 }

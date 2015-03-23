@@ -70,11 +70,10 @@ public class OszUnpacker {
 			File songDir = new File(dest, dirName);
 			if (!songDir.isDirectory()) {
 				songDir.mkdir();
+				unzip(file, songDir);
+				file.delete();  // delete the OSZ when finished
+				dirs.add(songDir);
 			}
-			unzip(file, songDir);
-			file.delete();  // delete the OSZ when finished
-			dirs.add(songDir);
-		
 		}
 
 		fileIndex = -1;

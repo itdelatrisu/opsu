@@ -25,12 +25,12 @@ import itdelatrisu.opsu.audio.SoundEffect;
 import itdelatrisu.opsu.downloads.Download;
 import itdelatrisu.opsu.downloads.DownloadNode;
 
-import java.awt.Font;
-import java.awt.image.BufferedImage;
+//import java.awt.Font;
+//import java.awt.image.BufferedImage;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
+//import java.io.File;
+//import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -66,9 +66,9 @@ import org.newdawn.slick.font.effects.Effect;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.util.Log;
 import org.newdawn.slick.util.ResourceLoader;
-*/
 
-//import com.sun.jna.platform.FileUtils;
+import com.sun.jna.platform.FileUtils;
+*/
 
 /**
  * Contains miscellaneous utilities.

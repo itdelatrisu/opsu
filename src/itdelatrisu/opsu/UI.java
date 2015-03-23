@@ -19,16 +19,16 @@
 package itdelatrisu.opsu;
 
 import fluddokt.opsu.fake.*;
-
 import itdelatrisu.opsu.audio.SoundController;
 
 import java.nio.IntBuffer;
 import java.util.Iterator;
 import java.util.LinkedList;
 
+/*
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
-/*
+
 import org.lwjgl.BufferUtils;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.input.Cursor;
@@ -41,6 +41,7 @@ import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.StateBasedGame;
 */
+
 /**
  * Class primarily used for drawing UI components.
  */
@@ -709,13 +710,14 @@ public class UI {
 	 * @return true if user selects "yes", false otherwise
 	 */
 	public static boolean showExitConfirmation(String message) {
-		try {
+		/*try {
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		} catch (Exception e) {
 			ErrorHandler.error("Could not set system look and feel for exit confirmation.", e, true);
 		}
 		int n = JOptionPane.showConfirmDialog(null, message, "Warning",
 				JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
-		return (n != JOptionPane.YES_OPTION);
+		return (n != JOptionPane.YES_OPTION);*/
+		return false;
 	}
 }

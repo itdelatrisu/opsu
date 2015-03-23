@@ -19,6 +19,7 @@
 package itdelatrisu.opsu.states;
 
 import fluddokt.opsu.fake.*;
+
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.Options;
@@ -30,9 +31,10 @@ import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
 
-//import java.io.File;
+/*
+import java.io.File;
 
-/*import org.newdawn.slick.Color;
+import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
