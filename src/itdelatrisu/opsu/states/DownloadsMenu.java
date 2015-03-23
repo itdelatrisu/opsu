@@ -498,7 +498,7 @@ public class DownloadsMenu extends BasicGameState {
 												});
 												previewID = node.getID();
 											} catch (SlickException e) {
-												UI.sendBarNotification("Failed to load track preview.");
+												UI.sendBarNotification("Failed to load track preview. See log for details.");
 												Log.error(e);
 											}
 										}
