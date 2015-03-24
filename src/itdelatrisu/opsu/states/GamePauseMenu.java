@@ -192,6 +192,14 @@ public class GamePauseMenu extends BasicGameState {
 	}
 
 	@Override
+	public void mouseWheelMoved(int newValue) {
+		if (Options.isMouseWheelDisabled() || Options.isMouseDisabled())
+			return;
+
+		UI.changeVolume((newValue < 0) ? -1 : 1);
+	}
+
+	@Override
 	public void enter(GameContainer container, StateBasedGame game)
 			throws SlickException {
 		UI.enter();
