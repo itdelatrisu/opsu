@@ -63,6 +63,9 @@ public class MainMenu extends BasicGameState {
 	/** Idle time, in milliseconds, before returning the logo to its original position. */
 	private static final short MOVE_DELAY = 5000;
 
+	/** Max alpha level of the menu background. */
+	private static final float BG_MAX_ALPHA = 0.9f;
+
 	/** Logo button that reveals other buttons on click. */
 	private MenuButton logo;
 
@@ -319,10 +322,10 @@ public class MainMenu extends BasicGameState {
 				MusicController.toggleTrackDimmed(0.33f);
 
 		// fade in background
-		if (bgAlpha < 0.9f) {
+		if (bgAlpha < BG_MAX_ALPHA) {
 			bgAlpha += delta / 1000f;
-			if (bgAlpha > 0.9f)
-				bgAlpha = 0.9f;
+			if (bgAlpha > BG_MAX_ALPHA)
+				bgAlpha = BG_MAX_ALPHA;
 		}
 
 		// buttons

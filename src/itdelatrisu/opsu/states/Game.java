@@ -236,6 +236,14 @@ public class Game extends BasicGameState {
 			throws SlickException {
 		int width = container.getWidth();
 		int height = container.getHeight();
+		int trackPosition = MusicController.getPosition();
+		if (pauseTime > -1)  // returning from pause screen
+			trackPosition = pauseTime;
+		else if (deathTime > -1)  // "Easy" mod: health bar increasing
+			trackPosition = deathTime;
+		int firstObjectTime = osu.objects[0].getTime();
+		int timeDiff = firstObjectTime - trackPosition;
+
 		g.setBackground(Color.black);
 
 		// "flashlight" mod: initialize offscreen graphics
@@ -246,6 +254,12 @@ public class Game extends BasicGameState {
 
 		// background
 		float dimLevel = Options.getBackgroundDim();
+		if (trackPosition < firstObjectTime) {
+			if (timeDiff < approachTime)
+				dimLevel += (1f - dimLevel) * ((float) timeDiff / Math.min(approachTime, firstObjectTime));
+			else
+				dimLevel = 1f;
+		}
 		if (Options.isDefaultPlayfieldForced() || !osu.drawBG(width, height, dimLevel, false)) {
 			Image playfield = GameImage.PLAYFIELD.getImage();
 			playfield.setAlpha(dimLevel);
@@ -255,14 +269,6 @@ public class Game extends BasicGameState {
 
 		if (GameMod.FLASHLIGHT.isActive())
 			Graphics.setCurrent(g);
-
-		int trackPosition = MusicController.getPosition();
-		if (pauseTime > -1)  // returning from pause screen
-			trackPosition = pauseTime;
-		else if (deathTime > -1)  // "Easy" mod: health bar increasing
-			trackPosition = deathTime;
-		int firstObjectTime = osu.objects[0].getTime();
-		int timeDiff = firstObjectTime - trackPosition;
 
 		// "auto" and "autopilot" mods: move cursor automatically
 		// TODO: this should really be in update(), not render()
@@ -280,7 +286,7 @@ public class Game extends BasicGameState {
 				timeDiff = firstObjectTime - trackPosition;
 				if (timeDiff < approachTime) {
 					float[] xy = hitObjects[0].getPointAt(trackPosition);
-					autoXY = getPointAt(autoMouseX, autoMouseY, xy[0], xy[1], 1f - ((float) timeDiff / approachTime));
+					autoXY = getPointAt(autoMouseX, autoMouseY, xy[0], xy[1], 1f - ((float) timeDiff / Math.min(approachTime, firstObjectTime)));
 				}
 			} else if (objectIndex < osu.objects.length) {
 				// normal object
@@ -1236,6 +1242,7 @@ public class Game extends BasicGameState {
 		autoMouseX = 0;
 		autoMouseY = 0;
 		autoMousePressed = false;
+		flashlightRadius = container.getHeight() * 2 / 3;
 
 		System.gc();
 	}
