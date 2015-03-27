@@ -137,6 +137,12 @@ public class GameRanking extends BasicGameState {
 	public int getID() { return state; }
 
 	@Override
+	public void mouseWheelMoved(int newValue) {
+		if (input.isKeyDown(Input.KEY_LALT) || input.isKeyDown(Input.KEY_RALT))
+			UI.changeVolume((newValue < 0) ? -1 : 1);
+	}
+
+	@Override
 	public void keyPressed(int key, char c) {
 		switch (key) {
 		case Input.KEY_ESCAPE:

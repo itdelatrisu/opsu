@@ -898,6 +898,12 @@ public class SongMenu extends BasicGameState {
 
 	@Override
 	public void mouseWheelMoved(int newValue) {
+		// change volume
+		if (input.isKeyDown(Input.KEY_LALT) || input.isKeyDown(Input.KEY_RALT)) {
+			UI.changeVolume((newValue < 0) ? -1 : 1);
+			return;
+		}
+
 		// block input
 		if (reloadThread != null || beatmapMenuTimer > -1)
 			return;

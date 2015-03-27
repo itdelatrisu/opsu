@@ -343,6 +343,12 @@ public class OptionsMenu extends BasicGameState {
 	}
 
 	@Override
+	public void mouseWheelMoved(int newValue) {
+		if (input.isKeyDown(Input.KEY_LALT) || input.isKeyDown(Input.KEY_RALT))
+			UI.changeVolume((newValue < 0) ? -1 : 1);
+	}
+
+	@Override
 	public void keyPressed(int key, char c) {
 		// key entry state
 		if (keyEntryLeft || keyEntryRight) {

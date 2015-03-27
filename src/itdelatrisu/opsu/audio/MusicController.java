@@ -71,6 +71,9 @@ public class MusicController {
 	/** Whether the current track volume is dimmed. */
 	private static boolean trackDimmed = false;
 
+	/** The track dim level, if dimmed. */
+	private static float dimLevel = 1f;
+
 	// This class should not be instantiated.
 	private MusicController() {}
 
@@ -291,7 +294,7 @@ public class MusicController {
 	 * @param volume [0, 1]
 	 */
 	public static void setVolume(float volume) {
-		SoundStore.get().setMusicVolume(volume);
+		SoundStore.get().setMusicVolume((isTrackDimmed()) ? volume * dimLevel : volume);
 	}
 
 	/**
@@ -336,8 +339,9 @@ public class MusicController {
 	 */
 	public static void toggleTrackDimmed(float multiplier) {
 		float volume = Options.getMusicVolume() * Options.getMasterVolume();
-		setVolume((trackDimmed) ? volume : volume * multiplier);
+		dimLevel = (isTrackDimmed()) ? 1f : multiplier;
 		trackDimmed = !trackDimmed;
+		setVolume(volume);
 	}
 
 	/**

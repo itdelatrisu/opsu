@@ -419,6 +419,13 @@ public class MainMenu extends BasicGameState {
 	}
 
 	@Override
+	public void leave(GameContainer container, StateBasedGame game)
+			throws SlickException {
+		if (MusicController.isTrackDimmed())
+			MusicController.toggleTrackDimmed(1f);
+	}
+
+	@Override
 	public void mousePressed(int button, int x, int y) {
 		// check mouse button
 		if (button == Input.MOUSE_MIDDLE_BUTTON)

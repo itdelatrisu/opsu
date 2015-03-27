@@ -18,6 +18,8 @@
 
 package itdelatrisu.opsu;
 
+import itdelatrisu.opsu.audio.MusicController;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -496,7 +498,7 @@ public class Options {
 	public static void setMasterVolume(GameContainer container, float volume) {
 		if (volume >= 0f && volume <= 1f) {
 			GameOption.MASTER_VOLUME.setValue((int) (volume * 100f));
-			container.setMusicVolume(getMasterVolume() * getMusicVolume());
+			MusicController.setVolume(getMasterVolume() * getMusicVolume());
 		}
 	}
 
