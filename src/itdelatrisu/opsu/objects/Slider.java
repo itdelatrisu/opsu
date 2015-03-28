@@ -452,9 +452,6 @@ public class Slider implements HitObject {
 	}
 
 	@Override
-	public OsuHitObject getHitObject() { return hitObject; }
-
-	@Override
 	public void updatePosition() {
 		this.x = hitObject.getScaledX();
 		this.y = hitObject.getScaledY();

@@ -185,9 +185,6 @@ public class Circle implements HitObject {
 	public int getEndTime() { return hitObject.getTime(); }
 
 	@Override
-	public OsuHitObject getHitObject() { return hitObject; }
-
-	@Override
 	public void updatePosition() {
 		this.x = hitObject.getScaledX();
 		this.y = hitObject.getScaledY();

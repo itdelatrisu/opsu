@@ -67,12 +67,6 @@ public interface HitObject {
 	public int getEndTime();
 
 	/**
-	 * Return associated OsuHitObject.
-	 * @return hit object as OsuHitObject
-	 */
-	public OsuHitObject getHitObject();
-
-	/**
 	 * Updates position of hit object.
 	 */
 	public void updatePosition();

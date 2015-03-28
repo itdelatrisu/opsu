@@ -1066,7 +1066,7 @@ public class Game extends BasicGameState {
 
 			// stack calculation
 			for (int i = hitObjects.length - 1; i > 0; i--) {
-				OsuHitObject hitObjectI = hitObjects[i].getHitObject();
+				OsuHitObject hitObjectI = osu.objects[i];
 
 				// already calculated
 				if (hitObjectI.getStack() != 0 || hitObjectI.isSpinner())
@@ -1074,7 +1074,7 @@ public class Game extends BasicGameState {
 
 				// search for hit objects in stack
 				for (int n = i -1; n >= 0; n--) {
-					OsuHitObject hitObjectN = hitObjects[n].getHitObject();
+					OsuHitObject hitObjectN = osu.objects[n];
 
 					if (hitObjectN.isSpinner())
 						continue;
@@ -1098,7 +1098,7 @@ public class Game extends BasicGameState {
 						if (distance < STACK_LENIENCE * OsuHitObject.getXMultiplier()) {
 							int offset = hitObjectI.getStack() - hitObjectN.getStack() + 1;
 							for (int j = n + 1; j <= i; j++) {
-								OsuHitObject hitObjectJ = hitObjects[j].getHitObject();
+								OsuHitObject hitObjectJ = osu.objects[j];
 								x1 = hitObjects[j].getPointAt(hitObjectJ.getTime())[0];
 								y1 = hitObjects[j].getPointAt(hitObjectJ.getTime())[1];
 								distance = Utils.distance(x1, y1, x2, y2);
