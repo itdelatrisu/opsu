@@ -300,7 +300,10 @@ public class DownloadsMenu extends BasicGameState {
 				int index = startDownloadIndex + i;
 				if (index >= downloadsSize)
 					break;
-				DownloadList.get().getNode(index).drawDownload(g, i, index, DownloadNode.downloadContains(mouseX, mouseY, i));
+				DownloadNode node = DownloadList.get().getNode(index);
+				if (node == null)
+					break;
+				node.drawDownload(g, i, index, DownloadNode.downloadContains(mouseX, mouseY, i));
 			}
 
 			// scroll bar
@@ -632,6 +635,8 @@ public class DownloadsMenu extends BasicGameState {
 				if (DownloadNode.downloadIconContains(x, y, i)) {
 					SoundController.playSound(SoundEffect.MENUCLICK);
 					DownloadNode node = DownloadList.get().getNode(index);
+					if (node == null)
+						return;
 					Download dl = node.getDownload();
 					switch (dl.getStatus()) {
 					case CANCELLED:

@@ -56,9 +56,15 @@ public class DownloadList {
 	}
 
 	/**
-	 * Returns the DownloadNode at an index.
+	 * Returns the DownloadNode at an index, or null if the index is out of bounds.
 	 */
-	public DownloadNode getNode(int index) { return nodes.get(index); }
+	public DownloadNode getNode(int index) {
+		try {
+			return nodes.get(index);
+		} catch (IndexOutOfBoundsException e) {
+			return null;
+		}
+	}
 
 	/**
 	 * Gets the Download for a beatmap set ID, or null if not in the list.
@@ -100,8 +106,10 @@ public class DownloadList {
 	 * Removes a DownloadNode from the list at the given index.
 	 */
 	public void remove(int index) {
-		DownloadNode node = nodes.remove(index);
-		map.remove(node.getID());
+		try {
+			DownloadNode node = nodes.remove(index);
+			map.remove(node.getID());
+		} catch (IndexOutOfBoundsException e) {}
 	}
 
 	/**
