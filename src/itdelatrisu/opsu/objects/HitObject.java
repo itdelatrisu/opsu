@@ -18,6 +18,7 @@
 
 package itdelatrisu.opsu.objects;
 
+import itdelatrisu.opsu.OsuHitObject;
 import org.newdawn.slick.Graphics;
 
 /**
@@ -64,4 +65,15 @@ public interface HitObject {
 	 * @return the end time, in milliseconds
 	 */
 	public int getEndTime();
+
+	/**
+	 * Return associated OsuHitObject.
+	 * @return hit object as OsuHitObject
+	 */
+	public OsuHitObject getHitObject();
+
+	/**
+	 * Updates position of hit object.
+	 */
+	public void updatePosition();
 }

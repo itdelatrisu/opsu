@@ -146,6 +146,21 @@ public class Slider implements HitObject {
 			this.curve = new CircumscribedCircle(hitObject, color);
 		else
 			this.curve = new LinearBezier(hitObject, color);
+
+		// slider time calculations
+		this.sliderTime = game.getBeatLength() * (hitObject.getPixelLength() / sliderMultiplier) / 100f;
+		this.sliderTimeTotal = sliderTime * hitObject.getRepeatCount();
+
+		// ticks
+		float tickLengthDiv = 100f * sliderMultiplier / sliderTickRate / game.getTimingPointMultiplier();
+		int tickCount = (int) Math.ceil(hitObject.getPixelLength() / tickLengthDiv) - 1;
+		if (tickCount > 0) {
+			this.ticksT = new float[tickCount];
+			float tickTOffset = 1f / (tickCount + 1);
+			float t = tickTOffset;
+			for (int i = 0; i < tickCount; i++, t += tickTOffset)
+				ticksT[i] = t;
+		}
 	}
 
 	@Override
@@ -313,25 +328,6 @@ public class Slider implements HitObject {
 	@Override
 	public boolean update(boolean overlap, int delta, int mouseX, int mouseY, boolean keyPressed, int trackPosition) {
 		int repeatCount = hitObject.getRepeatCount();
-
-		// slider time and tick calculations
-		if (sliderTimeTotal == 0f) {
-			// slider time
-			this.sliderTime = game.getBeatLength() * (hitObject.getPixelLength() / sliderMultiplier) / 100f;
-			this.sliderTimeTotal = sliderTime * repeatCount;
-
-			// ticks
-			float tickLengthDiv = 100f * sliderMultiplier / sliderTickRate / game.getTimingPointMultiplier();
-			int tickCount = (int) Math.ceil(hitObject.getPixelLength() / tickLengthDiv) - 1;
-			if (tickCount > 0) {
-				this.ticksT = new float[tickCount];
-				float tickTOffset = 1f / (tickCount + 1);
-				float t = tickTOffset;
-				for (int i = 0; i < tickCount; i++, t += tickTOffset)
-					ticksT[i] = t;
-			}
-		}
-
 		int[] hitResultOffset = game.getHitResultOffsets();
 		boolean isAutoMod = GameMod.AUTO.isActive();
 
@@ -453,6 +449,20 @@ public class Slider implements HitObject {
 		}
 
 		return false;
+	}
+
+	@Override
+	public OsuHitObject getHitObject() { return hitObject; }
+
+	@Override
+	public void updatePosition() {
+		this.x = hitObject.getScaledX();
+		this.y = hitObject.getScaledY();
+
+		if (hitObject.getSliderType() == OsuHitObject.SLIDER_PASSTHROUGH && hitObject.getSliderX().length == 2)
+			this.curve = new CircumscribedCircle(hitObject, color);
+		else
+			this.curve = new LinearBezier(hitObject, color);
 	}
 
 	@Override

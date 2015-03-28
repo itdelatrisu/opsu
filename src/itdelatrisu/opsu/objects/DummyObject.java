@@ -54,6 +54,15 @@ public class DummyObject implements HitObject {
 	public boolean mousePressed(int x, int y, int trackPosition) { return false; }
 
 	@Override
+	public OsuHitObject getHitObject() { return hitObject; }
+
+	@Override
+	public void updatePosition() {
+		this.x = hitObject.getScaledX();
+		this.y = hitObject.getScaledY();
+	}
+
+	@Override
 	public float[] getPointAt(int trackPosition) { return new float[] { x, y }; }
 
 	@Override
