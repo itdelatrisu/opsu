@@ -666,10 +666,7 @@ public class Game extends BasicGameState {
 		if (timingPointIndex < osu.timingPoints.size()) {
 			OsuTimingPoint timingPoint = osu.timingPoints.get(timingPointIndex);
 			if (trackPosition >= timingPoint.getTime()) {
-				if (!timingPoint.isInherited())
-					beatLengthBase = beatLength = timingPoint.getBeatLength();
-				else
-					beatLength = beatLengthBase * timingPoint.getSliderMultiplier();
+				setBeatLength(timingPoint);
 				HitSound.setDefaultSampleSet(timingPoint.getSampleType());
 				SoundController.setSampleVolume(timingPoint.getSampleVolume());
 				timingPointIndex++;
@@ -1039,10 +1036,7 @@ public class Game extends BasicGameState {
 				while (timingPointIndex < osu.timingPoints.size()) {
 					OsuTimingPoint timingPoint = osu.timingPoints.get(timingPointIndex);
 					if (timingPoint.getTime() <= hitObjectTime) {
-						if (!timingPoint.isInherited())
-							beatLengthBase = beatLength = timingPoint.getBeatLength();
-						else
-							beatLength = beatLengthBase * timingPoint.getSliderMultiplier();
+						setBeatLength(timingPoint);
 					} else
 						break;
 					timingPointIndex++;
@@ -1065,6 +1059,8 @@ public class Game extends BasicGameState {
 			}
 
 			// stack calculation
+			// more info: https://gist.github.com/peppy/1167470
+			// @author peppy
 			for (int i = hitObjects.length - 1; i > 0; i--) {
 				OsuHitObject hitObjectI = osu.objects[i];
 
@@ -1112,7 +1108,7 @@ public class Game extends BasicGameState {
 							break;
 						}
 					}
-					// no special case. stack moves up left
+					// not a special case. stack moves up left
 					float x1 = hitObjectI.getX();
 					float y1 = hitObjectI.getY();
 					float x2 = hitObjectN.getX();
@@ -1471,6 +1467,16 @@ public class Game extends BasicGameState {
 	 * Returns the beat length.
 	 */
 	public float getBeatLength() { return beatLength; }
+
+	/**
+	 * Sets the beat length fields based on a given timing point.
+	 */
+	private void setBeatLength(OsuTimingPoint timingPoint) {
+		if (!timingPoint.isInherited())
+			beatLengthBase = beatLength = timingPoint.getBeatLength();
+		else
+			beatLength = beatLengthBase * timingPoint.getSliderMultiplier();
+	}
 
 	/**
 	 * Returns the slider multiplier given by the current timing point.
