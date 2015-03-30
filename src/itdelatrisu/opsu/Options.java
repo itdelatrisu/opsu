@@ -228,6 +228,7 @@ public class Options {
 				UI.getCursor().reset();
 			}
 		},
+		NEW_SLIDER("Enable New Slider", "Use the new Slider style (requires OpenGL 3.0).",false),
 		DYNAMIC_BACKGROUND ("Enable Dynamic Backgrounds", "The song background will be used as the main menu background.", true),
 		BACKGROUND_DIM ("Background Dim", "Percentage to dim the background image during gameplay.", 50, 0, 100),
 		FORCE_DEFAULT_PLAYFIELD ("Force Default Playfield", "Override the song background with the default playfield background.", false),
@@ -484,6 +485,9 @@ public class Options {
 	/** The current skin. */
 	private static Skin skin;
 
+	/** Resolution that the latest Container passed to "setDisplayMode" was set to. */
+	private static Resolution lastSetResolution = Resolution.RES_1024_768;
+
 	/** Frame limiters. */
 	private static final int[] targetFPS = { 60, 120, 240 };
 
@@ -593,6 +597,8 @@ public class Options {
 		// set borderless window if dimensions match screen size
 		boolean borderless = (screenWidth == resolution.getWidth() && screenHeight == resolution.getHeight());
 		System.setProperty("org.lwjgl.opengl.Window.undecorated", Boolean.toString(borderless));
+
+		lastSetResolution = resolution;
 	}
 
 //	/**
@@ -888,6 +894,24 @@ public class Options {
 	}
 
 	/**
+	 * Returns the horizontal Resolution.
+	 * If no game has been started then a default value is returned.
+	 * @return the horizontal resolution of the latest game instance to be started.
+	 */
+	public static int getLatestResolutionWidth() {
+		return lastSetResolution.getWidth();
+	}
+
+	/**
+	 * Returns the vertical Resolution.
+	 * If no game has been started then a default value is returned.
+	 * @return the vertical resolution of the latest game instance to be started.
+	 */
+	public static int getLatestResolutionHeight() {
+		return lastSetResolution.getHeight();
+	}
+
+	/**
 	 * Returns the current skin directory.
 	 * If invalid, this will create a "Skins" folder in the root directory.
 	 * @return the skin directory
@@ -1071,6 +1095,9 @@ public class Options {
 					case "NewCursor":
 						GameOption.NEW_CURSOR.setValue(Boolean.parseBoolean(value));
 						break;
+					case "NewSlider":
+						GameOption.NEW_SLIDER.setValue(Boolean.parseBoolean(value));
+						break;
 					case "DynamicBackground":
 						GameOption.DYNAMIC_BACKGROUND.setValue(Boolean.parseBoolean(value));
 						break;
@@ -1221,6 +1248,8 @@ public class Options {
 			writer.write(String.format("ScreenshotFormat = %d", screenshotFormatIndex));
 			writer.newLine();
 			writer.write(String.format("NewCursor = %b", isNewCursorEnabled()));
+			writer.newLine();
+			writer.write(String.format("NewSlider = %b", GameOption.NEW_SLIDER.getBooleanValue()));
 			writer.newLine();
 			writer.write(String.format("DynamicBackground = %b", isDynamicBackgroundEnabled()));
 			writer.newLine();

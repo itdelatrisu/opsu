@@ -41,6 +41,7 @@ import itdelatrisu.opsu.objects.DummyObject;
 import itdelatrisu.opsu.objects.GameObject;
 import itdelatrisu.opsu.objects.Slider;
 import itdelatrisu.opsu.objects.Spinner;
+import itdelatrisu.opsu.render.FrameBufferCache;
 import itdelatrisu.opsu.replay.PlaybackSpeed;
 import itdelatrisu.opsu.replay.Replay;
 import itdelatrisu.opsu.replay.ReplayFrame;
@@ -1022,6 +1023,9 @@ public class Game extends BasicGameState {
 
 		if (beatmap == null || beatmap.objects == null)
 			throw new RuntimeException("Running game with no beatmap loaded.");
+
+		//@TODO: find a better place to clean the SliderCache
+		FrameBufferCache.getInstance().freeMap();
 
 		// grab the mouse (not working for touchscreen)
 //		container.setMouseGrabbed(true);

@@ -18,12 +18,15 @@
 
 package itdelatrisu.opsu.objects.curves;
 
+import itdelatrisu.opsu.render.CurveRenderState;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.beatmap.HitObject;
+import itdelatrisu.opsu.Options;
 
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Image;
+import org.newdawn.slick.util.Log;
 
 /**
  * Representation of a curve.
@@ -42,6 +45,12 @@ public abstract class Curve {
 
 	/** The scaled slider x, y coordinate lists. */
 	protected float[] sliderX, sliderY;
+		
+	/** scaling factor for drawing. */
+	protected static float scale;
+
+	/** Per-curve render-state used for the new style curve renders*/
+	private CurveRenderState renderState;
 
 	/** Points along the curve (set by inherited classes). */
 	protected Vec2f[] curve;
@@ -57,6 +66,8 @@ public abstract class Curve {
 		this.y = hitObject.getScaledY();
 		this.sliderX = hitObject.getScaledSliderX();
 		this.sliderY = hitObject.getScaledSliderY();
+		this.scale = 100;
+		this.renderState = null;
 	}
 
 	/**
@@ -71,15 +82,26 @@ public abstract class Curve {
 	 * @param color the color filter
 	 */
 	public void draw(Color color) {
-		if (curve == null)
-			return;
-
-		Image hitCircle = GameImage.HITCIRCLE.getImage();
-		Image hitCircleOverlay = GameImage.HITCIRCLE_OVERLAY.getImage();
-		for (int i = 0; i < curve.length; i++)
-			hitCircleOverlay.drawCentered(curve[i].x, curve[i].y, Utils.COLOR_WHITE_FADE);
-		for (int i = 0; i < curve.length; i++)
-			hitCircle.drawCentered(curve[i].x, curve[i].y, color);
+			if ( curve == null){
+				Log.error("draw curve"+this);
+				return;
+			}
+			if (Options.GameOption.NEW_SLIDER.getBooleanValue()) {
+				if(renderState == null)
+				{
+					renderState = new CurveRenderState(scale,hitObject);
+				}
+				renderState.draw(color,curve);
+			} else {
+				Image hitCircle = GameImage.HITCIRCLE.getImage();
+				Image hitCircleOverlay = GameImage.HITCIRCLE_OVERLAY.getImage();
+				for (int i = 0; i < curve.length; i++) {
+					hitCircleOverlay.drawCentered(curve[i].x, curve[i].y, Utils.COLOR_WHITE_FADE);
+				}
+				for (int i = 0; i < curve.length; i++){
+					hitCircle.drawCentered(curve[i].x, curve[i].y, color);
+				}
+			}
 	}
 
 	/**
@@ -105,9 +127,22 @@ public abstract class Curve {
 	public float getY(int i) { return (i == 0) ? y : sliderY[i - 1]; }
 
 	/**
+	 * Set the scaling factor.
+	 * @param factor the new scaling factor for the UI representation
+	 */
+	public static void setScale(float factor) {
+			scale = factor;
+	}
+
+	/**
 	 * Linear interpolation of a and b at t.
 	 */
 	protected float lerp(float a, float b, float t) {
 		return a * (1 - t) + b * t;
+	}
+
+	public void discardCache() {
+		if(renderState != null)
+			renderState.discardCache();
 	}
 }

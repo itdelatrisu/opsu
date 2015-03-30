@@ -110,6 +110,7 @@ public enum GameImage {
 	APPROACHCIRCLE ("approachcircle", "png"),
 
 	// Slider
+	SLIDER_GRADIENT ("slidergradient", "png"),
 	SLIDER_BALL ("sliderb", "sliderb%d", "png"),
 	SLIDER_FOLLOWCIRCLE ("sliderfollowcircle", "png"),
 	REVERSEARROW ("reversearrow", "png"),
