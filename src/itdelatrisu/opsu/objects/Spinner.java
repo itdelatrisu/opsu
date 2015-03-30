@@ -168,7 +168,7 @@ public class Spinner implements HitObject {
 			GameImage.SPINNER_CLEAR.getImage().drawCentered(width / 2, height / 4);
 			int extraRotations = (int) (rotations - rotationsNeeded);
 			if (extraRotations > 0)
-				data.drawSymbolNumber(extraRotations * 1000, width / 2, height * 2 / 3, 1.0f);
+				data.drawSymbolNumber(extraRotations * 1000, width / 2, height * 2 / 3, 1.0f, Color.white);
 		}
 	}
 

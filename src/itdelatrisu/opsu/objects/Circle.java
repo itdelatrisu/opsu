@@ -33,6 +33,9 @@ import org.newdawn.slick.Graphics;
  * Data type representing a circle object.
  */
 public class Circle implements HitObject {
+	/** The amount of time, in milliseconds, to fade in the circle. */
+	private static final int FADE_IN_TIME = 375;
+
 	/** The associated OsuHitObject. */
 	private OsuHitObject hitObject;
 
@@ -85,26 +88,22 @@ public class Circle implements HitObject {
 	@Override
 	public void draw(Graphics g, int trackPosition) {
 		int timeDiff = hitObject.getTime() - trackPosition;
+		float scale = timeDiff / (float) game.getApproachTime();
+		float fadeinScale = (timeDiff - game.getApproachTime() + FADE_IN_TIME) / (float) FADE_IN_TIME;
+		float approachScale = 1 + scale * 3;
+		float alpha = Utils.clamp(1 - fadeinScale, 0, 1);
 
-		if (timeDiff >= 0) {
-			float oldAlpha = color.a;
-			float scale = timeDiff / (float)game.getApproachTime();
+		float oldAlpha = Utils.COLOR_WHITE_FADE.a;
+		Utils.COLOR_WHITE_FADE.a = color.a = alpha;
 
-			float approachScale = 1 + scale * 3;
-			color.a = 1 - scale;
+		if(timeDiff >= 0 )
 			GameImage.APPROACHCIRCLE.getImage().getScaledCopy(approachScale).drawCentered(x, y, color);
+		GameImage.HITCIRCLE.getImage().drawCentered(x, y, color);
+		GameImage.HITCIRCLE_OVERLAY.getImage().drawCentered(x, y, Utils.COLOR_WHITE_FADE);
+		data.drawSymbolNumber(hitObject.getComboNumber(), x, y,
+				GameImage.HITCIRCLE.getImage().getWidth() * 0.40f / data.getDefaultSymbolImage(0).getHeight(), Utils.COLOR_WHITE_FADE);
 
-			float alpha = Utils.clamp((1 - scale) * 2, 0, 1);
-			color.a = alpha;
-			Utils.COLOR_WHITE_FADE.a = alpha;
-			GameImage.HITCIRCLE.getImage().drawCentered(x, y, color);
-			GameImage.HITCIRCLE_OVERLAY.getImage().drawCentered(x, y, Utils.COLOR_WHITE_FADE);
-
-			color.a = oldAlpha;
-			Utils.COLOR_WHITE_FADE.a = 1f;
-			data.drawSymbolNumber(hitObject.getComboNumber(), x, y,
-					GameImage.HITCIRCLE.getImage().getWidth() * 0.40f / data.getDefaultSymbolImage(0).getHeight());
-		}
+		Utils.COLOR_WHITE_FADE.a = oldAlpha;
 	}
 
 	/**

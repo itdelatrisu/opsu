@@ -444,13 +444,13 @@ public class GameData {
 	 * @param y the center y coordinate
 	 * @param scale the scale to apply
 	 */
-	public void drawSymbolNumber(int n, float x, float y, float scale) {
+	public void drawSymbolNumber(int n, float x, float y, float scale, Color color) {
 		int length = (int) (Math.log10(n) + 1);
 		float digitWidth = getDefaultSymbolImage(0).getWidth() * scale;
 		float cx = x + ((length - 1) * (digitWidth / 2));
 
 		for (int i = 0; i < length; i++) {
-			getDefaultSymbolImage(n % 10).getScaledCopy(scale).drawCentered(cx, y);
+			getDefaultSymbolImage(n % 10).getScaledCopy(scale).drawCentered(cx, y, color);
 			cx -= digitWidth;
 			n /= 10;
 		}
