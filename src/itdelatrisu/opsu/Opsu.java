@@ -142,7 +142,7 @@ public class Opsu extends StateBasedGame {
 		// set the resource paths
 		ResourceLoader.removeAllResourceLocations();
 		ResourceLoader.addResourceLocation(new FileSystemLocation(Options.getSkinDir()));
-		ResourceLoader.addResourceLocation(new FileSystemLocation(new File("res/")));
+		ResourceLoader.addResourceLocation(new FileSystemLocation(new File("res/"),true));
 		ResourceLoader.addResourceLocation(new ClasspathLocation());
 		ResourceLoader.addResourceLocation(new FileSystemLocation(new File(".")));
 

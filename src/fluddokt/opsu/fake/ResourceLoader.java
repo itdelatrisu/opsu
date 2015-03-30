@@ -25,15 +25,6 @@ public class ResourceLoader {
 		}
 		for (FileSystemLocation t : loc) {
 			FileHandle child;
-
-			if (t.internalExist){
-				child = t.internal.child(file);
-				if (child.exists()) {
-					//System.out.println("FOUNDED internal " + t.f);
-					return child;
-				}
-			}
-
 			if (t.localExist){
 				child = t.local.child(file);
 				if (child.exists()) {
@@ -47,8 +38,22 @@ public class ResourceLoader {
 				if (child.exists()) {
 					//System.out.println("FOUNDED external " + t.f);
 					return child;
+				}
 			}
+
+			if (t.internalExist){
+				try {
+					child = t.internal.child(file);
+					if (child.exists()) {
+						//System.out.println("FOUNDED internal " + t.f);
+						return child;
+					}
+				} catch (Exception e) {
+					System.out.println("ResourceLoader Internal Fail: "+t.f+" "+file+" "+e);
+					//e.printStackTrace();
+				}
 			}
+			
 		}
 		//System.out.println("CNF");
 		return null;

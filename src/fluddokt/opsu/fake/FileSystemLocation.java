@@ -10,13 +10,26 @@ public class FileSystemLocation {
 	FileHandle internal,external,local;
 	boolean internalExist,externalExist,localExist;
 	public FileSystemLocation(File dir) {
+		this(dir, false);
+	}
+	public FileSystemLocation(File dir, boolean tryInternal) {
 		f = dir;
-		internal = Gdx.files.internal(f.getPath());
-		external = Gdx.files.external(f.getPath());
-		local = Gdx.files.local(f.getPath());
-		internalExist = internal.exists();
+		String path = f.getPath()+"/";
+		internal = Gdx.files.internal(path);
+		internalExist = tryInternal; //internal.exists() always returns false for dirs..
+		
+		external = Gdx.files.external(path);
 		externalExist = external.exists();
+		
+		local = Gdx.files.local(path);
 		localExist = local.exists();
+		
+		System.out.println("New FileSystemLocation"+path);
+		System.out.println("Internal"+internal+" "+internalExist);
+		System.out.println("External"+external+" "+externalExist);
+		System.out.println("Local"+local+" "+localExist);
+		
+		
 		
 		
 	}

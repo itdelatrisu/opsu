@@ -28,7 +28,7 @@ public class Font {
 		style = nstyle;
 		size = nsize;
 		file = nfile;
-		dynFont = new DynamicFreeType(file, this);
+		dynFont = new DynamicFreeTypeFont(file, this);
 		// System.out.println(font+" "+font.name);
 
 	}
@@ -52,7 +52,7 @@ public class Font {
 	HashSet<Character> set = new HashSet<Character>();
 	boolean glythsAdded = false;
 
-	DynamicFreeType dynFont;
+	DynamicFreeTypeFont dynFont;
 
 	public void addAsciiGlyphs() {
 	}

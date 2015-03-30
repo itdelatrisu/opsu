@@ -18,7 +18,7 @@ import com.badlogic.gdx.graphics.g2d.freetype.FreeType.SizeMetrics;
 import com.badlogic.gdx.graphics.glutils.PixmapTextureData;
 import com.badlogic.gdx.utils.GdxRuntimeException;
 
-class DynamicFreeType {
+public class DynamicFreeTypeFont {
 	FileHandle handle;
 	private Face face;
 	int thiscnt = 0;
@@ -26,7 +26,7 @@ class DynamicFreeType {
 	Font fontParam;
 	int ascent, descent, height;
 
-	public DynamicFreeType(FileHandle font, Font fontParam) {
+	public DynamicFreeTypeFont(FileHandle font, Font fontParam) {
 		this.fontParam = fontParam;
 		Library library = FreeType.initFreeType();
 		if (library == null)
@@ -220,13 +220,14 @@ class DynamicFreeType {
 	}
 
 	public int getHeight(String str) {
-		float max = 0;
+		/*float max = 0;
 		for (int i = 0; i < str.length(); i++) {
 			float t = getCharInfo(str.charAt(i)).height;
 			if (t > max)
 				max = t;
 		}
-		return (int) max;
+		return (int) max;*/
+		return getLineHeight()+descent;
 	}
 
 	public int getWidth(String str) {

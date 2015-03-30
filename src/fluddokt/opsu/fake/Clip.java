@@ -2,10 +2,6 @@ package fluddokt.opsu.fake;
 
 import java.net.URL;
 
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.audio.Sound;
-import com.badlogic.gdx.utils.GdxRuntimeException;
-
 public class Clip {
 
 	ClipImplementation sound;
@@ -26,20 +22,6 @@ public class Clip {
 	public void start(float volume, LineListener listener) {
 		if (sound != null)
 			id = sound.play(volume, listener);
-	}
-
-	public void setFramePosition(int i) {
-		// TODO Auto-generated method stub
-
-	}
-
-	public boolean isRunning() {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	public void flush() {
-		// TODO Auto-generated method stub
 	}
 
 	public void destroy() {

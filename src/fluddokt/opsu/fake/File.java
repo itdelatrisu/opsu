@@ -16,12 +16,13 @@ public class File {
 	FileHandle fh;
 
 	public File(String name) {
+		System.out.println("File: "+name);
 		if (Gdx.app.getType() == ApplicationType.Desktop)
 			fh = Gdx.files.local(name);
 		else
 			fh = Gdx.files.external(name);
 		if (fh.exists()) {
-			//System.out.println("new file:"+info());
+			System.out.println("new file:"+info());
 			return;
 		}
 		
@@ -33,22 +34,27 @@ public class File {
 			//no storage available ...
 		}
 		if (fh.exists()) {
-			//System.out.println("new file:"+info());
+			System.out.println("new file:"+info());
 			return;
 		}
 		
 		fh = Gdx.files.absolute(name);
 		if (fh.exists()) {
-			//System.out.println("new file:"+info());
+			System.out.println("new file:"+info());
 			return;
 		}
 		
-		fh = Gdx.files.internal(name);
-		if (fh.exists()) {
-			//System.out.println("new file:"+info());
-			return;
-		}
-
+		/*try {
+			fh = Gdx.files.internal(name);
+			if (fh.exists()) {
+				System.out.println("new file:"+info());
+				return;
+			}
+		} catch (Exception e) {
+			System.out.println("new File Internal Fail: "+name+" "+e);
+			//e.printStackTrace();
+		}*/
+		
 		if (Gdx.app.getType() == ApplicationType.Desktop)
 			fh = Gdx.files.local(name);
 		else{
@@ -60,8 +66,7 @@ public class File {
 				//no storage available ...
 			}
 		}
-		//fh = Gdx.files.external(name);
-		//System.out.println("new nonexist file:"+info());
+		System.out.println("new nonexist file:"+info());
 		
 	}
 
@@ -70,7 +75,7 @@ public class File {
 	}
 
 	public File(File parent, String child) {
-		//System.out.println("new child file:"+parent.info()+" "+child);
+		System.out.println("new child file:"+parent.info()+" "+child);
 		fh = parent.fh.child(child);
 	}
 

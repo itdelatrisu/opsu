@@ -395,6 +395,8 @@ public class Options {
 
 	/** Screen resolutions. */
 	private enum Resolution {
+		RES_400_300 (400, 300),
+		RES_640_480 (640, 480),
 		RES_800_600 (800, 600),
 		RES_1024_600 (1024, 600),
 		RES_1024_768 (1024, 768),

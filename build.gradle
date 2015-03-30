@@ -8,6 +8,7 @@ sourceSets {
   main {
     java {
       exclude 'org/newdawn/**'
+      exclude 'itdelatrisu/opsu/audio/MultiClip.java'
     }
   }
 }

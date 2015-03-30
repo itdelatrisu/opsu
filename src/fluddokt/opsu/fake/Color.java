@@ -5,7 +5,7 @@ public class Color {
 	public static final Color black = new Color(0f, 0f, 0f);
 	public static final Color white = new Color(1f, 1f, 1f);
 	public static final Color transparent = new Color(0f, 0f, 0f, 0.5f);
-	public static final Color lightGray = new Color(0.8f, 0.8f, 0.8f, 0.7f);
+	public static final Color lightGray = new Color(0.8f, 0.8f, 0.8f);
 	public static final Color green = new Color(0f, 1f, 0f);
 	public static final Color red = new Color(1f, 0f, 0f);
 	public static final Color orange = new Color(1f, 0.5f, 0f);
@@ -58,7 +58,6 @@ public class Color {
 	}
 
 	public Color() {
-		// TODO Auto-generated constructor stub
 	}
 
 	protected Color multAlpha(float na) {
