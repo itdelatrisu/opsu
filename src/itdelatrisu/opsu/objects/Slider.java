@@ -455,6 +455,11 @@ public class Slider implements HitObject {
 	public void updatePosition() {
 		this.x = hitObject.getScaledX();
 		this.y = hitObject.getScaledY();
+
+		if (hitObject.getSliderType() == OsuHitObject.SLIDER_PASSTHROUGH && hitObject.getSliderX().length == 2)
+			this.curve = new CircumscribedCircle(hitObject, color);
+		else
+			this.curve = new LinearBezier(hitObject, color);
 	}
 
 	@Override

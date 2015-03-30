@@ -92,6 +92,9 @@ public class Game extends BasicGameState {
 	/** Stack time window of the previous object in ms. */
 	private static final int STACK_TIMEOUT = 1000;
 
+	/** Stack position offset modifier. */
+	private static final float STACK_OFFSET_MODIFIER = 0.05f;
+
 	/** The associated OsuFile object. */
 	private OsuFile osu;
 
@@ -1109,12 +1112,9 @@ public class Game extends BasicGameState {
 						}
 					}
 					// not a special case. stack moves up left
-					float x1 = hitObjectI.getX();
-					float y1 = hitObjectI.getY();
-					float x2 = hitObjectN.getX();
-					float y2 = hitObjectN.getY();
-					float distance = Utils.distance(x1, y1, x2, y2);
-					if (distance < STACK_LENIENCE * OsuHitObject.getXMultiplier()) {
+					float distance = Utils.distance(hitObjectI.getX(), hitObjectI.getY(),
+							hitObjectN.getX(), hitObjectN.getY());
+					if (distance < STACK_LENIENCE) {
 						hitObjectN.setStack(hitObjectI.getStack() + 1);
 						hitObjectI = hitObjectN;
 					}
@@ -1123,7 +1123,9 @@ public class Game extends BasicGameState {
 
 			// update hit objects positions
 			for (int i = 0; i < hitObjects.length; i++) {
-				hitObjects[i].updatePosition();
+				if(osu.objects[i].getStack() != 0) {
+					hitObjects[i].updatePosition();
+				}
 			}
 
 			// load the first timingPoint
@@ -1415,8 +1417,9 @@ public class Game extends BasicGameState {
 			HPDrainRate = Options.getFixedHP();
 
 		// Stack modifier scales with hit object size
+		// StackOffset = HitObjectRadius / 10
 		int diameter = (int) (104 - (circleSize * 8));
-		OsuHitObject.setStackOffset(diameter * 0.05f);
+		OsuHitObject.setStackOffset(diameter * STACK_OFFSET_MODIFIER);
 
 		// initialize objects
 		Circle.init(container, circleSize);
