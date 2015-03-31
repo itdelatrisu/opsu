@@ -135,7 +135,7 @@ public class Spinner implements HitObject {
 		Utils.COLOR_BLACK_ALPHA.a = oldAlpha;
 
 		// rpm
-		int rpm = Math.abs(Math.round(sumVelocity / storedVelocities.length * 60));
+		int rpm = Math.abs(Math.round(sumVelocity * GameMod.getSpeedMultiplier() / storedVelocities.length * 60));
 		Image rpmImg = GameImage.SPINNER_RPM.getImage();
 		rpmImg.setAlpha(alpha);
 		rpmImg.drawCentered(width / 2f, height - rpmImg.getHeight() / 2f);

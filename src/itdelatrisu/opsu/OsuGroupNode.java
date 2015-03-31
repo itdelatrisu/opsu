@@ -118,16 +118,18 @@ public class OsuGroupNode {
 			return null;
 
 		OsuFile osu = osuFiles.get(osuFileIndex);
+		long endTime = (long) (osu.endTime / GameMod.getSpeedMultiplier());
+		int bpmMin = (int) (osu.bpmMin  * GameMod.getSpeedMultiplier());
+		int bpmMax = (int) (osu.bpmMax  * GameMod.getSpeedMultiplier());
 		String[] info = new String[5];
 		info[0] = osu.toString();
 		info[1] = String.format("Mapped by %s",
 				osu.creator);
 		info[2] = String.format("Length: %d:%02d  BPM: %s  Objects: %d",
-				TimeUnit.MILLISECONDS.toMinutes(osu.endTime),
-				TimeUnit.MILLISECONDS.toSeconds(osu.endTime) -
-				TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(osu.endTime)),
-				(osu.bpmMax <= 0) ? "--" :
-				 ((osu.bpmMin == osu.bpmMax) ? osu.bpmMin : String.format("%d-%d", osu.bpmMin, osu.bpmMax)),
+				TimeUnit.MILLISECONDS.toMinutes(endTime),
+				TimeUnit.MILLISECONDS.toSeconds(endTime) -
+				TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(endTime)),
+				(bpmMax <= 0) ? "--" : ((bpmMin == bpmMax) ? bpmMin : String.format("%d-%d", bpmMin, bpmMax)),
 				(osu.hitObjectCircle + osu.hitObjectSlider + osu.hitObjectSpinner));
 		info[3] = String.format("Circles: %d  Sliders: %d  Spinners: %d",
 				osu.hitObjectCircle, osu.hitObjectSlider, osu.hitObjectSpinner);

@@ -336,7 +336,7 @@ public class SongMenu extends BasicGameState {
 			int iconWidth = musicNote.getWidth();
 
 			// song info text
-			if (songInfo == null) {
+			if (songInfo == null || GameMod.justChanged()) {
 				songInfo = focusNode.getInfo();
 				if (Options.useUnicodeMetadata()) {  // load glyphs
 					OsuFile osu = focusNode.osuFiles.get(0);
@@ -349,7 +349,8 @@ public class SongMenu extends BasicGameState {
 			headerTextY += Utils.FONT_LARGE.getLineHeight() - 8;
 			Utils.FONT_DEFAULT.drawString(marginX + iconWidth * 1.05f, headerTextY, songInfo[1], Color.white);
 			headerTextY += Utils.FONT_DEFAULT.getLineHeight() - 2;
-			Utils.FONT_BOLD.drawString(marginX, headerTextY, songInfo[2], Color.white);
+			Utils.FONT_BOLD.drawString(marginX, headerTextY, songInfo[2],
+					(GameMod.DOUBLE_TIME.isActive()) ? Color.red : (GameMod.HALF_TIME.isActive()) ? Color.green : Color.white);
 			headerTextY += Utils.FONT_BOLD.getLineHeight() - 4;
 			Utils.FONT_DEFAULT.drawString(marginX, headerTextY, songInfo[3], Color.white);
 			headerTextY += Utils.FONT_DEFAULT.getLineHeight() - 4;

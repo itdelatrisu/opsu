@@ -1023,11 +1023,6 @@ public class Game extends BasicGameState {
 			// reset game data
 			resetGameData();
 
-			// needs to play before setting position to resume without lag later
-			MusicController.play(false);
-			MusicController.setPosition(0);
-			MusicController.pause();
-
 			// initialize object maps
 			for (int i = 0; i < osu.objects.length; i++) {
 				OsuHitObject hitObject = osu.objects[i];
@@ -1119,6 +1114,11 @@ public class Game extends BasicGameState {
 
 			leadInTime = osu.audioLeadIn + approachTime;
 			restart = Restart.FALSE;
+
+			// needs to play before setting position to resume without lag later
+			MusicController.play(GameMod.getSpeedMultiplier(), false);
+			MusicController.setPosition(0);
+			MusicController.pause();
 		}
 
 		skipButton.resetHover();
