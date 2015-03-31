@@ -264,6 +264,9 @@ public class Spinner implements HitObject {
 	}
 
 	@Override
+	public void updatePosition() {}
+
+	@Override
 	public float[] getPointAt(int trackPosition) {
 		// get spinner time
 		int timeDiff;

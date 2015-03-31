@@ -72,8 +72,26 @@ public class OsuHitObject {
 	/** The container height. */
 	private static int containerHeight;
 
+	/**
+	 * Return stack position modifier in pixels.
+	 * @return stack position modifier.
+	 */
+	public static float getStackOffset() { return stackOffset; }
+
+	/**
+	 * Sets stack position modifier in pixels
+	 * @param offset position modifier.
+	 */
+	public static void setStackOffset(float offset) { stackOffset = offset; }
+
+	/** The offset per stack. */
+	private static float stackOffset;
+
 	/** Starting coordinates. */
 	private float x, y;
+
+	/** Hit object index in current stack. */
+	private int stack;
 
 	/** Start time (in ms). */
 	private int time;
@@ -249,17 +267,29 @@ public class OsuHitObject {
 	/**
 	 * Returns the scaled starting x coordinate.
 	 */
-	public float getScaledX() { return x * xMultiplier + xOffset; }
+	public float getScaledX() { return (x - stack * stackOffset) * xMultiplier + xOffset; }
 
 	/**
 	 * Returns the scaled starting y coordinate.
 	 */
 	public float getScaledY() {
 		if (GameMod.HARD_ROCK.isActive())
-			return containerHeight - (y * yMultiplier + yOffset);
+			return containerHeight - ((y - stack * stackOffset) * yMultiplier + yOffset);
 		else
-			return y * yMultiplier + yOffset;
+			return (y - stack * stackOffset) * yMultiplier + yOffset;
 	}
+
+	/**
+	 * Sets the hit object index in current stack.
+	 * @param stack index in stack
+	 */
+	public void setStack(int stack) { this.stack = stack; }
+
+	/**
+	 * Returns hit object index in current stack.
+	 * @return index in stack
+	 */
+	public int getStack() { return stack; }
 
 	/**
 	 * Returns the start time.
@@ -331,7 +361,7 @@ public class OsuHitObject {
 
 		float[] x = new float[sliderX.length];
 		for (int i = 0; i < x.length; i++)
-			x[i] = sliderX[i] * xMultiplier + xOffset;
+			x[i] = (sliderX[i] - stack * stackOffset) * xMultiplier + xOffset;
 		return x;
 	}
 
@@ -346,10 +376,10 @@ public class OsuHitObject {
 		float[] y = new float[sliderY.length];
 		if (GameMod.HARD_ROCK.isActive()) {
 			for (int i = 0; i < y.length; i++)
-				y[i] = containerHeight - (sliderY[i] * yMultiplier + yOffset);
+				y[i] = containerHeight - ((sliderY[i] - stack * stackOffset) * yMultiplier + yOffset);
 		} else {
 			for (int i = 0; i < y.length; i++)
-				y[i] = sliderY[i] * yMultiplier + yOffset;
+				y[i] = (sliderY[i] - stack * stackOffset) * yMultiplier + yOffset;
 		}
 		return y;
 	}

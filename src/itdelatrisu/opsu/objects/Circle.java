@@ -183,4 +183,10 @@ public class Circle implements HitObject {
 
 	@Override
 	public int getEndTime() { return hitObject.getTime(); }
+
+	@Override
+	public void updatePosition() {
+		this.x = hitObject.getScaledX();
+		this.y = hitObject.getScaledY();
+	}
 }

@@ -80,11 +80,20 @@ public class Game extends BasicGameState {
 		/** Replay. */
 		REPLAY,
 		/** Health is zero: no-continue/force restart. */
-		LOSE;
+		LOSE
 	}
 
 	/** Minimum time before start of song, in milliseconds, to process skip-related actions. */
 	private static final int SKIP_OFFSET = 2000;
+
+	/** Tolerance in case if hit object is not snapped to the grid */
+	private static final float STACK_LENIENCE = 3f;
+
+	/** Stack time window of the previous object in ms. */
+	private static final int STACK_TIMEOUT = 1000;
+
+	/** Stack position offset modifier. */
+	private static final float STACK_OFFSET_MODIFIER = 0.05f;
 
 	/** The associated OsuFile object. */
 	private OsuFile osu;
@@ -666,10 +675,7 @@ public class Game extends BasicGameState {
 		if (timingPointIndex < osu.timingPoints.size()) {
 			OsuTimingPoint timingPoint = osu.timingPoints.get(timingPointIndex);
 			if (trackPosition >= timingPoint.getTime()) {
-				if (!timingPoint.isInherited())
-					beatLengthBase = beatLength = timingPoint.getBeatLength();
-				else
-					beatLength = beatLengthBase * timingPoint.getSliderMultiplier();
+				setBeatLength(timingPoint);
 				HitSound.setDefaultSampleSet(timingPoint.getSampleType());
 				SoundController.setSampleVolume(timingPoint.getSampleVolume());
 				timingPointIndex++;
@@ -1033,6 +1039,18 @@ public class Game extends BasicGameState {
 
 				Color color = osu.combo[hitObject.getComboIndex()];
 
+				// pass beatLength to hit objects
+				int hitObjectTime = hitObject.getTime();
+				int timingPointIndex = 0;
+				while (timingPointIndex < osu.timingPoints.size()) {
+					OsuTimingPoint timingPoint = osu.timingPoints.get(timingPointIndex);
+					if (timingPoint.getTime() <= hitObjectTime) {
+						setBeatLength(timingPoint);
+					} else
+						break;
+					timingPointIndex++;
+				}
+
 				try {
 					if (hitObject.isCircle())
 						hitObjects[i] = new Circle(hitObject, this, data, color, comboEnd);
@@ -1046,6 +1064,73 @@ public class Game extends BasicGameState {
 							hitObject.getTypeName(), i, hitObject.toString()), e, true);
 					hitObjects[i] = new DummyObject(hitObject);
 					continue;
+				}
+			}
+
+			// stack calculation
+			// more info: https://gist.github.com/peppy/1167470
+			// @author peppy
+			for (int i = hitObjects.length - 1; i > 0; i--) {
+				OsuHitObject hitObjectI = osu.objects[i];
+
+				// already calculated
+				if (hitObjectI.getStack() != 0 || hitObjectI.isSpinner())
+					continue;
+
+				// search for hit objects in stack
+				for (int n = i -1; n >= 0; n--) {
+					OsuHitObject hitObjectN = osu.objects[n];
+
+					if (hitObjectN.isSpinner())
+						continue;
+
+					// check if in range stack calculation
+					float timeI = hitObjectI.getTime() - (STACK_TIMEOUT * osu.stackLeniency);
+					float timeN = hitObjectN.isSlider() ? hitObjects[n].getEndTime() : hitObjectN.getTime();
+					if (timeI > timeN)
+						break;
+
+					if (hitObjectN.isSlider()) {
+						// possible special case. if slider end in the stack, all next hit objects in stack moves right down
+						Slider slider = (Slider) hitObjects[n];
+						float x1 = hitObjects[i].getPointAt(hitObjectI.getTime())[0];
+						float y1 = hitObjects[i].getPointAt(hitObjectI.getTime())[1];
+						float x2 = slider.getPointAt(slider.getEndTime())[0];
+						float y2 = slider.getPointAt(slider.getEndTime())[1];
+						float distance = Utils.distance(x1, y1, x2, y2);
+
+						// check if hit object part of this stack
+						if (distance < STACK_LENIENCE * OsuHitObject.getXMultiplier()) {
+							int offset = hitObjectI.getStack() - hitObjectN.getStack() + 1;
+							for (int j = n + 1; j <= i; j++) {
+								OsuHitObject hitObjectJ = osu.objects[j];
+								x1 = hitObjects[j].getPointAt(hitObjectJ.getTime())[0];
+								y1 = hitObjects[j].getPointAt(hitObjectJ.getTime())[1];
+								distance = Utils.distance(x1, y1, x2, y2);
+
+								if (distance < STACK_LENIENCE * OsuHitObject.getXMultiplier()) {
+									// hit object below slider end
+									hitObjectJ.setStack(hitObjectJ.getStack() - offset);
+								}
+							}
+							// slider end always start of the stack. reset calculation
+							break;
+						}
+					}
+					// not a special case. stack moves up left
+					float distance = Utils.distance(hitObjectI.getX(), hitObjectI.getY(),
+							hitObjectN.getX(), hitObjectN.getY());
+					if (distance < STACK_LENIENCE) {
+						hitObjectN.setStack(hitObjectI.getStack() + 1);
+						hitObjectI = hitObjectN;
+					}
+				}
+			}
+
+			// update hit objects positions
+			for (int i = 0; i < hitObjects.length; i++) {
+				if(osu.objects[i].getStack() != 0) {
+					hitObjects[i].updatePosition();
 				}
 			}
 
@@ -1338,6 +1423,11 @@ public class Game extends BasicGameState {
 		if (Options.getFixedHP() > 0f)
 			HPDrainRate = Options.getFixedHP();
 
+		// Stack modifier scales with hit object size
+		// StackOffset = HitObjectRadius / 10
+		int diameter = (int) (104 - (circleSize * 8));
+		OsuHitObject.setStackOffset(diameter * STACK_OFFSET_MODIFIER);
+
 		// initialize objects
 		Circle.init(container, circleSize);
 		Slider.init(container, circleSize, osu);
@@ -1387,6 +1477,16 @@ public class Game extends BasicGameState {
 	 * Returns the beat length.
 	 */
 	public float getBeatLength() { return beatLength; }
+
+	/**
+	 * Sets the beat length fields based on a given timing point.
+	 */
+	private void setBeatLength(OsuTimingPoint timingPoint) {
+		if (!timingPoint.isInherited())
+			beatLengthBase = beatLength = timingPoint.getBeatLength();
+		else
+			beatLength = beatLengthBase * timingPoint.getSliderMultiplier();
+	}
 
 	/**
 	 * Returns the slider multiplier given by the current timing point.
