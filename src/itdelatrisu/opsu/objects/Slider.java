@@ -47,6 +47,9 @@ public class Slider implements HitObject {
 	/** Rate at which slider ticks are placed. */
 	private static float sliderTickRate = 1.0f;
 
+	/** The amount of time, in milliseconds, to fade in the slider. */
+	private static final int FADE_IN_TIME = 375;
+
 	/** The associated OsuHitObject. */
 	private OsuHitObject hitObject;
 
@@ -161,29 +164,27 @@ public class Slider implements HitObject {
 	public void draw(Graphics g, int trackPosition) {
 		int timeDiff = hitObject.getTime() - trackPosition;
 		float scale = timeDiff / (float) game.getApproachTime();
+		float fadeinScale = (timeDiff - game.getApproachTime() + FADE_IN_TIME) / (float) FADE_IN_TIME;
 		float approachScale = 1 + scale * 3;
-		float alpha = Utils.clamp(1 - scale, 0, 1);
+		float alpha = Utils.clamp(1 - fadeinScale, 0, 1);
 
-		float oldAlpha = color.a;
-		color.a = alpha;
-		Utils.COLOR_WHITE_FADE.a = alpha;
+		float oldAlpha = Utils.COLOR_WHITE_FADE.a;
+		Utils.COLOR_WHITE_FADE.a = color.a = alpha;
 
 		// curve
 		curve.draw();
 
 		// ticks
-		if (timeDiff < 0 && ticksT != null) {
+		if (ticksT != null) {
 			Image tick = GameImage.SLIDER_TICK.getImage();
 			for (int i = 0; i < ticksT.length; i++) {
 				float[] c = curve.pointAt(ticksT[i]);
-				tick.drawCentered(c[0], c[1]);
+				tick.drawCentered(c[0], c[1], Utils.COLOR_WHITE_FADE);
 			}
 		}
 
 		Image hitCircleOverlay = GameImage.HITCIRCLE_OVERLAY.getImage();
 		Image hitCircle = GameImage.HITCIRCLE.getImage();
-		color.a = alpha;
-		Utils.COLOR_WHITE_FADE.a = 1f;
 
 		// end circle
 		float[] endPos = curve.pointAt(1);
@@ -197,9 +198,7 @@ public class Slider implements HitObject {
 			;  // don't draw current combo number if already clicked
 		else
 			data.drawSymbolNumber(hitObject.getComboNumber(), x, y,
-					hitCircle.getWidth() * 0.40f / data.getDefaultSymbolImage(0).getHeight());
-
-		color.a = oldAlpha;
+					hitCircle.getWidth() * 0.40f / data.getDefaultSymbolImage(0).getHeight(), Utils.COLOR_WHITE_FADE);
 
 		// repeats
 		for (int tcurRepeat = currentRepeats; tcurRepeat <= currentRepeats + 1; tcurRepeat++) {
@@ -226,7 +225,6 @@ public class Slider implements HitObject {
 
 		if (timeDiff >= 0) {
 			// approach circle
-			color.a = 1 - scale;
 			GameImage.APPROACHCIRCLE.getImage().getScaledCopy(approachScale).drawCentered(x, y, color);
 		} else {
 			// Since update() might not have run before drawing during a replay, the
@@ -259,6 +257,8 @@ public class Slider implements HitObject {
 				}
 			}
 		}
+
+		Utils.COLOR_WHITE_FADE.a = oldAlpha;
 	}
 
 	/**
