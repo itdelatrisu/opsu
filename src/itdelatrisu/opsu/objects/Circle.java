@@ -74,12 +74,11 @@ public class Circle implements HitObject {
 	 */
 	public Circle(OsuHitObject hitObject, Game game, GameData data, Color color, boolean comboEnd) {
 		this.hitObject = hitObject;
-		this.x = hitObject.getScaledX();
-		this.y = hitObject.getScaledY();
 		this.game = game;
 		this.data = data;
 		this.color = color;
 		this.comboEnd = comboEnd;
+		updatePosition();
 	}
 
 	@Override

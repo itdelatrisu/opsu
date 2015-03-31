@@ -135,17 +135,11 @@ public class Slider implements HitObject {
 	 */
 	public Slider(OsuHitObject hitObject, Game game, GameData data, Color color, boolean comboEnd) {
 		this.hitObject = hitObject;
-		this.x = hitObject.getScaledX();
-		this.y = hitObject.getScaledY();
 		this.game = game;
 		this.data = data;
 		this.color = color;
 		this.comboEnd = comboEnd;
-
-		if (hitObject.getSliderType() == OsuHitObject.SLIDER_PASSTHROUGH && hitObject.getSliderX().length == 2)
-			this.curve = new CircumscribedCircle(hitObject, color);
-		else
-			this.curve = new LinearBezier(hitObject, color);
+		updatePosition();
 
 		// slider time calculations
 		this.sliderTime = game.getBeatLength() * (hitObject.getPixelLength() / sliderMultiplier) / 100f;

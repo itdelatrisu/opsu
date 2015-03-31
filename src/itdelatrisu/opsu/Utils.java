@@ -251,12 +251,12 @@ public class Utils {
 	}
 
 	/**
-	 *
-	 * @param x1 The x-component of the first point
-	 * @param y1 The y-component of the first point
-	 * @param x2 The x-component of the second point
-	 * @param y2 The y-component of the second point
-	 * @return Euclidean distance between points (x1,y1) and (x2,y2)
+	 * Returns the distance between two points.
+	 * @param x1 the x-component of the first point
+	 * @param y1 the y-component of the first point
+	 * @param x2 the x-component of the second point
+	 * @param y2 the y-component of the second point
+	 * @return the Euclidean distance between points (x1,y1) and (x2,y2)
 	 */
 	public static float distance(float x1, float y1, float x2, float y2) {
 		float v1 = Math.abs(x1 - x2);

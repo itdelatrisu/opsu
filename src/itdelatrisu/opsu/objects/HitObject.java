@@ -18,7 +18,6 @@
 
 package itdelatrisu.opsu.objects;
 
-import itdelatrisu.opsu.OsuHitObject;
 import org.newdawn.slick.Graphics;
 
 /**
@@ -67,7 +66,7 @@ public interface HitObject {
 	public int getEndTime();
 
 	/**
-	 * Updates position of hit object.
+	 * Updates the position of the hit object.
 	 */
 	public void updatePosition();
 }

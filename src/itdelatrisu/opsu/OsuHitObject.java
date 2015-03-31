@@ -72,26 +72,23 @@ public class OsuHitObject {
 	/** The container height. */
 	private static int containerHeight;
 
+	/** The offset per stack. */
+	private static float stackOffset;
+
 	/**
-	 * Return stack position modifier in pixels.
-	 * @return stack position modifier.
+	 * Returns the stack position modifier, in pixels.
+	 * @return stack position modifier
 	 */
 	public static float getStackOffset() { return stackOffset; }
 
 	/**
-	 * Sets stack position modifier in pixels
-	 * @param offset position modifier.
+	 * Sets the stack position modifier.
+	 * @param offset stack position modifier, in pixels
 	 */
 	public static void setStackOffset(float offset) { stackOffset = offset; }
 
-	/** The offset per stack. */
-	private static float stackOffset;
-
 	/** Starting coordinates. */
 	private float x, y;
-
-	/** Hit object index in current stack. */
-	private int stack;
 
 	/** Start time (in ms). */
 	private int time;
@@ -131,6 +128,9 @@ public class OsuHitObject {
 
 	/** Number to display in hit object. */
 	private int comboNumber;
+
+	/** Hit object index in the current stack. */
+	private int stack;
 
 	/**
 	 * Initializes the OsuHitObject data type with container dimensions.
@@ -278,18 +278,6 @@ public class OsuHitObject {
 		else
 			return (y - stack * stackOffset) * yMultiplier + yOffset;
 	}
-
-	/**
-	 * Sets the hit object index in current stack.
-	 * @param stack index in stack
-	 */
-	public void setStack(int stack) { this.stack = stack; }
-
-	/**
-	 * Returns hit object index in current stack.
-	 * @return index in stack
-	 */
-	public int getStack() { return stack; }
 
 	/**
 	 * Returns the start time.
@@ -480,6 +468,18 @@ public class OsuHitObject {
 			return addition[1];
 		return 0;
 	}
+
+	/**
+	 * Sets the hit object index in the current stack.
+	 * @param stack index in the stack
+	 */
+	public void setStack(int stack) { this.stack = stack; }
+
+	/**
+	 * Returns the hit object index in the current stack.
+	 * @return index in the stack
+	 */
+	public int getStack() { return stack; }
 
 	@Override
 	public String toString() {

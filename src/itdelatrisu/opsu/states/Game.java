@@ -86,10 +86,10 @@ public class Game extends BasicGameState {
 	/** Minimum time before start of song, in milliseconds, to process skip-related actions. */
 	private static final int SKIP_OFFSET = 2000;
 
-	/** Tolerance in case if hit object is not snapped to the grid */
+	/** Tolerance in case if hit object is not snapped to the grid. */
 	private static final float STACK_LENIENCE = 3f;
 
-	/** Stack time window of the previous object in ms. */
+	/** Stack time window of the previous object, in ms. */
 	private static final int STACK_TIMEOUT = 1000;
 
 	/** Stack position offset modifier. */
@@ -1044,10 +1044,9 @@ public class Game extends BasicGameState {
 				int timingPointIndex = 0;
 				while (timingPointIndex < osu.timingPoints.size()) {
 					OsuTimingPoint timingPoint = osu.timingPoints.get(timingPointIndex);
-					if (timingPoint.getTime() <= hitObjectTime) {
-						setBeatLength(timingPoint);
-					} else
+					if (timingPoint.getTime() > hitObjectTime)
 						break;
+					setBeatLength(timingPoint);
 					timingPointIndex++;
 				}
 
@@ -1067,72 +1066,8 @@ public class Game extends BasicGameState {
 				}
 			}
 
-			// stack calculation
-			// more info: https://gist.github.com/peppy/1167470
-			// @author peppy
-			for (int i = hitObjects.length - 1; i > 0; i--) {
-				OsuHitObject hitObjectI = osu.objects[i];
-
-				// already calculated
-				if (hitObjectI.getStack() != 0 || hitObjectI.isSpinner())
-					continue;
-
-				// search for hit objects in stack
-				for (int n = i -1; n >= 0; n--) {
-					OsuHitObject hitObjectN = osu.objects[n];
-
-					if (hitObjectN.isSpinner())
-						continue;
-
-					// check if in range stack calculation
-					float timeI = hitObjectI.getTime() - (STACK_TIMEOUT * osu.stackLeniency);
-					float timeN = hitObjectN.isSlider() ? hitObjects[n].getEndTime() : hitObjectN.getTime();
-					if (timeI > timeN)
-						break;
-
-					if (hitObjectN.isSlider()) {
-						// possible special case. if slider end in the stack, all next hit objects in stack moves right down
-						Slider slider = (Slider) hitObjects[n];
-						float x1 = hitObjects[i].getPointAt(hitObjectI.getTime())[0];
-						float y1 = hitObjects[i].getPointAt(hitObjectI.getTime())[1];
-						float x2 = slider.getPointAt(slider.getEndTime())[0];
-						float y2 = slider.getPointAt(slider.getEndTime())[1];
-						float distance = Utils.distance(x1, y1, x2, y2);
-
-						// check if hit object part of this stack
-						if (distance < STACK_LENIENCE * OsuHitObject.getXMultiplier()) {
-							int offset = hitObjectI.getStack() - hitObjectN.getStack() + 1;
-							for (int j = n + 1; j <= i; j++) {
-								OsuHitObject hitObjectJ = osu.objects[j];
-								x1 = hitObjects[j].getPointAt(hitObjectJ.getTime())[0];
-								y1 = hitObjects[j].getPointAt(hitObjectJ.getTime())[1];
-								distance = Utils.distance(x1, y1, x2, y2);
-
-								if (distance < STACK_LENIENCE * OsuHitObject.getXMultiplier()) {
-									// hit object below slider end
-									hitObjectJ.setStack(hitObjectJ.getStack() - offset);
-								}
-							}
-							// slider end always start of the stack. reset calculation
-							break;
-						}
-					}
-					// not a special case. stack moves up left
-					float distance = Utils.distance(hitObjectI.getX(), hitObjectI.getY(),
-							hitObjectN.getX(), hitObjectN.getY());
-					if (distance < STACK_LENIENCE) {
-						hitObjectN.setStack(hitObjectI.getStack() + 1);
-						hitObjectI = hitObjectN;
-					}
-				}
-			}
-
-			// update hit objects positions
-			for (int i = 0; i < hitObjects.length; i++) {
-				if(osu.objects[i].getStack() != 0) {
-					hitObjects[i].updatePosition();
-				}
-			}
+			// stack calculations
+			calculateStacks();
 
 			// load the first timingPoint
 			if (!osu.timingPoints.isEmpty()) {
@@ -1668,6 +1603,79 @@ public class Game extends BasicGameState {
 						flashlightRadius = targetRadius;
 				}
 			}
+		}
+	}
+
+	/**
+	 * Performs stacking calculations on all hit objects, and updates their
+	 * positions if necessary.
+	 * https://gist.github.com/peppy/1167470
+	 * @author peppy
+	 */
+	private void calculateStacks() {
+		// reverse pass for stack calculation
+		for (int i = hitObjects.length - 1; i > 0; i--) {
+			OsuHitObject hitObjectI = osu.objects[i];
+
+			// already calculated
+			if (hitObjectI.getStack() != 0 || hitObjectI.isSpinner())
+				continue;
+
+			// search for hit objects in stack
+			for (int n = i -1; n >= 0; n--) {
+				OsuHitObject hitObjectN = osu.objects[n];
+				if (hitObjectN.isSpinner())
+					continue;
+
+				// check if in range stack calculation
+				float timeI = hitObjectI.getTime() - (STACK_TIMEOUT * osu.stackLeniency);
+				float timeN = hitObjectN.isSlider() ? hitObjects[n].getEndTime() : hitObjectN.getTime();
+				if (timeI > timeN)
+					break;
+
+				// possible special case: if slider end in the stack,
+				// all next hit objects in stack move right down
+				if (hitObjectN.isSlider()) {
+					Slider slider = (Slider) hitObjects[n];
+					float x1 = hitObjects[i].getPointAt(hitObjectI.getTime())[0];
+					float y1 = hitObjects[i].getPointAt(hitObjectI.getTime())[1];
+					float x2 = slider.getPointAt(slider.getEndTime())[0];
+					float y2 = slider.getPointAt(slider.getEndTime())[1];
+					float distance = Utils.distance(x1, y1, x2, y2);
+
+					// check if hit object part of this stack
+					if (distance < STACK_LENIENCE * OsuHitObject.getXMultiplier()) {
+						int offset = hitObjectI.getStack() - hitObjectN.getStack() + 1;
+						for (int j = n + 1; j <= i; j++) {
+							OsuHitObject hitObjectJ = osu.objects[j];
+							x1 = hitObjects[j].getPointAt(hitObjectJ.getTime())[0];
+							y1 = hitObjects[j].getPointAt(hitObjectJ.getTime())[1];
+							distance = Utils.distance(x1, y1, x2, y2);
+
+							// hit object below slider end
+							if (distance < STACK_LENIENCE * OsuHitObject.getXMultiplier())
+								hitObjectJ.setStack(hitObjectJ.getStack() - offset);
+						}
+						break;  // slider end always start of the stack: reset calculation
+					}
+				}
+
+				// not a special case: stack moves up left
+				float distance = Utils.distance(
+						hitObjectI.getX(), hitObjectI.getY(),
+						hitObjectN.getX(), hitObjectN.getY()
+				);
+				if (distance < STACK_LENIENCE) {
+					hitObjectN.setStack(hitObjectI.getStack() + 1);
+					hitObjectI = hitObjectN;
+				}
+			}
+		}
+
+		// update hit object positions
+		for (int i = 0; i < hitObjects.length; i++) {
+			if (osu.objects[i].getStack() != 0)
+				hitObjects[i].updatePosition();
 		}
 	}
 }

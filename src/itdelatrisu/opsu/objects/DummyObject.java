@@ -38,8 +38,7 @@ public class DummyObject implements HitObject {
 	 */
 	public DummyObject(OsuHitObject hitObject) {
 		this.hitObject = hitObject;
-		this.x = hitObject.getScaledX();
-		this.y = hitObject.getScaledY();
+		updatePosition();
 	}
 
 	@Override
@@ -54,14 +53,14 @@ public class DummyObject implements HitObject {
 	public boolean mousePressed(int x, int y, int trackPosition) { return false; }
 
 	@Override
-	public void updatePosition() {
-		this.x = hitObject.getScaledX();
-		this.y = hitObject.getScaledY();
-	}
-
-	@Override
 	public float[] getPointAt(int trackPosition) { return new float[] { x, y }; }
 
 	@Override
 	public int getEndTime() { return hitObject.getTime(); }
+
+	@Override
+	public void updatePosition() {
+		this.x = hitObject.getScaledX();
+		this.y = hitObject.getScaledY();
+	}
 }
