@@ -463,10 +463,8 @@ public class Slider implements HitObject {
 		else if (trackPosition >= hitObject.getTime() + sliderTimeTotal) {
 			if (hitObject.getRepeatCount() % 2 == 0)
 				return new float[] { x, y };
-			else {
-				int lastIndex = hitObject.getSliderX().length;
-				return new float[] { curve.getX(lastIndex), curve.getY(lastIndex) };
-			}
+			else
+				return curve.pointAt(1);
 		} else
 			return curve.pointAt(getT(trackPosition, false));
 	}

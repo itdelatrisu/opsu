@@ -1609,8 +1609,7 @@ public class Game extends BasicGameState {
 	/**
 	 * Performs stacking calculations on all hit objects, and updates their
 	 * positions if necessary.
-	 * https://gist.github.com/peppy/1167470
-	 * @author peppy
+	 * @author peppy (https://gist.github.com/peppy/1167470)
 	 */
 	private void calculateStacks() {
 		// reverse pass for stack calculation
@@ -1622,7 +1621,7 @@ public class Game extends BasicGameState {
 				continue;
 
 			// search for hit objects in stack
-			for (int n = i -1; n >= 0; n--) {
+			for (int n = i - 1; n >= 0; n--) {
 				OsuHitObject hitObjectN = osu.objects[n];
 				if (hitObjectN.isSpinner())
 					continue;
@@ -1636,21 +1635,17 @@ public class Game extends BasicGameState {
 				// possible special case: if slider end in the stack,
 				// all next hit objects in stack move right down
 				if (hitObjectN.isSlider()) {
-					Slider slider = (Slider) hitObjects[n];
-					float x1 = hitObjects[i].getPointAt(hitObjectI.getTime())[0];
-					float y1 = hitObjects[i].getPointAt(hitObjectI.getTime())[1];
-					float x2 = slider.getPointAt(slider.getEndTime())[0];
-					float y2 = slider.getPointAt(slider.getEndTime())[1];
-					float distance = Utils.distance(x1, y1, x2, y2);
+					float[] p1 = hitObjects[i].getPointAt(hitObjectI.getTime());
+					float[] p2 = hitObjects[n].getPointAt(hitObjects[n].getEndTime());
+					float distance = Utils.distance(p1[0], p1[1], p2[0], p2[1]);
 
 					// check if hit object part of this stack
 					if (distance < STACK_LENIENCE * OsuHitObject.getXMultiplier()) {
 						int offset = hitObjectI.getStack() - hitObjectN.getStack() + 1;
 						for (int j = n + 1; j <= i; j++) {
 							OsuHitObject hitObjectJ = osu.objects[j];
-							x1 = hitObjects[j].getPointAt(hitObjectJ.getTime())[0];
-							y1 = hitObjects[j].getPointAt(hitObjectJ.getTime())[1];
-							distance = Utils.distance(x1, y1, x2, y2);
+							p1 = hitObjects[j].getPointAt(hitObjectJ.getTime());
+							distance = Utils.distance(p1[0], p1[1], p2[0], p2[1]);
 
 							// hit object below slider end
 							if (distance < STACK_LENIENCE * OsuHitObject.getXMultiplier())
