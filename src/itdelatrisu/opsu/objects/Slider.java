@@ -198,7 +198,7 @@ public class Slider implements HitObject {
 			;  // don't draw current combo number if already clicked
 		else
 			data.drawSymbolNumber(hitObject.getComboNumber(), x, y,
-					hitCircle.getWidth() * 0.40f / data.getDefaultSymbolImage(0).getHeight(), Utils.COLOR_WHITE_FADE);
+					hitCircle.getWidth() * 0.40f / data.getDefaultSymbolImage(0).getHeight(), alpha);
 
 		// repeats
 		for (int tcurRepeat = currentRepeats; tcurRepeat <= currentRepeats + 1; tcurRepeat++) {

@@ -95,12 +95,12 @@ public class Circle implements HitObject {
 		float oldAlpha = Utils.COLOR_WHITE_FADE.a;
 		Utils.COLOR_WHITE_FADE.a = color.a = alpha;
 
-		if(timeDiff >= 0 )
+		if (timeDiff >= 0)
 			GameImage.APPROACHCIRCLE.getImage().getScaledCopy(approachScale).drawCentered(x, y, color);
 		GameImage.HITCIRCLE.getImage().drawCentered(x, y, color);
 		GameImage.HITCIRCLE_OVERLAY.getImage().drawCentered(x, y, Utils.COLOR_WHITE_FADE);
 		data.drawSymbolNumber(hitObject.getComboNumber(), x, y,
-				GameImage.HITCIRCLE.getImage().getWidth() * 0.40f / data.getDefaultSymbolImage(0).getHeight(), Utils.COLOR_WHITE_FADE);
+				GameImage.HITCIRCLE.getImage().getWidth() * 0.40f / data.getDefaultSymbolImage(0).getHeight(), alpha);
 
 		Utils.COLOR_WHITE_FADE.a = oldAlpha;
 	}

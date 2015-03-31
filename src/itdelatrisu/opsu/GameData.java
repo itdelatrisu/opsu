@@ -443,14 +443,17 @@ public class GameData {
 	 * @param x the center x coordinate
 	 * @param y the center y coordinate
 	 * @param scale the scale to apply
+	 * @param alpha the alpha level
 	 */
-	public void drawSymbolNumber(int n, float x, float y, float scale, Color color) {
+	public void drawSymbolNumber(int n, float x, float y, float scale, float alpha) {
 		int length = (int) (Math.log10(n) + 1);
 		float digitWidth = getDefaultSymbolImage(0).getWidth() * scale;
 		float cx = x + ((length - 1) * (digitWidth / 2));
 
 		for (int i = 0; i < length; i++) {
-			getDefaultSymbolImage(n % 10).getScaledCopy(scale).drawCentered(cx, y, color);
+			Image digit = getDefaultSymbolImage(n % 10).getScaledCopy(scale);
+			digit.setAlpha(alpha);
+			digit.drawCentered(cx, y);
 			cx -= digitWidth;
 			n /= 10;
 		}
@@ -576,6 +579,7 @@ public class GameData {
 						-90 + (int) (360f * trackPosition / firstObjectTime), -90
 				);
 			}
+			g.setAntiAlias(false);
 		}
 
 		// mod icons
