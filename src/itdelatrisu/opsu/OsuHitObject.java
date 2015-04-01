@@ -274,7 +274,7 @@ public class OsuHitObject {
 	 */
 	public float getScaledY() {
 		if (GameMod.HARD_ROCK.isActive())
-			return containerHeight - ((y - stack * stackOffset) * yMultiplier + yOffset);
+			return containerHeight - ((y + stack * stackOffset) * yMultiplier + yOffset);
 		else
 			return (y - stack * stackOffset) * yMultiplier + yOffset;
 	}
@@ -364,7 +364,7 @@ public class OsuHitObject {
 		float[] y = new float[sliderY.length];
 		if (GameMod.HARD_ROCK.isActive()) {
 			for (int i = 0; i < y.length; i++)
-				y[i] = containerHeight - ((sliderY[i] - stack * stackOffset) * yMultiplier + yOffset);
+				y[i] = containerHeight - ((sliderY[i] + stack * stackOffset) * yMultiplier + yOffset);
 		} else {
 			for (int i = 0; i < y.length; i++)
 				y[i] = (sliderY[i] - stack * stackOffset) * yMultiplier + yOffset;
