@@ -50,6 +50,7 @@ import java.io.File;
 import java.util.LinkedList;
 import java.util.Stack;
 
+import itdelatrisu.opsu.replay.PlaybackSpeed;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.Display;
 import org.newdawn.slick.Animation;
@@ -130,6 +131,9 @@ public class Game extends BasicGameState {
 
 	/** Skip button (displayed at song start, when necessary). */
 	private MenuButton skipButton;
+
+	/** Playback button (displayed in replays). */
+	private MenuButton playbackButton;
 
 	/** Current timing point index in timingPoints ArrayList. */
 	private int timingPointIndex;
@@ -527,6 +531,9 @@ public class Game extends BasicGameState {
 			cursorCirclePulse.drawCentered(pausedMouseX, pausedMouseY);
 		}
 
+		if (isReplay || GameMod.AUTO.isActive())
+			playbackButton.draw();
+
 		if (isReplay)
 			UI.draw(g, replayX, replayY, replayKeyPressed);
 		else if (GameMod.AUTO.isActive())
@@ -544,6 +551,8 @@ public class Game extends BasicGameState {
 		UI.update(delta);
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
 		skipButton.hoverUpdate(delta, mouseX, mouseY);
+		if (isReplay || GameMod.AUTO.isActive())
+			playbackButton.hoverUpdate(delta, mouseX, mouseY);
 		int trackPosition = MusicController.getPosition();
 
 		// returning from pause screen: must click previous mouse position
@@ -871,16 +880,24 @@ public class Game extends BasicGameState {
 
 	@Override
 	public void mousePressed(int button, int x, int y) {
-		if (Options.isMouseDisabled())
-			return;
-
 		// watching replay
-		if (isReplay) {
-			// only allow skip button
-			if (button != Input.MOUSE_MIDDLE_BUTTON && skipButton.contains(x, y))
+		if (isReplay || GameMod.AUTO.isActive()) {
+			// allow skip button
+			if (button != Input.MOUSE_MIDDLE_BUTTON && skipButton.contains(x, y)) {
 				skipIntro();
+				return;
+			}
+			if (button != Input.MOUSE_MIDDLE_BUTTON && playbackButton.contains(x, y)) {
+				PlaybackSpeed playbackSpeed = PlaybackSpeed.next();
+				playbackButton.setImage(playbackSpeed.getImage());
+				MusicController.setPitch(GameMod.getSpeedMultiplier() * playbackSpeed.getModifier());
+				return;
+			}
 			return;
 		}
+
+		if (Options.isMouseDisabled())
+			return;
 
 		// mouse wheel: pause the game
 		if (button == Input.MOUSE_MIDDLE_BUTTON && !Options.isMouseWheelDisabled()) {
@@ -1085,6 +1102,8 @@ public class Game extends BasicGameState {
 				previousMods = GameMod.getModState();
 				GameMod.loadModState(replay.mods);
 
+				PlaybackSpeed.reset();
+
 				// load initial data
 				replayX = container.getWidth() / 2;
 				replayY = container.getHeight() / 2;
@@ -1116,12 +1135,15 @@ public class Game extends BasicGameState {
 			restart = Restart.FALSE;
 
 			// needs to play before setting position to resume without lag later
-			MusicController.play(GameMod.getSpeedMultiplier(), false);
+			MusicController.play(false);
 			MusicController.setPosition(0);
+			MusicController.setPitch(GameMod.getSpeedMultiplier());
 			MusicController.pause();
 		}
 
 		skipButton.resetHover();
+		if (isReplay || GameMod.AUTO.isActive())
+			playbackButton.resetHover();
 	}
 
 	@Override
@@ -1280,6 +1302,7 @@ public class Game extends BasicGameState {
 				MusicController.resume();
 			}
 			MusicController.setPosition(firstObjectTime - SKIP_OFFSET);
+			MusicController.setPitch(GameMod.getSpeedMultiplier());
 			replaySkipTime = (isReplay) ? -1 : trackPosition;
 			if (isReplay) {
 				replayX = (int) skipButton.getX();
@@ -1316,6 +1339,12 @@ public class Game extends BasicGameState {
 			skipButton = new MenuButton(skip, width - skip.getWidth() / 2f, height - (skip.getHeight() / 2f));
 		}
 		skipButton.setHoverExpand(1.1f, MenuButton.Expand.UP_LEFT);
+
+		if (isReplay || GameMod.AUTO.isActive()) {
+			Image playback = GameImage.REPLAY_1XPLAYBACK.getImage();
+			playbackButton = new MenuButton(playback, width * 0.98f - (playback.getWidth() / 2f), height * 0.25f);
+			playbackButton.setHoverExpand(1.1f, MenuButton.Expand.CENTER);
+		}
 
 		// load other images...
 		((GamePauseMenu) game.getState(Opsu.STATE_GAMEPAUSEMENU)).loadImages();

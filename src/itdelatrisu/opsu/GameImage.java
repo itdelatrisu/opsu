@@ -104,6 +104,10 @@ public enum GameImage {
 		}
 	},
 
+	REPLAY_05XPLAYBACK ("playback-05x", "png"),
+	REPLAY_1XPLAYBACK ("playback-1x", "png"),
+	REPLAY_2XPLAYBACK ("playback-2x", "png"),
+
 	// Circle
 	HITCIRCLE ("hitcircle", "png"),
 	HITCIRCLE_OVERLAY ("hitcircleoverlay", "png"),

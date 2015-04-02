@@ -279,13 +279,13 @@ public class MusicController {
 	 * Plays the current track.
 	 * @param loop whether or not to loop the track
 	 */
-	public static void play(float pitch, boolean loop) {
+	public static void play(boolean loop) {
 		if (trackExists()) {
 			trackEnded = false;
 			if (loop)
 				player.loop();
 			else
-				player.play(pitch, 1f);
+				player.play();
 		}
 	}
 
@@ -295,6 +295,14 @@ public class MusicController {
 	 */
 	public static void setVolume(float volume) {
 		SoundStore.get().setMusicVolume((isTrackDimmed()) ? volume * dimLevel : volume);
+	}
+
+	/**
+	 * Sets the music pitch.
+	 * @param pitch [0, ..]
+	 */
+	public static void setPitch(float pitch) {
+		SoundStore.get().setMusicPitch(pitch);
 	}
 
 	/**
