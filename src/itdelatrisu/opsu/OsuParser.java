@@ -586,6 +586,8 @@ public class OsuParser {
 		// parse hit objects now?
 		if (parseObjects)
 			parseHitObjects(osu);
+		
+		osu.md5Hash = Utils.getMD5(file);
 
 		return osu;
 	}

@@ -45,7 +45,7 @@ public class ScoreDB {
 	 * This value should be changed whenever the database format changes.
 	 * Add any update queries to the {@link #getUpdateQueries(int)} method.
 	 */
-	private static final int DATABASE_VERSION = 20140311;
+	private static final int DATABASE_VERSION = 20150401;
 
 	/**
 	 * Returns a list of SQL queries to apply, in order, to update from
@@ -57,6 +57,8 @@ public class ScoreDB {
 		List<String> list = new LinkedList<String>();
 		if (version < 20140311)
 			list.add("ALTER TABLE scores ADD COLUMN replay TEXT");
+		if (version < 20150401)
+			list.add("ALTER TABLE scores ADD COLUMN playerName TEXT");
 
 		/* add future updates here */
 
@@ -96,7 +98,7 @@ public class ScoreDB {
 		// prepare sql statements
 		try {
 			insertStmt = connection.prepareStatement(
-				"INSERT INTO scores VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+				"INSERT OR IGNORE INTO scores VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 			);
 			selectMapStmt = connection.prepareStatement(
 				"SELECT * FROM scores WHERE " +
@@ -137,7 +139,8 @@ public class ScoreDB {
 					"combo INTEGER, " +
 					"perfect BOOLEAN, " +
 					"mods INTEGER, " +
-					"replay TEXT" +
+					"replay TEXT," +
+					"playerName TEXT"+
 				");" +
 				"CREATE TABLE IF NOT EXISTS info (" +
 					"key TEXT NOT NULL UNIQUE, value TEXT" +
@@ -283,6 +286,8 @@ public class ScoreDB {
 		stmt.setInt(15, data.combo);
 		stmt.setBoolean(16, data.perfect);
 		stmt.setInt(17, data.mods);
+		stmt.setString(19, data.playerName);
+		
 	}
 
 	/**

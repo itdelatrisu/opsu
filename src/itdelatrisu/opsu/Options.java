@@ -95,6 +95,9 @@ public class Options {
 	/** The replay directory (created when needed). */
 	private static File replayDir;
 
+	/** The replay import directory. */
+	private static File replayImportDir;
+
 	/** The current skin directory (for user skins). */
 	private static File skinDir;
 
@@ -824,7 +827,20 @@ public class Options {
 		oszDir.mkdir();
 		return oszDir;
 	}
+	
+	/**
+	 * Returns the replay import directory.
+	 * If invalid, this will create and return a "SongPacks" directory.
+	 * @return the OSZ archive directory
+	 */
+	public static File getReplayImportDir() {
+		if (replayImportDir != null && replayImportDir.isDirectory())
+			return replayImportDir;
 
+		replayImportDir = new File(DATA_DIR, "ReplayImport/");
+		replayImportDir.mkdir();
+		return replayImportDir;
+	}
 	/**
 	 * Returns the screenshot directory.
 	 * If invalid, this will return a "Screenshot" directory.

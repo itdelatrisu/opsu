@@ -1235,6 +1235,7 @@ public class GameData {
 		scoreData.perfect = (comboMax == fullObjectCount);
 		scoreData.mods = GameMod.getModState();
 		scoreData.replayString = (replay == null) ? null : replay.getReplayFilename();
+		scoreData.playerName = "OpsuPlayer"; //TODO?
 		return scoreData;
 	}
 

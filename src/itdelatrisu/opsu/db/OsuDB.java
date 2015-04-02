@@ -43,7 +43,7 @@ public class OsuDB {
 	 * Current database version.
 	 * This value should be changed whenever the database format changes.
 	 */
-	private static final String DATABASE_VERSION = "2014-03-08";
+	private static final String DATABASE_VERSION = "2015-03-30";
 
 	/** Minimum batch size ratio ({@code batchSize/cacheSize}) to invoke batch loading. */
 	private static final float LOAD_BATCH_MIN_RATIO = 0.2f;
@@ -83,7 +83,7 @@ public class OsuDB {
 			insertStmt = connection.prepareStatement(
 				"INSERT INTO beatmaps VALUES (" +
 				"?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, " +
-				"?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+				"?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 			);
 			selectStmt = connection.prepareStatement("SELECT * FROM beatmaps WHERE dir = ? AND file = ?");
 			deleteMapStmt = connection.prepareStatement("DELETE FROM beatmaps WHERE dir = ? AND file = ?");
@@ -116,7 +116,8 @@ public class OsuDB {
 					"bpmMin INTEGER, bpmMax INTEGER, endTime INTEGER, " +
 					"audioFile TEXT, audioLeadIn INTEGER, previewTime INTEGER, countdown INTEGER, sampleSet TEXT, stackLeniency REAL, " +
 					"mode INTEGER, letterboxInBreaks BOOLEAN, widescreenStoryboard BOOLEAN, epilepsyWarning BOOLEAN, " +
-					"bg TEXT, timingPoints TEXT, breaks TEXT, combo TEXT" +
+					"bg TEXT, timingPoints TEXT, breaks TEXT, combo TEXT," +
+					"md5hash TEXT" +
 				"); " +
 				"CREATE TABLE IF NOT EXISTS info (" +
 					"key TEXT NOT NULL UNIQUE, value TEXT" +
@@ -333,7 +334,8 @@ public class OsuDB {
 			stmt.setString(37, osu.timingPointsToString());
 			stmt.setString(38, osu.breaksToString());
 			stmt.setString(39, osu.comboToString());
-		} catch (SQLException e) {
+			stmt.setString(40, osu.md5Hash);
+			} catch (SQLException e) {
 			throw e;
 		} catch (Exception e) {
 			throw new SQLException(e);
@@ -470,6 +472,7 @@ public class OsuDB {
 			osu.widescreenStoryboard = rs.getBoolean(34);
 			osu.epilepsyWarning = rs.getBoolean(35);
 			osu.bg = OsuParser.getDBString(rs.getString(36));
+			osu.md5Hash = OsuParser.getDBString(rs.getString(40));
 		} catch (SQLException e) {
 			throw e;
 		} catch (Exception e) {

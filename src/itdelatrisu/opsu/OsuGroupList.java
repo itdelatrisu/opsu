@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -55,6 +56,10 @@ public class OsuGroupList {
 
 	/** Set of all beatmap set IDs for the parsed beatmaps. */
 	private HashSet<Integer> MSIDdb;
+	
+	/** Set of all beatmap set IDs for the parsed beatmaps. */
+	public HashMap<String, OsuFile> beatmapHashesToFile;
+
 
 	/** Index of current expanded node (-1 if no node is expanded). */
 	private int expandedIndex;
@@ -81,6 +86,7 @@ public class OsuGroupList {
 	private OsuGroupList() {
 		parsedNodes = new ArrayList<OsuGroupNode>();
 		MSIDdb = new HashSet<Integer>();
+		beatmapHashesToFile = new HashMap<String, OsuFile>();
 		reset();
 	}
 
@@ -114,6 +120,9 @@ public class OsuGroupList {
 		int msid = osuFiles.get(0).beatmapSetID;
 		if (msid > 0)
 			MSIDdb.add(msid);
+		for(OsuFile f : osuFiles) {
+			beatmapHashesToFile.put(f.md5Hash, f);
+		}
 
 		return node;
 	}
@@ -498,4 +507,8 @@ public class OsuGroupList {
 	 * @return true if id is in the list
 	 */
 	public boolean containsBeatmapSetID(int id) { return MSIDdb.contains(id); }
+	
+	public OsuFile getFileFromBeatmapHash(String beatmapHash) {
+		return beatmapHashesToFile.get(beatmapHash);
+	}
 }

@@ -76,6 +76,8 @@ public class ScoreData implements Comparable<ScoreData> {
 
 	/** The tooltip string. */
 	private String tooltip;
+	
+	public String playerName;
 
 	/** Drawing values. */
 	private static float baseX, baseY, buttonWidth, buttonHeight, buttonOffset;
@@ -163,6 +165,7 @@ public class ScoreData implements Comparable<ScoreData> {
 		this.perfect = rs.getBoolean(16);
 		this.mods = rs.getInt(17);
 		this.replayString = rs.getString(18);
+		this.playerName = rs.getString(19);
 	}
 
 	/**
@@ -259,7 +262,7 @@ public class ScoreData implements Comparable<ScoreData> {
 		// hit counts (custom: osu! shows user instead, above score)
 		Utils.FONT_SMALL.drawString(
 				textX, y + textOffset + Utils.FONT_MEDIUM.getLineHeight(),
-				String.format("300:%d  100:%d  50:%d  Miss:%d", hit300, hit100, hit50, miss),
+				String.format("300:%d  100:%d  50:%d  Miss:%d Name:%s", hit300, hit100, hit50, miss, getPlayerName()),
 				Color.white
 		);
 
@@ -330,6 +333,11 @@ public class ScoreData implements Comparable<ScoreData> {
 		);
 	}
 
+	public String getPlayerName() {
+		if(playerName == null)
+			return "Null Name";
+		return playerName;
+	}
 	@Override
 	public int compareTo(ScoreData that) {
 		if (this.score != that.score)

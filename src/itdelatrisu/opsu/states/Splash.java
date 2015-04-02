@@ -18,9 +18,11 @@
 
 package itdelatrisu.opsu.states;
 
+import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.Options;
+import itdelatrisu.opsu.OsuFile;
 import itdelatrisu.opsu.OsuGroupList;
 import itdelatrisu.opsu.OsuParser;
 import itdelatrisu.opsu.OszUnpacker;
@@ -28,8 +30,11 @@ import itdelatrisu.opsu.UI;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
+import itdelatrisu.opsu.replay.Replay;
+import itdelatrisu.opsu.replay.ReplayImporter;
 
 import java.io.File;
+import java.io.IOException;
 
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
@@ -39,6 +44,7 @@ import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
+import org.newdawn.slick.util.Log;
 
 /**
  * "Splash Screen" state.
@@ -104,6 +110,8 @@ public class Splash extends BasicGameState {
 
 						// parse song directory
 						OsuParser.parseAllFiles(beatmapDir);
+						
+						ReplayImporter.importAllReplaysFromDir(Options.getReplayImportDir());
 
 						// load sounds
 						SoundController.init();
