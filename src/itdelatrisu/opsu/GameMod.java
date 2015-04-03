@@ -170,8 +170,6 @@ public enum GameMod {
 		Collections.reverse(Arrays.asList(VALUES_REVERSED));
 	}
 
-	private static boolean justChanged = false;
-
 	/** The last calculated score multiplier, or -1f if it must be recalculated. */
 	private static float scoreMultiplier = -1f;
 
@@ -234,17 +232,6 @@ public enum GameMod {
 			speedMultiplier = multiplier;
 		}
 		return speedMultiplier;
-	}
-
-	/**
-	 *
-	 */
-	public static boolean justChanged() {
-		if (justChanged) {
-			justChanged = false;
-			return true;
-		}
-		return false;
 	}
 
 	/**
@@ -385,7 +372,6 @@ public enum GameMod {
 
 		active = !active;
 		scoreMultiplier = speedMultiplier = -1f;
-		justChanged = true;
 
 		if (checkInverse) {
 			if (AUTO.isActive()) {

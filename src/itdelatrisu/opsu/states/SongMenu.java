@@ -336,12 +336,8 @@ public class SongMenu extends BasicGameState {
 			int iconWidth = musicNote.getWidth();
 
 			// song info text
-			if (songInfo == null || GameMod.justChanged()) {
-				songInfo = focusNode.getInfo();
-				if (Options.useUnicodeMetadata()) {  // load glyphs
-					OsuFile osu = focusNode.osuFiles.get(0);
-					Utils.loadGlyphs(Utils.FONT_LARGE, osu.titleUnicode, osu.artistUnicode);
-				}
+			if (songInfo == null) {
+				songInfo = getSongInfo();
 			}
 			marginX += 5;
 			float headerTextY = marginY;
@@ -983,6 +979,9 @@ public class SongMenu extends BasicGameState {
 			resetGame = false;
 		}
 
+		// load song info
+		songInfo = getSongInfo();
+
 		// state-based action
 		if (stateAction != null) {
 			switch (stateAction) {
@@ -1302,6 +1301,20 @@ public class SongMenu extends BasicGameState {
 		} else
 			return null;  // incorrect map
 	}
+
+	/**
+	 * Returns an array of strings containing song information.
+	 * @return the String array
+	 */
+	private String[] getSongInfo () {
+		songInfo = focusNode.getInfo();
+		if (Options.useUnicodeMetadata()) {  // load glyphs
+			OsuFile osu = focusNode.osuFiles.get(0);
+			Utils.loadGlyphs(Utils.FONT_LARGE, osu.titleUnicode, osu.artistUnicode);
+		}
+		return songInfo;
+	}
+
 
 	/**
 	 * Starts the game.

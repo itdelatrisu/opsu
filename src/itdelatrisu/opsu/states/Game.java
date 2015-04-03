@@ -889,7 +889,7 @@ public class Game extends BasicGameState {
 			}
 			if (button != Input.MOUSE_MIDDLE_BUTTON && playbackButton.contains(x, y)) {
 				PlaybackSpeed playbackSpeed = PlaybackSpeed.next();
-				playbackButton.setImage(playbackSpeed.getImage());
+				playbackButton = playbackSpeed.getButton();
 				MusicController.setPitch(GameMod.getSpeedMultiplier() * playbackSpeed.getModifier());
 				return;
 			}
@@ -1158,6 +1158,9 @@ public class Game extends BasicGameState {
 		// replays
 		if (isReplay)
 			GameMod.loadModState(previousMods);
+
+		// reset playback speed
+		MusicController.setPitch(1f);
 	}
 
 	/**
@@ -1340,11 +1343,8 @@ public class Game extends BasicGameState {
 		}
 		skipButton.setHoverExpand(1.1f, MenuButton.Expand.UP_LEFT);
 
-		if (isReplay || GameMod.AUTO.isActive()) {
-			Image playback = GameImage.REPLAY_1XPLAYBACK.getImage();
-			playbackButton = new MenuButton(playback, width * 0.98f - (playback.getWidth() / 2f), height * 0.25f);
-			playbackButton.setHoverExpand(1.1f, MenuButton.Expand.CENTER);
-		}
+		if (isReplay || GameMod.AUTO.isActive())
+			playbackButton = PlaybackSpeed.NORMAL.getButton();
 
 		// load other images...
 		((GamePauseMenu) game.getState(Opsu.STATE_GAMEPAUSEMENU)).loadImages();

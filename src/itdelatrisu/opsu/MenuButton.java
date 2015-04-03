@@ -280,11 +280,6 @@ public class MenuButton {
 	public void removeHoverEffects() { hoverEffect = 0; }
 
 	/**
-	 * Sets the image of the button.
-	 */
-	public void setImage(Image image) { img = image; }
-
-	/**
 	 * Sets the "expand" hover effect.
 	 */
 	public void setHoverExpand() { hoverEffect |= EFFECT_EXPAND; }
