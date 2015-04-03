@@ -44,7 +44,7 @@ public class Spinner implements HitObject {
 	private static final int MAX_ROTATION_VELOCITIES = 50;
 
 	/** The amount of time, in milliseconds, before another velocity is stored. */
-	private static final int DELTA_UPDATE_TIME = 4;
+	private static final int DELTA_UPDATE_TIME = 16;
 
 	/** The amount of time, in milliseconds, to fade in the spinner. */
 	private static final int FADE_IN_TIME = 500;
@@ -211,55 +211,57 @@ public class Spinner implements HitObject {
 		if (isSpinning && !(keyPressed || GameMod.RELAX.isActive()))
 			isSpinning = false;
 
-		// spin automatically
-		// http://osu.ppy.sh/wiki/FAQ#Spinners
-		float angle;
-		if (GameMod.AUTO.isActive()) {
-			lastAngle = 0;
-			angle = delta * AUTO_MULTIPLIER;
-			isSpinning = true;
-		} else if (GameMod.SPUN_OUT.isActive() || GameMod.AUTOPILOT.isActive()) {
-			lastAngle = 0;
-			angle = delta * SPUN_OUT_MULTIPLIER;
-			isSpinning = true;
-		} else {
-			angle = (float) Math.atan2(mouseY - (height / 2), mouseX - (width / 2));
-
-			// set initial angle to current mouse position to skip first click
-			if (!isSpinning && (keyPressed || GameMod.RELAX.isActive())) {
-				lastAngle = angle;
-				isSpinning = true;
-				return false;
-			}
-		}
-
-		// make angleDiff the smallest angle change possible
-		// (i.e. 1/4 rotation instead of 3/4 rotation)
-		float angleDiff = angle - lastAngle;
-		if (angleDiff < -Math.PI)
-			angleDiff += TWO_PI;
-		else if (angleDiff > Math.PI)
-			angleDiff -= TWO_PI;
-
-		// spin caused by the cursor
-		float cursorVelocity = 0;
-		if (isSpinning)
-			cursorVelocity = Utils.clamp(angleDiff / TWO_PI / delta * 1000, -8f, 8f);
-
 		deltaOverflow += delta;
 		while (deltaOverflow >= DELTA_UPDATE_TIME) {
+			// spin automatically
+			// http://osu.ppy.sh/wiki/FAQ#Spinners
+			float angle;
+			if (GameMod.AUTO.isActive()) {
+				lastAngle = 0;
+				angle = delta * AUTO_MULTIPLIER;
+				isSpinning = true;
+			} else if (GameMod.SPUN_OUT.isActive() || GameMod.AUTOPILOT.isActive()) {
+				lastAngle = 0;
+				angle = delta * SPUN_OUT_MULTIPLIER;
+				isSpinning = true;
+			} else {
+				angle = (float) Math.atan2(mouseY - (height / 2), mouseX - (width / 2));
+	
+				// set initial angle to current mouse position to skip first click
+				if (!isSpinning && (keyPressed || GameMod.RELAX.isActive())) {
+					lastAngle = angle;
+					isSpinning = true;
+					return false;
+				}
+			}
+	
+			// make angleDiff the smallest angle change possible
+			// (i.e. 1/4 rotation instead of 3/4 rotation)
+			float angleDiff = angle - lastAngle;
+			if (angleDiff < -Math.PI)
+				angleDiff += TWO_PI;
+			else if (angleDiff > Math.PI)
+				angleDiff -= TWO_PI;
+	
+			System.out.println("AngleDiff "+angleDiff);
+			// spin caused by the cursor
+			float cursorVelocity = 0;
+			if (isSpinning)
+			cursorVelocity = Utils.clamp(angleDiff / TWO_PI / delta * 1000, -8f, 8f);
+
 			sumVelocity -= storedVelocities[velocityIndex];
 			sumVelocity += cursorVelocity;
 			storedVelocities[velocityIndex++] = cursorVelocity;
 			velocityIndex %= storedVelocities.length;
 			deltaOverflow -= DELTA_UPDATE_TIME;
-		}
-		float rotationAngle = sumVelocity / storedVelocities.length * TWO_PI * delta / 1000;
-		rotate(rotationAngle);
-		if (Math.abs(rotationAngle) > 0.00001f)
-			data.changeHealth(delta * GameData.HP_DRAIN_MULTIPLIER);
+			
+			float rotationAngle = sumVelocity / storedVelocities.length * TWO_PI * delta / 1000;
+			rotate(rotationAngle);
+			if (Math.abs(rotationAngle) > 0.00001f)
+				data.changeHealth(delta * GameData.HP_DRAIN_MULTIPLIER);
 
-		lastAngle = angle;
+			lastAngle = angle;
+		}
 		return false;
 	}
 

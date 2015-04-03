@@ -31,6 +31,7 @@ public class ReplayImporter {
 					data.replayString = replayToImport.getName().substring(0, replayToImport.getName().length()-4);
 					ScoreDB.addScore(data);;
 				} else {
+					System.out.println("Could not find beatmap for replay "+replayToImport);
 					//ErrorHandler.error("Could not find beatmap for replay "+replayToImport, null, false);
 				}
 			} catch (IOException e) {

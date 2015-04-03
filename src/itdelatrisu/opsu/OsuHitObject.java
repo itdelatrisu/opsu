@@ -147,6 +147,9 @@ public class OsuHitObject {
 			sheight = swidth * 3 / 4;
 		xMultiplier = swidth / 640f;
 		yMultiplier = sheight / 480f;
+		
+		//xMultiplier = swidth / MAX_X;
+		//yMultiplier = sheight / MAX_Y;
 		xOffset = (int) (width - MAX_X * xMultiplier) / 2;
 		yOffset = (int) (height - MAX_Y * yMultiplier) / 2;
 	}
