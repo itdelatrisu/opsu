@@ -132,9 +132,6 @@ public class Game extends BasicGameState {
 	/** Skip button (displayed at song start, when necessary). */
 	private MenuButton skipButton;
 
-	/** Playback button (displayed in replays). */
-	private MenuButton playbackButton;
-
 	/** Current timing point index in timingPoints ArrayList. */
 	private int timingPointIndex;
 
@@ -214,6 +211,9 @@ public class Game extends BasicGameState {
 
 	/** Whether or not the cursor should be pressed using the "auto" mod. */
 	private boolean autoMousePressed;
+
+	/** Playback speed (used in replays and "auto" mod). */
+	private PlaybackSpeed playbackSpeed;
 
 	// game-related variables
 	private GameContainer container;
@@ -465,40 +465,41 @@ public class Game extends BasicGameState {
 				trackPosition = (leadInTime - Options.getMusicOffset()) * -1;  // render approach circles during song lead-in
 
 			// countdown
-			if (osu.countdown > 0) {  // TODO: implement half/double rate settings
+			if (osu.countdown > 0) {
+				float speedModifier = GameMod.getSpeedMultiplier() * playbackSpeed.getModifier();
 				timeDiff = firstObjectTime - trackPosition;
-				if (timeDiff >= 500 && timeDiff < 3000) {
-					if (timeDiff >= 1500) {
+				if (timeDiff >= 500 * speedModifier && timeDiff < 3000 * speedModifier) {
+					if (timeDiff >= 1500 * speedModifier) {
 						GameImage.COUNTDOWN_READY.getImage().drawCentered(width / 2, height / 2);
 						if (!countdownReadySound) {
 							SoundController.playSound(SoundEffect.READY);
 							countdownReadySound = true;
 						}
 					}
-					if (timeDiff < 2000) {
+					if (timeDiff < 2000 * speedModifier) {
 						GameImage.COUNTDOWN_3.getImage().draw(0, 0);
 						if (!countdown3Sound) {
 							SoundController.playSound(SoundEffect.COUNT3);
 							countdown3Sound = true;
 						}
 					}
-					if (timeDiff < 1500) {
+					if (timeDiff < 1500 * speedModifier) {
 						GameImage.COUNTDOWN_2.getImage().draw(width - GameImage.COUNTDOWN_2.getImage().getWidth(), 0);
 						if (!countdown2Sound) {
 							SoundController.playSound(SoundEffect.COUNT2);
 							countdown2Sound = true;
 						}
 					}
-					if (timeDiff < 1000) {
+					if (timeDiff < 1000 * speedModifier) {
 						GameImage.COUNTDOWN_1.getImage().drawCentered(width / 2, height / 2);
 						if (!countdown1Sound) {
 							SoundController.playSound(SoundEffect.COUNT1);
 							countdown1Sound = true;
 						}
 					}
-				} else if (timeDiff >= -500 && timeDiff < 500) {
+				} else if (timeDiff >= -500 * speedModifier && timeDiff < 500 * speedModifier) {
 					Image go = GameImage.COUNTDOWN_GO.getImage();
-					go.setAlpha((timeDiff < 0) ? 1 - (timeDiff / -1000f) : 1);
+					go.setAlpha((timeDiff < 0) ? 1 - (timeDiff / speedModifier / -500f) : 1);
 					go.drawCentered(width / 2, height / 2);
 					if (!countdownGoSound) {
 						SoundController.playSound(SoundEffect.GO);
@@ -515,6 +516,10 @@ public class Game extends BasicGameState {
 		if (GameMod.AUTO.isActive())
 			GameImage.UNRANKED.getImage().drawCentered(width / 2, height * 0.077f);
 
+		// draw replay speed button
+		if (isReplay || GameMod.AUTO.isActive())
+			playbackSpeed.getButton().draw();
+
 		// returning from pause screen
 		if (pauseTime > -1 && pausedMouseX > -1 && pausedMouseY > -1) {
 			// darken the screen
@@ -530,9 +535,6 @@ public class Game extends BasicGameState {
 			cursorCirclePulse.setAlpha(1f - pausePulse);
 			cursorCirclePulse.drawCentered(pausedMouseX, pausedMouseY);
 		}
-
-		if (isReplay || GameMod.AUTO.isActive())
-			playbackButton.draw();
 
 		if (isReplay)
 			UI.draw(g, replayX, replayY, replayKeyPressed);
@@ -552,7 +554,7 @@ public class Game extends BasicGameState {
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
 		skipButton.hoverUpdate(delta, mouseX, mouseY);
 		if (isReplay || GameMod.AUTO.isActive())
-			playbackButton.hoverUpdate(delta, mouseX, mouseY);
+			playbackSpeed.getButton().hoverUpdate(delta, mouseX, mouseY);
 		int trackPosition = MusicController.getPosition();
 
 		// returning from pause screen: must click previous mouse position
@@ -850,6 +852,7 @@ public class Game extends BasicGameState {
 
 					// skip to checkpoint
 					MusicController.setPosition(checkpoint);
+					MusicController.setPitch(GameMod.getSpeedMultiplier() * playbackSpeed.getModifier());
 					while (objectIndex < hitObjects.length &&
 							osu.objects[objectIndex++].getTime() <= checkpoint)
 						;
@@ -882,17 +885,19 @@ public class Game extends BasicGameState {
 	public void mousePressed(int button, int x, int y) {
 		// watching replay
 		if (isReplay || GameMod.AUTO.isActive()) {
-			// allow skip button
-			if (button != Input.MOUSE_MIDDLE_BUTTON && skipButton.contains(x, y)) {
+			if (button == Input.MOUSE_MIDDLE_BUTTON)
+				return;
+
+			// skip button
+			if (skipButton.contains(x, y))
 				skipIntro();
-				return;
-			}
-			if (button != Input.MOUSE_MIDDLE_BUTTON && playbackButton.contains(x, y)) {
-				PlaybackSpeed playbackSpeed = PlaybackSpeed.next();
-				playbackButton = playbackSpeed.getButton();
+
+			// playback speed button
+			else if (playbackSpeed.getButton().contains(x, y)) {
+				playbackSpeed = playbackSpeed.next();
 				MusicController.setPitch(GameMod.getSpeedMultiplier() * playbackSpeed.getModifier());
-				return;
 			}
+
 			return;
 		}
 
@@ -1102,8 +1107,6 @@ public class Game extends BasicGameState {
 				previousMods = GameMod.getModState();
 				GameMod.loadModState(replay.mods);
 
-				PlaybackSpeed.reset();
-
 				// load initial data
 				replayX = container.getWidth() / 2;
 				replayY = container.getHeight() / 2;
@@ -1143,7 +1146,8 @@ public class Game extends BasicGameState {
 
 		skipButton.resetHover();
 		if (isReplay || GameMod.AUTO.isActive())
-			playbackButton.resetHover();
+			playbackSpeed.getButton().resetHover();
+		MusicController.setPitch(GameMod.getSpeedMultiplier() * playbackSpeed.getModifier());
 	}
 
 	@Override
@@ -1288,6 +1292,7 @@ public class Game extends BasicGameState {
 		autoMouseY = 0;
 		autoMousePressed = false;
 		flashlightRadius = container.getHeight() * 2 / 3;
+		playbackSpeed = PlaybackSpeed.NORMAL;
 
 		System.gc();
 	}
@@ -1305,7 +1310,7 @@ public class Game extends BasicGameState {
 				MusicController.resume();
 			}
 			MusicController.setPosition(firstObjectTime - SKIP_OFFSET);
-			MusicController.setPitch(GameMod.getSpeedMultiplier());
+			MusicController.setPitch(GameMod.getSpeedMultiplier() * playbackSpeed.getModifier());
 			replaySkipTime = (isReplay) ? -1 : trackPosition;
 			if (isReplay) {
 				replayX = (int) skipButton.getX();
@@ -1342,9 +1347,6 @@ public class Game extends BasicGameState {
 			skipButton = new MenuButton(skip, width - skip.getWidth() / 2f, height - (skip.getHeight() / 2f));
 		}
 		skipButton.setHoverExpand(1.1f, MenuButton.Expand.UP_LEFT);
-
-		if (isReplay || GameMod.AUTO.isActive())
-			playbackButton = PlaybackSpeed.NORMAL.getButton();
 
 		// load other images...
 		((GamePauseMenu) game.getState(Opsu.STATE_GAMEPAUSEMENU)).loadImages();

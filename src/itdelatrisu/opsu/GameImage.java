@@ -104,10 +104,6 @@ public enum GameImage {
 		}
 	},
 
-	REPLAY_05XPLAYBACK ("playback-05x", "png"),
-	REPLAY_1XPLAYBACK ("playback-1x", "png"),
-	REPLAY_2XPLAYBACK ("playback-2x", "png"),
-
 	// Circle
 	HITCIRCLE ("hitcircle", "png"),
 	HITCIRCLE_OVERLAY ("hitcircleoverlay", "png"),
@@ -231,6 +227,11 @@ public enum GameImage {
 	SELECTION_OPTIONS_OVERLAY ("selection-options-over", "png", false, false),
 	SELECTION_OTHER_OPTIONS ("selection-selectoptions", "png", false, false),
 	SELECTION_OTHER_OPTIONS_OVERLAY ("selection-selectoptions-over", "png", false, false),
+
+	// Replay Speed Buttons
+	REPLAY_PLAYBACK_NORMAL ("playback-normal", "png", false, false),
+	REPLAY_PLAYBACK_DOUBLE ("playback-double", "png", false, false),
+	REPLAY_PLAYBACK_HALF ("playback-half", "png", false, false),
 
 	// Non-Game Components
 	VOLUME ("volume-bg", "png", false, false) {

@@ -298,8 +298,8 @@ public class MusicController {
 	}
 
 	/**
-	 * Sets the music pitch.
-	 * @param pitch [0, ..]
+	 * Sets the music pitch (and speed).
+	 * @param pitch
 	 */
 	public static void setPitch(float pitch) {
 		SoundStore.get().setMusicPitch(pitch);

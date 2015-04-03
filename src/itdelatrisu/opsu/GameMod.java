@@ -173,7 +173,7 @@ public enum GameMod {
 	/** The last calculated score multiplier, or -1f if it must be recalculated. */
 	private static float scoreMultiplier = -1f;
 
-	/**  */
+	/** The last calculated track speed multiplier, or -1f if it must be recalculated. */
 	private static float speedMultiplier = -1f;
 
 	/**
@@ -220,7 +220,7 @@ public enum GameMod {
 	}
 
 	/**
-	 *
+	 * Returns the current track speed multiplier from all active mods.
 	 */
 	public static float getSpeedMultiplier() {
 		if (speedMultiplier < 0f) {

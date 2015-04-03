@@ -118,10 +118,10 @@ public class OsuGroupNode {
 			return null;
 
 		OsuFile osu = osuFiles.get(osuFileIndex);
-		float speedModifier =  GameMod.getSpeedMultiplier();
+		float speedModifier = GameMod.getSpeedMultiplier();
 		long endTime = (long) (osu.endTime / speedModifier);
-		int bpmMin = (int) (osu.bpmMin  * speedModifier);
-		int bpmMax = (int) (osu.bpmMax  * speedModifier);
+		int bpmMin = (int) (osu.bpmMin * speedModifier);
+		int bpmMax = (int) (osu.bpmMax * speedModifier);
 		String[] info = new String[5];
 		info[0] = osu.toString();
 		info[1] = String.format("Mapped by %s",

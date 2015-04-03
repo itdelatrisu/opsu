@@ -337,7 +337,11 @@ public class SongMenu extends BasicGameState {
 
 			// song info text
 			if (songInfo == null) {
-				songInfo = getSongInfo();
+				songInfo = focusNode.getInfo();
+				if (Options.useUnicodeMetadata()) {  // load glyphs
+					OsuFile osu = focusNode.osuFiles.get(0);
+					Utils.loadGlyphs(Utils.FONT_LARGE, osu.titleUnicode, osu.artistUnicode);
+				}
 			}
 			marginX += 5;
 			float headerTextY = marginY;
@@ -345,8 +349,10 @@ public class SongMenu extends BasicGameState {
 			headerTextY += Utils.FONT_LARGE.getLineHeight() - 8;
 			Utils.FONT_DEFAULT.drawString(marginX + iconWidth * 1.05f, headerTextY, songInfo[1], Color.white);
 			headerTextY += Utils.FONT_DEFAULT.getLineHeight() - 2;
-			Utils.FONT_BOLD.drawString(marginX, headerTextY, songInfo[2],
-					(GameMod.DOUBLE_TIME.isActive()) ? Color.red : (GameMod.HALF_TIME.isActive()) ? Color.green : Color.white);
+			float speedModifier = GameMod.getSpeedMultiplier();
+			Color color2 = (speedModifier == 1f) ? Color.white :
+				(speedModifier > 1f) ? Utils.COLOR_RED_HIGHLIGHT : Utils.COLOR_BLUE_HIGHLIGHT;
+			Utils.FONT_BOLD.drawString(marginX, headerTextY, songInfo[2], color2);
 			headerTextY += Utils.FONT_BOLD.getLineHeight() - 4;
 			Utils.FONT_DEFAULT.drawString(marginX, headerTextY, songInfo[3], Color.white);
 			headerTextY += Utils.FONT_DEFAULT.getLineHeight() - 4;
@@ -934,6 +940,7 @@ public class SongMenu extends BasicGameState {
 		startScore = 0;
 		beatmapMenuTimer = -1;
 		searchTransitionTimer = SEARCH_TRANSITION_TIME;
+		songInfo = null;
 
 		// reset song stack
 		randomStack = new Stack<SongNode>();
@@ -978,9 +985,6 @@ public class SongMenu extends BasicGameState {
 
 			resetGame = false;
 		}
-
-		// load song info
-		songInfo = getSongInfo();
 
 		// state-based action
 		if (stateAction != null) {
@@ -1301,20 +1305,6 @@ public class SongMenu extends BasicGameState {
 		} else
 			return null;  // incorrect map
 	}
-
-	/**
-	 * Returns an array of strings containing song information.
-	 * @return the String array
-	 */
-	private String[] getSongInfo () {
-		songInfo = focusNode.getInfo();
-		if (Options.useUnicodeMetadata()) {  // load glyphs
-			OsuFile osu = focusNode.osuFiles.get(0);
-			Utils.loadGlyphs(Utils.FONT_LARGE, osu.titleUnicode, osu.artistUnicode);
-		}
-		return songInfo;
-	}
-
 
 	/**
 	 * Starts the game.

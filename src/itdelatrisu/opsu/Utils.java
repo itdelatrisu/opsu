@@ -22,6 +22,7 @@ import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
 import itdelatrisu.opsu.downloads.Download;
 import itdelatrisu.opsu.downloads.DownloadNode;
+import itdelatrisu.opsu.replay.PlaybackSpeed;
 
 import java.awt.Font;
 import java.awt.image.BufferedImage;
@@ -49,7 +50,6 @@ import java.util.Scanner;
 
 import javax.imageio.ImageIO;
 
-import itdelatrisu.opsu.replay.PlaybackSpeed;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
@@ -91,7 +91,9 @@ public class Utils {
 		COLOR_LIGHT_GREEN     = new Color(128,255,128),
 		COLOR_LIGHT_BLUE      = new Color(128,128,255),
 		COLOR_GREEN_SEARCH    = new Color(173, 255, 47),
-		COLOR_DARK_GRAY       = new Color(0.3f, 0.3f, 0.3f, 1f);
+		COLOR_DARK_GRAY       = new Color(0.3f, 0.3f, 0.3f, 1f),
+		COLOR_RED_HIGHLIGHT   = new Color(246, 154, 161),
+		COLOR_BLUE_HIGHLIGHT  = new Color(173, 216, 230);
 
 	/** The default map colors, used when a map does not provide custom colors. */
 	public static final Color[] DEFAULT_COMBO = {
