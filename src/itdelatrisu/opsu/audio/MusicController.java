@@ -298,6 +298,14 @@ public class MusicController {
 	}
 
 	/**
+	 * Sets the music pitch.
+	 * @param pitch [0, ..]
+	 */
+	public static void setPitch(float pitch) {
+		SoundStore.get().setMusicPitch(pitch);
+	}
+
+	/**
 	 * Returns whether or not the current track has ended.
 	 */
 	public static boolean trackEnded() { return trackEnded; }

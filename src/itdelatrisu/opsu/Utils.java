@@ -49,6 +49,7 @@ import java.util.Scanner;
 
 import javax.imageio.ImageIO;
 
+import itdelatrisu.opsu.replay.PlaybackSpeed;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
@@ -179,6 +180,9 @@ public class Utils {
 
 		// initialize game mods
 		GameMod.init(width, height);
+
+		// initialize playback buttons
+		PlaybackSpeed.init(width, height);
 
 		// initialize hit objects
 		OsuHitObject.init(width, height);

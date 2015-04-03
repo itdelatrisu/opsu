@@ -337,11 +337,7 @@ public class SongMenu extends BasicGameState {
 
 			// song info text
 			if (songInfo == null) {
-				songInfo = focusNode.getInfo();
-				if (Options.useUnicodeMetadata()) {  // load glyphs
-					OsuFile osu = focusNode.osuFiles.get(0);
-					Utils.loadGlyphs(Utils.FONT_LARGE, osu.titleUnicode, osu.artistUnicode);
-				}
+				songInfo = getSongInfo();
 			}
 			marginX += 5;
 			float headerTextY = marginY;
@@ -349,7 +345,8 @@ public class SongMenu extends BasicGameState {
 			headerTextY += Utils.FONT_LARGE.getLineHeight() - 8;
 			Utils.FONT_DEFAULT.drawString(marginX + iconWidth * 1.05f, headerTextY, songInfo[1], Color.white);
 			headerTextY += Utils.FONT_DEFAULT.getLineHeight() - 2;
-			Utils.FONT_BOLD.drawString(marginX, headerTextY, songInfo[2], Color.white);
+			Utils.FONT_BOLD.drawString(marginX, headerTextY, songInfo[2],
+					(GameMod.DOUBLE_TIME.isActive()) ? Color.red : (GameMod.HALF_TIME.isActive()) ? Color.green : Color.white);
 			headerTextY += Utils.FONT_BOLD.getLineHeight() - 4;
 			Utils.FONT_DEFAULT.drawString(marginX, headerTextY, songInfo[3], Color.white);
 			headerTextY += Utils.FONT_DEFAULT.getLineHeight() - 4;
@@ -982,6 +979,9 @@ public class SongMenu extends BasicGameState {
 			resetGame = false;
 		}
 
+		// load song info
+		songInfo = getSongInfo();
+
 		// state-based action
 		if (stateAction != null) {
 			switch (stateAction) {
@@ -1301,6 +1301,20 @@ public class SongMenu extends BasicGameState {
 		} else
 			return null;  // incorrect map
 	}
+
+	/**
+	 * Returns an array of strings containing song information.
+	 * @return the String array
+	 */
+	private String[] getSongInfo () {
+		songInfo = focusNode.getInfo();
+		if (Options.useUnicodeMetadata()) {  // load glyphs
+			OsuFile osu = focusNode.osuFiles.get(0);
+			Utils.loadGlyphs(Utils.FONT_LARGE, osu.titleUnicode, osu.artistUnicode);
+		}
+		return songInfo;
+	}
+
 
 	/**
 	 * Starts the game.
