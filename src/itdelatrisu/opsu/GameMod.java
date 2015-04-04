@@ -176,6 +176,9 @@ public enum GameMod {
 	/** The last calculated track speed multiplier, or -1f if it must be recalculated. */
 	private static float speedMultiplier = -1f;
 
+	/** The last calculated difficulty multiplier, or -1f if it must be recalculated. */
+	private static float difficultyMultiplier = -1f;
+
 	/**
 	 * Initializes the game mods.
 	 * @param width the container width
@@ -201,7 +204,7 @@ public enum GameMod {
 			mod.active = false;
 		}
 
-		scoreMultiplier = speedMultiplier = -1f;
+		scoreMultiplier = speedMultiplier = difficultyMultiplier = -1f;
 	}
 
 	/**
@@ -224,14 +227,29 @@ public enum GameMod {
 	 */
 	public static float getSpeedMultiplier() {
 		if (speedMultiplier < 0f) {
-			float multiplier = 1f;
 			if (DOUBLE_TIME.isActive())
-				multiplier = 1.5f;
+				speedMultiplier = 1.5f;
 			else if (HALF_TIME.isActive())
-				multiplier = 0.75f;
-			speedMultiplier = multiplier;
+				speedMultiplier = 0.75f;
+			else
+				speedMultiplier = 1f;
 		}
 		return speedMultiplier;
+	}
+
+	/**
+	 * Returns the current difficulty multiplier from all active mods.
+	 */
+	public static float getDifficultyMultiplier() {
+		if (difficultyMultiplier < 0f) {
+			if (HARD_ROCK.isActive())
+				difficultyMultiplier = 1.4f;
+			else if (EASY.isActive())
+				difficultyMultiplier = 0.5f;
+			else
+				difficultyMultiplier = 1f;
+		}
+		return difficultyMultiplier;
 	}
 
 	/**
@@ -251,7 +269,7 @@ public enum GameMod {
 	 * @param state the state (bitwise OR of active mods)
 	 */
 	public static void loadModState(int state) {
-		scoreMultiplier = speedMultiplier = -1f;
+		scoreMultiplier = speedMultiplier = difficultyMultiplier = -1f;
 		for (GameMod mod : GameMod.values())
 			mod.active = ((state & mod.getBit()) > 0);
 	}
@@ -371,7 +389,7 @@ public enum GameMod {
 			return;
 
 		active = !active;
-		scoreMultiplier = speedMultiplier = -1f;
+		scoreMultiplier = speedMultiplier = difficultyMultiplier = -1f;
 
 		if (checkInverse) {
 			if (AUTO.isActive()) {

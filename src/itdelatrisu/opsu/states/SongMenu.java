@@ -356,7 +356,10 @@ public class SongMenu extends BasicGameState {
 			headerTextY += Utils.FONT_BOLD.getLineHeight() - 4;
 			Utils.FONT_DEFAULT.drawString(marginX, headerTextY, songInfo[3], Color.white);
 			headerTextY += Utils.FONT_DEFAULT.getLineHeight() - 4;
-			Utils.FONT_SMALL.drawString(marginX, headerTextY, songInfo[4], Color.white);
+			float multiplier = GameMod.getDifficultyMultiplier();
+			Color color4 = (multiplier == 1f) ? Color.white :
+				(multiplier > 1f) ? Utils.COLOR_RED_HIGHLIGHT : Utils.COLOR_BLUE_HIGHLIGHT;
+			Utils.FONT_SMALL.drawString(marginX, headerTextY, songInfo[4], color4);
 		}
 
 		// score buttons

@@ -1358,26 +1358,11 @@ public class Game extends BasicGameState {
 	 */
 	private void setMapModifiers() {
 		// map-based properties, re-initialized each game
-		float circleSize = osu.circleSize;
-		float approachRate = osu.approachRate;
-		float overallDifficulty = osu.overallDifficulty;
-		float HPDrainRate = osu.HPDrainRate;
-
-		// "Hard Rock" modifiers
-		if (GameMod.HARD_ROCK.isActive()) {
-			circleSize = Math.min(circleSize * 1.4f, 10);
-			approachRate = Math.min(approachRate * 1.4f, 10);
-			overallDifficulty = Math.min(overallDifficulty * 1.4f, 10);
-			HPDrainRate = Math.min(HPDrainRate * 1.4f, 10);
-		}
-
-		// "Easy" modifiers
-		else if (GameMod.EASY.isActive()) {
-			circleSize /= 2f;
-			approachRate /= 2f;
-			overallDifficulty /= 2f;
-			HPDrainRate /= 2f;
-		}
+		float multiplier = GameMod.getDifficultyMultiplier();
+		float circleSize = Math.min(osu.circleSize * multiplier, 10f);
+		float approachRate = Math.min(osu.approachRate * multiplier, 10f);
+		float overallDifficulty = Math.min(osu.overallDifficulty * multiplier, 10f);
+		float HPDrainRate = Math.min(osu.HPDrainRate * multiplier, 10f);
 
 		// fixed difficulty overrides
 		if (Options.getFixedCS() > 0f)

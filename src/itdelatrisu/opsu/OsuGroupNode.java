@@ -122,10 +122,10 @@ public class OsuGroupNode {
 		long endTime = (long) (osu.endTime / speedModifier);
 		int bpmMin = (int) (osu.bpmMin * speedModifier);
 		int bpmMax = (int) (osu.bpmMax * speedModifier);
+		float multiplier = GameMod.getDifficultyMultiplier();
 		String[] info = new String[5];
 		info[0] = osu.toString();
-		info[1] = String.format("Mapped by %s",
-				osu.creator);
+		info[1] = String.format("Mapped by %s", osu.creator);
 		info[2] = String.format("Length: %d:%02d  BPM: %s  Objects: %d",
 				TimeUnit.MILLISECONDS.toMinutes(endTime),
 				TimeUnit.MILLISECONDS.toSeconds(endTime) -
@@ -135,7 +135,10 @@ public class OsuGroupNode {
 		info[3] = String.format("Circles: %d  Sliders: %d  Spinners: %d",
 				osu.hitObjectCircle, osu.hitObjectSlider, osu.hitObjectSpinner);
 		info[4] = String.format("CS:%.1f HP:%.1f AR:%.1f OD:%.1f",
-				osu.circleSize, osu.HPDrainRate, osu.approachRate, osu.overallDifficulty);
+				Math.min(osu.circleSize * multiplier, 10f),
+				Math.min(osu.HPDrainRate * multiplier, 10f),
+				Math.min(osu.approachRate * multiplier, 10f),
+				Math.min(osu.overallDifficulty * multiplier, 10f));
 		return info;
 	}
 
