@@ -244,6 +244,7 @@ public class UI {
 		int FPSmod = (Options.getTargetFPS() / 60);
 
 		// TODO: use an image buffer
+		/*
 		if (newStyle) {
 			// new style: add all points between cursor movements
 			if (lastX < 0) {
@@ -264,7 +265,7 @@ public class UI {
 			int max = 10 * FPSmod;
 			if (cursorX.size() > max)
 				removeCount = cursorX.size() - max;
-		}
+		}*/
 
 		// remove points from the lists
 		for (int i = 0; i < removeCount && !cursorX.isEmpty(); i++) {

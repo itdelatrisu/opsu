@@ -77,6 +77,7 @@ public class ScoreData implements Comparable<ScoreData> {
 	/** The tooltip string. */
 	private String tooltip;
 	
+	/** The players Name. */
 	public String playerName;
 
 	/** Drawing values. */

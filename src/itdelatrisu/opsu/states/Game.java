@@ -217,6 +217,10 @@ public class Game extends BasicGameState {
 	private Input input;
 	private int state;
 
+	private int width;
+
+	private int height;
+
 	public Game(int state) {
 		this.state = state;
 	}
@@ -228,8 +232,8 @@ public class Game extends BasicGameState {
 		this.game = game;
 		input = container.getInput();
 
-		int width = container.getWidth();
-		int height = container.getHeight();
+		width = container.getWidth();
+		height = container.getHeight();
 
 		// create offscreen graphics
 		offscreen = new Image(width, height);
@@ -597,6 +601,27 @@ public class Game extends BasicGameState {
 			// out of frames, use previous data
 			if (replayIndex >= replay.frames.length)
 				updateGame(replayX, replayY, delta, MusicController.getPosition(), lastKeysPressed);
+			
+			//TODO probably should to disable sounds then reseek to the new position
+			if(replayIndex-1 >= 1 && replayIndex < replay.frames.length && trackPosition < replay.frames[replayIndex-1].getTime()){
+				replayIndex = 0;
+				while(objectIndex>=0){
+					hitObjects[objectIndex].reset();
+					objectIndex--;
+					
+				}
+				// load the first timingPoint
+				if (!osu.timingPoints.isEmpty()) {
+					OsuTimingPoint timingPoint = osu.timingPoints.get(0);
+					if (!timingPoint.isInherited()) {
+						beatLengthBase = beatLength = timingPoint.getBeatLength();
+						HitSound.setDefaultSampleSet(timingPoint.getSampleType());
+						SoundController.setSampleVolume(timingPoint.getSampleVolume());
+						timingPointIndex++;
+					}
+				}
+				resetGameData();
+			}
 
 			// update and run replay frames
 			while (replayIndex < replay.frames.length && trackPosition >= replay.frames[replayIndex].getTime()) {
@@ -743,7 +768,7 @@ public class Game extends BasicGameState {
 		while (objectIndex < hitObjects.length && trackPosition > osu.objects[objectIndex].getTime()) {
 			// check if we've already passed the next object's start time
 			boolean overlap = (objectIndex + 1 < hitObjects.length &&
-					trackPosition > osu.objects[objectIndex + 1].getTime() - hitResultOffset[GameData.HIT_300]);
+					trackPosition > osu.objects[objectIndex + 1].getTime() - hitResultOffset[GameData.HIT_50]);
 
 			// update hit object and check completion status
 			if (hitObjects[objectIndex].update(overlap, delta, mouseX, mouseY, keyPressed, trackPosition))
@@ -879,6 +904,11 @@ public class Game extends BasicGameState {
 			// only allow skip button
 			if (button != Input.MOUSE_MIDDLE_BUTTON && skipButton.contains(x, y))
 				skipIntro();
+			if(y < 50){
+				float pos = (float)x / width * osu.endTime;
+				System.out.println("Seek to"+pos);
+				MusicController.setPosition((int)pos);
+			}
 			return;
 		}
 
@@ -1028,13 +1058,21 @@ public class Game extends BasicGameState {
 			MusicController.setPosition(0);
 			MusicController.pause();
 
+			if (!osu.timingPoints.isEmpty()) {
+				OsuTimingPoint timingPoint = osu.timingPoints.get(0);
+				if (!timingPoint.isInherited()) {
+					beatLengthBase = beatLength = timingPoint.getBeatLength();
+				}
+			}
+			hitObjects = new HitObject[osu.objects.length];
+			
 			// initialize object maps
 			for (int i = 0; i < osu.objects.length; i++) {
 				OsuHitObject hitObject = osu.objects[i];
 
 				// is this the last note in the combo?
 				boolean comboEnd = false;
-				if (i + 1 < osu.objects.length && osu.objects[i + 1].isNewCombo())
+				if (i + 1 >= osu.objects.length || osu.objects[i + 1].isNewCombo())
 					comboEnd = true;
 
 				Color color = osu.combo[hitObject.getComboIndex()];
@@ -1086,6 +1124,7 @@ public class Game extends BasicGameState {
 
 			// load replay frames
 			if (isReplay) {
+				//System.out.println(replay.toString());
 				// load mods
 				previousMods = GameMod.getModState();
 				GameMod.loadModState(replay.mods);
@@ -1238,7 +1277,6 @@ public class Game extends BasicGameState {
 	 * Resets all game data and structures.
 	 */
 	public void resetGameData() {
-		hitObjects = new HitObject[osu.objects.length];
 		data.clear();
 		objectIndex = 0;
 		breakIndex = 0;
@@ -1376,15 +1414,25 @@ public class Game extends BasicGameState {
 
 		// overallDifficulty (hit result time offsets)
 		hitResultOffset = new int[GameData.HIT_MAX];
+		//*
+		float mult = 0.608f;
+		hitResultOffset[GameData.HIT_300]  = (int) ((128 - (overallDifficulty * 9.6))*mult);
+		hitResultOffset[GameData.HIT_100]  = (int) ((224 - (overallDifficulty * 12.8))*mult);
+		hitResultOffset[GameData.HIT_50]   = (int) ((320 - (overallDifficulty * 16))*mult);
+		hitResultOffset[GameData.HIT_MISS] = (int) ((1000 - (overallDifficulty * 10))*mult);
+		/*/
 		hitResultOffset[GameData.HIT_300]  = (int) (78 - (overallDifficulty * 6));
 		hitResultOffset[GameData.HIT_100]  = (int) (138 - (overallDifficulty * 8));
 		hitResultOffset[GameData.HIT_50]   = (int) (198 - (overallDifficulty * 10));
 		hitResultOffset[GameData.HIT_MISS] = (int) (500 - (overallDifficulty * 10));
-
+		//*/
 		// HPDrainRate (health change), overallDifficulty (scoring)
 		data.setDrainRate(HPDrainRate);
 		data.setDifficulty(overallDifficulty);
+		data.setApproachRate(approachRate);
+		data.setCircleSize(circleSize);
 		data.setHitResultOffset(hitResultOffset);
+		data.calculateDifficultyMultiplier();
 	}
 
 	/**
@@ -1491,6 +1539,7 @@ public class Game extends BasicGameState {
 	 * @param keys the keys that are pressed
 	 */
 	private void sendGameKeyPress(int keys, int x, int y, int trackPosition) {
+		System.out.println("Game Key Pressed"+keys+" "+x+" "+y+" "+objectIndex);
 		if (objectIndex >= hitObjects.length)  // nothing to do here
 			return;
 

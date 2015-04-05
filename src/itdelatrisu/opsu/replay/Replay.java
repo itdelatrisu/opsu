@@ -138,6 +138,11 @@ public class Replay {
 		loaded = true;
 	}
 	
+	public void loadHeader() throws IOException {
+		OsuReader reader = new OsuReader(file);
+		loadHeader(reader);
+		reader.close();
+	}
 	/**
 	 * Returns a ScoreData object encapsulating all game data.
 	 * If score data already exists, the existing object will be returned
@@ -181,7 +186,7 @@ public class Replay {
 	private void loadHeader(OsuReader reader) throws IOException {
 		this.mode = reader.readByte();
 		this.version = reader.readInt();
-		System.out.println("Header:"+file.getName()+" "+mode+" "+version);
+		//System.out.println("Header:"+file.getName()+" "+mode+" "+version);
 		this.beatmapHash = reader.readString();
 		this.playerName = reader.readString();
 		this.replayHash = reader.readString();
@@ -203,6 +208,7 @@ public class Replay {
 	 * @throws IOException
 	 */
 	private void loadData(OsuReader reader) throws IOException {
+		//System.out.println("Load Data");
 		// life data
 		String[] lifeData = reader.readString().split(",");
 		List<LifeFrame> lifeFrameList = new ArrayList<LifeFrame>(lifeData.length);
@@ -369,8 +375,8 @@ public class Replay {
 
 	@Override
 	public String toString() {
-		final int LINE_SPLIT = 5;
-		final int MAX_LINES = LINE_SPLIT * 10;
+		final int LINE_SPLIT = 1;
+		final int MAX_LINES = LINE_SPLIT * 99999999;
 
 		StringBuilder sb = new StringBuilder();
 		sb.append("File: "); sb.append(file.getName()); sb.append('\n');

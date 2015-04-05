@@ -97,6 +97,11 @@ public class ScoreDB {
 
 		// prepare sql statements
 		try {
+			
+			//TODO  timestamp as primary key should prevent importing the same replay multiple times
+			//but if for some magical reason two different replays has the same time stamp
+			//it will fail, such as copying replays from another drive? which will reset
+			//the last modified of the file.
 			insertStmt = connection.prepareStatement(
 				"INSERT OR IGNORE INTO scores VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 			);
@@ -116,7 +121,8 @@ public class ScoreDB {
 				"DELETE FROM scores WHERE " +
 				"timestamp = ? AND MID = ? AND MSID = ? AND title = ? AND artist = ? AND " +
 				"creator = ? AND version = ? AND hit300 = ? AND hit100 = ? AND hit50 = ? AND " +
-				"geki = ? AND katu = ? AND miss = ? AND score = ? AND combo = ? AND perfect = ? AND mods = ?"
+				"geki = ? AND katu = ? AND miss = ? AND score = ? AND combo = ? AND perfect = ? AND mods = ? AND " +
+				"replay = ? AND playerName = ?"
 			);
 		} catch (SQLException e) {
 			ErrorHandler.error("Failed to prepare score statements.", e, true);
@@ -286,6 +292,7 @@ public class ScoreDB {
 		stmt.setInt(15, data.combo);
 		stmt.setBoolean(16, data.perfect);
 		stmt.setInt(17, data.mods);
+		stmt.setString(18, data.replayString);
 		stmt.setString(19, data.playerName);
 		
 	}

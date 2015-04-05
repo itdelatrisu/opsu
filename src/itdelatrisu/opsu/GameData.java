@@ -267,6 +267,14 @@ public class GameData {
 	/** Beatmap OverallDifficulty value. (0:easy ~ 10:hard) */
 	private float difficulty = 5f;
 
+	/** Beatmap ApproachRate value. (0:easy ~ 10:hard) */
+	private float approachRate = 5f;
+	
+	/** Beatmap CircleSize value. (2:big ~ 7:small) */
+	private float circleSize = 5f;
+	
+	private int difficultyMultiplier = -1;
+
 	/** Default text symbol images. */
 	private Image[] defaultSymbols;
 
@@ -432,6 +440,18 @@ public class GameData {
 	public void setDifficulty(float difficulty) { this.difficulty = difficulty; }
 	public float getDifficulty() { return difficulty; }
 
+	/**
+	 * Sets or returns the approach rate.
+	 */
+	public void setApproachRate(float approachRate) { this.approachRate = approachRate; }
+	public float getApproachRate() { return approachRate; }
+	
+	/**
+	 * Sets or returns the approach rate.
+	 */
+	public void setCircleSize(float circleSize) { this.circleSize = circleSize; }
+	public float getCircleSize() { return circleSize; }
+	
 	/**
 	 * Sets the array of hit result offsets.
 	 */
@@ -1118,6 +1138,10 @@ public class GameData {
 				hitResultList.add(new OsuHitObjectResult(time, result, x, y, null, false));
 		}
 	}
+	public void sliderFinalResult(int time, int hitSlider30, float x, float y,
+			OsuHitObject hitObject, int currentRepeats) {
+		score += 30;
+	}
 
 	/**
 	 * Handles a hit result.
@@ -1141,15 +1165,18 @@ public class GameData {
 			changeHealth(5f);
 			break;
 		case HIT_100:
+			System.out.println("100! "+hitObject+" "+hitObject.getTime()+" "+hitObject.getTypeName());
 			hitValue = 100;
 			changeHealth(2f);
 			comboEnd |= 1;
 			break;
 		case HIT_50:
+			System.out.println("50! "+hitObject+" "+hitObject.getTime()+" "+hitObject.getTypeName());
 			hitValue = 50;
 			comboEnd |= 2;
 			break;
 		case HIT_MISS:
+			System.out.println("miss! "+hitObject+" "+hitObject.getTime()+" "+hitObject.getTypeName());
 			hitValue = 0;
 			changeHealth(-10f);
 			comboEnd |= 2;
@@ -1164,6 +1191,7 @@ public class GameData {
 					hitObject.getSampleSet(repeat),
 					hitObject.getAdditionSampleSet(repeat));
 			/**
+			 * https://osu.ppy.sh/wiki/Score
 			 * [SCORE FORMULA]
 			 * Score = Hit Value + Hit Value * (Combo * Difficulty * Mod) / 25
 			 * - Hit Value: hit result (50, 100, 300), slider ticks, spinner bonus
@@ -1171,7 +1199,11 @@ public class GameData {
 			 * - Difficulty: the beatmap difficulty
 			 * - Mod: mod multipliers
 			 */
-			score += (hitValue + (hitValue * (Math.max(combo - 1, 0) * difficulty * GameMod.getScoreMultiplier()) / 25));
+			int comboMulti = Math.max(combo - 1, 0);
+			if(hitObject.isSlider()){
+				comboMulti += 1;
+			}
+			score += (hitValue + (hitValue * (comboMulti * getDifficultyMultiplier() * GameMod.getScoreMultiplier()) / 25));
 			incrementComboStreak();
 		}
 		hitResultCount[result]++;
@@ -1205,6 +1237,23 @@ public class GameData {
 			hitResultList.add(new OsuHitObjectResult(time, result, x, y, color, hitObject.isSpinner()));
 	}
 
+	private int getDifficultyMultiplier() {
+		return difficultyMultiplier;
+	}
+
+	public void calculateDifficultyMultiplier() {
+		//https://osu.ppy.sh/wiki/Score#How_to_calculate_the_Difficulty_multiplier
+		//TODO   THE LIES ( difficultyMultiplier )
+		/*
+			924 3x1/4 beat notes 0.14stars
+			924 3x1beat 0.28stars
+			912 3x1beat wth 1 extra note 10 sec away 0.29stars
+			
+			seems to be based on hitobject density?  (Total Objects/Time)
+		 */
+		
+		difficultyMultiplier = (int)((circleSize + difficulty + drainRate) / 6) + 2;
+	}
 	/**
 	 * Returns a ScoreData object encapsulating all game data.
 	 * If score data already exists, the existing object will be returned
@@ -1235,7 +1284,7 @@ public class GameData {
 		scoreData.perfect = (comboMax == fullObjectCount);
 		scoreData.mods = GameMod.getModState();
 		scoreData.replayString = (replay == null) ? null : replay.getReplayFilename();
-		scoreData.playerName = "OpsuPlayer"; //TODO?
+		scoreData.playerName = "OpsuPlayer"; //TODO GameDataPlayerName?
 		return scoreData;
 	}
 

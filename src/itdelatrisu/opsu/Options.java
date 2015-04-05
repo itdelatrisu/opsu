@@ -452,7 +452,7 @@ public class Options {
 	private static Resolution resolution = Resolution.RES_1024_768;
 
 	/** Frame limiters. */
-	private static final int[] targetFPS = { 60, 120, 240 };
+	private static final int[] targetFPS = { 60, 120, 240, 30, 20, 15, 12 };
 
 	/** Index in targetFPS[] array. */
 	private static int targetFPSindex = 0;
@@ -830,8 +830,8 @@ public class Options {
 	
 	/**
 	 * Returns the replay import directory.
-	 * If invalid, this will create and return a "SongPacks" directory.
-	 * @return the OSZ archive directory
+	 * If invalid, this will create and return a "ReplayImport" directory.
+	 * @return the replay import directory
 	 */
 	public static File getReplayImportDir() {
 		if (replayImportDir != null && replayImportDir.isDirectory())

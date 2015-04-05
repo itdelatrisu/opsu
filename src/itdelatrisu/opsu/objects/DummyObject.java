@@ -63,4 +63,9 @@ public class DummyObject implements HitObject {
 		this.x = hitObject.getScaledX();
 		this.y = hitObject.getScaledY();
 	}
+
+	@Override
+	public void reset() {
+		
+	}
 }

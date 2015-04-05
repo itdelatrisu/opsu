@@ -36,6 +36,8 @@ public class Circle implements HitObject {
 	/** The amount of time, in milliseconds, to fade in the circle. */
 	private static final int FADE_IN_TIME = 375;
 
+	private static float diameter;
+	
 	/** The associated OsuHitObject. */
 	private OsuHitObject hitObject;
 
@@ -54,17 +56,19 @@ public class Circle implements HitObject {
 	/** Whether or not the circle result ends the combo streak. */
 	private boolean comboEnd;
 
+	
 	/**
 	 * Initializes the Circle data type with map modifiers, images, and dimensions.
 	 * @param container the game container
 	 * @param circleSize the map's circleSize value
 	 */
 	public static void init(GameContainer container, float circleSize) {
-		int diameter = (int) (104 - (circleSize * 8));
-		diameter = (int) (diameter * OsuHitObject.getXMultiplier());  // convert from Osupixels (640x480)
-		GameImage.HITCIRCLE.setImage(GameImage.HITCIRCLE.getImage().getScaledCopy(diameter, diameter));
-		GameImage.HITCIRCLE_OVERLAY.setImage(GameImage.HITCIRCLE_OVERLAY.getImage().getScaledCopy(diameter, diameter));
-		GameImage.APPROACHCIRCLE.setImage(GameImage.APPROACHCIRCLE.getImage().getScaledCopy(diameter, diameter));
+		diameter =  (108 - (circleSize * 8));
+		diameter =  (diameter * OsuHitObject.getXMultiplier());  // convert from Osupixels (640x480)
+		int diameterInt = (int)diameter;
+		GameImage.HITCIRCLE.setImage(GameImage.HITCIRCLE.getImage().getScaledCopy(diameterInt, diameterInt));
+		GameImage.HITCIRCLE_OVERLAY.setImage(GameImage.HITCIRCLE_OVERLAY.getImage().getScaledCopy(diameterInt, diameterInt));
+		GameImage.APPROACHCIRCLE.setImage(GameImage.APPROACHCIRCLE.getImage().getScaledCopy(diameterInt, diameterInt));
 	}
 
 	/**
@@ -113,16 +117,19 @@ public class Circle implements HitObject {
 	private int hitResult(int time) {
 		int timeDiff = Math.abs(time);
 
+		
 		int[] hitResultOffset = game.getHitResultOffsets();
 		int result = -1;
-		if (timeDiff < hitResultOffset[GameData.HIT_300])
+		if (timeDiff <= hitResultOffset[GameData.HIT_300])
 			result = GameData.HIT_300;
-		else if (timeDiff < hitResultOffset[GameData.HIT_100])
+		else if (timeDiff <= hitResultOffset[GameData.HIT_100])
 			result = GameData.HIT_100;
-		else if (timeDiff < hitResultOffset[GameData.HIT_50])
+		else if (timeDiff <= hitResultOffset[GameData.HIT_50])
 			result = GameData.HIT_50;
-		else if (timeDiff < hitResultOffset[GameData.HIT_MISS])
+		else if (timeDiff <= hitResultOffset[GameData.HIT_MISS]){
 			result = GameData.HIT_MISS;
+			System.out.println(timeDiff);
+		}
 		//else not a hit
 
 		return result;
@@ -131,8 +138,7 @@ public class Circle implements HitObject {
 	@Override
 	public boolean mousePressed(int x, int y, int trackPosition) {
 		double distance = Math.hypot(this.x - x, this.y - y);
-		int circleRadius = GameImage.HITCIRCLE.getImage().getWidth() / 2;
-		if (distance < circleRadius) {
+		if (distance < diameter/2) {
 			int timeDiff = trackPosition - hitObject.getTime();
 			int result = hitResult(timeDiff);
 
@@ -152,7 +158,7 @@ public class Circle implements HitObject {
 		int[] hitResultOffset = game.getHitResultOffsets();
 		boolean isAutoMod = GameMod.AUTO.isActive();
 
-		if (overlap || trackPosition > time + hitResultOffset[GameData.HIT_50]) {
+		if (trackPosition > time + hitResultOffset[GameData.HIT_50]) {
 			if (isAutoMod)  // "auto" mod: catch any missed notes due to lag
 				data.hitResult(time, GameData.HIT_300, x, y, color, comboEnd, hitObject, 0);
 
@@ -186,5 +192,10 @@ public class Circle implements HitObject {
 	public void updatePosition() {
 		this.x = hitObject.getScaledX();
 		this.y = hitObject.getScaledY();
+	}
+
+	@Override
+	public void reset() {
+		
 	}
 }

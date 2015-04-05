@@ -180,6 +180,7 @@ public class OsuFile implements Comparable<OsuFile> {
 	/** Combo colors (max 8). */
 	public Color[] combo;
 	
+	/** md5 hash of this file */
 	public String md5Hash;
 
 	/**

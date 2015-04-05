@@ -57,7 +57,7 @@ public class OsuGroupList {
 	/** Set of all beatmap set IDs for the parsed beatmaps. */
 	private HashSet<Integer> MSIDdb;
 	
-	/** Set of all beatmap set IDs for the parsed beatmaps. */
+	/** Map of all hash to OsuFile . */
 	public HashMap<String, OsuFile> beatmapHashesToFile;
 
 
