@@ -47,6 +47,9 @@ public class GameData {
 	/** Time, in milliseconds, for a hit result to fade. */
 	public static final int HITRESULT_FADE_TIME = 500;
 
+	/** Time, in milliseconds, for a hit circle to fade. */
+	public static final int HITCIRCLE_FADE_TIME = 233;
+
 	/** Duration, in milliseconds, of a combo pop effect. */
 	private static final int COMBO_POP_TIME = 250;
 
@@ -839,17 +842,22 @@ public class GameData {
 				// hit lighting
 				else if (Options.isHitLightingEnabled() && hitResult.result != HIT_MISS &&
 					hitResult.result != HIT_SLIDER30 && hitResult.result != HIT_SLIDER10) {
-					float scale = 1f + ((trackPosition - hitResult.time) / (float) HITRESULT_FADE_TIME);
-					Image scaledLighting  = GameImage.LIGHTING.getImage().getScaledCopy(scale);
-					Image scaledLighting1 = GameImage.LIGHTING1.getImage().getScaledCopy(scale);
-					scaledLighting.setAlpha(hitResult.alpha);
-					scaledLighting1.setAlpha(hitResult.alpha);
-
-					scaledLighting.draw(hitResult.x - (scaledLighting.getWidth() / 2f),
-							hitResult.y - (scaledLighting.getHeight() / 2f), hitResult.color);
-					scaledLighting1.draw(hitResult.x - (scaledLighting1.getWidth() / 2f),
-							hitResult.y - (scaledLighting1.getHeight() / 2f), hitResult.color);
+					// soon add particle system to reflect original game
+					Image lighting  = GameImage.LIGHTING.getImage();
+					lighting.setAlpha(hitResult.alpha);
+					lighting.drawCentered(hitResult.x, hitResult.y, hitResult.color);
 				}
+
+				// hit animation
+				Image scaledHitCircle = GameImage.HITCIRCLE.getImage().getScaledCopy(
+						1f + (((float)(trackPosition - hitResult.time) / HITCIRCLE_FADE_TIME) / 2));
+				scaledHitCircle.setAlpha(1f - Utils.clamp((float)(trackPosition - hitResult.time) / HITCIRCLE_FADE_TIME, 0, 1));
+				Image scaledHitCircleOverlay = GameImage.HITCIRCLE_OVERLAY.getImage().getScaledCopy(
+						1f + (((float)(trackPosition - hitResult.time) / HITCIRCLE_FADE_TIME) / 2));
+				scaledHitCircleOverlay.setAlpha(1f - Utils.clamp((float) (trackPosition - hitResult.time) / HITCIRCLE_FADE_TIME, 0, 1));
+
+				scaledHitCircle.drawCentered(hitResult.x, hitResult.y, hitResult.color);
+				scaledHitCircleOverlay.drawCentered(hitResult.x, hitResult.y);
 
 				hitResult.alpha = 1 - ((float) (trackPosition - hitResult.time) / HITRESULT_FADE_TIME);
 			} else

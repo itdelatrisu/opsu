@@ -202,7 +202,6 @@ public enum GameImage {
 	SCORE_PERCENT ("score-percent", "png"),
 	SCORE_X ("score-x", "png"),
 	LIGHTING ("lighting", "png"),
-	LIGHTING1 ("lighting1", "png"),
 
 	// Game Mods
 	MOD_EASY ("selection-mod-easy", "png", false, false),
