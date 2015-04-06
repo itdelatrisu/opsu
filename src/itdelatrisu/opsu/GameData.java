@@ -826,11 +826,6 @@ public class GameData {
 		while (iter.hasNext()) {
 			OsuHitObjectResult hitResult = iter.next();
 			if (hitResult.time + HITRESULT_FADE_TIME > trackPosition) {
-				// hit result
-				hitResults[hitResult.result].setAlpha(hitResult.alpha);
-				hitResults[hitResult.result].drawCentered(hitResult.x, hitResult.y);
-				hitResults[hitResult.result].setAlpha(1f);
-
 				// spinner
 				if (hitResult.isSpinner && hitResult.result != HIT_MISS) {
 					Image spinnerOsu = GameImage.SPINNER_OSU.getImage();
@@ -847,6 +842,11 @@ public class GameData {
 					lighting.setAlpha(hitResult.alpha);
 					lighting.drawCentered(hitResult.x, hitResult.y, hitResult.color);
 				}
+				
+				// hit result
+				hitResults[hitResult.result].setAlpha(hitResult.alpha);
+				hitResults[hitResult.result].drawCentered(hitResult.x, hitResult.y);
+				hitResults[hitResult.result].setAlpha(1f);
 
 				// hit animation
 				Image scaledHitCircle = GameImage.HITCIRCLE.getImage().getScaledCopy(
