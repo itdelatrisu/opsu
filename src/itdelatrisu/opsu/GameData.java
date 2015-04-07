@@ -24,6 +24,7 @@ import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
 import itdelatrisu.opsu.downloads.Updater;
 import itdelatrisu.opsu.objects.HitResultType;
+import itdelatrisu.opsu.objects.curves.Curve;
 import itdelatrisu.opsu.replay.Replay;
 import itdelatrisu.opsu.replay.ReplayFrame;
 
@@ -44,6 +45,9 @@ import org.newdawn.slick.Image;
 public class GameData {
 	/** Delta multiplier for steady HP drain. */
 	public static final float HP_DRAIN_MULTIPLIER = 1 / 200f;
+
+	/** Time, in milliseconds, for a hit result to remain existent. */
+	public static final int HITRESULT_TIME = 833;
 
 	/** Time, in milliseconds, for a hit result to fade. */
 	public static final int HITRESULT_FADE_TIME = 500;
@@ -243,6 +247,9 @@ public class GameData {
 		/** Alpha level (for fading out). */
 		public float alpha = 1f;
 
+		/** Slider curve. */
+		public Curve curve;
+
 		/**
 		 * Constructor.
 		 * @param time the result's starting track position
@@ -259,6 +266,25 @@ public class GameData {
 			this.y = y;
 			this.color = color;
 			this.hitResultType = hitResultType;
+		}
+
+		/**
+		 * Constructor.
+		 * @param time the result's starting track position
+		 * @param result the hit result (HIT_* constants)
+		 * @param x the center x coordinate
+		 * @param y the center y coordinate
+		 * @param color the color of the hit object
+		 * @param curve the slider curve
+		 */
+		public OsuHitObjectResult(int time, int result, float x, float y, Color color, HitResultType hitResultType, Curve curve) {
+			this.time = time;
+			this.result = result;
+			this.x = x;
+			this.y = y;
+			this.color = color;
+			this.hitResultType = hitResultType;
+			this.curve = curve;
 		}
 	}
 
@@ -838,7 +864,7 @@ public class GameData {
 		Iterator<OsuHitObjectResult> iter = hitResultList.iterator();
 		while (iter.hasNext()) {
 			OsuHitObjectResult hitResult = iter.next();
-			if (hitResult.time + HITRESULT_FADE_TIME > trackPosition) {
+			if (hitResult.time + HITRESULT_TIME > trackPosition) {
 				// spinner
 				if (hitResult.hitResultType == HitResultType.SPINNER && hitResult.result != HIT_MISS) {
 					Image spinnerOsu = GameImage.SPINNER_OSU.getImage();
@@ -873,6 +899,17 @@ public class GameData {
 							-1f,
 							HITCIRCLE_FADE_TIME
 					);
+
+					if (hitResult.curve != null) {
+						float oldAlpha = Utils.COLOR_WHITE_FADE.a;
+
+						Curve curve = hitResult.curve;
+						Utils.COLOR_WHITE_FADE.a = alpha;
+						curve.color.a = alpha;
+						curve.draw();
+
+						Utils.COLOR_WHITE_FADE.a = oldAlpha;
+					}
 
 					Image scaledHitCircle = GameImage.HITCIRCLE.getImage().getScaledCopy(scale);
 					scaledHitCircle.setAlpha(alpha);
@@ -1185,8 +1222,9 @@ public class GameData {
 	 * @param hitObject the hit object
 	 * @param repeat the current repeat number (for sliders, or 0 otherwise)
 	 * @param hitResultType the type of hit object for the result
+	 * @return was this a perfect hit?
 	 */
-	public void hitResult(int time, int result, float x, float y, Color color,
+	private boolean hitRes(int time, int result, float x, float y, Color color,
 			boolean end, OsuHitObject hitObject, int repeat, HitResultType hitResultType) {
 		int hitValue = 0;
 		boolean perfectHit = false;
@@ -1208,11 +1246,12 @@ public class GameData {
 		case HIT_MISS:
 			hitValue = 0;
 			changeHealth(-10f);
+			changeHealth(-10f);
 			comboEnd |= 2;
 			resetComboStreak();
 			break;
 		default:
-			return;
+			return false;
 		}
 		if (hitValue > 0) {
 			SoundController.playHitSound(
@@ -1253,12 +1292,56 @@ public class GameData {
 			comboEnd = 0;
 		}
 
+		return perfectHit;
+	}
+
+	/**
+	 * Handles a hit result.
+	 * @param time the object start time
+	 * @param result the hit result (HIT_* constants)
+	 * @param x the x coordinate
+	 * @param y the y coordinate
+	 * @param color the combo color
+	 * @param end true if this is the last hit object in the combo
+	 * @param hitObject the hit object
+	 * @param repeat the current repeat number (for sliders, or 0 otherwise)
+	 * @param hitResultType the type of hit object for the result
+	 */
+	public void hitResult(int time, int result, float x, float y, Color color,
+						boolean end, OsuHitObject hitObject, int repeat, HitResultType hitResultType) {
+		boolean perfectHit = hitRes(time, result, x, y, color, end, hitObject, repeat, hitResultType);
+
 		if (perfectHit && !Options.isPerfectHitBurstEnabled())
 			;  // hide perfect hit results
 		else if (result == HIT_MISS && (GameMod.RELAX.isActive() || GameMod.AUTOPILOT.isActive()))
 			;  // "relax" and "autopilot" mods: hide misses
 		else
 			hitResultList.add(new OsuHitObjectResult(time, result, x, y, color, hitResultType));
+	}
+
+	/**
+	 * Handles a slider hit result.
+	 * @param time the object start time
+	 * @param result the hit result (HIT_* constants)
+	 * @param x the x coordinate
+	 * @param y the y coordinate
+	 * @param color the combo color
+	 * @param end true if this is the last hit object in the combo
+	 * @param hitObject the hit object
+	 * @param repeat the current repeat number (for sliders, or 0 otherwise)
+	 * @param hitResultType the type of hit object for the result
+	 * @param curve the slider curve
+	 */
+	public void hitResult(int time, int result, float x, float y, Color color,
+						  boolean end, OsuHitObject hitObject, int repeat, HitResultType hitResultType, Curve curve) {
+		boolean perfectHit = hitRes(time, result, x, y, color, end, hitObject, repeat, hitResultType);
+
+		if (perfectHit && !Options.isPerfectHitBurstEnabled())
+			;  // hide perfect hit results
+		else if (result == HIT_MISS && (GameMod.RELAX.isActive() || GameMod.AUTOPILOT.isActive()))
+			;  // "relax" and "autopilot" mods: hide misses
+		else
+			hitResultList.add(new OsuHitObjectResult(time, result, x, y, color, hitResultType, curve));
 	}
 
 	/**

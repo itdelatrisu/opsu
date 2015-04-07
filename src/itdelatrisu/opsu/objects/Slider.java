@@ -281,7 +281,7 @@ public class Slider implements HitObject {
 		float[] lastPos = curve.pointAt(1);
 		data.hitResult(hitObject.getTime() + (int) sliderTimeTotal, result,
 				x, y, color, comboEnd, hitObject, currentRepeats + 1,
-				currentRepeats % 2 == 0 ? HitResultType.SLIDEREND_FIRSTOBJECT : HitResultType.SLIDEREND);
+				currentRepeats % 2 == 0 ? HitResultType.SLIDEREND_FIRSTOBJECT : HitResultType.SLIDEREND, curve);
 		data.hitResult(hitObject.getTime() + (int) sliderTimeTotal, result,
 				lastPos[0], lastPos[1], color, comboEnd, hitObject, currentRepeats + 1,
 				currentRepeats % 2 == 0 ? HitResultType.SLIDEREND : HitResultType.SLIDEREND_FIRSTOBJECT);
