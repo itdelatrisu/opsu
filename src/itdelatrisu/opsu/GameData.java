@@ -1222,15 +1222,13 @@ public class GameData {
 	 * @param hitObject the hit object
 	 * @param repeat the current repeat number (for sliders, or 0 otherwise)
 	 * @param hitResultType the type of hit object for the result
-	 * @return was this a perfect hit?
+	 * @return the hit result (HIT_* constants)
 	 */
-	private boolean hitRes(int time, int result, float x, float y, Color color,
+	private int hitRes(int time, int result, float x, float y, Color color,
 			boolean end, OsuHitObject hitObject, int repeat, HitResultType hitResultType) {
 		int hitValue = 0;
-		boolean perfectHit = false;
 		switch (result) {
 		case HIT_300:
-			perfectHit = true;
 			hitValue = 300;
 			changeHealth(5f);
 			break;
@@ -1251,7 +1249,7 @@ public class GameData {
 			resetComboStreak();
 			break;
 		default:
-			return false;
+			return HIT_MISS;
 		}
 		if (hitValue > 0) {
 			SoundController.playHitSound(
@@ -1292,7 +1290,7 @@ public class GameData {
 			comboEnd = 0;
 		}
 
-		return perfectHit;
+		return result;
 	}
 
 	/**
@@ -1309,9 +1307,10 @@ public class GameData {
 	 */
 	public void hitResult(int time, int result, float x, float y, Color color,
 						boolean end, OsuHitObject hitObject, int repeat, HitResultType hitResultType) {
-		boolean perfectHit = hitRes(time, result, x, y, color, end, hitObject, repeat, hitResultType);
+		result = hitRes(time, result, x, y, color, end, hitObject, repeat, hitResultType);
 
-		if (perfectHit && !Options.isPerfectHitBurstEnabled())
+		if ((result == HIT_300 || result == HIT_300G || result == HIT_300K)
+				&& !Options.isPerfectHitBurstEnabled())
 			;  // hide perfect hit results
 		else if (result == HIT_MISS && (GameMod.RELAX.isActive() || GameMod.AUTOPILOT.isActive()))
 			;  // "relax" and "autopilot" mods: hide misses
@@ -1334,9 +1333,10 @@ public class GameData {
 	 */
 	public void hitResult(int time, int result, float x, float y, Color color,
 						  boolean end, OsuHitObject hitObject, int repeat, HitResultType hitResultType, Curve curve) {
-		boolean perfectHit = hitRes(time, result, x, y, color, end, hitObject, repeat, hitResultType);
+		result = hitRes(time, result, x, y, color, end, hitObject, repeat, hitResultType);
 
-		if (perfectHit && !Options.isPerfectHitBurstEnabled())
+		if ((result == HIT_300 || result == HIT_300G || result == HIT_300K)
+				&& !Options.isPerfectHitBurstEnabled())
 			;  // hide perfect hit results
 		else if (result == HIT_MISS && (GameMod.RELAX.isActive() || GameMod.AUTOPILOT.isActive()))
 			;  // "relax" and "autopilot" mods: hide misses
