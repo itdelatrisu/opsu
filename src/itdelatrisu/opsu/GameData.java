@@ -842,7 +842,7 @@ public class GameData {
 					lighting.setAlpha(hitResult.alpha);
 					lighting.drawCentered(hitResult.x, hitResult.y, hitResult.color);
 				}
-				
+
 				// hit result
 				hitResults[hitResult.result].setAlpha(hitResult.alpha);
 				hitResults[hitResult.result].drawCentered(hitResult.x, hitResult.y);
