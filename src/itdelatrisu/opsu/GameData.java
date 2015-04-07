@@ -1244,7 +1244,6 @@ public class GameData {
 		case HIT_MISS:
 			hitValue = 0;
 			changeHealth(-10f);
-			changeHealth(-10f);
 			comboEnd |= 2;
 			resetComboStreak();
 			break;
