@@ -23,6 +23,7 @@ import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
 import itdelatrisu.opsu.downloads.Updater;
+import itdelatrisu.opsu.objects.HitResultType;
 import itdelatrisu.opsu.replay.Replay;
 import itdelatrisu.opsu.replay.ReplayFrame;
 
@@ -48,13 +49,25 @@ public class GameData {
 	public static final int HITRESULT_FADE_TIME = 500;
 
 	/** Time, in milliseconds, for a hit circle to fade. */
-	public static final int HITCIRCLE_FADE_TIME = 233;
+	public static final int HITCIRCLE_FADE_TIME = 300;
 
 	/** Duration, in milliseconds, of a combo pop effect. */
 	private static final int COMBO_POP_TIME = 250;
 
 	/** Time, in milliseconds, for a hit error tick to fade. */
 	private static final int HIT_ERROR_FADE_TIME = 5000;
+
+	/** Size of a hit circle at the end of the hit animation. */
+	private static final float HITCIRCLE_ANIM_SCALE = 1.38f;
+
+	/** Size of the hit result text at the end of its animation. */
+	private static final float HITCIRCLE_TEXT_ANIM_SCALE = 1.28f;
+
+	/** Time, in milliseconds, for the hit result text to bounce. */
+	private static final int HITCIRCLE_TEXT_BOUNCE_TIME = 100;
+
+	/** Time, in milliseconds, for the hit result text to fade. */
+	private static final int HITCIRCLE_TEXT_FADE_TIME = 833;
 
 	/** Letter grades. */
 	public enum Grade {
@@ -224,8 +237,8 @@ public class GameData {
 		/** Combo color. */
 		public Color color;
 
-		/** Whether the hit object was a spinner. */
-		public boolean isSpinner;
+		/** The type of the hit object. */
+		public HitResultType hitResultType;
 
 		/** Alpha level (for fading out). */
 		public float alpha = 1f;
@@ -237,15 +250,15 @@ public class GameData {
 		 * @param x the center x coordinate
 		 * @param y the center y coordinate
 		 * @param color the color of the hit object
-		 * @param isSpinner whether the hit object was a spinner
+		 * @param hitResultType the type of the hit object
 		 */
-		public OsuHitObjectResult(int time, int result, float x, float y, Color color, boolean isSpinner) {
+		public OsuHitObjectResult(int time, int result, float x, float y, Color color, HitResultType hitResultType) {
 			this.time = time;
 			this.result = result;
 			this.x = x;
 			this.y = y;
 			this.color = color;
-			this.isSpinner = isSpinner;
+			this.hitResultType = hitResultType;
 		}
 	}
 
@@ -827,7 +840,7 @@ public class GameData {
 			OsuHitObjectResult hitResult = iter.next();
 			if (hitResult.time + HITRESULT_FADE_TIME > trackPosition) {
 				// spinner
-				if (hitResult.isSpinner && hitResult.result != HIT_MISS) {
+				if (hitResult.hitResultType == HitResultType.SPINNER && hitResult.result != HIT_MISS) {
 					Image spinnerOsu = GameImage.SPINNER_OSU.getImage();
 					spinnerOsu.setAlpha(hitResult.alpha);
 					spinnerOsu.drawCentered(width / 2, height / 4);
@@ -843,21 +856,55 @@ public class GameData {
 					lighting.drawCentered(hitResult.x, hitResult.y, hitResult.color);
 				}
 
-				// hit result
-				hitResults[hitResult.result].setAlpha(hitResult.alpha);
-				hitResults[hitResult.result].drawCentered(hitResult.x, hitResult.y);
-				hitResults[hitResult.result].setAlpha(1f);
-
 				// hit animation
-				Image scaledHitCircle = GameImage.HITCIRCLE.getImage().getScaledCopy(
-						1f + (((float)(trackPosition - hitResult.time) / HITCIRCLE_FADE_TIME) / 2));
-				scaledHitCircle.setAlpha(1f - Utils.clamp((float)(trackPosition - hitResult.time) / HITCIRCLE_FADE_TIME, 0, 1));
-				Image scaledHitCircleOverlay = GameImage.HITCIRCLE_OVERLAY.getImage().getScaledCopy(
-						1f + (((float)(trackPosition - hitResult.time) / HITCIRCLE_FADE_TIME) / 2));
-				scaledHitCircleOverlay.setAlpha(1f - Utils.clamp((float) (trackPosition - hitResult.time) / HITCIRCLE_FADE_TIME, 0, 1));
+				if (hitResult.hitResultType == HitResultType.CIRCLE
+						|| hitResult.hitResultType == HitResultType.SLIDEREND
+						|| hitResult.hitResultType == HitResultType.SLIDEREND_FIRSTOBJECT) {
+					float scale = Utils.easeOut(
+							Utils.clamp(trackPosition - hitResult.time, 0, HITCIRCLE_FADE_TIME),
+							1f,
+							HITCIRCLE_ANIM_SCALE-1f,
+							HITCIRCLE_FADE_TIME
+					);
 
-				scaledHitCircle.drawCentered(hitResult.x, hitResult.y, hitResult.color);
-				scaledHitCircleOverlay.drawCentered(hitResult.x, hitResult.y);
+					float alpha = Utils.easeOut(
+							Utils.clamp(trackPosition - hitResult.time, 0, HITCIRCLE_FADE_TIME),
+							1f,
+							-1f,
+							HITCIRCLE_FADE_TIME
+					);
+
+					Image scaledHitCircle = GameImage.HITCIRCLE.getImage().getScaledCopy(scale);
+					scaledHitCircle.setAlpha(alpha);
+					Image scaledHitCircleOverlay = GameImage.HITCIRCLE_OVERLAY.getImage().getScaledCopy(scale);
+					scaledHitCircleOverlay.setAlpha(alpha);
+
+					scaledHitCircle.drawCentered(hitResult.x, hitResult.y, hitResult.color);
+					scaledHitCircleOverlay.drawCentered(hitResult.x, hitResult.y);
+				}
+
+				// hit result
+				if (hitResult.hitResultType == HitResultType.CIRCLE
+						|| hitResult.hitResultType == HitResultType.SLIDEREND
+						|| hitResult.hitResultType == HitResultType.SPINNER) {
+					float scale = Utils.easeBounce(
+							Utils.clamp(trackPosition - hitResult.time, 0, HITCIRCLE_TEXT_BOUNCE_TIME),
+							1f,
+							HITCIRCLE_TEXT_ANIM_SCALE - 1f,
+							HITCIRCLE_TEXT_BOUNCE_TIME
+					);
+
+					float alpha = Utils.easeOut(
+							Utils.clamp((trackPosition - hitResult.time) - HITCIRCLE_FADE_TIME, 0, HITCIRCLE_TEXT_FADE_TIME),
+							1f,
+							-1f,
+							HITCIRCLE_TEXT_FADE_TIME
+					);
+
+					Image scaledHitResult = hitResults[hitResult.result].getScaledCopy(scale);
+					scaledHitResult.setAlpha(alpha);
+					scaledHitResult.drawCentered(hitResult.x, hitResult.y);
+				}
 
 				hitResult.alpha = 1 - ((float) (trackPosition - hitResult.time) / HITRESULT_FADE_TIME);
 			} else
@@ -1123,7 +1170,7 @@ public class GameData {
 			if (!Options.isPerfectHitBurstEnabled())
 				;  // hide perfect hit results
 			else
-				hitResultList.add(new OsuHitObjectResult(time, result, x, y, null, false));
+				hitResultList.add(new OsuHitObjectResult(time, result, x, y, null, HitResultType.SLIDERTICK));
 		}
 	}
 
@@ -1137,9 +1184,10 @@ public class GameData {
 	 * @param end true if this is the last hit object in the combo
 	 * @param hitObject the hit object
 	 * @param repeat the current repeat number (for sliders, or 0 otherwise)
+	 * @param hitResultType the type of hit object for the result
 	 */
 	public void hitResult(int time, int result, float x, float y, Color color,
-			boolean end, OsuHitObject hitObject, int repeat) {
+			boolean end, OsuHitObject hitObject, int repeat, HitResultType hitResultType) {
 		int hitValue = 0;
 		boolean perfectHit = false;
 		switch (result) {
@@ -1210,7 +1258,7 @@ public class GameData {
 		else if (result == HIT_MISS && (GameMod.RELAX.isActive() || GameMod.AUTOPILOT.isActive()))
 			;  // "relax" and "autopilot" mods: hide misses
 		else
-			hitResultList.add(new OsuHitObjectResult(time, result, x, y, color, hitObject.isSpinner()));
+			hitResultList.add(new OsuHitObjectResult(time, result, x, y, color, hitResultType));
 	}
 
 	/**

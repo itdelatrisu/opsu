@@ -607,4 +607,14 @@ public class Utils {
 		else
 			return String.format("%02d:%02d:%02d", seconds / 3600, (seconds / 60) % 60, seconds % 60);
 	}
+
+	public static float easeOut(float t, float a, float b, float d) {
+		return b * ((t = t / d - 1f) * t * t + 1f) + a;
+	}
+
+	public static float easeBounce(float t, float a, float b, float d) {
+		if (t < d / 2)
+			return easeOut(t, a, b, d);
+		return easeOut(d-t, a, b, d);
+	}
 }
