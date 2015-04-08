@@ -19,6 +19,7 @@
 package itdelatrisu.opsu.objects;
 
 import itdelatrisu.opsu.GameData;
+import itdelatrisu.opsu.GameData.HitObjectType;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.GameMod;
 import itdelatrisu.opsu.OsuFile;
@@ -172,7 +173,7 @@ public class Slider implements HitObject {
 		Utils.COLOR_WHITE_FADE.a = color.a = alpha;
 
 		// curve
-		curve.draw();
+		curve.draw(color);
 
 		// ticks
 		if (ticksT != null) {
@@ -278,13 +279,20 @@ public class Slider implements HitObject {
 		else
 			result = GameData.HIT_MISS;
 
-		float[] lastPos = curve.pointAt(1);
+		float cx, cy;
+		HitObjectType type;
+		if (currentRepeats % 2 == 0) {  // last circle
+			float[] lastPos = curve.pointAt(1);
+			cx = lastPos[0];
+			cy = lastPos[1];
+			type = HitObjectType.SLIDER_LAST;
+		} else {  // first circle
+			cx = x;
+			cy = y;
+			type = HitObjectType.SLIDER_FIRST;
+		}
 		data.hitResult(hitObject.getTime() + (int) sliderTimeTotal, result,
-				x, y, color, comboEnd, hitObject, currentRepeats + 1,
-				currentRepeats % 2 == 0 ? HitResultType.SLIDEREND_FIRSTOBJECT : HitResultType.SLIDEREND, curve);
-		data.hitResult(hitObject.getTime() + (int) sliderTimeTotal, result,
-				lastPos[0], lastPos[1], color, comboEnd, hitObject, currentRepeats + 1,
-				currentRepeats % 2 == 0 ? HitResultType.SLIDEREND : HitResultType.SLIDEREND_FIRSTOBJECT);
+				cx, cy, color, comboEnd, hitObject, currentRepeats + 1, type, curve, sliderClickedFinal);
 
 		return result;
 	}

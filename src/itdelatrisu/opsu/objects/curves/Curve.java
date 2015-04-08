@@ -28,9 +28,6 @@ import org.newdawn.slick.Color;
  * @author fluddokt (https://github.com/fluddokt)
  */
 public abstract class Curve {
-	/** The color of this curve. */
-	public Color color;
-
 	/** The associated OsuHitObject. */
 	protected OsuHitObject hitObject;
 
@@ -51,7 +48,6 @@ public abstract class Curve {
 		this.y = hitObject.getScaledY();
 		this.sliderX = hitObject.getScaledSliderX();
 		this.sliderY = hitObject.getScaledSliderY();
-		this.color = color;
 	}
 
 	/**
@@ -63,8 +59,9 @@ public abstract class Curve {
 
 	/**
 	 * Draws the full curve to the graphics context.
+	 * @param color the color filter
 	 */
-	public abstract void draw();
+	public abstract void draw(Color color);
 
 	/**
 	 * Returns the angle of the first control point.

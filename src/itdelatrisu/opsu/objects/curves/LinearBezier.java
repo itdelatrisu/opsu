@@ -164,7 +164,7 @@ public class LinearBezier extends Curve {
 	}
 
 	@Override
-	public void draw() {
+	public void draw(Color color) {
 		Image hitCircle = GameImage.HITCIRCLE.getImage();
 		Image hitCircleOverlay = GameImage.HITCIRCLE_OVERLAY.getImage();
 		for (int i = curve.length - 2; i >= 0; i--)

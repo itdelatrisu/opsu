@@ -609,7 +609,7 @@ public class Utils {
 	}
 
 	/**
-	 * Cubic ease out function
+	 * Cubic ease out function.
 	 * @param t the current time
 	 * @param a the starting position
 	 * @param b the finishing position
@@ -621,7 +621,7 @@ public class Utils {
 	}
 	
 	/**
-	 * Fake bounce ease function
+	 * Fake bounce ease function.
 	 * @param t the current time
 	 * @param a the starting position
 	 * @param b the finishing position
@@ -631,6 +631,6 @@ public class Utils {
 	public static float easeBounce(float t, float a, float b, float d) {
 		if (t < d / 2)
 			return easeOut(t, a, b, d);
-		return easeOut(d-t, a, b, d);
+		return easeOut(d - t, a, b, d);
 	}
 }

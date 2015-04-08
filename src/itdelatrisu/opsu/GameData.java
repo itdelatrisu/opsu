@@ -23,7 +23,6 @@ import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
 import itdelatrisu.opsu.downloads.Updater;
-import itdelatrisu.opsu.objects.HitResultType;
 import itdelatrisu.opsu.objects.curves.Curve;
 import itdelatrisu.opsu.replay.Replay;
 import itdelatrisu.opsu.replay.ReplayFrame;
@@ -225,9 +224,10 @@ public class GameData {
 	/** List containing recent hit error information. */
 	private LinkedBlockingDeque<HitErrorInfo> hitErrorList;
 
-	/**
-	 * Hit result helper class.
-	 */
+	/** Hit object types, used for drawing results. */
+	public enum HitObjectType { CIRCLE, SLIDERTICK, SLIDER_FIRST, SLIDER_LAST, SPINNER }
+
+	/** Hit result helper class. */
 	private class OsuHitObjectResult {
 		/** Object start time. */
 		public int time;
@@ -242,7 +242,7 @@ public class GameData {
 		public Color color;
 
 		/** The type of the hit object. */
-		public HitResultType hitResultType;
+		public HitObjectType hitResultType;
 
 		/** Alpha level (for fading out). */
 		public float alpha = 1f;
@@ -250,23 +250,8 @@ public class GameData {
 		/** Slider curve. */
 		public Curve curve;
 
-		/**
-		 * Constructor.
-		 * @param time the result's starting track position
-		 * @param result the hit result (HIT_* constants)
-		 * @param x the center x coordinate
-		 * @param y the center y coordinate
-		 * @param color the color of the hit object
-		 * @param hitResultType the type of the hit object
-		 */
-		public OsuHitObjectResult(int time, int result, float x, float y, Color color, HitResultType hitResultType) {
-			this.time = time;
-			this.result = result;
-			this.x = x;
-			this.y = y;
-			this.color = color;
-			this.hitResultType = hitResultType;
-		}
+		/** Whether or not to expand when animating. */
+		public boolean expand;
 
 		/**
 		 * Constructor.
@@ -275,9 +260,11 @@ public class GameData {
 		 * @param x the center x coordinate
 		 * @param y the center y coordinate
 		 * @param color the color of the hit object
-		 * @param curve the slider curve
+		 * @param curve the slider curve (or null if not applicable)
+		 * @param expand whether or not the hit result animation should expand (if applicable)
 		 */
-		public OsuHitObjectResult(int time, int result, float x, float y, Color color, HitResultType hitResultType, Curve curve) {
+		public OsuHitObjectResult(int time, int result, float x, float y, Color color,
+				HitObjectType hitResultType, Curve curve, boolean expand) {
 			this.time = time;
 			this.result = result;
 			this.x = x;
@@ -285,6 +272,7 @@ public class GameData {
 			this.color = color;
 			this.hitResultType = hitResultType;
 			this.curve = curve;
+			this.expand = expand;
 		}
 	}
 
@@ -866,7 +854,7 @@ public class GameData {
 			OsuHitObjectResult hitResult = iter.next();
 			if (hitResult.time + HITRESULT_TIME > trackPosition) {
 				// spinner
-				if (hitResult.hitResultType == HitResultType.SPINNER && hitResult.result != HIT_MISS) {
+				if (hitResult.hitResultType == HitObjectType.SPINNER && hitResult.result != HIT_MISS) {
 					Image spinnerOsu = GameImage.SPINNER_OSU.getImage();
 					spinnerOsu.setAlpha(hitResult.alpha);
 					spinnerOsu.drawCentered(width / 2, height / 4);
@@ -876,68 +864,58 @@ public class GameData {
 				// hit lighting
 				else if (Options.isHitLightingEnabled() && hitResult.result != HIT_MISS &&
 					hitResult.result != HIT_SLIDER30 && hitResult.result != HIT_SLIDER10) {
-					// soon add particle system to reflect original game
-					Image lighting  = GameImage.LIGHTING.getImage();
+					// TODO: add particle system
+					Image lighting = GameImage.LIGHTING.getImage();
 					lighting.setAlpha(hitResult.alpha);
 					lighting.drawCentered(hitResult.x, hitResult.y, hitResult.color);
 				}
 
 				// hit animation
-				if (hitResult.hitResultType == HitResultType.CIRCLE
-						|| hitResult.hitResultType == HitResultType.SLIDEREND
-						|| hitResult.hitResultType == HitResultType.SLIDEREND_FIRSTOBJECT) {
-					float scale = Utils.easeOut(
+				if (hitResult.result != HIT_MISS && (
+				    hitResult.hitResultType == HitObjectType.CIRCLE ||
+				    hitResult.hitResultType == HitObjectType.SLIDER_FIRST ||
+				    hitResult.hitResultType == HitObjectType.SLIDER_LAST)) {
+					float scale = (!hitResult.expand) ? 1f : Utils.easeOut(
 							Utils.clamp(trackPosition - hitResult.time, 0, HITCIRCLE_FADE_TIME),
-							1f,
-							HITCIRCLE_ANIM_SCALE-1f,
-							HITCIRCLE_FADE_TIME
+							1f, HITCIRCLE_ANIM_SCALE - 1f, HITCIRCLE_FADE_TIME
 					);
-
 					float alpha = Utils.easeOut(
 							Utils.clamp(trackPosition - hitResult.time, 0, HITCIRCLE_FADE_TIME),
-							1f,
-							-1f,
-							HITCIRCLE_FADE_TIME
+							1f, -1f, HITCIRCLE_FADE_TIME
 					);
 
+					// slider curve
 					if (hitResult.curve != null) {
-						float oldAlpha = Utils.COLOR_WHITE_FADE.a;
-
-						Curve curve = hitResult.curve;
+						float oldWhiteAlpha = Utils.COLOR_WHITE_FADE.a;
+						float oldColorAlpha = hitResult.color.a;
 						Utils.COLOR_WHITE_FADE.a = alpha;
-						curve.color.a = alpha;
-						curve.draw();
-
-						Utils.COLOR_WHITE_FADE.a = oldAlpha;
+						hitResult.color.a = alpha;
+						hitResult.curve.draw(hitResult.color);
+						Utils.COLOR_WHITE_FADE.a = oldWhiteAlpha;
+						hitResult.color.a = oldColorAlpha;
 					}
 
+					// hit circles
 					Image scaledHitCircle = GameImage.HITCIRCLE.getImage().getScaledCopy(scale);
-					scaledHitCircle.setAlpha(alpha);
 					Image scaledHitCircleOverlay = GameImage.HITCIRCLE_OVERLAY.getImage().getScaledCopy(scale);
+					scaledHitCircle.setAlpha(alpha);
 					scaledHitCircleOverlay.setAlpha(alpha);
-
 					scaledHitCircle.drawCentered(hitResult.x, hitResult.y, hitResult.color);
 					scaledHitCircleOverlay.drawCentered(hitResult.x, hitResult.y);
 				}
 
 				// hit result
-				if (hitResult.hitResultType == HitResultType.CIRCLE
-						|| hitResult.hitResultType == HitResultType.SLIDEREND
-						|| hitResult.hitResultType == HitResultType.SPINNER) {
+				if (hitResult.hitResultType == HitObjectType.CIRCLE ||
+				    hitResult.hitResultType == HitObjectType.SPINNER ||
+				    hitResult.curve != null) {
 					float scale = Utils.easeBounce(
 							Utils.clamp(trackPosition - hitResult.time, 0, HITCIRCLE_TEXT_BOUNCE_TIME),
-							1f,
-							HITCIRCLE_TEXT_ANIM_SCALE - 1f,
-							HITCIRCLE_TEXT_BOUNCE_TIME
+							1f, HITCIRCLE_TEXT_ANIM_SCALE - 1f, HITCIRCLE_TEXT_BOUNCE_TIME
 					);
-
 					float alpha = Utils.easeOut(
 							Utils.clamp((trackPosition - hitResult.time) - HITCIRCLE_FADE_TIME, 0, HITCIRCLE_TEXT_FADE_TIME),
-							1f,
-							-1f,
-							HITCIRCLE_TEXT_FADE_TIME
+							1f, -1f, HITCIRCLE_TEXT_FADE_TIME
 					);
-
 					Image scaledHitResult = hitResults[hitResult.result].getScaledCopy(scale);
 					scaledHitResult.setAlpha(alpha);
 					scaledHitResult.drawCentered(hitResult.x, hitResult.y);
@@ -1207,14 +1185,14 @@ public class GameData {
 			if (!Options.isPerfectHitBurstEnabled())
 				;  // hide perfect hit results
 			else
-				hitResultList.add(new OsuHitObjectResult(time, result, x, y, null, HitResultType.SLIDERTICK));
+				hitResultList.add(new OsuHitObjectResult(time, result, x, y, null, HitObjectType.SLIDERTICK, null, false));
 		}
 	}
 
 	/**
-	 * Handles a hit result.
+	 * Handles a hit result and performs all associated calculations.
 	 * @param time the object start time
-	 * @param result the hit result (HIT_* constants)
+	 * @param result the base hit result (HIT_* constants)
 	 * @param x the x coordinate
 	 * @param y the y coordinate
 	 * @param color the combo color
@@ -1222,10 +1200,10 @@ public class GameData {
 	 * @param hitObject the hit object
 	 * @param repeat the current repeat number (for sliders, or 0 otherwise)
 	 * @param hitResultType the type of hit object for the result
-	 * @return the hit result (HIT_* constants)
+	 * @return the actual hit result (HIT_* constants)
 	 */
-	private int hitRes(int time, int result, float x, float y, Color color,
-			boolean end, OsuHitObject hitObject, int repeat, HitResultType hitResultType) {
+	private int handleHitResult(int time, int result, float x, float y, Color color,
+			boolean end, OsuHitObject hitObject, int repeat, HitObjectType hitResultType) {
 		int hitValue = 0;
 		switch (result) {
 		case HIT_300:
@@ -1293,31 +1271,6 @@ public class GameData {
 	}
 
 	/**
-	 * Handles a hit result.
-	 * @param time the object start time
-	 * @param result the hit result (HIT_* constants)
-	 * @param x the x coordinate
-	 * @param y the y coordinate
-	 * @param color the combo color
-	 * @param end true if this is the last hit object in the combo
-	 * @param hitObject the hit object
-	 * @param repeat the current repeat number (for sliders, or 0 otherwise)
-	 * @param hitResultType the type of hit object for the result
-	 */
-	public void hitResult(int time, int result, float x, float y, Color color,
-						boolean end, OsuHitObject hitObject, int repeat, HitResultType hitResultType) {
-		result = hitRes(time, result, x, y, color, end, hitObject, repeat, hitResultType);
-
-		if ((result == HIT_300 || result == HIT_300G || result == HIT_300K)
-				&& !Options.isPerfectHitBurstEnabled())
-			;  // hide perfect hit results
-		else if (result == HIT_MISS && (GameMod.RELAX.isActive() || GameMod.AUTOPILOT.isActive()))
-			;  // "relax" and "autopilot" mods: hide misses
-		else
-			hitResultList.add(new OsuHitObjectResult(time, result, x, y, color, hitResultType));
-	}
-
-	/**
 	 * Handles a slider hit result.
 	 * @param time the object start time
 	 * @param result the hit result (HIT_* constants)
@@ -1328,19 +1281,29 @@ public class GameData {
 	 * @param hitObject the hit object
 	 * @param repeat the current repeat number (for sliders, or 0 otherwise)
 	 * @param hitResultType the type of hit object for the result
-	 * @param curve the slider curve
+	 * @param curve the slider curve (or null if not applicable)
+	 * @param expand whether or not the hit result animation should expand (if applicable)
 	 */
 	public void hitResult(int time, int result, float x, float y, Color color,
-						  boolean end, OsuHitObject hitObject, int repeat, HitResultType hitResultType, Curve curve) {
-		result = hitRes(time, result, x, y, color, end, hitObject, repeat, hitResultType);
+						  boolean end, OsuHitObject hitObject, int repeat,
+						  HitObjectType hitResultType, Curve curve, boolean expand) {
+		result = handleHitResult(time, result, x, y, color, end, hitObject, repeat, hitResultType);
 
-		if ((result == HIT_300 || result == HIT_300G || result == HIT_300K)
-				&& !Options.isPerfectHitBurstEnabled())
+		if ((result == HIT_300 || result == HIT_300G || result == HIT_300K) && !Options.isPerfectHitBurstEnabled())
 			;  // hide perfect hit results
 		else if (result == HIT_MISS && (GameMod.RELAX.isActive() || GameMod.AUTOPILOT.isActive()))
 			;  // "relax" and "autopilot" mods: hide misses
-		else
-			hitResultList.add(new OsuHitObjectResult(time, result, x, y, color, hitResultType, curve));
+		else {
+			hitResultList.add(new OsuHitObjectResult(time, result, x, y, color, hitResultType, curve, expand));
+
+			// sliders: add the other curve endpoint for the hit animation
+			if (curve != null) {
+				boolean isFirst = (hitResultType == HitObjectType.SLIDER_FIRST);
+				float[] p = curve.pointAt((isFirst) ? 1f : 0f);
+				HitObjectType type = (isFirst) ? HitObjectType.SLIDER_LAST : HitObjectType.SLIDER_FIRST;
+				hitResultList.add(new OsuHitObjectResult(time, result, p[0], p[1], color, type, null, expand));
+			}
+		}
 	}
 
 	/**

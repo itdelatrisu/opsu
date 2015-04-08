@@ -179,7 +179,7 @@ public class CircumscribedCircle extends Curve {
 	}
 
 	@Override
-	public void draw() {
+	public void draw(Color color) {
 		Image hitCircle = GameImage.HITCIRCLE.getImage();
 		Image hitCircleOverlay = GameImage.HITCIRCLE_OVERLAY.getImage();
 		for (int i = 0; i < step; i++)

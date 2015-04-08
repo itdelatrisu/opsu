@@ -19,6 +19,7 @@
 package itdelatrisu.opsu.objects;
 
 import itdelatrisu.opsu.GameData;
+import itdelatrisu.opsu.GameData.HitObjectType;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.GameMod;
 import itdelatrisu.opsu.OsuHitObject;
@@ -191,7 +192,7 @@ public class Spinner implements HitObject {
 			result = GameData.HIT_MISS;
 
 		data.hitResult(hitObject.getEndTime(), result, width / 2, height / 2,
-				Color.transparent, true, hitObject, 0, HitResultType.SPINNER);
+				Color.transparent, true, hitObject, 0, HitObjectType.SPINNER, null, true);
 		return result;
 	}
 
