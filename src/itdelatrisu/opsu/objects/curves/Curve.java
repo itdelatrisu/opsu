@@ -28,11 +28,11 @@ import org.newdawn.slick.Color;
  * @author fluddokt (https://github.com/fluddokt)
  */
 public abstract class Curve {
+	/** The color of this curve. */
+	public Color color;
+
 	/** The associated OsuHitObject. */
 	protected OsuHitObject hitObject;
-
-	/** The color of this curve. */
-	protected Color color;
 
 	/** The scaled starting x, y coordinates. */
 	protected float x, y;

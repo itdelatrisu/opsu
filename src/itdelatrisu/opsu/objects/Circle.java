@@ -138,7 +138,7 @@ public class Circle implements HitObject {
 
 			if (result > -1) {
 				data.addHitError(hitObject.getTime(), x, y, timeDiff);
-				data.hitResult(hitObject.getTime(), result, this.x, this.y, color, comboEnd, hitObject, 0);
+				data.hitResult(hitObject.getTime(), result, this.x, this.y, color, comboEnd, hitObject, 0, HitResultType.CIRCLE);
 				return true;
 			}
 		}
@@ -154,17 +154,17 @@ public class Circle implements HitObject {
 
 		if (overlap || trackPosition > time + hitResultOffset[GameData.HIT_50]) {
 			if (isAutoMod)  // "auto" mod: catch any missed notes due to lag
-				data.hitResult(time, GameData.HIT_300, x, y, color, comboEnd, hitObject, 0);
+				data.hitResult(time, GameData.HIT_300, x, y, color, comboEnd, hitObject, 0, HitResultType.CIRCLE);
 
 			else  // no more points can be scored, so send a miss
-				data.hitResult(time, GameData.HIT_MISS, x, y, null, comboEnd, hitObject, 0);
+				data.hitResult(time, GameData.HIT_MISS, x, y, null, comboEnd, hitObject, 0, HitResultType.CIRCLE);
 			return true;
 		}
 
 		// "auto" mod: send a perfect hit result
 		else if (isAutoMod) {
 			if (Math.abs(trackPosition - time) < hitResultOffset[GameData.HIT_300]) {
-				data.hitResult(time, GameData.HIT_300, x, y, color, comboEnd, hitObject, 0);
+				data.hitResult(time, GameData.HIT_300, x, y, color, comboEnd, hitObject, 0, HitResultType.CIRCLE);
 				return true;
 			}
 		}

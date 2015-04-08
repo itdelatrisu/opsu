@@ -191,7 +191,7 @@ public class Spinner implements HitObject {
 			result = GameData.HIT_MISS;
 
 		data.hitResult(hitObject.getEndTime(), result, width / 2, height / 2,
-				Color.transparent, true, hitObject, 0);
+				Color.transparent, true, hitObject, 0, HitResultType.SPINNER);
 		return result;
 	}
 

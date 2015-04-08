@@ -278,14 +278,13 @@ public class Slider implements HitObject {
 		else
 			result = GameData.HIT_MISS;
 
-		if (currentRepeats % 2 == 0) {  // last circle
-			float[] lastPos = curve.pointAt(1);
-			data.hitResult(hitObject.getTime() + (int) sliderTimeTotal, result,
-					lastPos[0], lastPos[1], color, comboEnd, hitObject, currentRepeats + 1);
-		} else {  // first circle
-			data.hitResult(hitObject.getTime() + (int) sliderTimeTotal, result,
-					x, y, color, comboEnd, hitObject, currentRepeats + 1);
-		}
+		float[] lastPos = curve.pointAt(1);
+		data.hitResult(hitObject.getTime() + (int) sliderTimeTotal, result,
+				x, y, color, comboEnd, hitObject, currentRepeats + 1,
+				currentRepeats % 2 == 0 ? HitResultType.SLIDEREND_FIRSTOBJECT : HitResultType.SLIDEREND, curve);
+		data.hitResult(hitObject.getTime() + (int) sliderTimeTotal, result,
+				lastPos[0], lastPos[1], color, comboEnd, hitObject, currentRepeats + 1,
+				currentRepeats % 2 == 0 ? HitResultType.SLIDEREND : HitResultType.SLIDEREND_FIRSTOBJECT);
 
 		return result;
 	}
