@@ -43,6 +43,7 @@ import itdelatrisu.opsu.objects.DummyObject;
 import itdelatrisu.opsu.objects.HitObject;
 import itdelatrisu.opsu.objects.Slider;
 import itdelatrisu.opsu.objects.Spinner;
+import itdelatrisu.opsu.replay.PlaybackSpeed;
 import itdelatrisu.opsu.replay.Replay;
 import itdelatrisu.opsu.replay.ReplayFrame;
 
@@ -50,7 +51,6 @@ import java.io.File;
 import java.util.LinkedList;
 import java.util.Stack;
 
-import itdelatrisu.opsu.replay.PlaybackSpeed;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.Display;
 import org.newdawn.slick.Animation;
@@ -686,9 +686,7 @@ public class Game extends BasicGameState {
 		if (timingPointIndex < osu.timingPoints.size()) {
 			OsuTimingPoint timingPoint = osu.timingPoints.get(timingPointIndex);
 			if (trackPosition >= timingPoint.getTime()) {
-				setBeatLength(timingPoint);
-				HitSound.setDefaultSampleSet(timingPoint.getSampleType());
-				SoundController.setSampleVolume(timingPoint.getSampleVolume());
+				setBeatLength(timingPoint, true);
 				timingPointIndex++;
 			}
 		}
@@ -1058,12 +1056,11 @@ public class Game extends BasicGameState {
 
 				// pass beatLength to hit objects
 				int hitObjectTime = hitObject.getTime();
-				int timingPointIndex = 0;
 				while (timingPointIndex < osu.timingPoints.size()) {
 					OsuTimingPoint timingPoint = osu.timingPoints.get(timingPointIndex);
 					if (timingPoint.getTime() > hitObjectTime)
 						break;
-					setBeatLength(timingPoint);
+					setBeatLength(timingPoint, false);
 					timingPointIndex++;
 				}
 
@@ -1087,12 +1084,12 @@ public class Game extends BasicGameState {
 			calculateStacks();
 
 			// load the first timingPoint
+			timingPointIndex = 0;
+			beatLengthBase = beatLength = 1;
 			if (!osu.timingPoints.isEmpty()) {
 				OsuTimingPoint timingPoint = osu.timingPoints.get(0);
 				if (!timingPoint.isInherited()) {
-					beatLengthBase = beatLength = timingPoint.getBeatLength();
-					HitSound.setDefaultSampleSet(timingPoint.getSampleType());
-					SoundController.setSampleVolume(timingPoint.getSampleVolume());
+					setBeatLength(timingPoint, true);
 					timingPointIndex++;
 				}
 			}
@@ -1431,12 +1428,18 @@ public class Game extends BasicGameState {
 
 	/**
 	 * Sets the beat length fields based on a given timing point.
+	 * @param timingPoint the timing point
+	 * @param setSampleSet whether to set the hit sample set based on the timing point
 	 */
-	private void setBeatLength(OsuTimingPoint timingPoint) {
+	private void setBeatLength(OsuTimingPoint timingPoint, boolean setSampleSet) {
 		if (!timingPoint.isInherited())
 			beatLengthBase = beatLength = timingPoint.getBeatLength();
 		else
 			beatLength = beatLengthBase * timingPoint.getSliderMultiplier();
+		if (setSampleSet) {
+			HitSound.setDefaultSampleSet(timingPoint.getSampleType());
+			SoundController.setSampleVolume(timingPoint.getSampleVolume());
+		}
 	}
 
 	/**

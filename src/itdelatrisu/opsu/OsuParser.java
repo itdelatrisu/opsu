@@ -244,7 +244,7 @@ public class OsuParser {
 										}
 									}
 									if (!match) {
-										Log.error(String.format("File not found: '%s'", tokens[1]));
+										Log.error(String.format("Audio file '%s' not found in directory '%s'.", tokens[1], dir.getName()));
 										return null;
 									}
 								}
