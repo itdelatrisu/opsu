@@ -211,7 +211,8 @@ public class MainMenu extends BasicGameState {
 
 		// top/bottom horizontal bars
 		float oldAlpha = Utils.COLOR_BLACK_ALPHA.a;
-		Utils.COLOR_BLACK_ALPHA.a = 0.2f;
+                //make it darker since it is quite hard to see
+		Utils.COLOR_BLACK_ALPHA.a = 0.5f;
 		g.setColor(Utils.COLOR_BLACK_ALPHA);
 		g.fillRect(0, 0, width, height / 9f);
 		g.fillRect(0, height * 8 / 9f, width, height / 9f);
@@ -273,14 +274,15 @@ public class MainMenu extends BasicGameState {
 		float marginX = width * 0.015f, marginY = height * 0.015f;
 		g.setFont(Utils.FONT_MEDIUM);
 		int lineHeight = Utils.FONT_MEDIUM.getLineHeight() * 9 / 10;
-		g.drawString(String.format("Loaded %d songs and %d beatmaps.",
+                //make opsu! a bit friendlier
+		g.drawString(String.format("opsu! has loaded %d songs and %d beatmaps.",
 				OsuGroupList.get().getMapSetCount(), OsuGroupList.get().getMapCount()), marginX, marginY);
 		if (MusicController.isTrackLoading())
 			g.drawString("Track loading...", marginX, marginY + lineHeight);
 		else if (MusicController.trackExists()) {
 			if (Options.useUnicodeMetadata())  // load glyphs
 				Utils.loadGlyphs(Utils.FONT_MEDIUM, osu.titleUnicode, osu.artistUnicode);
-			g.drawString((MusicController.isPlaying()) ? "Now Playing:" : "Paused:", marginX, marginY + lineHeight);
+			g.drawString((MusicController.isPlaying()) ? "opsu! is now Playing:" : "Paused:", marginX, marginY + lineHeight);
 			g.drawString(String.format("%s: %s", osu.getArtist(), osu.getTitle()), marginX + 25, marginY + (lineHeight * 2));
 		}
 		g.drawString(String.format("opsu! has been running for %s.",
