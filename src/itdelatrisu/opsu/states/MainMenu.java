@@ -273,15 +273,17 @@ public class MainMenu extends BasicGameState {
 		float marginX = width * 0.015f, marginY = height * 0.015f;
 		g.setFont(Utils.FONT_MEDIUM);
 		int lineHeight = Utils.FONT_MEDIUM.getLineHeight() * 9 / 10;
-		g.drawString(String.format("Loaded %d songs and %d beatmaps.",
+		g.drawString(String.format("opsu! has loaded %d songs and %d beatmaps.",
 				OsuGroupList.get().getMapSetCount(), OsuGroupList.get().getMapCount()), marginX, marginY);
-		if (MusicController.isTrackLoading())
-			g.drawString("Track loading...", marginX, marginY + lineHeight);
+		if (MusicController.isTrackLoading()){
+			g.drawString(String.format("opsu! is loading track...",osu.getArtist(),osu.getTitle()), marginX, marginY + lineHeight);
+                        g.drawString(String.format("%s - %s", osu.getArtist(), osu.getTitle()), marginX + 25, marginY + (lineHeight * 2));
+                }
 		else if (MusicController.trackExists()) {
 			if (Options.useUnicodeMetadata())  // load glyphs
 				Utils.loadGlyphs(Utils.FONT_MEDIUM, osu.titleUnicode, osu.artistUnicode);
 			g.drawString((MusicController.isPlaying()) ? "Now Playing:" : "Paused:", marginX, marginY + lineHeight);
-			g.drawString(String.format("%s: %s", osu.getArtist(), osu.getTitle()), marginX + 25, marginY + (lineHeight * 2));
+			g.drawString(String.format("%s - %s", osu.getArtist(), osu.getTitle()), marginX + 25, marginY + (lineHeight * 2));
 		}
 		g.drawString(String.format("opsu! has been running for %s.",
 				Utils.getTimeString((int) (System.currentTimeMillis() - osuStartTime) / 1000)),
