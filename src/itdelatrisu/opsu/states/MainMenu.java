@@ -211,7 +211,7 @@ public class MainMenu extends BasicGameState {
 
 		// top/bottom horizontal bars
 		float oldAlpha = Utils.COLOR_BLACK_ALPHA.a;
-		Utils.COLOR_BLACK_ALPHA.a = 0.2f;
+		Utils.COLOR_BLACK_ALPHA.a = 0.5f;
 		g.setColor(Utils.COLOR_BLACK_ALPHA);
 		g.fillRect(0, 0, width, height / 9f);
 		g.fillRect(0, height * 8 / 9f, width, height / 9f);
