@@ -37,13 +37,23 @@ public abstract class CurveType {
 	/** The total distances of this Bezier. */
 	private float totalDistance;
 
+	/**
+	 * Returns the point on the curve at a value t.
+	 * @param t the t value [0, 1]
+	 * @return the point [x, y]
+	 */
 	public abstract Vec2f pointAt(float t);
 	
-	public void init(float approxlength){
+	/**
+	 * Initialize the curve points and distance
+	 * Must be called by inherited classes
+	 * 
+	 * @param approxlength an approximate length of the curve
+	 */
+	public void init(float approxlength) {
 		// subdivide the curve
 		this.ncurve = (int) (approxlength / 4) + 1;
 		this.curve = new Vec2f[ncurve];
-		System.out.println(approxlength+" "+ncurve);
 		for (int i = 0; i < ncurve; i++)
 			curve[i] = pointAt(i / (float) (ncurve - 1));
 
@@ -53,13 +63,12 @@ public abstract class CurveType {
 		for (int i = 0; i < ncurve; i++) {
 			curveDis[i] = (i == 0) ? 0 : curve[i].cpy().sub(curve[i - 1]).len();
 			totalDistance += curveDis[i];
-			System.out.println("curvedis:"+curveDis[i]);
 		}
 	}
 	/**
 	 * Returns the points along the curve of the Bezier curve.
 	 */
-	public Vec2f[] getCurve() { return curve; }
+	public Vec2f[] getCurvePoint() { return curve; }
 
 	/**
 	 * Returns the distances between a point of the curve and the last point.

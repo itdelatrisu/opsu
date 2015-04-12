@@ -24,7 +24,7 @@ import java.util.LinkedList;
 import org.newdawn.slick.Color;
 
 /**
- * Representation of a Bezier curve with equidistant points.
+ * Representation of Bezier curve with equidistant points.
  * http://pomax.github.io/bezierinfo/#tracing
  *
  * @author fluddokt (https://github.com/fluddokt)
@@ -40,9 +40,12 @@ public class LinearBezier extends EqualDistanceMultiCurve {
 		super(hitObject, color);
 
 		LinkedList<CurveType> beziers = new LinkedList<CurveType>();
+		
+		// Beziers: splits points into different Beziers if has the same points (red points)
 		// a b c - c d - d e f g
+		// Lines: generate a new curve for each sequential pair
 		// ab  bc  cd  de  ef  fg
-		// splits points into different Beziers if has the same points (red points)
+		
 		int controlPoints = hitObject.getSliderX().length + 1;
 		LinkedList<Vec2f> points = new LinkedList<Vec2f>();  // temporary list of points to separate different Bezier curves
 		Vec2f lastPoi = null;

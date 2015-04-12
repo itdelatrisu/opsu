@@ -26,7 +26,7 @@ import java.util.LinkedList;
 import org.newdawn.slick.Color;
 
 /**
- * Representation of a Bezier curve with equidistant points.
+ * Representation of multiple curve with equidistant points.
  * http://pomax.github.io/bezierinfo/#tracing
  *
  * @author fluddokt (https://github.com/fluddokt)
@@ -48,22 +48,25 @@ public abstract class EqualDistanceMultiCurve extends Curve {
 
 	}
 
-	public void init(LinkedList<CurveType> beziers){
-		for(CurveType ct : beziers){
-			System.out.println("CT:"+ct);
-		}
+	/**
+	 * Initialize the curve points with equal distance
+	 * Must be called by inherited classes
+	 * 
+	 * @param curvesList a list of curves to join
+	 */
+	public void init(LinkedList<CurveType> curvesList){
 		// now try to creates points the are equidistant to each other
 		this.ncurve = (int) (hitObject.getPixelLength() / CURVE_POINTS_SEPERATION);
 		this.curve = new Vec2f[ncurve + 1];
 
 		float distanceAt = 0;
-		Iterator<CurveType> iter = beziers.iterator();
+		Iterator<CurveType> iter = curvesList.iterator();
 		int curPoint = 0;
-		CurveType curBezier = iter.next();
-		Vec2f lastCurve = curBezier.getCurve()[0];
+		CurveType curCurve = iter.next();
+		Vec2f lastCurve = curCurve.getCurvePoint()[0];
 		float lastDistanceAt = 0;
 
-		// length of Bezier should equal pixel length (in 640x480)
+		// length of Curve should equal pixel length (in 640x480)
 		float pixelLength = hitObject.getPixelLength() * OsuHitObject.getXMultiplier();
 
 		// for each distance, try to get in between the two points that are between it
@@ -71,15 +74,15 @@ public abstract class EqualDistanceMultiCurve extends Curve {
 			int prefDistance = (int) (i * pixelLength / ncurve);
 			while (distanceAt < prefDistance) {
 				lastDistanceAt = distanceAt;
-				lastCurve = curBezier.getCurve()[curPoint];
-				distanceAt += curBezier.getCurveDistances()[curPoint++];
+				lastCurve = curCurve.getCurvePoint()[curPoint];
+				distanceAt += curCurve.getCurveDistances()[curPoint++];
 
-				if (curPoint >= curBezier.getCurvesCount()) {
+				if (curPoint >= curCurve.getCurvesCount()) {
 					if (iter.hasNext()) {
-						curBezier = iter.next();
+						curCurve = iter.next();
 						curPoint = 0;
 					} else {
-						curPoint = curBezier.getCurvesCount() - 1;
+						curPoint = curCurve.getCurvesCount() - 1;
 						if (lastDistanceAt == distanceAt) {
 							// out of points even though the preferred distance hasn't been reached
 							break;
@@ -87,8 +90,7 @@ public abstract class EqualDistanceMultiCurve extends Curve {
 					}
 				}
 			}
-			System.out.println("prefDis:"+prefDistance+" "+distanceAt+" "+lastDistanceAt);
-			Vec2f thisCurve = curBezier.getCurve()[curPoint];
+			Vec2f thisCurve = curCurve.getCurvePoint()[curPoint];
 
 			// interpolate the point between the two closest distances
 			if (distanceAt - lastDistanceAt > 1) {

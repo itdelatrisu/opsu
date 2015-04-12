@@ -41,14 +41,9 @@ public class Bezier2 extends CurveType{
 			approxlength += points[i].cpy().sub(points[i + 1]).len();
 
 		init(approxlength);
-//		System.out.println("New Bezier2 "+points.length+" "+approxlength+" "+totalDistance());
 	}
 
-	/**
-	 * Returns the point on the Bezier curve at a value t.
-	 * @param t the t value [0, 1]
-	 * @return the point [x, y]
-	 */
+	@Override
 	public Vec2f pointAt(float t) {
 		Vec2f c = new Vec2f();
 		int n = points.length - 1;

@@ -19,12 +19,9 @@
 package itdelatrisu.opsu.objects.curves;
 
 import itdelatrisu.opsu.ErrorHandler;
-import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.OsuHitObject;
-import itdelatrisu.opsu.Utils;
 
 import org.newdawn.slick.Color;
-import org.newdawn.slick.Image;
 
 /**
  * Representation of a curve along a Circumscribed Circle of three points.
@@ -53,9 +50,6 @@ public class CircumscribedCircle extends Curve {
 	/** The start and end angles for drawing. */
 	private float drawStartAngle, drawEndAngle;
 
-	/** The number of steps in the curve to draw. */
-	private float step;
-
 	/**
 	 * Constructor.
 	 * @param hitObject the associated OsuHitObject
@@ -64,7 +58,6 @@ public class CircumscribedCircle extends Curve {
 	public CircumscribedCircle(OsuHitObject hitObject, Color color) {
 		super(hitObject, color);
 
-		
 		// construct the three points
 		this.start = new Vec2f(getX(0), getY(0));
 		this.mid   = new Vec2f(getX(1), getY(1));
@@ -121,7 +114,7 @@ public class CircumscribedCircle extends Curve {
 		this.drawStartAngle = (float) ((startAng + (startAng > endAng ? -HALF_PI : HALF_PI)) * 180 / Math.PI);
 
 		// calculate points
-		this.step = hitObject.getPixelLength() / CURVE_POINTS_SEPERATION;
+		float step = hitObject.getPixelLength() / CURVE_POINTS_SEPERATION;
 		curve = new Vec2f[(int) step + 1];
 		for (int i = 0; i < curve.length; i++) {
 			float[] xy = pointAt(i / step);

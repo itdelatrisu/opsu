@@ -49,12 +49,22 @@ public class Vec2f {
 		return new Vec2f((x + o.x) / 2, (y + o.y) / 2);
 	}
 
+	/**
+	 * Scales the vector.
+	 * @param s scaler to scale by
+	 * @return itself (for chaining)
+	 */
 	public Vec2f scale(float s) {
 		x *= s;
 		y *= s;
 		return this;
 	}
 
+	/**
+	 * Adds a vector to this vector.
+	 * @param o the other vector
+	 * @return itself (for chaining)
+	 */
 	public Vec2f add(Vec2f o) {
 		x += o.x;
 		y += o.y;

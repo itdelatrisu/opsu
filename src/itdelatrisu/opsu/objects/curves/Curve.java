@@ -32,7 +32,9 @@ import org.newdawn.slick.Image;
  */
 public abstract class Curve {
 	
-	protected static float CURVE_POINTS_SEPERATION = 50;
+	/** Points generated along the curve should be spaced this much apart*/
+	protected static float CURVE_POINTS_SEPERATION = 5;
+	
 	/** The associated OsuHitObject. */
 	protected OsuHitObject hitObject;
 
@@ -56,7 +58,6 @@ public abstract class Curve {
 		this.y = hitObject.getScaledY();
 		this.sliderX = hitObject.getScaledSliderX();
 		this.sliderY = hitObject.getScaledSliderY();
-		CURVE_POINTS_SEPERATION = 5;
 	}
 
 	/**
@@ -71,8 +72,7 @@ public abstract class Curve {
 	 * @param color the color filter
 	 */
 	public void draw(Color color) {
-		if ( curve == null){
-			System.out.println("draw curve"+this);
+		if (curve == null){
 			return;
 		}
 		Image hitCircle = GameImage.HITCIRCLE.getImage();

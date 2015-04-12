@@ -1043,7 +1043,7 @@ public class Game extends BasicGameState {
 			// reset game data
 			resetGameData();
 
-			// load the first timingPoint
+			// load the first timingPoint for stacking
 			timingPointIndex = 0;
 			beatLengthBase = beatLength = 1;
 			if (!osu.timingPoints.isEmpty()) {
