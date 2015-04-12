@@ -18,9 +18,12 @@
 
 package itdelatrisu.opsu.objects.curves;
 
+import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.OsuHitObject;
+import itdelatrisu.opsu.Utils;
 
 import org.newdawn.slick.Color;
+import org.newdawn.slick.Image;
 
 /**
  * Representation of a curve.
@@ -28,6 +31,8 @@ import org.newdawn.slick.Color;
  * @author fluddokt (https://github.com/fluddokt)
  */
 public abstract class Curve {
+	
+	protected static float CURVE_POINTS_SEPERATION = 50;
 	/** The associated OsuHitObject. */
 	protected OsuHitObject hitObject;
 
@@ -36,6 +41,9 @@ public abstract class Curve {
 
 	/** The scaled slider x, y coordinate lists. */
 	protected float[] sliderX, sliderY;
+
+	/** Points along the curve. To be set be inherited classes*/
+	protected Vec2f[] curve;
 
 	/**
 	 * Constructor.
@@ -48,6 +56,7 @@ public abstract class Curve {
 		this.y = hitObject.getScaledY();
 		this.sliderX = hitObject.getScaledSliderX();
 		this.sliderY = hitObject.getScaledSliderY();
+		CURVE_POINTS_SEPERATION = 5;
 	}
 
 	/**
@@ -61,7 +70,18 @@ public abstract class Curve {
 	 * Draws the full curve to the graphics context.
 	 * @param color the color filter
 	 */
-	public abstract void draw(Color color);
+	public void draw(Color color) {
+		if ( curve == null){
+			System.out.println("draw curve"+this);
+			return;
+		}
+		Image hitCircle = GameImage.HITCIRCLE.getImage();
+		Image hitCircleOverlay = GameImage.HITCIRCLE_OVERLAY.getImage();
+		for (int i = 0; i < curve.length; i++)
+			hitCircleOverlay.drawCentered(curve[i].x, curve[i].y, Utils.COLOR_WHITE_FADE);
+		for (int i = 0; i < curve.length; i++)
+			hitCircle.drawCentered(curve[i].x, curve[i].y, color);
+	}
 
 	/**
 	 * Returns the angle of the first control point.
