@@ -1043,6 +1043,16 @@ public class Game extends BasicGameState {
 			// reset game data
 			resetGameData();
 
+			// load the first timingPoint for stacking
+			timingPointIndex = 0;
+			beatLengthBase = beatLength = 1;
+			if (!osu.timingPoints.isEmpty()) {
+				OsuTimingPoint timingPoint = osu.timingPoints.get(0);
+				if (!timingPoint.isInherited()) {
+					setBeatLength(timingPoint, true);
+					timingPointIndex++;
+				}
+			}
 			// initialize object maps
 			for (int i = 0; i < osu.objects.length; i++) {
 				OsuHitObject hitObject = osu.objects[i];

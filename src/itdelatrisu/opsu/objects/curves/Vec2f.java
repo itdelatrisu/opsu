@@ -50,6 +50,28 @@ public class Vec2f {
 	}
 
 	/**
+	 * Scales the vector.
+	 * @param s scaler to scale by
+	 * @return itself (for chaining)
+	 */
+	public Vec2f scale(float s) {
+		x *= s;
+		y *= s;
+		return this;
+	}
+
+	/**
+	 * Adds a vector to this vector.
+	 * @param o the other vector
+	 * @return itself (for chaining)
+	 */
+	public Vec2f add(Vec2f o) {
+		x += o.x;
+		y += o.y;
+		return this;
+	}
+	
+	/**
 	 * Subtracts a vector from this vector.
 	 * @param o the other vector
 	 * @return itself (for chaining)
@@ -97,4 +119,8 @@ public class Vec2f {
 	 * @return true if the two vectors are numerically equal
 	 */
 	public boolean equals(Vec2f o) { return (x == o.x && y == o.y); }
+
+	public String toString(){
+		return "Vec2f:"+x+" "+y;
+	}
 }

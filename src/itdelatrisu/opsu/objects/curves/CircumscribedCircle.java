@@ -19,12 +19,9 @@
 package itdelatrisu.opsu.objects.curves;
 
 import itdelatrisu.opsu.ErrorHandler;
-import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.OsuHitObject;
-import itdelatrisu.opsu.Utils;
 
 import org.newdawn.slick.Color;
-import org.newdawn.slick.Image;
 
 /**
  * Representation of a curve along a Circumscribed Circle of three points.
@@ -53,12 +50,6 @@ public class CircumscribedCircle extends Curve {
 	/** The start and end angles for drawing. */
 	private float drawStartAngle, drawEndAngle;
 
-	/** The number of steps in the curve to draw. */
-	private float step;
-
-	/** Points along the curve. */
-	private Vec2f[] curve;
-
 	/**
 	 * Constructor.
 	 * @param hitObject the associated OsuHitObject
@@ -66,8 +57,6 @@ public class CircumscribedCircle extends Curve {
 	 */
 	public CircumscribedCircle(OsuHitObject hitObject, Color color) {
 		super(hitObject, color);
-
-		this.step = hitObject.getPixelLength() / 5f;
 
 		// construct the three points
 		this.start = new Vec2f(getX(0), getY(0));
@@ -125,6 +114,7 @@ public class CircumscribedCircle extends Curve {
 		this.drawStartAngle = (float) ((startAng + (startAng > endAng ? -HALF_PI : HALF_PI)) * 180 / Math.PI);
 
 		// calculate points
+		float step = hitObject.getPixelLength() / CURVE_POINTS_SEPERATION;
 		curve = new Vec2f[(int) step + 1];
 		for (int i = 0; i < curve.length; i++) {
 			float[] xy = pointAt(i / step);
@@ -178,15 +168,6 @@ public class CircumscribedCircle extends Curve {
 		};
 	}
 
-	@Override
-	public void draw(Color color) {
-		Image hitCircle = GameImage.HITCIRCLE.getImage();
-		Image hitCircleOverlay = GameImage.HITCIRCLE_OVERLAY.getImage();
-		for (int i = 0; i < step; i++)
-			hitCircleOverlay.drawCentered(curve[i].x, curve[i].y, Utils.COLOR_WHITE_FADE);
-		for (int i = 0; i < step; i++)
-			hitCircle.drawCentered(curve[i].x, curve[i].y, color);
-	}
 
 	@Override
 	public float getEndAngle() { return drawEndAngle; }
