@@ -168,7 +168,6 @@ public class CircumscribedCircle extends Curve {
 		};
 	}
 
-
 	@Override
 	public float getEndAngle() { return drawEndAngle; }
 

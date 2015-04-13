@@ -70,7 +70,7 @@ public class Vec2f {
 		y += o.y;
 		return this;
 	}
-	
+
 	/**
 	 * Subtracts a vector from this vector.
 	 * @param o the other vector
@@ -120,7 +120,6 @@ public class Vec2f {
 	 */
 	public boolean equals(Vec2f o) { return (x == o.x && y == o.y); }
 
-	public String toString(){
-		return "Vec2f:"+x+" "+y;
-	}
+	@Override
+	public String toString() { return String.format("(%.3f, %.3f)", x, y); }
 }

@@ -460,7 +460,7 @@ public class Slider implements HitObject {
 
 		if (hitObject.getSliderType() == OsuHitObject.SLIDER_PASSTHROUGH && hitObject.getSliderX().length == 2)
 			this.curve = new CircumscribedCircle(hitObject, color);
-		else if ( hitObject.getSliderType() == OsuHitObject.SLIDER_CATMULL)
+		else if (hitObject.getSliderType() == OsuHitObject.SLIDER_CATMULL)
 			this.curve = new CatmullCurve(hitObject, color);
 		else
 			this.curve = new LinearBezier(hitObject, color, hitObject.getSliderType() == OsuHitObject.SLIDER_LINEAR);

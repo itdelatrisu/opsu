@@ -18,19 +18,20 @@
 
 package itdelatrisu.opsu.objects.curves;
 
-import java.util.LinkedList;
-
+import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.OsuHitObject;
 
+import java.util.LinkedList;
+
 import org.newdawn.slick.Color;
+import org.newdawn.slick.SlickException;
 
 /**
  * Representation of Catmull Curve with equidistant points.
  *
  * @author fluddokt (https://github.com/fluddokt)
  */
-public class CatmullCurve extends EqualDistanceMultiCurve{
-
+public class CatmullCurve extends EqualDistanceMultiCurve {
 	/**
 	 * Constructor.
 	 * @param hitObject the associated OsuHitObject
@@ -40,9 +41,8 @@ public class CatmullCurve extends EqualDistanceMultiCurve{
 		super(hitObject, color);
 		LinkedList<CurveType> catmulls = new LinkedList<CurveType>();
 		int ncontrolPoints = hitObject.getSliderX().length + 1;
-		// temporary list of points to separate different curves
-		LinkedList<Vec2f> points = new LinkedList<Vec2f>();
-		
+		LinkedList<Vec2f> points = new LinkedList<Vec2f>();  // temporary list of points to separate different curves
+
 		// repeat the first and last points as controls points
 		// aabb
 		// aabc abcc
@@ -51,14 +51,23 @@ public class CatmullCurve extends EqualDistanceMultiCurve{
 		for (int i = 0; i < ncontrolPoints; i++) {
 			points.addLast(new Vec2f(getX(i), getY(i)));
 			if (points.size() >= 4) {
-				catmulls.add(new CentripetalCatmullRom(points.toArray(new Vec2f[0])));
+				try {
+					catmulls.add(new CentripetalCatmullRom(points.toArray(new Vec2f[0])));
+				} catch (SlickException e) {
+					ErrorHandler.error(null, e, true);
+				}
 				points.removeFirst();
 			}
 		}
-		points.addLast(new Vec2f(getX(ncontrolPoints - 1),getY(ncontrolPoints - 1)));
+		points.addLast(new Vec2f(getX(ncontrolPoints - 1), getY(ncontrolPoints - 1)));
 		if (points.size() >= 4) {
-			catmulls.add(new CentripetalCatmullRom(points.toArray(new Vec2f[0])));
+			try {
+				catmulls.add(new CentripetalCatmullRom(points.toArray(new Vec2f[0])));
+			} catch (SlickException e) {
+				ErrorHandler.error(null, e, true);
+			}
 		}
+
 		init(catmulls);
 	}
 }

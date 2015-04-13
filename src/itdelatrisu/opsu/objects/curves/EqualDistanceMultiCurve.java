@@ -45,13 +45,11 @@ public abstract class EqualDistanceMultiCurve extends Curve {
 	 */
 	public EqualDistanceMultiCurve(OsuHitObject hitObject, Color color) {
 		super(hitObject, color);
-
 	}
 
 	/**
-	 * Initialize the curve points with equal distance
-	 * Must be called by inherited classes
-	 * 
+	 * Initialize the curve points with equal distance.
+	 * Must be called by inherited classes.
 	 * @param curvesList a list of curves to join
 	 */
 	public void init(LinkedList<CurveType> curvesList){
@@ -116,7 +114,7 @@ public abstract class EqualDistanceMultiCurve extends Curve {
 			this.endAngle = (float) (Math.atan2(c2.y - c1.y, c2.x - c1.x) * 180 / Math.PI);
 //		}
 	}
-	
+
 	@Override
 	public float[] pointAt(float t) {
 		float indexF = t * ncurve;

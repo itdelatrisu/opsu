@@ -18,30 +18,30 @@
 
 package itdelatrisu.opsu.objects.curves;
 
+import org.newdawn.slick.SlickException;
+
 /**
  * Representation of a Centripetal Catmull–Rom spline.
+ * (Currently not technically Centripetal Catmull–Rom.)
  * http://en.wikipedia.org/wiki/Centripetal_Catmull%E2%80%93Rom_spline
- * 
- * Currently not technically Centripetal Catmull–Rom
- * 
+ *
  * @author fluddokt (https://github.com/fluddokt)
  */
-public class CentripetalCatmullRom extends CurveType{
-
+public class CentripetalCatmullRom extends CurveType {
 	/** The time values of the Catmull curve. */
-	float [] time;
-	
+	private float [] time;
+
 	/** The control points of the Catmull curve. */
-	Vec2f[] points;
-	
+	private Vec2f[] points;
+
 	/**
 	 * Constructor.
-	 * @param hitObject the associated OsuHitObject
-	 * @param color the color of this curve
+	 * @param points the control points of the curve
+	 * @throws SlickException
 	 */
-	protected CentripetalCatmullRom(Vec2f[] points) {
+	protected CentripetalCatmullRom(Vec2f[] points) throws SlickException {
 		if (points.length != 4)
-			throw new Error("need exactly 4 points");
+			throw new SlickException(String.format("Need exactly 4 points to initialize CentripetalCatmullRom, %d provided.", points.length));
 
 		this.points = points;
 		time = new float[4];
@@ -57,12 +57,12 @@ public class CentripetalCatmullRom extends CurveType{
 			// time[i] = (float) Math.sqrt(len) + time[i-1];// ^(0.5)
 			time[i] = i;
 		}
+
 		init(approxLength / 2);
 	}
 
-	
 	@Override
-	public Vec2f pointAt(float t){
+	public Vec2f pointAt(float t) {
 		t = t * (time[2] - time[1]) + time[1];
 
 		Vec2f A1 = points[0].cpy().scale((time[1] - t) / (time[1] - time[0]))
@@ -79,8 +79,7 @@ public class CentripetalCatmullRom extends CurveType{
 
 		Vec2f C = B1.cpy().scale((time[2] - t) / (time[2] - time[1]))
 			 .add(B2.cpy().scale((t - time[1]) / (time[2] - time[1])));
-		
+
 		return C;
 	}
-
 }

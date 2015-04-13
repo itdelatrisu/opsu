@@ -31,10 +31,9 @@ import org.newdawn.slick.Image;
  * @author fluddokt (https://github.com/fluddokt)
  */
 public abstract class Curve {
-	
-	/** Points generated along the curve should be spaced this much apart*/
+	/** Points generated along the curve should be spaced this far apart. */
 	protected static float CURVE_POINTS_SEPERATION = 5;
-	
+
 	/** The associated OsuHitObject. */
 	protected OsuHitObject hitObject;
 
@@ -44,7 +43,7 @@ public abstract class Curve {
 	/** The scaled slider x, y coordinate lists. */
 	protected float[] sliderX, sliderY;
 
-	/** Points along the curve. To be set be inherited classes*/
+	/** Points along the curve (set by inherited classes). */
 	protected Vec2f[] curve;
 
 	/**
@@ -72,9 +71,9 @@ public abstract class Curve {
 	 * @param color the color filter
 	 */
 	public void draw(Color color) {
-		if (curve == null){
+		if (curve == null)
 			return;
-		}
+
 		Image hitCircle = GameImage.HITCIRCLE.getImage();
 		Image hitCircleOverlay = GameImage.HITCIRCLE_OVERLAY.getImage();
 		for (int i = 0; i < curve.length; i++)

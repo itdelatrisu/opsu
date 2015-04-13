@@ -164,7 +164,7 @@ public class SoundController {
 		}
 		if (bestIndex >= 0)
 			return new MultiClip(ref, AudioSystem.getAudioInputStream(formats[bestIndex], audioIn));
-		
+
 		// still couldn't find anything, try the default clip format
 		return new MultiClip(ref, AudioSystem.getAudioInputStream(clip.getFormat(), audioIn));
 	}

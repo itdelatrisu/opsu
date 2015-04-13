@@ -619,7 +619,7 @@ public class Utils {
 	public static float easeOut(float t, float a, float b, float d) {
 		return b * ((t = t / d - 1f) * t * t + 1f) + a;
 	}
-	
+
 	/**
 	 * Fake bounce ease function.
 	 * @param t the current time

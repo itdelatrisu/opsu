@@ -23,7 +23,7 @@ package itdelatrisu.opsu.objects.curves;
  *
  * @author fluddokt (https://github.com/fluddokt)
  */
-public class Bezier2 extends CurveType{
+public class Bezier2 extends CurveType {
 	/** The control points of the Bezier curve. */
 	private Vec2f[] points;
 
@@ -55,12 +55,11 @@ public class Bezier2 extends CurveType{
 		return c;
 	}
 
-
 	/**
 	 * Calculates the binomial coefficient.
 	 * http://en.wikipedia.org/wiki/Binomial_coefficient#Binomial_coefficient_in_programming_languages
 	 */
-	public static long binomialCoefficient(int n, int k) {
+	private static long binomialCoefficient(int n, int k) {
 		if (k < 0 || k > n)
 			return 0;
 		if (k == 0 || k == n)

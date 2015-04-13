@@ -24,7 +24,6 @@ package itdelatrisu.opsu.objects.curves;
  * @author fluddokt (https://github.com/fluddokt)
  */
 public abstract class CurveType {
-
 	/** Points along the curve of the Bezier curve. */
 	private Vec2f[] curve;
 
@@ -43,11 +42,10 @@ public abstract class CurveType {
 	 * @return the point [x, y]
 	 */
 	public abstract Vec2f pointAt(float t);
-	
+
 	/**
-	 * Initialize the curve points and distance
-	 * Must be called by inherited classes
-	 * 
+	 * Initialize the curve points and distance.
+	 * Must be called by inherited classes.
 	 * @param approxlength an approximate length of the curve
 	 */
 	public void init(float approxlength) {
@@ -65,6 +63,7 @@ public abstract class CurveType {
 			totalDistance += curveDis[i];
 		}
 	}
+
 	/**
 	 * Returns the points along the curve of the Bezier curve.
 	 */
@@ -84,5 +83,4 @@ public abstract class CurveType {
 	 * Returns the total distances of this Bezier curve.
 	 */
 	public float totalDistance() { return totalDistance; }
-
 }

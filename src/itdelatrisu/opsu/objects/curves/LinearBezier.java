@@ -19,6 +19,7 @@
 package itdelatrisu.opsu.objects.curves;
 
 import itdelatrisu.opsu.OsuHitObject;
+
 import java.util.LinkedList;
 
 import org.newdawn.slick.Color;
@@ -30,29 +31,28 @@ import org.newdawn.slick.Color;
  * @author fluddokt (https://github.com/fluddokt)
  */
 public class LinearBezier extends EqualDistanceMultiCurve {
-
 	/**
 	 * Constructor.
 	 * @param hitObject the associated OsuHitObject
 	 * @param color the color of this curve
+	 * @param line whether a new curve should be generated for each sequential pair
 	 */
 	public LinearBezier(OsuHitObject hitObject, Color color, boolean line) {
 		super(hitObject, color);
 
 		LinkedList<CurveType> beziers = new LinkedList<CurveType>();
-		
+
 		// Beziers: splits points into different Beziers if has the same points (red points)
 		// a b c - c d - d e f g
 		// Lines: generate a new curve for each sequential pair
 		// ab  bc  cd  de  ef  fg
-		
 		int controlPoints = hitObject.getSliderX().length + 1;
 		LinkedList<Vec2f> points = new LinkedList<Vec2f>();  // temporary list of points to separate different Bezier curves
 		Vec2f lastPoi = null;
 		for (int i = 0; i < controlPoints; i++) {
 			Vec2f tpoi = new Vec2f(getX(i), getY(i));
 			if (line) {
-				if(lastPoi != null) {
+				if (lastPoi != null) {
 					points.add(tpoi);
 					beziers.add(new Bezier2(points.toArray(new Vec2f[0])));
 					points.clear();
@@ -72,7 +72,7 @@ public class LinearBezier extends EqualDistanceMultiCurve {
 			beziers.add(new Bezier2(points.toArray(new Vec2f[0])));
 			points.clear();
 		}
-		
+
 		init(beziers);
 	}
 }
