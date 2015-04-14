@@ -44,10 +44,12 @@ public class CatmullCurve extends EqualDistanceMultiCurve {
 		LinkedList<Vec2f> points = new LinkedList<Vec2f>();  // temporary list of points to separate different curves
 
 		// repeat the first and last points as controls points
+		// only if the first/last two points are different
 		// aabb
 		// aabc abcc
 		// aabc abcd bcdd
-		points.addLast(new Vec2f(getX(0), getY(0)));
+		if (getX(0) != getX(1) || getY(0) != getY(1))
+			points.addLast(new Vec2f(getX(0), getY(0)));
 		for (int i = 0; i < ncontrolPoints; i++) {
 			points.addLast(new Vec2f(getX(i), getY(i)));
 			if (points.size() >= 4) {
@@ -59,6 +61,8 @@ public class CatmullCurve extends EqualDistanceMultiCurve {
 				points.removeFirst();
 			}
 		}
+		if (getX(ncontrolPoints - 1) != getX(ncontrolPoints - 2) 
+		  ||getY(ncontrolPoints - 1) != getY(ncontrolPoints - 2))
 		points.addLast(new Vec2f(getX(ncontrolPoints - 1), getY(ncontrolPoints - 1)));
 		if (points.size() >= 4) {
 			try {

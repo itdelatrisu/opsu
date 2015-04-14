@@ -73,7 +73,7 @@ public abstract class EqualDistanceMultiCurve extends Curve {
 			while (distanceAt < prefDistance) {
 				lastDistanceAt = distanceAt;
 				lastCurve = curCurve.getCurvePoint()[curPoint];
-				distanceAt += curCurve.getCurveDistances()[curPoint++];
+				curPoint++;
 
 				if (curPoint >= curCurve.getCurvesCount()) {
 					if (iter.hasNext()) {
@@ -87,6 +87,7 @@ public abstract class EqualDistanceMultiCurve extends Curve {
 						}
 					}
 				}
+				distanceAt += curCurve.getCurveDistances()[curPoint];
 			}
 			Vec2f thisCurve = curCurve.getCurvePoint()[curPoint];
 

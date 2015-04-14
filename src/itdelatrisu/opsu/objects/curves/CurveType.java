@@ -50,7 +50,7 @@ public abstract class CurveType {
 	 */
 	public void init(float approxlength) {
 		// subdivide the curve
-		this.ncurve = (int) (approxlength / 4) + 1;
+		this.ncurve = (int) (approxlength / 4) + 2;
 		this.curve = new Vec2f[ncurve];
 		for (int i = 0; i < ncurve; i++)
 			curve[i] = pointAt(i / (float) (ncurve - 1));
