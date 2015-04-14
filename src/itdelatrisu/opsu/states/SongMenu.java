@@ -315,6 +315,8 @@ public class SongMenu extends BasicGameState {
 		g.clearClip();
 
 		// top/bottom bars
+                float oldAlpha=Utils.COLOR_BLACK_ALPHA.a;
+                Utils.COLOR_BLACK_ALPHA.a=1f;
 		g.setColor(Utils.COLOR_BLACK_ALPHA);
 		g.fillRect(0, 0, width, headerY);
 		g.fillRect(0, footerY, width, height - footerY);
@@ -323,6 +325,7 @@ public class SongMenu extends BasicGameState {
 		g.drawLine(0, headerY, width, headerY);
 		g.drawLine(0, footerY, width, footerY);
 		g.resetLineWidth();
+                Utils.COLOR_BLACK_ALPHA.a=oldAlpha; 
 
 		// header
 		if (focusNode != null) {
@@ -411,7 +414,7 @@ public class SongMenu extends BasicGameState {
 		float searchExtraHeight = Utils.FONT_DEFAULT.getLineHeight() * 0.7f;
 		float searchProgress = (searchTransitionTimer < SEARCH_TRANSITION_TIME) ?
 				((float) searchTransitionTimer / SEARCH_TRANSITION_TIME) : 1f;
-		float oldAlpha = Utils.COLOR_BLACK_ALPHA.a;
+		oldAlpha = Utils.COLOR_BLACK_ALPHA.a;
 		if (searchEmpty) {
 			searchRectHeight += (1f - searchProgress) * searchExtraHeight;
 			Utils.COLOR_BLACK_ALPHA.a = 0.5f - searchProgress * 0.3f;
