@@ -35,6 +35,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.SocketTimeoutException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
@@ -632,5 +633,25 @@ public class Utils {
 		if (t < d / 2)
 			return easeOut(t, a, b, d);
 		return easeOut(d - t, a, b, d);
+	}
+
+	/**
+	 * Returns whether or not the application is running within a JAR.
+	 * @return true if JAR, false if file
+	 */
+	public static boolean isJarRunning() {
+		return Opsu.class.getResource(String.format("%s.class", Opsu.class.getSimpleName())).toString().startsWith("jar:");
+	}
+
+	/**
+	 * Returns the directory where the application is being run.
+	 */
+	public static File getRunningDirectory() {
+		try {
+			return new File(Opsu.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
+		} catch (URISyntaxException e) {
+			Log.error("Could not get the running directory.", e);
+			return null;
+		}
 	}
 }
