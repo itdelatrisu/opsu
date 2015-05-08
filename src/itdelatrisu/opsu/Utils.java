@@ -51,6 +51,8 @@ import java.util.Scanner;
 
 import javax.imageio.ImageIO;
 
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
@@ -552,6 +554,25 @@ public class Utils {
 			Log.warn("Connection to server timed out.", e);
 			throw e;
 		}
+	}
+
+	/**
+	 * Returns a JSON object from a URL.
+	 * @param url the remote URL
+	 * @return the JSON object
+	 * @author Roland Illig (http://stackoverflow.com/a/4308662)
+	 */
+	public static JSONObject readJsonFromUrl(URL url) throws IOException {
+		String s = Utils.readDataFromUrl(url);
+		JSONObject json = null;
+		if (s != null) {
+			try {
+				json = new JSONObject(s);
+			} catch (JSONException e) {
+				ErrorHandler.error("Failed to create JSON object.", e, true);
+			}
+		}
+		return json;
 	}
 
 	/**

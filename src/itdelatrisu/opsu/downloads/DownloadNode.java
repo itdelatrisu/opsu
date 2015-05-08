@@ -26,6 +26,7 @@ import itdelatrisu.opsu.UI;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.downloads.Download.DownloadListener;
 import itdelatrisu.opsu.downloads.Download.Status;
+import itdelatrisu.opsu.downloads.servers.DownloadServer;
 
 import java.io.File;
 
@@ -239,22 +240,26 @@ public class DownloadNode {
 	 * @see #getDownload()
 	 */
 	public void createDownload(DownloadServer server) {
-		if (download == null) {
-			String path = String.format("%s%c%d", Options.getOSZDir(), File.separatorChar, beatmapSetID);
-			String rename = String.format("%d %s - %s.osz", beatmapSetID, artist, title);
-			this.download = new Download(server.getURL(beatmapSetID), path, rename);
-			download.setListener(new DownloadListener() {
-				@Override
-				public void completed() {
-					UI.sendBarNotification(String.format("Download complete: %s", getTitle()));
-				}
+		if (download != null)
+			return;
 
-				@Override
-				public void error() {
-					UI.sendBarNotification("Download failed due to a connection error.");
-				}
-			});
-		}
+		String url = server.getDownloadURL(beatmapSetID);
+		if (url == null)
+			return;
+		String path = String.format("%s%c%d", Options.getOSZDir(), File.separatorChar, beatmapSetID);
+		String rename = String.format("%d %s - %s.osz", beatmapSetID, artist, title);
+		this.download = new Download(url, path, rename);
+		download.setListener(new DownloadListener() {
+			@Override
+			public void completed() {
+				UI.sendBarNotification(String.format("Download complete: %s", getTitle()));
+			}
+
+			@Override
+			public void error() {
+				UI.sendBarNotification("Download failed due to a connection error.");
+			}
+		});
 	}
 
 	/**

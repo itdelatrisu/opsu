@@ -31,11 +31,12 @@ import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
-import itdelatrisu.opsu.downloads.BloodcatServer;
 import itdelatrisu.opsu.downloads.Download;
 import itdelatrisu.opsu.downloads.DownloadList;
 import itdelatrisu.opsu.downloads.DownloadNode;
-import itdelatrisu.opsu.downloads.DownloadServer;
+import itdelatrisu.opsu.downloads.servers.BloodcatServer;
+import itdelatrisu.opsu.downloads.servers.DownloadServer;
+import itdelatrisu.opsu.downloads.servers.OsuMirrorServer;
 
 import java.io.File;
 import java.io.IOException;
@@ -71,8 +72,11 @@ public class DownloadsMenu extends BasicGameState {
 	/** Minimum time, in milliseconds, that must elapse between queries. */
 	private static final int MIN_REQUEST_INTERVAL = 300;
 
-	/** The beatmap download server. */
-	private DownloadServer server = new BloodcatServer();
+	/** Available beatmap download servers. */
+	private static final DownloadServer[] SERVERS = { new BloodcatServer(), new OsuMirrorServer() };
+
+	/** The beatmap download server index. */
+	private int serverIndex = 0;
 
 	/** The current list of search results. */
 	private DownloadNode[] resultList;
@@ -138,7 +142,7 @@ public class DownloadsMenu extends BasicGameState {
 	private MenuButton prevPage, nextPage;
 
 	/** Buttons. */
-	private MenuButton clearButton, importButton, resetButton, rankedButton;
+	private MenuButton clearButton, importButton, resetButton, rankedButton, serverButton;
 
 	/** Beatmap importing thread. */
 	private Thread importThread;
@@ -170,11 +174,11 @@ public class DownloadsMenu extends BasicGameState {
 		int height = container.getHeight();
 		float baseX = width * 0.024f;
 		float searchY = (height * 0.05f) + Utils.FONT_LARGE.getLineHeight();
-		float searchWidth = width * 0.35f;
+		float searchWidth = width * 0.3f;
 
 		// search
 		searchTimer = SEARCH_DELAY;
-		searchResultString = "Type to search!";
+		searchResultString = "Loading data from server...";
 		search = new TextField(
 				container, Utils.FONT_DEFAULT, (int) baseX, (int) searchY,
 				(int) searchWidth, Utils.FONT_MEDIUM.getLineHeight()
@@ -200,8 +204,10 @@ public class DownloadsMenu extends BasicGameState {
 		// buttons
 		float buttonMarginX = width * 0.004f;
 		float buttonHeight = height * 0.038f;
-		float topButtonWidth = width * 0.14f;
-		float lowerButtonWidth = width * 0.12f;
+		float resetWidth = width * 0.085f;
+		float rankedWidth = width * 0.15f;
+		float serverWidth = width * 0.12f;
+		float lowerWidth = width * 0.12f;
 		float topButtonY = searchY + Utils.FONT_MEDIUM.getLineHeight() / 2f;
 		float lowerButtonY = height * 0.995f - searchY - buttonHeight / 2f;
 		Image button = GameImage.MENU_BUTTON_MID.getImage();
@@ -209,25 +215,33 @@ public class DownloadsMenu extends BasicGameState {
 		Image buttonR = GameImage.MENU_BUTTON_RIGHT.getImage();
 		buttonL = buttonL.getScaledCopy(buttonHeight / buttonL.getHeight());
 		buttonR = buttonR.getScaledCopy(buttonHeight / buttonR.getHeight());
-		Image topButton = button.getScaledCopy((int) topButtonWidth - buttonL.getWidth() - buttonR.getWidth(), (int) buttonHeight);
-		Image lowerButton = button.getScaledCopy((int) lowerButtonWidth - buttonL.getWidth() - buttonR.getWidth(), (int) buttonHeight);
-		float fullTopButtonWidth = topButton.getWidth() + buttonL.getWidth() + buttonR.getWidth();
-		float fullLowerButtonWidth = lowerButton.getWidth() + buttonL.getWidth() + buttonR.getWidth();
-		clearButton = new MenuButton(lowerButton, buttonL, buttonR,
-				width * 0.75f + buttonMarginX + fullLowerButtonWidth / 2f, lowerButtonY);
-		importButton = new MenuButton(lowerButton, buttonL, buttonR,
-				width - buttonMarginX - fullLowerButtonWidth / 2f, lowerButtonY);
-		resetButton = new MenuButton(topButton, buttonL, buttonR,
-				baseX + searchWidth + buttonMarginX + fullTopButtonWidth / 2f, topButtonY);
-		rankedButton = new MenuButton(topButton, buttonL, buttonR,
-				baseX + searchWidth + buttonMarginX * 2f + fullTopButtonWidth * 3 / 2f, topButtonY);
+		int lrButtonWidth = buttonL.getWidth() + buttonR.getWidth();
+		Image resetButtonImage = button.getScaledCopy((int) resetWidth - lrButtonWidth, (int) buttonHeight);
+		Image rankedButtonImage = button.getScaledCopy((int) rankedWidth - lrButtonWidth, (int) buttonHeight);
+		Image serverButtonImage = button.getScaledCopy((int) serverWidth - lrButtonWidth, (int) buttonHeight);
+		Image lowerButtonImage = button.getScaledCopy((int) lowerWidth - lrButtonWidth, (int) buttonHeight);
+		float resetButtonWidth = resetButtonImage.getWidth() + lrButtonWidth;
+		float rankedButtonWidth = rankedButtonImage.getWidth() + lrButtonWidth;
+		float serverButtonWidth = serverButtonImage.getWidth() + lrButtonWidth;
+		float lowerButtonWidth = lowerButtonImage.getWidth() + lrButtonWidth;
+		clearButton = new MenuButton(lowerButtonImage, buttonL, buttonR,
+				width * 0.75f + buttonMarginX + lowerButtonWidth / 2f, lowerButtonY);
+		importButton = new MenuButton(lowerButtonImage, buttonL, buttonR,
+				width - buttonMarginX - lowerButtonWidth / 2f, lowerButtonY);
+		resetButton = new MenuButton(resetButtonImage, buttonL, buttonR,
+				baseX + searchWidth + buttonMarginX + resetButtonWidth / 2f, topButtonY);
+		rankedButton = new MenuButton(rankedButtonImage, buttonL, buttonR,
+				baseX + searchWidth + buttonMarginX * 2f + resetButtonWidth + rankedButtonWidth / 2f, topButtonY);
+		serverButton = new MenuButton(serverButtonImage, buttonL, buttonR,
+				baseX + searchWidth + buttonMarginX * 3f + resetButtonWidth + rankedButtonWidth + serverButtonWidth / 2f, topButtonY);
 		clearButton.setText("Clear", Utils.FONT_MEDIUM, Color.white);
 		importButton.setText("Import All", Utils.FONT_MEDIUM, Color.white);
-		resetButton.setText("Reset Search", Utils.FONT_MEDIUM, Color.white);
+		resetButton.setText("Reset", Utils.FONT_MEDIUM, Color.white);
 		clearButton.setHoverFade();
 		importButton.setHoverFade();
 		resetButton.setHoverFade();
 		rankedButton.setHoverFade();
+		serverButton.setHoverFade();
 	}
 
 	@Override
@@ -317,6 +331,8 @@ public class DownloadsMenu extends BasicGameState {
 		resetButton.draw(Color.red);
 		rankedButton.setText((rankedOnly) ? "Show Unranked" : "Hide Unranked", Utils.FONT_MEDIUM, Color.white);
 		rankedButton.draw(Color.magenta);
+		serverButton.setText(SERVERS[serverIndex].getName(), Utils.FONT_MEDIUM, Color.white);
+		serverButton.draw(Color.blue);
 
 		// importing beatmaps
 		if (importThread != null) {
@@ -348,6 +364,7 @@ public class DownloadsMenu extends BasicGameState {
 		importButton.hoverUpdate(delta, mouseX, mouseY);
 		resetButton.hoverUpdate(delta, mouseX, mouseY);
 		rankedButton.hoverUpdate(delta, mouseX, mouseY);
+		serverButton.hoverUpdate(delta, mouseX, mouseY);
 
 		// focus timer
 		if (focusResult != -1 && focusTimer < FOCUS_DELAY)
@@ -361,7 +378,9 @@ public class DownloadsMenu extends BasicGameState {
 			searchTimerReset = false;
 
 			final String query = search.getText().trim().toLowerCase();
-			if (lastQuery == null || !query.equals(lastQuery)) {
+			final DownloadServer server = SERVERS[serverIndex];
+			if ((lastQuery == null || !query.equals(lastQuery)) &&
+			    (query.length() == 0 || query.length() >= server.minQueryLength())) {
 				lastQuery = query;
 				lastQueryDir = pageDir;
 
@@ -409,7 +428,7 @@ public class DownloadsMenu extends BasicGameState {
 								else {
 									if (query.isEmpty())
 										searchResultString = "Type to search!";
-									else if (totalResults == 0)
+									else if (totalResults == 0 || resultList.length == 0)
 										searchResultString = "No results found.";
 									else
 										searchResultString = String.format("%d result%s found!",
@@ -481,7 +500,7 @@ public class DownloadsMenu extends BasicGameState {
 							} else {
 								// play preview
 								try {
-									final URL url = new URL(server.getPreviewURL(node.getID()));
+									final URL url = new URL(SERVERS[serverIndex].getPreviewURL(node.getID()));
 									MusicController.pause();
 									new Thread() {
 										@Override
@@ -525,9 +544,13 @@ public class DownloadsMenu extends BasicGameState {
 							} else {
 								// start download
 								if (!DownloadList.get().contains(node.getID())) {
-									DownloadList.get().addNode(node);
-									node.createDownload(server);
-									node.getDownload().start();
+									node.createDownload(SERVERS[serverIndex]);
+									if (node.getDownload() == null)
+										UI.sendBarNotification("The download could not be started.");
+									else {
+										DownloadList.get().addNode(node);
+										node.getDownload().start();
+									}
 								}
 							}
 						} else {
@@ -619,6 +642,22 @@ public class DownloadsMenu extends BasicGameState {
 		if (rankedButton.contains(x, y)) {
 			SoundController.playSound(SoundEffect.MENUCLICK);
 			rankedOnly = !rankedOnly;
+			lastQuery = null;
+			pageDir = Page.RESET;
+			resetSearchTimer();
+			return;
+		}
+		if (serverButton.contains(x, y)) {
+			SoundController.playSound(SoundEffect.MENUCLICK);
+			resultList = null;
+			startResult = 0;
+			focusResult = -1;
+			totalResults = 0;
+			page = 0;
+			pageResultTotal = 1;
+			pageDir = Page.RESET;
+			searchResultString = "Loading data from server...";
+			serverIndex = (serverIndex + 1) % SERVERS.length;
 			lastQuery = null;
 			pageDir = Page.RESET;
 			resetSearchTimer();
@@ -755,6 +794,7 @@ public class DownloadsMenu extends BasicGameState {
 		importButton.resetHover();
 		resetButton.resetHover();
 		rankedButton.resetHover();
+		serverButton.resetHover();
 		focusResult = -1;
 		startResult = 0;
 		startDownloadIndex = 0;

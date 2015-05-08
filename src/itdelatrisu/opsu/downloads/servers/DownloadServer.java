@@ -16,7 +16,9 @@
  * along with opsu!.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package itdelatrisu.opsu.downloads;
+package itdelatrisu.opsu.downloads.servers;
+
+import itdelatrisu.opsu.downloads.DownloadNode;
 
 import java.io.IOException;
 
@@ -28,11 +30,17 @@ public abstract class DownloadServer {
 	private static final String PREVIEW_URL = "http://b.ppy.sh/preview/%d.mp3";
 
 	/**
+	 * Returns the name of the download server.
+	 * @return the server name
+	 */
+	public abstract String getName();
+
+	/**
 	 * Returns a web address to download the given beatmap.
 	 * @param beatmapSetID the beatmap set ID
-	 * @return the URL string
+	 * @return the URL string, or null if the address could not be determined
 	 */
-	public abstract String getURL(int beatmapSetID);
+	public abstract String getDownloadURL(int beatmapSetID);
 
 	/**
 	 * Returns a list of results for a given search query, or null if the
@@ -44,6 +52,12 @@ public abstract class DownloadServer {
 	 * @throws IOException if any connection problem occurs
 	 */
 	public abstract DownloadNode[] resultList(String query, int page, boolean rankedOnly) throws IOException;
+
+	/**
+	 * Returns the minimum allowable length of a search query.
+	 * @return the minimum length, or 0 if none
+	 */
+	public abstract int minQueryLength();
 
 	/**
 	 * Returns the total number of results for the last search query.

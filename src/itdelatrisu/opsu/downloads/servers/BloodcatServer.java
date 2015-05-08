@@ -16,10 +16,11 @@
  * along with opsu!.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package itdelatrisu.opsu.downloads;
+package itdelatrisu.opsu.downloads.servers;
 
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.Utils;
+import itdelatrisu.opsu.downloads.DownloadNode;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -28,13 +29,15 @@ import java.net.URL;
 import java.net.URLEncoder;
 
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
  * Download server: http://bloodcat.com/osu/
  */
 public class BloodcatServer extends DownloadServer {
+	/** Server name. */
+	private static final String SERVER_NAME = "Bloodcat";
+
 	/** Formatted download URL: {@code beatmapSetID} */
 	private static final String DOWNLOAD_URL = "http://bloodcat.com/osu/s/%d";
 
@@ -48,7 +51,10 @@ public class BloodcatServer extends DownloadServer {
 	public BloodcatServer() {}
 
 	@Override
-	public String getURL(int beatmapSetID) {
+	public String getName() { return SERVER_NAME; }
+
+	@Override
+	public String getDownloadURL(int beatmapSetID) {
 		return String.format(DOWNLOAD_URL, beatmapSetID);
 	}
 
@@ -58,7 +64,7 @@ public class BloodcatServer extends DownloadServer {
 		try {
 			// read JSON
 			String search = String.format(SEARCH_URL, URLEncoder.encode(query, "UTF-8"), rankedOnly ? "0" : "", page);
-			JSONObject json = readJsonFromUrl(new URL(search));
+			JSONObject json = Utils.readJsonFromUrl(new URL(search));
 			if (json == null) {
 				this.totalResults = -1;
 				return null;
@@ -86,24 +92,8 @@ public class BloodcatServer extends DownloadServer {
 	}
 
 	@Override
-	public int totalResults() { return totalResults; }
+	public int minQueryLength() { return 0; }
 
-	/**
-	 * Returns a JSON object from a URL.
-	 * @param url the remote URL
-	 * @return the JSON object
-	 * @author Roland Illig (http://stackoverflow.com/a/4308662)
-	 */
-	private static JSONObject readJsonFromUrl(URL url) throws IOException {
-		String s = Utils.readDataFromUrl(url);
-		JSONObject json = null;
-		if (s != null) {
-			try {
-				json = new JSONObject(s);
-			} catch (JSONException e) {
-				ErrorHandler.error("Failed to create JSON object.", e, true);
-			}
-		}
-		return json;
-	}
+	@Override
+	public int totalResults() { return totalResults; }
 }
