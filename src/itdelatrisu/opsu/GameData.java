@@ -823,13 +823,12 @@ public class GameData {
 		g.setColor(Utils.COLOR_BLACK_ALPHA);
 		g.fillRect(0, 0, width, 100 * uiScale);
 		rankingTitle.draw((width * 0.97f) - rankingTitle.getWidth(), 0);
-		float c = width * 0.01f;
-		Utils.FONT_LARGE.drawString(c, c,
+		float marginX = width * 0.01f, marginY = height * 0.002f;
+		Utils.FONT_LARGE.drawString(marginX, marginY,
 				String.format("%s - %s [%s]", osu.getArtist(), osu.getTitle(), osu.version), Color.white);
-		Utils.FONT_MEDIUM.drawString(c, c + Utils.FONT_LARGE.getLineHeight() - 6,
+		Utils.FONT_MEDIUM.drawString(marginX, marginY + Utils.FONT_LARGE.getLineHeight() - 6,
 				String.format("Beatmap by %s", osu.creator), Color.white);
-		Utils.FONT_MEDIUM.drawString(
-				c, c + Utils.FONT_LARGE.getLineHeight() + Utils.FONT_MEDIUM.getLineHeight() - 10,
+		Utils.FONT_MEDIUM.drawString(marginX, marginY + Utils.FONT_LARGE.getLineHeight() + Utils.FONT_MEDIUM.getLineHeight() - 10,
 				String.format("Played on %s.", scoreData.getTimeString()), Color.white);
 
 		// mod icons

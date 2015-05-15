@@ -344,9 +344,9 @@ public class SongMenu extends BasicGameState {
 				}
 			}
 			marginX += 5;
-			float headerTextY = marginY;
+			float headerTextY = marginY * 0.2f;
 			Utils.FONT_LARGE.drawString(marginX + iconWidth * 1.05f, headerTextY, songInfo[0], Color.white);
-			headerTextY += Utils.FONT_LARGE.getLineHeight() - 8;
+			headerTextY += Utils.FONT_LARGE.getLineHeight() - 4;
 			Utils.FONT_DEFAULT.drawString(marginX + iconWidth * 1.05f, headerTextY, songInfo[1], Color.white);
 			headerTextY += Utils.FONT_DEFAULT.getLineHeight() - 2;
 			float speedModifier = GameMod.getSpeedMultiplier();

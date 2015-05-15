@@ -270,25 +270,25 @@ public class MainMenu extends BasicGameState {
 		}
 
 		// draw text
-		float marginX = width * 0.015f, marginY = height * 0.015f;
+		float marginX = width * 0.015f, topMarginY = height * 0.01f, bottomMarginY = height * 0.015f;
 		g.setFont(Utils.FONT_MEDIUM);
-		int lineHeight = Utils.FONT_MEDIUM.getLineHeight() * 9 / 10;
+		float lineHeight = Utils.FONT_MEDIUM.getLineHeight() * 0.925f;
 		g.drawString(String.format("Loaded %d songs and %d beatmaps.",
-				OsuGroupList.get().getMapSetCount(), OsuGroupList.get().getMapCount()), marginX, marginY);
+				OsuGroupList.get().getMapSetCount(), OsuGroupList.get().getMapCount()), marginX, topMarginY);
 		if (MusicController.isTrackLoading())
-			g.drawString("Track loading...", marginX, marginY + lineHeight);
+			g.drawString("Track loading...", marginX, topMarginY + lineHeight);
 		else if (MusicController.trackExists()) {
 			if (Options.useUnicodeMetadata())  // load glyphs
 				Utils.loadGlyphs(Utils.FONT_MEDIUM, osu.titleUnicode, osu.artistUnicode);
-			g.drawString((MusicController.isPlaying()) ? "Now Playing:" : "Paused:", marginX, marginY + lineHeight);
-			g.drawString(String.format("%s: %s", osu.getArtist(), osu.getTitle()), marginX + 25, marginY + (lineHeight * 2));
+			g.drawString((MusicController.isPlaying()) ? "Now Playing:" : "Paused:", marginX, topMarginY + lineHeight);
+			g.drawString(String.format("%s: %s", osu.getArtist(), osu.getTitle()), marginX + 25, topMarginY + (lineHeight * 2));
 		}
 		g.drawString(String.format("opsu! has been running for %s.",
 				Utils.getTimeString((int) (System.currentTimeMillis() - osuStartTime) / 1000)),
-				marginX, height - marginY - (lineHeight * 2));
+				marginX, height - bottomMarginY - (lineHeight * 2));
 		g.drawString(String.format("It is currently %s.",
 				new SimpleDateFormat("h:mm a").format(new Date())),
-				marginX, height - marginY - lineHeight);
+				marginX, height - bottomMarginY - lineHeight);
 
 		UI.draw(g);
 	}

@@ -80,7 +80,7 @@ public class OsuGroupNode {
 		}
 		bg.draw(x, y, bgColor);
 
-		float cx = x + (bg.getWidth() * 0.05f);
+		float cx = x + (bg.getWidth() * 0.043f);
 		float cy = y + (bg.getHeight() * 0.2f) - 3;
 
 		// draw grade
@@ -96,10 +96,10 @@ public class OsuGroupNode {
 			Utils.loadGlyphs(Utils.FONT_DEFAULT, null, osu.artistUnicode);
 		}
 		Utils.FONT_MEDIUM.drawString(cx, cy, osu.getTitle(), textColor);
-		Utils.FONT_DEFAULT.drawString(cx, cy + Utils.FONT_MEDIUM.getLineHeight() - 4,
+		Utils.FONT_DEFAULT.drawString(cx, cy + Utils.FONT_MEDIUM.getLineHeight() - 2,
 				String.format("%s // %s", osu.getArtist(), osu.creator), textColor);
 		if (expanded || osuFiles.size() == 1)
-			Utils.FONT_BOLD.drawString(cx, cy + Utils.FONT_MEDIUM.getLineHeight() + Utils.FONT_DEFAULT.getLineHeight() - 8,
+			Utils.FONT_BOLD.drawString(cx, cy + Utils.FONT_MEDIUM.getLineHeight() + Utils.FONT_DEFAULT.getLineHeight() - 4,
 					osu.version, textColor);
 	}
 

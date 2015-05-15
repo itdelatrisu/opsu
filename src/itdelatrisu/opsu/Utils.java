@@ -167,12 +167,12 @@ public class Utils {
 			FONT_MEDIUM  = new UnicodeFont(font.deriveFont(fontBase * 3 / 2));
 			FONT_SMALL   = new UnicodeFont(font.deriveFont(fontBase));
 			ColorEffect colorEffect = new ColorEffect();
-			loadFont(FONT_DEFAULT, 2, colorEffect);
-			loadFont(FONT_BOLD, 2, colorEffect);
-			loadFont(FONT_XLARGE, 4, colorEffect);
-			loadFont(FONT_LARGE, 4, colorEffect);
-			loadFont(FONT_MEDIUM, 3, colorEffect);
-			loadFont(FONT_SMALL, 1, colorEffect);
+			loadFont(FONT_DEFAULT, colorEffect);
+			loadFont(FONT_BOLD, colorEffect);
+			loadFont(FONT_XLARGE, colorEffect);
+			loadFont(FONT_LARGE, colorEffect);
+			loadFont(FONT_MEDIUM, colorEffect);
+			loadFont(FONT_SMALL, colorEffect);
 		} catch (Exception e) {
 			ErrorHandler.error("Failed to load fonts.", e, true);
 		}
@@ -340,15 +340,11 @@ public class Utils {
 	/**
 	 * Loads a Unicode font.
 	 * @param font the font to load
-	 * @param padding the top and bottom padding
 	 * @param effect the font effect
 	 * @throws SlickException
 	 */
 	@SuppressWarnings("unchecked")
-	private static void loadFont(UnicodeFont font, int padding,
-			Effect effect) throws SlickException {
-		font.setPaddingTop(padding);
-		font.setPaddingBottom(padding);
+	private static void loadFont(UnicodeFont font, Effect effect) throws SlickException {
 		font.addAsciiGlyphs();
 		font.getEffects().add(effect);
 		font.loadGlyphs();

@@ -69,7 +69,7 @@ public class Options {
 	public static final File SCORE_DB = new File(DATA_DIR, ".opsu_scores.db");
 
 	/** Font file name. */
-	public static final String FONT_NAME = "kochi-gothic.ttf";
+	public static final String FONT_NAME = "DroidSansFallback.ttf";
 
 	/** Version file name. */
 	public static final String VERSION_FILE = "version";

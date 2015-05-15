@@ -86,7 +86,7 @@ public class DownloadNode {
 		buttonBaseX = width * 0.024f;
 		buttonBaseY = height * 0.2f;
 		buttonWidth = width * 0.7f;
-		buttonHeight = Utils.FONT_MEDIUM.getLineHeight() * 2f;
+		buttonHeight = Utils.FONT_MEDIUM.getLineHeight() * 2.1f;
 		buttonOffset = buttonHeight * 1.1f;
 
 		// download info
