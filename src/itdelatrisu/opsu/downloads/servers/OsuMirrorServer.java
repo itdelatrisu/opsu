@@ -27,7 +27,12 @@ import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.TimeZone;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -100,7 +105,7 @@ public class OsuMirrorServer extends DownloadServer {
 				int beatmapSetID = item.getInt("OSUSetid");
 				int serverID = item.getInt("id");
 				nodes[i] = new DownloadNode(
-					beatmapSetID, item.getString("ModifyDate"),
+					beatmapSetID, formatDate(item.getString("ModifyDate")),
 					item.getString("Title"), null,
 					item.getString("Artist"), null,
 					item.getString("Mapper")
@@ -126,4 +131,21 @@ public class OsuMirrorServer extends DownloadServer {
 
 	@Override
 	public int totalResults() { return totalResults; }
+
+	/**
+	 * Returns a formatted date string from a raw date.
+	 * @param s the raw date string (e.g. "2015-05-14T23:38:47Z")
+	 * @return the formatted date, or the raw string if it could not be parsed
+	 */
+	private String formatDate(String s) {
+		try {
+			DateFormat f = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+			f.setTimeZone(TimeZone.getTimeZone("UTC"));
+			Date d = f.parse(s);
+			DateFormat fmt = new SimpleDateFormat("d MMM yyyy HH:mm:ss");
+			return fmt.format(d);
+		} catch (ParseException e) {
+			return s;
+		}
+	}
 }

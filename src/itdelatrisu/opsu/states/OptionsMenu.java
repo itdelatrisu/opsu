@@ -203,9 +203,9 @@ public class OptionsMenu extends BasicGameState {
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
 
 		// title
-		float c = container.getWidth() * 0.02f;
-		Utils.FONT_LARGE.drawString(c, c, "Game Options", Color.white);
-		Utils.FONT_DEFAULT.drawString(c, c + Utils.FONT_LARGE.getLineHeight() * 0.9f,
+		float marginX = width * 0.02f, marginY = height * 0.015f;
+		Utils.FONT_LARGE.drawString(marginX, marginY, "Game Options", Color.white);
+		Utils.FONT_DEFAULT.drawString(marginX, marginY + Utils.FONT_LARGE.getLineHeight() * 0.92f,
 				"Click or drag an option to change it.", Color.white);
 
 		// game options

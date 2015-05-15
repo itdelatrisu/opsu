@@ -27,6 +27,10 @@ import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -76,7 +80,7 @@ public class BloodcatServer extends DownloadServer {
 			for (int i = 0; i < nodes.length; i++) {
 				JSONObject item = arr.getJSONObject(i);
 				nodes[i] = new DownloadNode(
-					item.getInt("id"), item.getString("date"),
+					item.getInt("id"), formatDate(item.getString("date")),
 					item.getString("title"), item.isNull("titleUnicode") ? null : item.getString("titleUnicode"),
 					item.getString("artist"), item.isNull("artistUnicode") ? null : item.getString("artistUnicode"),
 					item.getString("creator")
@@ -96,4 +100,26 @@ public class BloodcatServer extends DownloadServer {
 
 	@Override
 	public int totalResults() { return totalResults; }
+
+	/**
+	 * Returns a formatted date string from a raw date.
+	 * @param s the raw date string (e.g. "2015-05-14T23:38:47+09:00")
+	 * @return the formatted date, or the raw string if it could not be parsed
+	 */
+	private String formatDate(String s) {
+		try {
+			// make string parseable by SimpleDateFormat
+			int index = s.lastIndexOf(':');
+			if (index == -1)
+				return s;
+			String str = new StringBuilder(s).deleteCharAt(index).toString();
+
+			DateFormat f = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
+			Date d = f.parse(str);
+			DateFormat fmt = new SimpleDateFormat("d MMM yyyy HH:mm:ss");
+			return fmt.format(d);
+		} catch (StringIndexOutOfBoundsException | ParseException e) {
+			return s;
+		}
+	}
 }
