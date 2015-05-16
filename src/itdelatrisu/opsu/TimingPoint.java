@@ -23,7 +23,7 @@ import org.newdawn.slick.util.Log;
 /**
  * Data type representing a timing point.
  */
-public class OsuTimingPoint {
+public class TimingPoint {
 	/** Timing point start time/offset (in ms). */
 	private int time = 0;
 
@@ -55,7 +55,7 @@ public class OsuTimingPoint {
 	 * Constructor.
 	 * @param line the line to be parsed
 	 */
-	public OsuTimingPoint(String line) {
+	public TimingPoint(String line) {
 		// TODO: better support for old formats
 		String[] tokens = line.split(",");
 		try {

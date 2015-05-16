@@ -28,8 +28,8 @@ import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.OsuFile;
 import itdelatrisu.opsu.OsuHitObject;
 import itdelatrisu.opsu.OsuParser;
-import itdelatrisu.opsu.OsuTimingPoint;
 import itdelatrisu.opsu.ScoreData;
+import itdelatrisu.opsu.TimingPoint;
 import itdelatrisu.opsu.UI;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.HitSound;
@@ -684,7 +684,7 @@ public class Game extends BasicGameState {
 
 		// timing points
 		if (timingPointIndex < osu.timingPoints.size()) {
-			OsuTimingPoint timingPoint = osu.timingPoints.get(timingPointIndex);
+			TimingPoint timingPoint = osu.timingPoints.get(timingPointIndex);
 			if (trackPosition >= timingPoint.getTime()) {
 				setBeatLength(timingPoint, true);
 				timingPointIndex++;
@@ -1045,7 +1045,7 @@ public class Game extends BasicGameState {
 
 			// load the first timingPoint for stacking
 			if (!osu.timingPoints.isEmpty()) {
-				OsuTimingPoint timingPoint = osu.timingPoints.get(0);
+				TimingPoint timingPoint = osu.timingPoints.get(0);
 				if (!timingPoint.isInherited()) {
 					setBeatLength(timingPoint, true);
 					timingPointIndex++;
@@ -1066,7 +1066,7 @@ public class Game extends BasicGameState {
 				// pass beatLength to hit objects
 				int hitObjectTime = hitObject.getTime();
 				while (timingPointIndex < osu.timingPoints.size()) {
-					OsuTimingPoint timingPoint = osu.timingPoints.get(timingPointIndex);
+					TimingPoint timingPoint = osu.timingPoints.get(timingPointIndex);
 					if (timingPoint.getTime() > hitObjectTime)
 						break;
 					setBeatLength(timingPoint, false);
@@ -1096,7 +1096,7 @@ public class Game extends BasicGameState {
 			timingPointIndex = 0;
 			beatLengthBase = beatLength = 1;
 			if (!osu.timingPoints.isEmpty()) {
-				OsuTimingPoint timingPoint = osu.timingPoints.get(0);
+				TimingPoint timingPoint = osu.timingPoints.get(0);
 				if (!timingPoint.isInherited()) {
 					setBeatLength(timingPoint, true);
 					timingPointIndex++;
@@ -1440,7 +1440,7 @@ public class Game extends BasicGameState {
 	 * @param timingPoint the timing point
 	 * @param setSampleSet whether to set the hit sample set based on the timing point
 	 */
-	private void setBeatLength(OsuTimingPoint timingPoint, boolean setSampleSet) {
+	private void setBeatLength(TimingPoint timingPoint, boolean setSampleSet) {
 		if (!timingPoint.isInherited())
 			beatLengthBase = beatLength = timingPoint.getBeatLength();
 		else

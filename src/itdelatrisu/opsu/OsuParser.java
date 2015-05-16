@@ -201,7 +201,7 @@ public class OsuParser {
 	 */
 	private static OsuFile parseFile(File file, File dir, ArrayList<OsuFile> osuFiles, boolean parseObjects) {
 		OsuFile osu = new OsuFile(file);
-		osu.timingPoints = new ArrayList<OsuTimingPoint>();
+		osu.timingPoints = new ArrayList<TimingPoint>();
 
 		try (BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF-8"))) {
 			String line = in.readLine();
@@ -469,7 +469,7 @@ public class OsuParser {
 
 						try {
 							// parse timing point
-							OsuTimingPoint timingPoint = new OsuTimingPoint(line);
+							TimingPoint timingPoint = new TimingPoint(line);
 
 							// calculate BPM
 							if (!timingPoint.isInherited()) {

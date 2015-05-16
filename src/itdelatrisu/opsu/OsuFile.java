@@ -168,7 +168,7 @@ public class OsuFile implements Comparable<OsuFile> {
 	 */
 
 	/** All timing points. */
-	public ArrayList<OsuTimingPoint> timingPoints;
+	public ArrayList<TimingPoint> timingPoints;
 
 	/** Song BPM range. */
 	public int bpmMin = 0, bpmMax = 0;
@@ -363,7 +363,7 @@ public class OsuFile implements Comparable<OsuFile> {
 			return null;
 
 		StringBuilder sb = new StringBuilder();
-		for (OsuTimingPoint p : timingPoints) {
+		for (TimingPoint p : timingPoints) {
 			sb.append(p.toString());
 			sb.append('|');
 		}
@@ -377,14 +377,14 @@ public class OsuFile implements Comparable<OsuFile> {
 	 * @param s the string
 	 */
 	public void timingPointsFromString(String s) {
-		this.timingPoints = new ArrayList<OsuTimingPoint>();
+		this.timingPoints = new ArrayList<TimingPoint>();
 		if (s == null)
 			return;
 
 		String[] tokens = s.split("\\|");
 		for (int i = 0; i < tokens.length; i++) {
 			try {
-				timingPoints.add(new OsuTimingPoint(tokens[i]));
+				timingPoints.add(new TimingPoint(tokens[i]));
 			} catch (Exception e) {
 				Log.warn(String.format("Failed to read timing point '%s'.", tokens[i]), e);
 			}
