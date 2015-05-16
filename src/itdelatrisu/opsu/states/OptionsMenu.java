@@ -180,9 +180,9 @@ public class OptionsMenu extends BasicGameState {
 
 		// option tabs
 		Image tabImage = GameImage.MENU_TAB.getImage();
-		float tabX = (width / 50) + (tabImage.getWidth() / 2f);
-		float tabY = Utils.FONT_LARGE.getLineHeight() + Utils.FONT_DEFAULT.getLineHeight() +
-				height * 0.03f + (tabImage.getHeight() / 2f);
+		float tabX = width * 0.032f + Utils.FONT_DEFAULT.getWidth("Change the way opsu! behaves") + (tabImage.getWidth() / 2);
+		float tabY = Utils.FONT_XLARGE.getLineHeight() + Utils.FONT_DEFAULT.getLineHeight() +
+				height * 0.015f - (tabImage.getHeight() / 2f);
 		int tabOffset = Math.min(tabImage.getWidth(), width / OptionTab.SIZE);
 		for (OptionTab tab : OptionTab.values())
 			tab.button = new MenuButton(tabImage, tabX + (tab.ordinal() * tabOffset), tabY);
@@ -201,12 +201,16 @@ public class OptionsMenu extends BasicGameState {
 		int width = container.getWidth();
 		int height = container.getHeight();
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
+		float lineY = OptionTab.DISPLAY.button.getY() + (GameImage.MENU_TAB.getImage().getHeight() / 2f);
 
 		// title
-		float marginX = width * 0.02f, marginY = height * 0.015f;
-		Utils.FONT_LARGE.drawString(marginX, marginY, "Game Options", Color.white);
-		Utils.FONT_DEFAULT.drawString(marginX, marginY + Utils.FONT_LARGE.getLineHeight() * 0.92f,
-				"Click or drag an option to change it.", Color.white);
+		float marginX = width * 0.015f, marginY = height * 0.01f;
+		Utils.FONT_XLARGE.drawString(marginX, marginY, "Options", Color.white);
+		Utils.FONT_DEFAULT.drawString(marginX, marginY + Utils.FONT_XLARGE.getLineHeight() * 0.92f,
+				"Change the way opsu! behaves", Color.white);
+
+		// background
+		GameImage.OPTIONS_BG.getImage().draw(0, lineY);
 
 		// game options
 		g.setLineWidth(1f);
@@ -235,7 +239,6 @@ public class OptionsMenu extends BasicGameState {
 				currentTab.getName(), true, false);
 		g.setColor(Color.white);
 		g.setLineWidth(2f);
-		float lineY = OptionTab.DISPLAY.button.getY() + (GameImage.MENU_TAB.getImage().getHeight() / 2f);
 		g.drawLine(0, lineY, width, lineY);
 		g.resetLineWidth();
 

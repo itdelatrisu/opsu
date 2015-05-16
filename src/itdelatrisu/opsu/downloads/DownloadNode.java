@@ -345,13 +345,15 @@ public class DownloadNode {
 		textX += img.getWidth() + buttonWidth * 0.001f;
 
 		// text
-		// TODO: if the title/artist line is too long, shorten it (e.g. add "...")
+		// TODO: if the title/artist line is too long, shorten it (e.g. add "...") instead of just clipping
 		if (Options.useUnicodeMetadata())  // load glyphs
 			Utils.loadGlyphs(Utils.FONT_BOLD, getTitle(), getArtist());
+		g.setClip((int) textX, (int) (y + marginY), (int) (edgeX - textX - Utils.FONT_DEFAULT.getWidth(creator)), Utils.FONT_BOLD.getLineHeight());
 		Utils.FONT_BOLD.drawString(
 				textX, y + marginY,
 				String.format("%s - %s%s", getArtist(), getTitle(),
 						(dl != null) ? String.format(" [%s]", dl.getStatus().getName()) : ""), Color.white);
+		g.clearClip();
 		Utils.FONT_DEFAULT.drawString(
 				textX, y + marginY + Utils.FONT_BOLD.getLineHeight(),
 				String.format("Last updated: %s", date), Color.white);

@@ -333,6 +333,14 @@ public enum GameImage {
 			return REPOSITORY.process_sub(img, w, h);
 		}
 	},
+	OPTIONS_BG ("options-background", "png|jpg", false, true) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			img.setAlpha(0.5f);
+			return img.getScaledCopy(w, h);
+		}
+	},
+
 	// TODO: ensure this image hasn't been modified (checksum?)
 	ALPHA_MAP ("alpha", "png", false, false);
 

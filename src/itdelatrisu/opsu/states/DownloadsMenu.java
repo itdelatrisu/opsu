@@ -173,7 +173,7 @@ public class DownloadsMenu extends BasicGameState {
 		int width = container.getWidth();
 		int height = container.getHeight();
 		float baseX = width * 0.024f;
-		float searchY = (height * 0.05f) + Utils.FONT_LARGE.getLineHeight();
+		float searchY = (height * 0.04f) + Utils.FONT_LARGE.getLineHeight();
 		float searchWidth = width * 0.3f;
 
 		// search
@@ -255,7 +255,7 @@ public class DownloadsMenu extends BasicGameState {
 		GameImage.SEARCH_BG.getImage().draw();
 
 		// title
-		Utils.FONT_LARGE.drawString(width * 0.024f, height * 0.04f, "Download Beatmaps!", Color.white);
+		Utils.FONT_LARGE.drawString(width * 0.024f, height * 0.03f, "Download Beatmaps!", Color.white);
 
 		// search
 		g.setColor(Color.white);
