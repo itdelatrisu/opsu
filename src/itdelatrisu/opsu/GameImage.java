@@ -336,7 +336,7 @@ public enum GameImage {
 	OPTIONS_BG ("options-background", "png|jpg", false, true) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			img.setAlpha(0.5f);
+			img.setAlpha(0.7f);
 			return img.getScaledCopy(w, h);
 		}
 	},

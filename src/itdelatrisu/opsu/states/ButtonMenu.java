@@ -314,10 +314,10 @@ public class ButtonMenu extends BasicGameState {
 		public void draw(GameContainer container, StateBasedGame game, Graphics g) {
 			// draw title
 			if (actualTitle != null) {
-				float c = container.getWidth() * 0.02f;
+				float marginX = container.getWidth() * 0.015f, marginY = container.getHeight() * 0.01f;
 				int lineHeight = Utils.FONT_LARGE.getLineHeight();
 				for (int i = 0, size = actualTitle.size(); i < size; i++)
-					Utils.FONT_LARGE.drawString(c, c + (i * lineHeight), actualTitle.get(i), Color.white);
+					Utils.FONT_LARGE.drawString(marginX, marginY + (i * lineHeight), actualTitle.get(i), Color.white);
 			}
 
 			// draw buttons
