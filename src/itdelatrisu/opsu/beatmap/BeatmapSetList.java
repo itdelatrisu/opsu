@@ -109,7 +109,8 @@ public class BeatmapSetList {
 	 * @return the new BeatmapSetNode
 	 */
 	public BeatmapSetNode addSongGroup(ArrayList<Beatmap> beatmaps) {
-		BeatmapSetNode node = new BeatmapSetNode(beatmaps);
+		BeatmapSet beatmapSet = new BeatmapSet(beatmaps);
+		BeatmapSetNode node = new BeatmapSetNode(beatmapSet);
 		parsedNodes.add(node);
 		mapCount += beatmaps.size();
 
@@ -152,10 +153,10 @@ public class BeatmapSetList {
 		}
 
 		// remove all node references
-		Beatmap beatmap = node.beatmaps.get(0);
+		Beatmap beatmap = node.getBeatmapSet().get(0);
 		nodes.remove(index);
 		parsedNodes.remove(eCur);
-		mapCount -= node.beatmaps.size();
+		mapCount -= node.getBeatmapSet().size();
 		if (beatmap.beatmapSetID > 0)
 			MSIDdb.remove(beatmap.beatmapSetID);
 
@@ -168,7 +169,7 @@ public class BeatmapSetList {
 		} else if (expandedIndex > index) {
 			expandedIndex--;
 			BeatmapSetNode expandedNode = expandedStartNode;
-			for (int i = 0, size = expandedNode.beatmaps.size();
+			for (int i = 0, size = expandedNode.getBeatmapSet().size();
 			     i < size && expandedNode != null;
 			     i++, expandedNode = expandedNode.next)
 				expandedNode.index = expandedIndex;
@@ -210,8 +211,8 @@ public class BeatmapSetList {
 			return false;
 
 		// last song in group?
-		int size = node.beatmaps.size();
-		if (node.beatmaps.size() == 1)
+		int size = node.getBeatmapSet().size();
+		if (size == 1)
 			return deleteSongGroup(node);
 
 		// reset indices
@@ -222,7 +223,7 @@ public class BeatmapSetList {
 			expandedNode.beatmapIndex--;
 
 		// remove song reference
-		Beatmap beatmap = node.beatmaps.remove(node.beatmapIndex);
+		Beatmap beatmap = node.getBeatmapSet().remove(node.beatmapIndex);
 		mapCount--;
 
 		// re-link nodes
@@ -314,11 +315,11 @@ public class BeatmapSetList {
 		expandedStartNode = expandedEndNode = null;
 
 		// create new nodes
-		ArrayList<Beatmap> beatmaps = node.beatmaps;
+		BeatmapSet beatmapSet = node.getBeatmapSet();
 		BeatmapSetNode prevNode = node.prev;
 		BeatmapSetNode nextNode = node.next;
-		for (int i = 0, size = node.beatmaps.size(); i < size; i++) {
-			BeatmapSetNode newNode = new BeatmapSetNode(beatmaps);
+		for (int i = 0, size = beatmapSet.size(); i < size; i++) {
+			BeatmapSetNode newNode = new BeatmapSetNode(beatmapSet);
 			newNode.index = index;
 			newNode.beatmapIndex = i;
 			newNode.prev = node;
@@ -443,14 +444,14 @@ public class BeatmapSetList {
 			String operator = condOperator.remove();
 			float value = condValue.remove();
 			for (BeatmapSetNode node : parsedNodes) {
-				if (node.matches(type, operator, value))
+				if (node.getBeatmapSet().matches(type, operator, value))
 					nodes.add(node);
 			}
 		} else {
 			// normal term
 			String term = terms.remove();
 			for (BeatmapSetNode node : parsedNodes) {
-				if (node.matches(term))
+				if (node.getBeatmapSet().matches(term))
 					nodes.add(node);
 			}
 		}
@@ -466,7 +467,7 @@ public class BeatmapSetList {
 			Iterator<BeatmapSetNode> nodeIter = nodes.iterator();
 			while (nodeIter.hasNext()) {
 				BeatmapSetNode node = nodeIter.next();
-				if (!node.matches(term))
+				if (!node.getBeatmapSet().matches(term))
 					nodeIter.remove();
 			}
 		}
@@ -484,7 +485,7 @@ public class BeatmapSetList {
 			Iterator<BeatmapSetNode> nodeIter = nodes.iterator();
 			while (nodeIter.hasNext()) {
 				BeatmapSetNode node = nodeIter.next();
-				if (!node.matches(type, operator, value))
+				if (!node.getBeatmapSet().matches(type, operator, value))
 					nodeIter.remove();
 			}
 		}

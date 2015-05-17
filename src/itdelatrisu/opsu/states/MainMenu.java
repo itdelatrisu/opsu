@@ -606,7 +606,7 @@ public class MainMenu extends BasicGameState {
 		BeatmapSetNode node = menu.setFocus(BeatmapSetList.get().getRandomNode(), -1, true, false);
 		boolean sameAudio = false;
 		if (node != null) {
-			sameAudio = MusicController.getBeatmap().audioFilename.equals(node.beatmaps.get(0).audioFilename);
+			sameAudio = MusicController.getBeatmap().audioFilename.equals(node.getBeatmapSet().get(0).audioFilename);
 			if (!isTheme && !sameAudio)
 				previous.add(node.index);
 		}

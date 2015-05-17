@@ -80,7 +80,7 @@ public enum SongSort {
 	private static class TitleOrder implements Comparator<BeatmapSetNode> {
 		@Override
 		public int compare(BeatmapSetNode v, BeatmapSetNode w) {
-			return v.beatmaps.get(0).title.compareToIgnoreCase(w.beatmaps.get(0).title);
+			return v.getBeatmapSet().get(0).title.compareToIgnoreCase(w.getBeatmapSet().get(0).title);
 		}
 	}
 
@@ -90,7 +90,7 @@ public enum SongSort {
 	private static class ArtistOrder implements Comparator<BeatmapSetNode> {
 		@Override
 		public int compare(BeatmapSetNode v, BeatmapSetNode w) {
-			return v.beatmaps.get(0).artist.compareToIgnoreCase(w.beatmaps.get(0).artist);
+			return v.getBeatmapSet().get(0).artist.compareToIgnoreCase(w.getBeatmapSet().get(0).artist);
 		}
 	}
 
@@ -100,7 +100,7 @@ public enum SongSort {
 	private static class CreatorOrder implements Comparator<BeatmapSetNode> {
 		@Override
 		public int compare(BeatmapSetNode v, BeatmapSetNode w) {
-			return v.beatmaps.get(0).creator.compareToIgnoreCase(w.beatmaps.get(0).creator);
+			return v.getBeatmapSet().get(0).creator.compareToIgnoreCase(w.getBeatmapSet().get(0).creator);
 		}
 	}
 
@@ -110,7 +110,7 @@ public enum SongSort {
 	private static class BPMOrder implements Comparator<BeatmapSetNode> {
 		@Override
 		public int compare(BeatmapSetNode v, BeatmapSetNode w) {
-			return Integer.compare(v.beatmaps.get(0).bpmMax, w.beatmaps.get(0).bpmMax);
+			return Integer.compare(v.getBeatmapSet().get(0).bpmMax, w.getBeatmapSet().get(0).bpmMax);
 		}
 	}
 
@@ -122,11 +122,13 @@ public enum SongSort {
 		@Override
 		public int compare(BeatmapSetNode v, BeatmapSetNode w) {
 			int vMax = 0, wMax = 0;
-			for (Beatmap beatmap : v.beatmaps) {
+			for (int i = 0, size = v.getBeatmapSet().size(); i < size; i++) {
+				Beatmap beatmap = v.getBeatmapSet().get(i);
 				if (beatmap.endTime > vMax)
 					vMax = beatmap.endTime;
 			}
-			for (Beatmap beatmap : w.beatmaps) {
+			for (int i = 0, size = w.getBeatmapSet().size(); i < size; i++) {
+				Beatmap beatmap = w.getBeatmapSet().get(i);
 				if (beatmap.endTime > wMax)
 					wMax = beatmap.endTime;
 			}

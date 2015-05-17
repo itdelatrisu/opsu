@@ -461,7 +461,7 @@ public class ButtonMenu extends BasicGameState {
 			public void click(GameContainer container, StateBasedGame game) {
 				SoundController.playSound(SoundEffect.MENUHIT);
 				BeatmapSetNode node = ((ButtonMenu) game.getState(Opsu.STATE_BUTTONMENU)).getNode();
-				MenuState ms = (node.beatmapIndex == -1 || node.beatmaps.size() == 1) ?
+				MenuState ms = (node.beatmapIndex == -1 || node.getBeatmapSet().size() == 1) ?
 						MenuState.BEATMAP_DELETE_CONFIRM : MenuState.BEATMAP_DELETE_SELECT;
 				((ButtonMenu) game.getState(Opsu.STATE_BUTTONMENU)).setMenuState(ms, node);
 				game.enterState(Opsu.STATE_BUTTONMENU);
