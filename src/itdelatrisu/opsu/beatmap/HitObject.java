@@ -26,7 +26,7 @@ import java.text.NumberFormat;
 /**
  * Data type representing a parsed hit object.
  */
-public class OsuHitObject {
+public class HitObject {
 	/** Hit object types (bits). */
 	public static final int
 		TYPE_CIRCLE   = 1,
@@ -135,7 +135,7 @@ public class OsuHitObject {
 	private int stack;
 
 	/**
-	 * Initializes the OsuHitObject data type with container dimensions.
+	 * Initializes the HitObject data type with container dimensions.
 	 * @param width the container width
 	 * @param height the container height
 	 */
@@ -177,7 +177,7 @@ public class OsuHitObject {
 	 * Constructor.
 	 * @param line the line to be parsed
 	 */
-	public OsuHitObject(String line) {
+	public HitObject(String line) {
 		/**
 		 * [OBJECT FORMATS]
 		 * Circles:
@@ -205,9 +205,9 @@ public class OsuHitObject {
 
 		// type-specific fields
 		int additionIndex;
-		if ((type & OsuHitObject.TYPE_CIRCLE) > 0)
+		if ((type & HitObject.TYPE_CIRCLE) > 0)
 			additionIndex = 5;
-		else if ((type & OsuHitObject.TYPE_SLIDER) > 0) {
+		else if ((type & HitObject.TYPE_SLIDER) > 0) {
 			additionIndex = 10;
 
 			// slider curve type and coordinates
@@ -237,7 +237,7 @@ public class OsuHitObject {
 					edgeAddition[j][1] = Byte.parseByte(tedgeAddition[1]);
 				}
 			}
-		} else { //if ((type & OsuHitObject.TYPE_SPINNER) > 0) {
+		} else { //if ((type & HitObject.TYPE_SPINNER) > 0) {
 			additionIndex = 6;
 
 			// some 'endTime' fields contain a ':' character (?)

@@ -21,9 +21,9 @@ package itdelatrisu.opsu.objects;
 import org.newdawn.slick.Graphics;
 
 /**
- * Hit object interface.
+ * Interface for hit object types used during gameplay.
  */
-public interface HitObject {
+public interface GameObject {
 	/**
 	 * Draws the hit object to the graphics context.
 	 * @param g the graphics context

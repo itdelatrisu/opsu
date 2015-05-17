@@ -20,7 +20,7 @@ package itdelatrisu.opsu;
 
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
-import itdelatrisu.opsu.beatmap.OsuHitObject;
+import itdelatrisu.opsu.beatmap.HitObject;
 import itdelatrisu.opsu.downloads.Download;
 import itdelatrisu.opsu.downloads.DownloadNode;
 import itdelatrisu.opsu.replay.PlaybackSpeed;
@@ -191,7 +191,7 @@ public class Utils {
 		PlaybackSpeed.init(width, height);
 
 		// initialize hit objects
-		OsuHitObject.init(width, height);
+		HitObject.init(width, height);
 
 		// initialize download nodes
 		DownloadNode.init(width, height);

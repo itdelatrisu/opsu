@@ -18,7 +18,7 @@
 
 package itdelatrisu.opsu.replay;
 
-import itdelatrisu.opsu.beatmap.OsuHitObject;
+import itdelatrisu.opsu.beatmap.HitObject;
 
 /**
  * Captures a single replay frame.
@@ -98,12 +98,12 @@ public class ReplayFrame {
 	/**
 	 * Returns the scaled cursor x coordinate.
 	 */
-	public int getScaledX() { return (int) (x * OsuHitObject.getXMultiplier() + OsuHitObject.getXOffset()); }
+	public int getScaledX() { return (int) (x * HitObject.getXMultiplier() + HitObject.getXOffset()); }
 
 	/**
 	 * Returns the scaled cursor y coordinate.
 	 */
-	public int getScaledY() { return (int) (y * OsuHitObject.getYMultiplier() + OsuHitObject.getYOffset()); }
+	public int getScaledY() { return (int) (y * HitObject.getYMultiplier() + HitObject.getYOffset()); }
 
 	/**
 	 * Returns the keys pressed (KEY_* bitmask).

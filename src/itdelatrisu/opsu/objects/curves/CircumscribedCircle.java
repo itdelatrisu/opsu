@@ -19,7 +19,7 @@
 package itdelatrisu.opsu.objects.curves;
 
 import itdelatrisu.opsu.ErrorHandler;
-import itdelatrisu.opsu.beatmap.OsuHitObject;
+import itdelatrisu.opsu.beatmap.HitObject;
 
 import org.newdawn.slick.Color;
 
@@ -52,10 +52,10 @@ public class CircumscribedCircle extends Curve {
 
 	/**
 	 * Constructor.
-	 * @param hitObject the associated OsuHitObject
+	 * @param hitObject the associated HitObject
 	 * @param color the color of this curve
 	 */
-	public CircumscribedCircle(OsuHitObject hitObject, Color color) {
+	public CircumscribedCircle(HitObject hitObject, Color color) {
 		super(hitObject, color);
 
 		// construct the three points
@@ -103,7 +103,7 @@ public class CircumscribedCircle extends Curve {
 
 		// find an angle with an arc length of pixelLength along this circle
 		this.radius = startAngPoint.len();
-		float pixelLength = hitObject.getPixelLength() * OsuHitObject.getXMultiplier();
+		float pixelLength = hitObject.getPixelLength() * HitObject.getXMultiplier();
 		float arcAng = pixelLength / radius;  // len = theta * r / theta = len / r
 
 		// now use it for our new end angle

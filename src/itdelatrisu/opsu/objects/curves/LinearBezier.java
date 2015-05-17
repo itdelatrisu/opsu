@@ -18,7 +18,7 @@
 
 package itdelatrisu.opsu.objects.curves;
 
-import itdelatrisu.opsu.beatmap.OsuHitObject;
+import itdelatrisu.opsu.beatmap.HitObject;
 
 import java.util.LinkedList;
 
@@ -33,11 +33,11 @@ import org.newdawn.slick.Color;
 public class LinearBezier extends EqualDistanceMultiCurve {
 	/**
 	 * Constructor.
-	 * @param hitObject the associated OsuHitObject
+	 * @param hitObject the associated HitObject
 	 * @param color the color of this curve
 	 * @param line whether a new curve should be generated for each sequential pair
 	 */
-	public LinearBezier(OsuHitObject hitObject, Color color, boolean line) {
+	public LinearBezier(HitObject hitObject, Color color, boolean line) {
 		super(hitObject, color);
 
 		LinkedList<CurveType> beziers = new LinkedList<CurveType>();

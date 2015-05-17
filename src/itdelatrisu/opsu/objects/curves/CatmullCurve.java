@@ -19,7 +19,7 @@
 package itdelatrisu.opsu.objects.curves;
 
 import itdelatrisu.opsu.ErrorHandler;
-import itdelatrisu.opsu.beatmap.OsuHitObject;
+import itdelatrisu.opsu.beatmap.HitObject;
 
 import java.util.LinkedList;
 
@@ -34,10 +34,10 @@ import org.newdawn.slick.SlickException;
 public class CatmullCurve extends EqualDistanceMultiCurve {
 	/**
 	 * Constructor.
-	 * @param hitObject the associated OsuHitObject
+	 * @param hitObject the associated HitObject
 	 * @param color the color of this curve
 	 */
-	public CatmullCurve(OsuHitObject hitObject, Color color) {
+	public CatmullCurve(HitObject hitObject, Color color) {
 		super(hitObject, color);
 		LinkedList<CurveType> catmulls = new LinkedList<CurveType>();
 		int ncontrolPoints = hitObject.getSliderX().length + 1;

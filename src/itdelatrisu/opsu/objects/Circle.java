@@ -23,7 +23,7 @@ import itdelatrisu.opsu.GameData.HitObjectType;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.GameMod;
 import itdelatrisu.opsu.Utils;
-import itdelatrisu.opsu.beatmap.OsuHitObject;
+import itdelatrisu.opsu.beatmap.HitObject;
 import itdelatrisu.opsu.states.Game;
 
 import org.newdawn.slick.Color;
@@ -33,12 +33,12 @@ import org.newdawn.slick.Graphics;
 /**
  * Data type representing a circle object.
  */
-public class Circle implements HitObject {
+public class Circle implements GameObject {
 	/** The amount of time, in milliseconds, to fade in the circle. */
 	private static final int FADE_IN_TIME = 375;
 
-	/** The associated OsuHitObject. */
-	private OsuHitObject hitObject;
+	/** The associated HitObject. */
+	private HitObject hitObject;
 
 	/** The scaled starting x, y coordinates. */
 	private float x, y;
@@ -62,7 +62,7 @@ public class Circle implements HitObject {
 	 */
 	public static void init(GameContainer container, float circleSize) {
 		int diameter = (int) (104 - (circleSize * 8));
-		diameter = (int) (diameter * OsuHitObject.getXMultiplier());  // convert from Osupixels (640x480)
+		diameter = (int) (diameter * HitObject.getXMultiplier());  // convert from Osupixels (640x480)
 		GameImage.HITCIRCLE.setImage(GameImage.HITCIRCLE.getImage().getScaledCopy(diameter, diameter));
 		GameImage.HITCIRCLE_OVERLAY.setImage(GameImage.HITCIRCLE_OVERLAY.getImage().getScaledCopy(diameter, diameter));
 		GameImage.APPROACHCIRCLE.setImage(GameImage.APPROACHCIRCLE.getImage().getScaledCopy(diameter, diameter));
@@ -70,13 +70,13 @@ public class Circle implements HitObject {
 
 	/**
 	 * Constructor.
-	 * @param hitObject the associated OsuHitObject
+	 * @param hitObject the associated HitObject
 	 * @param game the associated Game object
 	 * @param data the associated GameData object
 	 * @param color the color of this circle
 	 * @param comboEnd true if this is the last hit object in the combo
 	 */
-	public Circle(OsuHitObject hitObject, Game game, GameData data, Color color, boolean comboEnd) {
+	public Circle(HitObject hitObject, Game game, GameData data, Color color, boolean comboEnd) {
 		this.hitObject = hitObject;
 		this.game = game;
 		this.data = data;

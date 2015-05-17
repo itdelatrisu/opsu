@@ -25,7 +25,7 @@ import itdelatrisu.opsu.GameMod;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
-import itdelatrisu.opsu.beatmap.OsuHitObject;
+import itdelatrisu.opsu.beatmap.HitObject;
 import itdelatrisu.opsu.states.Game;
 
 import org.newdawn.slick.Color;
@@ -36,7 +36,7 @@ import org.newdawn.slick.Image;
 /**
  * Data type representing a spinner object.
  */
-public class Spinner implements HitObject {
+public class Spinner implements GameObject {
 	/** Container dimensions. */
 	private static int width, height;
 
@@ -60,8 +60,8 @@ public class Spinner implements HitObject {
 		TWO_PI  = (float) (Math.PI * 2),
 		HALF_PI = (float) (Math.PI / 2);
 
-	/** The associated OsuHitObject. */
-	private OsuHitObject hitObject;
+	/** The associated HitObject. */
+	private HitObject hitObject;
 
 	/** The associated GameData object. */
 	private GameData data;
@@ -104,11 +104,11 @@ public class Spinner implements HitObject {
 
 	/**
 	 * Constructor.
-	 * @param hitObject the associated OsuHitObject
+	 * @param hitObject the associated HitObject
 	 * @param game the associated Game object
 	 * @param data the associated GameData object
 	 */
-	public Spinner(OsuHitObject hitObject, Game game, GameData data) {
+	public Spinner(HitObject hitObject, Game game, GameData data) {
 		this.hitObject = hitObject;
 		this.data = data;
 

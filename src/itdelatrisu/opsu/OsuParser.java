@@ -21,7 +21,7 @@ package itdelatrisu.opsu;
 import itdelatrisu.opsu.beatmap.Beatmap;
 import itdelatrisu.opsu.beatmap.BeatmapSetList;
 import itdelatrisu.opsu.beatmap.BeatmapSetNode;
-import itdelatrisu.opsu.beatmap.OsuHitObject;
+import itdelatrisu.opsu.beatmap.HitObject;
 import itdelatrisu.opsu.beatmap.TimingPoint;
 import itdelatrisu.opsu.db.BeatmapDB;
 
@@ -544,11 +544,11 @@ public class OsuParser {
 						tokens = line.split(",");
 						try {
 							type = Integer.parseInt(tokens[3]);
-							if ((type & OsuHitObject.TYPE_CIRCLE) > 0)
+							if ((type & HitObject.TYPE_CIRCLE) > 0)
 								beatmap.hitObjectCircle++;
-							else if ((type & OsuHitObject.TYPE_SLIDER) > 0)
+							else if ((type & HitObject.TYPE_SLIDER) > 0)
 								beatmap.hitObjectSlider++;
-							else //if ((type & OsuHitObject.TYPE_SPINNER) > 0)
+							else //if ((type & HitObject.TYPE_SPINNER) > 0)
 								beatmap.hitObjectSpinner++;
 						} catch (Exception e) {
 							Log.warn(String.format("Failed to read hit object '%s' for file '%s'.",
@@ -558,7 +558,7 @@ public class OsuParser {
 
 					try {
 						// map length = last object end time (TODO: end on slider?)
-						if ((type & OsuHitObject.TYPE_SPINNER) > 0) {
+						if ((type & HitObject.TYPE_SPINNER) > 0) {
 							// some 'endTime' fields contain a ':' character (?)
 							int index = tokens[5].indexOf(':');
 							if (index != -1)
@@ -603,7 +603,7 @@ public class OsuParser {
 		if (beatmap.objects != null)  // already parsed
 			return;
 
-		beatmap.objects = new OsuHitObject[(beatmap.hitObjectCircle + beatmap.hitObjectSlider + beatmap.hitObjectSpinner)];
+		beatmap.objects = new HitObject[(beatmap.hitObjectCircle + beatmap.hitObjectSlider + beatmap.hitObjectSpinner)];
 
 		try (BufferedReader in = new BufferedReader(new FileReader(beatmap.getFile()))) {
 			String line = in.readLine();
@@ -638,8 +638,8 @@ public class OsuParser {
 					continue;
 
 				try {
-					// create a new OsuHitObject for each line
-					OsuHitObject hitObject = new OsuHitObject(line);
+					// create a new HitObject for each line
+					HitObject hitObject = new HitObject(line);
 
 					// set combo info
 					// - new combo: get next combo index, reset combo number

@@ -18,7 +18,7 @@
 
 package itdelatrisu.opsu.objects.curves;
 
-import itdelatrisu.opsu.beatmap.OsuHitObject;
+import itdelatrisu.opsu.beatmap.HitObject;
 
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -40,10 +40,10 @@ public abstract class EqualDistanceMultiCurve extends Curve {
 
 	/**
 	 * Constructor.
-	 * @param hitObject the associated OsuHitObject
+	 * @param hitObject the associated HitObject
 	 * @param color the color of this curve
 	 */
-	public EqualDistanceMultiCurve(OsuHitObject hitObject, Color color) {
+	public EqualDistanceMultiCurve(HitObject hitObject, Color color) {
 		super(hitObject, color);
 	}
 
@@ -65,7 +65,7 @@ public abstract class EqualDistanceMultiCurve extends Curve {
 		float lastDistanceAt = 0;
 
 		// length of Curve should equal pixel length (in 640x480)
-		float pixelLength = hitObject.getPixelLength() * OsuHitObject.getXMultiplier();
+		float pixelLength = hitObject.getPixelLength() * HitObject.getXMultiplier();
 
 		// for each distance, try to get in between the two points that are between it
 		for (int i = 0; i < ncurve + 1; i++) {

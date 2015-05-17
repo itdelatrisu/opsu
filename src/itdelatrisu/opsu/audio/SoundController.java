@@ -21,7 +21,7 @@ package itdelatrisu.opsu.audio;
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.audio.HitSound.SampleSet;
-import itdelatrisu.opsu.beatmap.OsuHitObject;
+import itdelatrisu.opsu.beatmap.HitObject;
 
 import java.io.File;
 import java.io.IOException;
@@ -262,7 +262,7 @@ public class SoundController {
 	}
 
 	/**
-	 * Plays hit sound(s) using an OsuHitObject bitmask.
+	 * Plays hit sound(s) using a HitObject bitmask.
 	 * @param hitSound the hit sound (bitmask)
 	 * @param sampleSet the sample set
 	 * @param additionSampleSet the 'addition' sample set
@@ -280,11 +280,11 @@ public class SoundController {
 		playClip(HitSound.NORMAL.getClip(), volume, null);
 
 		HitSound.setSampleSet(additionSampleSet);
-		if ((hitSound & OsuHitObject.SOUND_WHISTLE) > 0)
+		if ((hitSound & HitObject.SOUND_WHISTLE) > 0)
 			playClip(HitSound.WHISTLE.getClip(), volume, null);
-		if ((hitSound & OsuHitObject.SOUND_FINISH) > 0)
+		if ((hitSound & HitObject.SOUND_FINISH) > 0)
 			playClip(HitSound.FINISH.getClip(), volume, null);
-		if ((hitSound & OsuHitObject.SOUND_CLAP) > 0)
+		if ((hitSound & HitObject.SOUND_CLAP) > 0)
 			playClip(HitSound.CLAP.getClip(), volume, null);
 	}
 

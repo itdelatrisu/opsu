@@ -188,7 +188,7 @@ public class Beatmap implements Comparable<Beatmap> {
 	 */
 
 	/** All hit objects. */
-	public OsuHitObject[] objects;
+	public HitObject[] objects;
 
 	/** Number of individual objects. */
 	public int

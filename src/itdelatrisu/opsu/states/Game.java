@@ -34,13 +34,13 @@ import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
 import itdelatrisu.opsu.beatmap.Beatmap;
-import itdelatrisu.opsu.beatmap.OsuHitObject;
+import itdelatrisu.opsu.beatmap.HitObject;
 import itdelatrisu.opsu.beatmap.TimingPoint;
 import itdelatrisu.opsu.db.BeatmapDB;
 import itdelatrisu.opsu.db.ScoreDB;
 import itdelatrisu.opsu.objects.Circle;
 import itdelatrisu.opsu.objects.DummyObject;
-import itdelatrisu.opsu.objects.HitObject;
+import itdelatrisu.opsu.objects.GameObject;
 import itdelatrisu.opsu.objects.Slider;
 import itdelatrisu.opsu.objects.Spinner;
 import itdelatrisu.opsu.replay.PlaybackSpeed;
@@ -102,11 +102,11 @@ public class Game extends BasicGameState {
 	/** The associated GameData object. */
 	private GameData data;
 
-	/** Current hit object index in OsuHitObject[] array. */
+	/** Current hit object index (in both hit object arrays). */
 	private int objectIndex = 0;
 
-	/** The map's HitObjects, indexed by objectIndex. */
-	private HitObject[] hitObjects;
+	/** The map's game objects, indexed by objectIndex. */
+	private GameObject[] gameObjects;
 
 	/** Delay time, in milliseconds, before song starts. */
 	private int leadInTime;
@@ -298,15 +298,15 @@ public class Game extends BasicGameState {
 				// before first object
 				timeDiff = firstObjectTime - trackPosition;
 				if (timeDiff < approachTime) {
-					float[] xy = hitObjects[0].getPointAt(trackPosition);
+					float[] xy = gameObjects[0].getPointAt(trackPosition);
 					autoXY = getPointAt(autoMouseX, autoMouseY, xy[0], xy[1], 1f - ((float) timeDiff / Math.min(approachTime, firstObjectTime)));
 				}
 			} else if (objectIndex < beatmap.objects.length) {
 				// normal object
 				int objectTime = beatmap.objects[objectIndex].getTime();
 				if (trackPosition < objectTime) {
-					float[] xyStart = hitObjects[objectIndex - 1].getPointAt(trackPosition);
-					int startTime = hitObjects[objectIndex - 1].getEndTime();
+					float[] xyStart = gameObjects[objectIndex - 1].getPointAt(trackPosition);
+					int startTime = gameObjects[objectIndex - 1].getEndTime();
 					if (beatmap.breaks != null && breakIndex < beatmap.breaks.size()) {
 						// starting a break: keep cursor at previous hit object position
 						if (breakTime > 0 || objectTime > beatmap.breaks.get(breakIndex))
@@ -320,7 +320,7 @@ public class Game extends BasicGameState {
 						}
 					}
 					if (autoXY == null) {
-						float[] xyEnd = hitObjects[objectIndex].getPointAt(trackPosition);
+						float[] xyEnd = gameObjects[objectIndex].getPointAt(trackPosition);
 						int totalTime = objectTime - startTime;
 						autoXY = getPointAt(xyStart[0], xyStart[1], xyEnd[0], xyEnd[1], (float) (trackPosition - startTime) / totalTime);
 
@@ -331,12 +331,12 @@ public class Game extends BasicGameState {
 							autoMousePressed = true;
 					}
 				} else {
-					autoXY = hitObjects[objectIndex].getPointAt(trackPosition);
+					autoXY = gameObjects[objectIndex].getPointAt(trackPosition);
 					autoMousePressed = true;
 				}
 			} else {
 				// last object
-				autoXY = hitObjects[objectIndex - 1].getPointAt(trackPosition);
+				autoXY = gameObjects[objectIndex - 1].getPointAt(trackPosition);
 			}
 
 			// set mouse coordinates
@@ -646,10 +646,10 @@ public class Game extends BasicGameState {
 		}
 
 		// map complete!
-		if (objectIndex >= hitObjects.length || (MusicController.trackEnded() && objectIndex > 0)) {
+		if (objectIndex >= gameObjects.length || (MusicController.trackEnded() && objectIndex > 0)) {
 			// track ended before last object was processed: force a hit result
-			if (MusicController.trackEnded() && objectIndex < hitObjects.length)
-				hitObjects[objectIndex].update(true, delta, mouseX, mouseY, false, trackPosition);
+			if (MusicController.trackEnded() && objectIndex < gameObjects.length)
+				gameObjects[objectIndex].update(true, delta, mouseX, mouseY, false, trackPosition);
 
 			// if checkpoint used, skip ranking screen
 			if (checkpointLoaded)
@@ -749,13 +749,13 @@ public class Game extends BasicGameState {
 
 		// update objects (loop in unlikely event of any skipped indexes)
 		boolean keyPressed = keys != ReplayFrame.KEY_NONE;
-		while (objectIndex < hitObjects.length && trackPosition > beatmap.objects[objectIndex].getTime()) {
+		while (objectIndex < gameObjects.length && trackPosition > beatmap.objects[objectIndex].getTime()) {
 			// check if we've already passed the next object's start time
-			boolean overlap = (objectIndex + 1 < hitObjects.length &&
+			boolean overlap = (objectIndex + 1 < gameObjects.length &&
 					trackPosition > beatmap.objects[objectIndex + 1].getTime() - hitResultOffset[GameData.HIT_300]);
 
 			// update hit object and check completion status
-			if (hitObjects[objectIndex].update(overlap, delta, mouseX, mouseY, keyPressed, trackPosition))
+			if (gameObjects[objectIndex].update(overlap, delta, mouseX, mouseY, keyPressed, trackPosition))
 				objectIndex++;  // done, so increment object index
 			else
 				break;
@@ -851,7 +851,7 @@ public class Game extends BasicGameState {
 					// skip to checkpoint
 					MusicController.setPosition(checkpoint);
 					MusicController.setPitch(GameMod.getSpeedMultiplier() * playbackSpeed.getModifier());
-					while (objectIndex < hitObjects.length &&
+					while (objectIndex < gameObjects.length &&
 							beatmap.objects[objectIndex++].getTime() <= checkpoint)
 						;
 					objectIndex--;
@@ -1054,7 +1054,7 @@ public class Game extends BasicGameState {
 
 			// initialize object maps
 			for (int i = 0; i < beatmap.objects.length; i++) {
-				OsuHitObject hitObject = beatmap.objects[i];
+				HitObject hitObject = beatmap.objects[i];
 
 				// is this the last note in the combo?
 				boolean comboEnd = false;
@@ -1075,16 +1075,16 @@ public class Game extends BasicGameState {
 
 				try {
 					if (hitObject.isCircle())
-						hitObjects[i] = new Circle(hitObject, this, data, color, comboEnd);
+						gameObjects[i] = new Circle(hitObject, this, data, color, comboEnd);
 					else if (hitObject.isSlider())
-						hitObjects[i] = new Slider(hitObject, this, data, color, comboEnd);
+						gameObjects[i] = new Slider(hitObject, this, data, color, comboEnd);
 					else if (hitObject.isSpinner())
-						hitObjects[i] = new Spinner(hitObject, this, data);
+						gameObjects[i] = new Spinner(hitObject, this, data);
 				} catch (Exception e) {
-					// try to handle the error gracefully: substitute in a dummy HitObject
+					// try to handle the error gracefully: substitute in a dummy GameObject
 					ErrorHandler.error(String.format("Failed to create %s at index %d:\n%s",
 							hitObject.getTypeName(), i, hitObject.toString()), e, true);
-					hitObjects[i] = new DummyObject(hitObject);
+					gameObjects[i] = new DummyObject(hitObject);
 					continue;
 				}
 			}
@@ -1187,7 +1187,7 @@ public class Game extends BasicGameState {
 
 		// draw hit objects in reverse order, or else overlapping objects are unreadable
 		Stack<Integer> stack = new Stack<Integer>();
-		for (int index = objectIndex; index < hitObjects.length && beatmap.objects[index].getTime() < trackPosition + approachTime; index++) {
+		for (int index = objectIndex; index < gameObjects.length && beatmap.objects[index].getTime() < trackPosition + approachTime; index++) {
 			stack.add(index);
 
 			// draw follow points
@@ -1200,10 +1200,10 @@ public class Game extends BasicGameState {
 			if (lastObjectIndex != -1 && !beatmap.objects[index].isNewCombo()) {
 				// calculate points
 				final int followPointInterval = container.getHeight() / 14;
-				int lastObjectEndTime = hitObjects[lastObjectIndex].getEndTime() + 1;
+				int lastObjectEndTime = gameObjects[lastObjectIndex].getEndTime() + 1;
 				int objectStartTime = beatmap.objects[index].getTime();
-				float[] startXY = hitObjects[lastObjectIndex].getPointAt(lastObjectEndTime);
-				float[] endXY = hitObjects[index].getPointAt(objectStartTime);
+				float[] startXY = gameObjects[lastObjectIndex].getPointAt(lastObjectEndTime);
+				float[] endXY = gameObjects[index].getPointAt(objectStartTime);
 				float xDiff = endXY[0] - startXY[0];
 				float yDiff = endXY[1] - startXY[1];
 				float dist = (float) Math.hypot(xDiff, yDiff);
@@ -1250,7 +1250,7 @@ public class Game extends BasicGameState {
 		}
 
 		while (!stack.isEmpty())
-			hitObjects[stack.pop()].draw(g, trackPosition);
+			gameObjects[stack.pop()].draw(g, trackPosition);
 
 		// draw OsuHitObjectResult objects
 		data.drawHitResults(trackPosition);
@@ -1273,7 +1273,7 @@ public class Game extends BasicGameState {
 	 * Resets all game data and structures.
 	 */
 	public void resetGameData() {
-		hitObjects = new HitObject[beatmap.objects.length];
+		gameObjects = new GameObject[beatmap.objects.length];
 		data.clear();
 		objectIndex = 0;
 		breakIndex = 0;
@@ -1383,7 +1383,7 @@ public class Game extends BasicGameState {
 		// Stack modifier scales with hit object size
 		// StackOffset = HitObjectRadius / 10
 		int diameter = (int) (104 - (circleSize * 8));
-		OsuHitObject.setStackOffset(diameter * STACK_OFFSET_MODIFIER);
+		HitObject.setStackOffset(diameter * STACK_OFFSET_MODIFIER);
 
 		// initialize objects
 		Circle.init(container, circleSize);
@@ -1519,18 +1519,18 @@ public class Game extends BasicGameState {
 	 * @param keys the keys that are pressed
 	 */
 	private void sendGameKeyPress(int keys, int x, int y, int trackPosition) {
-		if (objectIndex >= hitObjects.length)  // nothing to do here
+		if (objectIndex >= gameObjects.length)  // nothing to do here
 			return;
 
-		OsuHitObject hitObject = beatmap.objects[objectIndex];
+		HitObject hitObject = beatmap.objects[objectIndex];
 
 		// circles
-		if (hitObject.isCircle() && hitObjects[objectIndex].mousePressed(x, y, trackPosition))
+		if (hitObject.isCircle() && gameObjects[objectIndex].mousePressed(x, y, trackPosition))
 			objectIndex++;  // circle hit
 
 		// sliders
 		else if (hitObject.isSlider())
-			hitObjects[objectIndex].mousePressed(x, y, trackPosition);
+			gameObjects[objectIndex].mousePressed(x, y, trackPosition);
 	}
 
 	/**
@@ -1544,8 +1544,8 @@ public class Game extends BasicGameState {
 	private ReplayFrame addReplayFrame(int x, int y, int keys, int time) {
 		int timeDiff = time - lastReplayTime;
 		lastReplayTime = time;
-		int cx = (int) ((x - OsuHitObject.getXOffset()) / OsuHitObject.getXMultiplier());
-		int cy = (int) ((y - OsuHitObject.getYOffset()) / OsuHitObject.getYMultiplier());
+		int cx = (int) ((x - HitObject.getXOffset()) / HitObject.getXMultiplier());
+		int cy = (int) ((y - HitObject.getYOffset()) / HitObject.getYMultiplier());
 		ReplayFrame frame = new ReplayFrame(timeDiff, time, cx, cy, keys);
 		if (replayFrames != null)
 			replayFrames.add(frame);
@@ -1641,8 +1641,8 @@ public class Game extends BasicGameState {
 	 */
 	private void calculateStacks() {
 		// reverse pass for stack calculation
-		for (int i = hitObjects.length - 1; i > 0; i--) {
-			OsuHitObject hitObjectI = beatmap.objects[i];
+		for (int i = gameObjects.length - 1; i > 0; i--) {
+			HitObject hitObjectI = beatmap.objects[i];
 
 			// already calculated
 			if (hitObjectI.getStack() != 0 || hitObjectI.isSpinner())
@@ -1650,33 +1650,33 @@ public class Game extends BasicGameState {
 
 			// search for hit objects in stack
 			for (int n = i - 1; n >= 0; n--) {
-				OsuHitObject hitObjectN = beatmap.objects[n];
+				HitObject hitObjectN = beatmap.objects[n];
 				if (hitObjectN.isSpinner())
 					continue;
 
 				// check if in range stack calculation
 				float timeI = hitObjectI.getTime() - (STACK_TIMEOUT * beatmap.stackLeniency);
-				float timeN = hitObjectN.isSlider() ? hitObjects[n].getEndTime() : hitObjectN.getTime();
+				float timeN = hitObjectN.isSlider() ? gameObjects[n].getEndTime() : hitObjectN.getTime();
 				if (timeI > timeN)
 					break;
 
 				// possible special case: if slider end in the stack,
 				// all next hit objects in stack move right down
 				if (hitObjectN.isSlider()) {
-					float[] p1 = hitObjects[i].getPointAt(hitObjectI.getTime());
-					float[] p2 = hitObjects[n].getPointAt(hitObjects[n].getEndTime());
+					float[] p1 = gameObjects[i].getPointAt(hitObjectI.getTime());
+					float[] p2 = gameObjects[n].getPointAt(gameObjects[n].getEndTime());
 					float distance = Utils.distance(p1[0], p1[1], p2[0], p2[1]);
 
 					// check if hit object part of this stack
-					if (distance < STACK_LENIENCE * OsuHitObject.getXMultiplier()) {
+					if (distance < STACK_LENIENCE * HitObject.getXMultiplier()) {
 						int offset = hitObjectI.getStack() - hitObjectN.getStack() + 1;
 						for (int j = n + 1; j <= i; j++) {
-							OsuHitObject hitObjectJ = beatmap.objects[j];
-							p1 = hitObjects[j].getPointAt(hitObjectJ.getTime());
+							HitObject hitObjectJ = beatmap.objects[j];
+							p1 = gameObjects[j].getPointAt(hitObjectJ.getTime());
 							distance = Utils.distance(p1[0], p1[1], p2[0], p2[1]);
 
 							// hit object below slider end
-							if (distance < STACK_LENIENCE * OsuHitObject.getXMultiplier())
+							if (distance < STACK_LENIENCE * HitObject.getXMultiplier())
 								hitObjectJ.setStack(hitObjectJ.getStack() - offset);
 						}
 						break;  // slider end always start of the stack: reset calculation
@@ -1696,9 +1696,9 @@ public class Game extends BasicGameState {
 		}
 
 		// update hit object positions
-		for (int i = 0; i < hitObjects.length; i++) {
+		for (int i = 0; i < gameObjects.length; i++) {
 			if (beatmap.objects[i].getStack() != 0)
-				hitObjects[i].updatePosition();
+				gameObjects[i].updatePosition();
 		}
 	}
 }

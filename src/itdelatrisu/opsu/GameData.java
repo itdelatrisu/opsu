@@ -23,7 +23,7 @@ import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
 import itdelatrisu.opsu.beatmap.Beatmap;
-import itdelatrisu.opsu.beatmap.OsuHitObject;
+import itdelatrisu.opsu.beatmap.HitObject;
 import itdelatrisu.opsu.downloads.Updater;
 import itdelatrisu.opsu.objects.curves.Curve;
 import itdelatrisu.opsu.replay.Replay;
@@ -1156,7 +1156,7 @@ public class GameData {
 	 * @param hitObject the hit object
 	 * @param repeat the current repeat number
 	 */
-	public void sliderTickResult(int time, int result, float x, float y, OsuHitObject hitObject, int repeat) {
+	public void sliderTickResult(int time, int result, float x, float y, HitObject hitObject, int repeat) {
 		int hitValue = 0;
 		switch (result) {
 		case HIT_SLIDER30:
@@ -1204,7 +1204,7 @@ public class GameData {
 	 * @return the actual hit result (HIT_* constants)
 	 */
 	private int handleHitResult(int time, int result, float x, float y, Color color,
-			boolean end, OsuHitObject hitObject, int repeat, HitObjectType hitResultType) {
+			boolean end, HitObject hitObject, int repeat, HitObjectType hitResultType) {
 		int hitValue = 0;
 		switch (result) {
 		case HIT_300:
@@ -1286,7 +1286,7 @@ public class GameData {
 	 * @param expand whether or not the hit result animation should expand (if applicable)
 	 */
 	public void hitResult(int time, int result, float x, float y, Color color,
-						  boolean end, OsuHitObject hitObject, int repeat,
+						  boolean end, HitObject hitObject, int repeat,
 						  HitObjectType hitResultType, Curve curve, boolean expand) {
 		result = handleHitResult(time, result, x, y, color, end, hitObject, repeat, hitResultType);
 

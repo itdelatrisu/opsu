@@ -20,7 +20,7 @@ package itdelatrisu.opsu.objects.curves;
 
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.Utils;
-import itdelatrisu.opsu.beatmap.OsuHitObject;
+import itdelatrisu.opsu.beatmap.HitObject;
 
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Image;
@@ -34,8 +34,8 @@ public abstract class Curve {
 	/** Points generated along the curve should be spaced this far apart. */
 	protected static float CURVE_POINTS_SEPERATION = 5;
 
-	/** The associated OsuHitObject. */
-	protected OsuHitObject hitObject;
+	/** The associated HitObject. */
+	protected HitObject hitObject;
 
 	/** The scaled starting x, y coordinates. */
 	protected float x, y;
@@ -48,10 +48,10 @@ public abstract class Curve {
 
 	/**
 	 * Constructor.
-	 * @param hitObject the associated OsuHitObject
+	 * @param hitObject the associated HitObject
 	 * @param color the color of this curve
 	 */
-	protected Curve(OsuHitObject hitObject, Color color) {
+	protected Curve(HitObject hitObject, Color color) {
 		this.hitObject = hitObject;
 		this.x = hitObject.getScaledX();
 		this.y = hitObject.getScaledY();
