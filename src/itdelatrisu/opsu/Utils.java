@@ -52,6 +52,7 @@ import java.util.Scanner;
 
 import javax.imageio.ImageIO;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.lwjgl.BufferUtils;
@@ -522,6 +523,7 @@ public class Utils {
 	 * Returns a the contents of a URL as a string.
 	 * @param url the remote URL
 	 * @return the contents as a string, or null if any error occurred
+	 * @author Roland Illig (http://stackoverflow.com/a/4308662)
 	 */
 	public static String readDataFromUrl(URL url) throws IOException {
 		// open connection
@@ -556,10 +558,9 @@ public class Utils {
 	/**
 	 * Returns a JSON object from a URL.
 	 * @param url the remote URL
-	 * @return the JSON object
-	 * @author Roland Illig (http://stackoverflow.com/a/4308662)
+	 * @return the JSON object, or null if an error occurred
 	 */
-	public static JSONObject readJsonFromUrl(URL url) throws IOException {
+	public static JSONObject readJsonObjectFromUrl(URL url) throws IOException {
 		String s = Utils.readDataFromUrl(url);
 		JSONObject json = null;
 		if (s != null) {
@@ -567,6 +568,24 @@ public class Utils {
 				json = new JSONObject(s);
 			} catch (JSONException e) {
 				ErrorHandler.error("Failed to create JSON object.", e, true);
+			}
+		}
+		return json;
+	}
+
+	/**
+	 * Returns a JSON array from a URL.
+	 * @param url the remote URL
+	 * @return the JSON array, or null if an error occurred
+	 */
+	public static JSONArray readJsonArrayFromUrl(URL url) throws IOException {
+		String s = Utils.readDataFromUrl(url);
+		JSONArray json = null;
+		if (s != null) {
+			try {
+				json = new JSONArray(s);
+			} catch (JSONException e) {
+				ErrorHandler.error("Failed to create JSON array.", e, true);
 			}
 		}
 		return json;

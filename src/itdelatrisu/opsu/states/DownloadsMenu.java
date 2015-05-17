@@ -36,6 +36,7 @@ import itdelatrisu.opsu.downloads.DownloadList;
 import itdelatrisu.opsu.downloads.DownloadNode;
 import itdelatrisu.opsu.downloads.servers.BloodcatServer;
 import itdelatrisu.opsu.downloads.servers.DownloadServer;
+import itdelatrisu.opsu.downloads.servers.HexideServer;
 import itdelatrisu.opsu.downloads.servers.OsuMirrorServer;
 
 import java.io.File;
@@ -73,7 +74,7 @@ public class DownloadsMenu extends BasicGameState {
 	private static final int MIN_REQUEST_INTERVAL = 300;
 
 	/** Available beatmap download servers. */
-	private static final DownloadServer[] SERVERS = { new BloodcatServer(), new OsuMirrorServer() };
+	private static final DownloadServer[] SERVERS = { new BloodcatServer(), new OsuMirrorServer(), new HexideServer() };
 
 	/** The beatmap download server index. */
 	private int serverIndex = 0;
@@ -446,6 +447,14 @@ public class DownloadsMenu extends BasicGameState {
 				queryThread.start();
 			}
 		}
+
+		// tooltips
+		if (resetButton.contains(mouseX, mouseY))
+			UI.updateTooltip(delta, "Reset the current search.", false);
+		else if (rankedButton.contains(mouseX, mouseY))
+			UI.updateTooltip(delta, "Toggle the display of unranked maps.\nSome download servers may not support this option.", true);
+		else if (serverButton.contains(mouseX, mouseY))
+			UI.updateTooltip(delta, "Select a download server.", false);
 	}
 
 	@Override

@@ -68,7 +68,7 @@ public class BloodcatServer extends DownloadServer {
 		try {
 			// read JSON
 			String search = String.format(SEARCH_URL, URLEncoder.encode(query, "UTF-8"), rankedOnly ? "0" : "", page);
-			JSONObject json = Utils.readJsonFromUrl(new URL(search));
+			JSONObject json = Utils.readJsonObjectFromUrl(new URL(search));
 			if (json == null) {
 				this.totalResults = -1;
 				return null;

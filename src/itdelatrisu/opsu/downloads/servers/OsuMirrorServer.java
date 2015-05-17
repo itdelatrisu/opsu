@@ -91,7 +91,7 @@ public class OsuMirrorServer extends DownloadServer {
 				isSearch = true;
 				search = String.format(SEARCH_URL, page, URLEncoder.encode(query, "UTF-8"));
 			}
-			JSONObject json = Utils.readJsonFromUrl(new URL(search));
+			JSONObject json = Utils.readJsonObjectFromUrl(new URL(search));
 			if (json == null || json.getInt("code") != 0) {
 				this.totalResults = -1;
 				return null;
