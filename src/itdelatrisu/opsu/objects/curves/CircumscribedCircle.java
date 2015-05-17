@@ -19,7 +19,7 @@
 package itdelatrisu.opsu.objects.curves;
 
 import itdelatrisu.opsu.ErrorHandler;
-import itdelatrisu.opsu.OsuHitObject;
+import itdelatrisu.opsu.beatmap.OsuHitObject;
 
 import org.newdawn.slick.Color;
 

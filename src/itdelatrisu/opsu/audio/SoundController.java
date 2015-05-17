@@ -20,8 +20,8 @@ package itdelatrisu.opsu.audio;
 
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.Options;
-import itdelatrisu.opsu.OsuHitObject;
 import itdelatrisu.opsu.audio.HitSound.SampleSet;
+import itdelatrisu.opsu.beatmap.OsuHitObject;
 
 import java.io.File;
 import java.io.IOException;

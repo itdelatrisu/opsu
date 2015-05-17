@@ -19,8 +19,8 @@
 package itdelatrisu.opsu.objects.curves;
 
 import itdelatrisu.opsu.GameImage;
-import itdelatrisu.opsu.OsuHitObject;
 import itdelatrisu.opsu.Utils;
+import itdelatrisu.opsu.beatmap.OsuHitObject;
 
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Image;

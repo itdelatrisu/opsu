@@ -16,10 +16,13 @@
  * along with opsu!.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package itdelatrisu.opsu;
+package itdelatrisu.opsu.beatmap;
 
+import itdelatrisu.opsu.ErrorHandler;
+import itdelatrisu.opsu.SongSort;
+import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.MusicController;
-import itdelatrisu.opsu.db.OsuDB;
+import itdelatrisu.opsu.db.BeatmapDB;
 
 import java.io.File;
 import java.io.IOException;
@@ -35,9 +38,9 @@ import java.util.regex.Pattern;
 /**
  * Indexed, expanding, doubly-linked list data type for song groups.
  */
-public class OsuGroupList {
-	/** Song group structure (each group contains of an ArrayList of OsuFiles). */
-	private static OsuGroupList list;
+public class BeatmapSetList {
+	/** Song group structure (each group contains a list of beatmaps). */
+	private static BeatmapSetList list;
 
 	/** Search pattern for conditional expressions. */
 	private static final Pattern SEARCH_CONDITION_PATTERN = Pattern.compile(
@@ -45,13 +48,13 @@ public class OsuGroupList {
 	);
 
 	/** List containing all parsed nodes. */
-	private ArrayList<OsuGroupNode> parsedNodes;
+	private ArrayList<BeatmapSetNode> parsedNodes;
 
-	/** Total number of beatmaps (i.e. OsuFile objects). */
+	/** Total number of beatmaps (i.e. Beatmap objects). */
 	private int mapCount = 0;
 
 	/** Current list of nodes (subset of parsedNodes, used for searches). */
-	private ArrayList<OsuGroupNode> nodes;
+	private ArrayList<BeatmapSetNode> nodes;
 
 	/** Set of all beatmap set IDs for the parsed beatmaps. */
 	private HashSet<Integer> MSIDdb;
@@ -60,7 +63,7 @@ public class OsuGroupList {
 	private int expandedIndex;
 
 	/** Start and end nodes of expanded group. */
-	private OsuGroupNode expandedStartNode, expandedEndNode;
+	private BeatmapSetNode expandedStartNode, expandedEndNode;
 
 	/** The last search query. */
 	private String lastQuery;
@@ -68,18 +71,18 @@ public class OsuGroupList {
 	/**
 	 * Creates a new instance of this class (overwriting any previous instance).
 	 */
-	public static void create() { list = new OsuGroupList(); }
+	public static void create() { list = new BeatmapSetList(); }
 
 	/**
 	 * Returns the single instance of this class.
 	 */
-	public static OsuGroupList get() { return list; }
+	public static BeatmapSetList get() { return list; }
 
 	/**
 	 * Constructor.
 	 */
-	private OsuGroupList() {
-		parsedNodes = new ArrayList<OsuGroupNode>();
+	private BeatmapSetList() {
+		parsedNodes = new ArrayList<BeatmapSetNode>();
 		MSIDdb = new HashSet<Integer>();
 		reset();
 	}
@@ -102,16 +105,16 @@ public class OsuGroupList {
 
 	/**
 	 * Adds a song group.
-	 * @param osuFiles the list of OsuFile objects in the group
-	 * @return the new OsuGroupNode
+	 * @param beatmaps the list of beatmaps in the group
+	 * @return the new BeatmapSetNode
 	 */
-	public OsuGroupNode addSongGroup(ArrayList<OsuFile> osuFiles) {
-		OsuGroupNode node = new OsuGroupNode(osuFiles);
+	public BeatmapSetNode addSongGroup(ArrayList<Beatmap> beatmaps) {
+		BeatmapSetNode node = new BeatmapSetNode(beatmaps);
 		parsedNodes.add(node);
-		mapCount += osuFiles.size();
+		mapCount += beatmaps.size();
 
 		// add beatmap set ID to set
-		int msid = osuFiles.get(0).beatmapSetID;
+		int msid = beatmaps.get(0).beatmapSetID;
 		if (msid > 0)
 			MSIDdb.add(msid);
 
@@ -124,13 +127,13 @@ public class OsuGroupList {
 	 * @param node the node containing the song group to delete
 	 * @return true if the song group was deleted, false otherwise
 	 */
-	public boolean deleteSongGroup(OsuGroupNode node) {
+	public boolean deleteSongGroup(BeatmapSetNode node) {
 		if (node == null)
 			return false;
 
 		// re-link base nodes
 		int index = node.index;
-		OsuGroupNode ePrev = getBaseNode(index - 1), eCur = getBaseNode(index), eNext = getBaseNode(index + 1);
+		BeatmapSetNode ePrev = getBaseNode(index - 1), eCur = getBaseNode(index), eNext = getBaseNode(index + 1);
 		if (ePrev != null) {
 			if (ePrev.index == expandedIndex)
 				expandedEndNode.next = eNext;
@@ -149,12 +152,12 @@ public class OsuGroupList {
 		}
 
 		// remove all node references
-		OsuFile osu = node.osuFiles.get(0);
+		Beatmap beatmap = node.beatmaps.get(0);
 		nodes.remove(index);
 		parsedNodes.remove(eCur);
-		mapCount -= node.osuFiles.size();
-		if (osu.beatmapSetID > 0)
-			MSIDdb.remove(osu.beatmapSetID);
+		mapCount -= node.beatmaps.size();
+		if (beatmap.beatmapSetID > 0)
+			MSIDdb.remove(beatmap.beatmapSetID);
 
 		// reset indices
 		for (int i = index, size = size(); i < size; i++)
@@ -164,25 +167,25 @@ public class OsuGroupList {
 			expandedStartNode = expandedEndNode = null;
 		} else if (expandedIndex > index) {
 			expandedIndex--;
-			OsuGroupNode expandedNode = expandedStartNode;
-			for (int i = 0, size = expandedNode.osuFiles.size();
+			BeatmapSetNode expandedNode = expandedStartNode;
+			for (int i = 0, size = expandedNode.beatmaps.size();
 			     i < size && expandedNode != null;
 			     i++, expandedNode = expandedNode.next)
 				expandedNode.index = expandedIndex;
 		}
 
 		// stop playing the track
-		File dir = osu.getFile().getParentFile();
+		File dir = beatmap.getFile().getParentFile();
 		if (MusicController.trackExists() || MusicController.isTrackLoading()) {
-			File audioFile = MusicController.getOsuFile().audioFilename;
-			if (audioFile != null && audioFile.equals(osu.audioFilename)) {
+			File audioFile = MusicController.getBeatmap().audioFilename;
+			if (audioFile != null && audioFile.equals(beatmap.audioFilename)) {
 				MusicController.reset();
 				System.gc();  // TODO: why can't files be deleted without calling this?
 			}
 		}
 
 		// remove entry from cache
-		OsuDB.delete(dir.getName());
+		BeatmapDB.delete(dir.getName());
 
 		// delete the associated directory
 		try {
@@ -200,26 +203,26 @@ public class OsuGroupList {
 	 * beatmap directory will be deleted altogether.
 	 * @param node the node containing the song group to delete (expanded only)
 	 * @return true if the song or song group was deleted, false otherwise
-	 * @see #deleteSongGroup(OsuGroupNode)
+	 * @see #deleteSongGroup(BeatmapSetNode)
 	 */
-	public boolean deleteSong(OsuGroupNode node) {
-		if (node == null || node.osuFileIndex == -1 || node.index != expandedIndex)
+	public boolean deleteSong(BeatmapSetNode node) {
+		if (node == null || node.beatmapIndex == -1 || node.index != expandedIndex)
 			return false;
 
 		// last song in group?
-		int size = node.osuFiles.size();
-		if (node.osuFiles.size() == 1)
+		int size = node.beatmaps.size();
+		if (node.beatmaps.size() == 1)
 			return deleteSongGroup(node);
 
 		// reset indices
-		OsuGroupNode expandedNode = node.next;
-		for (int i = node.osuFileIndex + 1;
+		BeatmapSetNode expandedNode = node.next;
+		for (int i = node.beatmapIndex + 1;
 		     i < size && expandedNode != null && expandedNode.index == node.index;
 		     i++, expandedNode = expandedNode.next)
-			expandedNode.osuFileIndex--;
+			expandedNode.beatmapIndex--;
 
 		// remove song reference
-		OsuFile osu = node.osuFiles.remove(node.osuFileIndex);
+		Beatmap beatmap = node.beatmaps.remove(node.beatmapIndex);
 		mapCount--;
 
 		// re-link nodes
@@ -229,8 +232,8 @@ public class OsuGroupList {
 			node.next.prev = node.prev;
 
 		// remove entry from cache
-		File file = osu.getFile();
-		OsuDB.delete(file.getParentFile().getName(), file.getName());
+		File file = beatmap.getFile();
+		BeatmapDB.delete(file.getParentFile().getName(), file.getName());
 
 		// delete the associated file
 		try {
@@ -243,7 +246,7 @@ public class OsuGroupList {
 	}
 
 	/**
-	 * Returns the total number of parsed maps (i.e. OsuFile objects).
+	 * Returns the total number of parsed maps (i.e. Beatmap objects).
 	 */
 	public int getMapCount() { return mapCount; }
 
@@ -253,10 +256,10 @@ public class OsuGroupList {
 	public int getMapSetCount() { return parsedNodes.size(); }
 
 	/**
-	 * Returns the OsuGroupNode at an index, disregarding expansions.
+	 * Returns the BeatmapSetNode at an index, disregarding expansions.
 	 * @param index the node index
 	 */
-	public OsuGroupNode getBaseNode(int index) {
+	public BeatmapSetNode getBaseNode(int index) {
 		if (index < 0 || index >= size())
 			return null;
 
@@ -266,20 +269,20 @@ public class OsuGroupList {
 	/**
 	 * Returns a random base node.
 	 */
-	public OsuGroupNode getRandomNode() {
-		OsuGroupNode node = getBaseNode((int) (Math.random() * size()));
+	public BeatmapSetNode getRandomNode() {
+		BeatmapSetNode node = getBaseNode((int) (Math.random() * size()));
 		if (node != null && node.index == expandedIndex)  // don't choose an expanded group node
 			node = node.next;
 		return node;
 	}
 
 	/**
-	 * Returns the OsuGroupNode a given number of positions forward or backwards.
+	 * Returns the BeatmapSetNode a given number of positions forward or backwards.
 	 * @param node the starting node
 	 * @param shift the number of nodes to shift forward (+) or backward (-).
 	 */
-	public OsuGroupNode getNode(OsuGroupNode node, int shift) {
-		OsuGroupNode startNode = node;
+	public BeatmapSetNode getNode(BeatmapSetNode node, int shift) {
+		BeatmapSetNode startNode = node;
 		if (shift > 0) {
 			for (int i = 0; i < shift && startNode != null; i++)
 				startNode = startNode.next;
@@ -296,28 +299,28 @@ public class OsuGroupList {
 	public int getExpandedIndex() { return expandedIndex; }
 
 	/**
-	 * Expands the node at an index by inserting a new node for each OsuFile
+	 * Expands the node at an index by inserting a new node for each Beatmap
 	 * in that node and hiding the group node.
 	 * @return the first of the newly-inserted nodes
 	 */
-	public OsuGroupNode expand(int index) {
+	public BeatmapSetNode expand(int index) {
 		// undo the previous expansion
 		unexpand();
 
-		OsuGroupNode node = getBaseNode(index);
+		BeatmapSetNode node = getBaseNode(index);
 		if (node == null)
 			return null;
 
 		expandedStartNode = expandedEndNode = null;
 
 		// create new nodes
-		ArrayList<OsuFile> osuFiles = node.osuFiles;
-		OsuGroupNode prevNode = node.prev;
-		OsuGroupNode nextNode = node.next;
-		for (int i = 0, size = node.osuFiles.size(); i < size; i++) {
-			OsuGroupNode newNode = new OsuGroupNode(osuFiles);
+		ArrayList<Beatmap> beatmaps = node.beatmaps;
+		BeatmapSetNode prevNode = node.prev;
+		BeatmapSetNode nextNode = node.next;
+		for (int i = 0, size = node.beatmaps.size(); i < size; i++) {
+			BeatmapSetNode newNode = new BeatmapSetNode(beatmaps);
 			newNode.index = index;
-			newNode.osuFileIndex = i;
+			newNode.beatmapIndex = i;
 			newNode.prev = node;
 
 			// unlink the group node
@@ -349,7 +352,7 @@ public class OsuGroupList {
 			return;
 
 		// recreate surrounding links
-		OsuGroupNode
+		BeatmapSetNode
 			ePrev = getBaseNode(expandedIndex - 1),
 			eCur  = getBaseNode(expandedIndex),
 			eNext = getBaseNode(expandedIndex + 1);
@@ -379,11 +382,11 @@ public class OsuGroupList {
 		expandedStartNode = expandedEndNode = null;
 
 		// create links
-		OsuGroupNode lastNode = nodes.get(0);
+		BeatmapSetNode lastNode = nodes.get(0);
 		lastNode.index = 0;
 		lastNode.prev = null;
 		for (int i = 1, size = size(); i < size; i++) {
-			OsuGroupNode node = nodes.get(i);
+			BeatmapSetNode node = nodes.get(i);
 			lastNode.next = node;
 			node.index = i;
 			node.prev = lastNode;
@@ -433,20 +436,20 @@ public class OsuGroupList {
 		}
 
 		// build an initial list from first search term
-		nodes = new ArrayList<OsuGroupNode>();
+		nodes = new ArrayList<BeatmapSetNode>();
 		if (terms.isEmpty()) {
 			// conditional term
 			String type = condType.remove();
 			String operator = condOperator.remove();
 			float value = condValue.remove();
-			for (OsuGroupNode node : parsedNodes) {
+			for (BeatmapSetNode node : parsedNodes) {
 				if (node.matches(type, operator, value))
 					nodes.add(node);
 			}
 		} else {
 			// normal term
 			String term = terms.remove();
-			for (OsuGroupNode node : parsedNodes) {
+			for (BeatmapSetNode node : parsedNodes) {
 				if (node.matches(term))
 					nodes.add(node);
 			}
@@ -460,9 +463,9 @@ public class OsuGroupList {
 			String term = terms.remove();
 
 			// remove nodes from list if they don't match all terms
-			Iterator<OsuGroupNode> nodeIter = nodes.iterator();
+			Iterator<BeatmapSetNode> nodeIter = nodes.iterator();
 			while (nodeIter.hasNext()) {
-				OsuGroupNode node = nodeIter.next();
+				BeatmapSetNode node = nodeIter.next();
 				if (!node.matches(term))
 					nodeIter.remove();
 			}
@@ -478,9 +481,9 @@ public class OsuGroupList {
 			float value = condValue.remove();
 
 			// remove nodes from list if they don't match all terms
-			Iterator<OsuGroupNode> nodeIter = nodes.iterator();
+			Iterator<BeatmapSetNode> nodeIter = nodes.iterator();
 			while (nodeIter.hasNext()) {
-				OsuGroupNode node = nodeIter.next();
+				BeatmapSetNode node = nodeIter.next();
 				if (!node.matches(type, operator, value))
 					nodeIter.remove();
 			}

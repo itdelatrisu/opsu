@@ -43,7 +43,7 @@ public class DBController {
 		}
 
 		// initialize the databases
-		OsuDB.init();
+		BeatmapDB.init();
 		ScoreDB.init();
 	}
 
@@ -51,7 +51,7 @@ public class DBController {
 	 * Closes all database connections.
 	 */
 	public static void closeConnections() {
-		OsuDB.closeConnection();
+		BeatmapDB.closeConnection();
 		ScoreDB.closeConnection();
 	}
 

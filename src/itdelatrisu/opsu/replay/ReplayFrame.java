@@ -18,7 +18,7 @@
 
 package itdelatrisu.opsu.replay;
 
-import itdelatrisu.opsu.OsuHitObject;
+import itdelatrisu.opsu.beatmap.OsuHitObject;
 
 /**
  * Captures a single replay frame.

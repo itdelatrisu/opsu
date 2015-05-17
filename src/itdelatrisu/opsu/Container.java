@@ -19,6 +19,8 @@
 package itdelatrisu.opsu;
 
 import itdelatrisu.opsu.audio.MusicController;
+import itdelatrisu.opsu.beatmap.Beatmap;
+import itdelatrisu.opsu.beatmap.BeatmapSetList;
 import itdelatrisu.opsu.downloads.DownloadList;
 import itdelatrisu.opsu.downloads.Updater;
 
@@ -118,14 +120,14 @@ public class Container extends AppGameContainer {
 		// reset image references
 		GameImage.clearReferences();
 		GameData.Grade.clearReferences();
-		OsuFile.resetImageCache();
+		Beatmap.resetImageCache();
 
 		// prevent loading tracks from re-initializing OpenAL
 		MusicController.reset();
 
-		// reset OsuGroupList data
-		if (OsuGroupList.get() != null)
-			OsuGroupList.get().reset();
+		// reset BeatmapSetList data
+		if (BeatmapSetList.get() != null)
+			BeatmapSetList.get().reset();
 	}
 
 	@Override

@@ -18,7 +18,7 @@
 
 package itdelatrisu.opsu.objects.curves;
 
-import itdelatrisu.opsu.OsuHitObject;
+import itdelatrisu.opsu.beatmap.OsuHitObject;
 
 import java.util.Iterator;
 import java.util.LinkedList;

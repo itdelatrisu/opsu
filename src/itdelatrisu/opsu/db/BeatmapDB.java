@@ -20,8 +20,8 @@ package itdelatrisu.opsu.db;
 
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.Options;
-import itdelatrisu.opsu.OsuFile;
 import itdelatrisu.opsu.OsuParser;
+import itdelatrisu.opsu.beatmap.Beatmap;
 
 import java.io.File;
 import java.sql.Connection;
@@ -38,7 +38,7 @@ import org.newdawn.slick.util.Log;
 /**
  * Handles connections and queries with the cached beatmap database.
  */
-public class OsuDB {
+public class BeatmapDB {
 	/**
 	 * Current database version.
 	 * This value should be changed whenever the database format changes.
@@ -51,7 +51,7 @@ public class OsuDB {
 	/** Minimum batch size to invoke batch insertion. */
 	private static final int INSERT_BATCH_MIN = 100;
 
-	/** OsuFile loading flags. */
+	/** Beatmap loading flags. */
 	public static final int LOAD_NONARRAY = 1, LOAD_ARRAY = 2, LOAD_ALL = 3;
 
 	/** Database connection. */
@@ -64,14 +64,14 @@ public class OsuDB {
 	private static int cacheSize = -1;
 
 	// This class should not be instantiated.
-	private OsuDB() {}
+	private BeatmapDB() {}
 
 	/**
 	 * Initializes the database connection.
 	 */
 	public static void init() {
 		// create a database connection
-		connection = DBController.createConnection(Options.OSU_DB.getPath());
+		connection = DBController.createConnection(Options.BEATMAP_DB.getPath());
 		if (connection == null)
 			return;
 
@@ -216,15 +216,15 @@ public class OsuDB {
 	}
 
 	/**
-	 * Adds the OsuFile to the database.
-	 * @param osu the OsuFile object
+	 * Adds the beatmap to the database.
+	 * @param beatmap the beatmap
 	 */
-	public static void insert(OsuFile osu) {
+	public static void insert(Beatmap beatmap) {
 		if (connection == null)
 			return;
 
 		try {
-			setStatementFields(insertStmt, osu);
+			setStatementFields(insertStmt, beatmap);
 			cacheSize += insertStmt.executeUpdate();
 			updateCacheSize();
 		} catch (SQLException e) {
@@ -233,10 +233,10 @@ public class OsuDB {
 	}
 
 	/**
-	 * Adds the OsuFiles to the database in a batch.
-	 * @param batch a list of OsuFile objects
+	 * Adds the beatmaps to the database in a batch.
+	 * @param batch a list of beatmaps
 	 */
-	public static void insert(List<OsuFile> batch) {
+	public static void insert(List<Beatmap> batch) {
 		if (connection == null)
 			return;
 
@@ -253,11 +253,11 @@ public class OsuDB {
 			}
 
 			// batch insert
-			for (OsuFile osu : batch) {
+			for (Beatmap beatmap : batch) {
 				try {
-					setStatementFields(insertStmt, osu);
+					setStatementFields(insertStmt, beatmap);
 				} catch (SQLException e) {
-					Log.error(String.format("Failed to insert map '%s' into database.", osu.getFile().getPath()), e);
+					Log.error(String.format("Failed to insert map '%s' into database.", beatmap.getFile().getPath()), e);
 					continue;
 				}
 				insertStmt.addBatch();
@@ -286,53 +286,53 @@ public class OsuDB {
 	}
 
 	/**
-	 * Sets all statement fields using a given OsuFile object.
+	 * Sets all statement fields using a given beatmap.
 	 * @param stmt the statement to set fields for
-	 * @param osu the OsuFile
+	 * @param beatmap the beatmap
 	 * @throws SQLException
 	 */
-	private static void setStatementFields(PreparedStatement stmt, OsuFile osu)
+	private static void setStatementFields(PreparedStatement stmt, Beatmap beatmap)
 			throws SQLException {
 		try {
-			stmt.setString(1, osu.getFile().getParentFile().getName());
-			stmt.setString(2, osu.getFile().getName());
-			stmt.setLong(3, osu.getFile().lastModified());
-			stmt.setInt(4, osu.beatmapID);
-			stmt.setInt(5, osu.beatmapSetID);
-			stmt.setString(6, osu.title);
-			stmt.setString(7, osu.titleUnicode);
-			stmt.setString(8, osu.artist);
-			stmt.setString(9, osu.artistUnicode);
-			stmt.setString(10, osu.creator);
-			stmt.setString(11, osu.version);
-			stmt.setString(12, osu.source);
-			stmt.setString(13, osu.tags);
-			stmt.setInt(14, osu.hitObjectCircle);
-			stmt.setInt(15, osu.hitObjectSlider);
-			stmt.setInt(16, osu.hitObjectSpinner);
-			stmt.setFloat(17, osu.HPDrainRate);
-			stmt.setFloat(18, osu.circleSize);
-			stmt.setFloat(19, osu.overallDifficulty);
-			stmt.setFloat(20, osu.approachRate);
-			stmt.setFloat(21, osu.sliderMultiplier);
-			stmt.setFloat(22, osu.sliderTickRate);
-			stmt.setInt(23, osu.bpmMin);
-			stmt.setInt(24, osu.bpmMax);
-			stmt.setInt(25, osu.endTime);
-			stmt.setString(26, osu.audioFilename.getName());
-			stmt.setInt(27, osu.audioLeadIn);
-			stmt.setInt(28, osu.previewTime);
-			stmt.setByte(29, osu.countdown);
-			stmt.setString(30, osu.sampleSet);
-			stmt.setFloat(31, osu.stackLeniency);
-			stmt.setByte(32, osu.mode);
-			stmt.setBoolean(33, osu.letterboxInBreaks);
-			stmt.setBoolean(34, osu.widescreenStoryboard);
-			stmt.setBoolean(35, osu.epilepsyWarning);
-			stmt.setString(36, osu.bg);
-			stmt.setString(37, osu.timingPointsToString());
-			stmt.setString(38, osu.breaksToString());
-			stmt.setString(39, osu.comboToString());
+			stmt.setString(1, beatmap.getFile().getParentFile().getName());
+			stmt.setString(2, beatmap.getFile().getName());
+			stmt.setLong(3, beatmap.getFile().lastModified());
+			stmt.setInt(4, beatmap.beatmapID);
+			stmt.setInt(5, beatmap.beatmapSetID);
+			stmt.setString(6, beatmap.title);
+			stmt.setString(7, beatmap.titleUnicode);
+			stmt.setString(8, beatmap.artist);
+			stmt.setString(9, beatmap.artistUnicode);
+			stmt.setString(10, beatmap.creator);
+			stmt.setString(11, beatmap.version);
+			stmt.setString(12, beatmap.source);
+			stmt.setString(13, beatmap.tags);
+			stmt.setInt(14, beatmap.hitObjectCircle);
+			stmt.setInt(15, beatmap.hitObjectSlider);
+			stmt.setInt(16, beatmap.hitObjectSpinner);
+			stmt.setFloat(17, beatmap.HPDrainRate);
+			stmt.setFloat(18, beatmap.circleSize);
+			stmt.setFloat(19, beatmap.overallDifficulty);
+			stmt.setFloat(20, beatmap.approachRate);
+			stmt.setFloat(21, beatmap.sliderMultiplier);
+			stmt.setFloat(22, beatmap.sliderTickRate);
+			stmt.setInt(23, beatmap.bpmMin);
+			stmt.setInt(24, beatmap.bpmMax);
+			stmt.setInt(25, beatmap.endTime);
+			stmt.setString(26, beatmap.audioFilename.getName());
+			stmt.setInt(27, beatmap.audioLeadIn);
+			stmt.setInt(28, beatmap.previewTime);
+			stmt.setByte(29, beatmap.countdown);
+			stmt.setString(30, beatmap.sampleSet);
+			stmt.setFloat(31, beatmap.stackLeniency);
+			stmt.setByte(32, beatmap.mode);
+			stmt.setBoolean(33, beatmap.letterboxInBreaks);
+			stmt.setBoolean(34, beatmap.widescreenStoryboard);
+			stmt.setBoolean(35, beatmap.epilepsyWarning);
+			stmt.setString(36, beatmap.bg);
+			stmt.setString(37, beatmap.timingPointsToString());
+			stmt.setString(38, beatmap.breaksToString());
+			stmt.setString(39, beatmap.comboToString());
 		} catch (SQLException e) {
 			throw e;
 		} catch (Exception e) {
@@ -341,80 +341,80 @@ public class OsuDB {
 	}
 
 	/**
-	 * Loads OsuFile fields from the database.
-	 * @param osu the OsuFile object
+	 * Loads beatmap fields from the database.
+	 * @param beatmap the beatmap
 	 * @param flag whether to load all fields (LOAD_ALL), non-array
 	 *        fields (LOAD_NONARRAY), or array fields (LOAD_ARRAY)
 	 */
-	public static void load(OsuFile osu, int flag) {
+	public static void load(Beatmap beatmap, int flag) {
 		if (connection == null)
 			return;
 
 		try {
-			selectStmt.setString(1, osu.getFile().getParentFile().getName());
-			selectStmt.setString(2, osu.getFile().getName());
+			selectStmt.setString(1, beatmap.getFile().getParentFile().getName());
+			selectStmt.setString(2, beatmap.getFile().getName());
 			ResultSet rs = selectStmt.executeQuery();
 			if (rs.next()) {
 				if ((flag & LOAD_NONARRAY) > 0)
-					setOsuFileFields(rs, osu);
+					setBeatmapFields(rs, beatmap);
 				if ((flag & LOAD_ARRAY) > 0)
-					setOsuFileArrayFields(rs, osu);
+					setBeatmapArrayFields(rs, beatmap);
 			}
 			rs.close();
 		} catch (SQLException e) {
-			ErrorHandler.error("Failed to load OsuFile from database.", e, true);
+			ErrorHandler.error("Failed to load Beatmap from database.", e, true);
 		}
 	}
 
 	/**
-	 * Loads OsuFile fields from the database in a batch.
-	 * @param batch a list of OsuFile objects
+	 * Loads Beatmap fields from the database in a batch.
+	 * @param batch a list of beatmaps
 	 * @param flag whether to load all fields (LOAD_ALL), non-array
 	 *        fields (LOAD_NONARRAY), or array fields (LOAD_ARRAY)
 	 */
-	public static void load(List<OsuFile> batch, int flag) {
+	public static void load(List<Beatmap> batch, int flag) {
 		if (connection == null)
 			return;
 
 		// batch size too small
 		int size = batch.size();
 		if (size < cacheSize * LOAD_BATCH_MIN_RATIO) {
-			for (OsuFile osu : batch)
-				load(osu, flag);
+			for (Beatmap beatmap : batch)
+				load(beatmap, flag);
 			return;
 		}
 
 		try (Statement stmt = connection.createStatement()) {
 			// create map
-			HashMap<String, HashMap<String, OsuFile>> map = new HashMap<String, HashMap<String, OsuFile>>();
-			for (OsuFile osu : batch) {
-				String parent = osu.getFile().getParentFile().getName();
-				String name = osu.getFile().getName();
-				HashMap<String, OsuFile> m = map.get(parent);
+			HashMap<String, HashMap<String, Beatmap>> map = new HashMap<String, HashMap<String, Beatmap>>();
+			for (Beatmap beatmap : batch) {
+				String parent = beatmap.getFile().getParentFile().getName();
+				String name = beatmap.getFile().getName();
+				HashMap<String, Beatmap> m = map.get(parent);
 				if (m == null) {
-					m = new HashMap<String, OsuFile>();
+					m = new HashMap<String, Beatmap>();
 					map.put(parent, m);
 				}
-				m.put(name, osu);
+				m.put(name, beatmap);
 			}
 
-			// iterate through database to load OsuFiles
+			// iterate through database to load beatmaps
 			int count = 0;
 			stmt.setFetchSize(100);
 			String sql = "SELECT * FROM beatmaps";
 			ResultSet rs = stmt.executeQuery(sql);
 			while (rs.next()) {
 				String parent = rs.getString(1);
-				HashMap<String, OsuFile> m = map.get(parent);
+				HashMap<String, Beatmap> m = map.get(parent);
 				if (m != null) {
 					String name = rs.getString(2);
-					OsuFile osu = m.get(name);
-					if (osu != null) {
+					Beatmap beatmap = m.get(name);
+					if (beatmap != null) {
 						try {
 							if ((flag & LOAD_NONARRAY) > 0)
-								setOsuFileFields(rs, osu);
+								setBeatmapFields(rs, beatmap);
 							if ((flag & LOAD_ARRAY) > 0)
-								setOsuFileArrayFields(rs, osu);
+								setBeatmapArrayFields(rs, beatmap);
 						} catch (SQLException e) {
 							Log.error(String.format("Failed to load map '%s/%s' from database.", parent, name), e);
 						}
@@ -425,51 +425,51 @@ public class OsuDB {
 			}
 			rs.close();
 		} catch (SQLException e) {
-			ErrorHandler.error("Failed to load OsuFiles from database.", e, true);
+			ErrorHandler.error("Failed to load beatmaps from database.", e, true);
 		}
 	}
 
 	/**
-	 * Sets all OsuFile non-array fields using a given result set.
+	 * Sets all beatmap non-array fields using a given result set.
 	 * @param rs the result set containing the fields
-	 * @param osu the OsuFile
+	 * @param beatmap the beatmap
 	 * @throws SQLException
 	 */
-	private static void setOsuFileFields(ResultSet rs, OsuFile osu) throws SQLException {
+	private static void setBeatmapFields(ResultSet rs, Beatmap beatmap) throws SQLException {
 		try {
-			osu.beatmapID = rs.getInt(4);
-			osu.beatmapSetID = rs.getInt(5);
-			osu.title = OsuParser.getDBString(rs.getString(6));
-			osu.titleUnicode = OsuParser.getDBString(rs.getString(7));
-			osu.artist = OsuParser.getDBString(rs.getString(8));
-			osu.artistUnicode = OsuParser.getDBString(rs.getString(9));
-			osu.creator = OsuParser.getDBString(rs.getString(10));
-			osu.version = OsuParser.getDBString(rs.getString(11));
-			osu.source = OsuParser.getDBString(rs.getString(12));
-			osu.tags = OsuParser.getDBString(rs.getString(13));
-			osu.hitObjectCircle = rs.getInt(14);
-			osu.hitObjectSlider = rs.getInt(15);
-			osu.hitObjectSpinner = rs.getInt(16);
-			osu.HPDrainRate = rs.getFloat(17);
-			osu.circleSize = rs.getFloat(18);
-			osu.overallDifficulty = rs.getFloat(19);
-			osu.approachRate = rs.getFloat(20);
-			osu.sliderMultiplier = rs.getFloat(21);
-			osu.sliderTickRate = rs.getFloat(22);
-			osu.bpmMin = rs.getInt(23);
-			osu.bpmMax = rs.getInt(24);
-			osu.endTime = rs.getInt(25);
-			osu.audioFilename = new File(osu.getFile().getParentFile(), OsuParser.getDBString(rs.getString(26)));
-			osu.audioLeadIn = rs.getInt(27);
-			osu.previewTime = rs.getInt(28);
-			osu.countdown = rs.getByte(29);
-			osu.sampleSet = OsuParser.getDBString(rs.getString(30));
-			osu.stackLeniency = rs.getFloat(31);
-			osu.mode = rs.getByte(32);
-			osu.letterboxInBreaks = rs.getBoolean(33);
-			osu.widescreenStoryboard = rs.getBoolean(34);
-			osu.epilepsyWarning = rs.getBoolean(35);
-			osu.bg = OsuParser.getDBString(rs.getString(36));
+			beatmap.beatmapID = rs.getInt(4);
+			beatmap.beatmapSetID = rs.getInt(5);
+			beatmap.title = OsuParser.getDBString(rs.getString(6));
+			beatmap.titleUnicode = OsuParser.getDBString(rs.getString(7));
+			beatmap.artist = OsuParser.getDBString(rs.getString(8));
+			beatmap.artistUnicode = OsuParser.getDBString(rs.getString(9));
+			beatmap.creator = OsuParser.getDBString(rs.getString(10));
+			beatmap.version = OsuParser.getDBString(rs.getString(11));
+			beatmap.source = OsuParser.getDBString(rs.getString(12));
+			beatmap.tags = OsuParser.getDBString(rs.getString(13));
+			beatmap.hitObjectCircle = rs.getInt(14);
+			beatmap.hitObjectSlider = rs.getInt(15);
+			beatmap.hitObjectSpinner = rs.getInt(16);
+			beatmap.HPDrainRate = rs.getFloat(17);
+			beatmap.circleSize = rs.getFloat(18);
+			beatmap.overallDifficulty = rs.getFloat(19);
+			beatmap.approachRate = rs.getFloat(20);
+			beatmap.sliderMultiplier = rs.getFloat(21);
+			beatmap.sliderTickRate = rs.getFloat(22);
+			beatmap.bpmMin = rs.getInt(23);
+			beatmap.bpmMax = rs.getInt(24);
+			beatmap.endTime = rs.getInt(25);
+			beatmap.audioFilename = new File(beatmap.getFile().getParentFile(), OsuParser.getDBString(rs.getString(26)));
+			beatmap.audioLeadIn = rs.getInt(27);
+			beatmap.previewTime = rs.getInt(28);
+			beatmap.countdown = rs.getByte(29);
+			beatmap.sampleSet = OsuParser.getDBString(rs.getString(30));
+			beatmap.stackLeniency = rs.getFloat(31);
+			beatmap.mode = rs.getByte(32);
+			beatmap.letterboxInBreaks = rs.getBoolean(33);
+			beatmap.widescreenStoryboard = rs.getBoolean(34);
+			beatmap.epilepsyWarning = rs.getBoolean(35);
+			beatmap.bg = OsuParser.getDBString(rs.getString(36));
 		} catch (SQLException e) {
 			throw e;
 		} catch (Exception e) {
@@ -478,16 +478,16 @@ public class OsuDB {
 	}
 
 	/**
-	 * Sets all OsuFile array fields using a given result set.
+	 * Sets all Beatmap array fields using a given result set.
 	 * @param rs the result set containing the fields
-	 * @param osu the OsuFile
+	 * @param beatmap the beatmap
 	 * @throws SQLException
 	 */
-	private static void setOsuFileArrayFields(ResultSet rs, OsuFile osu) throws SQLException {
+	private static void setBeatmapArrayFields(ResultSet rs, Beatmap beatmap) throws SQLException {
 		try {
-			osu.timingPointsFromString(rs.getString(37));
-			osu.breaksFromString(rs.getString(38));
-			osu.comboFromString(rs.getString(39));
+			beatmap.timingPointsFromString(rs.getString(37));
+			beatmap.breaksFromString(rs.getString(38));
+			beatmap.comboFromString(rs.getString(39));
 		} catch (SQLException e) {
 			throw e;
 		} catch (Exception e) {

@@ -20,8 +20,8 @@ package itdelatrisu.opsu.db;
 
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.Options;
-import itdelatrisu.opsu.OsuFile;
 import itdelatrisu.opsu.ScoreData;
+import itdelatrisu.opsu.beatmap.Beatmap;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -240,18 +240,18 @@ public class ScoreDB {
 
 	/**
 	 * Deletes all the scores for the given beatmap from the database.
-	 * @param osu the OsuFile object
+	 * @param beatmap the beatmap
 	 */
-	public static void deleteScore(OsuFile osu) {
+	public static void deleteScore(Beatmap beatmap) {
 		if (connection == null)
 			return;
 
 		try {
-			deleteSongStmt.setInt(1, osu.beatmapID);
-			deleteSongStmt.setString(2, osu.title);
-			deleteSongStmt.setString(3, osu.artist);
-			deleteSongStmt.setString(4, osu.creator);
-			deleteSongStmt.setString(5, osu.version);
+			deleteSongStmt.setInt(1, beatmap.beatmapID);
+			deleteSongStmt.setString(2, beatmap.title);
+			deleteSongStmt.setString(3, beatmap.artist);
+			deleteSongStmt.setString(4, beatmap.creator);
+			deleteSongStmt.setString(5, beatmap.version);
 			deleteSongStmt.executeUpdate();
 		} catch (SQLException e) {
 			ErrorHandler.error("Failed to delete scores from database.", e, true);
@@ -286,21 +286,21 @@ public class ScoreDB {
 	}
 
 	/**
-	 * Retrieves the game scores for an OsuFile map.
-	 * @param osu the OsuFile
+	 * Retrieves the game scores for a beatmap.
+	 * @param beatmap the beatmap
 	 * @return all scores for the beatmap, or null if any error occurred
 	 */
-	public static ScoreData[] getMapScores(OsuFile osu) {
+	public static ScoreData[] getMapScores(Beatmap beatmap) {
 		if (connection == null)
 			return null;
 
 		List<ScoreData> list = new ArrayList<ScoreData>();
 		try {
-			selectMapStmt.setInt(1, osu.beatmapID);
-			selectMapStmt.setString(2, osu.title);
-			selectMapStmt.setString(3, osu.artist);
-			selectMapStmt.setString(4, osu.creator);
-			selectMapStmt.setString(5, osu.version);
+			selectMapStmt.setInt(1, beatmap.beatmapID);
+			selectMapStmt.setString(2, beatmap.title);
+			selectMapStmt.setString(3, beatmap.artist);
+			selectMapStmt.setString(4, beatmap.creator);
+			selectMapStmt.setString(5, beatmap.version);
 			ResultSet rs = selectMapStmt.executeQuery();
 			while (rs.next()) {
 				ScoreData s = new ScoreData(rs);
@@ -315,21 +315,21 @@ public class ScoreDB {
 	}
 
 	/**
-	 * Retrieves the game scores for an OsuFile map set.
-	 * @param osu the OsuFile
+	 * Retrieves the game scores for a beatmap set.
+	 * @param beatmap the beatmap
 	 * @return all scores for the beatmap set (Version, ScoreData[]),
 	 *         or null if any error occurred
 	 */
-	public static Map<String, ScoreData[]> getMapSetScores(OsuFile osu) {
+	public static Map<String, ScoreData[]> getMapSetScores(Beatmap beatmap) {
 		if (connection == null)
 			return null;
 
 		Map<String, ScoreData[]> map = new HashMap<String, ScoreData[]>();
 		try {
-			selectMapSetStmt.setInt(1, osu.beatmapSetID);
-			selectMapSetStmt.setString(2, osu.title);
-			selectMapSetStmt.setString(3, osu.artist);
-			selectMapSetStmt.setString(4, osu.creator);
+			selectMapSetStmt.setInt(1, beatmap.beatmapSetID);
+			selectMapSetStmt.setString(2, beatmap.title);
+			selectMapSetStmt.setString(3, beatmap.artist);
+			selectMapSetStmt.setString(4, beatmap.creator);
 			ResultSet rs = selectMapSetStmt.executeQuery();
 
 			List<ScoreData> list = null;

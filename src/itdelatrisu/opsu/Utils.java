@@ -20,6 +20,7 @@ package itdelatrisu.opsu;
 
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
+import itdelatrisu.opsu.beatmap.OsuHitObject;
 import itdelatrisu.opsu.downloads.Download;
 import itdelatrisu.opsu.downloads.DownloadNode;
 import itdelatrisu.opsu.replay.PlaybackSpeed;

@@ -22,8 +22,6 @@ import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.MenuButton;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.Options;
-import itdelatrisu.opsu.OsuGroupList;
-import itdelatrisu.opsu.OsuGroupNode;
 import itdelatrisu.opsu.OsuParser;
 import itdelatrisu.opsu.OszUnpacker;
 import itdelatrisu.opsu.UI;
@@ -31,6 +29,8 @@ import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
+import itdelatrisu.opsu.beatmap.BeatmapSetList;
+import itdelatrisu.opsu.beatmap.BeatmapSetNode;
 import itdelatrisu.opsu.downloads.Download;
 import itdelatrisu.opsu.downloads.DownloadList;
 import itdelatrisu.opsu.downloads.DownloadNode;
@@ -482,7 +482,7 @@ public class DownloadsMenu extends BasicGameState {
 						final DownloadNode node = nodes[index];
 
 						// check if map is already loaded
-						boolean isLoaded = OsuGroupList.get().containsBeatmapSetID(node.getID());
+						boolean isLoaded = BeatmapSetList.get().containsBeatmapSetID(node.getID());
 
 						// track preview
 						if (DownloadNode.resultIconContains(x, y, i)) {
@@ -607,15 +607,15 @@ public class DownloadsMenu extends BasicGameState {
 					// invoke unpacker and parser
 					File[] dirs = OszUnpacker.unpackAllFiles(Options.getOSZDir(), Options.getBeatmapDir());
 					if (dirs != null && dirs.length > 0) {
-						OsuGroupNode node = OsuParser.parseDirectories(dirs);
+						BeatmapSetNode node = OsuParser.parseDirectories(dirs);
 						if (node != null) {
 							// stop preview
 							previewID = -1;
 							SoundController.stopTrack();
 
 							// initialize song list
-							OsuGroupList.get().reset();
-							OsuGroupList.get().init();
+							BeatmapSetList.get().reset();
+							BeatmapSetList.get().init();
 							((SongMenu) game.getState(Opsu.STATE_SONGMENU)).setFocus(node, -1, true, true);
 
 							// send notification
@@ -739,7 +739,7 @@ public class DownloadsMenu extends BasicGameState {
 		switch (key) {
 		case Input.KEY_ESCAPE:
 			if (importThread != null) {
-				// beatmap importing: stop parsing OsuFiles by sending interrupt to OsuParser
+				// beatmap importing: stop parsing beatmaps by sending interrupt to OsuParser
 				importThread.interrupt();
 			} else if (!search.getText().isEmpty()) {
 				// clear search text

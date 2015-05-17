@@ -22,9 +22,9 @@ import itdelatrisu.opsu.GameData;
 import itdelatrisu.opsu.GameData.HitObjectType;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.GameMod;
-import itdelatrisu.opsu.OsuFile;
-import itdelatrisu.opsu.OsuHitObject;
 import itdelatrisu.opsu.Utils;
+import itdelatrisu.opsu.beatmap.Beatmap;
+import itdelatrisu.opsu.beatmap.OsuHitObject;
 import itdelatrisu.opsu.objects.curves.CatmullCurve;
 import itdelatrisu.opsu.objects.curves.CircumscribedCircle;
 import itdelatrisu.opsu.objects.curves.Curve;
@@ -104,9 +104,9 @@ public class Slider implements HitObject {
 	 * Initializes the Slider data type with images and dimensions.
 	 * @param container the game container
 	 * @param circleSize the map's circleSize value
-	 * @param osu the associated OsuFile object
+	 * @param beatmap the associated beatmap
 	 */
-	public static void init(GameContainer container, float circleSize, OsuFile osu) {
+	public static void init(GameContainer container, float circleSize, Beatmap beatmap) {
 		containerWidth = container.getWidth();
 		containerHeight = container.getHeight();
 
@@ -126,8 +126,8 @@ public class Slider implements HitObject {
 		GameImage.REVERSEARROW.setImage(GameImage.REVERSEARROW.getImage().getScaledCopy(diameter, diameter));
 		GameImage.SLIDER_TICK.setImage(GameImage.SLIDER_TICK.getImage().getScaledCopy(diameter / 4, diameter / 4));
 
-		sliderMultiplier = osu.sliderMultiplier;
-		sliderTickRate = osu.sliderTickRate;
+		sliderMultiplier = beatmap.sliderMultiplier;
+		sliderTickRate = beatmap.sliderTickRate;
 	}
 
 	/**

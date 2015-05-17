@@ -22,10 +22,10 @@ import itdelatrisu.opsu.GameData;
 import itdelatrisu.opsu.GameData.HitObjectType;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.GameMod;
-import itdelatrisu.opsu.OsuHitObject;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
+import itdelatrisu.opsu.beatmap.OsuHitObject;
 import itdelatrisu.opsu.states.Game;
 
 import org.newdawn.slick.Color;

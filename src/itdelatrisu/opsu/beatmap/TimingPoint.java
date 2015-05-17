@@ -16,7 +16,7 @@
  * along with opsu!.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package itdelatrisu.opsu;
+package itdelatrisu.opsu.beatmap;
 
 import org.newdawn.slick.util.Log;
 

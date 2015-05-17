@@ -483,7 +483,7 @@ public class UI {
 	}
 
 	/**
-	 * Draws loading progress (OSZ unpacking, OsuFile parsing, sound loading)
+	 * Draws loading progress (OSZ unpacking, beatmap parsing, sound loading)
 	 * at the bottom of the screen.
 	 */
 	public static void drawLoadingProgress(Graphics g) {

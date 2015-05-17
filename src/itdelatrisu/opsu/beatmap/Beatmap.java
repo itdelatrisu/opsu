@@ -16,7 +16,10 @@
  * along with opsu!.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package itdelatrisu.opsu;
+package itdelatrisu.opsu.beatmap;
+
+import itdelatrisu.opsu.Options;
+import itdelatrisu.opsu.Utils;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -29,19 +32,19 @@ import org.newdawn.slick.SlickException;
 import org.newdawn.slick.util.Log;
 
 /**
- * Data type storing parsed data from OSU files.
+ * Beatmap structure storing data parsed from OSU files.
  */
-public class OsuFile implements Comparable<OsuFile> {
+public class Beatmap implements Comparable<Beatmap> {
 	/** Game modes. */
 	public static final byte MODE_OSU = 0, MODE_TAIKO = 1, MODE_CTB = 2, MODE_MANIA = 3;
 
 	/** Map of all loaded background images. */
-	private static HashMap<OsuFile, Image> bgImageMap = new HashMap<OsuFile, Image>();
+	private static HashMap<Beatmap, Image> bgImageMap = new HashMap<Beatmap, Image>();
 
 	/** Maximum number of cached images before all get erased. */
 	private static final int MAX_CACHE_SIZE = 10;
 
-	/** The OSU File object associated with this OsuFile. */
+	/** The OSU File object associated with this beatmap. */
 	private File file;
 
 	/**
@@ -217,14 +220,14 @@ public class OsuFile implements Comparable<OsuFile> {
 	 * This does NOT destroy images, so be careful of memory leaks!
 	 */
 	public static void resetImageCache() {
-		bgImageMap = new HashMap<OsuFile, Image>();
+		bgImageMap = new HashMap<Beatmap, Image>();
 	}
 
 	/**
 	 * Constructor.
-	 * @param file the file associated with this OsuFile
+	 * @param file the file associated with this beatmap
 	 */
-	public OsuFile(File file) {
+	public Beatmap(File file) {
 		this.file = file;
 	}
 
@@ -253,7 +256,7 @@ public class OsuFile implements Comparable<OsuFile> {
 	}
 
 	/**
-	 * Draws the background associated with the OsuFile.
+	 * Draws the beatmap background.
 	 * @param width the container width
 	 * @param height the container height
 	 * @param alpha the alpha value
@@ -300,10 +303,10 @@ public class OsuFile implements Comparable<OsuFile> {
 	}
 
 	/**
-	 * Compares two OsuFile objects first by overall difficulty, then by total objects.
+	 * Compares two Beatmap objects first by overall difficulty, then by total objects.
 	 */
 	@Override
-	public int compareTo(OsuFile that) {
+	public int compareTo(Beatmap that) {
 		int cmp = Float.compare(this.overallDifficulty, that.overallDifficulty);
 		if (cmp == 0)
 			cmp = Integer.compare(

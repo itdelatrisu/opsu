@@ -18,7 +18,7 @@
 
 package itdelatrisu.opsu.objects;
 
-import itdelatrisu.opsu.OsuHitObject;
+import itdelatrisu.opsu.beatmap.OsuHitObject;
 
 import org.newdawn.slick.Graphics;
 

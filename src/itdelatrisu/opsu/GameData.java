@@ -22,6 +22,8 @@ import itdelatrisu.opsu.audio.HitSound;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
+import itdelatrisu.opsu.beatmap.Beatmap;
+import itdelatrisu.opsu.beatmap.OsuHitObject;
 import itdelatrisu.opsu.downloads.Updater;
 import itdelatrisu.opsu.objects.curves.Curve;
 import itdelatrisu.opsu.replay.Replay;
@@ -334,7 +336,7 @@ public class GameData {
 	/**
 	 * Constructor for score viewing.
 	 * This will initialize all parameters and images needed for the
-	 * {@link #drawRankingElements(Graphics, OsuFile)} method.
+	 * {@link #drawRankingElements(Graphics, Beatmap)} method.
 	 * @param s the ScoreData object
 	 * @param width container width
 	 * @param height container height
@@ -582,8 +584,8 @@ public class GameData {
 					width - margin, symbolHeight, 0.60f, 1f, true);
 
 		// map progress circle
-		OsuFile osu = MusicController.getOsuFile();
-		int firstObjectTime = osu.objects[0].getTime();
+		Beatmap beatmap = MusicController.getBeatmap();
+		int firstObjectTime = beatmap.objects[0].getTime();
 		int trackPosition = MusicController.getPosition();
 		float circleDiameter = symbolHeight * 0.60f;
 		int circleX = (int) (width - margin - (  // max width: "100.00%"
@@ -600,7 +602,7 @@ public class GameData {
 			if (trackPosition > firstObjectTime) {
 				// map progress (white)
 				g.fillArc(circleX, symbolHeight, circleDiameter, circleDiameter,
-						-90, -90 + (int) (360f * (trackPosition - firstObjectTime) / (osu.endTime - firstObjectTime))
+						-90, -90 + (int) (360f * (trackPosition - firstObjectTime) / (beatmap.endTime - firstObjectTime))
 				);
 			} else {
 				// lead-in time (yellow)
@@ -742,9 +744,9 @@ public class GameData {
 	/**
 	 * Draws ranking elements: score, results, ranking, game mods.
 	 * @param g the graphics context
-	 * @param osu the OsuFile
+	 * @param beatmap the beatmap
 	 */
-	public void drawRankingElements(Graphics g, OsuFile osu) {
+	public void drawRankingElements(Graphics g, Beatmap beatmap) {
 		// TODO Version 2 skins
 		float rankingHeight = 75;
 		float scoreTextScale = 1.0f;
@@ -825,9 +827,9 @@ public class GameData {
 		rankingTitle.draw((width * 0.97f) - rankingTitle.getWidth(), 0);
 		float marginX = width * 0.01f, marginY = height * 0.002f;
 		Utils.FONT_LARGE.drawString(marginX, marginY,
-				String.format("%s - %s [%s]", osu.getArtist(), osu.getTitle(), osu.version), Color.white);
+				String.format("%s - %s [%s]", beatmap.getArtist(), beatmap.getTitle(), beatmap.version), Color.white);
 		Utils.FONT_MEDIUM.drawString(marginX, marginY + Utils.FONT_LARGE.getLineHeight() - 6,
-				String.format("Beatmap by %s", osu.creator), Color.white);
+				String.format("Beatmap by %s", beatmap.creator), Color.white);
 		Utils.FONT_MEDIUM.drawString(marginX, marginY + Utils.FONT_LARGE.getLineHeight() + Utils.FONT_MEDIUM.getLineHeight() - 10,
 				String.format("Played on %s.", scoreData.getTimeString()), Color.white);
 
@@ -1309,21 +1311,21 @@ public class GameData {
 	 * Returns a ScoreData object encapsulating all game data.
 	 * If score data already exists, the existing object will be returned
 	 * (i.e. this will not overwrite existing data).
-	 * @param osu the OsuFile
+	 * @param beatmap the beatmap
 	 * @return the ScoreData object
 	 */
-	public ScoreData getScoreData(OsuFile osu) {
+	public ScoreData getScoreData(Beatmap beatmap) {
 		if (scoreData != null)
 			return scoreData;
 
 		scoreData = new ScoreData();
 		scoreData.timestamp = System.currentTimeMillis() / 1000L;
-		scoreData.MID = osu.beatmapID;
-		scoreData.MSID = osu.beatmapSetID;
-		scoreData.title = osu.title;
-		scoreData.artist = osu.artist;
-		scoreData.creator = osu.creator;
-		scoreData.version = osu.version;
+		scoreData.MID = beatmap.beatmapID;
+		scoreData.MSID = beatmap.beatmapSetID;
+		scoreData.title = beatmap.title;
+		scoreData.artist = beatmap.artist;
+		scoreData.creator = beatmap.creator;
+		scoreData.version = beatmap.version;
 		scoreData.hit300 = hitResultCount[HIT_300];
 		scoreData.hit100 = hitResultCount[HIT_100];
 		scoreData.hit50 = hitResultCount[HIT_50];
@@ -1342,10 +1344,10 @@ public class GameData {
 	 * Returns a Replay object encapsulating all game data.
 	 * If a replay already exists and frames is null, the existing object will be returned.
 	 * @param frames the replay frames
-	 * @param osu the associated OsuFile
+	 * @param beatmap the associated beatmap
 	 * @return the Replay object, or null if none exists and frames is null
 	 */
-	public Replay getReplay(ReplayFrame[] frames, OsuFile osu) {
+	public Replay getReplay(ReplayFrame[] frames, Beatmap beatmap) {
 		if (replay != null && frames == null)
 			return replay;
 
@@ -1353,9 +1355,9 @@ public class GameData {
 			return null;
 
 		replay = new Replay();
-		replay.mode = OsuFile.MODE_OSU;
+		replay.mode = Beatmap.MODE_OSU;
 		replay.version = Updater.get().getBuildDate();
-		replay.beatmapHash = (osu == null) ? "" : Utils.getMD5(osu.getFile());
+		replay.beatmapHash = (beatmap == null) ? "" : Utils.getMD5(beatmap.getFile());
 		replay.playerName = "";  // TODO
 		replay.replayHash = Long.toString(System.currentTimeMillis());  // TODO
 		replay.hit300 = (short) hitResultCount[HIT_300];

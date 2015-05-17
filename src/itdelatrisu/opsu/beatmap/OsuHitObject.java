@@ -16,13 +16,15 @@
  * along with opsu!.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package itdelatrisu.opsu;
+package itdelatrisu.opsu.beatmap;
+
+import itdelatrisu.opsu.GameMod;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 
 /**
- * Data type representing a hit object.
+ * Data type representing a parsed hit object.
  */
 public class OsuHitObject {
 	/** Hit object types (bits). */

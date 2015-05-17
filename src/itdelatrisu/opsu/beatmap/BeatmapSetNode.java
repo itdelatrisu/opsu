@@ -16,9 +16,13 @@
  * along with opsu!.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package itdelatrisu.opsu;
+package itdelatrisu.opsu.beatmap;
 
 import itdelatrisu.opsu.GameData.Grade;
+import itdelatrisu.opsu.GameImage;
+import itdelatrisu.opsu.GameMod;
+import itdelatrisu.opsu.Options;
+import itdelatrisu.opsu.Utils;
 
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
@@ -27,27 +31,27 @@ import org.newdawn.slick.Color;
 import org.newdawn.slick.Image;
 
 /**
- * Node in an OsuGroupList representing a group of OsuFile objects.
+ * Node in an BeatmapSetList representing a group of beatmaps.
  */
-public class OsuGroupNode {
-	/** List of associated OsuFile objects. */
-	public ArrayList<OsuFile> osuFiles;
+public class BeatmapSetNode {
+	/** List of associated beatmaps. */
+	public ArrayList<Beatmap> beatmaps;
 
-	/** Index of this OsuGroupNode. */
+	/** Index of this node. */
 	public int index = 0;
 
-	/** Index of selected osuFile (-1 if not focused). */
-	public int osuFileIndex = -1;
+	/** Index of the selected beatmap (-1 if not focused). */
+	public int beatmapIndex = -1;
 
-	/** Links to other OsuGroupNode objects. */
-	public OsuGroupNode prev, next;
+	/** Links to other nodes. */
+	public BeatmapSetNode prev, next;
 
 	/**
 	 * Constructor.
-	 * @param osuFiles the OsuFile objects in this group
+	 * @param beatmaps the beatmaps in this group
 	 */
-	public OsuGroupNode(ArrayList<OsuFile> osuFiles) {
-		this.osuFiles = osuFiles;
+	public BeatmapSetNode(ArrayList<Beatmap> beatmaps) {
+		this.beatmaps = beatmaps;
 	}
 
 	/**
@@ -59,8 +63,8 @@ public class OsuGroupNode {
 	 */
 	public void draw(float x, float y, Grade grade, boolean focus) {
 		Image bg = GameImage.MENU_BUTTON_BG.getImage();
-		boolean expanded = (osuFileIndex > -1);
-		OsuFile osu;
+		boolean expanded = (beatmapIndex > -1);
+		Beatmap beatmap;
 		bg.setAlpha(0.9f);
 		Color bgColor;
 		Color textColor = Color.lightGray;
@@ -73,10 +77,10 @@ public class OsuGroupNode {
 				textColor = Color.white;
 			} else
 				bgColor = Utils.COLOR_BLUE_BUTTON;
-			osu = osuFiles.get(osuFileIndex);
+			beatmap = beatmaps.get(beatmapIndex);
 		} else {
 			bgColor = Utils.COLOR_ORANGE_BUTTON;
-			osu = osuFiles.get(0);
+			beatmap = beatmaps.get(0);
 		}
 		bg.draw(x, y, bgColor);
 
@@ -92,15 +96,15 @@ public class OsuGroupNode {
 
 		// draw text
 		if (Options.useUnicodeMetadata()) {  // load glyphs
-			Utils.loadGlyphs(Utils.FONT_MEDIUM, osu.titleUnicode, null);
-			Utils.loadGlyphs(Utils.FONT_DEFAULT, null, osu.artistUnicode);
+			Utils.loadGlyphs(Utils.FONT_MEDIUM, beatmap.titleUnicode, null);
+			Utils.loadGlyphs(Utils.FONT_DEFAULT, null, beatmap.artistUnicode);
 		}
-		Utils.FONT_MEDIUM.drawString(cx, cy, osu.getTitle(), textColor);
+		Utils.FONT_MEDIUM.drawString(cx, cy, beatmap.getTitle(), textColor);
 		Utils.FONT_DEFAULT.drawString(cx, cy + Utils.FONT_MEDIUM.getLineHeight() - 2,
-				String.format("%s // %s", osu.getArtist(), osu.creator), textColor);
-		if (expanded || osuFiles.size() == 1)
+				String.format("%s // %s", beatmap.getArtist(), beatmap.creator), textColor);
+		if (expanded || beatmaps.size() == 1)
 			Utils.FONT_BOLD.drawString(cx, cy + Utils.FONT_MEDIUM.getLineHeight() + Utils.FONT_DEFAULT.getLineHeight() - 4,
-					osu.version, textColor);
+					beatmap.version, textColor);
 	}
 
 	/**
@@ -114,45 +118,45 @@ public class OsuGroupNode {
 	 * </ul>
 	 */
 	public String[] getInfo() {
-		if (osuFileIndex < 0)
+		if (beatmapIndex < 0)
 			return null;
 
-		OsuFile osu = osuFiles.get(osuFileIndex);
+		Beatmap beatmap = beatmaps.get(beatmapIndex);
 		float speedModifier = GameMod.getSpeedMultiplier();
-		long endTime = (long) (osu.endTime / speedModifier);
-		int bpmMin = (int) (osu.bpmMin * speedModifier);
-		int bpmMax = (int) (osu.bpmMax * speedModifier);
+		long endTime = (long) (beatmap.endTime / speedModifier);
+		int bpmMin = (int) (beatmap.bpmMin * speedModifier);
+		int bpmMax = (int) (beatmap.bpmMax * speedModifier);
 		float multiplier = GameMod.getDifficultyMultiplier();
 		String[] info = new String[5];
-		info[0] = osu.toString();
-		info[1] = String.format("Mapped by %s", osu.creator);
+		info[0] = beatmap.toString();
+		info[1] = String.format("Mapped by %s", beatmap.creator);
 		info[2] = String.format("Length: %d:%02d  BPM: %s  Objects: %d",
 				TimeUnit.MILLISECONDS.toMinutes(endTime),
 				TimeUnit.MILLISECONDS.toSeconds(endTime) -
 				TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(endTime)),
 				(bpmMax <= 0) ? "--" : ((bpmMin == bpmMax) ? bpmMin : String.format("%d-%d", bpmMin, bpmMax)),
-				(osu.hitObjectCircle + osu.hitObjectSlider + osu.hitObjectSpinner));
+				(beatmap.hitObjectCircle + beatmap.hitObjectSlider + beatmap.hitObjectSpinner));
 		info[3] = String.format("Circles: %d  Sliders: %d  Spinners: %d",
-				osu.hitObjectCircle, osu.hitObjectSlider, osu.hitObjectSpinner);
+				beatmap.hitObjectCircle, beatmap.hitObjectSlider, beatmap.hitObjectSpinner);
 		info[4] = String.format("CS:%.1f HP:%.1f AR:%.1f OD:%.1f",
-				Math.min(osu.circleSize * multiplier, 10f),
-				Math.min(osu.HPDrainRate * multiplier, 10f),
-				Math.min(osu.approachRate * multiplier, 10f),
-				Math.min(osu.overallDifficulty * multiplier, 10f));
+				Math.min(beatmap.circleSize * multiplier, 10f),
+				Math.min(beatmap.HPDrainRate * multiplier, 10f),
+				Math.min(beatmap.approachRate * multiplier, 10f),
+				Math.min(beatmap.overallDifficulty * multiplier, 10f));
 		return info;
 	}
 
 	/**
-	 * Returns a formatted string for the OsuFile at osuFileIndex:
-	 * "Artist - Title [Version]" (version omitted if osuFileIndex is invalid)
+	 * Returns a formatted string for the beatmap at {@code beatmapIndex}:
+	 * "Artist - Title [Version]" (version omitted if {@code beatmapIndex} is invalid)
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
 	public String toString() {
-		if (osuFileIndex == -1)
-			return String.format("%s - %s", osuFiles.get(0).getArtist(), osuFiles.get(0).getTitle());
+		if (beatmapIndex == -1)
+			return String.format("%s - %s", beatmaps.get(0).getArtist(), beatmaps.get(0).getTitle());
 		else
-			return osuFiles.get(osuFileIndex).toString();
+			return beatmaps.get(beatmapIndex).toString();
 	}
 
 	/**
@@ -161,24 +165,24 @@ public class OsuGroupNode {
 	 * @return true if title, artist, creator, source, version, or tag matches query
 	 */
 	public boolean matches(String query) {
-		OsuFile osu = osuFiles.get(0);
+		Beatmap beatmap = beatmaps.get(0);
 
-		// search: title, artist, creator, source, version, tags (first OsuFile)
-		if (osu.title.toLowerCase().contains(query) ||
-			osu.titleUnicode.toLowerCase().contains(query) ||
-			osu.artist.toLowerCase().contains(query) ||
-			osu.artistUnicode.toLowerCase().contains(query) ||
-			osu.creator.toLowerCase().contains(query) ||
-			osu.source.toLowerCase().contains(query) ||
-			osu.version.toLowerCase().contains(query) ||
-			osu.tags.contains(query))
+		// search: title, artist, creator, source, version, tags (first beatmap)
+		if (beatmap.title.toLowerCase().contains(query) ||
+			beatmap.titleUnicode.toLowerCase().contains(query) ||
+			beatmap.artist.toLowerCase().contains(query) ||
+			beatmap.artistUnicode.toLowerCase().contains(query) ||
+			beatmap.creator.toLowerCase().contains(query) ||
+			beatmap.source.toLowerCase().contains(query) ||
+			beatmap.version.toLowerCase().contains(query) ||
+			beatmap.tags.contains(query))
 			return true;
 
-		// search: version, tags (remaining OsuFiles)
-		for (int i = 1; i < osuFiles.size(); i++) {
-			osu = osuFiles.get(i);
-			if (osu.version.toLowerCase().contains(query) ||
-				osu.tags.contains(query))
+		// search: version, tags (remaining beatmaps)
+		for (int i = 1; i < beatmaps.size(); i++) {
+			beatmap = beatmaps.get(i);
+			if (beatmap.version.toLowerCase().contains(query) ||
+				beatmap.tags.contains(query))
 				return true;
 		}
 
@@ -193,16 +197,16 @@ public class OsuGroupNode {
 	 * @return true if the condition is met
 	 */
 	public boolean matches(String type, String operator, float value) {
-		for (OsuFile osu : osuFiles) {
+		for (Beatmap beatmap : beatmaps) {
 			// get value
-			float osuValue;
+			float v;
 			switch (type) {
-				case "ar": osuValue = osu.approachRate; break;
-				case "cs": osuValue = osu.circleSize; break;
-				case "od": osuValue = osu.overallDifficulty; break;
-				case "hp": osuValue = osu.HPDrainRate; break;
-				case "bpm": osuValue = osu.bpmMax; break;
-				case "length": osuValue = osu.endTime / 1000; break;
+				case "ar": v = beatmap.approachRate; break;
+				case "cs": v = beatmap.circleSize; break;
+				case "od": v = beatmap.overallDifficulty; break;
+				case "hp": v = beatmap.HPDrainRate; break;
+				case "bpm": v = beatmap.bpmMax; break;
+				case "length": v = beatmap.endTime / 1000; break;
 				default: return false;
 			}
 
@@ -210,11 +214,11 @@ public class OsuGroupNode {
 			boolean met;
 			switch (operator) {
 				case "=":
-				case "==": met = (osuValue == value); break;
-				case ">":  met = (osuValue > value);  break;
-				case ">=": met = (osuValue >= value); break;
-				case "<":  met = (osuValue < value);  break;
-				case "<=": met = (osuValue <= value); break;
+				case "==": met = (v == value); break;
+				case ">":  met = (v > value);  break;
+				case ">=": met = (v >= value); break;
+				case "<":  met = (v < value);  break;
+				case "<=": met = (v <= value); break;
 				default: return false;
 			}
 

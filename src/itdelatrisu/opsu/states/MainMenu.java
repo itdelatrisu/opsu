@@ -24,14 +24,14 @@ import itdelatrisu.opsu.MenuButton;
 import itdelatrisu.opsu.MenuButton.Expand;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.Options;
-import itdelatrisu.opsu.OsuFile;
-import itdelatrisu.opsu.OsuGroupList;
-import itdelatrisu.opsu.OsuGroupNode;
 import itdelatrisu.opsu.UI;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
+import itdelatrisu.opsu.beatmap.Beatmap;
+import itdelatrisu.opsu.beatmap.BeatmapSetList;
+import itdelatrisu.opsu.beatmap.BeatmapSetNode;
 import itdelatrisu.opsu.downloads.Updater;
 import itdelatrisu.opsu.states.ButtonMenu.MenuState;
 
@@ -91,7 +91,7 @@ public class MainMenu extends BasicGameState {
 	private MenuButton updateButton;
 
 	/** Application start time, for drawing the total running time. */
-	private long osuStartTime;
+	private long programStartTime;
 
 	/** Indexes of previous songs. */
 	private Stack<Integer> previous;
@@ -127,7 +127,7 @@ public class MainMenu extends BasicGameState {
 		this.game = game;
 		this.input = container.getInput();
 
-		osuStartTime = System.currentTimeMillis();
+		programStartTime = System.currentTimeMillis();
 		previous = new Stack<Integer>();
 
 		int width = container.getWidth();
@@ -199,9 +199,9 @@ public class MainMenu extends BasicGameState {
 		int height = container.getHeight();
 
 		// draw background
-		OsuFile osu = MusicController.getOsuFile();
+		Beatmap beatmap = MusicController.getBeatmap();
 		if (Options.isDynamicBackgroundEnabled() &&
-			osu != null && osu.drawBG(width, height, bgAlpha, true))
+			beatmap != null && beatmap.drawBG(width, height, bgAlpha, true))
 				;
 		else {
 			Image bg = GameImage.MENU_BG.getImage();
@@ -240,7 +240,7 @@ public class MainMenu extends BasicGameState {
 		g.setColor((musicPositionBarContains(mouseX, mouseY)) ? BG_HOVER : BG_NORMAL);
 		g.fillRoundRect(musicBarX, musicBarY, musicBarWidth, musicBarHeight, 4);
 		g.setColor(Color.white);
-		if (!MusicController.isTrackLoading() && osu != null) {
+		if (!MusicController.isTrackLoading() && beatmap != null) {
 			float musicBarPosition = Math.min((float) MusicController.getPosition() / MusicController.getDuration(), 1f);
 			g.fillRoundRect(musicBarX, musicBarY, musicBarWidth * musicBarPosition, musicBarHeight, 4);
 		}
@@ -274,17 +274,17 @@ public class MainMenu extends BasicGameState {
 		g.setFont(Utils.FONT_MEDIUM);
 		float lineHeight = Utils.FONT_MEDIUM.getLineHeight() * 0.925f;
 		g.drawString(String.format("Loaded %d songs and %d beatmaps.",
-				OsuGroupList.get().getMapSetCount(), OsuGroupList.get().getMapCount()), marginX, topMarginY);
+				BeatmapSetList.get().getMapSetCount(), BeatmapSetList.get().getMapCount()), marginX, topMarginY);
 		if (MusicController.isTrackLoading())
 			g.drawString("Track loading...", marginX, topMarginY + lineHeight);
 		else if (MusicController.trackExists()) {
 			if (Options.useUnicodeMetadata())  // load glyphs
-				Utils.loadGlyphs(Utils.FONT_MEDIUM, osu.titleUnicode, osu.artistUnicode);
+				Utils.loadGlyphs(Utils.FONT_MEDIUM, beatmap.titleUnicode, beatmap.artistUnicode);
 			g.drawString((MusicController.isPlaying()) ? "Now Playing:" : "Paused:", marginX, topMarginY + lineHeight);
-			g.drawString(String.format("%s: %s", osu.getArtist(), osu.getTitle()), marginX + 25, topMarginY + (lineHeight * 2));
+			g.drawString(String.format("%s: %s", beatmap.getArtist(), beatmap.getTitle()), marginX + 25, topMarginY + (lineHeight * 2));
 		}
 		g.drawString(String.format("opsu! has been running for %s.",
-				Utils.getTimeString((int) (System.currentTimeMillis() - osuStartTime) / 1000)),
+				Utils.getTimeString((int) (System.currentTimeMillis() - programStartTime) / 1000)),
 				marginX, height - bottomMarginY - (lineHeight * 2));
 		g.drawString(String.format("It is currently %s.",
 				new SimpleDateFormat("h:mm a").format(new Date())),
@@ -455,7 +455,7 @@ public class MainMenu extends BasicGameState {
 		} else if (musicPrevious.contains(x, y)) {
 			if (!previous.isEmpty()) {
 				SongMenu menu = (SongMenu) game.getState(Opsu.STATE_SONGMENU);
-				menu.setFocus(OsuGroupList.get().getBaseNode(previous.pop()), -1, true, false);
+				menu.setFocus(BeatmapSetList.get().getBaseNode(previous.pop()), -1, true, false);
 				if (Options.isDynamicBackgroundEnabled())
 					bgAlpha = 0f;
 			} else
@@ -603,10 +603,10 @@ public class MainMenu extends BasicGameState {
 	private void nextTrack() {
 		boolean isTheme = MusicController.isThemePlaying();
 		SongMenu menu = (SongMenu) game.getState(Opsu.STATE_SONGMENU);
-		OsuGroupNode node = menu.setFocus(OsuGroupList.get().getRandomNode(), -1, true, false);
+		BeatmapSetNode node = menu.setFocus(BeatmapSetList.get().getRandomNode(), -1, true, false);
 		boolean sameAudio = false;
 		if (node != null) {
-			sameAudio = MusicController.getOsuFile().audioFilename.equals(node.osuFiles.get(0).audioFilename);
+			sameAudio = MusicController.getBeatmap().audioFilename.equals(node.beatmaps.get(0).audioFilename);
 			if (!isTheme && !sameAudio)
 				previous.add(node.index);
 		}
@@ -619,7 +619,7 @@ public class MainMenu extends BasicGameState {
 	 */
 	private void enterSongMenu() {
 		int state = Opsu.STATE_SONGMENU;
-		if (OsuGroupList.get().getMapSetCount() == 0) {
+		if (BeatmapSetList.get().getMapSetCount() == 0) {
 			((DownloadsMenu) game.getState(Opsu.STATE_DOWNLOADSMENU)).notifyOnLoad("Download some beatmaps to get started!");
 			state = Opsu.STATE_DOWNLOADSMENU;
 		}
