@@ -20,30 +20,29 @@ package itdelatrisu.opsu.objects;
 
 import fluddokt.opsu.fake.*;
 
-import itdelatrisu.opsu.OsuHitObject;
+import itdelatrisu.opsu.beatmap.HitObject;
 
 /*
 import org.newdawn.slick.Graphics;
 */
 
 /**
- * Dummy hit object, used when another HitObject class cannot be created.
+ * Dummy hit object, used when another GameObject class cannot be created.
  */
-public class DummyObject implements HitObject {
-	/** The associated OsuHitObject. */
-	private OsuHitObject hitObject;
+public class DummyObject implements GameObject {
+	/** The associated HitObject. */
+	private HitObject hitObject;
 
 	/** The scaled starting x, y coordinates. */
 	private float x, y;
 
 	/**
 	 * Constructor.
-	 * @param hitObject the associated OsuHitObject
+	 * @param hitObject the associated HitObject
 	 */
-	public DummyObject(OsuHitObject hitObject) {
+	public DummyObject(HitObject hitObject) {
 		this.hitObject = hitObject;
-		this.x = hitObject.getScaledX();
-		this.y = hitObject.getScaledY();
+		updatePosition();
 	}
 
 	@Override
@@ -62,4 +61,10 @@ public class DummyObject implements HitObject {
 
 	@Override
 	public int getEndTime() { return hitObject.getTime(); }
+
+	@Override
+	public void updatePosition() {
+		this.x = hitObject.getScaledX();
+		this.y = hitObject.getScaledY();
+	}
 }

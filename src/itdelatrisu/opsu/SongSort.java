@@ -29,15 +29,14 @@ import org.newdawn.slick.Image;
 */
 
 /**
- * OsuGroupNode sorts.
+ * BeatmapSetNode sorts.
  */
 public enum SongSort {
 	TITLE   (0, "Title",   new TitleOrder()),
 	ARTIST  (1, "Artist",  new ArtistOrder()),
 	CREATOR (2, "Creator", new CreatorOrder()),
 	BPM     (3, "BPM",     new BPMOrder()),
-	LENGTH  (4, "Length",  new LengthOrder()),
-	RAND  (5, "Random",  new RandOrder());
+	LENGTH  (4, "Length",  new LengthOrder());
 
 	
 	
@@ -48,7 +47,7 @@ public enum SongSort {
 	private String name;
 
 	/** The comparator for the sort. */
-	private Comparator<OsuGroupNode> comparator;
+	private Comparator<BeatmapSetNode> comparator;
 
 	/** The tab associated with the sort (displayed in Song Menu screen). */
 	private MenuButton tab;
@@ -79,71 +78,64 @@ public enum SongSort {
 	public static void setSort(SongSort sort) { SongSort.currentSort = sort; }
 
 	/**
-	 * Compares two OsuGroupNode objects by title.
+	 * Compares two BeatmapSetNode objects by title.
 	 */
-	private static class TitleOrder implements Comparator<OsuGroupNode> {
+	private static class TitleOrder implements Comparator<BeatmapSetNode> {
 		@Override
-		public int compare(OsuGroupNode v, OsuGroupNode w) {
-			return v.osuFiles.get(0).title.compareToIgnoreCase(w.osuFiles.get(0).title);
+		public int compare(BeatmapSetNode v, BeatmapSetNode w) {
+			return v.getBeatmapSet().get(0).title.compareToIgnoreCase(w.getBeatmapSet().get(0).title);
 		}
 	}
 
 	/**
-	 * Compares two OsuGroupNode objects by artist.
+	 * Compares two BeatmapSetNode objects by artist.
 	 */
-	private static class ArtistOrder implements Comparator<OsuGroupNode> {
+	private static class ArtistOrder implements Comparator<BeatmapSetNode> {
 		@Override
-		public int compare(OsuGroupNode v, OsuGroupNode w) {
-			return v.osuFiles.get(0).artist.compareToIgnoreCase(w.osuFiles.get(0).artist);
+		public int compare(BeatmapSetNode v, BeatmapSetNode w) {
+			return v.getBeatmapSet().get(0).artist.compareToIgnoreCase(w.getBeatmapSet().get(0).artist);
 		}
 	}
 
 	/**
-	 * Compares two OsuGroupNode objects by creator.
+	 * Compares two BeatmapSetNode objects by creator.
 	 */
-	private static class CreatorOrder implements Comparator<OsuGroupNode> {
+	private static class CreatorOrder implements Comparator<BeatmapSetNode> {
 		@Override
-		public int compare(OsuGroupNode v, OsuGroupNode w) {
-			return v.osuFiles.get(0).creator.compareToIgnoreCase(w.osuFiles.get(0).creator);
+		public int compare(BeatmapSetNode v, BeatmapSetNode w) {
+			return v.getBeatmapSet().get(0).creator.compareToIgnoreCase(w.getBeatmapSet().get(0).creator);
 		}
 	}
 
 	/**
-	 * Compares two OsuGroupNode objects by BPM.
+	 * Compares two BeatmapSetNode objects by BPM.
 	 */
-	private static class BPMOrder implements Comparator<OsuGroupNode> {
+	private static class BPMOrder implements Comparator<BeatmapSetNode> {
 		@Override
-		public int compare(OsuGroupNode v, OsuGroupNode w) {
-			return Integer2.compare(v.osuFiles.get(0).bpmMax, w.osuFiles.get(0).bpmMax);
+		public int compare(BeatmapSetNode v, BeatmapSetNode w) {
+			return Integer2.compare(v.getBeatmapSet().get(0).bpmMax, w.getBeatmapSet().get(0).bpmMax);
 		}
 	}
 
 	/**
-	 * Compares two OsuGroupNode objects by length.
+	 * Compares two BeatmapSetNode objects by length.
 	 * Uses the longest beatmap in each set for comparison.
 	 */
-	private static class LengthOrder implements Comparator<OsuGroupNode> {
+	private static class LengthOrder implements Comparator<BeatmapSetNode> {
 		@Override
-		public int compare(OsuGroupNode v, OsuGroupNode w) {
+		public int compare(BeatmapSetNode v, BeatmapSetNode w) {
 			int vMax = 0, wMax = 0;
-			for (OsuFile osu : v.osuFiles) {
-				if (osu.endTime > vMax)
-					vMax = osu.endTime;
+			for (int i = 0, size = v.getBeatmapSet().size(); i < size; i++) {
+				Beatmap beatmap = v.getBeatmapSet().get(i);
+				if (beatmap.endTime > vMax)
+					vMax = beatmap.endTime;
 			}
-			for (OsuFile osu : w.osuFiles) {
-				if (osu.endTime > wMax)
-					wMax = osu.endTime;
+			for (int i = 0, size = w.getBeatmapSet().size(); i < size; i++) {
+				Beatmap beatmap = w.getBeatmapSet().get(i);
+				if (beatmap.endTime > wMax)
+					wMax = beatmap.endTime;
 			}
-			return Integer2.compare(vMax, wMax);
-		}
-	}
-	/**
-	 * Compares two OsuGroupNode randomly
-	 */
-	private static class RandOrder implements Comparator<OsuGroupNode> {
-		@Override
-		public int compare(OsuGroupNode v, OsuGroupNode w) {
-			return Integer2.compare(v.randNum, w.randNum);
+			return Integer.compare(vMax, wMax);
 		}
 	}
 
@@ -153,7 +145,7 @@ public enum SongSort {
 	 * @param name the sort name
 	 * @param comparator the comparator for the sort
 	 */
-	SongSort(int id, String name, Comparator<OsuGroupNode> comparator) {
+	SongSort(int id, String name, Comparator<BeatmapSetNode> comparator) {
 		this.id = id;
 		this.name = name;
 		this.comparator = comparator;
@@ -183,7 +175,7 @@ public enum SongSort {
 	 * Returns the comparator for the sort.
 	 * @return the comparator
 	 */
-	public Comparator<OsuGroupNode> getComparator() { return comparator; }
+	public Comparator<BeatmapSetNode> getComparator() { return comparator; }
 
 	/**
 	 * Checks if the coordinates are within the image bounds.

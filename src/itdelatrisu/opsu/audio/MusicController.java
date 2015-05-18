@@ -21,8 +21,8 @@ package itdelatrisu.opsu.audio;
 import fluddokt.opsu.fake.*;
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.Options;
-import itdelatrisu.opsu.OsuFile;
 import itdelatrisu.opsu.OsuParser;
+import itdelatrisu.opsu.beatmap.Beatmap;
 
 /*
 import java.io.File;
@@ -55,8 +55,8 @@ public class MusicController {
 	/** The current music track. */
 	private static Music player;
 
-	/** The last OsuFile passed to play(). */
-	private static OsuFile lastOsu;
+	/** The last beatmap passed to play(). */
+	private static Beatmap lastBeatmap;
 
 	/** The track duration. */
 	private static int duration = 0;
@@ -76,17 +76,20 @@ public class MusicController {
 	/** Whether the current track volume is dimmed. */
 	private static boolean trackDimmed = false;
 
+	/** The track dim level, if dimmed. */
+	private static float dimLevel = 1f;
+
 	// This class should not be instantiated.
 	private MusicController() {}
 
 	/**
 	 * Plays an audio file at the preview position.
 	 * If the audio file is already playing, then nothing will happen.
-	 * @param osu the OsuFile to play
+	 * @param beatmap the beatmap to play
 	 * @param loop whether or not to loop the track
 	 * @param preview whether to start at the preview time (true) or beginning (false)
 	 */
-	public static void play(final OsuFile osu, final boolean loop, final boolean preview) {
+	public static void play(final Beatmap beatmap, final boolean loop, final boolean preview) {
 		if(osu == null){
 			throw new Error("Null osu");
 		}
@@ -96,17 +99,17 @@ public class MusicController {
 			return;
 		}
 		// new track: load and play
-		if (lastOsu == null || !osu.audioFilename.equals(lastOsu.audioFilename)) {
+		if (lastBeatmap == null || !beatmap.audioFilename.equals(lastBeatmap.audioFilename)) {
 			reset();
 			System.gc();
 
-			switch (OsuParser.getExtension(osu.audioFilename.getName())) {
+			switch (OsuParser.getExtension(beatmap.audioFilename.getName())) {
 			case "ogg":
 			case "mp3":
 			//	trackLoader = new Thread() {
 			//		@Override
 			//		public void run() {
-						loadTrack(osu.audioFilename, (preview) ? osu.previewTime : 0, loop);
+						loadTrack(beatmap.audioFilename, (preview) ? beatmap.previewTime : 0, loop);
 			//		}
 			//	};
 			//	trackLoader.start();
@@ -117,10 +120,10 @@ public class MusicController {
 		}
 
 		// new track position: play at position
-		else if (osu.previewTime != lastOsu.previewTime)
-			playAt(osu.previewTime, loop);
+		else if (beatmap.previewTime != lastBeatmap.previewTime)
+			playAt(beatmap.previewTime, loop);
 
-		lastOsu = osu;
+		lastBeatmap = beatmap;
 	}
 
 	/**
@@ -182,9 +185,9 @@ public class MusicController {
 	public static boolean trackExists() { return (player != null); }
 
 	/**
-	 * Returns the OsuFile associated with the current track.
+	 * Returns the beatmap associated with the current track.
 	 */
-	public static OsuFile getOsuFile() { return lastOsu; }
+	public static Beatmap getBeatmap() { return lastBeatmap; }
 
 	/**
 	 * Returns true if the current track is playing.
@@ -263,17 +266,18 @@ public class MusicController {
 	 * Returns the duration of the current track, in milliseconds.
 	 * Currently only works for MP3s.
 	 * @return the duration, or -1 if no track exists, else the {@code endTime}
-	 *         field of the OsuFile loaded
+	 *         field of the beatmap loaded
 	 * @author Tom Brito (http://stackoverflow.com/a/3056161)
 	 */
 	public static int getDuration() {
-		if (!trackExists() || lastOsu == null)
+		if (!trackExists() || lastBeatmap == null)
 			return -1;
 
 		if (duration == 0) {
-			/*if (lastOsu.audioFilename.getName().endsWith(".mp3")) {
+			/*
+			if (lastBeatmap.audioFilename.getName().endsWith(".mp3")) {
 				try {
-					AudioFileFormat fileFormat = AudioSystem.getAudioFileFormat(lastOsu.audioFilename.getIOFile());
+					AudioFileFormat fileFormat = AudioSystem.getAudioFileFormat(lastBeatmap.audioFilename);
 					if (fileFormat instanceof TAudioFileFormat) {
 						Map<?, ?> properties = ((TAudioFileFormat) fileFormat).properties();
 						Long microseconds = (Long) properties.get("duration");
@@ -281,8 +285,9 @@ public class MusicController {
 						return duration;
 					}
 				} catch (UnsupportedAudioFileException | IOException e) {}
-			}*/
-			duration = lastOsu.endTime;
+			}
+			*/
+			duration = lastBeatmap.endTime;
 		}
 		return duration;
 	}
@@ -306,7 +311,15 @@ public class MusicController {
 	 * @param volume [0, 1]
 	 */
 	public static void setVolume(float volume) {
-		SoundStore.get().setMusicVolume(volume);
+		SoundStore.get().setMusicVolume((isTrackDimmed()) ? volume * dimLevel : volume);
+	}
+
+	/**
+	 * Sets the music pitch (and speed).
+	 * @param pitch
+	 */
+	public static void setPitch(float pitch) {
+		SoundStore.get().setMusicPitch(pitch);
 	}
 
 	/**
@@ -320,16 +333,16 @@ public class MusicController {
 	 */
 	public static void loopTrackIfEnded(boolean preview) {
 		if (trackEnded && trackExists())
-			playAt((preview) ? lastOsu.previewTime : 0, false);
+			playAt((preview) ? lastBeatmap.previewTime : 0, false);
 	}
 
 	/**
 	 * Plays the theme song.
 	 */
 	public static void playThemeSong() {
-		OsuFile osu = Options.getOsuTheme();
-		if (osu != null) {
-			play(osu, true, false);
+		Beatmap beatmap = Options.getThemeBeatmap();
+		if (beatmap != null) {
+			play(beatmap, true, false);
 			themePlaying = true;
 		}
 	}
@@ -351,8 +364,9 @@ public class MusicController {
 	 */
 	public static void toggleTrackDimmed(float multiplier) {
 		float volume = Options.getMusicVolume() * Options.getMasterVolume();
-		setVolume((trackDimmed) ? volume : volume * multiplier);
+		dimLevel = (isTrackDimmed()) ? 1f : multiplier;
 		trackDimmed = !trackDimmed;
+		setVolume(volume);
 	}
 
 	/**
@@ -383,7 +397,7 @@ public class MusicController {
 		}
 
 		// reset state
-		lastOsu = null;
+		lastBeatmap = null;
 		duration = 0;
 		trackEnded = false;
 		themePlaying = false;

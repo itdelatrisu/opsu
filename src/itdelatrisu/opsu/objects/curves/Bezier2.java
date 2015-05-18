@@ -23,21 +23,9 @@ package itdelatrisu.opsu.objects.curves;
  *
  * @author fluddokt (https://github.com/fluddokt)
  */
-public class Bezier2 {
+public class Bezier2 extends CurveType {
 	/** The control points of the Bezier curve. */
 	private Vec2f[] points;
-
-	/** Points along the curve of the Bezier curve. */
-	private Vec2f[] curve;
-
-	/** Distances between a point of the curve and the last point. */
-	private float[] curveDis;
-
-	/** The number of points along the curve. */
-	private int ncurve;
-
-	/** The total distances of this Bezier. */
-	private float totalDistance;
 
 	/**
 	 * Constructor.
@@ -52,27 +40,10 @@ public class Bezier2 {
 		for (int i = 0; i < points.length - 1; i++)
 			approxlength += points[i].cpy().sub(points[i + 1]).len();
 
-		// subdivide the curve
-		this.ncurve = (int) (approxlength / 4);
-		this.curve = new Vec2f[ncurve];
-		for (int i = 0; i < ncurve; i++)
-			curve[i] = pointAt(i / (float) ncurve);
-
-		// find the distance of each point from the previous point
-		this.curveDis = new float[ncurve];
-		this.totalDistance = 0;
-		for (int i = 0; i < ncurve; i++) {
-			curveDis[i] = (i == 0) ? 0 : curve[i].cpy().sub(curve[i - 1]).len();
-			totalDistance += curveDis[i];
-		}
-//		System.out.println("New Bezier2 "+points.length+" "+approxlength+" "+totalDistance());
+		init(approxlength);
 	}
 
-	/**
-	 * Returns the point on the Bezier curve at a value t.
-	 * @param t the t value [0, 1]
-	 * @return the point [x, y]
-	 */
+	@Override
 	public Vec2f pointAt(float t) {
 		Vec2f c = new Vec2f();
 		int n = points.length - 1;
@@ -85,30 +56,10 @@ public class Bezier2 {
 	}
 
 	/**
-	 * Returns the points along the curve of the Bezier curve.
-	 */
-	public Vec2f[] getCurve() { return curve; }
-
-	/**
-	 * Returns the distances between a point of the curve and the last point.
-	 */
-	public float[] getCurveDistances() { return curveDis; }
-
-	/**
-	 * Returns the number of points along the curve.
-	 */
-	public int points() { return ncurve; }
-
-	/**
-	 * Returns the total distances of this Bezier curve.
-	 */
-	public float totalDistance() { return totalDistance; }
-
-	/**
 	 * Calculates the binomial coefficient.
 	 * http://en.wikipedia.org/wiki/Binomial_coefficient#Binomial_coefficient_in_programming_languages
 	 */
-	public static long binomialCoefficient(int n, int k) {
+	private static long binomialCoefficient(int n, int k) {
 		if (k < 0 || k > n)
 			return 0;
 		if (k == 0 || k == n)

@@ -20,7 +20,12 @@ package itdelatrisu.opsu;
 
 import fluddokt.opsu.fake.*;
 
-import itdelatrisu.opsu.db.OsuDB;
+import itdelatrisu.opsu.beatmap.Beatmap;
+import itdelatrisu.opsu.beatmap.BeatmapSetList;
+import itdelatrisu.opsu.beatmap.BeatmapSetNode;
+import itdelatrisu.opsu.beatmap.HitObject;
+import itdelatrisu.opsu.beatmap.TimingPoint;
+import itdelatrisu.opsu.db.BeatmapDB;
 
 import java.io.BufferedReader;
 /*
@@ -76,12 +81,12 @@ public class OsuParser {
 
 	/**
 	 * Invokes parser for each OSU file in a root directory and
-	 * adds the OsuFiles to a new OsuGroupList.
+	 * adds the beatmaps to a new BeatmapSetList.
 	 * @param root the root directory (search has depth 1)
 	 */
 	public static void parseAllFiles(File root) {
-		// create a new OsuGroupList
-		OsuGroupList.create();
+		// create a new BeatmapSetList
+		BeatmapSetList.create();
 
 		System.out.println("parseAllFiles root: "+root.getAbsolutePath());
 		// parse all directories
@@ -90,11 +95,11 @@ public class OsuParser {
 
 	/**
 	 * Invokes parser for each directory in the given array and
-	 * adds the OsuFiles to the existing OsuGroupList.
+	 * adds the beatmaps to the existing BeatmapSetList.
 	 * @param dirs the array of directories to parse
-	 * @return the last OsuGroupNode parsed, or null if none
+	 * @return the last BeatmapSetNode parsed, or null if none
 	 */
-	public static OsuGroupNode parseDirectories(File[] dirs) {
+	public static BeatmapSetNode parseDirectories(File[] dirs) {
 		if (dirs == null)
 			return null;
 
@@ -104,15 +109,15 @@ public class OsuParser {
 		totalDirectories = dirs.length;
 
 		// get last modified map from database
-		Map<String, Long> map = OsuDB.getLastModifiedMap();
+		Map<String, Long> map = BeatmapDB.getLastModifiedMap();
 
-		// OsuFile lists
-		List<ArrayList<OsuFile>> allOsuFiles = new LinkedList<ArrayList<OsuFile>>();
-		List<OsuFile> cachedOsuFiles = new LinkedList<OsuFile>();  // loaded from database
-		List<OsuFile> parsedOsuFiles = new LinkedList<OsuFile>();  // loaded from parser
+		// beatmap lists
+		List<ArrayList<Beatmap>> allBeatmaps = new LinkedList<ArrayList<Beatmap>>();
+		List<Beatmap> cachedBeatmaps = new LinkedList<Beatmap>();  // loaded from database
+		List<Beatmap> parsedBeatmaps = new LinkedList<Beatmap>();  // loaded from parser
 
 		// parse directories
-		OsuGroupNode lastNode = null;
+		BeatmapSetNode lastNode = null;
 		for (File dir : dirs) {
 			//System.out.println("OsuParser Folder:"+dir);
 			currentDirectoryIndex++;
@@ -130,7 +135,7 @@ public class OsuParser {
 				continue;
 
 			// create a new group entry
-			ArrayList<OsuFile> osuFiles = new ArrayList<OsuFile>();
+			ArrayList<Beatmap> beatmaps = new ArrayList<Beatmap>();
 			for (File file : files) {
 				currentFile = file;
 
@@ -141,29 +146,29 @@ public class OsuParser {
 					long lastModified = map.get(path);
 					if (lastModified == file.lastModified()) {
 						// add to cached beatmap list
-						OsuFile osu = new OsuFile(file);
-						osuFiles.add(osu);
-						cachedOsuFiles.add(osu);
+						Beatmap beatmap = new Beatmap(file);
+						beatmaps.add(beatmap);
+						cachedBeatmaps.add(beatmap);
 						continue;
 					} else
-						OsuDB.delete(dir.getName(), file.getName());
+						BeatmapDB.delete(dir.getName(), file.getName());
 				}
 
 				// Parse hit objects only when needed to save time/memory.
 				// Change boolean to 'true' to parse them immediately.
-				OsuFile osu = parseFile(file, dir, osuFiles, false);
+				Beatmap beatmap = parseFile(file, dir, beatmaps, false);
 
 				// add to parsed beatmap list
-				if (osu != null) {
-					osuFiles.add(osu);
-					parsedOsuFiles.add(osu);
+				if (beatmap != null) {
+					beatmaps.add(beatmap);
+					parsedBeatmaps.add(beatmap);
 				}
 			}
 
 			// add group entry if non-empty
-			if (!osuFiles.isEmpty()) {
-				osuFiles.trimToSize();
-				allOsuFiles.add(osuFiles);
+			if (!beatmaps.isEmpty()) {
+				beatmaps.trimToSize();
+				allBeatmaps.add(beatmaps);
 			}
 
 			// stop parsing files (interrupted)
@@ -172,33 +177,27 @@ public class OsuParser {
 		}
 
 		// load cached entries from database
-		if (!cachedOsuFiles.isEmpty()) {
+		if (!cachedBeatmaps.isEmpty()) {
 			status = Status.CACHE;
 
 			// Load array fields only when needed to save time/memory.
 			// Change flag to 'LOAD_ALL' to load them immediately.
-			OsuDB.load(cachedOsuFiles, OsuDB.LOAD_NONARRAY);
+			BeatmapDB.load(cachedBeatmaps, BeatmapDB.LOAD_NONARRAY);
 		}
 
-		// add group entries to OsuGroupList
-		for (ArrayList<OsuFile> osuFiles : allOsuFiles) {
-			//for(OsuFile osu : osuFiles)
-			//	System.out.println("osuFiles "+osu);
-
-			Collections.sort(osuFiles);
-			lastNode = OsuGroupList.get().addSongGroup(osuFiles);
+		// add group entries to BeatmapSetList
+		for (ArrayList<Beatmap> beatmaps : allBeatmaps) {
+			Collections.sort(beatmaps);
+			lastNode = BeatmapSetList.get().addSongGroup(beatmaps);
 		}
 
 		// clear string DB
 		stringdb = new HashMap<String, String>();
 
 		// add beatmap entries to database
-		if (!parsedOsuFiles.isEmpty()) {
+		if (!parsedBeatmaps.isEmpty()) {
 			status = Status.INSERTING;
-			for( OsuFile osu: parsedOsuFiles){
-				System.out.println("OsuDB insert "+osu);
-			}
-			OsuDB.insert(parsedOsuFiles);
+			BeatmapDB.insert(parsedBeatmaps);
 		}
 
 		status = Status.NONE;
@@ -209,16 +208,16 @@ public class OsuParser {
 	}
 
 	/**
-	 * Parses an OSU file.
+	 * Parses a beatmap.
 	 * @param file the file to parse
 	 * @param dir the directory containing the beatmap
-	 * @param osuFiles the song group
+	 * @param beatmaps the song group
 	 * @param parseObjects if true, hit objects will be fully parsed now
-	 * @return the new OsuFile object
+	 * @return the new beatmap
 	 */
-	private static OsuFile parseFile(File file, File dir, ArrayList<OsuFile> osuFiles, boolean parseObjects) {
-		OsuFile osu = new OsuFile(file);
-		osu.timingPoints = new ArrayList<OsuTimingPoint>();
+	private static Beatmap parseFile(File file, File dir, ArrayList<Beatmap> beatmaps, boolean parseObjects) {
+		Beatmap beatmap = new Beatmap(file);
+		beatmap.timingPoints = new ArrayList<TimingPoint>();
 
 		//try (BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF-8"))) {
 		try (BufferedReader in = file.reader(0xfff,"UTF-8")) {
@@ -244,9 +243,9 @@ public class OsuParser {
 							switch (tokens[0]) {
 							case "AudioFilename":
 								File audioFileName = new File(dir, tokens[1]);
-								if (!osuFiles.isEmpty()) {
-									// if possible, reuse the same File object from another OsuFile in the group
-									File groupAudioFileName = osuFiles.get(0).audioFilename;
+								if (!beatmaps.isEmpty()) {
+									// if possible, reuse the same File object from another Beatmap in the group
+									File groupAudioFileName = beatmaps.get(0).audioFilename;
 									if (groupAudioFileName != null &&
 									    tokens[1].equalsIgnoreCase(groupAudioFileName.getName()))
 										audioFileName = groupAudioFileName;
@@ -262,46 +261,46 @@ public class OsuParser {
 										}
 									}
 									if (!match) {
-										Log.error(String.format("File not found: '%s'", tokens[1]));
+										Log.error(String.format("Audio file '%s' not found in directory '%s'.", tokens[1], dir.getName()));
 										return null;
 									}
 								}
-								osu.audioFilename = audioFileName;
+								beatmap.audioFilename = audioFileName;
 								break;
 							case "AudioLeadIn":
-								osu.audioLeadIn = Integer.parseInt(tokens[1]);
+								beatmap.audioLeadIn = Integer.parseInt(tokens[1]);
 								break;
 //							case "AudioHash":  // deprecated
-//								osu.audioHash = tokens[1];
+//								beatmap.audioHash = tokens[1];
 //								break;
 							case "PreviewTime":
-								osu.previewTime = Integer.parseInt(tokens[1]);
+								beatmap.previewTime = Integer.parseInt(tokens[1]);
 								break;
 							case "Countdown":
-								osu.countdown = Byte.parseByte(tokens[1]);
+								beatmap.countdown = Byte.parseByte(tokens[1]);
 								break;
 							case "SampleSet":
-								osu.sampleSet = getDBString(tokens[1]);
+								beatmap.sampleSet = getDBString(tokens[1]);
 								break;
 							case "StackLeniency":
-								osu.stackLeniency = Float.parseFloat(tokens[1]);
+								beatmap.stackLeniency = Float.parseFloat(tokens[1]);
 								break;
 							case "Mode":
-								osu.mode = Byte.parseByte(tokens[1]);
+								beatmap.mode = Byte.parseByte(tokens[1]);
 
 								/* Non-Opsu! standard files not implemented (obviously). */
-								if (osu.mode != OsuFile.MODE_OSU)
+								if (beatmap.mode != Beatmap.MODE_OSU)
 									return null;
 
 								break;
 							case "LetterboxInBreaks":
-								osu.letterboxInBreaks = (Integer.parseInt(tokens[1]) == 1);
+								beatmap.letterboxInBreaks = (Integer.parseInt(tokens[1]) == 1);
 								break;
 							case "WidescreenStoryboard":
-								osu.widescreenStoryboard = (Integer.parseInt(tokens[1]) == 1);
+								beatmap.widescreenStoryboard = (Integer.parseInt(tokens[1]) == 1);
 								break;
 							case "EpilepsyWarning":
-								osu.epilepsyWarning = (Integer.parseInt(tokens[1]) == 1);
+								beatmap.epilepsyWarning = (Integer.parseInt(tokens[1]) == 1);
 							default:
 								break;
 							}
@@ -325,21 +324,21 @@ public class OsuParser {
 //							switch (tokens[0]) {
 //							case "Bookmarks":
 //								String[] bookmarks = tokens[1].split(",");
-//								osu.bookmarks = new int[bookmarks.length];
+//								beatmap.bookmarks = new int[bookmarks.length];
 //								for (int i = 0; i < bookmarks.length; i++)
 //									osu.bookmarks[i] = Integer.parseInt(bookmarks[i]);
 //								break;
 //							case "DistanceSpacing":
-//								osu.distanceSpacing = Float.parseFloat(tokens[1]);
+//								beatmap.distanceSpacing = Float.parseFloat(tokens[1]);
 //								break;
 //							case "BeatDivisor":
-//								osu.beatDivisor = Byte.parseByte(tokens[1]);
+//								beatmap.beatDivisor = Byte.parseByte(tokens[1]);
 //								break;
 //							case "GridSize":
-//								osu.gridSize = Integer.parseInt(tokens[1]);
+//								beatmap.gridSize = Integer.parseInt(tokens[1]);
 //								break;
 //							case "TimelineZoom":
-//								osu.timelineZoom = Integer.parseInt(tokens[1]);
+//								beatmap.timelineZoom = Integer.parseInt(tokens[1]);
 //								break;
 //							default:
 //								break;
@@ -362,45 +361,45 @@ public class OsuParser {
 						try {
 							switch (tokens[0]) {
 							case "Title":
-								osu.title = getDBString(tokens[1]);
+								beatmap.title = getDBString(tokens[1]);
 								break;
 							case "TitleUnicode":
-								osu.titleUnicode = getDBString(tokens[1]);
+								beatmap.titleUnicode = getDBString(tokens[1]);
 								break;
 							case "Artist":
-								osu.artist = getDBString(tokens[1]);
+								beatmap.artist = getDBString(tokens[1]);
 								break;
 							case "ArtistUnicode":
-								osu.artistUnicode = getDBString(tokens[1]);
+								beatmap.artistUnicode = getDBString(tokens[1]);
 								break;
 							case "Creator":
-								osu.creator = getDBString(tokens[1]);
+								beatmap.creator = getDBString(tokens[1]);
 								break;
 							case "Version":
-								osu.version = getDBString(tokens[1]);
+								beatmap.version = getDBString(tokens[1]);
 								break;
 							case "Source":
-								osu.source = getDBString(tokens[1]);
+								beatmap.source = getDBString(tokens[1]);
 								break;
 							case "Tags":
-								osu.tags = getDBString(tokens[1].toLowerCase());
+								beatmap.tags = getDBString(tokens[1].toLowerCase());
 								break;
 							case "BeatmapID":
-								osu.beatmapID = Integer.parseInt(tokens[1]);
+								beatmap.beatmapID = Integer.parseInt(tokens[1]);
 								break;
 							case "BeatmapSetID":
-								osu.beatmapSetID = Integer.parseInt(tokens[1]);
+								beatmap.beatmapSetID = Integer.parseInt(tokens[1]);
 								break;
 							}
 						} catch (Exception e) {
 							Log.warn(String.format("Failed to read metadata '%s' for file '%s'.",
 									line, file.getAbsolutePath()), e);
 						}
-						if (osu.beatmapSetID <= 0) {  // try to determine MSID from directory name
+						if (beatmap.beatmapSetID <= 0) {  // try to determine MSID from directory name
 							if (dir != null && dir.isDirectory()) {
 								String dirName = dir.getName();
 								if (!dirName.isEmpty() && dirName.matches(DIR_MSID_PATTERN))
-									osu.beatmapSetID = Integer.parseInt(dirName.substring(0, dirName.indexOf(' ')));
+									beatmap.beatmapSetID = Integer.parseInt(dirName.substring(0, dirName.indexOf(' ')));
 							}
 						}
 					}
@@ -417,22 +416,22 @@ public class OsuParser {
 						try {
 							switch (tokens[0]) {
 							case "HPDrainRate":
-								osu.HPDrainRate = Float.parseFloat(tokens[1]);
+								beatmap.HPDrainRate = Float.parseFloat(tokens[1]);
 								break;
 							case "CircleSize":
-								osu.circleSize = Float.parseFloat(tokens[1]);
+								beatmap.circleSize = Float.parseFloat(tokens[1]);
 								break;
 							case "OverallDifficulty":
-								osu.overallDifficulty = Float.parseFloat(tokens[1]);
+								beatmap.overallDifficulty = Float.parseFloat(tokens[1]);
 								break;
 							case "ApproachRate":
-								osu.approachRate = Float.parseFloat(tokens[1]);
+								beatmap.approachRate = Float.parseFloat(tokens[1]);
 								break;
 							case "SliderMultiplier":
-								osu.sliderMultiplier = Float.parseFloat(tokens[1]);
+								beatmap.sliderMultiplier = Float.parseFloat(tokens[1]);
 								break;
 							case "SliderTickRate":
-								osu.sliderTickRate = Float.parseFloat(tokens[1]);
+								beatmap.sliderTickRate = Float.parseFloat(tokens[1]);
 								break;
 							}
 						} catch (Exception e) {
@@ -440,8 +439,8 @@ public class OsuParser {
 									line, file.getAbsolutePath()), e);
 						}
 					}
-					if (osu.approachRate == -1f)  // not in old format
-						osu.approachRate = osu.overallDifficulty;
+					if (beatmap.approachRate == -1f)  // not in old format
+						beatmap.approachRate = beatmap.overallDifficulty;
 					break;
 				case "[Events]":
 					while ((line = in.readLine()) != null) {
@@ -456,14 +455,14 @@ public class OsuParser {
 							tokens[2] = tokens[2].replaceAll("^\"|\"$", "");
 							String ext = OsuParser.getExtension(tokens[2]);
 							if (ext.equals("jpg") || ext.equals("png"))
-								osu.bg = getDBString(tokens[2]);
+								beatmap.bg = getDBString(tokens[2]);
 							break;
 						case "2":  // break periods
 							try {
-								if (osu.breaks == null)  // optional, create if needed
-									osu.breaks = new ArrayList<Integer>();
-								osu.breaks.add(Integer.parseInt(tokens[1]));
-								osu.breaks.add(Integer.parseInt(tokens[2]));
+								if (beatmap.breaks == null)  // optional, create if needed
+									beatmap.breaks = new ArrayList<Integer>();
+								beatmap.breaks.add(Integer.parseInt(tokens[1]));
+								beatmap.breaks.add(Integer.parseInt(tokens[2]));
 							} catch (Exception e) {
 								Log.warn(String.format("Failed to read break period '%s' for file '%s'.",
 										line, file.getAbsolutePath()), e);
@@ -474,8 +473,8 @@ public class OsuParser {
 							break;
 						}
 					}
-					if (osu.breaks != null)
-						osu.breaks.trimToSize();
+					if (beatmap.breaks != null)
+						beatmap.breaks.trimToSize();
 					break;
 				case "[TimingPoints]":
 					while ((line = in.readLine()) != null) {
@@ -487,26 +486,26 @@ public class OsuParser {
 
 						try {
 							// parse timing point
-							OsuTimingPoint timingPoint = new OsuTimingPoint(line);
+							TimingPoint timingPoint = new TimingPoint(line);
 
 							// calculate BPM
 							if (!timingPoint.isInherited()) {
 								int bpm = Math.round(60000 / timingPoint.getBeatLength());
-								if (osu.bpmMin == 0)
-									osu.bpmMin = osu.bpmMax = bpm;
-								else if (bpm < osu.bpmMin)
-									osu.bpmMin = bpm;
-								else if (bpm > osu.bpmMax)
-									osu.bpmMax = bpm;
+								if (beatmap.bpmMin == 0)
+									beatmap.bpmMin = beatmap.bpmMax = bpm;
+								else if (bpm < beatmap.bpmMin)
+									beatmap.bpmMin = bpm;
+								else if (bpm > beatmap.bpmMax)
+									beatmap.bpmMax = bpm;
 							}
 
-							osu.timingPoints.add(timingPoint);
+							beatmap.timingPoints.add(timingPoint);
 						} catch (Exception e) {
 							Log.warn(String.format("Failed to read timing point '%s' for file '%s'.",
 									line, file.getAbsolutePath()), e);
 						}
 					}
-					osu.timingPoints.trimToSize();
+					beatmap.timingPoints.trimToSize();
 					break;
 				case "[Colours]":
 					LinkedList<Color> colors = new LinkedList<Color>();
@@ -543,7 +542,7 @@ public class OsuParser {
 						}
 					}
 					if (!colors.isEmpty())
-						osu.combo = colors.toArray(new Color[colors.size()]);
+						beatmap.combo = colors.toArray(new Color[colors.size()]);
 					break;
 				case "[HitObjects]":
 					int type = 0;
@@ -557,12 +556,12 @@ public class OsuParser {
 						tokens = line.split(",");
 						try {
 							type = Integer.parseInt(tokens[3]);
-							if ((type & OsuHitObject.TYPE_CIRCLE) > 0)
-								osu.hitObjectCircle++;
-							else if ((type & OsuHitObject.TYPE_SLIDER) > 0)
-								osu.hitObjectSlider++;
-							else //if ((type & OsuHitObject.TYPE_SPINNER) > 0)
-								osu.hitObjectSpinner++;
+							if ((type & HitObject.TYPE_CIRCLE) > 0)
+								beatmap.hitObjectCircle++;
+							else if ((type & HitObject.TYPE_SLIDER) > 0)
+								beatmap.hitObjectSlider++;
+							else //if ((type & HitObject.TYPE_SPINNER) > 0)
+								beatmap.hitObjectSpinner++;
 						} catch (Exception e) {
 							Log.warn(String.format("Failed to read hit object '%s' for file '%s'.",
 									line, file.getAbsolutePath()), e);
@@ -571,14 +570,14 @@ public class OsuParser {
 
 					try {
 						// map length = last object end time (TODO: end on slider?)
-						if ((type & OsuHitObject.TYPE_SPINNER) > 0) {
+						if ((type & HitObject.TYPE_SPINNER) > 0) {
 							// some 'endTime' fields contain a ':' character (?)
 							int index = tokens[5].indexOf(':');
 							if (index != -1)
 								tokens[5] = tokens[5].substring(0, index);
-							osu.endTime = Integer.parseInt(tokens[5]);
+							beatmap.endTime = Integer.parseInt(tokens[5]);
 						} else if (type != 0)
-							osu.endTime = Integer.parseInt(tokens[2]);
+							beatmap.endTime = Integer.parseInt(tokens[2]);
 					} catch (Exception e) {
 						Log.warn(String.format("Failed to read hit object end time '%s' for file '%s'.",
 								line, file.getAbsolutePath()), e);
@@ -594,33 +593,32 @@ public class OsuParser {
 		}
 
 		// no associated audio file?
-		if (osu.audioFilename == null)
+		if (beatmap.audioFilename == null)
 			return null;
 
 		// if no custom colors, use the default color scheme
-		if (osu.combo == null)
-			osu.combo = Utils.DEFAULT_COMBO;
+		if (beatmap.combo == null)
+			beatmap.combo = Utils.DEFAULT_COMBO;
 
 		// parse hit objects now?
 		if (parseObjects)
-			parseHitObjects(osu);
+			parseHitObjects(beatmap);
 
-		return osu;
+		return beatmap;
 	}
 
 	/**
-	 * Parses all hit objects in an OSU file.
-	 * @param osu the OsuFile to parse
+	 * Parses all hit objects in a beatmap.
+	 * @param beatmap the beatmap to parse
 	 */
-	public static void parseHitObjects(OsuFile osu) {
-		if (osu.objects != null)  // already parsed
+	public static void parseHitObjects(Beatmap beatmap) {
+		if (beatmap.objects != null)  // already parsed
 			return;
 
-		osu.objects = new OsuHitObject[(osu.hitObjectCircle
-				+ osu.hitObjectSlider + osu.hitObjectSpinner)];
+		beatmap.objects = new HitObject[(beatmap.hitObjectCircle + beatmap.hitObjectSlider + beatmap.hitObjectSpinner)];
 
-		//try (BufferedReader in = new BufferedReader(new FileReader(osu.getFile()))) {
-		try (BufferedReader in = osu.getFile().reader(0xfff)) {
+		try (BufferedReader in = new BufferedReader(new FileReader(beatmap.getFile()))) {
+		//try (BufferedReader in = osu.getFile().reader(0xfff)) {
 			String line = in.readLine();
 			while (line != null) {
 				line = line.trim();
@@ -630,7 +628,7 @@ public class OsuParser {
 					break;
 			}
 			if (line == null) {
-				Log.warn(String.format("No hit objects found in OsuFile '%s'.", osu.toString()));
+				Log.warn(String.format("No hit objects found in Beatmap '%s'.", beatmap.toString()));
 				return;
 			}
 
@@ -640,7 +638,7 @@ public class OsuParser {
 
 			int objectIndex = 0;
 			boolean first = true;
-			while ((line = in.readLine()) != null && objectIndex < osu.objects.length) {
+			while ((line = in.readLine()) != null && objectIndex < beatmap.objects.length) {
 				line = line.trim();
 				if (!isValidLine(line))
 					continue;
@@ -653,8 +651,8 @@ public class OsuParser {
 					continue;
 
 				try {
-					// create a new OsuHitObject for each line
-					OsuHitObject hitObject = new OsuHitObject(line);
+					// create a new HitObject for each line
+					HitObject hitObject = new HitObject(line);
 
 					// set combo info
 					// - new combo: get next combo index, reset combo number
@@ -662,7 +660,7 @@ public class OsuParser {
 					if (hitObject.isNewCombo() || first) {
 						int skip = (hitObject.isSpinner() ? 0 : 1) + hitObject.getComboSkip();
 						for (int i = 0; i < skip; i++) {
-							comboIndex = (comboIndex + 1) % osu.combo.length;
+							comboIndex = (comboIndex + 1) % beatmap.combo.length;
 							comboNumber = 1;
 						}
 						first = false;
@@ -671,14 +669,14 @@ public class OsuParser {
 					hitObject.setComboIndex(comboIndex);
 					hitObject.setComboNumber(comboNumber++);
 
-					osu.objects[objectIndex++] = hitObject;
+					beatmap.objects[objectIndex++] = hitObject;
 				} catch (Exception e) {
-					Log.warn(String.format("Failed to read hit object '%s' for OsuFile '%s'.",
-							line, osu.toString()), e);
+					Log.warn(String.format("Failed to read hit object '%s' for Beatmap '%s'.",
+							line, beatmap.toString()), e);
 				}
 			}
 		} catch (IOException e) {
-			ErrorHandler.error(String.format("Failed to read file '%s'.", osu.getFile().getAbsolutePath()), e, false);
+			ErrorHandler.error(String.format("Failed to read file '%s'.", beatmap.getFile().getAbsolutePath()), e, false);
 		}
 	}
 

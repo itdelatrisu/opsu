@@ -205,7 +205,6 @@ public enum GameImage {
 	SCORE_PERCENT ("score-percent", "png"),
 	SCORE_X ("score-x", "png"),
 	LIGHTING ("lighting", "png"),
-	LIGHTING1 ("lighting1", "png"),
 
 	// Game Mods
 	MOD_EASY ("selection-mod-easy", "png", false, false),
@@ -230,6 +229,11 @@ public enum GameImage {
 	SELECTION_OPTIONS_OVERLAY ("selection-options-over", "png", false, false),
 	SELECTION_OTHER_OPTIONS ("selection-selectoptions", "png", false, false),
 	SELECTION_OTHER_OPTIONS_OVERLAY ("selection-selectoptions-over", "png", false, false),
+
+	// Replay Speed Buttons
+	REPLAY_PLAYBACK_NORMAL ("playback-normal", "png", false, false),
+	REPLAY_PLAYBACK_DOUBLE ("playback-double", "png", false, false),
+	REPLAY_PLAYBACK_HALF ("playback-half", "png", false, false),
 
 	// Non-Game Components
 	VOLUME ("volume-bg", "png", false, false) {
@@ -332,6 +336,14 @@ public enum GameImage {
 			return REPOSITORY.process_sub(img, w, h);
 		}
 	},
+	OPTIONS_BG ("options-background", "png|jpg", false, true) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			img.setAlpha(0.7f);
+			return img.getScaledCopy(w, h);
+		}
+	},
+
 	// TODO: ensure this image hasn't been modified (checksum?)
 	ALPHA_MAP ("alphaInvert", "png", false, false);
 

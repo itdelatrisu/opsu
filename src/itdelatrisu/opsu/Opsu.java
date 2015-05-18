@@ -147,7 +147,11 @@ public class Opsu extends StateBasedGame {
 		ResourceLoader.addResourceLocation(new FileSystemLocation(new File(".")));
 
 		// initialize databases
-		DBController.init();
+		try {
+			DBController.init();
+		} catch (UnsatisfiedLinkError e) {
+			errorAndExit(e, "The databases could not be initialized.");
+		}
 
 		/*
 		// check if just updated
@@ -194,12 +198,7 @@ public class Opsu extends StateBasedGame {
 				*/
 		//	}
 		} catch (SlickException e) {
-			// JARs will not run properly inside directories containing '!'
-			// http://bugs.java.com/view_bug.do?bug_id=4523159
-			if (new File("").getAbsolutePath().indexOf('!') != -1)
-				ErrorHandler.error("Cannot run JAR from path containing '!'.", null, false);
-			else
-				ErrorHandler.error("Error while creating game container.", e, true);
+			errorAndExit(e, "An error occurred while creating the game container.");
 		}
 	}
 
@@ -259,5 +258,21 @@ public class Opsu extends StateBasedGame {
 				ErrorHandler.error("Failed to close server socket.", e, false);
 			}
 		}
+	}
+
+	/**
+	 * Throws an error and exits the application with the given message.
+	 * @param e the exception that caused the crash
+	 * @param message the message to display
+	 */
+	private static void errorAndExit(Throwable e, String message) {
+		// JARs will not run properly inside directories containing '!'
+		// http://bugs.java.com/view_bug.do?bug_id=4523159
+		if (Utils.isJarRunning() && Utils.getRunningDirectory() != null &&
+		    Utils.getRunningDirectory().getAbsolutePath().indexOf('!') != -1)
+			ErrorHandler.error("JARs cannot be run from some paths containing '!'. Please move or rename the file and try again.", null, false);
+		else
+			ErrorHandler.error(message, e, true);
+		System.exit(1);
 	}
 }

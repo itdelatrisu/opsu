@@ -21,12 +21,13 @@ package itdelatrisu.opsu.objects;
 import fluddokt.opsu.fake.*;
 
 import itdelatrisu.opsu.GameData;
+import itdelatrisu.opsu.GameData.HitObjectType;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.GameMod;
-import itdelatrisu.opsu.OsuHitObject;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
+import itdelatrisu.opsu.beatmap.HitObject;
 import itdelatrisu.opsu.states.Game;
 
 /*
@@ -39,7 +40,7 @@ import org.newdawn.slick.Image;
 /**
  * Data type representing a spinner object.
  */
-public class Spinner implements HitObject {
+public class Spinner implements GameObject {
 	/** Container dimensions. */
 	private static int width, height;
 
@@ -63,8 +64,8 @@ public class Spinner implements HitObject {
 		TWO_PI  = (float) (Math.PI * 2),
 		HALF_PI = (float) (Math.PI / 2);
 
-	/** The associated OsuHitObject. */
-	private OsuHitObject hitObject;
+	/** The associated HitObject. */
+	private HitObject hitObject;
 
 	/** The associated GameData object. */
 	private GameData data;
@@ -107,11 +108,11 @@ public class Spinner implements HitObject {
 
 	/**
 	 * Constructor.
-	 * @param hitObject the associated OsuHitObject
+	 * @param hitObject the associated HitObject
 	 * @param game the associated Game object
 	 * @param data the associated GameData object
 	 */
-	public Spinner(OsuHitObject hitObject, Game game, GameData data) {
+	public Spinner(HitObject hitObject, Game game, GameData data) {
 		this.hitObject = hitObject;
 		this.data = data;
 
@@ -172,7 +173,7 @@ public class Spinner implements HitObject {
 			GameImage.SPINNER_CLEAR.getImage().drawCentered(width / 2, height / 4);
 			int extraRotations = (int) (rotations - rotationsNeeded);
 			if (extraRotations > 0)
-				data.drawSymbolNumber(extraRotations * 1000, width / 2, height * 2 / 3, 1.0f);
+				data.drawSymbolNumber(extraRotations * 1000, width / 2, height * 2 / 3, 1f, 1f);
 		}
 	}
 
@@ -195,7 +196,7 @@ public class Spinner implements HitObject {
 			result = GameData.HIT_MISS;
 
 		data.hitResult(hitObject.getEndTime(), result, width / 2, height / 2,
-				Color.transparent, true, hitObject, 0);
+				Color.transparent, true, hitObject, 0, HitObjectType.SPINNER, null, true);
 		return result;
 	}
 
@@ -266,6 +267,9 @@ public class Spinner implements HitObject {
 		lastAngle = angle;
 		return false;
 	}
+
+	@Override
+	public void updatePosition() {}
 
 	@Override
 	public float[] getPointAt(int trackPosition) {

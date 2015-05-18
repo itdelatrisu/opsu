@@ -135,7 +135,7 @@ public class GamePauseMenu extends BasicGameState {
 			if (gameState.getRestart() == Game.Restart.LOSE) {
 				SoundController.playSound(SoundEffect.MENUBACK);
 				((SongMenu) game.getState(Opsu.STATE_SONGMENU)).resetGameDataOnLoad();
-				MusicController.playAt(MusicController.getOsuFile().previewTime, true);
+				MusicController.playAt(MusicController.getBeatmap().previewTime, true);
 				UI.resetCursor();
 				game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 			} else {
@@ -186,12 +186,20 @@ public class GamePauseMenu extends BasicGameState {
 			SoundController.playSound(SoundEffect.MENUBACK);
 			((SongMenu) game.getState(Opsu.STATE_SONGMENU)).resetGameDataOnLoad();
 			if (loseState)
-				MusicController.playAt(MusicController.getOsuFile().previewTime, true);
+				MusicController.playAt(MusicController.getBeatmap().previewTime, true);
 			else
 				MusicController.resume();
 			UI.resetCursor();
 			game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 		}
+	}
+
+	@Override
+	public void mouseWheelMoved(int newValue) {
+		if (Options.isMouseWheelDisabled() || Options.isMouseDisabled())
+			return;
+
+		UI.changeVolume((newValue < 0) ? -1 : 1);
 	}
 
 	@Override

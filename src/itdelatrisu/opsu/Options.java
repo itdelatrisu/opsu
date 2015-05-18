@@ -18,6 +18,9 @@
 
 package itdelatrisu.opsu;
 
+import itdelatrisu.opsu.audio.MusicController;
+import itdelatrisu.opsu.beatmap.Beatmap;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 //import java.io.File;
@@ -64,13 +67,13 @@ public class Options {
 	};
 
 	/** Cached beatmap database name. */
-	public static final File OSU_DB = new File(DATA_DIR, ".opsu.db");
+	public static final File BEATMAP_DB = new File(DATA_DIR, ".opsu.db");
 
 	/** Score database name. */
 	public static final File SCORE_DB = new File(DATA_DIR, ".opsu_scores.db");
 
 	/** Font file name. */
-	public static final String FONT_NAME = "kochi-gothic.ttf";
+	public static final String FONT_NAME = "DroidSansFallback.ttf";
 
 	/** Version file name. */
 	public static final String VERSION_FILE = "version";
@@ -503,7 +506,7 @@ public class Options {
 	public static void setMasterVolume(GameContainer container, float volume) {
 		if (volume >= 0f && volume <= 1f) {
 			GameOption.MASTER_VOLUME.setValue((int) (volume * 100f));
-			container.setMusicVolume(getMasterVolume() * getMusicVolume());
+			MusicController.setVolume(getMasterVolume() * getMusicVolume());
 		}
 	}
 
@@ -878,28 +881,28 @@ public class Options {
 	}
 
 	/**
-	 * Returns a dummy OsuFile containing the theme song.
-	 * @return the theme song OsuFile
+	 * Returns a dummy Beatmap containing the theme song.
+	 * @return the theme song beatmap
 	 */
-	public static OsuFile getOsuTheme() {
+	public static Beatmap getThemeBeatmap() {
 		String[] tokens = themeString.split(",");
 		if (tokens.length != 4) {
 			ErrorHandler.error("Theme song string is malformed.", null, false);
 			return null;
 		}
 
-		OsuFile osu = new OsuFile(null);
-		osu.audioFilename = new File(tokens[0]);
-		osu.title = tokens[1];
-		osu.artist = tokens[2];
+		Beatmap beatmap = new Beatmap(null);
+		beatmap.audioFilename = new File(tokens[0]);
+		beatmap.title = tokens[1];
+		beatmap.artist = tokens[2];
 		try {
-			osu.endTime = Integer.parseInt(tokens[3]);
+			beatmap.endTime = Integer.parseInt(tokens[3]);
 		} catch (NumberFormatException e) {
 			ErrorHandler.error("Theme song length is not a valid integer", e, false);
 			return null;
 		}
 
-		return osu;
+		return beatmap;
 	}
 
 	/**

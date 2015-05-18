@@ -196,7 +196,7 @@ public class UI {
 	public static void drawTab(float x, float y, String text, boolean selected, boolean isHover) {
 		Image tabImage = GameImage.MENU_TAB.getImage();
 		float tabTextX = x - (Utils.FONT_MEDIUM.getWidth(text) / 2);
-		float tabTextY = y - (tabImage.getHeight() / 2.5f);
+		float tabTextY = y - (tabImage.getHeight() / 2);
 		Color filter, textColor;
 		if (selected) {
 			filter = Color.white;
@@ -486,7 +486,7 @@ public class UI {
 	}
 
 	/**
-	 * Draws loading progress (OSZ unpacking, OsuFile parsing, sound loading)
+	 * Draws loading progress (OSZ unpacking, beatmap parsing, sound loading)
 	 * at the bottom of the screen.
 	 */
 	public static void drawLoadingProgress(Graphics g) {

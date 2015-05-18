@@ -21,11 +21,13 @@ package itdelatrisu.opsu.objects;
 import fluddokt.opsu.fake.*;
 
 import itdelatrisu.opsu.GameData;
+import itdelatrisu.opsu.GameData.HitObjectType;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.GameMod;
-import itdelatrisu.opsu.OsuFile;
-import itdelatrisu.opsu.OsuHitObject;
 import itdelatrisu.opsu.Utils;
+import itdelatrisu.opsu.beatmap.Beatmap;
+import itdelatrisu.opsu.beatmap.HitObject;
+import itdelatrisu.opsu.objects.curves.CatmullCurve;
 import itdelatrisu.opsu.objects.curves.CircumscribedCircle;
 import itdelatrisu.opsu.objects.curves.Curve;
 import itdelatrisu.opsu.objects.curves.LinearBezier;
@@ -41,7 +43,7 @@ import org.newdawn.slick.Image;
 /**
  * Data type representing a slider object.
  */
-public class Slider implements HitObject {
+public class Slider implements GameObject {
 	/** Slider ball frames. */
 	private static Image[] sliderBallImages;
 
@@ -51,8 +53,11 @@ public class Slider implements HitObject {
 	/** Rate at which slider ticks are placed. */
 	private static float sliderTickRate = 1.0f;
 
-	/** The associated OsuHitObject. */
-	private OsuHitObject hitObject;
+	/** The amount of time, in milliseconds, to fade in the slider. */
+	private static final int FADE_IN_TIME = 375;
+
+	/** The associated HitObject. */
+	private HitObject hitObject;
 
 	/** The scaled starting x, y coordinates. */
 	protected float x, y;
@@ -103,14 +108,14 @@ public class Slider implements HitObject {
 	 * Initializes the Slider data type with images and dimensions.
 	 * @param container the game container
 	 * @param circleSize the map's circleSize value
-	 * @param osu the associated OsuFile object
+	 * @param beatmap the associated beatmap
 	 */
-	public static void init(GameContainer container, float circleSize, OsuFile osu) {
+	public static void init(GameContainer container, float circleSize, Beatmap beatmap) {
 		containerWidth = container.getWidth();
 		containerHeight = container.getHeight();
 
 		int diameter = (int) (104 - (circleSize * 8));
-		diameter = (int) (diameter * OsuHitObject.getXMultiplier());  // convert from Osupixels (640x480)
+		diameter = (int) (diameter * HitObject.getXMultiplier());  // convert from Osupixels (640x480)
 
 		// slider ball
 		if (GameImage.SLIDER_BALL.hasSkinImages() ||
@@ -125,60 +130,67 @@ public class Slider implements HitObject {
 		GameImage.REVERSEARROW.setImage(GameImage.REVERSEARROW.getImage().getScaledCopy(diameter, diameter));
 		GameImage.SLIDER_TICK.setImage(GameImage.SLIDER_TICK.getImage().getScaledCopy(diameter / 4, diameter / 4));
 
-		sliderMultiplier = osu.sliderMultiplier;
-		sliderTickRate = osu.sliderTickRate;
+		sliderMultiplier = beatmap.sliderMultiplier;
+		sliderTickRate = beatmap.sliderTickRate;
 	}
 
 	/**
 	 * Constructor.
-	 * @param hitObject the associated OsuHitObject
+	 * @param hitObject the associated HitObject
 	 * @param game the associated Game object
 	 * @param data the associated GameData object
 	 * @param color the color of this slider
 	 * @param comboEnd true if this is the last hit object in the combo
 	 */
-	public Slider(OsuHitObject hitObject, Game game, GameData data, Color color, boolean comboEnd) {
+	public Slider(HitObject hitObject, Game game, GameData data, Color color, boolean comboEnd) {
 		this.hitObject = hitObject;
-		this.x = hitObject.getScaledX();
-		this.y = hitObject.getScaledY();
 		this.game = game;
 		this.data = data;
 		this.color = color;
 		this.comboEnd = comboEnd;
+		updatePosition();
 
-		if (hitObject.getSliderType() == OsuHitObject.SLIDER_PASSTHROUGH && hitObject.getSliderX().length == 2)
-			this.curve = new CircumscribedCircle(hitObject, color);
-		else
-			this.curve = new LinearBezier(hitObject, color);
+		// slider time calculations
+		this.sliderTime = game.getBeatLength() * (hitObject.getPixelLength() / sliderMultiplier) / 100f;
+		this.sliderTimeTotal = sliderTime * hitObject.getRepeatCount();
+
+		// ticks
+		float tickLengthDiv = 100f * sliderMultiplier / sliderTickRate / game.getTimingPointMultiplier();
+		int tickCount = (int) Math.ceil(hitObject.getPixelLength() / tickLengthDiv) - 1;
+		if (tickCount > 0) {
+			this.ticksT = new float[tickCount];
+			float tickTOffset = 1f / (tickCount + 1);
+			float t = tickTOffset;
+			for (int i = 0; i < tickCount; i++, t += tickTOffset)
+				ticksT[i] = t;
+		}
 	}
 
 	@Override
 	public void draw(Graphics g, int trackPosition) {
 		int timeDiff = hitObject.getTime() - trackPosition;
 		float scale = timeDiff / (float) game.getApproachTime();
+		float fadeinScale = (timeDiff - game.getApproachTime() + FADE_IN_TIME) / (float) FADE_IN_TIME;
 		float approachScale = 1 + scale * 3;
-		float alpha = Utils.clamp(1 - scale, 0, 1);
+		float alpha = Utils.clamp(1 - fadeinScale, 0, 1);
 
-		float oldAlpha = color.a;
-		color.a = alpha;
-		Utils.COLOR_WHITE_FADE.a = alpha;
+		float oldAlpha = Utils.COLOR_WHITE_FADE.a;
+		Utils.COLOR_WHITE_FADE.a = color.a = alpha;
 
 		// curve
-		curve.draw();
+		curve.draw(color);
 
 		// ticks
-		if (timeDiff < 0 && ticksT != null) {
+		if (ticksT != null) {
 			Image tick = GameImage.SLIDER_TICK.getImage();
 			for (int i = 0; i < ticksT.length; i++) {
 				float[] c = curve.pointAt(ticksT[i]);
-				tick.drawCentered(c[0], c[1]);
+				tick.drawCentered(c[0], c[1], Utils.COLOR_WHITE_FADE);
 			}
 		}
 
 		Image hitCircleOverlay = GameImage.HITCIRCLE_OVERLAY.getImage();
 		Image hitCircle = GameImage.HITCIRCLE.getImage();
-		color.a = alpha;
-		Utils.COLOR_WHITE_FADE.a = 1f;
 
 		// end circle
 		float[] endPos = curve.pointAt(1);
@@ -192,9 +204,7 @@ public class Slider implements HitObject {
 			;  // don't draw current combo number if already clicked
 		else
 			data.drawSymbolNumber(hitObject.getComboNumber(), x, y,
-					hitCircle.getWidth() * 0.40f / data.getDefaultSymbolImage(0).getHeight());
-
-		color.a = oldAlpha;
+					hitCircle.getWidth() * 0.40f / data.getDefaultSymbolImage(0).getHeight(), alpha);
 
 		// repeats
 		for (int tcurRepeat = currentRepeats; tcurRepeat <= currentRepeats + 1; tcurRepeat++) {
@@ -221,7 +231,6 @@ public class Slider implements HitObject {
 
 		if (timeDiff >= 0) {
 			// approach circle
-			color.a = 1 - scale;
 			GameImage.APPROACHCIRCLE.getImage().getScaledCopy(approachScale).drawCentered(x, y, color);
 		} else {
 			// Since update() might not have run before drawing during a replay, the
@@ -233,7 +242,7 @@ public class Slider implements HitObject {
 			float[] c2 = curve.pointAt(getT(trackPosition, false) + 0.01f);
 
 			float t = getT(trackPosition, false);
-//			float dis = hitObject.getPixelLength() * OsuHitObject.getXMultiplier() * (t - (int) t);
+//			float dis = hitObject.getPixelLength() * HitObject.getXMultiplier() * (t - (int) t);
 //			Image sliderBallFrame = sliderBallImages[(int) (dis / (diameter * Math.PI) * 30) % sliderBallImages.length];
 			Image sliderBallFrame = sliderBallImages[(int) (t * sliderTime * 60 / 1000) % sliderBallImages.length];
 			float angle = (float) (Math.atan2(c2[1] - c[1], c2[0] - c[0]) * 180 / Math.PI);
@@ -254,6 +263,8 @@ public class Slider implements HitObject {
 				}
 			}
 		}
+
+		Utils.COLOR_WHITE_FADE.a = oldAlpha;
 	}
 
 	/**
@@ -273,14 +284,20 @@ public class Slider implements HitObject {
 		else
 			result = GameData.HIT_MISS;
 
+		float cx, cy;
+		HitObjectType type;
 		if (currentRepeats % 2 == 0) {  // last circle
 			float[] lastPos = curve.pointAt(1);
-			data.hitResult(hitObject.getTime() + (int) sliderTimeTotal, result,
-					lastPos[0], lastPos[1], color, comboEnd, hitObject, currentRepeats + 1);
+			cx = lastPos[0];
+			cy = lastPos[1];
+			type = HitObjectType.SLIDER_LAST;
 		} else {  // first circle
-			data.hitResult(hitObject.getTime() + (int) sliderTimeTotal, result,
-					x, y, color, comboEnd, hitObject, currentRepeats + 1);
+			cx = x;
+			cy = y;
+			type = HitObjectType.SLIDER_FIRST;
 		}
+		data.hitResult(hitObject.getTime() + (int) sliderTimeTotal, result,
+				cx, cy, color, comboEnd, hitObject, currentRepeats + 1, type, curve, sliderClickedFinal);
 
 		return result;
 	}
@@ -317,25 +334,6 @@ public class Slider implements HitObject {
 	@Override
 	public boolean update(boolean overlap, int delta, int mouseX, int mouseY, boolean keyPressed, int trackPosition) {
 		int repeatCount = hitObject.getRepeatCount();
-
-		// slider time and tick calculations
-		if (sliderTimeTotal == 0f) {
-			// slider time
-			this.sliderTime = game.getBeatLength() * (hitObject.getPixelLength() / sliderMultiplier) / 100f;
-			this.sliderTimeTotal = sliderTime * repeatCount;
-
-			// ticks
-			float tickLengthDiv = 100f * sliderMultiplier / sliderTickRate / game.getTimingPointMultiplier();
-			int tickCount = (int) Math.ceil(hitObject.getPixelLength() / tickLengthDiv) - 1;
-			if (tickCount > 0) {
-				this.ticksT = new float[tickCount];
-				float tickTOffset = 1f / (tickCount + 1);
-				float t = tickTOffset;
-				for (int i = 0; i < tickCount; i++, t += tickTOffset)
-					ticksT[i] = t;
-			}
-		}
-
 		int[] hitResultOffset = game.getHitResultOffsets();
 		boolean isAutoMod = GameMod.AUTO.isActive();
 
@@ -460,16 +458,27 @@ public class Slider implements HitObject {
 	}
 
 	@Override
+	public void updatePosition() {
+		this.x = hitObject.getScaledX();
+		this.y = hitObject.getScaledY();
+
+		if (hitObject.getSliderType() == HitObject.SLIDER_PASSTHROUGH && hitObject.getSliderX().length == 2)
+			this.curve = new CircumscribedCircle(hitObject, color);
+		else if (hitObject.getSliderType() == HitObject.SLIDER_CATMULL)
+			this.curve = new CatmullCurve(hitObject, color);
+		else
+			this.curve = new LinearBezier(hitObject, color, hitObject.getSliderType() == HitObject.SLIDER_LINEAR);
+	}
+
+	@Override
 	public float[] getPointAt(int trackPosition) {
 		if (trackPosition <= hitObject.getTime())
 			return new float[] { x, y };
 		else if (trackPosition >= hitObject.getTime() + sliderTimeTotal) {
 			if (hitObject.getRepeatCount() % 2 == 0)
 				return new float[] { x, y };
-			else {
-				int lastIndex = hitObject.getSliderX().length;
-				return new float[] { curve.getX(lastIndex), curve.getY(lastIndex) };
-			}
+			else
+				return curve.pointAt(1);
 		} else
 			return curve.pointAt(getT(trackPosition, false));
 	}

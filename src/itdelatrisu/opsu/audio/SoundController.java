@@ -23,8 +23,8 @@ import fluddokt.opsu.fake.*;
 
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.Options;
-import itdelatrisu.opsu.OsuHitObject;
 import itdelatrisu.opsu.audio.HitSound.SampleSet;
+import itdelatrisu.opsu.beatmap.HitObject;
 
 /*
 import java.io.File;
@@ -41,7 +41,6 @@ import javax.sound.sampled.Clip;
 import javax.sound.sampled.DataLine;
 import javax.sound.sampled.LineListener;
 import javax.sound.sampled.LineUnavailableException;
-import javax.sound.sampled.UnsupportedAudioFileException;
 */
 
 /*
@@ -100,10 +99,11 @@ public class SoundController {
 
 			AudioInputStream audioIn = AudioSystem.getAudioInputStream(url);
 			return loadClip(ref, audioIn, isMP3);
-		} catch (UnsupportedAudioFileException | IOException | LineUnavailableException | RuntimeException e) {
+		} catch (Exception e) {
 			ErrorHandler.error(String.format("Failed to load file '%s'.", ref), e, true);
 			return null;
-		}*/
+		}
+		*/
 	}
 
 	
@@ -115,77 +115,72 @@ public class SoundController {
 	 * @return the loaded and opened clip
 	 */
 	/*
-	private static MultiClip loadClip(String ref, AudioInputStream audioIn, boolean isMP3) {
-		try {
-			AudioFormat format = audioIn.getFormat();
-			if (isMP3) {
-				AudioFormat decodedFormat = new AudioFormat(
-						AudioFormat.Encoding.PCM_SIGNED, format.getSampleRate(), 16,
-						format.getChannels(), format.getChannels() * 2, format.getSampleRate(), false);
-				AudioInputStream decodedAudioIn = AudioSystem.getAudioInputStream(decodedFormat, audioIn);
-				format = decodedFormat;
-				audioIn = decodedAudioIn;
-			}
-			DataLine.Info info = new DataLine.Info(Clip.class, format);
-			if (AudioSystem.isLineSupported(info)) {
-				return new MultiClip(ref, audioIn);
-			} else {
-				// try to find closest matching line
-				Clip clip = AudioSystem.getClip();
-				AudioFormat[] formats = ((DataLine.Info) clip.getLineInfo()).getFormats();
-				int bestIndex = -1;
-				float bestScore = 0;
-				float sampleRate = format.getSampleRate();
-				if (sampleRate < 0)
-					sampleRate = clip.getFormat().getSampleRate();
-				float oldSampleRate = sampleRate;
-				while (true) {
-					for (int i = 0; i < formats.length; i++) {
-						AudioFormat curFormat = formats[i];
-						AudioFormat newFormat = new AudioFormat(
-								sampleRate, curFormat.getSampleSizeInBits(),
-								curFormat.getChannels(), true, curFormat.isBigEndian());
-						formats[i] = newFormat;
-						DataLine.Info newLine = new DataLine.Info(Clip.class, newFormat);
-						if (AudioSystem.isLineSupported(newLine) &&
-						    AudioSystem.isConversionSupported(newFormat, format)) {
-							float score = 1
-									+ (newFormat.getSampleRate() == sampleRate ? 5 : 0)
-									+ (newFormat.getSampleSizeInBits() == format.getSampleSizeInBits() ? 5 : 0)
-									+ (newFormat.getChannels() == format.getChannels() ? 5 : 0)
-									+ (newFormat.isBigEndian() == format.isBigEndian() ? 1 : 0)
-									+ newFormat.getSampleRate() / 11025
-									+ newFormat.getChannels()
-									+ newFormat.getSampleSizeInBits() / 8;
-							if (score > bestScore) {
-								bestIndex = i;
-								bestScore = score;
-							}
-						}
-					}
-					if (bestIndex < 0) {
-						if (oldSampleRate < 44100) {
-							if (sampleRate > 44100)
-								break;
-							sampleRate *= 2;
-						} else {
-							if (sampleRate < 44100)
-								break;
-							sampleRate /= 2;
-						}
-					} else
-						break;
-				}
-				if (bestIndex >= 0) {
-					return new MultiClip(ref, AudioSystem.getAudioInputStream(formats[bestIndex], audioIn));
-				} else
-					// still couldn't find anything, try the default clip format
-					return new MultiClip(ref, AudioSystem.getAudioInputStream(clip.getFormat(), audioIn));
-			}
-		} catch (IOException | LineUnavailableException | RuntimeException e) {
-			ErrorHandler.error(String.format("Failed to load file '%s'.", ref), e, true);
+	private static MultiClip loadClip(String ref, AudioInputStream audioIn, boolean isMP3)
+			throws IOException, LineUnavailableException {
+		AudioFormat format = audioIn.getFormat();
+		if (isMP3) {
+			AudioFormat decodedFormat = new AudioFormat(
+					AudioFormat.Encoding.PCM_SIGNED, format.getSampleRate(), 16,
+					format.getChannels(), format.getChannels() * 2, format.getSampleRate(), false);
+			AudioInputStream decodedAudioIn = AudioSystem.getAudioInputStream(decodedFormat, audioIn);
+			format = decodedFormat;
+			audioIn = decodedAudioIn;
 		}
-		//return null;
+		DataLine.Info info = new DataLine.Info(Clip.class, format);
+		if (AudioSystem.isLineSupported(info))
+			return new MultiClip(ref, audioIn);
+
+		// try to find closest matching line
+		Clip clip = AudioSystem.getClip();
+		AudioFormat[] formats = ((DataLine.Info) clip.getLineInfo()).getFormats();
+		int bestIndex = -1;
+		float bestScore = 0;
+		float sampleRate = format.getSampleRate();
+		if (sampleRate < 0)
+			sampleRate = clip.getFormat().getSampleRate();
+		float oldSampleRate = sampleRate;
+		while (true) {
+			for (int i = 0; i < formats.length; i++) {
+				AudioFormat curFormat = formats[i];
+				AudioFormat newFormat = new AudioFormat(
+						sampleRate, curFormat.getSampleSizeInBits(),
+						curFormat.getChannels(), true, curFormat.isBigEndian());
+				formats[i] = newFormat;
+				DataLine.Info newLine = new DataLine.Info(Clip.class, newFormat);
+				if (AudioSystem.isLineSupported(newLine) &&
+				    AudioSystem.isConversionSupported(newFormat, format)) {
+					float score = 1
+							+ (newFormat.getSampleRate() == sampleRate ? 5 : 0)
+							+ (newFormat.getSampleSizeInBits() == format.getSampleSizeInBits() ? 5 : 0)
+							+ (newFormat.getChannels() == format.getChannels() ? 5 : 0)
+							+ (newFormat.isBigEndian() == format.isBigEndian() ? 1 : 0)
+							+ newFormat.getSampleRate() / 11025
+							+ newFormat.getChannels()
+							+ newFormat.getSampleSizeInBits() / 8;
+					if (score > bestScore) {
+						bestIndex = i;
+						bestScore = score;
+					}
+				}
+			}
+			if (bestIndex < 0) {
+				if (oldSampleRate < 44100) {
+					if (sampleRate > 44100)
+						break;
+					sampleRate *= 2;
+				} else {
+					if (sampleRate < 44100)
+						break;
+					sampleRate /= 2;
+				}
+			} else
+				break;
+		}
+		if (bestIndex >= 0)
+			return new MultiClip(ref, AudioSystem.getAudioInputStream(formats[bestIndex], audioIn));
+
+		// still couldn't find anything, try the default clip format
+		return new MultiClip(ref, AudioSystem.getAudioInputStream(clip.getFormat(), audioIn));
 	}
 	*/
 
@@ -282,7 +277,7 @@ public class SoundController {
 	}
 
 	/**
-	 * Plays hit sound(s) using an OsuHitObject bitmask.
+	 * Plays hit sound(s) using a HitObject bitmask.
 	 * @param hitSound the hit sound (bitmask)
 	 * @param sampleSet the sample set
 	 * @param additionSampleSet the 'addition' sample set
@@ -300,11 +295,11 @@ public class SoundController {
 		playClip(HitSound.NORMAL.getClip(), volume, null);
 
 		HitSound.setSampleSet(additionSampleSet);
-		if ((hitSound & OsuHitObject.SOUND_WHISTLE) > 0)
+		if ((hitSound & HitObject.SOUND_WHISTLE) > 0)
 			playClip(HitSound.WHISTLE.getClip(), volume, null);
-		if ((hitSound & OsuHitObject.SOUND_FINISH) > 0)
+		if ((hitSound & HitObject.SOUND_FINISH) > 0)
 			playClip(HitSound.FINISH.getClip(), volume, null);
-		if ((hitSound & OsuHitObject.SOUND_CLAP) > 0)
+		if ((hitSound & HitObject.SOUND_CLAP) > 0)
 			playClip(HitSound.CLAP.getClip(), volume, null);
 	}
 
@@ -341,18 +336,20 @@ public class SoundController {
 	 * @param isMP3 true if MP3, false if WAV
 	 * @param listener the line listener
 	 * @return the MultiClip being played
-	 * @throws SlickException if any error occurred (UnsupportedAudioFileException, IOException, RuntimeException)
+	 * @throws SlickException if any error occurred
 	 */
 	public static synchronized MultiClip playTrack(URL url, boolean isMP3, LineListener listener) throws SlickException {
 		stopTrack();
-		/*try {
+		/*
+		try {
 			AudioInputStream audioIn = AudioSystem.getAudioInputStream(url);
 			currentTrack = loadClip(url.getFile(), audioIn, isMP3);
 			playClip(currentTrack, Options.getMusicVolume() * Options.getMasterVolume(), listener);
 			return currentTrack;
-		} catch (UnsupportedAudioFileException | IOException | RuntimeException e) {
+		} catch (Exception e) {
 			throw new SlickException(String.format("Failed to load clip '%s'.", url.getFile(), e));
-		}*/
+		}
+		*/
 		try {
 			currentTrack = new MultiClip(url, isMP3, listener);
 			playClip(currentTrack, Options.getMusicVolume() * Options.getMasterVolume(), listener);

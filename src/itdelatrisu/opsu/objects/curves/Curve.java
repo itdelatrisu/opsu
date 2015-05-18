@@ -18,13 +18,17 @@
 
 package itdelatrisu.opsu.objects.curves;
 
-import itdelatrisu.opsu.OsuHitObject;
+import itdelatrisu.opsu.GameImage;
+import itdelatrisu.opsu.Utils;
+import itdelatrisu.opsu.beatmap.HitObject;
 
 import fluddokt.opsu.fake.*;
 
 /*
 import org.newdawn.slick.Color;
+import org.newdawn.slick.Image;
 */
+
 
 
 /**
@@ -33,11 +37,11 @@ import org.newdawn.slick.Color;
  * @author fluddokt (https://github.com/fluddokt)
  */
 public abstract class Curve {
-	/** The associated OsuHitObject. */
-	protected OsuHitObject hitObject;
+	/** Points generated along the curve should be spaced this far apart. */
+	protected static float CURVE_POINTS_SEPERATION = 5;
 
-	/** The color of this curve. */
-	protected Color color;
+	/** The associated HitObject. */
+	protected HitObject hitObject;
 
 	/** The scaled starting x, y coordinates. */
 	protected float x, y;
@@ -45,18 +49,20 @@ public abstract class Curve {
 	/** The scaled slider x, y coordinate lists. */
 	protected float[] sliderX, sliderY;
 
+	/** Points along the curve (set by inherited classes). */
+	protected Vec2f[] curve;
+
 	/**
 	 * Constructor.
-	 * @param hitObject the associated OsuHitObject
+	 * @param hitObject the associated HitObject
 	 * @param color the color of this curve
 	 */
-	protected Curve(OsuHitObject hitObject, Color color) {
+	protected Curve(HitObject hitObject, Color color) {
 		this.hitObject = hitObject;
 		this.x = hitObject.getScaledX();
 		this.y = hitObject.getScaledY();
 		this.sliderX = hitObject.getScaledSliderX();
 		this.sliderY = hitObject.getScaledSliderY();
-		this.color = color;
 	}
 
 	/**
@@ -68,8 +74,19 @@ public abstract class Curve {
 
 	/**
 	 * Draws the full curve to the graphics context.
+	 * @param color the color filter
 	 */
-	public abstract void draw();
+	public void draw(Color color) {
+		if (curve == null)
+			return;
+
+		Image hitCircle = GameImage.HITCIRCLE.getImage();
+		Image hitCircleOverlay = GameImage.HITCIRCLE_OVERLAY.getImage();
+		for (int i = 0; i < curve.length; i++)
+			hitCircleOverlay.drawCentered(curve[i].x, curve[i].y, Utils.COLOR_WHITE_FADE);
+		for (int i = 0; i < curve.length; i++)
+			hitCircle.drawCentered(curve[i].x, curve[i].y, color);
+	}
 
 	/**
 	 * Returns the angle of the first control point.

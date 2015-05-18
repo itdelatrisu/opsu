@@ -23,13 +23,13 @@ import fluddokt.opsu.fake.*;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.Options;
-import itdelatrisu.opsu.OsuGroupList;
 import itdelatrisu.opsu.OsuParser;
 import itdelatrisu.opsu.OszUnpacker;
 import itdelatrisu.opsu.UI;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
+import itdelatrisu.opsu.beatmap.BeatmapSetList;
 
 /*
 import java.io.File;
@@ -92,7 +92,7 @@ public class Splash extends BasicGameState {
 		if (!init) {
 			init = true;
 
-			if (OsuGroupList.get() != null) {
+			if (BeatmapSetList.get() != null) {
 				// resources already loaded (from application restart)
 				finished = true;
 			} else {
@@ -128,12 +128,12 @@ public class Splash extends BasicGameState {
 		// change states when loading complete
 		if (finished && alpha >= 1f) {
 			// initialize song list
-			if (OsuGroupList.get().size() > 0) {
-				OsuGroupList.get().init();
+			if (BeatmapSetList.get().size() > 0) {
+				BeatmapSetList.get().init();
 				if (Options.isThemeSongEnabled())
 					MusicController.playThemeSong();
 				else
-					((SongMenu) game.getState(Opsu.STATE_SONGMENU)).setFocus(OsuGroupList.get().getRandomNode(), -1, true, true);
+					((SongMenu) game.getState(Opsu.STATE_SONGMENU)).setFocus(BeatmapSetList.get().getRandomNode(), -1, true, true);
 			}
 
 			// play the theme song
@@ -154,7 +154,7 @@ public class Splash extends BasicGameState {
 			if (++escapeCount >= 3)
 				container.exit();
 
-			// stop parsing OsuFiles by sending interrupt to OsuParser
+			// stop parsing beatmaps by sending interrupt to OsuParser
 			else if (thread != null)
 				thread.interrupt();
 		}
