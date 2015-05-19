@@ -18,12 +18,16 @@
 
 package itdelatrisu.opsu.objects.curves;
 
+import fluddokt.opsu.fake.*;
+
 import itdelatrisu.opsu.beatmap.HitObject;
 
 import java.util.Iterator;
 import java.util.LinkedList;
 
+/*
 import org.newdawn.slick.Color;
+*/
 
 /**
  * Representation of multiple curve with equidistant points.

@@ -18,11 +18,13 @@
 
 package itdelatrisu.opsu.replay;
 
+import fluddokt.opsu.fake.Image;
+
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.GameMod;
 import itdelatrisu.opsu.MenuButton;
 
-import org.newdawn.slick.Image;
+//import org.newdawn.slick.Image;
 
 /**
  * Playback speeds for replays.

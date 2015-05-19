@@ -19,7 +19,6 @@
 package itdelatrisu.opsu.states;
 
 import fluddokt.opsu.fake.*;
-
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.MenuButton;
@@ -36,6 +35,7 @@ import itdelatrisu.opsu.beatmap.BeatmapSetList;
 import itdelatrisu.opsu.beatmap.BeatmapSetNode;
 import itdelatrisu.opsu.downloads.Updater;
 import itdelatrisu.opsu.states.ButtonMenu.MenuState;
+
 
 /*
 import java.awt.Desktop;
@@ -156,10 +156,10 @@ public class MainMenu extends BasicGameState {
 		// initialize music buttons
 		int musicWidth  = GameImage.MUSIC_PLAY.getImage().getWidth();
 		int musicHeight = GameImage.MUSIC_PLAY.getImage().getHeight();
-		musicPlay     = new MenuButton(GameImage.MUSIC_PLAY.getImage(), width - (2 * musicWidth), musicHeight / 1.5f);
-		musicPause    = new MenuButton(GameImage.MUSIC_PAUSE.getImage(), width - (2 * musicWidth), musicHeight / 1.5f);
-		musicNext     = new MenuButton(GameImage.MUSIC_NEXT.getImage(), width - musicWidth, musicHeight / 1.5f);
-		musicPrevious = new MenuButton(GameImage.MUSIC_PREVIOUS.getImage(), width - (3 * musicWidth), musicHeight / 1.5f);
+		musicPlay     = new MenuButton(GameImage.MUSIC_PLAY.getImage(), width - (2 * musicWidth), musicHeight/2 );
+		musicPause    = new MenuButton(GameImage.MUSIC_PAUSE.getImage(), width - (2 * musicWidth), musicHeight/2);
+		musicNext     = new MenuButton(GameImage.MUSIC_NEXT.getImage(), width - musicWidth, musicHeight/2);
+		musicPrevious = new MenuButton(GameImage.MUSIC_PREVIOUS.getImage(), width - (3 * musicWidth),musicHeight/2);
 		musicPlay.setHoverExpand(1.5f);
 		musicPause.setHoverExpand(1.5f);
 		musicNext.setHoverExpand(1.5f);
@@ -167,9 +167,9 @@ public class MainMenu extends BasicGameState {
 
 		// initialize music position bar location
 		musicBarX = width - musicWidth * 3.5f;
-		musicBarY = musicHeight * 1.25f;
+		musicBarY = musicHeight * 1f;
 		musicBarWidth = musicWidth * 3f;
-		musicBarHeight = musicHeight * 0.11f;
+		musicBarHeight = musicHeight * 0.30f;
 
 		// initialize downloads button
 		Image dlImg = GameImage.DOWNLOADS.getImage();
@@ -387,6 +387,8 @@ public class MainMenu extends BasicGameState {
 	@Override
 	public void enter(GameContainer container, StateBasedGame game)
 			throws SlickException {
+		float t = com.badlogic.gdx.Gdx.graphics.getWidth()/com.badlogic.gdx.Gdx.graphics.getPpiX();
+		System.out.println("screen size = "+t);
 		UI.enter();
 		if (!enterNotification) {
 			if (Updater.get().getStatus() == Updater.Status.UPDATE_AVAILABLE) {

@@ -66,7 +66,7 @@ public class AudioDevicePlayer {
 			
 				incrementThreadCount();
 				System.out.println("PlayThread Running Thread " + name +" "+threadCount);
-				
+				Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
 				try {
 					while (!toStop) {
 					header = bitstream.readFrame();
@@ -312,5 +312,9 @@ public class AudioDevicePlayer {
 
 	public void setAudioDeviceListener(AudioDeviceListener audioDeviceListener){
 		adl = audioDeviceListener;
+	}
+	public void setPitch(float pitch) {
+		// TODO Auto-generated method stub
+		
 	}
 }

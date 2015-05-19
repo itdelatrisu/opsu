@@ -37,4 +37,6 @@ public abstract class AbsMusic {
 		lis.complete(this);
 	}
 
+	public abstract void setPitch(float pitch);
+
 }

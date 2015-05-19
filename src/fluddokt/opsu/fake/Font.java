@@ -8,10 +8,10 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 
 public class Font {
 
-	public static final String PLAIN = "PLAIN";
-	public static final String BOLD = "BOLD";
+	public static final int PLAIN = 0;
+	public static final int BOLD = 1;
 	String name;
-	String style;
+	int style;
 	float size;
 	FileHandle file;
 
@@ -19,11 +19,11 @@ public class Font {
 		this(fontName, PLAIN, 12);
 	}
 
-	public Font(String nfiName, String nstyle, float nsize) {
+	public Font(String nfiName, int nstyle, float nsize) {
 		this(nfiName, nstyle, nsize, ResourceLoader.getFileHandle(nfiName));
 	}
 
-	public Font(String nfiName, String nstyle, float nsize, FileHandle nfile) {
+	public Font(String nfiName, int nstyle, float nsize, FileHandle nfile) {
 		name = nfiName;
 		style = nstyle;
 		size = nsize;
@@ -33,11 +33,11 @@ public class Font {
 
 	}
 
-	public Font deriveFont(String nstyle, float nsize) {
+	public Font deriveFont(int nstyle, float nsize) {
 		return new Font(name, nstyle, nsize, file);
 	}
 
-	public Font deriveFont(String nstyle) {
+	public Font deriveFont(int nstyle) {
 		return new Font(name, nstyle, size, file);
 	}
 

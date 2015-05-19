@@ -18,13 +18,15 @@
 
 package itdelatrisu.opsu.beatmap;
 
+import fluddokt.opsu.fake.File;
+
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.SongSort;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.db.BeatmapDB;
 
-import java.io.File;
+//import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;

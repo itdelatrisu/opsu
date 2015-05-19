@@ -19,7 +19,6 @@
 package itdelatrisu.opsu;
 
 import fluddokt.opsu.fake.*;
-
 import itdelatrisu.opsu.beatmap.Beatmap;
 import itdelatrisu.opsu.beatmap.BeatmapSetList;
 import itdelatrisu.opsu.beatmap.BeatmapSetNode;
@@ -30,19 +29,15 @@ import itdelatrisu.opsu.db.BeatmapDB;
 import java.io.BufferedReader;
 /*
 import java.io.File;
-*/
 import java.io.FileInputStream;
 import java.io.FileReader;
-import java.io.FilenameFilter;
-/*
-import java.io.FilenameFilter;
 */
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -88,7 +83,6 @@ public class OsuParser {
 		// create a new BeatmapSetList
 		BeatmapSetList.create();
 
-		System.out.println("parseAllFiles root: "+root.getAbsolutePath());
 		// parse all directories
 		parseDirectories(root.listFiles());
 	}
@@ -119,7 +113,6 @@ public class OsuParser {
 		// parse directories
 		BeatmapSetNode lastNode = null;
 		for (File dir : dirs) {
-			//System.out.println("OsuParser Folder:"+dir);
 			currentDirectoryIndex++;
 			if (!dir.isDirectory())
 				continue;
@@ -219,8 +212,7 @@ public class OsuParser {
 		Beatmap beatmap = new Beatmap(file);
 		beatmap.timingPoints = new ArrayList<TimingPoint>();
 
-		//try (BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF-8"))) {
-		try (BufferedReader in = file.reader(0xfff,"UTF-8")) {
+		try (BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF-8"))) {
 			String line = in.readLine();
 			String tokens[] = null;
 			while (line != null) {
@@ -618,7 +610,6 @@ public class OsuParser {
 		beatmap.objects = new HitObject[(beatmap.hitObjectCircle + beatmap.hitObjectSlider + beatmap.hitObjectSpinner)];
 
 		try (BufferedReader in = new BufferedReader(new FileReader(beatmap.getFile()))) {
-		//try (BufferedReader in = osu.getFile().reader(0xfff)) {
 			String line = in.readLine();
 			while (line != null) {
 				line = line.trim();

@@ -107,4 +107,10 @@ public class MusicGdx extends AbsMusic implements OnCompletionListener{
 		return path;
 	}
 
+	@Override
+	public void setPitch(float pitch) {
+		// TODO Auto-generated method stub
+		
+	}
+
 }

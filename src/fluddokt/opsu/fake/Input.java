@@ -42,6 +42,10 @@ public class Input {
 
 	public static final int KEY_LSHIFT = Keys.SHIFT_LEFT;
 	public static final int KEY_RSHIFT = Keys.SHIFT_RIGHT;
+	
+	public static final int KEY_LALT = Keys.ALT_LEFT;
+	public static final int KEY_RALT = Keys.ALT_RIGHT;
+
 
 	public static final int KEY_A = Keys.A;
 	public static final int KEY_B = Keys.B;

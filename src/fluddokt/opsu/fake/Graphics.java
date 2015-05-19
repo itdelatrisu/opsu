@@ -16,6 +16,7 @@ public class Graphics {
 	static ShapeRenderer shapeRender;
 	static UnicodeFont curFont;
 	static OrthographicCamera camera;
+	final static int NONE = 0;
 	final static int SPRITE = 3;
 	final static int SHAPELINE = 5;
 	final static int SHAPEFILLED = 6;
@@ -27,6 +28,7 @@ public class Graphics {
 	static int width, height;
 	public static Color bgcolor = Color.black;
 	static Color fgcolor = Color.white;
+	static float lineWidth = 1;
 
 	public static void init() {
 		Image.texmap.clear();
@@ -93,12 +95,15 @@ public class Graphics {
 
 	public void setAntiAlias(boolean b) {
 		// TODO Auto-generated method stub
-
 	}
 
 	public void setLineWidth(float f) {
-		// TODO Auto-generated method stub
-
+		checkMode(NONE);
+		lineWidth = f;
+	}
+	public void resetLineWidth() {
+		checkMode(NONE);
+		lineWidth = 1;
 	}
 
 	public void fillRect(float x, float y, float w, float h) {
@@ -147,12 +152,9 @@ public class Graphics {
 		shapeRender.line(x1, y1, x2, y2);
 	}
 
-	public void resetLineWidth() {
-		// TODO Auto-generated method stub
-
-	}
-
+	
 	static void endMode() {
+		Gdx.gl20.glLineWidth(lineWidth);
 		if (mode == SPRITE) {
 			batch.end();
 		} else if (mode == SHAPEFILLED || mode == SHAPELINE) {
@@ -205,7 +207,7 @@ public class Graphics {
 	Rectangle scissor;
 	//TODO fix
 	public void setClip(int x, int y, int w, int h) {
-		checkMode(0);
+		clearClip();
 		scissor = new Rectangle();
 		Rectangle clip = new Rectangle(x, y, w, h);
 		ScissorStack.calculateScissors(camera, batch.getTransformMatrix(), clip, scissor);

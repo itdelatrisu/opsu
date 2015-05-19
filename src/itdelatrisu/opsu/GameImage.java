@@ -294,14 +294,34 @@ public enum GameImage {
 	MENU_BUTTON_RIGHT ("button-right", "png", false, false),
 
 	// Music Player Buttons
-	MUSIC_PLAY ("music-play", "png", false, false),
-	MUSIC_PAUSE ("music-pause", "png", false, false),
-	MUSIC_NEXT ("music-next", "png", false, false),
-	MUSIC_PREVIOUS ("music-previous", "png", false, false),
+	MUSIC_PLAY ("music-play", "png", false, false){
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy(Options.getMobileUIScale());
+		}
+	},
+	MUSIC_PAUSE ("music-pause", "png", false, false){
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy(Options.getMobileUIScale());
+		}
+	},
+	MUSIC_NEXT ("music-next", "png", false, false){
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy(Options.getMobileUIScale());
+		}
+	},
+	MUSIC_PREVIOUS ("music-previous", "png", false, false){
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy(Options.getMobileUIScale());
+		}
+	},
 	DOWNLOADS ("downloads", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h * 0.45f) / img.getHeight());
+			return img.getScaledCopy((h * 0.45f) / img.getHeight() * (1 + (Options.getMobileUIScale()-1)* 0.5f));
 		}
 	},
 	SEARCH_BG ("search-background", "png|jpg", false, true) {
@@ -312,11 +332,11 @@ public enum GameImage {
 		}
 	},
 	DELETE ("delete", "png", false, false) {
-		@Override
+		/*@Override
 		protected Image process_sub(Image img, int w, int h) {
 			int lineHeight = Utils.FONT_DEFAULT.getLineHeight();
 			return img.getScaledCopy(lineHeight, lineHeight);
-		}
+		}*/
 	},
 	HISTORY ("history", "png", false, false) {
 		@Override

@@ -18,7 +18,8 @@
 
 package itdelatrisu.opsu;
 
-import fluddokt.opsu.fake.*;
+import itdelatrisu.opsu.beatmap.Beatmap;
+import itdelatrisu.opsu.beatmap.BeatmapSetNode;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -27,7 +28,7 @@ import java.util.Comparator;
 /*
 import org.newdawn.slick.Image;
 */
-
+import fluddokt.opsu.fake.*;
 /**
  * BeatmapSetNode sorts.
  */
@@ -38,8 +39,6 @@ public enum SongSort {
 	BPM     (3, "BPM",     new BPMOrder()),
 	LENGTH  (4, "Length",  new LengthOrder());
 
-	
-	
 	/** The ID of the sort (used for tab positioning). */
 	private int id;
 
@@ -135,7 +134,7 @@ public enum SongSort {
 				if (beatmap.endTime > wMax)
 					wMax = beatmap.endTime;
 			}
-			return Integer.compare(vMax, wMax);
+			return Integer2.compare(vMax, wMax);
 		}
 	}
 

@@ -76,4 +76,10 @@ public class MusicJL3 extends AbsMusic {
 		return player.getName();
 	}
 
+	@Override
+	public void setPitch(float pitch) {
+		// TODO Auto-generated method stub
+		player.setPitch(pitch);
+	}
+
 }

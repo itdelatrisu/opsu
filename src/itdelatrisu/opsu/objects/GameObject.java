@@ -18,7 +18,11 @@
 
 package itdelatrisu.opsu.objects;
 
+import fluddokt.opsu.fake.*;
+
+/*
 import org.newdawn.slick.Graphics;
+*/
 
 /**
  * Interface for hit object types used during gameplay.

@@ -29,14 +29,12 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.nio.IntBuffer;
-
 import java.util.Map;
 
 import javax.sound.sampled.AudioFileFormat;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.UnsupportedAudioFileException;
-*/
-/*
+
 import org.lwjgl.BufferUtils;
 import org.lwjgl.openal.AL;
 import org.lwjgl.openal.AL10;
@@ -45,8 +43,8 @@ import org.newdawn.slick.MusicListener;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.openal.Audio;
 import org.newdawn.slick.openal.SoundStore;
+import org.tritonus.share.sampled.file.TAudioFileFormat;
 */
-//import org.tritonus.share.sampled.file.TAudioFileFormat;
 
 /**
  * Controller for all music.
@@ -90,14 +88,6 @@ public class MusicController {
 	 * @param preview whether to start at the preview time (true) or beginning (false)
 	 */
 	public static void play(final Beatmap beatmap, final boolean loop, final boolean preview) {
-		if(osu == null){
-			throw new Error("Null osu");
-		}
-		if(osu.audioFilename == null)
-		{
-			System.out.println("Null osu filename "+osu.title+" "+osu+" "+osu.artist);
-			return;
-		}
 		// new track: load and play
 		if (lastBeatmap == null || !beatmap.audioFilename.equals(lastBeatmap.audioFilename)) {
 			reset();
@@ -133,7 +123,7 @@ public class MusicController {
 	 * @param loop whether or not to loop the track
 	 */
 	private static void loadTrack(File file, int position, boolean loop) {
-		try {   // create a new player
+		try {
 			if(player!=null)
 				player.dispose();
 			player = new Music(file.getPath(), true);

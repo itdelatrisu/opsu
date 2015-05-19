@@ -21,4 +21,9 @@ public class SoundStore {
 		SoundStore.music = music2;
 	}
 
+	public void setMusicPitch(float pitch) {
+		music.setMusicPitch(pitch);
+		
+	}
+
 }

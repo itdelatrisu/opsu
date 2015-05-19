@@ -18,13 +18,17 @@
 
 package itdelatrisu.opsu.objects.curves;
 
+import fluddokt.opsu.fake.*;
+
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.beatmap.HitObject;
 
 import java.util.LinkedList;
 
+/*
 import org.newdawn.slick.Color;
 import org.newdawn.slick.SlickException;
+*/
 
 /**
  * Representation of Catmull Curve with equidistant points.

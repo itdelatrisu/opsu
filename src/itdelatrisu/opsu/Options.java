@@ -268,7 +268,15 @@ public class Options {
 		LOAD_HD_IMAGES ("Load HD Images", "Loads HD (@2x) images when available. Increases memory usage and loading times.", true),
 		DISABLE_MOUSE_WHEEL ("Disable mouse wheel in play mode", "During play, you can use the mouse wheel to adjust the volume and pause the game.\nThis will disable that functionality.", false),
 		DISABLE_MOUSE_BUTTONS ("Disable mouse buttons in play mode", "This option will disable all mouse buttons.\nSpecifically for people who use their keyboard to click.", false), 
-		IN_GAME_PAUSE("In game pause button", "Shows a in game pasue button.", false);
+		IN_GAME_PAUSE("In game pause button", "Shows a in game pasue button.", false),
+		MOBILE_UI_SCALING ("Scales certain UI elements.", "Scales certain UI elements. Requires Restart", 
+				(com.badlogic.gdx.Gdx.graphics.getWidth()/com.badlogic.gdx.Gdx.graphics.getPpiX()) <= 6.0f?
+						20:
+						10
+				, 5, 30) {
+			@Override
+			public String getValueString() { return (val == 0) ? "Disabled" : String.format("%.1f", val / 10f); }
+		},;
 
 		/** Option name. */
 		private String name;
@@ -398,12 +406,18 @@ public class Options {
 
 	/** Screen resolutions. */
 	private enum Resolution {
+		RES_320_240 (320, 240),
+		RES_320_256 (320, 256),
+		RES_400_240 (400, 240),
 		RES_400_300 (400, 300),
+		RES_480_320 (480, 320),
 		RES_640_480 (640, 480),
+		RES_800_480 (800, 480),
 		RES_800_600 (800, 600),
 		RES_1024_600 (1024, 600),
 		RES_1024_768 (1024, 768),
 		RES_1280_720 (1280, 720),
+		RES_1280_768 (1280, 768),
 		RES_1280_800 (1280, 800),
 		RES_1280_960 (1280, 960),
 		RES_1280_1024 (1280, 1024),
@@ -663,6 +677,12 @@ public class Options {
 	 * @return the OD value (0, 10], 0f if disabled
 	 */
 	public static float getFixedOD() { return GameOption.FIXED_OD.getIntegerValue() / 10f; }
+
+	/**
+	 * Returns the fixed overall difficulty override, if any.
+	 * @return the OD value (0, 10], 0f if disabled
+	 */
+	public static float getMobileUIScale() { return GameOption.MOBILE_UI_SCALING.getIntegerValue() / 10f; }
 
 	/**
 	 * Returns whether or not to render loading text in the splash screen.
@@ -1079,6 +1099,9 @@ public class Options {
 					case "InGamePause":
 						GameOption.IN_GAME_PAUSE.setValue(Boolean.parseBoolean(value));
 						break;
+					case "MobileUIScale":
+						GameOption.MOBILE_UI_SCALING.setValue((int) (Float.parseFloat(value) * 10f));
+						break;
 					}
 				} catch (NumberFormatException e) {
 					Log.warn(String.format("Format error in options file for line: '%s'.", line), e);
@@ -1193,6 +1216,8 @@ public class Options {
 			writer.write(String.format("MenuMusic = %b", isThemeSongEnabled()));
 			writer.newLine();
 			writer.write(String.format("InGamePause = %b", isInGamePauseEnabled()));
+			writer.newLine();
+			writer.write(String.format("MobileUIScale = %.1f", getMobileUIScale()));
 			writer.newLine();
 			writer.close();
 		} catch (IOException e) {

@@ -21,15 +21,20 @@ package itdelatrisu.opsu.beatmap;
 import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.Utils;
 
-import java.io.File;
+
+//import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
-
+/*
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.util.Log;
+*/
+
+
+import fluddokt.opsu.fake.*;
 
 /**
  * Beatmap structure storing data parsed from OSU files.
@@ -309,7 +314,7 @@ public class Beatmap implements Comparable<Beatmap> {
 	public int compareTo(Beatmap that) {
 		int cmp = Float.compare(this.overallDifficulty, that.overallDifficulty);
 		if (cmp == 0)
-			cmp = Integer.compare(
+			cmp = Integer2.compare(
 					this.hitObjectCircle + this.hitObjectSlider + this.hitObjectSpinner,
 					that.hitObjectCircle + that.hitObjectSlider + that.hitObjectSpinner
 			);

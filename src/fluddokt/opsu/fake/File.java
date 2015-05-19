@@ -75,7 +75,7 @@ public class File {
 	}
 
 	public File(File parent, String child) {
-		System.out.println("new child file:"+parent.info()+" "+child);
+		//System.out.println("new child file:"+parent.info()+" "+child);
 		fh = parent.fh.child(child);
 	}
 

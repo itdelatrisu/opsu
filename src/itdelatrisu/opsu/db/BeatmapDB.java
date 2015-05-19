@@ -23,7 +23,7 @@ import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.OsuParser;
 import itdelatrisu.opsu.beatmap.Beatmap;
 
-import java.io.File;
+//import java.io.File;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -33,7 +33,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.newdawn.slick.util.Log;
+//import org.newdawn.slick.util.Log;
+
+import fluddokt.opsu.fake.*;
 
 /**
  * Handles connections and queries with the cached beatmap database.
@@ -71,7 +73,7 @@ public class BeatmapDB {
 	 */
 	public static void init() {
 		// create a database connection
-		connection = DBController.createConnection(Options.BEATMAP_DB.getPath());
+		connection = DBController.createConnection(Options.BEATMAP_DB.getAbsolutePath());
 		if (connection == null)
 			return;
 
@@ -117,16 +119,18 @@ public class BeatmapDB {
 					"audioFile TEXT, audioLeadIn INTEGER, previewTime INTEGER, countdown INTEGER, sampleSet TEXT, stackLeniency REAL, " +
 					"mode INTEGER, letterboxInBreaks BOOLEAN, widescreenStoryboard BOOLEAN, epilepsyWarning BOOLEAN, " +
 					"bg TEXT, timingPoints TEXT, breaks TEXT, combo TEXT" +
-				"); " +
+				");\n" +
 				"CREATE TABLE IF NOT EXISTS info (" +
 					"key TEXT NOT NULL UNIQUE, value TEXT" +
-				"); " +
-				"CREATE INDEX IF NOT EXISTS idx ON beatmaps (dir, file); " +
+				");\n" +
+				"CREATE INDEX IF NOT EXISTS idx ON beatmaps (dir, file);\n" +
 
 				// extra optimizations
-				"PRAGMA locking_mode = EXCLUSIVE; " +
+				"PRAGMA locking_mode = EXCLUSIVE;\n" +
 				"PRAGMA journal_mode = WAL;";
-			stmt.executeUpdate(sql);
+			for (String sqlStmt : sql.split(";\n")){
+				System.out.println("OsuDB SQLExec :"+sqlStmt+" "+stmt.execute(sqlStmt));
+			}
 
 			// set the version key, if empty
 			sql = String.format("INSERT OR IGNORE INTO info(key, value) VALUES('version', '%s')", DATABASE_VERSION);
@@ -251,6 +255,13 @@ public class BeatmapDB {
 				String sql = "DROP INDEX IF EXISTS idx";
 				stmt.executeUpdate(sql);
 			}
+			
+			//insertStmt batch doesn't seem to get cleared after execution and clearing seem to crash
+			insertStmt = connection.prepareStatement(
+					"INSERT INTO beatmaps VALUES (" +
+					"?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, " +
+					"?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+				);
 
 			// batch insert
 			for (Beatmap beatmap : batch) {

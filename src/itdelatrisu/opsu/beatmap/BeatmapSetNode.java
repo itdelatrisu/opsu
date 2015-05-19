@@ -22,9 +22,12 @@ import itdelatrisu.opsu.GameData.Grade;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.Utils;
-
+/*
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Image;
+*/
+
+import fluddokt.opsu.fake.*;
 
 /**
  * Node in an BeatmapSetList representing a beatmap set.

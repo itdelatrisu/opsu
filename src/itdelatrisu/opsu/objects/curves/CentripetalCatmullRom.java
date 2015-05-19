@@ -18,7 +18,11 @@
 
 package itdelatrisu.opsu.objects.curves;
 
+import fluddokt.opsu.fake.*;
+
+/*
 import org.newdawn.slick.SlickException;
+*/
 
 /**
  * Representation of a Centripetal Catmull–Rom spline.

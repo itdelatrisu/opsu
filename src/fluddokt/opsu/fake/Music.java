@@ -135,4 +135,8 @@ public class Music implements AbsMusicCompleteListener{
 			musLis.musicEnded(this);
 		}
 	}
+
+	public void setMusicPitch(float pitch) {
+		music.setPitch(pitch);
+	}
 }

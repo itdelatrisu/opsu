@@ -193,14 +193,14 @@ public class DownloadsMenu extends BasicGameState {
 		search.setMaxLength(255);
 
 		// page buttons
-		float pageButtonY = height * 0.2f;
+		float pageButtonY = height * 0.2f - Utils.FONT_BOLD.getLineHeight();
 		float pageButtonWidth = width * 0.7f;
 		Image prevImg = GameImage.MUSIC_PREVIOUS.getImage();
 		Image nextImg = GameImage.MUSIC_NEXT.getImage();
 		prevPage = new MenuButton(prevImg, baseX + prevImg.getWidth() / 2f,
-				pageButtonY - prevImg.getHeight() / 2f);
+				pageButtonY );
 		nextPage = new MenuButton(nextImg, baseX + pageButtonWidth - nextImg.getWidth() / 2f,
-				pageButtonY - nextImg.getHeight() / 2f);
+				pageButtonY );
 		prevPage.setHoverExpand(1.5f);
 		nextPage.setHoverExpand(1.5f);
 
@@ -635,7 +635,7 @@ public class DownloadsMenu extends BasicGameState {
 						}
 					}
 
-					//DownloadList.get().clearDownloads(Download.Status.COMPLETE);
+					DownloadList.get().clearDownloads(Download.Status.COMPLETE);
 					importThread = null;
 				}
 			};

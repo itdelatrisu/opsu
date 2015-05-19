@@ -268,11 +268,13 @@ public class Game extends BasicGameState {
 
 		g.setBackground(Color.black);
 
+		/*
 		// "flashlight" mod: initialize offscreen graphics
-		//if (GameMod.FLASHLIGHT.isActive()) {
-		//	gOffscreen.clear();
-		//	Graphics.setCurrent(gOffscreen);
-		//}
+		if (GameMod.FLASHLIGHT.isActive()) {
+			gOffscreen.clear();
+			Graphics.setCurrent(gOffscreen);
+		}
+		*/
 		/*
 		// background
 		float dimLevel = Options.getBackgroundDim();
@@ -288,7 +290,7 @@ public class Game extends BasicGameState {
 			playfield.draw();
 			playfield.setAlpha(1f);
 		}
-		/*
+		*/
 
 		//if (GameMod.FLASHLIGHT.isActive())
 		//	Graphics.setCurrent(g);
@@ -356,22 +358,24 @@ public class Game extends BasicGameState {
 			}
 		}
 
-
+		/*
 		// "flashlight" mod: restricted view of hit objects around cursor
-		//if (GameMod.FLASHLIGHT.isActive()) {
+		if (GameMod.FLASHLIGHT.isActive()) {
 			// render hit objects offscreen
-			//Graphics.setCurrent(gOffscreen);
-			//gOffscreen.setDrawMode(Graphics.MODE_NORMAL);
+			Graphics.setCurrent(gOffscreen);
+		*/
 			int trackPos = (isLeadIn()) ? (leadInTime - Options.getMusicOffset()) * -1 : trackPosition;
-			//GameImage.ALPHA_MAP.getImage().draw(alphaY, alphaRadius, alphaRadius);
+		/*
+			drawHitObjects(gOffscreen, trackPos);
 
 			// restore original graphics context
-			//gOffscreen.flush();
-			//Graphics.setCurrent(g);
+			gOffscreen.flush();
+			Graphics.setCurrent(g);
 
 			// draw alpha map around cursor
-			//g.setDrawMode(Graphics.MODE_ALPHA_MAP);
-			//g.clearAlphaMap();
+			g.setDrawMode(Graphics.MODE_ALPHA_MAP);
+			g.clearAlphaMap();
+		*/
 			int mouseX, mouseY;
 			if (pauseTime > -1 && pausedMouseX > -1 && pausedMouseY > -1) {
 				mouseX = pausedMouseX;
@@ -389,6 +393,17 @@ public class Game extends BasicGameState {
 			int alphaRadius = flashlightRadius * 256 / 215;
 			int alphaX = mouseX - alphaRadius / 2;
 			int alphaY = mouseY - alphaRadius / 2;
+			
+			/*
+			GameImage.ALPHA_MAP.getImage().draw(alphaX, alphaY, alphaRadius, alphaRadius);
+
+			// blend offscreen image
+			g.setDrawMode(Graphics.MODE_ALPHA_BLEND);
+			g.setClip(alphaX, alphaY, alphaRadius, alphaRadius);
+			g.drawImage(offscreen, 0, 0);
+			g.clearClip();
+			g.setDrawMode(Graphics.MODE_NORMAL);
+			*/
 		//}
 			
 		if (GameMod.FLASHLIGHT.isActive()) {
@@ -398,7 +413,13 @@ public class Game extends BasicGameState {
 		
 		// background
 		float dimLevel = Options.getBackgroundDim();
-		if (Options.isDefaultPlayfieldForced() || !osu.drawBG(width, height, dimLevel, false)) {
+		if (trackPosition < firstObjectTime) {
+			if (timeDiff < approachTime)
+				dimLevel += (1f - dimLevel) * ((float) timeDiff / Math.min(approachTime, firstObjectTime));
+			else
+				dimLevel = 1f;
+		}
+		if (Options.isDefaultPlayfieldForced() || !beatmap.drawBG(width, height, dimLevel, false)) {
 			Image playfield = GameImage.PLAYFIELD.getImage();
 			playfield.setAlpha(dimLevel);
 			playfield.draw();
@@ -410,12 +431,7 @@ public class Game extends BasicGameState {
 			GameImage.ALPHA_MAP.getImage().draw(alphaX, alphaY, alphaRadius, alphaRadius);
 			g.clearClip();
 			
-			// blend offscreen image
-			//g.setDrawMode(Graphics.MODE_ALPHA_BLEND);
-			//g.setClip(alphaX, alphaY, alphaRadius, alphaRadius);
-			//g.drawImage(offscreen, 0, 0);
-			//g.clearClip();
-			//g.setDrawMode(Graphics.MODE_NORMAL);
+			
 		}
 
 		// break periods
@@ -544,9 +560,7 @@ public class Game extends BasicGameState {
 				drawHitObjects(g, trackPosition);
 		}
 		
-		// draw pause button
-		if(Options.isInGamePauseEnabled())
-			pauseButton.draw();
+		
 
 		if (GameMod.AUTO.isActive())
 			GameImage.UNRANKED.getImage().drawCentered(width / 2, height * 0.077f);
@@ -554,6 +568,12 @@ public class Game extends BasicGameState {
 		// draw replay speed button
 		if (isReplay || GameMod.AUTO.isActive())
 			playbackSpeed.getButton().draw();
+		else
+			// draw pause button
+			if(Options.isInGamePauseEnabled() &&  !(objectIndex == 0 &&
+				    trackPosition < beatmap.objects[0].getTime() - SKIP_OFFSET)
+					)
+				pauseButton.draw();
 
 		// returning from pause screen
 		if (pauseTime > -1 && pausedMouseX > -1 && pausedMouseY > -1) {
@@ -911,7 +931,7 @@ public class Game extends BasicGameState {
 	private void pauseGame(int x, int y) {
 		// pause game
 		int trackPosition = MusicController.getPosition();
-		if (pauseTime < 0 && breakTime <= 0 && trackPosition >= osu.objects[0].getTime()) {
+		if (pauseTime < 0 && breakTime <= 0 && trackPosition >= beatmap.objects[0].getTime()) {
 			pausedMouseX = x;
 			pausedMouseY = y;
 			pausePulse = 0f;
@@ -1041,7 +1061,7 @@ public class Game extends BasicGameState {
 		if (keys != ReplayFrame.KEY_NONE)
 			gameKeyReleased(keys, input.getMouseX(), input.getMouseY(), MusicController.getPosition());
 	}
-	
+
 	/**
 	 * Handles a game key released event.
 	 * @param keys the game keys released
@@ -1402,7 +1422,7 @@ public class Game extends BasicGameState {
 		}
 		skipButton.setHoverExpand(1.1f, MenuButton.Expand.UP_LEFT);
 
-		Image pause = GameImage.MUSIC_PAUSE.getImage().getScaledCopy(2);
+		Image pause = GameImage.MUSIC_PAUSE.getImage().getScaledCopy(1.5f);
 		pauseButton = new MenuButton(pause, width - pause.getWidth() / 2f, height - (pause.getHeight() / 2f));
 	
 		// load other images...

@@ -4,6 +4,7 @@ import java.util.HashMap;
 
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Pixmap;
+import com.badlogic.gdx.graphics.Pixmap.Blending;
 import com.badlogic.gdx.graphics.Pixmap.Format;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -25,6 +26,7 @@ public class DynamicFreeTypeFont {
 	static int cnt = 0;
 	Font fontParam;
 	int ascent, descent, height;
+	boolean useKerning = false;
 
 	public DynamicFreeTypeFont(FileHandle font, Font fontParam) {
 		this.fontParam = fontParam;
@@ -47,6 +49,7 @@ public class DynamicFreeTypeFont {
 		descent = FreeType.toInt(sizes.getDescender());
 		height = FreeType.toInt(sizes.getHeight());
 		// System.out.println("Face flag "+face.getFaceFlags());
+		useKerning = FreeType.hasKerning(face);
 
 		thiscnt = cnt++;
 	}
@@ -62,13 +65,19 @@ public class DynamicFreeTypeFont {
 		public float xbear;
 		public float ybear;
 		public float height;
-		public int bitmaptop;
+		public int sBitmapTop;
 		public int yoffset;
-		public int xoffset;
+		public int sBitmapLeft;
+		public int bitmapPitch;
+		public int bitmapRows;
+		public int bitmapWidth;
 	}
 
 	public void draw(SpriteBatch batch, String str, float x, float y) {
-		char prevchr = 0;
+		x = (int)x;
+		y = (int)y;
+		int prevchrIndex = 0;
+		CharInfo prevCharInfo = null;
 		float ox = x;
 		for (int i = 0; i < str.length(); i++) {
 			char thischr = str.charAt(i);
@@ -78,21 +87,29 @@ public class DynamicFreeTypeFont {
 				continue;
 			}
 				
+			if (useKerning) {
+				int thisChrIndex = FreeType.getCharIndex(face, thischr);
+				float spacing = to26p6float(FreeType.getKerning(face, prevchrIndex, thisChrIndex,
+						FreeType.FT_KERNING_DEFAULT));
+				prevchrIndex = thisChrIndex;
+				
+				//OpenType kerning via the eGPOSf table is not supported! You need a higher-level library like HarfBuzz, Pango, or ICU, 
+				//System.out.println(spacing+" "+thischr);
+				if(prevCharInfo != null)
+					spacing += prevCharInfo.horadvance;
+				x += spacing;
+			}
+			
 			CharInfo ci = getCharInfo(str.charAt(i));
 			TextureRegion tr = ci.region;
-			batch.draw(tr, x + ci.xbear// xoffset
-			, y - ci.bitmaptop + ascent);// ci.yoffset);//-
+			batch.draw(tr, x + ci.sBitmapLeft// xoffset
+			, y - ci.sBitmapTop + ascent);// ci.yoffset);//-
 													// tr.getRegionHeight() +
 													// ci.ybear );//-
-			if (FreeType.hasKerning(face)) {
-				System.out.println("KERNING");
-				x += FreeType.getKerning(face, prevchr, thischr,
-						FreeType.FT_KERNING_DEFAULT);
-			} else {
+			if (!useKerning) {
 				x += ci.horadvance;
 			}
-			prevchr = thischr;
-
+			prevCharInfo = ci;
 		}
 	}
 
@@ -175,6 +192,13 @@ public class DynamicFreeTypeFont {
 			throw new GdxRuntimeException("Unknown Freetype pixel mode :"
 					+ bitmap.getPixelMode());
 		}
+		
+		int pixMapWidth = pixmap.getWidth();
+		if((fontParam.style&Font.BOLD) > 0){
+		//	pixMapWidth+=1;
+		}
+		
+		
 		// create a new page
 		if (curPixmap == null || y + pixmap.getHeight() > curPixmap.getHeight()) {
 			x = 0;
@@ -183,9 +207,12 @@ public class DynamicFreeTypeFont {
 			curPixmap = new Pixmap(512, 512, Format.RGBA8888);
 			curTexture = new Texture(new PixmapTextureData(curPixmap, null,
 					false, false, true));
+			curPixmap.setColor(0);
+			curPixmap.fill();
 		}
+		
 		// cant fit width, go to next line
-		if (x + pixmap.getWidth() > curPixmap.getWidth()) {
+		if (x + pixMapWidth > curPixmap.getWidth()) {
 			x = 0;
 			y += maxHeight;
 			maxHeight = 0;
@@ -195,15 +222,23 @@ public class DynamicFreeTypeFont {
 			maxHeight = pixmap.getHeight();
 		}
 
+		Pixmap.setBlending(Blending.None);
 		curPixmap.drawPixmap(pixmap, x, y);
+		if((fontParam.style&Font.BOLD) > 0){
+			Pixmap.setBlending(Blending.SourceOver);
+			curPixmap.drawPixmap(pixmap, x, y);
+			curPixmap.drawPixmap(pixmap, x, y);
+			Pixmap.setBlending(Blending.None);
+		}
+		
 
 		curTexture.load(new PixmapTextureData(curPixmap, null, false, false,
 				true));
 
 		TextureRegion tr = new TextureRegion(curTexture, x, y,
-				pixmap.getWidth(), pixmap.getHeight());
+				pixMapWidth, pixmap.getHeight());
 		tr.flip(false, true);
-		x += pixmap.getWidth();
+		x += pixMapWidth;
 
 		GlyphMetrics metrics = slot.getMetrics();
 		CharInfo ci = new CharInfo();
@@ -212,9 +247,20 @@ public class DynamicFreeTypeFont {
 		ci.xbear = to26p6float(metrics.getHoriBearingX());
 		ci.ybear = to26p6float(metrics.getHoriBearingY());
 		ci.height = to26p6float(metrics.getHeight());
-		ci.bitmaptop = slot.getBitmapTop();
+		ci.sBitmapTop = slot.getBitmapTop();
+		ci.sBitmapLeft = slot.getBitmapLeft();
 		ci.yoffset = slot.getBitmapTop() - pixmap.getHeight();
-		ci.xoffset = slot.getBitmapLeft();
+		ci.bitmapPitch = bitmap.getPitch();
+		ci.bitmapRows = bitmap.getRows();
+		ci.bitmapWidth = bitmap.getWidth();
+		
+		/*
+		System.out.println("char: "+c+"hradv:"+ci.horadvance+" xbear:"+ci.xbear+" ybear"+ci.ybear+" height"+ci.height+
+				" sBitmapTop"+ci.sBitmapTop+ " sBitmapLeft"+ci.sBitmapLeft
+				+" bitmapPitch"+ci.bitmapPitch+" bitmapRows"+ci.bitmapRows+" bitmapWidth"+ci.bitmapWidth
+				);*/
+		pixmap.dispose();
+		
 		 
 		return ci;
 	}
@@ -227,7 +273,7 @@ public class DynamicFreeTypeFont {
 				max = t;
 		}
 		return (int) max;*/
-		return getLineHeight()+descent;
+		return getLineHeight();
 	}
 
 	public int getWidth(String str) {
@@ -240,7 +286,7 @@ public class DynamicFreeTypeFont {
 	}
 
 	public int getLineHeight() {
-		return ascent + 2;
+		return ascent - descent ;
 
 	}
 

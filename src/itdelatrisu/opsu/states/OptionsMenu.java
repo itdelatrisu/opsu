@@ -60,6 +60,7 @@ public class OptionsMenu extends BasicGameState {
 			GameOption.NEW_CURSOR,
 			GameOption.DYNAMIC_BACKGROUND,
 			GameOption.LOAD_VERBOSE,
+			GameOption.MOBILE_UI_SCALING,
 			(com.badlogic.gdx.Gdx.app.getType() == ApplicationType.Desktop) ? 
 					GameOption.SCREEN_RESOLUTION : GameOption.NULL,
 //			GameOption.FULLSCREEN,
@@ -177,6 +178,7 @@ public class OptionsMenu extends BasicGameState {
 	@Override
 	public void init(GameContainer container, StateBasedGame game)
 			throws SlickException {
+		
 		this.container = container;
 		this.game = game;
 		this.input = container.getInput();
