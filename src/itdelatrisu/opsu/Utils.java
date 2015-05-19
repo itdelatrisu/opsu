@@ -164,7 +164,7 @@ public class Utils {
 		System.out.println("Utils init"+" "+width+" "+height);
 
 		// create fonts
-		float fontBase = 12f * GameImage.getUIscale();
+		float fontBase = 12f * GameImage.getUIscale() * Options.getMobileUIScale(0.5f);
 		try {
 			//Font javaFont = Font.createFont(Font.TRUETYPE_FONT, ResourceLoader.getResourceAsStream(Options.FONT_NAME));
 			Font javaFont = new Font(Options.FONT_NAME);

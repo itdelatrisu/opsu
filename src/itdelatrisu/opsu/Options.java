@@ -273,7 +273,7 @@ public class Options {
 				(com.badlogic.gdx.Gdx.graphics.getWidth()/com.badlogic.gdx.Gdx.graphics.getPpiX()) <= 6.0f?
 						20:
 						10
-				, 5, 30) {
+				, 2, 30) {
 			@Override
 			public String getValueString() { return (val == 0) ? "Disabled" : String.format("%.1f", val / 10f); }
 		},;
@@ -683,7 +683,10 @@ public class Options {
 	 * @return the OD value (0, 10], 0f if disabled
 	 */
 	public static float getMobileUIScale() { return GameOption.MOBILE_UI_SCALING.getIntegerValue() / 10f; }
+	
+	public static float getMobileUIScale(float scale) { return 1 + ((Options.getMobileUIScale()-1) * scale); }
 
+	
 	/**
 	 * Returns whether or not to render loading text in the splash screen.
 	 * @return true if enabled

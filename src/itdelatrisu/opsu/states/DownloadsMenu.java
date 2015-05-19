@@ -176,7 +176,7 @@ public class DownloadsMenu extends BasicGameState {
 		int width = container.getWidth();
 		int height = container.getHeight();
 		float baseX = width * 0.024f;
-		float searchY = (height * 0.04f) + Utils.FONT_LARGE.getLineHeight();
+		float searchY = ((height * 0.04f) + Utils.FONT_LARGE.getLineHeight()) / (Options.getMobileUIScale(1f));
 		float searchWidth = width * 0.3f;
 
 		// search
@@ -206,10 +206,10 @@ public class DownloadsMenu extends BasicGameState {
 
 		// buttons
 		float buttonMarginX = width * 0.004f;
-		float buttonHeight = height * 0.038f;
-		float resetWidth = width * 0.085f;
-		float rankedWidth = width * 0.15f;
-		float serverWidth = width * 0.12f;
+		float buttonHeight = Utils.FONT_MEDIUM.getLineHeight();//height * 0.038f;
+		float resetWidth = Utils.FONT_MEDIUM.getWidth("@@@@")+10;//width * 0.085f;
+		float rankedWidth = Utils.FONT_MEDIUM.getWidth("@@@@@@@@@")+10;//width * 0.15f;
+		float serverWidth = Utils.FONT_MEDIUM.getWidth("@@@@@")+10;//width * 0.12f;
 		float lowerWidth = width * 0.12f;
 		float topButtonY = searchY + Utils.FONT_MEDIUM.getLineHeight() / 2f;
 		float lowerButtonY = height * 0.995f - searchY - buttonHeight / 2f;
@@ -305,7 +305,7 @@ public class DownloadsMenu extends BasicGameState {
 		}
 
 		// downloads
-		float downloadsX = width * 0.75f, downloadsY = search.getY();
+		float downloadsX = width * 0.75f, downloadsY = height * 0.07f;
 		g.setColor(DownloadNode.BG_NORMAL);
 		g.fillRect(downloadsX, downloadsY,
 				width * 0.25f, height - downloadsY * 2f);

@@ -74,7 +74,7 @@ import org.newdawn.slick.state.transition.FadeOutTransition;
  */
 public class SongMenu extends BasicGameState {
 	/** The max number of song buttons to be shown on each screen. */
-	public static final int MAX_SONG_BUTTONS = 6;
+	public static int MAX_SONG_BUTTONS = 6;
 
 	/** The max number of score buttons to be shown at a time. */
 	public static final int MAX_SCORE_BUTTONS = 7;
@@ -239,6 +239,8 @@ public class SongMenu extends BasicGameState {
 
 		// song button background & graphics context
 		Image menuBackground = GameImage.MENU_BUTTON_BG.getImage();
+		MAX_SONG_BUTTONS = (int) ((footerY - headerY)/menuBackground.getHeight()+1);
+				
 
 		// song button coordinates
 		buttonX = width * 0.6f;

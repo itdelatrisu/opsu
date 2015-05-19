@@ -192,7 +192,7 @@ public class OptionsMenu extends BasicGameState {
 		float tabX = width * 0.032f + Utils.FONT_DEFAULT.getWidth("Change the way opsu! behaves") + (tabImage.getWidth() / 2);
 		float tabY = Utils.FONT_XLARGE.getLineHeight() + Utils.FONT_DEFAULT.getLineHeight() +
 				height * 0.015f - (tabImage.getHeight() / 2f);
-		int tabOffset = Math.min(tabImage.getWidth(), width / OptionTab.SIZE);
+		int tabOffset = (int) Math.min(tabImage.getWidth(), (width-tabX) / OptionTab.SIZE);
 		for (OptionTab tab : OptionTab.values())
 			tab.button = new MenuButton(tabImage, tabX + (tab.ordinal() * tabOffset), tabY);
 
@@ -412,6 +412,12 @@ public class OptionsMenu extends BasicGameState {
 		currentTab = OptionTab.DISPLAY;
 	}
 
+	@Override
+	public void leave(GameContainer container, StateBasedGame game)
+			throws SlickException {
+		Options.saveOptions();
+	}
+
 	/**
 	 * Draws a game option.
 	 * @param option the option
@@ -444,7 +450,7 @@ public class OptionsMenu extends BasicGameState {
 		if (y < textY || y > textY + (offsetY * maxOptionsScreen))
 			return option;
 
-		int index = (y - textY + Utils.FONT_LARGE.getLineHeight()) / offsetY;
+		int index = (int)((y - textY) / (float)offsetY + 0.3f);
 		if (index < currentTab.options.length)
 			option = currentTab.options[index];
 		return option;

@@ -158,7 +158,7 @@ public enum SongSort {
 	public void init(int containerWidth, float bottomY) {
 		Image tab = GameImage.MENU_TAB.getImage();
 		int tabWidth = tab.getWidth();
-		float buttonX = containerWidth / 2f;
+		float buttonX = containerWidth / 3f;
 		float tabOffset = (containerWidth - buttonX - tabWidth) / (SIZE - 1);
 		if (tabOffset > tabWidth) {  // prevent tabs from being spaced out
 			tabOffset = tabWidth;

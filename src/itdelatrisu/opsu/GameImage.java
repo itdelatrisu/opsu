@@ -221,14 +221,54 @@ public enum GameImage {
 	MOD_AUTOPILOT ("selection-mod-relax2", "png", false, false),
 
 	// Selection Buttons
-	SELECTION_MODS ("selection-mods", "png", false, false),
-	SELECTION_MODS_OVERLAY ("selection-mods-over", "png", false, false),
-	SELECTION_RANDOM ("selection-random", "png", false, false),
-	SELECTION_RANDOM_OVERLAY ("selection-random-over", "png", false, false),
-	SELECTION_OPTIONS ("selection-options", "png", false, false),
-	SELECTION_OPTIONS_OVERLAY ("selection-options-over", "png", false, false),
-	SELECTION_OTHER_OPTIONS ("selection-selectoptions", "png", false, false),
-	SELECTION_OTHER_OPTIONS_OVERLAY ("selection-selectoptions-over", "png", false, false),
+	SELECTION_MODS ("selection-mods", "png", false, false){
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy(Options.getMobileUIScale(0.5f));
+		}
+	},
+	SELECTION_MODS_OVERLAY ("selection-mods-over", "png", false, false){
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy(Options.getMobileUIScale(0.5f));
+		}
+	},
+	SELECTION_RANDOM ("selection-random", "png", false, false){
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy(Options.getMobileUIScale(0.5f));
+		}
+	},
+	SELECTION_RANDOM_OVERLAY ("selection-random-over", "png", false, false){
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy(Options.getMobileUIScale(0.5f));
+		}
+	},
+	SELECTION_OPTIONS ("selection-options", "png", false, false){
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy(Options.getMobileUIScale(0.5f));
+		}
+	},
+	SELECTION_OPTIONS_OVERLAY ("selection-options-over", "png", false, false){
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy(Options.getMobileUIScale(0.5f));
+		}
+	},
+	SELECTION_OTHER_OPTIONS ("selection-selectoptions", "png", false, false){
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy(Options.getMobileUIScale(0.5f));
+		}
+	},
+	SELECTION_OTHER_OPTIONS_OVERLAY ("selection-selectoptions-over", "png", false, false){
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy(Options.getMobileUIScale(0.5f));
+		}
+	},
 
 	// Replay Speed Buttons
 	REPLAY_PLAYBACK_NORMAL ("playback-normal", "png", false, false),
@@ -243,11 +283,16 @@ public enum GameImage {
 		}
 	},
 	MENU_BACK ("menu-back", "menu-back-%d", "png"),
-	MENU_BUTTON_BG ("menu-button-background", "png", false, false),
+	MENU_BUTTON_BG ("menu-button-background", "png", false, false){
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy(Options.getMobileUIScale(0.5f));
+		}
+	},
 	MENU_TAB ("selection-tab", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h * 0.033f) / img.getHeight());
+			return img.getScaledCopy((h * 0.033f) / img.getHeight() * Options.getMobileUIScale(0.5f));
 		}
 	},
 	MENU_MUSICNOTE ("music-note", "png", false, false) {
@@ -321,7 +366,7 @@ public enum GameImage {
 	DOWNLOADS ("downloads", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy((h * 0.45f) / img.getHeight() * (1 + (Options.getMobileUIScale()-1)* 0.5f));
+			return img.getScaledCopy((h * 0.45f) / img.getHeight() * Options.getMobileUIScale(0.5f));
 		}
 	},
 	SEARCH_BG ("search-background", "png|jpg", false, true) {
@@ -337,6 +382,11 @@ public enum GameImage {
 			int lineHeight = Utils.FONT_DEFAULT.getLineHeight();
 			return img.getScaledCopy(lineHeight, lineHeight);
 		}*/
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy(Options.getMobileUIScale(0.5f));
+		}
+		
 	},
 	HISTORY ("history", "png", false, false) {
 		@Override
