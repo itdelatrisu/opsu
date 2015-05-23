@@ -282,13 +282,13 @@ public class OsuParser {
 
 								break;
 							case "LetterboxInBreaks":
-								beatmap.letterboxInBreaks = (Integer.parseInt(tokens[1]) == 1);
+								beatmap.letterboxInBreaks = Utils.parseBoolean(tokens[1]);
 								break;
 							case "WidescreenStoryboard":
-								beatmap.widescreenStoryboard = (Integer.parseInt(tokens[1]) == 1);
+								beatmap.widescreenStoryboard = Utils.parseBoolean(tokens[1]);
 								break;
 							case "EpilepsyWarning":
-								beatmap.epilepsyWarning = (Integer.parseInt(tokens[1]) == 1);
+								beatmap.epilepsyWarning = Utils.parseBoolean(tokens[1]);
 							default:
 								break;
 							}

@@ -18,6 +18,8 @@
 
 package itdelatrisu.opsu.beatmap;
 
+import itdelatrisu.opsu.Utils;
+
 import org.newdawn.slick.util.Log;
 
 /**
@@ -64,9 +66,9 @@ public class TimingPoint {
 			this.sampleType = Byte.parseByte(tokens[3]);
 			this.sampleTypeCustom = Byte.parseByte(tokens[4]);
 			this.sampleVolume = Integer.parseInt(tokens[5]);
-//			this.inherited = (Integer.parseInt(tokens[6]) == 1);
+//			this.inherited = Utils.parseBoolean(tokens[6]);
 			if (tokens.length > 7)
-				this.kiai = (Integer.parseInt(tokens[7]) == 1);
+				this.kiai = Utils.parseBoolean(tokens[7]);
 		} catch (ArrayIndexOutOfBoundsException e) {
 			Log.debug(String.format("Error parsing timing point: '%s'", line));
 		}
