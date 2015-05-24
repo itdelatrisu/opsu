@@ -179,6 +179,9 @@ public class Utils {
 			ErrorHandler.error("Failed to load fonts.", e, true);
 		}
 
+		// load skin
+		Options.loadSkin();
+
 		// initialize game images
 		for (GameImage img : GameImage.values()) {
 			if (img.isPreload())

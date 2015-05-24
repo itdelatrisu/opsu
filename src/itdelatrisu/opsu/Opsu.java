@@ -45,7 +45,6 @@ import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.state.transition.FadeInTransition;
 import org.newdawn.slick.state.transition.FadeOutTransition;
-import org.newdawn.slick.util.ClasspathLocation;
 import org.newdawn.slick.util.DefaultLogSystem;
 import org.newdawn.slick.util.FileSystemLocation;
 import org.newdawn.slick.util.Log;
@@ -128,10 +127,6 @@ public class Opsu extends StateBasedGame {
 			System.setProperty("org.lwjgl.librarypath", nativeDir.getAbsolutePath());
 
 		// set the resource paths
-		ResourceLoader.removeAllResourceLocations();
-		ResourceLoader.addResourceLocation(new FileSystemLocation(Options.getSkinDir()));
-		ResourceLoader.addResourceLocation(new ClasspathLocation());
-		ResourceLoader.addResourceLocation(new FileSystemLocation(new File(".")));
 		ResourceLoader.addResourceLocation(new FileSystemLocation(new File("./res/")));
 
 		// initialize databases

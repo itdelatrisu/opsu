@@ -177,11 +177,14 @@ public class SoundController {
 	 */
 	private static String getSoundFileName(String filename) {
 		String wav = String.format("%s.wav", filename), mp3 = String.format("%s.mp3", filename);
-		File skinWAV = new File(Options.getSkinDir(), wav), skinMP3 = new File(Options.getSkinDir(), mp3);
-		if (skinWAV.isFile())
-			return skinWAV.getAbsolutePath();
-		if (skinMP3.isFile())
-			return skinMP3.getAbsolutePath();
+		File skinDir = Options.getSkin().getDirectory();
+		if (skinDir != null) {
+			File skinWAV = new File(skinDir, wav), skinMP3 = new File(skinDir, mp3);
+			if (skinWAV.isFile())
+				return skinWAV.getAbsolutePath();
+			if (skinMP3.isFile())
+				return skinMP3.getAbsolutePath();
+		}
 		if (ResourceLoader.resourceExists(wav))
 			return wav;
 		if (ResourceLoader.resourceExists(mp3))

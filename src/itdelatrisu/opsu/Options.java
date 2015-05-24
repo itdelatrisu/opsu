@@ -20,6 +20,8 @@ package itdelatrisu.opsu;
 
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.beatmap.Beatmap;
+import itdelatrisu.opsu.skins.Skin;
+import itdelatrisu.opsu.skins.SkinLoader;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -38,7 +40,10 @@ import org.lwjgl.input.Keyboard;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
+import org.newdawn.slick.util.ClasspathLocation;
+import org.newdawn.slick.util.FileSystemLocation;
 import org.newdawn.slick.util.Log;
+import org.newdawn.slick.util.ResourceLoader;
 
 /**
  * Handles all user options.
@@ -56,11 +61,18 @@ public class Options {
 	/** File for storing user options. */
 	private static final File OPTIONS_FILE = new File(CONFIG_DIR, ".opsu.cfg");
 
-	/** Beatmap directories (where to search for files).  */
+	/** Beatmap directories (where to search for files). */
 	private static final String[] BEATMAP_DIRS = {
 		"C:/Program Files (x86)/osu!/Songs/",
 		"C:/Program Files/osu!/Songs/",
 		new File(DATA_DIR, "Songs/").getPath()
+	};
+
+	/** Skin directories (where to search for skins). */
+	private static final String[] SKIN_ROOT_DIRS = {
+		"C:/Program Files (x86)/osu!/Skins/",
+		"C:/Program Files/osu!/Skins/",
+		new File(DATA_DIR, "Skins/").getPath()
 	};
 
 	/** Cached beatmap database name. */
@@ -96,8 +108,8 @@ public class Options {
 	/** The replay directory (created when needed). */
 	private static File replayDir;
 
-	/** The current skin directory (for user skins). */
-	private static File skinDir;
+	/** The root skin directory. */
+	private static File skinRootDir;
 
 	/** Port binding. */
 	private static int port = 49250;
@@ -153,6 +165,16 @@ public class Options {
 			}
 		},
 //		FULLSCREEN ("Fullscreen Mode", "Restart to apply changes.", false),
+		SKIN ("Skin", "Restart (Ctrl+Shift+F5) to apply skin changes.") {
+			@Override
+			public String getValueString() { return skinName; }
+
+			@Override
+			public void click(GameContainer container) {
+				skinDirIndex = (skinDirIndex + 1) % skinDirs.length;
+				skinName = skinDirs[skinDirIndex];
+			}
+		},
 		TARGET_FPS ("Frame Limiter", "Higher values may cause high CPU usage.") {
 			@Override
 			public String getValueString() {
@@ -448,6 +470,18 @@ public class Options {
 
 	/** Current screen resolution. */
 	private static Resolution resolution = Resolution.RES_1024_768;
+
+	/** The available skin directories. */
+	private static String[] skinDirs;
+
+	/** The index in the skinDirs array. */
+	private static int skinDirIndex = 0;
+
+	/** The name of the skin. */
+	private static String skinName = "Default";
+
+	/** The current skin. */
+	private static Skin skin;
 
 	/** Frame limiters. */
 	private static final int[] targetFPS = { 60, 120, 240 };
@@ -857,14 +891,66 @@ public class Options {
 	 * If invalid, this will create a "Skins" folder in the root directory.
 	 * @return the skin directory
 	 */
-	public static File getSkinDir() {
-		if (skinDir != null && skinDir.isDirectory())
-			return skinDir;
+	public static File getSkinRootDir() {
+		if (skinRootDir != null && skinRootDir.isDirectory())
+			return skinRootDir;
 
-		skinDir = new File(DATA_DIR, "Skins/");
-		skinDir.mkdir();
-		return skinDir;
+		// search for directory
+		for (int i = 0; i < SKIN_ROOT_DIRS.length; i++) {
+			skinRootDir = new File(SKIN_ROOT_DIRS[i]);
+			if (skinRootDir.isDirectory())
+				return skinRootDir;
+		}
+		skinRootDir.mkdir();  // none found, create new directory
+		return skinRootDir;
 	}
+
+	/**
+	 * Loads the skin given by the current skin directory.
+	 * If the directory is invalid, the default skin will be loaded.
+	 */
+	public static void loadSkin() {
+		File root = getSkinRootDir();
+		File skinDir = new File(root, skinName);
+		if (!skinDir.isDirectory()) {  // invalid skin name
+			skinName = Skin.DEFAULT_SKIN_NAME;
+			skinDir = null;
+		}
+
+		// create available skins list
+		File[] dirs = SkinLoader.getSkinDirectories(root);
+		skinDirs = new String[dirs.length + 1];
+		skinDirs[0] = Skin.DEFAULT_SKIN_NAME;
+		for (int i = 0; i < dirs.length; i++)
+			skinDirs[i + 1] = dirs[i].getName();
+
+		// set skin and modify resource locations
+		ResourceLoader.removeAllResourceLocations();
+		if (skinDir == null)
+			skin = new Skin(null);
+		else {
+			// set skin index
+			for (int i = 1; i < skinDirs.length; i++) {
+				if (skinDirs[i].equals(skinName)) {
+					skinDirIndex = i;
+					break;
+				}
+			}
+
+			// load the skin
+			skin = SkinLoader.loadSkin(skinDir);
+			ResourceLoader.addResourceLocation(new FileSystemLocation(skinDir));
+		}
+		ResourceLoader.addResourceLocation(new ClasspathLocation());
+		ResourceLoader.addResourceLocation(new FileSystemLocation(new File(".")));
+		ResourceLoader.addResourceLocation(new FileSystemLocation(new File("./res/")));
+	}
+
+	/**
+	 * Returns the current skin.
+	 * @return the skin, or null if no skin is loaded (see {@link #loadSkin()})
+	 */
+	public static Skin getSkin() { return skin; }
 
 	/**
 	 * Returns a dummy Beatmap containing the theme song.
@@ -928,8 +1014,8 @@ public class Options {
 					case "ReplayDirectory":
 						replayDir = new File(value);
 						break;
-					case "Skin":
-						skinDir = new File(value);
+					case "SkinDirectory":
+						skinRootDir = new File(value);
 						break;
 					case "ThemeSong":
 						themeString = value;
@@ -948,6 +1034,9 @@ public class Options {
 //					case "Fullscreen":
 //						GameOption.FULLSCREEN.setValue(Boolean.parseBoolean(value));
 //						break;
+					case "Skin":
+						skinName = value;
+						break;
 					case "FrameSync":
 						i = Integer.parseInt(value);
 						for (int j = 0; j < targetFPS.length; j++) {
@@ -1098,7 +1187,7 @@ public class Options {
 			writer.newLine();
 			writer.write(String.format("ReplayDirectory = %s", getReplayDir().getAbsolutePath()));
 			writer.newLine();
-			writer.write(String.format("Skin = %s", getSkinDir().getAbsolutePath()));
+			writer.write(String.format("SkinDirectory = %s", getSkinRootDir().getAbsolutePath()));
 			writer.newLine();
 			writer.write(String.format("ThemeSong = %s", themeString));
 			writer.newLine();
@@ -1108,6 +1197,8 @@ public class Options {
 			writer.newLine();
 //			writer.write(String.format("Fullscreen = %b", isFullscreen()));
 //			writer.newLine();
+			writer.write(String.format("Skin = %s", skinName));
+			writer.newLine();
 			writer.write(String.format("FrameSync = %d", targetFPS[targetFPSindex]));
 			writer.newLine();
 			writer.write(String.format("FpsCounter = %b", isFPSCounterEnabled()));

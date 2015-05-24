@@ -593,8 +593,9 @@ public enum GameImage {
 			return;
 
 		// try to load multiple images
+		File skinDir = Options.getSkin().getDirectory();
 		if (filenameFormat != null) {
-			if (((defaultImages = loadImageArray(Options.getSkinDir())) != null) ||
+			if ((skinDir != null && ((defaultImages = loadImageArray(skinDir)) != null)) ||
 			    ((defaultImages = loadImageArray(null)) != null)) {
 				process();
 				return;
@@ -602,7 +603,7 @@ public enum GameImage {
 		}
 
 		// try to load a single image
-		if (((defaultImage = loadImageSingle(Options.getSkinDir())) != null) ||
+		if ((skinDir != null && ((defaultImage = loadImageSingle(skinDir)) != null)) ||
 		    ((defaultImage = loadImageSingle(null)) != null)) {
 			process();
 			return;
