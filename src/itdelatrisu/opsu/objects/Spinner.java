@@ -22,6 +22,7 @@ import itdelatrisu.opsu.GameData;
 import itdelatrisu.opsu.GameData.HitObjectType;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.GameMod;
+import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
@@ -125,15 +126,17 @@ public class Spinner implements GameObject {
 			return;
 
 		boolean spinnerComplete = (rotations >= rotationsNeeded);
+		float alpha = Utils.clamp(1 - (float) timeDiff / FADE_IN_TIME, 0f, 1f);
 
 		// darken screen
-		float alpha = Utils.clamp(1 - (float) timeDiff / FADE_IN_TIME, 0f, 1f);
-		float oldAlpha = Utils.COLOR_BLACK_ALPHA.a;
-		if (timeDiff > 0)
-			Utils.COLOR_BLACK_ALPHA.a *= alpha;
-		g.setColor(Utils.COLOR_BLACK_ALPHA);
-		g.fillRect(0, 0, width, height);
-		Utils.COLOR_BLACK_ALPHA.a = oldAlpha;
+		if (Options.getSkin().isSpinnerFadePlayfield()) {
+			float oldAlpha = Utils.COLOR_BLACK_ALPHA.a;
+			if (timeDiff > 0)
+				Utils.COLOR_BLACK_ALPHA.a *= alpha;
+			g.setColor(Utils.COLOR_BLACK_ALPHA);
+			g.fillRect(0, 0, width, height);
+			Utils.COLOR_BLACK_ALPHA.a = oldAlpha;
+		}
 
 		// rpm
 		int rpm = Math.abs(Math.round(sumVelocity / storedVelocities.length * 60));

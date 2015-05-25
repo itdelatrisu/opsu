@@ -529,8 +529,10 @@ public class OsuParser {
 									line, file.getAbsolutePath()), e);
 						}
 					}
-					if (!colors.isEmpty())
+					if (!colors.isEmpty()) {
 						beatmap.combo = colors.toArray(new Color[colors.size()]);
+						beatmap.isDefaultCombo = false;
+					}
 					break;
 				case "[HitObjects]":
 					int type = 0;
@@ -585,8 +587,10 @@ public class OsuParser {
 			return null;
 
 		// if no custom colors, use the default color scheme
-		if (beatmap.combo == null)
-			beatmap.combo = Utils.DEFAULT_COMBO;
+		if (beatmap.combo == null) {
+			beatmap.combo = Options.getSkin().getComboColors();
+			beatmap.isDefaultCombo = true;
+		}
 
 		// parse hit objects now?
 		if (parseObjects)

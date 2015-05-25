@@ -19,6 +19,7 @@
 package itdelatrisu.opsu;
 
 import itdelatrisu.opsu.audio.SoundController;
+import itdelatrisu.opsu.skins.Skin;
 
 import java.nio.IntBuffer;
 import java.util.Iterator;
@@ -242,6 +243,7 @@ public class UI {
 
 		int removeCount = 0;
 		int FPSmod = (Options.getTargetFPS() / 60);
+		Skin skin = Options.getSkin();
 
 		// TODO: use an image buffer
 		if (newStyle) {
@@ -275,6 +277,8 @@ public class UI {
 		// draw a fading trail
 		float alpha = 0f;
 		float t = 2f / cursorX.size();
+		if (skin.isCursorTrailRotated())
+			cursorTrail.setRotation(cursorAngle);
 		Iterator<Integer> iterX = cursorX.iterator();
 		Iterator<Integer> iterY = cursorY.iterator();
 		while (iterX.hasNext()) {
@@ -288,15 +292,15 @@ public class UI {
 		cursorTrail.drawCentered(mouseX, mouseY);
 
 		// increase the cursor size if pressed
-		final float scale = 1.25f;
-		if (mousePressed) {
+		if (mousePressed && skin.isCursorExpanded()) {
+			final float scale = 1.25f;
 			cursor = cursor.getScaledCopy(scale);
 			if (newStyle)
 				cursorMiddle = cursorMiddle.getScaledCopy(scale);
 		}
 
 		// draw the other components
-		if (newStyle)
+		if (newStyle && skin.isCursorRotated())
 			cursor.setRotation(cursorAngle);
 		cursor.drawCentered(mouseX, mouseY);
 		if (newStyle)
@@ -373,6 +377,7 @@ public class UI {
 		GameImage.CURSOR_TRAIL.destroySkinImage();
 		cursorAngle = 0f;
 		GameImage.CURSOR.getImage().setRotation(0f);
+		GameImage.CURSOR_TRAIL.getImage().setRotation(0f);
 	}
 
 	/**

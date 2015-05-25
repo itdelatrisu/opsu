@@ -69,14 +69,14 @@ public class BeatmapSetNode {
 		Beatmap beatmap;
 		bg.setAlpha(0.9f);
 		Color bgColor;
-		Color textColor = Color.lightGray;
+		Color textColor = Options.getSkin().getSongSelectInactiveTextColor();
 
 		// get drawing parameters
 		if (expanded) {
 			x -= bg.getWidth() / 10f;
 			if (focus) {
 				bgColor = Color.white;
-				textColor = Color.white;
+				textColor = Options.getSkin().getSongSelectActiveTextColor();
 			} else
 				bgColor = Utils.COLOR_BLUE_BUTTON;
 			beatmap = beatmapSet.get(beatmapIndex);

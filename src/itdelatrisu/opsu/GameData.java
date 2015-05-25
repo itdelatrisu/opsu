@@ -1124,10 +1124,14 @@ public class GameData {
 		// combo bursts (at 30, 60, 100+50x)
 		if (Options.isComboBurstEnabled() &&
 			(combo == 30 || combo == 60 || (combo >= 100 && combo % 50 == 0))) {
-			if (combo == 30)
-				comboBurstIndex = 0;
-			else
-				comboBurstIndex = (comboBurstIndex + 1) % comboBurstImages.length;
+			if (Options.getSkin().isComboBurstRandom())
+				comboBurstIndex = (int) (Math.random() * comboBurstImages.length);
+			else {
+				if (combo == 30)
+					comboBurstIndex = 0;
+				else
+					comboBurstIndex = (comboBurstIndex + 1) % comboBurstImages.length;
+			}
 			comboBurstAlpha = 0.8f;
 			if ((comboBurstIndex % 2) == 0)
 				comboBurstX = width;

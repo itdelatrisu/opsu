@@ -114,6 +114,9 @@ public class Container extends AppGameContainer {
 		// save user options
 		Options.saveOptions();
 
+		// reset cursor
+		UI.resetCursor();
+
 		// destroy images
 		InternalTextureLoader.get().clear();
 

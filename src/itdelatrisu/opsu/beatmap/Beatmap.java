@@ -19,7 +19,6 @@
 package itdelatrisu.opsu.beatmap;
 
 import itdelatrisu.opsu.Options;
-import itdelatrisu.opsu.Utils;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -182,6 +181,9 @@ public class Beatmap implements Comparable<Beatmap> {
 
 	/** Combo colors (max 8). */
 	public Color[] combo;
+
+	/** Whether the combo is the default skin combo (true) or a beatmap combo (false). */
+	public boolean isDefaultCombo = true;
 
 	/**
 	 * [HitObjects]
@@ -400,7 +402,7 @@ public class Beatmap implements Comparable<Beatmap> {
 	 * or null if the field is null or the default combo.
 	 */
 	public String comboToString() {
-		if (combo == null || combo == Utils.DEFAULT_COMBO)
+		if (combo == null || isDefaultCombo)
 			return null;
 
 		StringBuilder sb = new StringBuilder();
@@ -423,7 +425,8 @@ public class Beatmap implements Comparable<Beatmap> {
 	 * @param s the string
 	 */
 	public void comboFromString(String s) {
-		this.combo = Utils.DEFAULT_COMBO;
+		this.combo = Options.getSkin().getComboColors();
+		this.isDefaultCombo = true;
 		if (s == null)
 			return;
 
@@ -433,7 +436,9 @@ public class Beatmap implements Comparable<Beatmap> {
 			String[] rgb = tokens[i].split(",");
 			colors.add(new Color(Integer.parseInt(rgb[0]), Integer.parseInt(rgb[1]), Integer.parseInt(rgb[2])));
 		}
-		if (!colors.isEmpty())
+		if (!colors.isEmpty()) {
 			this.combo = colors.toArray(new Color[colors.size()]);
+			this.isDefaultCombo = false;
+		}
 	}
 }
