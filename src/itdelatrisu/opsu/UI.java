@@ -227,10 +227,14 @@ public class UI {
 	 */
 	public static void drawCursor(int mouseX, int mouseY, boolean mousePressed) {
 		// determine correct cursor image
-		// TODO: most beatmaps don't skin CURSOR_MIDDLE, so how to determine style?
 		Image cursor = null, cursorMiddle = null, cursorTrail = null;
 		boolean skinned = GameImage.CURSOR.hasSkinImage();
-		boolean newStyle = (skinned) ? true : Options.isNewCursorEnabled();
+		boolean newStyle, hasMiddle;
+		if (skinned) {
+			newStyle = true;  // osu! currently treats all beatmap cursors as new-style cursors
+			hasMiddle = GameImage.CURSOR_MIDDLE.hasSkinImage();
+		} else
+			newStyle = hasMiddle = Options.isNewCursorEnabled();
 		if (skinned || newStyle) {
 			cursor = GameImage.CURSOR.getImage();
 			cursorTrail = GameImage.CURSOR_TRAIL.getImage();
@@ -238,7 +242,7 @@ public class UI {
 			cursor = GameImage.CURSOR_OLD.getImage();
 			cursorTrail = GameImage.CURSOR_TRAIL_OLD.getImage();
 		}
-		if (newStyle)
+		if (hasMiddle)
 			cursorMiddle = GameImage.CURSOR_MIDDLE.getImage();
 
 		int removeCount = 0;
@@ -295,7 +299,7 @@ public class UI {
 		if (mousePressed && skin.isCursorExpanded()) {
 			final float scale = 1.25f;
 			cursor = cursor.getScaledCopy(scale);
-			if (newStyle)
+			if (hasMiddle)
 				cursorMiddle = cursorMiddle.getScaledCopy(scale);
 		}
 
@@ -303,7 +307,7 @@ public class UI {
 		if (newStyle && skin.isCursorRotated())
 			cursor.setRotation(cursorAngle);
 		cursor.drawCentered(mouseX, mouseY);
-		if (newStyle)
+		if (hasMiddle)
 			cursorMiddle.drawCentered(mouseX, mouseY);
 	}
 

@@ -22,6 +22,7 @@ import itdelatrisu.opsu.GameData;
 import itdelatrisu.opsu.GameData.HitObjectType;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.GameMod;
+import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.beatmap.HitObject;
 import itdelatrisu.opsu.states.Game;
@@ -99,9 +100,13 @@ public class Circle implements GameObject {
 		if (timeDiff >= 0)
 			GameImage.APPROACHCIRCLE.getImage().getScaledCopy(approachScale).drawCentered(x, y, color);
 		GameImage.HITCIRCLE.getImage().drawCentered(x, y, color);
-		GameImage.HITCIRCLE_OVERLAY.getImage().drawCentered(x, y, Utils.COLOR_WHITE_FADE);
+		boolean overlayAboveNumber = Options.getSkin().isHitCircleOverlayAboveNumber();
+		if (!overlayAboveNumber)
+			GameImage.HITCIRCLE_OVERLAY.getImage().drawCentered(x, y, Utils.COLOR_WHITE_FADE);
 		data.drawSymbolNumber(hitObject.getComboNumber(), x, y,
 				GameImage.HITCIRCLE.getImage().getWidth() * 0.40f / data.getDefaultSymbolImage(0).getHeight(), alpha);
+		if (overlayAboveNumber)
+			GameImage.HITCIRCLE_OVERLAY.getImage().drawCentered(x, y, Utils.COLOR_WHITE_FADE);
 
 		Utils.COLOR_WHITE_FADE.a = oldAlpha;
 	}

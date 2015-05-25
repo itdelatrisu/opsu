@@ -279,16 +279,20 @@ public class SoundController {
 			return;
 
 		// play all sounds
-		HitSound.setSampleSet(sampleSet);
-		playClip(HitSound.NORMAL.getClip(), volume, null);
+		if (hitSound == HitObject.SOUND_NORMAL || Options.getSkin().isLayeredHitSounds()) {
+			HitSound.setSampleSet(sampleSet);
+			playClip(HitSound.NORMAL.getClip(), volume, null);
+		}
 
-		HitSound.setSampleSet(additionSampleSet);
-		if ((hitSound & HitObject.SOUND_WHISTLE) > 0)
-			playClip(HitSound.WHISTLE.getClip(), volume, null);
-		if ((hitSound & HitObject.SOUND_FINISH) > 0)
-			playClip(HitSound.FINISH.getClip(), volume, null);
-		if ((hitSound & HitObject.SOUND_CLAP) > 0)
-			playClip(HitSound.CLAP.getClip(), volume, null);
+		if (hitSound != HitObject.SOUND_NORMAL) {
+			HitSound.setSampleSet(additionSampleSet);
+			if ((hitSound & HitObject.SOUND_WHISTLE) > 0)
+				playClip(HitSound.WHISTLE.getClip(), volume, null);
+			if ((hitSound & HitObject.SOUND_FINISH) > 0)
+				playClip(HitSound.FINISH.getClip(), volume, null);
+			if ((hitSound & HitObject.SOUND_CLAP) > 0)
+				playClip(HitSound.CLAP.getClip(), volume, null);
+		}
 	}
 
 	/**

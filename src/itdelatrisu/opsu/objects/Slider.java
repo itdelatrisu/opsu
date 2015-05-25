@@ -22,6 +22,7 @@ import itdelatrisu.opsu.GameData;
 import itdelatrisu.opsu.GameData.HitObjectType;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.GameMod;
+import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.beatmap.Beatmap;
 import itdelatrisu.opsu.beatmap.HitObject;
@@ -195,12 +196,16 @@ public class Slider implements GameObject {
 
 		// start circle
 		hitCircle.drawCentered(x, y, color);
-		hitCircleOverlay.drawCentered(x, y, Utils.COLOR_WHITE_FADE);
+		boolean overlayAboveNumber = Options.getSkin().isHitCircleOverlayAboveNumber();
+		if (!overlayAboveNumber)
+			hitCircleOverlay.drawCentered(x, y, Utils.COLOR_WHITE_FADE);
 		if (sliderClickedInitial)
 			;  // don't draw current combo number if already clicked
 		else
 			data.drawSymbolNumber(hitObject.getComboNumber(), x, y,
 					hitCircle.getWidth() * 0.40f / data.getDefaultSymbolImage(0).getHeight(), alpha);
+		if (overlayAboveNumber)
+			hitCircleOverlay.drawCentered(x, y, Utils.COLOR_WHITE_FADE);
 
 		// repeats
 		for (int tcurRepeat = currentRepeats; tcurRepeat <= currentRepeats + 1; tcurRepeat++) {
