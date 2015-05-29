@@ -31,6 +31,7 @@ import itdelatrisu.opsu.states.MainMenu;
 import itdelatrisu.opsu.states.OptionsMenu;
 import itdelatrisu.opsu.states.SongMenu;
 import itdelatrisu.opsu.states.Splash;
+import itdelatrisu.opsu.ui.UI;
 
 import java.io.File;
 import java.io.FileNotFoundException;

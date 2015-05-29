@@ -19,12 +19,10 @@
 package itdelatrisu.opsu.states;
 
 import itdelatrisu.opsu.GameImage;
-import itdelatrisu.opsu.MenuButton;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.OsuParser;
 import itdelatrisu.opsu.OszUnpacker;
-import itdelatrisu.opsu.UI;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
@@ -38,6 +36,8 @@ import itdelatrisu.opsu.downloads.servers.BloodcatServer;
 import itdelatrisu.opsu.downloads.servers.DownloadServer;
 import itdelatrisu.opsu.downloads.servers.HexideServer;
 import itdelatrisu.opsu.downloads.servers.OsuMirrorServer;
+import itdelatrisu.opsu.ui.MenuButton;
+import itdelatrisu.opsu.ui.UI;
 
 import java.io.File;
 import java.io.IOException;

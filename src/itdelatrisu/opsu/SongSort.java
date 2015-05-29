@@ -20,6 +20,8 @@ package itdelatrisu.opsu;
 
 import itdelatrisu.opsu.beatmap.Beatmap;
 import itdelatrisu.opsu.beatmap.BeatmapSetNode;
+import itdelatrisu.opsu.ui.MenuButton;
+import itdelatrisu.opsu.ui.UI;
 
 import java.util.Arrays;
 import java.util.Collections;

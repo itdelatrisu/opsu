@@ -22,6 +22,7 @@ import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.beatmap.Beatmap;
 import itdelatrisu.opsu.skins.Skin;
 import itdelatrisu.opsu.skins.SkinLoader;
+import itdelatrisu.opsu.ui.UI;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;

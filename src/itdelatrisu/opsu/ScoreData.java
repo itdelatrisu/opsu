@@ -20,6 +20,7 @@ package itdelatrisu.opsu;
 
 import itdelatrisu.opsu.GameData.Grade;
 import itdelatrisu.opsu.states.SongMenu;
+import itdelatrisu.opsu.ui.UI;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;

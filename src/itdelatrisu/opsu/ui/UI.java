@@ -16,8 +16,15 @@
  * along with opsu!.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package itdelatrisu.opsu;
+package itdelatrisu.opsu.ui;
 
+import itdelatrisu.opsu.ErrorHandler;
+import itdelatrisu.opsu.GameImage;
+import itdelatrisu.opsu.Opsu;
+import itdelatrisu.opsu.Options;
+import itdelatrisu.opsu.OsuParser;
+import itdelatrisu.opsu.OszUnpacker;
+import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.skins.Skin;
 

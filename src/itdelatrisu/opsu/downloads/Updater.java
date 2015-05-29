@@ -20,9 +20,9 @@ package itdelatrisu.opsu.downloads;
 
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.Options;
-import itdelatrisu.opsu.UI;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.downloads.Download.DownloadListener;
+import itdelatrisu.opsu.ui.UI;
 
 import java.io.File;
 import java.io.IOException;

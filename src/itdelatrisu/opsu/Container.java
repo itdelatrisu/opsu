@@ -23,6 +23,7 @@ import itdelatrisu.opsu.beatmap.Beatmap;
 import itdelatrisu.opsu.beatmap.BeatmapSetList;
 import itdelatrisu.opsu.downloads.DownloadList;
 import itdelatrisu.opsu.downloads.Updater;
+import itdelatrisu.opsu.ui.UI;
 
 import org.lwjgl.opengl.Display;
 import org.newdawn.slick.AppGameContainer;

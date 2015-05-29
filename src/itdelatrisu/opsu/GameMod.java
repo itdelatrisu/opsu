@@ -18,6 +18,8 @@
 
 package itdelatrisu.opsu;
 
+import itdelatrisu.opsu.ui.MenuButton;
+
 import java.util.Arrays;
 import java.util.Collections;
 

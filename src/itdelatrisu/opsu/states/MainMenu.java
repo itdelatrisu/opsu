@@ -20,11 +20,8 @@ package itdelatrisu.opsu.states;
 
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.GameImage;
-import itdelatrisu.opsu.MenuButton;
-import itdelatrisu.opsu.MenuButton.Expand;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.Options;
-import itdelatrisu.opsu.UI;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
@@ -34,6 +31,9 @@ import itdelatrisu.opsu.beatmap.BeatmapSetList;
 import itdelatrisu.opsu.beatmap.BeatmapSetNode;
 import itdelatrisu.opsu.downloads.Updater;
 import itdelatrisu.opsu.states.ButtonMenu.MenuState;
+import itdelatrisu.opsu.ui.MenuButton;
+import itdelatrisu.opsu.ui.UI;
+import itdelatrisu.opsu.ui.MenuButton.Expand;
 
 import java.awt.Desktop;
 import java.io.IOException;

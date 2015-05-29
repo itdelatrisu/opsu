@@ -16,7 +16,9 @@
  * along with opsu!.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package itdelatrisu.opsu;
+package itdelatrisu.opsu.ui;
+
+import itdelatrisu.opsu.Utils;
 
 import org.newdawn.slick.Animation;
 import org.newdawn.slick.Color;

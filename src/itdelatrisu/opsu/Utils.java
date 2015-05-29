@@ -24,6 +24,7 @@ import itdelatrisu.opsu.beatmap.HitObject;
 import itdelatrisu.opsu.downloads.Download;
 import itdelatrisu.opsu.downloads.DownloadNode;
 import itdelatrisu.opsu.replay.PlaybackSpeed;
+import itdelatrisu.opsu.ui.UI;
 
 import java.awt.Font;
 import java.awt.image.BufferedImage;

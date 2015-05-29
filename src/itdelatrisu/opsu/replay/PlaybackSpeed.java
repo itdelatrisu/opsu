@@ -20,7 +20,7 @@ package itdelatrisu.opsu.replay;
 
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.GameMod;
-import itdelatrisu.opsu.MenuButton;
+import itdelatrisu.opsu.ui.MenuButton;
 
 import org.newdawn.slick.Image;
 
