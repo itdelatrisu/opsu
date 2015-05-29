@@ -24,7 +24,6 @@ import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.GameMod;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.Options;
-import itdelatrisu.opsu.OsuParser;
 import itdelatrisu.opsu.ScoreData;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.HitSound;
@@ -33,6 +32,7 @@ import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
 import itdelatrisu.opsu.beatmap.Beatmap;
 import itdelatrisu.opsu.beatmap.HitObject;
+import itdelatrisu.opsu.beatmap.BeatmapParser;
 import itdelatrisu.opsu.beatmap.TimingPoint;
 import itdelatrisu.opsu.db.BeatmapDB;
 import itdelatrisu.opsu.db.ScoreDB;
@@ -1265,7 +1265,7 @@ public class Game extends BasicGameState {
 		Display.setTitle(String.format("%s - %s", game.getTitle(), beatmap.toString()));
 		if (beatmap.timingPoints == null || beatmap.combo == null)
 			BeatmapDB.load(beatmap, BeatmapDB.LOAD_ARRAY);
-		OsuParser.parseHitObjects(beatmap);
+		BeatmapParser.parseHitObjects(beatmap);
 		HitSound.setDefaultSampleSet(beatmap.sampleSet);
 	}
 

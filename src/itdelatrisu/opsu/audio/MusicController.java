@@ -20,8 +20,8 @@ package itdelatrisu.opsu.audio;
 
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.Options;
-import itdelatrisu.opsu.OsuParser;
 import itdelatrisu.opsu.beatmap.Beatmap;
+import itdelatrisu.opsu.beatmap.BeatmapParser;
 
 import java.io.File;
 import java.io.IOException;
@@ -90,7 +90,7 @@ public class MusicController {
 			reset();
 			System.gc();
 
-			switch (OsuParser.getExtension(beatmap.audioFilename.getName())) {
+			switch (BeatmapParser.getExtension(beatmap.audioFilename.getName())) {
 			case "ogg":
 			case "mp3":
 				trackLoader = new Thread() {

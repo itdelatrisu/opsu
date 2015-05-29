@@ -20,8 +20,8 @@ package itdelatrisu.opsu.db;
 
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.Options;
-import itdelatrisu.opsu.OsuParser;
 import itdelatrisu.opsu.beatmap.Beatmap;
+import itdelatrisu.opsu.beatmap.BeatmapParser;
 
 import java.io.File;
 import java.sql.Connection;
@@ -439,14 +439,14 @@ public class BeatmapDB {
 		try {
 			beatmap.beatmapID = rs.getInt(4);
 			beatmap.beatmapSetID = rs.getInt(5);
-			beatmap.title = OsuParser.getDBString(rs.getString(6));
-			beatmap.titleUnicode = OsuParser.getDBString(rs.getString(7));
-			beatmap.artist = OsuParser.getDBString(rs.getString(8));
-			beatmap.artistUnicode = OsuParser.getDBString(rs.getString(9));
-			beatmap.creator = OsuParser.getDBString(rs.getString(10));
-			beatmap.version = OsuParser.getDBString(rs.getString(11));
-			beatmap.source = OsuParser.getDBString(rs.getString(12));
-			beatmap.tags = OsuParser.getDBString(rs.getString(13));
+			beatmap.title = BeatmapParser.getDBString(rs.getString(6));
+			beatmap.titleUnicode = BeatmapParser.getDBString(rs.getString(7));
+			beatmap.artist = BeatmapParser.getDBString(rs.getString(8));
+			beatmap.artistUnicode = BeatmapParser.getDBString(rs.getString(9));
+			beatmap.creator = BeatmapParser.getDBString(rs.getString(10));
+			beatmap.version = BeatmapParser.getDBString(rs.getString(11));
+			beatmap.source = BeatmapParser.getDBString(rs.getString(12));
+			beatmap.tags = BeatmapParser.getDBString(rs.getString(13));
 			beatmap.hitObjectCircle = rs.getInt(14);
 			beatmap.hitObjectSlider = rs.getInt(15);
 			beatmap.hitObjectSpinner = rs.getInt(16);
@@ -459,17 +459,17 @@ public class BeatmapDB {
 			beatmap.bpmMin = rs.getInt(23);
 			beatmap.bpmMax = rs.getInt(24);
 			beatmap.endTime = rs.getInt(25);
-			beatmap.audioFilename = new File(beatmap.getFile().getParentFile(), OsuParser.getDBString(rs.getString(26)));
+			beatmap.audioFilename = new File(beatmap.getFile().getParentFile(), BeatmapParser.getDBString(rs.getString(26)));
 			beatmap.audioLeadIn = rs.getInt(27);
 			beatmap.previewTime = rs.getInt(28);
 			beatmap.countdown = rs.getByte(29);
-			beatmap.sampleSet = OsuParser.getDBString(rs.getString(30));
+			beatmap.sampleSet = BeatmapParser.getDBString(rs.getString(30));
 			beatmap.stackLeniency = rs.getFloat(31);
 			beatmap.mode = rs.getByte(32);
 			beatmap.letterboxInBreaks = rs.getBoolean(33);
 			beatmap.widescreenStoryboard = rs.getBoolean(34);
 			beatmap.epilepsyWarning = rs.getBoolean(35);
-			beatmap.bg = OsuParser.getDBString(rs.getString(36));
+			beatmap.bg = BeatmapParser.getDBString(rs.getString(36));
 		} catch (SQLException e) {
 			throw e;
 		} catch (Exception e) {

@@ -21,12 +21,12 @@ package itdelatrisu.opsu.states;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.Options;
-import itdelatrisu.opsu.OsuParser;
 import itdelatrisu.opsu.OszUnpacker;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.beatmap.BeatmapSetList;
+import itdelatrisu.opsu.beatmap.BeatmapParser;
 import itdelatrisu.opsu.ui.UI;
 
 import java.io.File;
@@ -103,7 +103,7 @@ public class Splash extends BasicGameState {
 						OszUnpacker.unpackAllFiles(Options.getOSZDir(), beatmapDir);
 
 						// parse song directory
-						OsuParser.parseAllFiles(beatmapDir);
+						BeatmapParser.parseAllFiles(beatmapDir);
 
 						// load sounds
 						SoundController.init();
@@ -151,7 +151,7 @@ public class Splash extends BasicGameState {
 			if (++escapeCount >= 3)
 				container.exit();
 
-			// stop parsing beatmaps by sending interrupt to OsuParser
+			// stop parsing beatmaps by sending interrupt to BeatmapParser
 			else if (thread != null)
 				thread.interrupt();
 		}

@@ -24,7 +24,6 @@ import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.GameMod;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.Options;
-import itdelatrisu.opsu.OsuParser;
 import itdelatrisu.opsu.OszUnpacker;
 import itdelatrisu.opsu.ScoreData;
 import itdelatrisu.opsu.Utils;
@@ -36,6 +35,7 @@ import itdelatrisu.opsu.beatmap.Beatmap;
 import itdelatrisu.opsu.beatmap.BeatmapSetList;
 import itdelatrisu.opsu.beatmap.BeatmapSetNode;
 import itdelatrisu.opsu.beatmap.BeatmapSortOrder;
+import itdelatrisu.opsu.beatmap.BeatmapParser;
 import itdelatrisu.opsu.db.BeatmapDB;
 import itdelatrisu.opsu.db.ScoreDB;
 import itdelatrisu.opsu.states.ButtonMenu.MenuState;
@@ -730,7 +730,7 @@ public class SongMenu extends BasicGameState {
 		switch (key) {
 		case Input.KEY_ESCAPE:
 			if (reloadThread != null) {
-				// beatmap reloading: stop parsing beatmaps by sending interrupt to OsuParser
+				// beatmap reloading: stop parsing beatmaps by sending interrupt to BeatmapParser
 				reloadThread.interrupt();
 			} else if (!search.getText().isEmpty()) {
 				// clear search text
@@ -1093,7 +1093,7 @@ public class SongMenu extends BasicGameState {
 						// invoke unpacker and parser
 						File beatmapDir = Options.getBeatmapDir();
 						OszUnpacker.unpackAllFiles(Options.getOSZDir(), beatmapDir);
-						OsuParser.parseAllFiles(beatmapDir);
+						BeatmapParser.parseAllFiles(beatmapDir);
 
 						// initialize song list
 						if (BeatmapSetList.get().size() > 0) {

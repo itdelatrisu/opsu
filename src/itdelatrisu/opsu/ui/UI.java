@@ -22,10 +22,10 @@ import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.Options;
-import itdelatrisu.opsu.OsuParser;
 import itdelatrisu.opsu.OszUnpacker;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.SoundController;
+import itdelatrisu.opsu.beatmap.BeatmapParser;
 import itdelatrisu.opsu.skins.Skin;
 
 import java.nio.IntBuffer;
@@ -510,10 +510,10 @@ public class UI {
 		if ((file = OszUnpacker.getCurrentFileName()) != null) {
 			text = "Unpacking new beatmaps...";
 			progress = OszUnpacker.getUnpackerProgress();
-		} else if ((file = OsuParser.getCurrentFileName()) != null) {
-			text = (OsuParser.getStatus() == OsuParser.Status.INSERTING) ?
+		} else if ((file = BeatmapParser.getCurrentFileName()) != null) {
+			text = (BeatmapParser.getStatus() == BeatmapParser.Status.INSERTING) ?
 					"Updating database..." : "Loading beatmaps...";
-			progress = OsuParser.getParserProgress();
+			progress = BeatmapParser.getParserProgress();
 		} else if ((file = SoundController.getCurrentFileName()) != null) {
 			text = "Loading sounds...";
 			progress = SoundController.getLoadingProgress();

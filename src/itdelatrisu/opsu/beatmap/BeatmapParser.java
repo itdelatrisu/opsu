@@ -16,13 +16,11 @@
  * along with opsu!.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package itdelatrisu.opsu;
+package itdelatrisu.opsu.beatmap;
 
-import itdelatrisu.opsu.beatmap.Beatmap;
-import itdelatrisu.opsu.beatmap.BeatmapSetList;
-import itdelatrisu.opsu.beatmap.BeatmapSetNode;
-import itdelatrisu.opsu.beatmap.HitObject;
-import itdelatrisu.opsu.beatmap.TimingPoint;
+import itdelatrisu.opsu.ErrorHandler;
+import itdelatrisu.opsu.Options;
+import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.db.BeatmapDB;
 
 import java.io.BufferedReader;
@@ -43,9 +41,9 @@ import org.newdawn.slick.Color;
 import org.newdawn.slick.util.Log;
 
 /**
- * Parser for OSU files.
+ * Parser for beatmaps.
  */
-public class OsuParser {
+public class BeatmapParser {
 	/** The string lookup database. */
 	private static HashMap<String, String> stringdb = new HashMap<String, String>();
 
@@ -68,7 +66,7 @@ public class OsuParser {
 	private static Status status = Status.NONE;
 
 	// This class should not be instantiated.
-	private OsuParser() {}
+	private BeatmapParser() {}
 
 	/**
 	 * Invokes parser for each OSU file in a root directory and
@@ -441,7 +439,7 @@ public class OsuParser {
 						switch (tokens[0]) {
 						case "0":  // background
 							tokens[2] = tokens[2].replaceAll("^\"|\"$", "");
-							String ext = OsuParser.getExtension(tokens[2]);
+							String ext = BeatmapParser.getExtension(tokens[2]);
 							if (ext.equals("jpg") || ext.equals("png"))
 								beatmap.bg = getDBString(tokens[2]);
 							break;
