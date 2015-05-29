@@ -447,21 +447,37 @@ public class GameData {
 	}
 
 	/**
-	 * Returns a default/score text symbol image for a character.
+	 * Returns a default text symbol image for a digit.
+	 * @param i the digit [0-9]
 	 */
 	public Image getDefaultSymbolImage(int i) { return defaultSymbols[i]; }
+
+	/**
+	 * Returns a score text symbol image for a character.
+	 * @param c the character [0-9,.%x]
+	 */
 	public Image getScoreSymbolImage(char c) { return scoreSymbols.get(c); }
 
 	/**
-	 * Sets or returns the health drain rate.
+	 * Sets the health drain rate.
+	 * @param drainRate the new drain rate [0-10]
 	 */
 	public void setDrainRate(float drainRate) { this.drainRate = drainRate; }
+
+	/**
+	 * Returns the health drain rate.
+	 */
 	public float getDrainRate() { return drainRate; }
 
 	/**
-	 * Sets or returns the difficulty.
+	 * Sets the overall difficulty level.
+	 * @param difficulty the new difficulty [0-10]
 	 */
 	public void setDifficulty(float difficulty) { this.difficulty = difficulty; }
+
+	/**
+	 * Returns the overall difficulty level.
+	 */
 	public float getDifficulty() { return difficulty; }
 
 	/**
@@ -847,7 +863,7 @@ public class GameData {
 
 	/**
 	 * Draws stored hit results and removes them from the list as necessary.
-	 * @param trackPosition the current track position
+	 * @param trackPosition the current track position (in ms)
 	 */
 	public void drawHitResults(int trackPosition) {
 		Iterator<OsuHitObjectResult> iter = hitResultList.iterator();
@@ -930,6 +946,7 @@ public class GameData {
 
 	/**
 	 * Changes health by a given percentage, modified by drainRate.
+	 * @param percent the health percentage
 	 */
 	public void changeHealth(float percent) {
 		// TODO: drainRate formula
@@ -941,7 +958,7 @@ public class GameData {
 	}
 
 	/**
-	 * Returns health percentage.
+	 * Returns the current health percentage.
 	 */
 	public float getHealth() { return health; }
 
@@ -956,6 +973,7 @@ public class GameData {
 
 	/**
 	 * Changes score by a raw value (not affected by other modifiers).
+	 * @param value the score value
 	 */
 	public void changeScore(int value) { score += value; }
 
@@ -965,7 +983,7 @@ public class GameData {
 	 * @param hit100 the number of 100s
 	 * @param hit50 the number of 50s
 	 * @param miss the number of misses
-	 * @return the percentage
+	 * @return the score percentage
 	 */
 	public static float getScorePercent(int hit300, int hit100, int hit50, int miss) {
 		float percent = 0;
@@ -1020,7 +1038,7 @@ public class GameData {
 
 	/**
 	 * Returns letter grade based on score data,
-	 * or Grade.NULL if no objects have been processed.
+	 * or {@code Grade.NULL} if no objects have been processed.
 	 */
 	private Grade getGrade() {
 		return getGrade(
@@ -1195,6 +1213,23 @@ public class GameData {
 	}
 
 	/**
+	 * Returns the score for a hit based on the following score formula:
+	 * <p>
+	 * Score = Hit Value + Hit Value * (Combo * Difficulty * Mod) / 25
+	 * <ul>
+	 * <li><strong>Hit Value:</strong> hit result (50, 100, 300), slider ticks, spinner bonus
+	 * <li><strong>Combo:</strong> combo before this hit - 1 (minimum 0)
+	 * <li><strong>Difficulty:</strong> the beatmap difficulty
+	 * <li><strong>Mod:</strong> mod multipliers
+	 * </ul>
+	 * @param hitValue the hit value
+	 * @return the score value
+	 */
+	private int getScoreForHit(int hitValue) {
+		return hitValue + (int) (hitValue * (Math.max(combo - 1, 0) * difficulty * GameMod.getScoreMultiplier()) / 25);
+	}
+
+	/**
 	 * Handles a hit result and performs all associated calculations.
 	 * @param time the object start time
 	 * @param result the base hit result (HIT_* constants)
@@ -1209,6 +1244,7 @@ public class GameData {
 	 */
 	private int handleHitResult(int time, int result, float x, float y, Color color,
 			boolean end, HitObject hitObject, int repeat, HitObjectType hitResultType) {
+		// update health, score, and combo streak based on hit result
 		int hitValue = 0;
 		switch (result) {
 		case HIT_300:
@@ -1238,15 +1274,9 @@ public class GameData {
 					hitObject.getEdgeHitSoundType(repeat),
 					hitObject.getSampleSet(repeat),
 					hitObject.getAdditionSampleSet(repeat));
-			/**
-			 * [SCORE FORMULA]
-			 * Score = Hit Value + Hit Value * (Combo * Difficulty * Mod) / 25
-			 * - Hit Value: hit result (50, 100, 300), slider ticks, spinner bonus
-			 * - Combo: combo before this hit - 1 (minimum 0)
-			 * - Difficulty: the beatmap difficulty
-			 * - Mod: mod multipliers
-			 */
-			score += (hitValue + (hitValue * (Math.max(combo - 1, 0) * difficulty * GameMod.getScoreMultiplier()) / 25));
+
+			// calculate score and increment combo streak
+			changeScore(getScoreForHit(hitValue));
 			incrementComboStreak();
 		}
 		hitResultCount[result]++;
@@ -1385,6 +1415,7 @@ public class GameData {
 
 	/**
 	 * Sets the replay object.
+	 * @param replay the replay
 	 */
 	public void setReplay(Replay replay) { this.replay = replay; }
 

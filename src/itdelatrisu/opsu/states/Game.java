@@ -1304,7 +1304,7 @@ public class Game extends BasicGameState {
 
 	/**
 	 * Skips the beginning of a track.
-	 * @return true if skipped, false otherwise
+	 * @return {@code true} if skipped, {@code false} otherwise
 	 */
 	private synchronized boolean skipIntro() {
 		int firstObjectTime = beatmap.objects[0].getTime();
@@ -1409,9 +1409,14 @@ public class Game extends BasicGameState {
 	}
 
 	/**
-	 * Sets/returns whether entering the state will restart it.
+	 * Sets the restart state.
+	 * @param restart the new restart state
 	 */
 	public void setRestart(Restart restart) { this.restart = restart; }
+
+	/**
+	 * Returns the current restart state.
+	 */
 	public Restart getRestart() { return restart; }
 
 	/**
