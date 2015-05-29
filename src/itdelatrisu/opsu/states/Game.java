@@ -544,7 +544,6 @@ public class Game extends BasicGameState {
 			UI.draw(g, autoMouseX, autoMouseY, Utils.isGameKeyPressed());
 		else
 			UI.draw(g);
-
 	}
 
 	@Override
@@ -1105,7 +1104,7 @@ public class Game extends BasicGameState {
 
 			// unhide cursor for "auto" mod and replays
 			if (GameMod.AUTO.isActive() || isReplay)
-				UI.showCursor();
+				UI.getCursor().show();
 
 			// load replay frames
 			if (isReplay) {
@@ -1163,7 +1162,7 @@ public class Game extends BasicGameState {
 
 		// re-hide cursor
 		if (GameMod.AUTO.isActive() || isReplay)
-			UI.hideCursor();
+			UI.getCursor().hide();
 
 		// replays
 		if (isReplay)
