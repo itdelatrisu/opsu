@@ -19,7 +19,6 @@
 package itdelatrisu.opsu.beatmap;
 
 import itdelatrisu.opsu.ErrorHandler;
-import itdelatrisu.opsu.SongSort;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.db.BeatmapDB;
@@ -378,7 +377,7 @@ public class BeatmapSetList {
 			return;
 
 		// sort the list
-		Collections.sort(nodes, SongSort.getSort().getComparator());
+		Collections.sort(nodes, BeatmapSortOrder.getSort().getComparator());
 		expandedIndex = -1;
 		expandedStartNode = expandedEndNode = null;
 

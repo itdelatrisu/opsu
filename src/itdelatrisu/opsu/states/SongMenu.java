@@ -27,7 +27,6 @@ import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.OsuParser;
 import itdelatrisu.opsu.OszUnpacker;
 import itdelatrisu.opsu.ScoreData;
-import itdelatrisu.opsu.SongSort;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.MultiClip;
 import itdelatrisu.opsu.audio.MusicController;
@@ -36,6 +35,7 @@ import itdelatrisu.opsu.audio.SoundEffect;
 import itdelatrisu.opsu.beatmap.Beatmap;
 import itdelatrisu.opsu.beatmap.BeatmapSetList;
 import itdelatrisu.opsu.beatmap.BeatmapSetNode;
+import itdelatrisu.opsu.beatmap.BeatmapSortOrder;
 import itdelatrisu.opsu.db.BeatmapDB;
 import itdelatrisu.opsu.db.ScoreDB;
 import itdelatrisu.opsu.states.ButtonMenu.MenuState;
@@ -228,7 +228,7 @@ public class SongMenu extends BasicGameState {
 		footerY = height - GameImage.SELECTION_MODS.getImage().getHeight();
 
 		// initialize sorts
-		for (SongSort sort : SongSort.values())
+		for (BeatmapSortOrder sort : BeatmapSortOrder.values())
 			sort.init(width, headerY - SongMenu.DIVIDER_LINE_WIDTH / 2);
 
 		// initialize score data buttons
@@ -388,15 +388,15 @@ public class SongMenu extends BasicGameState {
 		selectOptionsButton.draw();
 
 		// sorting tabs
-		SongSort currentSort = SongSort.getSort();
-		SongSort hoverSort = null;
-		for (SongSort sort : SongSort.values()) {
+		BeatmapSortOrder currentSort = BeatmapSortOrder.getSort();
+		BeatmapSortOrder hoverSort = null;
+		for (BeatmapSortOrder sort : BeatmapSortOrder.values()) {
 			if (sort.contains(mouseX, mouseY)) {
 				hoverSort = sort;
 				break;
 			}
 		}
-		for (SongSort sort : SongSort.VALUES_REVERSED) {
+		for (BeatmapSortOrder sort : BeatmapSortOrder.VALUES_REVERSED) {
 			if (sort != currentSort)
 				sort.draw(false, sort == hoverSort);
 		}
@@ -636,10 +636,10 @@ public class SongMenu extends BasicGameState {
 			return;
 
 		// sorting buttons
-		for (SongSort sort : SongSort.values()) {
+		for (BeatmapSortOrder sort : BeatmapSortOrder.values()) {
 			if (sort.contains(x, y)) {
-				if (sort != SongSort.getSort()) {
-					SongSort.setSort(sort);
+				if (sort != BeatmapSortOrder.getSort()) {
+					BeatmapSortOrder.setSort(sort);
 					SoundController.playSound(SoundEffect.MENUCLICK);
 					BeatmapSetNode oldFocusBase = BeatmapSetList.get().getBaseNode(focusNode.index);
 					int oldFocusFileIndex = focusNode.beatmapIndex;
