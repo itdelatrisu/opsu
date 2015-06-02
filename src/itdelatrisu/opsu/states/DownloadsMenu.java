@@ -162,6 +162,10 @@ public class DownloadsMenu extends BasicGameState {
 	private Input input;
 	private int state;
 
+	private float pageButtonY;
+	private float titleY;
+	private float searchResultY;
+
 	public DownloadsMenu(int state) {
 		this.state = state;
 	}
@@ -169,14 +173,25 @@ public class DownloadsMenu extends BasicGameState {
 	@Override
 	public void init(GameContainer container, StateBasedGame game)
 			throws SlickException {
+		
+		/*
+		 Title <FONT_LARGE>
+		 [search] [buttons] <FONT_MEDIUM>
+		 Type to search  <FONT_BOLD>
+		 << Page # >> <FONT_BOLD>
+		 
+		 */
 		this.container = container;
 		this.game = game;
 		this.input = container.getInput();
 
 		int width = container.getWidth();
 		int height = container.getHeight();
+		
+		titleY = height * 0.03f;//Utils.FONT_LARGE.getLineHeight();
+		
 		float baseX = width * 0.024f;
-		float searchY = ((height * 0.04f) + Utils.FONT_LARGE.getLineHeight()) / (Options.getMobileUIScale(1f));
+		float searchY = titleY + Utils.FONT_LARGE.getLineHeight();
 		float searchWidth = width * 0.3f;
 
 		// search
@@ -192,15 +207,16 @@ public class DownloadsMenu extends BasicGameState {
 		search.setConsumeEvents(false);
 		search.setMaxLength(255);
 
-		// page buttons
-		float pageButtonY = height * 0.2f - Utils.FONT_BOLD.getLineHeight();
+		searchResultY = search.getY() + search.getHeight();
 		float pageButtonWidth = width * 0.7f;
 		Image prevImg = GameImage.MUSIC_PREVIOUS.getImage();
 		Image nextImg = GameImage.MUSIC_NEXT.getImage();
+		pageButtonY = searchResultY  + Utils.FONT_BOLD.getLineHeight() ;
+		
 		prevPage = new MenuButton(prevImg, baseX + prevImg.getWidth() / 2f,
-				pageButtonY );
+				pageButtonY + prevImg.getHeight() / 4);
 		nextPage = new MenuButton(nextImg, baseX + pageButtonWidth - nextImg.getWidth() / 2f,
-				pageButtonY );
+				pageButtonY + nextImg.getHeight() / 4f);
 		prevPage.setHoverExpand(1.5f);
 		nextPage.setHoverExpand(1.5f);
 
@@ -208,8 +224,8 @@ public class DownloadsMenu extends BasicGameState {
 		float buttonMarginX = width * 0.004f;
 		float buttonHeight = Utils.FONT_MEDIUM.getLineHeight();//height * 0.038f;
 		float resetWidth = Utils.FONT_MEDIUM.getWidth("@@@@")+10;//width * 0.085f;
-		float rankedWidth = Utils.FONT_MEDIUM.getWidth("@@@@@@@@@")+10;//width * 0.15f;
-		float serverWidth = Utils.FONT_MEDIUM.getWidth("@@@@@")+10;//width * 0.12f;
+		float rankedWidth = Utils.FONT_MEDIUM.getWidth("@@@@@@@@@@")+10;//width * 0.15f;
+		float serverWidth = Utils.FONT_MEDIUM.getWidth("@@@@@@")+10;//width * 0.12f;
 		float lowerWidth = width * 0.12f;
 		float topButtonY = searchY + Utils.FONT_MEDIUM.getLineHeight() / 2f;
 		float lowerButtonY = height * 0.995f - searchY - buttonHeight / 2f;
@@ -258,14 +274,14 @@ public class DownloadsMenu extends BasicGameState {
 		GameImage.SEARCH_BG.getImage().draw();
 
 		// title
-		Utils.FONT_LARGE.drawString(width * 0.024f, height * 0.03f, "Download Beatmaps!", Color.white);
+		Utils.FONT_LARGE.drawString(width * 0.024f, titleY, "Download Beatmaps!", Color.white);
 
 		// search
 		g.setColor(Color.white);
 		g.setLineWidth(2f);
 		search.render(container, g);
 		Utils.FONT_BOLD.drawString(
-				search.getX() + search.getWidth() * 0.01f, search.getY() + search.getHeight() * 1.3f,
+				search.getX() + search.getWidth() * 0.01f, searchResultY,
 				searchResultString, Color.white
 		);
 
@@ -290,11 +306,11 @@ public class DownloadsMenu extends BasicGameState {
 			// pages
 			if (nodes.length > 0) {
 				float baseX = width * 0.024f;
-				float buttonY = height * 0.2f;
+				float buttonY = pageButtonY;
 				float buttonWidth = width * 0.7f;
 				Utils.FONT_BOLD.drawString(
 						baseX + (buttonWidth - Utils.FONT_BOLD.getWidth("Page 1")) / 2f,
-						buttonY - Utils.FONT_BOLD.getLineHeight() * 1.3f,
+						buttonY,
 						String.format("Page %d", page), Color.white
 				);
 				if (page > 1)

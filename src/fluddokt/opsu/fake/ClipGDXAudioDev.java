@@ -4,6 +4,7 @@ import java.net.URL;
 
 public class ClipGDXAudioDev extends ClipImplementation {
 
+	
 	AudioDevicePlayer player;
 	public ClipGDXAudioDev(URL url, boolean isMP3, LineListener listener) {
 		//try {
@@ -27,7 +28,7 @@ public class ClipGDXAudioDev extends ClipImplementation {
 			System.out.println("URLLen2:"+ in.available());
 			in.close();*/
 		if(isMP3)
-			player = new AudioDevicePlayer(new UrlInputStreamFactory(url), url.toString());
+			player = new AudioDevicePlayer3(new UrlInputStreamFactory(url), url.toString());
 		else
 			throw new Error(" Not Mp3 AudioDevice not supported");
 		//} catch (IOException e) {
@@ -49,6 +50,10 @@ public class ClipGDXAudioDev extends ClipImplementation {
 			@Override
 			public void complete(AudioDevicePlayer thisAudioDevicePlayer) {
 				listener.update(new LineEvent(LineEvent.Type.STOP));
+			}
+
+			@Override
+			public void requestSync(AudioDevicePlayer thisAudioDevicePlayer) {
 			}
 		});
 		return 0;

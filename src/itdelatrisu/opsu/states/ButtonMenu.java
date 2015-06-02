@@ -165,7 +165,7 @@ public class ButtonMenu extends BasicGameState {
 
 			@Override
 			protected float getBaseY(GameContainer container, StateBasedGame game) {
-				return container.getHeight() * 2f / 3;
+				return container.getHeight() * 5f / 6;
 			}
 
 			@Override

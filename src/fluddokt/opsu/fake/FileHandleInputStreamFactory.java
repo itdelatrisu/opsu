@@ -14,7 +14,7 @@ public class FileHandleInputStreamFactory implements InputStreamFactory {
 
 	@Override
 	public InputStream getNewInputStream() {
-		return file.read();
+		return file.read(0x4000);
 	}
 
 }

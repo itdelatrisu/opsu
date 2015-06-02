@@ -128,9 +128,12 @@ public class Graphics {
 		checkMode(SHAPEFILLED);
 		if (w != h)
 			throw new Error("fillArc Not implemented for w!=h");
+		while (start< 0)
+			start += 360;
+		start %= 360;
+		end %= 360;
 		while (end < start)
 			end += 360;
-		end %= 360;
 		shapeRender.arc(x + w / 2, y + h / 2, w / 2, start, end-start);// 36);
 		
 
@@ -205,7 +208,6 @@ public class Graphics {
 	}
 
 	Rectangle scissor;
-	//TODO fix
 	public void setClip(int x, int y, int w, int h) {
 		clearClip();
 		scissor = new Rectangle();

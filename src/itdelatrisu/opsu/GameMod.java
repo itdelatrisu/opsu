@@ -194,7 +194,8 @@ public enum GameMod {
 
 		// create buttons
 		float baseX = Category.EASY.getX() + Utils.FONT_LARGE.getWidth(Category.EASY.getName()) * 1.25f;
-		float offsetX = GameImage.MOD_EASY.getImage().getWidth() * 2.1f;
+		float offsetX = Math.min(GameImage.MOD_EASY.getImage().getWidth() * 2.1f,
+							(width-baseX)/5f);
 		for (GameMod mod : GameMod.values()) {
 			Image img = mod.image.getImage();
 			mod.button = new MenuButton(img,

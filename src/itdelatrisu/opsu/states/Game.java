@@ -559,8 +559,6 @@ public class Game extends BasicGameState {
 			if (!GameMod.FLASHLIGHT.isActive())
 				drawHitObjects(g, trackPosition);
 		}
-		
-		
 
 		if (GameMod.AUTO.isActive())
 			GameImage.UNRANKED.getImage().drawCentered(width / 2, height * 0.077f);
@@ -568,12 +566,12 @@ public class Game extends BasicGameState {
 		// draw replay speed button
 		if (isReplay || GameMod.AUTO.isActive())
 			playbackSpeed.getButton().draw();
-		else
-			// draw pause button
-			if(Options.isInGamePauseEnabled() &&  !(objectIndex == 0 &&
-				    trackPosition < beatmap.objects[0].getTime() - SKIP_OFFSET)
-					)
-				pauseButton.draw();
+		
+		// draw pause button
+		else if(Options.isInGamePauseEnabled() &&  
+				!(objectIndex == 0 && trackPosition < beatmap.objects[0].getTime() - SKIP_OFFSET)
+				)
+			pauseButton.draw();
 
 		// returning from pause screen
 		if (pauseTime > -1 && pausedMouseX > -1 && pausedMouseY > -1) {
@@ -1013,14 +1011,20 @@ public class Game extends BasicGameState {
 			}
 			return;
 		}
-
+		
+		//pause Button
+		if (Options.isInGamePauseEnabled() && pauseButton.contains(x, y)
+				&& !isLeadIn()
+				&& !(objectIndex == 0 && trackPosition < beatmap.objects[0].getTime() - SKIP_OFFSET)
+				) {
+			pauseGame(lastMouseX, lastMouseY);
+			return;
+		}
+		
 		// skip beginning
 		if (skipButton.contains(x, y)) {
 			if (skipIntro())
 				return;  // successfully skipped
-		}
-		if (Options.isInGamePauseEnabled() && pauseButton.contains(x, y)) {
-			pauseGame(lastMouseX, lastMouseY);
 		}
 
 		// "auto" and "relax" mods: ignore user actions
@@ -1061,7 +1065,7 @@ public class Game extends BasicGameState {
 		if (keys != ReplayFrame.KEY_NONE)
 			gameKeyReleased(keys, input.getMouseX(), input.getMouseY(), MusicController.getPosition());
 	}
-
+	
 	/**
 	 * Handles a game key released event.
 	 * @param keys the game keys released
@@ -1422,7 +1426,7 @@ public class Game extends BasicGameState {
 		}
 		skipButton.setHoverExpand(1.1f, MenuButton.Expand.UP_LEFT);
 
-		Image pause = GameImage.MUSIC_PAUSE.getImage().getScaledCopy(1.5f);
+		Image pause = GameImage.MUSIC_PAUSE.getImage().getScaledCopy( 2.5f*Options.getMobileUIScale(0.2f) / Options.getMobileUIScale());
 		pauseButton = new MenuButton(pause, width - pause.getWidth() / 2f, height - (pause.getHeight() / 2f));
 	
 		// load other images...

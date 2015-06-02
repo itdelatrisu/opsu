@@ -14,10 +14,12 @@ public class Clip {
 		sound = new ClipGDXAudioDev(url, isMP3, listener);
 	}
 
+	/*
 	public void stop() {
 		if (sound != null)
 			sound.stop();
 	}
+	*/
 
 	public void start(float volume, LineListener listener) {
 		if (sound != null)

@@ -270,13 +270,36 @@ public class Options {
 		DISABLE_MOUSE_BUTTONS ("Disable mouse buttons in play mode", "This option will disable all mouse buttons.\nSpecifically for people who use their keyboard to click.", false), 
 		IN_GAME_PAUSE("In game pause button", "Shows a in game pasue button.", false),
 		MOBILE_UI_SCALING ("Scales certain UI elements.", "Scales certain UI elements. Requires Restart", 
-				(com.badlogic.gdx.Gdx.graphics.getWidth()/com.badlogic.gdx.Gdx.graphics.getPpiX()) <= 6.0f?
+				(com.badlogic.gdx.Gdx.graphics.getWidth()/com.badlogic.gdx.Gdx.graphics.getPpiX()) <= 6.0f?//screen width less than 6 inches
 						20:
 						10
 				, 2, 30) {
 			@Override
 			public String getValueString() { return (val == 0) ? "Disabled" : String.format("%.1f", val / 10f); }
-		},;
+		},
+		SLIDER_QUALITY ("Slider Quality", "Lower values for better looking sliders.") {//, 1, 1, 7) {
+			@Override
+			public String getValueString() { 
+				switch(sliderQuality){
+					case 1: return "1 Best";
+					case 2: return "2 Good";
+					case 3: return "3 Ok";
+					case 4: return "4 Meh";
+					case 5: return "5 Bad";
+					case 6: return "6 Terrible";
+					case 7: return "7 Horrible";
+					default: return "No Quality?";
+				}
+			}
+
+			@Override
+			public void click(GameContainer container) {
+				sliderQuality++;
+				if(sliderQuality>7)
+					sliderQuality = 1;
+			}
+		},
+		;
 
 		/** Option name. */
 		private String name;
@@ -411,6 +434,7 @@ public class Options {
 		RES_400_240 (400, 240),
 		RES_400_300 (400, 300),
 		RES_480_320 (480, 320),
+		RES_640_360 (640, 360),
 		RES_640_480 (640, 480),
 		RES_800_480 (800, 480),
 		RES_800_600 (800, 600),
@@ -486,6 +510,8 @@ public class Options {
 	private static int
 		keyLeft  = Keyboard.KEY_NONE,
 		keyRight = Keyboard.KEY_NONE;
+	
+	private static int sliderQuality = 1;
 
 	// This class should not be instantiated.
 	private Options() {}
@@ -679,13 +705,14 @@ public class Options {
 	public static float getFixedOD() { return GameOption.FIXED_OD.getIntegerValue() / 10f; }
 
 	/**
-	 * Returns the fixed overall difficulty override, if any.
-	 * @return the OD value (0, 10], 0f if disabled
 	 */
 	public static float getMobileUIScale() { return GameOption.MOBILE_UI_SCALING.getIntegerValue() / 10f; }
 	
 	public static float getMobileUIScale(float scale) { return 1 + ((Options.getMobileUIScale()-1) * scale); }
-
+	
+	public static float getMobileUIScaleHigh() { return getMobileUIScale()>1? getMobileUIScale() : getMobileUIScale(0.5f); }
+	
+	public static int getSliderQuality() { return sliderQuality; }
 	
 	/**
 	 * Returns whether or not to render loading text in the splash screen.
@@ -1105,6 +1132,10 @@ public class Options {
 					case "MobileUIScale":
 						GameOption.MOBILE_UI_SCALING.setValue((int) (Float.parseFloat(value) * 10f));
 						break;
+					case "SliderQuality":
+						i = Integer.parseInt(value);
+						sliderQuality = i;
+						break;
 					}
 				} catch (NumberFormatException e) {
 					Log.warn(String.format("Format error in options file for line: '%s'.", line), e);
@@ -1222,9 +1253,13 @@ public class Options {
 			writer.newLine();
 			writer.write(String.format("MobileUIScale = %.1f", getMobileUIScale()));
 			writer.newLine();
+			writer.write(String.format("SliderQuality = %d", getSliderQuality()));
+			writer.newLine();
 			writer.close();
 		} catch (IOException e) {
 			ErrorHandler.error(String.format("Failed to write to file '%s'.", OPTIONS_FILE.getAbsolutePath()), e, false);
 		}
 	}
+
+	
 }

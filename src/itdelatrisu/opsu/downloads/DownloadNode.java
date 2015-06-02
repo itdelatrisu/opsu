@@ -85,20 +85,24 @@ public class DownloadNode {
 	public static void init(int width, int height) {
 		containerWidth = width;
 
+		float searchY = (height * 0.04f) + Utils.FONT_LARGE.getLineHeight();
+		
 		// download result buttons
 		buttonBaseX = width * 0.024f;
-		buttonBaseY = height * 0.2f;
 		buttonWidth = width * 0.7f;
 		buttonHeight = Utils.FONT_MEDIUM.getLineHeight() * 2.1f;
+		buttonBaseY = searchY 
+				+ Utils.FONT_MEDIUM.getLineHeight() 
+				+ Utils.FONT_BOLD.getLineHeight()
+				+ Utils.FONT_BOLD.getLineHeight();//height * 0.2f;
 		buttonOffset = buttonHeight * 1.1f;
 
 		// download info
 		infoBaseX = width * 0.75f;
-		infoBaseY = height * 0.07f + Utils.FONT_LARGE.getLineHeight() * 2f;
+		infoBaseY = searchY;//height * 0.07f + Utils.FONT_LARGE.getLineHeight() * 2f;
 		infoWidth = width * 0.25f;
 		infoHeight = Utils.FONT_DEFAULT.getLineHeight() * 2.4f;
 
-		float searchY = (height * 0.05f) + Utils.FONT_LARGE.getLineHeight();
 		float buttonHeight = height * 0.038f;
 		maxResultsShown = (int) ((height - buttonBaseY - searchY) / buttonOffset);
 		maxDownloadsShown = (int) ((height - infoBaseY - searchY - buttonHeight) / infoHeight);

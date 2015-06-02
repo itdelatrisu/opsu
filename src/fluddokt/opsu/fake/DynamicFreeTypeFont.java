@@ -89,13 +89,13 @@ public class DynamicFreeTypeFont {
 				
 			if (useKerning) {
 				int thisChrIndex = FreeType.getCharIndex(face, thischr);
-				float spacing = to26p6float(FreeType.getKerning(face, prevchrIndex, thisChrIndex,
-						FreeType.FT_KERNING_DEFAULT));
+				float spacing = 0;//to26p6float(FreeType.getKerning(face, prevchrIndex, thisChrIndex,;
+						//FreeType.FT_KERNING_DEFAULT));
 				prevchrIndex = thisChrIndex;
 				
-				//OpenType kerning via the ÅeGPOSÅf table is not supported! You need a higher-level library like HarfBuzz, Pango, or ICU, 
+				//OpenType kerning via the 'GPOS' table is not supported! You need a higher-level library like HarfBuzz, Pango, or ICU, 
 				//System.out.println(spacing+" "+thischr);
-				if(prevCharInfo != null)
+				if(spacing==0 && prevCharInfo != null)
 					spacing += prevCharInfo.horadvance;
 				x += spacing;
 			}

@@ -19,6 +19,8 @@
 package itdelatrisu.opsu.beatmap;
 
 import itdelatrisu.opsu.GameMod;
+import itdelatrisu.opsu.Options;
+import itdelatrisu.opsu.Utils;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -147,8 +149,16 @@ public class HitObject {
 			swidth = sheight * 4 / 3;
 		else
 			sheight = swidth * 3 / 4;
-		xMultiplier = swidth / 640f;
-		yMultiplier = sheight / 480f;
+		//xMultiplier = swidth / 640f;
+		//yMultiplier = sheight / 480f;
+		//xMultiplier = swidth / 512f;
+		//yMultiplier = sheight / 384f;
+		//640 = 1  512 = 2
+		//640 - (640-512) * clamp(x-1,0,1)
+		float scale = Utils.clamp(Options.getMobileUIScale() -1 , 0, 1);
+		xMultiplier = swidth / (640f - (640-512)*scale);
+		yMultiplier = sheight / (480f - (480-384)*scale);
+		
 		xOffset = (int) (width - MAX_X * xMultiplier) / 2;
 		yOffset = (int) (height - MAX_Y * yMultiplier) / 2;
 	}

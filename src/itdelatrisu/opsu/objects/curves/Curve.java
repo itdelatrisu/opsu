@@ -19,9 +19,9 @@
 package itdelatrisu.opsu.objects.curves;
 
 import itdelatrisu.opsu.GameImage;
+import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.beatmap.HitObject;
-
 import fluddokt.opsu.fake.*;
 
 /*
@@ -82,9 +82,9 @@ public abstract class Curve {
 
 		Image hitCircle = GameImage.HITCIRCLE.getImage();
 		Image hitCircleOverlay = GameImage.HITCIRCLE_OVERLAY.getImage();
-		for (int i = 0; i < curve.length; i++)
+		for (int i = 0; i < curve.length; i+=Options.getSliderQuality())
 			hitCircleOverlay.drawCentered(curve[i].x, curve[i].y, Utils.COLOR_WHITE_FADE);
-		for (int i = 0; i < curve.length; i++)
+		for (int i = 0; i < curve.length; i+=Options.getSliderQuality())
 			hitCircle.drawCentered(curve[i].x, curve[i].y, color);
 	}
 

@@ -74,10 +74,10 @@ import org.newdawn.slick.state.transition.FadeOutTransition;
  */
 public class SongMenu extends BasicGameState {
 	/** The max number of song buttons to be shown on each screen. */
-	public static int MAX_SONG_BUTTONS = 6;
+	public static float MAX_SONG_BUTTONS = 6;
 
 	/** The max number of score buttons to be shown at a time. */
-	public static final int MAX_SCORE_BUTTONS = 7;
+	public static int MAX_SCORE_BUTTONS = 7;
 
 	/** Delay time, in milliseconds, between each search. */
 	private static final int SEARCH_DELAY = 500;
@@ -239,8 +239,9 @@ public class SongMenu extends BasicGameState {
 
 		// song button background & graphics context
 		Image menuBackground = GameImage.MENU_BUTTON_BG.getImage();
-		MAX_SONG_BUTTONS = (int) ((footerY - headerY)/menuBackground.getHeight()+1);
-				
+		MAX_SONG_BUTTONS = ((footerY - headerY)/(menuBackground.getHeight()*3/4));
+		MAX_SCORE_BUTTONS = (int)((footerY - headerY)/(ScoreData.getButtonHeight()));
+			
 
 		// song button coordinates
 		buttonX = width * 0.6f;
@@ -450,7 +451,7 @@ public class SongMenu extends BasicGameState {
 					startIndex += focusNodes;
 				else if (startNode.index == focusNode.index)
 					startIndex += startNode.beatmapIndex;
-				UI.drawScrollbar(g, startIndex, totalNodes, MAX_SONG_BUTTONS,
+				UI.drawScrollbar(g, startIndex, totalNodes, (int) MAX_SONG_BUTTONS,
 						width, headerY + DIVIDER_LINE_WIDTH / 2, 0, buttonOffset - DIVIDER_LINE_WIDTH * 1.5f, buttonOffset,
 						Utils.COLOR_BLACK_ALPHA, Color.white, true);
 			}
@@ -852,10 +853,10 @@ public class SongMenu extends BasicGameState {
 			}
 			break;
 		case Input.KEY_NEXT:
-			changeIndex(MAX_SONG_BUTTONS);
+			changeIndex((int) MAX_SONG_BUTTONS);
 			break;
 		case Input.KEY_PRIOR:
-			changeIndex(-MAX_SONG_BUTTONS);
+			changeIndex((int) -MAX_SONG_BUTTONS);
 			break;
 		default:
 			// wait for user to finish typing
@@ -1152,7 +1153,7 @@ public class SongMenu extends BasicGameState {
 				n++;
 				shifted = true;
 			} else if (n > 0 && startNode.next != null &&
-			           BeatmapSetList.get().getNode(startNode, MAX_SONG_BUTTONS) != null) {
+			           BeatmapSetList.get().getNode(startNode, (int) MAX_SONG_BUTTONS) != null) {
 				startNode = startNode.next;
 				buttonY -= buttonOffset / 4;
 				if (buttonY < headerY - height * 0.02f)
@@ -1218,7 +1219,7 @@ public class SongMenu extends BasicGameState {
 			startNode = startNode.prev;
 
 		// make sure focusNode is on the screen (TODO: cleanup...)
-		int val = focusNode.index + focusNode.beatmapIndex - (startNode.index + MAX_SONG_BUTTONS) + 1;
+		int val = (int) (focusNode.index + focusNode.beatmapIndex - (startNode.index + MAX_SONG_BUTTONS) + 1);
 		if (val > 0)  // below screen
 			changeIndex(val);
 		else {  // above screen

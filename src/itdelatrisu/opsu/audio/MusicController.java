@@ -124,8 +124,6 @@ public class MusicController {
 	 */
 	private static void loadTrack(File file, int position, boolean loop) {
 		try {
-			if(player!=null)
-				player.dispose();
 			player = new Music(file.getPath(), true);
 			player.addListener(new MusicListener() {
 				@Override
@@ -381,10 +379,6 @@ public class MusicController {
 			}
 		}
 		trackLoader = null;
-
-		if(player!=null){
-			player.stop();
-		}
 
 		// reset state
 		lastBeatmap = null;

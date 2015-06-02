@@ -342,25 +342,25 @@ public enum GameImage {
 	MUSIC_PLAY ("music-play", "png", false, false){
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy(Options.getMobileUIScale());
+			return img.getScaledCopy(Options.getMobileUIScaleHigh());
 		}
 	},
 	MUSIC_PAUSE ("music-pause", "png", false, false){
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy(Options.getMobileUIScale());
+			return img.getScaledCopy(Options.getMobileUIScaleHigh());
 		}
 	},
 	MUSIC_NEXT ("music-next", "png", false, false){
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy(Options.getMobileUIScale());
+			return img.getScaledCopy(Options.getMobileUIScaleHigh());
 		}
 	},
 	MUSIC_PREVIOUS ("music-previous", "png", false, false){
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return img.getScaledCopy(Options.getMobileUIScale());
+			return img.getScaledCopy(Options.getMobileUIScaleHigh());
 		}
 	},
 	DOWNLOADS ("downloads", "png", false, false) {

@@ -104,6 +104,9 @@ public class ScoreData implements Comparable<ScoreData> {
 		buttonOffset = buttonHeight + gradeHeight / 10f;
 	}
 
+	public static float getButtonHeight(){
+		return buttonHeight;
+	}
 	/**
 	 * Returns true if the coordinates are within the bounds of the
 	 * button at the given index.

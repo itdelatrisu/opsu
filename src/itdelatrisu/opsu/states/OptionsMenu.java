@@ -100,6 +100,7 @@ public class OptionsMenu extends BasicGameState {
 			GameOption.CHECKPOINT,
 			GameOption.IN_GAME_PAUSE,
 			GameOption.LOAD_HD_IMAGES,
+			GameOption.SLIDER_QUALITY,
 		});
 
 		/** Total number of tabs. */

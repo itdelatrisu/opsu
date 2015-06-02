@@ -266,9 +266,12 @@ public class Image {
 
 		float dx = copy.tex.getRegionWidth() / (float) copy.width;
 		float dy = copy.tex.getRegionHeight() / (float) copy.height;
-		tex = new TextureRegion(copy.tex, Math.round(x * dy),
-				-Math.round(y * dy), Math.round(wid * dx), -Math.round(hei * dy));
-		tex.flip(false, true);
+		tex = new TextureRegion(copy.tex, 
+				Math.round(x * dy),
+				Math.round((hei+y) * dy)-copy.tex.getRegionHeight(),
+				Math.round(wid * dx), 
+				-Math.round(hei * dy));
+		//tex.flip(false, true);
 		width = (tex.getRegionWidth() / dx);
 		height = (tex.getRegionHeight() / dy);
 		filename = copy.filename;

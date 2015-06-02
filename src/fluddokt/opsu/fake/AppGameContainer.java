@@ -5,12 +5,12 @@ import com.badlogic.gdx.Gdx;
 public class AppGameContainer extends GameContainer {
 
 	public static int containerWidth, containerHeight;
-
-	public AppGameContainer(Game game) {
+	
+	public AppGameContainer(Game2 game) {
 		super((StateBasedGame) game);
 	}
 
-	public AppGameContainer(Game game, int width, int height, boolean fullscreen) {
+	public AppGameContainer(Game2 game, int width, int height, boolean fullscreen) {
 		super((StateBasedGame) game);
 	}
 

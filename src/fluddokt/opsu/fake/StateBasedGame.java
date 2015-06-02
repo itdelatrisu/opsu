@@ -7,7 +7,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.utils.OrderedSet;
 
-public abstract class StateBasedGame extends Game implements InputProcessor {
+public abstract class StateBasedGame extends Game2 implements InputProcessor {
 
 	public GameContainer gc;
 	BasicGameState currentState = new BasicGameState() {
@@ -94,7 +94,26 @@ public abstract class StateBasedGame extends Game implements InputProcessor {
 		if (currentState != null) {
 			currentState.update(gc, this, deltaTime);
 			currentState.render(gc, this, Graphics.getGraphics());
+			/*
+			if(Graphics.curFont!=null){
+				if(GameContainer.music!=null)
+					Graphics.getGraphics().drawString(""
+					+" "+(GameContainer.music.lastTime&0xffff)
+					+" "+pad(""+(int)((GameContainer.music.music.getPosition()-GameContainer.music.lastGetPos)*1000))
+					+" avg:"+pad(""+(int)(GameContainer.music.avgDiff*1000)/1000f)
+					//+" "+GameContainer.music.music.getPosition()
+					//+" "+GameContainer.music.lastGPos
+					, 10, 100);
+			}
+			*/
 		}
+	}
+
+	private String pad(String s) {
+		while(s.length()<6){
+			s=' '+s;
+		}
+		return s;
 	}
 
 	public void init() throws SlickException {

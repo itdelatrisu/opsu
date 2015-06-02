@@ -8,6 +8,13 @@ sourceSets {
   main {
     java {
       exclude 'org/newdawn/**'
+      exclude 'org/newdawn/slick/GameContainer.java'
+      exclude 'org/newdawn/slick/Image.java'
+      exclude 'org/newdawn/slick/Input.java'
+      exclude 'org/newdawn/slick/Music.java'
+      exclude 'org/newdawn/slick/gui/*'
+      exclude 'org/newdawn/slick/openal/OpenALStreamPlayer.java'
+      exclude 'org/newdawn/slick/openal/SoundStore.java'
       exclude 'itdelatrisu/opsu/audio/MultiClip.java'
     }
   }
