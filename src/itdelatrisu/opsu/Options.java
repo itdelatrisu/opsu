@@ -911,15 +911,12 @@ public class Options {
 	 * If the directory is invalid, the default skin will be loaded.
 	 */
 	public static void loadSkin() {
-		File root = getSkinRootDir();
-		File skinDir = new File(root, skinName);
-		if (!skinDir.isDirectory()) {  // invalid skin name
+		File skinDir = getSkinDir();
+		if (skinDir == null)  // invalid skin name
 			skinName = Skin.DEFAULT_SKIN_NAME;
-			skinDir = null;
-		}
 
 		// create available skins list
-		File[] dirs = SkinLoader.getSkinDirectories(root);
+		File[] dirs = SkinLoader.getSkinDirectories(getSkinRootDir());
 		skinDirs = new String[dirs.length + 1];
 		skinDirs[0] = Skin.DEFAULT_SKIN_NAME;
 		for (int i = 0; i < dirs.length; i++)
@@ -952,6 +949,21 @@ public class Options {
 	 * @return the skin, or null if no skin is loaded (see {@link #loadSkin()})
 	 */
 	public static Skin getSkin() { return skin; }
+
+	/**
+	 * Returns the current skin directory.
+	 * <p>
+	 * NOTE: This directory will differ from that of the currently loaded skin
+	 * if {@link #loadSkin()} has not been called after a directory change.
+	 * Use {@link Skin#getDirectory()} to get the directory of the currently
+	 * loaded skin.
+	 * @return the skin directory, or null for the default skin
+	 */
+	public static File getSkinDir() {
+		File root = getSkinRootDir();
+		File dir = new File(root, skinName);
+		return (dir.isDirectory()) ? dir : null;
+	}
 
 	/**
 	 * Returns a dummy Beatmap containing the theme song.

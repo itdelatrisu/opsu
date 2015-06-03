@@ -106,6 +106,12 @@ public enum HitSound implements SoundController.SoundComponent {
 	}
 
 	/**
+	 * Returns the Clip associated with the given sample set.
+	 * @param s the sample set
+	 */
+	public MultiClip getClip(SampleSet s) { return clips.get(s); }
+
+	/**
 	 * Sets the hit sound Clip for the sample type.
 	 * @param s the sample set
 	 * @param clip the Clip

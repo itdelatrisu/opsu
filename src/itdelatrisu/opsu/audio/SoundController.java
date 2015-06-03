@@ -207,7 +207,14 @@ public class SoundController {
 				ErrorHandler.error(String.format("Could not find sound file '%s'.", s.getFileName()), null, false);
 				continue;
 			}
-			s.setClip(loadClip(currentFileName, currentFileName.endsWith(".mp3")));
+			MultiClip newClip = loadClip(currentFileName, currentFileName.endsWith(".mp3"));
+			if (s.getClip() != null) {  // clip previously loaded (e.g. program restart)
+				if (newClip != null) {
+					s.getClip().destroy();  // destroy previous clip
+					s.setClip(newClip);
+				}
+			} else
+				s.setClip(newClip);
 			currentFileIndex++;
 		}
 
@@ -219,7 +226,14 @@ public class SoundController {
 					ErrorHandler.error(String.format("Could not find hit sound file '%s'.", filename), null, false);
 					continue;
 				}
-				s.setClip(ss, loadClip(currentFileName, false));
+				MultiClip newClip = loadClip(currentFileName, false);
+				if (s.getClip(ss) != null) {  // clip previously loaded (e.g. program restart)
+					if (newClip != null) {
+						s.getClip(ss).destroy();  // destroy previous clip
+						s.setClip(ss, newClip);
+					}
+				} else
+					s.setClip(ss, newClip);
 				currentFileIndex++;
 			}
 		}
