@@ -179,11 +179,8 @@ public class Beatmap implements Comparable<Beatmap> {
 	 * [Colours]
 	 */
 
-	/** Combo colors (max 8). */
+	/** Combo colors (max 8). If null, the skin value is used. */
 	public Color[] combo;
-
-	/** Whether the combo is the default skin combo (true) or a beatmap combo (false). */
-	public boolean isDefaultCombo = true;
 
 	/** Slider border color. If null, the skin value is used. */
 	public Color sliderBorder;
@@ -258,6 +255,15 @@ public class Beatmap implements Comparable<Beatmap> {
 	 */
 	public String getArtist() {
 		return (Options.useUnicodeMetadata() && !artistUnicode.isEmpty()) ? artistUnicode : artist;
+	}
+
+	/**
+	 * Returns the list of combo colors (max 8).
+	 * If the beatmap does not provide colors, the skin colors will be returned instead.
+	 * @return the combo colors
+	 */
+	public Color[] getComboColors() {
+		return (combo != null) ? combo : Options.getSkin().getComboColors();
 	}
 
 	/**
@@ -414,7 +420,7 @@ public class Beatmap implements Comparable<Beatmap> {
 	 * or null if the field is null or the default combo.
 	 */
 	public String comboToString() {
-		if (combo == null || isDefaultCombo)
+		if (combo == null)
 			return null;
 
 		StringBuilder sb = new StringBuilder();
@@ -437,8 +443,6 @@ public class Beatmap implements Comparable<Beatmap> {
 	 * @param s the string
 	 */
 	public void comboFromString(String s) {
-		this.combo = Options.getSkin().getComboColors();
-		this.isDefaultCombo = true;
 		if (s == null)
 			return;
 
@@ -448,10 +452,8 @@ public class Beatmap implements Comparable<Beatmap> {
 			String[] rgb = tokens[i].split(",");
 			colors.add(new Color(Integer.parseInt(rgb[0]), Integer.parseInt(rgb[1]), Integer.parseInt(rgb[2])));
 		}
-		if (!colors.isEmpty()) {
+		if (!colors.isEmpty())
 			this.combo = colors.toArray(new Color[colors.size()]);
-			this.isDefaultCombo = false;
-		}
 	}
 
 	/**

@@ -19,7 +19,6 @@
 package itdelatrisu.opsu.beatmap;
 
 import itdelatrisu.opsu.ErrorHandler;
-import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.db.BeatmapDB;
 
@@ -532,10 +531,8 @@ public class BeatmapParser {
 									line, file.getAbsolutePath()), e);
 						}
 					}
-					if (!colors.isEmpty()) {
+					if (!colors.isEmpty())
 						beatmap.combo = colors.toArray(new Color[colors.size()]);
-						beatmap.isDefaultCombo = false;
-					}
 					break;
 				case "[HitObjects]":
 					int type = 0;
@@ -589,12 +586,6 @@ public class BeatmapParser {
 		if (beatmap.audioFilename == null)
 			return null;
 
-		// if no custom colors, use the default color scheme
-		if (beatmap.combo == null) {
-			beatmap.combo = Options.getSkin().getComboColors();
-			beatmap.isDefaultCombo = true;
-		}
-
 		// parse hit objects now?
 		if (parseObjects)
 			parseHitObjects(beatmap);
@@ -627,6 +618,7 @@ public class BeatmapParser {
 			}
 
 			// combo info
+			Color[] combo = beatmap.getComboColors();
 			int comboIndex = 0;   // color index
 			int comboNumber = 1;  // combo number
 
@@ -654,7 +646,7 @@ public class BeatmapParser {
 					if (hitObject.isNewCombo() || first) {
 						int skip = (hitObject.isSpinner() ? 0 : 1) + hitObject.getComboSkip();
 						for (int i = 0; i < skip; i++) {
-							comboIndex = (comboIndex + 1) % beatmap.combo.length;
+							comboIndex = (comboIndex + 1) % combo.length;
 							comboNumber = 1;
 						}
 						first = false;

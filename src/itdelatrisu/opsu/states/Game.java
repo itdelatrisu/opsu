@@ -1057,6 +1057,7 @@ public class Game extends BasicGameState {
 			}
 
 			// initialize object maps
+			Color[] combo = beatmap.getComboColors();
 			for (int i = 0; i < beatmap.objects.length; i++) {
 				HitObject hitObject = beatmap.objects[i];
 
@@ -1065,7 +1066,7 @@ public class Game extends BasicGameState {
 				if (i + 1 < beatmap.objects.length && beatmap.objects[i + 1].isNewCombo())
 					comboEnd = true;
 
-				Color color = beatmap.combo[hitObject.getComboIndex()];
+				Color color = combo[hitObject.getComboIndex()];
 
 				// pass beatLength to hit objects
 				int hitObjectTime = hitObject.getTime();
@@ -1267,7 +1268,7 @@ public class Game extends BasicGameState {
 	public void loadBeatmap(Beatmap beatmap) {
 		this.beatmap = beatmap;
 		Display.setTitle(String.format("%s - %s", game.getTitle(), beatmap.toString()));
-		if (beatmap.timingPoints == null || beatmap.combo == null)
+		if (beatmap.timingPoints == null)
 			BeatmapDB.load(beatmap, BeatmapDB.LOAD_ARRAY);
 		BeatmapParser.parseHitObjects(beatmap);
 		HitSound.setDefaultSampleSet(beatmap.sampleSet);
