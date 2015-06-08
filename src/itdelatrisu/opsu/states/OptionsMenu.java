@@ -59,7 +59,8 @@ public class OptionsMenu extends BasicGameState {
 			GameOption.SCREENSHOT_FORMAT,
 			GameOption.NEW_CURSOR,
 			GameOption.DYNAMIC_BACKGROUND,
-			GameOption.LOAD_VERBOSE
+			GameOption.LOAD_VERBOSE,
+			GameOption.NEW_SLIDER
 		}),
 		MUSIC ("Music", new GameOption[] {
 			GameOption.MASTER_VOLUME,

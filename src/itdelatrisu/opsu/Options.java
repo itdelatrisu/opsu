@@ -228,6 +228,7 @@ public class Options {
 				UI.getCursor().reset();
 			}
 		},
+		NEW_SLIDER("Enable New Slider", "Use the new Slider style (requires OpenGL 3.0).",false),
 		DYNAMIC_BACKGROUND ("Enable Dynamic Backgrounds", "The song background will be used as the main menu background.", true),
 		BACKGROUND_DIM ("Background Dim", "Percentage to dim the background image during gameplay.", 50, 0, 100),
 		FORCE_DEFAULT_PLAYFIELD ("Force Default Playfield", "Override the song background with the default playfield background.", false),
@@ -1071,6 +1072,9 @@ public class Options {
 					case "NewCursor":
 						GameOption.NEW_CURSOR.setValue(Boolean.parseBoolean(value));
 						break;
+					case "NewSlider":
+						GameOption.NEW_SLIDER.setValue(Boolean.parseBoolean(value));
+						break;
 					case "DynamicBackground":
 						GameOption.DYNAMIC_BACKGROUND.setValue(Boolean.parseBoolean(value));
 						break;
@@ -1221,6 +1225,8 @@ public class Options {
 			writer.write(String.format("ScreenshotFormat = %d", screenshotFormatIndex));
 			writer.newLine();
 			writer.write(String.format("NewCursor = %b", isNewCursorEnabled()));
+			writer.newLine();
+			writer.write(String.format("NewSlider = %b", GameOption.NEW_SLIDER.getBooleanValue()));
 			writer.newLine();
 			writer.write(String.format("DynamicBackground = %b", isDynamicBackgroundEnabled()));
 			writer.newLine();

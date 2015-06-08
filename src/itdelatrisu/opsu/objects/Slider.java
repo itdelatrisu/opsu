@@ -170,12 +170,26 @@ public class Slider implements GameObject {
 		float fadeinScale = (timeDiff - game.getApproachTime() + FADE_IN_TIME) / (float) FADE_IN_TIME;
 		float approachScale = 1 + scale * 3;
 		float alpha = Utils.clamp(1 - fadeinScale, 0, 1);
+		boolean overlayAboveNumber = Options.getSkin().isHitCircleOverlayAboveNumber();
 
 		float oldAlpha = Utils.COLOR_WHITE_FADE.a;
 		Utils.COLOR_WHITE_FADE.a = color.a = alpha;
+		Image hitCircleOverlay = GameImage.HITCIRCLE_OVERLAY.getImage();
+		Image hitCircle = GameImage.HITCIRCLE.getImage();
+		float[] endPos = curve.pointAt(1);
 
-		// curve
 		curve.draw(color);
+		color.a = alpha;
+
+		// end circle
+		hitCircle.drawCentered(endPos[0], endPos[1], color);
+		hitCircleOverlay.drawCentered(endPos[0], endPos[1], Utils.COLOR_WHITE_FADE);
+
+		// start circle
+		hitCircle.drawCentered(x, y, color);
+		if (!overlayAboveNumber) {
+			hitCircleOverlay.drawCentered(x, y, Utils.COLOR_WHITE_FADE);
+		}
 
 		// ticks
 		if (ticksT != null) {
@@ -185,25 +199,11 @@ public class Slider implements GameObject {
 				tick.drawCentered(c[0], c[1], Utils.COLOR_WHITE_FADE);
 			}
 		}
-
-		Image hitCircleOverlay = GameImage.HITCIRCLE_OVERLAY.getImage();
-		Image hitCircle = GameImage.HITCIRCLE.getImage();
-
-		// end circle
-		float[] endPos = curve.pointAt(1);
-		hitCircle.drawCentered(endPos[0], endPos[1], color);
-		hitCircleOverlay.drawCentered(endPos[0], endPos[1], Utils.COLOR_WHITE_FADE);
-
-		// start circle
-		hitCircle.drawCentered(x, y, color);
-		boolean overlayAboveNumber = Options.getSkin().isHitCircleOverlayAboveNumber();
-		if (!overlayAboveNumber)
-			hitCircleOverlay.drawCentered(x, y, Utils.COLOR_WHITE_FADE);
 		if (sliderClickedInitial)
 			;  // don't draw current combo number if already clicked
 		else
 			data.drawSymbolNumber(hitObject.getComboNumber(), x, y,
-					hitCircle.getWidth() * 0.40f / data.getDefaultSymbolImage(0).getHeight(), alpha);
+			        hitCircle.getWidth() * 0.40f / data.getDefaultSymbolImage(0).getHeight(), alpha);
 		if (overlayAboveNumber)
 			hitCircleOverlay.drawCentered(x, y, Utils.COLOR_WHITE_FADE);
 

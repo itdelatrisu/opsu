@@ -18,12 +18,15 @@
 
 package itdelatrisu.opsu.objects.curves;
 
+import itdelatrisu.opsu.render.CurveRenderState;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.beatmap.HitObject;
+import itdelatrisu.opsu.Options;
 
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Image;
+import org.newdawn.slick.util.Log;
 
 /**
  * Representation of a curve.
@@ -34,6 +37,9 @@ public abstract class Curve {
 	/** Points generated along the curve should be spaced this far apart. */
 	protected static float CURVE_POINTS_SEPERATION = 5;
 
+	/** The width and height of the display container this curve gets drawn into */
+	protected static int containerWidth = 0, containerHeight = 0;
+	
 	/** The associated HitObject. */
 	protected HitObject hitObject;
 
@@ -42,6 +48,9 @@ public abstract class Curve {
 
 	/** The scaled slider x, y coordinate lists. */
 	protected float[] sliderX, sliderY;
+		
+	/** Per-curve render-state used for the new style curve renders*/
+	private CurveRenderState renderState;
 
 	/** Points along the curve (set by inherited classes). */
 	protected Vec2f[] curve;
@@ -57,8 +66,22 @@ public abstract class Curve {
 		this.y = hitObject.getScaledY();
 		this.sliderX = hitObject.getScaledSliderX();
 		this.sliderY = hitObject.getScaledSliderY();
+		this.renderState = null;
 	}
 
+	/**
+	 * Set the width and height of the container that Curves get drawn into
+	 * Should be called before any curves are drawn.
+	 * @param width
+	 * @param height 
+	 */
+	public static void init(int width, int height, float circleSize)
+	{
+		containerWidth = width;
+		containerHeight = height;
+		CurveRenderState.init(width, height, circleSize);
+	}
+	
 	/**
 	 * Returns the point on the curve at a value t.
 	 * @param t the t value [0, 1]
@@ -71,15 +94,24 @@ public abstract class Curve {
 	 * @param color the color filter
 	 */
 	public void draw(Color color) {
-		if (curve == null)
+		if (curve == null) {
 			return;
-
-		Image hitCircle = GameImage.HITCIRCLE.getImage();
-		Image hitCircleOverlay = GameImage.HITCIRCLE_OVERLAY.getImage();
-		for (int i = 0; i < curve.length; i++)
-			hitCircleOverlay.drawCentered(curve[i].x, curve[i].y, Utils.COLOR_WHITE_FADE);
-		for (int i = 0; i < curve.length; i++)
-			hitCircle.drawCentered(curve[i].x, curve[i].y, color);
+		}
+		if (Options.GameOption.NEW_SLIDER.getBooleanValue()) {
+			if (renderState == null) {
+				renderState = new CurveRenderState(hitObject);
+			}
+			renderState.draw(color, curve);
+		} else {
+			Image hitCircle = GameImage.HITCIRCLE.getImage();
+			Image hitCircleOverlay = GameImage.HITCIRCLE_OVERLAY.getImage();
+			for (int i = 0; i < curve.length; i++) {
+				hitCircleOverlay.drawCentered(curve[i].x, curve[i].y, Utils.COLOR_WHITE_FADE);
+			}
+			for (int i = 0; i < curve.length; i++) {
+				hitCircle.drawCentered(curve[i].x, curve[i].y, color);
+			}
+		}
 	}
 
 	/**
@@ -109,5 +141,10 @@ public abstract class Curve {
 	 */
 	protected float lerp(float a, float b, float t) {
 		return a * (1 - t) + b * t;
+	}
+
+	public void discardCache() {
+		if(renderState != null)
+			renderState.discardCache();
 	}
 }
