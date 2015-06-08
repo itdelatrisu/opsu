@@ -54,7 +54,7 @@ public class Skin {
 	private static final Color DEFAULT_MENU_GLOW = new Color(0, 78, 155);
 
 	/** The default slider border color. */
-	private static final Color DEFAULT_SLIDER_BORDER = new Color(38, 38, 38);
+	private static final Color DEFAULT_SLIDER_BORDER = new Color(255, 255, 255);
 
 	/** The default slider ball color. */
 	private static final Color DEFAULT_SLIDER_BALL = new Color(2, 170, 255);

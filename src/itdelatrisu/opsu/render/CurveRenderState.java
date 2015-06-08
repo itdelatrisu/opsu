@@ -18,7 +18,9 @@
 package itdelatrisu.opsu.render;
 
 import itdelatrisu.opsu.GameImage;
+import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.Utils;
+import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.beatmap.HitObject;
 import itdelatrisu.opsu.objects.curves.Vec2f;
 
@@ -260,6 +262,12 @@ public class CurveRenderState {
 		GL20.glEnableVertexAttribArray(staticState.texCoordLoc);
 		GL20.glUniform1i(staticState.texLoc, 0);
 		GL20.glUniform3f(staticState.colLoc, color.r, color.g, color.b);
+		Color borderColor; 
+		if(Options.isBeatmapSkinIgnored())
+			borderColor = Options.getSkin().getSliderBorderColor();
+		else
+			borderColor = MusicController.getBeatmap().getSliderBorderColor();
+		GL20.glUniform4f(staticState.colBorderLoc,borderColor.r,borderColor.g,borderColor.b,borderColor.a);
 		//stride is 6*4 for the floats (4 bytes) (u,v)(x,y,z,w)
 		//2*4 is for skipping the first 2 floats (u,v)
 		GL20.glVertexAttribPointer(staticState.attribLoc, 4, GL11.GL_FLOAT, false, 6 * 4, 2 * 4);
@@ -348,6 +356,9 @@ public class CurveRenderState {
 		/** OpenGL shader uniform location of the color attribute. */
 		protected int colLoc = 0;
 		
+		/** OpenGL shader uniform location of the border color attribute */
+		protected int colBorderLoc = 0;
+		
 		/** OpenGL shader uniform location of the texture sampler attribute. */
 		protected int texLoc = 0;
 
@@ -408,6 +419,7 @@ public class CurveRenderState {
 						+ "uniform sampler1D tex;\n"
 						+ "uniform vec2 tex_size;\n"
 						+ "uniform vec3 col_tint;\n"
+						+ "uniform vec4 col_border;\n"
 						+ "\n"
 						+ "in vec2 tex_coord;\n"
 						+ "layout(location = 0) out vec4 out_colour;\n"
@@ -416,7 +428,7 @@ public class CurveRenderState {
 						+ "{\n"
 						+ "    vec4 in_color = texture(tex, tex_coord.x);\n"
 						+ "    float blend_factor = in_color.r-in_color.b;\n"
-						+ "    vec4 new_color = vec4(mix(in_color.xyz,col_tint,blend_factor),in_color.w);\n"
+						+ "    vec4 new_color = vec4(mix(in_color.xyz*col_border.xyz,col_tint,blend_factor),in_color.w);\n"
 						+ "    out_colour = new_color;\n"
 						+ "}");
 				GL20.glCompileShader(frgShdr);
@@ -437,6 +449,7 @@ public class CurveRenderState {
 				texCoordLoc = GL20.glGetAttribLocation(program, "in_tex_coord");
 				texLoc = GL20.glGetUniformLocation(program, "tex");
 				colLoc = GL20.glGetUniformLocation(program, "col_tint");
+				colBorderLoc = GL20.glGetUniformLocation(program, "col_border");
 			}
 		}
 	}
