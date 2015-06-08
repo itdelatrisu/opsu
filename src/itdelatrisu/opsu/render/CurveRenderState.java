@@ -365,7 +365,7 @@ public class CurveRenderState {
 		{
 			if(gradientTexture == 0)
 			{
-				Image slider = GameImage.SLIDER_GRADIENT.getImage();
+				Image slider = GameImage.SLIDER_GRADIENT.getImage().getScaledCopy(1.0f/GameImage.getUIscale());
 				staticState.gradientTexture = GL11.glGenTextures();
 				ByteBuffer buff = BufferUtils.createByteBuffer(slider.getWidth()*4);
 				for(int i=0 ; i< slider.getWidth(); ++i)
