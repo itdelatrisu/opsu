@@ -31,10 +31,10 @@ public class Skin {
 
 	/** Slider styles. */
 	public static final byte
-		STYLE_PEPPYSLIDER = 1,
-		STYLE_MMSLIDER = 2,
-		STYLE_TOONSLIDER = 3,
-		STYLE_OPENGLSLIDER = 4;
+		STYLE_PEPPYSLIDER = 1,   // fallback
+		STYLE_MMSLIDER = 2,      // default (requires OpenGL 3.0)
+		STYLE_TOONSLIDER = 3,    // not implemented
+		STYLE_OPENGLSLIDER = 4;  // not implemented
 
 	/** The latest skin version. */
 	protected static final int LATEST_VERSION = 2;
@@ -133,7 +133,7 @@ public class Skin {
 	protected boolean comboBurstRandom = false;
 
 	/** The slider style to use (see STYLE_* constants). */
-	protected byte sliderStyle = 2;
+	protected byte sliderStyle = STYLE_MMSLIDER;
 
 	/**
 	 * [Colours]

@@ -374,16 +374,10 @@ public class GameData {
 		health = 100f;
 		healthDisplay = 100f;
 		hitResultCount = new int[HIT_MAX];
-		if(hitResultList != null)
-		{
-			Iterator<OsuHitObjectResult> iter =hitResultList.iterator();
-			while(iter.hasNext())
-			{
-				OsuHitObjectResult hitObj = iter.next();
-				if(hitObj != null && hitObj.curve != null)
-				{
-					hitObj.curve.discardCache();
-				}
+		if (hitResultList != null) {
+			for (OsuHitObjectResult hitResult : hitResultList) {
+				if (hitResult.curve != null)
+					hitResult.curve.discardCache();
 			}
 		}
 		hitResultList = new LinkedBlockingDeque<OsuHitObjectResult>();
@@ -951,11 +945,9 @@ public class GameData {
 				}
 
 				hitResult.alpha = 1 - ((float) (trackPosition - hitResult.time) / HITRESULT_FADE_TIME);
-			} else{
-				if (hitResult.curve !=null)
-				{
+			} else {
+				if (hitResult.curve != null)
 					hitResult.curve.discardCache();
-				}
 				iter.remove();
 			}
 		}

@@ -31,8 +31,8 @@ import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
 import itdelatrisu.opsu.beatmap.Beatmap;
-import itdelatrisu.opsu.beatmap.HitObject;
 import itdelatrisu.opsu.beatmap.BeatmapParser;
+import itdelatrisu.opsu.beatmap.HitObject;
 import itdelatrisu.opsu.beatmap.TimingPoint;
 import itdelatrisu.opsu.db.BeatmapDB;
 import itdelatrisu.opsu.db.ScoreDB;
@@ -1025,7 +1025,7 @@ public class Game extends BasicGameState {
 		if (beatmap == null || beatmap.objects == null)
 			throw new RuntimeException("Running game with no beatmap loaded.");
 
-		//free all previously cached hitobject to framebuffer mappings if some still exist
+		// free all previously cached hitobject to framebuffer mappings if some still exist
 		FrameBufferCache.getInstance().freeMap();
 
 		// grab the mouse (not working for touchscreen)
@@ -1393,7 +1393,7 @@ public class Game extends BasicGameState {
 		Circle.init(container, circleSize);
 		Slider.init(container, circleSize, beatmap);
 		Spinner.init(container);
-		Curve.init(container.getWidth(),container.getHeight(),circleSize);
+		Curve.init(container.getWidth(), container.getHeight(), circleSize);
 
 		// approachRate (hit object approach time)
 		if (approachRate < 5)

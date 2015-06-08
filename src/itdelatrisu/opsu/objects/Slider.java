@@ -187,9 +187,8 @@ public class Slider implements GameObject {
 
 		// start circle
 		hitCircle.drawCentered(x, y, color);
-		if (!overlayAboveNumber) {
+		if (!overlayAboveNumber)
 			hitCircleOverlay.drawCentered(x, y, Utils.COLOR_WHITE_FADE);
-		}
 
 		// ticks
 		if (ticksT != null) {

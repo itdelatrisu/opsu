@@ -24,64 +24,70 @@ import org.lwjgl.opengl.GL30;
 import org.lwjgl.opengl.GL32;
 
 /**
+ * Represents a rendertarget. For now this maps to an OpenGL FBO via LWJGL.
  *
- * Represents a rendertarget. For now this maps to an OpenGL FBO via LWJGL
+ * @author Bigpet {@literal <dravorek (at) gmail.com>}
  */
 public class Rendertarget {
-	public final int width;
-	public final int height;
+	/** The dimensions. */
+	public final int width, height;
+
+	/** The FBO ID. */
 	private final int fboID;
+
+	/** The texture ID. */
 	private final int textureID;
 
 	/**
-	 * Create a new FBO
-	 * 
-	 * @param width
-	 * @param height 
+	 * Create a new FBO.
+	 * @param width the width
+	 * @param height the height
 	 */
-	private Rendertarget(int width, int height)
-	{
+	private Rendertarget(int width, int height) {
 		this.width = width;
 		this.height = height;
 		fboID = GL30.glGenFramebuffers();
 		textureID = GL11.glGenTextures();
 	}
-	
+
 	/**
 	 * Bind this rendertarget as the primary framebuffer.
 	 */
-	public void bind()
-	{
+	public void bind() {
 		GL30.glBindFramebuffer(GL30.GL_DRAW_FRAMEBUFFER, fboID);
 	}
-	
-	//use judiciously, try to avoid if possible and consider adding a method to
-	//this class if you find yourself calling this repeatedly
-	public int getID()
-	{
+
+	/**
+	 * Returns the FBO ID.
+	 */
+	// NOTE: use judiciously, try to avoid if possible and consider adding a
+	// method to this class if you find yourself calling this repeatedly.
+	public int getID() {
 		return fboID;
 	}
-	
-	//try not to use, could be moved into seperate class
-	public int getTextureID()
-	{
+
+	/**
+	 * Returns the texture ID.
+	 */
+	// NOTE: try not to use, could be moved into separate class.
+	public int getTextureID() {
 		return textureID;
 	}
 
 	/**
-	 * Bind the default framebuffer
+	 * Bind the default framebuffer.
 	 */
-	public static void unbind()
-	{
+	public static void unbind() {
 		GL30.glBindFramebuffer(GL30.GL_DRAW_FRAMEBUFFER, 0);
 	}
-	
+
 	/**
 	 * Creates a Rendertarget with a Texture that it renders the color buffer in
 	 * and a renderbuffer that it renders the depth to.
+	 * @param width the width
+	 * @param height the height
 	*/
-	public static Rendertarget createRTTFramebuffer(int width, int height)
-	{
+	public static Rendertarget createRTTFramebuffer(int width, int height) {
 		int old_framebuffer = GL11.glGetInteger(GL30.GL_READ_FRAMEBUFFER_BINDING);
 		int old_texture = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D);
 		Rendertarget buffer = new Rendertarget(width,height);
@@ -103,7 +109,6 @@ public class Rendertarget {
 
 		GL11.glBindTexture(GL11.GL_TEXTURE_2D, old_texture);
 		GL30.glBindFramebuffer(GL30.GL_DRAW_FRAMEBUFFER, old_framebuffer);
-
 
 		return buffer;
 	}

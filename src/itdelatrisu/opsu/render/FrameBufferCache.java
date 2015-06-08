@@ -17,57 +17,68 @@
  */
 package itdelatrisu.opsu.render;
 
-import itdelatrisu.opsu.Opsu;
-import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.beatmap.HitObject;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+
 import org.newdawn.slick.util.Log;
 
 /**
  * This is cache for OpenGL FrameBufferObjects. This is currently only used
  * to draw curve objects of the new slider style. Does currently not integrate
  * well and requires some manual OpenGL state manipulation to use it.
+ *
  * @author Bigpet {@literal <dravorek (at) gmail.com>}
  */
 public class FrameBufferCache {
-	private static final int INITIAL_CACHE_SIZE = 4;
+	/** The initial cache size. */
+	//private static final int INITIAL_CACHE_SIZE = 4;
+
+	/** The single framebuffer cache instance. */
 	private static FrameBufferCache instance = null;
+
+	/** The mapping from hit objects to framebuffers. */
 	private Map<HitObject, Rendertarget> cacheMap;
+
+	/** */
 	private ArrayList<Rendertarget> cache;
-	public static int width;
-	public static int height;
+
+	/** Container dimensions. */
+	public static int width, height;
 
 	/**
 	 * Set the width and height of the framebuffers in this cache.
 	 * Should be called before anything is inserted into the map.
-	 * @param width
-	 * @param height 
+	 * @param width the container width
+	 * @param height the container height
 	 */
-	public static void init(int width, int height)
-	{
+	public static void init(int width, int height) {
 		FrameBufferCache.width = width;
 		FrameBufferCache.height = height;
 	}
-	
+
+	/**
+	 * Constructor.
+	 */
 	private FrameBufferCache() {
-		cache = new ArrayList<>();
-		cacheMap = new HashMap<>();
+		cache = new ArrayList<Rendertarget>();
+		cacheMap = new HashMap<HitObject, Rendertarget>();
 	}
 
 	/**
-	 * Check if there is a framebuffer object mapped to the {@code HitObject obj}
-	 * @param obj 
-	 * @return true if there is a framebuffer mapped for this HitObject, else false
+	 * Check if there is a framebuffer object mapped to {@code obj}.
+	 * @param obj the hit object
+	 * @return true if there is a framebuffer mapped for this {@code HitObject}, else false
 	 */
 	public boolean contains(HitObject obj) {
 		return cacheMap.containsKey(obj);
 	}
 
 	/**
-	 * Get the {@code Rendertarget} mapped to {@code obj}
-	 * @param obj
+	 * Get the {@code Rendertarget} mapped to {@code obj}.
+	 * @param obj the hit object
 	 * @return the {@code Rendertarget} if there's one mapped to {@code obj}, otherwise null
 	 */
 	public Rendertarget get(HitObject obj) {
@@ -75,8 +86,8 @@ public class FrameBufferCache {
 	}
 
 	/**
-	 * Clear the mapping for {@code obj} to free it up to get used by another {@code HitObject}
-	 * @param obj
+	 * Clear the mapping for {@code obj} to free it up to get used by another {@code HitObject}.
+	 * @param obj the hit object
 	 * @return true if there was a mapping for {@code obj} and false if there was no mapping for it.
 	 */
 	public boolean freeMappingFor(HitObject obj) {
@@ -95,11 +106,11 @@ public class FrameBufferCache {
 	 * Create a mapping from {@code obj} to a framebuffer. If there was already 
 	 * a mapping from {@code obj} this will associate another framebuffer with it 
 	 * (thereby freeing up the previously mapped framebuffer).
-	 * @param obj
+	 * @param obj the hit object
 	 * @return the {@code Rendertarget} newly mapped to {@code obj}
 	 */
 	public Rendertarget insert(HitObject obj) {
-		//find first RTTFramebuffer that's not mapped to anything and return it
+		// find first RTTFramebuffer that's not mapped to anything and return it
 		Rendertarget buffer;
 		for (int i = 0; i < cache.size(); ++i) {
 			buffer = cache.get(i);
@@ -108,7 +119,8 @@ public class FrameBufferCache {
 				return buffer;
 			}
 		}
-		//no unmapped RTTFramebuffer found, create a new one
+
+		// no unmapped RTTFramebuffer found, create a new one
 		buffer = Rendertarget.createRTTFramebuffer(width, height);
 		cache.add(buffer);
 		Log.warn("Framebuffer cache was not large enough, possible resource leak.");
@@ -117,15 +129,14 @@ public class FrameBufferCache {
 	}
 
 	/**
-	 * There should only ever be one framebuffer cache, this function returns that one framebuffer cache instance.
+	 * There should only ever be one framebuffer cache, this function returns
+	 * that one framebuffer cache instance.
 	 * If there was no instance created already then this function creates it.
 	 * @return the instance of FrameBufferCache
 	 */
 	public static FrameBufferCache getInstance() {
-		if (instance == null) {
+		if (instance == null)
 			instance = new FrameBufferCache();
-		}
 		return instance;
 	}
-	
 }
