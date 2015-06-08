@@ -271,7 +271,7 @@ public class Game extends BasicGameState {
 		float dimLevel = Options.getBackgroundDim();
 		if (trackPosition < firstObjectTime) {
 			if (timeDiff < approachTime)
-				dimLevel += (1f - dimLevel) * ((float) timeDiff / Math.min(approachTime, firstObjectTime));
+				dimLevel += (1f - dimLevel) * ((float) timeDiff / approachTime);
 			else
 				dimLevel = 1f;
 		}
@@ -301,7 +301,7 @@ public class Game extends BasicGameState {
 				timeDiff = firstObjectTime - trackPosition;
 				if (timeDiff < approachTime) {
 					float[] xy = gameObjects[0].getPointAt(trackPosition);
-					autoXY = getPointAt(autoMouseX, autoMouseY, xy[0], xy[1], 1f - ((float) timeDiff / Math.min(approachTime, firstObjectTime)));
+					autoXY = getPointAt(autoMouseX, autoMouseY, xy[0], xy[1], 1f - ((float) timeDiff / approachTime));
 				}
 			} else if (objectIndex < beatmap.objects.length) {
 				// normal object
