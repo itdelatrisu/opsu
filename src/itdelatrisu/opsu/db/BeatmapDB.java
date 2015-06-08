@@ -43,7 +43,7 @@ public class BeatmapDB {
 	 * Current database version.
 	 * This value should be changed whenever the database format changes.
 	 */
-	private static final String DATABASE_VERSION = "2014-03-08";
+	private static final String DATABASE_VERSION = "2014-06-08";
 
 	/** Minimum batch size ratio ({@code batchSize/cacheSize}) to invoke batch loading. */
 	private static final float LOAD_BATCH_MIN_RATIO = 0.2f;
@@ -78,16 +78,8 @@ public class BeatmapDB {
 		// create the database
 		createDatabase();
 
-		// prepare sql statements
+		// prepare sql statements (used below)
 		try {
-			insertStmt = connection.prepareStatement(
-				"INSERT INTO beatmaps VALUES (" +
-				"?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, " +
-				"?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-			);
-			selectStmt = connection.prepareStatement("SELECT * FROM beatmaps WHERE dir = ? AND file = ?");
-			deleteMapStmt = connection.prepareStatement("DELETE FROM beatmaps WHERE dir = ? AND file = ?");
-			deleteGroupStmt = connection.prepareStatement("DELETE FROM beatmaps WHERE dir = ?");
 			updateSizeStmt = connection.prepareStatement("REPLACE INTO info (key, value) VALUES ('size', ?)");
 		} catch (SQLException e) {
 			ErrorHandler.error("Failed to prepare beatmap statements.", e, true);
@@ -98,6 +90,20 @@ public class BeatmapDB {
 
 		// check the database version
 		checkVersion();
+
+		// prepare sql statements (not used here)
+		try {
+			insertStmt = connection.prepareStatement(
+				"INSERT INTO beatmaps VALUES (" +
+				"?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, " +
+				"?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+			);
+			selectStmt = connection.prepareStatement("SELECT * FROM beatmaps WHERE dir = ? AND file = ?");
+			deleteMapStmt = connection.prepareStatement("DELETE FROM beatmaps WHERE dir = ? AND file = ?");
+			deleteGroupStmt = connection.prepareStatement("DELETE FROM beatmaps WHERE dir = ?");
+		} catch (SQLException e) {
+			ErrorHandler.error("Failed to prepare beatmap statements.", e, true);
+		}
 	}
 
 	/**
@@ -116,7 +122,7 @@ public class BeatmapDB {
 					"bpmMin INTEGER, bpmMax INTEGER, endTime INTEGER, " +
 					"audioFile TEXT, audioLeadIn INTEGER, previewTime INTEGER, countdown INTEGER, sampleSet TEXT, stackLeniency REAL, " +
 					"mode INTEGER, letterboxInBreaks BOOLEAN, widescreenStoryboard BOOLEAN, epilepsyWarning BOOLEAN, " +
-					"bg TEXT, timingPoints TEXT, breaks TEXT, combo TEXT" +
+					"bg TEXT, sliderBorder TEXT, timingPoints TEXT, breaks TEXT, combo TEXT" +
 				"); " +
 				"CREATE TABLE IF NOT EXISTS info (" +
 					"key TEXT NOT NULL UNIQUE, value TEXT" +
@@ -330,9 +336,10 @@ public class BeatmapDB {
 			stmt.setBoolean(34, beatmap.widescreenStoryboard);
 			stmt.setBoolean(35, beatmap.epilepsyWarning);
 			stmt.setString(36, beatmap.bg);
-			stmt.setString(37, beatmap.timingPointsToString());
-			stmt.setString(38, beatmap.breaksToString());
-			stmt.setString(39, beatmap.comboToString());
+			stmt.setString(37, beatmap.sliderBorderToString());
+			stmt.setString(38, beatmap.timingPointsToString());
+			stmt.setString(39, beatmap.breaksToString());
+			stmt.setString(40, beatmap.comboToString());
 		} catch (SQLException e) {
 			throw e;
 		} catch (Exception e) {
@@ -470,6 +477,7 @@ public class BeatmapDB {
 			beatmap.widescreenStoryboard = rs.getBoolean(34);
 			beatmap.epilepsyWarning = rs.getBoolean(35);
 			beatmap.bg = BeatmapParser.getDBString(rs.getString(36));
+			beatmap.sliderBorderFromString(rs.getString(37));
 		} catch (SQLException e) {
 			throw e;
 		} catch (Exception e) {
@@ -485,9 +493,9 @@ public class BeatmapDB {
 	 */
 	private static void setBeatmapArrayFields(ResultSet rs, Beatmap beatmap) throws SQLException {
 		try {
-			beatmap.timingPointsFromString(rs.getString(37));
-			beatmap.breaksFromString(rs.getString(38));
-			beatmap.comboFromString(rs.getString(39));
+			beatmap.timingPointsFromString(rs.getString(38));
+			beatmap.breaksFromString(rs.getString(39));
+			beatmap.comboFromString(rs.getString(40));
 		} catch (SQLException e) {
 			throw e;
 		} catch (Exception e) {

@@ -504,6 +504,12 @@ public class BeatmapParser {
 						if ((tokens = tokenize(line)) == null)
 							continue;
 						try {
+							String[] rgb = tokens[1].split(",");
+							Color color = new Color(
+								Integer.parseInt(rgb[0]),
+								Integer.parseInt(rgb[1]),
+								Integer.parseInt(rgb[2])
+							);
 							switch (tokens[0]) {
 							case "Combo1":
 							case "Combo2":
@@ -513,12 +519,11 @@ public class BeatmapParser {
 							case "Combo6":
 							case "Combo7":
 							case "Combo8":
-								String[] rgb = tokens[1].split(",");
-								colors.add(new Color(
-									Integer.parseInt(rgb[0]),
-									Integer.parseInt(rgb[1]),
-									Integer.parseInt(rgb[2])
-								));
+								colors.add(color);
+								break;
+							case "SliderBorder":
+								beatmap.sliderBorder = color;
+								break;
 							default:
 								break;
 							}

@@ -185,6 +185,9 @@ public class Beatmap implements Comparable<Beatmap> {
 	/** Whether the combo is the default skin combo (true) or a beatmap combo (false). */
 	public boolean isDefaultCombo = true;
 
+	/** Slider border color. If null, the skin value is used. */
+	public Color sliderBorder;
+
 	/**
 	 * [HitObjects]
 	 */
@@ -255,6 +258,15 @@ public class Beatmap implements Comparable<Beatmap> {
 	 */
 	public String getArtist() {
 		return (Options.useUnicodeMetadata() && !artistUnicode.isEmpty()) ? artistUnicode : artist;
+	}
+
+	/**
+	 * Returns the slider border color.
+	 * If the beatmap does not provide a color, the skin color will be returned instead.
+	 * @return the slider border color
+	 */
+	public Color getSliderBorderColor() {
+		return (sliderBorder != null) ? sliderBorder : Options.getSkin().getSliderBorderColor();
 	}
 
 	/**
@@ -440,5 +452,28 @@ public class Beatmap implements Comparable<Beatmap> {
 			this.combo = colors.toArray(new Color[colors.size()]);
 			this.isDefaultCombo = false;
 		}
+	}
+
+	/**
+	 * Returns the {@link #sliderBorder} field formatted as a string,
+	 * or null if the field is null.
+	 */
+	public String sliderBorderToString() {
+		if (sliderBorder == null)
+			return null;
+
+		return String.format("%d,%d,%d", sliderBorder.getRed(), sliderBorder.getGreen(), sliderBorder.getBlue());
+	}
+
+	/**
+	 * Sets the {@link #sliderBorder} field from a string.
+	 * @param s the string
+	 */
+	public void sliderBorderFromString(String s) {
+		if (s == null)
+			return;
+
+		String[] rgb = s.split(",");
+		this.sliderBorder = new Color(new Color(Integer.parseInt(rgb[0]), Integer.parseInt(rgb[1]), Integer.parseInt(rgb[2])));
 	}
 }
