@@ -485,9 +485,6 @@ public class Options {
 	/** The current skin. */
 	private static Skin skin;
 
-	/** Resolution that the latest Container passed to "setDisplayMode" was set to. */
-	private static Resolution lastSetResolution = Resolution.RES_1024_768;
-
 	/** Frame limiters. */
 	private static final int[] targetFPS = { 60, 120, 240 };
 
@@ -597,8 +594,6 @@ public class Options {
 		// set borderless window if dimensions match screen size
 		boolean borderless = (screenWidth == resolution.getWidth() && screenHeight == resolution.getHeight());
 		System.setProperty("org.lwjgl.opengl.Window.undecorated", Boolean.toString(borderless));
-
-		lastSetResolution = resolution;
 	}
 
 //	/**
@@ -891,24 +886,6 @@ public class Options {
 
 		replayDir = new File(DATA_DIR, "Replays/");
 		return replayDir;
-	}
-
-	/**
-	 * Returns the horizontal Resolution.
-	 * If no game has been started then a default value is returned.
-	 * @return the horizontal resolution of the latest game instance to be started.
-	 */
-	public static int getLatestResolutionWidth() {
-		return lastSetResolution.getWidth();
-	}
-
-	/**
-	 * Returns the vertical Resolution.
-	 * If no game has been started then a default value is returned.
-	 * @return the vertical resolution of the latest game instance to be started.
-	 */
-	public static int getLatestResolutionHeight() {
-		return lastSetResolution.getHeight();
 	}
 
 	/**

@@ -30,20 +30,12 @@ import itdelatrisu.opsu.objects.curves.CatmullCurve;
 import itdelatrisu.opsu.objects.curves.CircumscribedCircle;
 import itdelatrisu.opsu.objects.curves.Curve;
 import itdelatrisu.opsu.objects.curves.LinearBezier;
-import itdelatrisu.opsu.render.Rendertarget;
 import itdelatrisu.opsu.states.Game;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL14;
-import org.lwjgl.opengl.GL30;
 
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
-import org.newdawn.slick.util.Log;
 
 /**
  * Data type representing a slider object.
@@ -57,9 +49,6 @@ public class Slider implements GameObject {
 
 	/** Rate at which slider ticks are placed. */
 	private static float sliderTickRate = 1.0f;
-
-	/** Scaling factor for display elements */
-	private static int diameter = 1;
 
 	/** The amount of time, in milliseconds, to fade in the slider. */
 	private static final int FADE_IN_TIME = 375;
@@ -122,7 +111,7 @@ public class Slider implements GameObject {
 		containerWidth = container.getWidth();
 		containerHeight = container.getHeight();
 
-		diameter = (int) (104 - (circleSize * 8));
+		int diameter = (int) (104 - (circleSize * 8));
 		diameter = (int) (diameter * HitObject.getXMultiplier());  // convert from Osupixels (640x480)
 
 		// slider ball
@@ -399,7 +388,6 @@ public class Slider implements GameObject {
 
 			// calculate and send slider result
 			hitResult();
-			
 			return true;
 		}
 
@@ -481,8 +469,6 @@ public class Slider implements GameObject {
 			this.curve = new CatmullCurve(hitObject, color);
 		else
 			this.curve = new LinearBezier(hitObject, color, hitObject.getSliderType() == HitObject.SLIDER_LINEAR);
-
-		this.curve.setScale(diameter );//* 118 / 128);
 	}
 
 	@Override

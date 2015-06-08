@@ -17,6 +17,7 @@
  */
 package itdelatrisu.opsu.render;
 
+import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.beatmap.HitObject;
 import java.util.ArrayList;
@@ -28,24 +29,31 @@ import org.newdawn.slick.util.Log;
  * This is cache for OpenGL FrameBufferObjects. This is currently only used
  * to draw curve objects of the new slider style. Does currently not integrate
  * well and requires some manual OpenGL state manipulation to use it.
- * @author Bigpet {@literal <dravorek@gmail.com>}
+ * @author Bigpet {@literal <dravorek (at) gmail.com>}
  */
 public class FrameBufferCache {
 	private static final int INITIAL_CACHE_SIZE = 4;
 	private static FrameBufferCache instance = null;
 	private Map<HitObject, Rendertarget> cacheMap;
 	private ArrayList<Rendertarget> cache;
-	public final int width;
-	public final int height;
+	public static int width;
+	public static int height;
 
-	private FrameBufferCache(int width, int height) {
-		cache = new ArrayList<>(INITIAL_CACHE_SIZE);
+	/**
+	 * Set the width and height of the framebuffers in this cache.
+	 * Should be called before anything is inserted into the map.
+	 * @param width
+	 * @param height 
+	 */
+	public static void init(int width, int height)
+	{
+		FrameBufferCache.width = width;
+		FrameBufferCache.height = height;
+	}
+	
+	private FrameBufferCache() {
+		cache = new ArrayList<>();
 		cacheMap = new HashMap<>();
-		this.width = width;
-		this.height = height;
-		for (int i = 0; i < INITIAL_CACHE_SIZE; ++i) {
-			cache.add(Rendertarget.createRTTFramebuffer(width, height));
-		}
 	}
 
 	/**
@@ -115,7 +123,7 @@ public class FrameBufferCache {
 	 */
 	public static FrameBufferCache getInstance() {
 		if (instance == null) {
-			instance = new FrameBufferCache(Options.getLatestResolutionWidth(), Options.getLatestResolutionHeight());
+			instance = new FrameBufferCache();
 		}
 		return instance;
 	}

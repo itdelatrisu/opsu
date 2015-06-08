@@ -41,24 +41,55 @@ import org.newdawn.slick.util.Log;
  */
 public class CurveRenderState {
 
+	/** The width and height of the display container this curve gets drawn into */
+	protected static int containerWidth, containerHeight;
+	
 	/** cached drawn slider, only used if new style sliders are activated */
 	public Rendertarget fbo;
 
 	/** thickness of the curve */
-	float scale;
+	protected static int scale;
 	
 	/** The HitObject associated with the curve to be drawn */
 	HitObject hitObject;
 
 	/** Static state that's needed to draw the new style curves */
 	private static final NewCurveStyleState staticState = new NewCurveStyleState();
-	
-	public CurveRenderState(float scale, HitObject hitObject) {
+
+	/**
+	 * Set the width and height of the container that Curves get drawn into
+	 * Should be called before any curves are drawn.
+	 * @param width
+	 * @param height 
+	 */
+	public static void init(int width, int height, float circleSize)
+	{
+		containerWidth = width;
+		containerHeight = height;
+		//equivalent to what happens in Slider.init
+		scale = (int) (104 - (circleSize * 8));
+		scale = (int) (scale * HitObject.getXMultiplier());  // convert from Osupixels (640x480)
+		//scale = scale * 118 / 128; //for curves exaclty as big as the sliderball
+		FrameBufferCache.init(width, height);
+	}
+
+	/**
+	 * Creates an object to hold the render state that's necessary to draw a curve.
+	 * @param hitObject the HitObject that represents this curve, just used as a
+	 * unique ID
+	 */
+	public CurveRenderState(HitObject hitObject) {
 		fbo = null;
-		this.scale = scale;
 		this.hitObject = hitObject;
 	}
 
+	/**
+	 * Draw a curve to the screen that's tinted with `color`. The first time
+	 * this is called this caches the image result of the curve and on subsequent
+	 * runs it just draws the cached copy to the screen.
+	 * @param color tint of the curve
+	 * @param curve the points along the curve to be drawn
+	 */
 	public void draw(Color color, Vec2f[] curve) {
 		float alpha = color.a;
 		//if this curve hasn't been drawn, draw it and cache the result
@@ -108,6 +139,11 @@ public class CurveRenderState {
 		FrameBufferCache.getInstance().freeMappingFor(hitObject);
 	}
 
+	/**
+	 * Just a structure to hold all the important OpenGL state that needs to be
+	 * changed to draw the curve. This is used to backup and restore the state
+	 * so that the code outside of this (mainly Slick2D) doesn't break
+	 */
 	private class RenderState {
 		boolean smoothedPoly;
 		boolean blendEnabled;
@@ -119,6 +155,11 @@ public class CurveRenderState {
 		int oldArrayBuffer;
 	}
 
+	/**
+	 * Backup the current state of the relevant OpenGL state and change it to
+	 * what's needed to draw the curve
+	 * @return 
+	 */
 	private RenderState startRender() {
 		RenderState state = new RenderState();
 		state.smoothedPoly = GL11.glGetBoolean(GL11.GL_POLYGON_SMOOTH);
@@ -154,6 +195,10 @@ public class CurveRenderState {
 		return state;
 	}
 
+	/**
+	 * Restore the old OpenGL state that's backed up in {@code state}
+	 * @param state the old state to restore
+	 */
 	private void endRender(RenderState state) {
 		GL11.glMatrixMode(GL11.GL_PROJECTION);
 		GL11.glPopMatrix();
@@ -186,12 +231,12 @@ public class CurveRenderState {
 	 * @param curve the points along the curve
 	 */
 	private void draw_curve(Color color, Vec2f[] curve) {
+		staticState.initGradient();
 		RenderState state = startRender();
 		int vtx_buf;
-		//floatsize * (position + texture coordinates) * (number of cones) * (vertices in a cone)
+		//The size is: floatsize * (position + texture coordinates) * (number of cones) * (vertices in a cone)
 		FloatBuffer buff = BufferUtils.createByteBuffer(4 * (4 + 2) * (2 * curve.length - 1) * (NewCurveStyleState.DIVIDES + 2)).asFloatBuffer();
 		staticState.initShaderProgram();
-		staticState.initGradient();
 		vtx_buf = GL15.glGenBuffers();
 		for (int i = 0; i < curve.length; ++i) {
 			float x = curve[i].x;
@@ -211,7 +256,20 @@ public class CurveRenderState {
 		buff.flip();
 		GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, vtx_buf);
 		GL15.glBufferData(GL15.GL_ARRAY_BUFFER, buff, GL15.GL_STATIC_DRAW);
-		staticState.render(color, curve.length * 2 - 1, vtx_buf);
+		GL20.glUseProgram(staticState.program);
+		GL20.glEnableVertexAttribArray(staticState.attribLoc);
+		GL20.glEnableVertexAttribArray(staticState.texCoordLoc);
+		GL20.glUniform1i(staticState.texLoc, 0);
+		GL20.glUniform3f(staticState.colLoc, color.r, color.g, color.b);
+		//stride is 6*4 for the floats (4 bytes) (u,v)(x,y,z,w)
+		//2*4 is for skipping the first 2 floats (u,v)
+		GL20.glVertexAttribPointer(staticState.attribLoc, 4, GL11.GL_FLOAT, false, 6 * 4, 2 * 4);
+		GL20.glVertexAttribPointer(staticState.texCoordLoc, 2, GL11.GL_FLOAT, false, 6 * 4, 0);
+		for (int i = 0; i < curve.length*2-1; ++i) {
+			GL11.glDrawArrays(GL11.GL_TRIANGLE_FAN, i * (NewCurveStyleState.DIVIDES + 2), NewCurveStyleState.DIVIDES + 2);
+		}
+		GL20.glDisableVertexAttribArray(staticState.texCoordLoc);
+		GL20.glDisableVertexAttribArray(staticState.attribLoc);		
 		GL15.glDeleteBuffers(vtx_buf);
 		endRender(state);
 	}
@@ -226,8 +284,8 @@ public class CurveRenderState {
 	 * @param DIVIDES the base of the cone is a regular polygon with this many sides
 	 */
 	protected void fillCone(FloatBuffer buff, float x1, float y1, final int DIVIDES) {
-		float divx = Options.getLatestResolutionWidth() / 2.0f;
-		float divy = Options.getLatestResolutionHeight() / 2.0f;
+		float divx = containerWidth / 2.0f;
+		float divy = containerHeight / 2.0f;
 		float offx = -1.0f;
 		float offy = 1.0f;
 		float x, y;
@@ -271,7 +329,7 @@ public class CurveRenderState {
 	 * Contains all the necessary state that needs to be tracked to draw curves
 	 * in the new style and not re-create the shader each time.
 	 *
-	 * @author Bigpet {@literal <dravorek@gmail.com>}
+	 * @author Bigpet {@literal <dravorek (at) gmail.com>}
 	 */
 	private static class NewCurveStyleState {
 
@@ -281,29 +339,22 @@ public class CurveRenderState {
 		 */
 		protected static final int DIVIDES = 30;
 
-		/**
-		 * OpenGL shader program ID used to draw and recolor the curve
-		 */
+		/** OpenGL shader program ID used to draw and recolor the curve */
 		protected int program = 0;
 
-		/**
-		 * OpenGL shader attribute location of the vertex position attribute
-		 */
+		/** OpenGL shader attribute location of the vertex position attribute */
 		protected int attribLoc = 0;
 
-		/**
-		 * OpenGL shader attribute location of the texture coordinate attribute
-		 */
+		/** OpenGL shader attribute location of the texture coordinate attribute */
 		protected int texCoordLoc = 0;
 
-		/**
-		 * OpenGL shader uniform location of the color attribute
-		 */
+		/** OpenGL shader uniform location of the color attribute */
 		protected int colLoc = 0;
 		
-		/**
-		 * OpenGL texture id for the gradient texture for the curve
-		 */
+		/** OpenGL shader uniform location of the texture sampler attribute */
+		protected int texLoc = 0;
+
+		/** OpenGL texture id for the gradient texture for the curve */
 		protected int gradientTexture = 0;
 		
 		/**
@@ -324,7 +375,6 @@ public class CurveRenderState {
 					buff.put((byte)(255*col.g));
 					buff.put((byte)(255*col.b));
 					buff.put((byte)(255*col.a));
-
 				}
 				buff.flip();
 				GL11.glBindTexture(GL11.GL_TEXTURE_1D, gradientTexture);
@@ -391,38 +441,9 @@ public class CurveRenderState {
 				}
 				attribLoc = GL20.glGetAttribLocation(program, "in_position");
 				texCoordLoc = GL20.glGetAttribLocation(program, "in_tex_coord");
-				int texLoc = GL20.glGetUniformLocation(program, "tex");
+				texLoc = GL20.glGetUniformLocation(program, "tex");
 				colLoc = GL20.glGetUniformLocation(program, "col_tint");
-				GL20.glUniform1i(texLoc, 0);
 			}
 		}
-
-		/**
-		 * Make the drawcalls for the curve. This requires the {@code vertexBufferObject} to be filled with 
-		 * {@code numCones * (NewCurveStyleState.DIVIDES+2)} sets of (u,v,x,y,z,w) floats
-		 * @param color the color of the curve to be drawn
-		 * @param numCones the number of points in the {code vertexBufferObject}
-		 * @param vertexBufferObject the OpenGL vertex buffer object ID that
-		 * contains the positions and texture coordinates of the cones
-		 */
-		public void render(Color color, int numCones, int vertexBufferObject) {
-			GL20.glUseProgram(program);
-			GL20.glEnableVertexAttribArray(attribLoc);
-			GL20.glEnableVertexAttribArray(texCoordLoc);
-			//stride is 6*4 for the floats (4 bytes) (u,v)(x,y,z,w)
-			//2*4 is for skipping the first 2 floats (u,v)
-			GL20.glVertexAttribPointer(attribLoc, 4, GL11.GL_FLOAT, false, 6 * 4, 2 * 4);
-			GL20.glVertexAttribPointer(texCoordLoc, 2, GL11.GL_FLOAT, false, 6 * 4, 0);
-
-			GL20.glUniform3f(colLoc, color.r, color.g, color.b);
-			for (int i = 0; i < numCones; ++i) {
-				GL11.glDrawArrays(GL11.GL_TRIANGLE_FAN, i * (NewCurveStyleState.DIVIDES + 2), NewCurveStyleState.DIVIDES + 2);
-			}
-
-			GL20.glDisableVertexAttribArray(texCoordLoc);
-			GL20.glDisableVertexAttribArray(attribLoc);
-		}
-
 	}
-
 }
