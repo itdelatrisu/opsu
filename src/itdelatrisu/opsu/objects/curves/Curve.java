@@ -39,6 +39,9 @@ public abstract class Curve {
 	/** Points generated along the curve should be spaced this far apart. */
 	protected static float CURVE_POINTS_SEPERATION = 5;
 
+	/** The curve border color. */
+	private static Color borderColor;
+
 	/** Whether OpenGL 3.0 is supported. */
 	private static boolean openGL30 = false;
 
@@ -77,8 +80,10 @@ public abstract class Curve {
 	 * @param width the container width
 	 * @param height the container height
 	 * @param circleSize the circle size
+	 * @param borderColor the curve border color
 	 */
-	public static void init(int width, int height, float circleSize) {
+	public static void init(int width, int height, float circleSize, Color borderColor) {
+		Curve.borderColor = borderColor;
 		openGL30 = GLContext.getCapabilities().OpenGL30;
 		if (openGL30)
 			CurveRenderState.init(width, height, circleSize);
@@ -117,7 +122,7 @@ public abstract class Curve {
 		else {
 			if (renderState == null)
 				renderState = new CurveRenderState(hitObject);
-			renderState.draw(color, curve);
+			renderState.draw(color, borderColor, curve);
 		}
 	}
 

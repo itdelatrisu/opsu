@@ -1393,7 +1393,8 @@ public class Game extends BasicGameState {
 		Circle.init(container, circleSize);
 		Slider.init(container, circleSize, beatmap);
 		Spinner.init(container);
-		Curve.init(container.getWidth(), container.getHeight(), circleSize);
+		Curve.init(container.getWidth(), container.getHeight(), circleSize, (Options.isBeatmapSkinIgnored()) ?
+				Options.getSkin().getSliderBorderColor() : beatmap.getSliderBorderColor());
 
 		// approachRate (hit object approach time)
 		if (approachRate < 5)

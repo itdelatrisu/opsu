@@ -23,8 +23,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.newdawn.slick.util.Log;
-
 /**
  * This is cache for OpenGL FrameBufferObjects. This is currently only used
  * to draw curve objects of the new slider style. Does currently not integrate
@@ -33,9 +31,6 @@ import org.newdawn.slick.util.Log;
  * @author Bigpet {@literal <dravorek (at) gmail.com>}
  */
 public class FrameBufferCache {
-	/** The initial cache size. */
-	//private static final int INITIAL_CACHE_SIZE = 4;
-
 	/** The single framebuffer cache instance. */
 	private static FrameBufferCache instance = null;
 
@@ -123,7 +118,6 @@ public class FrameBufferCache {
 		// no unmapped RTTFramebuffer found, create a new one
 		buffer = Rendertarget.createRTTFramebuffer(width, height);
 		cache.add(buffer);
-		Log.warn("Framebuffer cache was not large enough, possible resource leak.");
 		cacheMap.put(obj, buffer);
 		return buffer;
 	}

@@ -18,9 +18,7 @@
 package itdelatrisu.opsu.render;
 
 import itdelatrisu.opsu.GameImage;
-import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.Utils;
-import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.beatmap.HitObject;
 import itdelatrisu.opsu.objects.curves.Vec2f;
 
@@ -92,9 +90,10 @@ public class CurveRenderState {
 	 * this is called this caches the image result of the curve and on subsequent
 	 * runs it just draws the cached copy to the screen.
 	 * @param color tint of the curve
+	 * @param borderColor the curve border color
 	 * @param curve the points along the curve to be drawn
 	 */
-	public void draw(Color color, Vec2f[] curve) {
+	public void draw(Color color, Color borderColor, Vec2f[] curve) {
 		float alpha = color.a;
 
 		// if this curve hasn't been drawn, draw it and cache the result
@@ -113,7 +112,7 @@ public class CurveRenderState {
 			GL11.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 			GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
 			Utils.COLOR_WHITE_FADE.a = 1.0f;
-			this.draw_curve(color, curve);
+			this.draw_curve(color, borderColor, curve);
 			color.a = 1f;
 
 			GL11.glBindTexture(GL11.GL_TEXTURE_2D, old_tex);
@@ -229,9 +228,10 @@ public class CurveRenderState {
 	/**
 	 * Do the actual drawing of the curve into the currently bound framebuffer.
 	 * @param color the color of the curve
+	 * @param borderColor the curve border color
 	 * @param curve the points along the curve
 	 */
-	private void draw_curve(Color color, Vec2f[] curve) {
+	private void draw_curve(Color color, Color borderColor, Vec2f[] curve) {
 		staticState.initGradient();
 		RenderState state = startRender();
 		int vtx_buf;
@@ -262,12 +262,7 @@ public class CurveRenderState {
 		GL20.glEnableVertexAttribArray(staticState.texCoordLoc);
 		GL20.glUniform1i(staticState.texLoc, 0);
 		GL20.glUniform3f(staticState.colLoc, color.r, color.g, color.b);
-		Color borderColor; 
-		if(Options.isBeatmapSkinIgnored())
-			borderColor = Options.getSkin().getSliderBorderColor();
-		else
-			borderColor = MusicController.getBeatmap().getSliderBorderColor();
-		GL20.glUniform4f(staticState.colBorderLoc,borderColor.r,borderColor.g,borderColor.b,borderColor.a);
+		GL20.glUniform4f(staticState.colBorderLoc, borderColor.r, borderColor.g, borderColor.b, borderColor.a);
 		//stride is 6*4 for the floats (4 bytes) (u,v)(x,y,z,w)
 		//2*4 is for skipping the first 2 floats (u,v)
 		GL20.glVertexAttribPointer(staticState.attribLoc, 4, GL11.GL_FLOAT, false, 6 * 4, 2 * 4);
@@ -356,7 +351,7 @@ public class CurveRenderState {
 		/** OpenGL shader uniform location of the color attribute. */
 		protected int colLoc = 0;
 		
-		/** OpenGL shader uniform location of the border color attribute */
+		/** OpenGL shader uniform location of the border color attribute. */
 		protected int colBorderLoc = 0;
 		
 		/** OpenGL shader uniform location of the texture sampler attribute. */
