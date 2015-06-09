@@ -335,7 +335,7 @@ public class BeatmapDB {
 			stmt.setBoolean(33, beatmap.letterboxInBreaks);
 			stmt.setBoolean(34, beatmap.widescreenStoryboard);
 			stmt.setBoolean(35, beatmap.epilepsyWarning);
-			stmt.setString(36, beatmap.bg);
+			stmt.setString(36, beatmap.bg.getName());
 			stmt.setString(37, beatmap.sliderBorderToString());
 			stmt.setString(38, beatmap.timingPointsToString());
 			stmt.setString(39, beatmap.breaksToString());
@@ -476,7 +476,7 @@ public class BeatmapDB {
 			beatmap.letterboxInBreaks = rs.getBoolean(33);
 			beatmap.widescreenStoryboard = rs.getBoolean(34);
 			beatmap.epilepsyWarning = rs.getBoolean(35);
-			beatmap.bg = BeatmapParser.getDBString(rs.getString(36));
+			beatmap.bg = new File(beatmap.getFile().getParentFile(), BeatmapParser.getDBString(rs.getString(36)));
 			beatmap.sliderBorderFromString(rs.getString(37));
 		} catch (SQLException e) {
 			throw e;

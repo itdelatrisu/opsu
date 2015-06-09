@@ -191,7 +191,7 @@ public class GameData {
 	private int[] hitResultOffset;
 
 	/** List of hit result objects associated with hit objects. */
-	private LinkedBlockingDeque<OsuHitObjectResult> hitResultList;
+	private LinkedBlockingDeque<HitObjectResult> hitResultList;
 
 	/**
 	 * Class to store hit error information.
@@ -230,7 +230,7 @@ public class GameData {
 	public enum HitObjectType { CIRCLE, SLIDERTICK, SLIDER_FIRST, SLIDER_LAST, SPINNER }
 
 	/** Hit result helper class. */
-	private class OsuHitObjectResult {
+	private class HitObjectResult {
 		/** Object start time. */
 		public int time;
 
@@ -265,7 +265,7 @@ public class GameData {
 		 * @param curve the slider curve (or null if not applicable)
 		 * @param expand whether or not the hit result animation should expand (if applicable)
 		 */
-		public OsuHitObjectResult(int time, int result, float x, float y, Color color,
+		public HitObjectResult(int time, int result, float x, float y, Color color,
 				HitObjectType hitResultType, Curve curve, boolean expand) {
 			this.time = time;
 			this.result = result;
@@ -375,12 +375,12 @@ public class GameData {
 		healthDisplay = 100f;
 		hitResultCount = new int[HIT_MAX];
 		if (hitResultList != null) {
-			for (OsuHitObjectResult hitResult : hitResultList) {
+			for (HitObjectResult hitResult : hitResultList) {
 				if (hitResult.curve != null)
 					hitResult.curve.discardCache();
 			}
 		}
-		hitResultList = new LinkedBlockingDeque<OsuHitObjectResult>();
+		hitResultList = new LinkedBlockingDeque<HitObjectResult>();
 		hitErrorList = new LinkedBlockingDeque<HitErrorInfo>();
 		fullObjectCount = 0;
 		combo = 0;
@@ -872,9 +872,9 @@ public class GameData {
 	 * @param trackPosition the current track position (in ms)
 	 */
 	public void drawHitResults(int trackPosition) {
-		Iterator<OsuHitObjectResult> iter = hitResultList.iterator();
+		Iterator<HitObjectResult> iter = hitResultList.iterator();
 		while (iter.hasNext()) {
-			OsuHitObjectResult hitResult = iter.next();
+			HitObjectResult hitResult = iter.next();
 			if (hitResult.time + HITRESULT_TIME > trackPosition) {
 				// spinner
 				if (hitResult.hitResultType == HitObjectType.SPINNER && hitResult.result != HIT_MISS) {
@@ -1217,7 +1217,7 @@ public class GameData {
 			if (!Options.isPerfectHitBurstEnabled())
 				;  // hide perfect hit results
 			else
-				hitResultList.add(new OsuHitObjectResult(time, result, x, y, null, HitObjectType.SLIDERTICK, null, false));
+				hitResultList.add(new HitObjectResult(time, result, x, y, null, HitObjectType.SLIDERTICK, null, false));
 		}
 	}
 
@@ -1338,14 +1338,14 @@ public class GameData {
 		else if (result == HIT_MISS && (GameMod.RELAX.isActive() || GameMod.AUTOPILOT.isActive()))
 			;  // "relax" and "autopilot" mods: hide misses
 		else {
-			hitResultList.add(new OsuHitObjectResult(time, result, x, y, color, hitResultType, curve, expand));
+			hitResultList.add(new HitObjectResult(time, result, x, y, color, hitResultType, curve, expand));
 
 			// sliders: add the other curve endpoint for the hit animation
 			if (curve != null) {
 				boolean isFirst = (hitResultType == HitObjectType.SLIDER_FIRST);
 				float[] p = curve.pointAt((isFirst) ? 1f : 0f);
 				HitObjectType type = (isFirst) ? HitObjectType.SLIDER_LAST : HitObjectType.SLIDER_FIRST;
-				hitResultList.add(new OsuHitObjectResult(time, result, p[0], p[1], color, type, null, expand));
+				hitResultList.add(new HitObjectResult(time, result, p[0], p[1], color, type, null, expand));
 			}
 		}
 	}

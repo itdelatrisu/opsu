@@ -22,12 +22,10 @@ import itdelatrisu.opsu.Options;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedList;
 
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Image;
-import org.newdawn.slick.SlickException;
 import org.newdawn.slick.util.Log;
 
 /**
@@ -37,11 +35,13 @@ public class Beatmap implements Comparable<Beatmap> {
 	/** Game modes. */
 	public static final byte MODE_OSU = 0, MODE_TAIKO = 1, MODE_CTB = 2, MODE_MANIA = 3;
 
-	/** Map of all loaded background images. */
-	private static HashMap<Beatmap, Image> bgImageMap = new HashMap<Beatmap, Image>();
+	/** Background image cache. */
+	private static final BeatmapImageCache bgImageCache = new BeatmapImageCache();
 
-	/** Maximum number of cached images before all get erased. */
-	private static final int MAX_CACHE_SIZE = 10;
+	/**
+	 * Returns the background image cache.
+	 */
+	public static BeatmapImageCache getBackgroundImageCache() { return bgImageCache; }
 
 	/** The OSU File object associated with this beatmap. */
 	private File file;
@@ -156,11 +156,11 @@ public class Beatmap implements Comparable<Beatmap> {
 	 * [Events]
 	 */
 
-	/** Background image file name. */
-	public String bg;
+	/** Background image file. */
+	public File bg;
 
-	/** Background video file name. */
-//	public String video;
+	/** Background video file. */
+//	public File video;
 
 	/** All break periods (start time, end time, ...). */
 	public ArrayList<Integer> breaks;
@@ -200,30 +200,6 @@ public class Beatmap implements Comparable<Beatmap> {
 
 	/** Last object end time (in ms). */
 	public int endTime = -1;
-
-	/**
-	 * Destroys all cached background images and resets the cache.
-	 */
-	public static void clearImageCache() {
-		for (Image img : bgImageMap.values()) {
-			if (img != null && !img.isDestroyed()) {
-				try {
-					img.destroy();
-				} catch (SlickException e) {
-					Log.warn(String.format("Failed to destroy image '%s'.", img.getResourceReference()), e);
-				}
-			}
-		}
-		resetImageCache();
-	}
-
-	/**
-	 * Resets the image cache.
-	 * This does NOT destroy images, so be careful of memory leaks!
-	 */
-	public static void resetImageCache() {
-		bgImageMap = new HashMap<Beatmap, Image>();
-	}
 
 	/**
 	 * Constructor.
@@ -287,12 +263,10 @@ public class Beatmap implements Comparable<Beatmap> {
 		if (bg == null)
 			return false;
 		try {
-			Image bgImage = bgImageMap.get(this);
+			Image bgImage = bgImageCache.get(this);
 			if (bgImage == null) {
-				if (bgImageMap.size() > MAX_CACHE_SIZE)
-					clearImageCache();
-				bgImage = new Image(new File(file.getParentFile(), bg).getAbsolutePath());
-				bgImageMap.put(this, bgImage);
+				bgImage = new Image(bg.getAbsolutePath());
+				bgImageCache.put(this, bgImage);
 			}
 
 			int swidth = width;

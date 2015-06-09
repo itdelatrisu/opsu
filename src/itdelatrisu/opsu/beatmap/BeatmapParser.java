@@ -440,7 +440,7 @@ public class BeatmapParser {
 							tokens[2] = tokens[2].replaceAll("^\"|\"$", "");
 							String ext = BeatmapParser.getExtension(tokens[2]);
 							if (ext.equals("jpg") || ext.equals("png"))
-								beatmap.bg = getDBString(tokens[2]);
+								beatmap.bg = new File(dir, getDBString(tokens[2]));
 							break;
 						case "2":  // break periods
 							try {
