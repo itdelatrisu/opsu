@@ -63,7 +63,7 @@ public class BeatmapImageCache {
 
 	/**
 	 * Returns the image mapped to the specified beatmap.
-     * @param beatmap the Beatmap
+	 * @param beatmap the Beatmap
 	 * @return the Image, or {@code null} if no such mapping exists
 	 */
 	public Image get(Beatmap beatmap) { return cache.get(beatmap.bg); }

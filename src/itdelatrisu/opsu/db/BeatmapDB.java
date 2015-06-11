@@ -335,7 +335,7 @@ public class BeatmapDB {
 			stmt.setBoolean(33, beatmap.letterboxInBreaks);
 			stmt.setBoolean(34, beatmap.widescreenStoryboard);
 			stmt.setBoolean(35, beatmap.epilepsyWarning);
-			stmt.setString(36, beatmap.bg.getName());
+			stmt.setString(36, (beatmap.bg == null) ? null : beatmap.bg.getName());
 			stmt.setString(37, beatmap.sliderBorderToString());
 			stmt.setString(38, beatmap.timingPointsToString());
 			stmt.setString(39, beatmap.breaksToString());
@@ -444,6 +444,7 @@ public class BeatmapDB {
 	 */
 	private static void setBeatmapFields(ResultSet rs, Beatmap beatmap) throws SQLException {
 		try {
+			File dir = beatmap.getFile().getParentFile();
 			beatmap.beatmapID = rs.getInt(4);
 			beatmap.beatmapSetID = rs.getInt(5);
 			beatmap.title = BeatmapParser.getDBString(rs.getString(6));
@@ -466,7 +467,7 @@ public class BeatmapDB {
 			beatmap.bpmMin = rs.getInt(23);
 			beatmap.bpmMax = rs.getInt(24);
 			beatmap.endTime = rs.getInt(25);
-			beatmap.audioFilename = new File(beatmap.getFile().getParentFile(), BeatmapParser.getDBString(rs.getString(26)));
+			beatmap.audioFilename = new File(dir, BeatmapParser.getDBString(rs.getString(26)));
 			beatmap.audioLeadIn = rs.getInt(27);
 			beatmap.previewTime = rs.getInt(28);
 			beatmap.countdown = rs.getByte(29);
@@ -476,7 +477,9 @@ public class BeatmapDB {
 			beatmap.letterboxInBreaks = rs.getBoolean(33);
 			beatmap.widescreenStoryboard = rs.getBoolean(34);
 			beatmap.epilepsyWarning = rs.getBoolean(35);
-			beatmap.bg = new File(beatmap.getFile().getParentFile(), BeatmapParser.getDBString(rs.getString(36)));
+			String bg = rs.getString(36);
+			if (bg != null)
+				beatmap.bg = new File(dir, BeatmapParser.getDBString(rs.getString(36)));
 			beatmap.sliderBorderFromString(rs.getString(37));
 		} catch (SQLException e) {
 			throw e;

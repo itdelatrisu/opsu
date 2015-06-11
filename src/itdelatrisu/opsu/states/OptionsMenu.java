@@ -59,6 +59,7 @@ public class OptionsMenu extends BasicGameState {
 			GameOption.SCREENSHOT_FORMAT,
 			GameOption.NEW_CURSOR,
 			GameOption.DYNAMIC_BACKGROUND,
+			GameOption.LOAD_HD_IMAGES,
 			GameOption.LOAD_VERBOSE
 		}),
 		MUSIC ("Music", new GameOption[] {
@@ -91,8 +92,7 @@ public class OptionsMenu extends BasicGameState {
 			GameOption.FIXED_HP,
 			GameOption.FIXED_AR,
 			GameOption.FIXED_OD,
-			GameOption.CHECKPOINT,
-			GameOption.LOAD_HD_IMAGES
+			GameOption.CHECKPOINT
 		});
 
 		/** Total number of tabs. */

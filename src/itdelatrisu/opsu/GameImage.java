@@ -390,7 +390,7 @@ public enum GameImage {
 	private static final int UNSCALED_HEIGHT = 768;
 
 	/** Filename suffix for HD images. */
-	private static final String HD_SUFFIX = "@2x";
+	public static final String HD_SUFFIX = "@2x";
 
 	/** Image HD/SD suffixes. */
 	private static final String[]

@@ -284,7 +284,7 @@ public class Options {
 		},
 		ENABLE_THEME_SONG ("Enable Theme Song", "Whether to play the theme song upon starting opsu!", true),
 		SHOW_HIT_ERROR_BAR ("Show Hit Error Bar", "Shows precisely how accurate you were with each hit.", false),
-		LOAD_HD_IMAGES ("Load HD Images", "Loads HD (@2x) images when available. Increases memory usage and loading times.", true),
+		LOAD_HD_IMAGES ("Load HD Images", String.format("Loads HD (%s) images when available. Increases memory usage and loading times.", GameImage.HD_SUFFIX), true),
 		DISABLE_MOUSE_WHEEL ("Disable mouse wheel in play mode", "During play, you can use the mouse wheel to adjust the volume and pause the game.\nThis will disable that functionality.", false),
 		DISABLE_MOUSE_BUTTONS ("Disable mouse buttons in play mode", "This option will disable all mouse buttons.\nSpecifically for people who use their keyboard to click.", false);
 
