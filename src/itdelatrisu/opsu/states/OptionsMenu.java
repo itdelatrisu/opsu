@@ -306,7 +306,7 @@ public class OptionsMenu extends BasicGameState {
 
 		// options (click only)
 		GameOption option = getOptionAt(y);
-		if (option != GameOption.NULL)
+		if (option != null)
 			option.click(container);
 
 		// special key entry states
@@ -342,7 +342,7 @@ public class OptionsMenu extends BasicGameState {
 
 		// options (drag only)
 		GameOption option = getOptionAt(oldy);
-		if (option != GameOption.NULL)
+		if (option != null)
 			option.drag(container, diff);
 	}
 
@@ -429,14 +429,13 @@ public class OptionsMenu extends BasicGameState {
 	 * @return the option, or GameOption.NULL if no such option exists
 	 */
 	private GameOption getOptionAt(int y) {
-		GameOption option = GameOption.NULL;
-
 		if (y < textY || y > textY + (offsetY * maxOptionsScreen))
-			return option;
+			return null;
 
 		int index = (y - textY + Utils.FONT_LARGE.getLineHeight()) / offsetY;
-		if (index < currentTab.options.length)
-			option = currentTab.options[index];
-		return option;
+		if (index >= currentTab.options.length)
+			return null;
+
+		return currentTab.options[index];
 	}
 }
