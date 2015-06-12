@@ -318,9 +318,6 @@ public class Options {
 				super.drag(container, d);
 				container.setMusicVolume(getMasterVolume() * getMusicVolume());
 			}
-
-			@Override
-			public void read(String s) { readIntInRange(s, 0, 100); }
 		},
 		MUSIC_VOLUME ("Music Volume", "VolumeMusic", "Volume of music.", 80, 0, 100) {
 			@Override
@@ -328,24 +325,12 @@ public class Options {
 				super.drag(container, d);
 				container.setMusicVolume(getMasterVolume() * getMusicVolume());
 			}
-
-			@Override
-			public void read(String s) { readIntInRange(s, 0, 100); }
 		},
-		EFFECT_VOLUME ("Effect Volume", "VolumeEffect", "Volume of menu and game sounds.", 70, 0, 100) {
-			@Override
-			public void read(String s) { readIntInRange(s, 0, 100); }
-		},
-		HITSOUND_VOLUME ("Hit Sound Volume", "VolumeHitSound", "Volume of hit sounds.", 30, 0, 100) {
-			@Override
-			public void read(String s) { readIntInRange(s, 0, 100); }
-		},
+		EFFECT_VOLUME ("Effect Volume", "VolumeEffect", "Volume of menu and game sounds.", 70, 0, 100),
+		HITSOUND_VOLUME ("Hit Sound Volume", "VolumeHitSound", "Volume of hit sounds.", 30, 0, 100),
 		MUSIC_OFFSET ("Music Offset", "Offset", "Adjust this value if hit objects are out of sync.", -75, -500, 500) {
 			@Override
 			public String getValueString() { return String.format("%dms", val); }
-
-			@Override
-			public void read(String s) { readIntInRange(s, -500, 500); }
 		},
 		DISABLE_SOUNDS ("Disable All Sound Effects", "DisableSound", "May resolve Linux sound driver issues.  Requires a restart.",
 				(System.getProperty("os.name").toLowerCase().indexOf("linux") > -1)),
@@ -371,10 +356,7 @@ public class Options {
 		},
 		DISABLE_MOUSE_WHEEL ("Disable mouse wheel in play mode", "MouseDisableWheel", "During play, you can use the mouse wheel to adjust the volume and pause the game.\nThis will disable that functionality.", false),
 		DISABLE_MOUSE_BUTTONS ("Disable mouse buttons in play mode", "MouseDisableButtons", "This option will disable all mouse buttons.\nSpecifically for people who use their keyboard to click.", false),
-		BACKGROUND_DIM ("Background Dim", "DimLevel", "Percentage to dim the background image during gameplay.", 50, 0, 100) {
-			@Override
-			public void read(String s) { readIntInRange(s, 0, 100); }
-		},
+		BACKGROUND_DIM ("Background Dim", "DimLevel", "Percentage to dim the background image during gameplay.", 50, 0, 100),
 		FORCE_DEFAULT_PLAYFIELD ("Force Default Playfield", "ForceDefaultPlayfield", "Override the song background with the default playfield background.", false),
 		IGNORE_BEATMAP_SKINS ("Ignore All Beatmap Skins", "IgnoreBeatmapSkins", "Never use skin element overrides provided by beatmaps.", false),
 		SHOW_HIT_LIGHTING ("Show Hit Lighting", "HitLighting", "Adds an effect behind hit explosions.", true),
@@ -446,9 +428,6 @@ public class Options {
 						TimeUnit.SECONDS.toMinutes(val),
 						val - TimeUnit.MINUTES.toSeconds(TimeUnit.SECONDS.toMinutes(val)));
 			}
-
-			@Override
-			public void read(String s) { readIntInRange(s, 0, 3599); }
 		},
 		ENABLE_THEME_SONG ("Enable Theme Song", "MenuMusic", "Whether to play the theme song upon starting opsu!", true);
 
@@ -624,28 +603,18 @@ public class Options {
 		/**
 		 * Reads the value of the option from the configuration file (via override).
 		 * <p>
-		 * By default, this sets {@code val} for numeric options,
-		 * sets {@code bool} for boolean options, and does nothing otherwise.
+		 * By default, this sets {@code val} for numeric options only if the
+		 * value is between the min and max bounds, sets {@code bool} for
+		 * boolean options, and does nothing otherwise.
 		 * @param s the value string read from the configuration file
 		 */
 		public void read(String s) {
-			if (type == OptionType.NUMERIC)
-				val = Integer.parseInt(s);
-			else if (type == OptionType.BOOLEAN)
+			if (type == OptionType.NUMERIC) {
+				int i = Integer.parseInt(s);
+				if (i >= min && i <= max)
+					val = i;
+			} else if (type == OptionType.BOOLEAN)
 				bool = Boolean.parseBoolean(s);
-		}
-
-		/**
-		 * Reads the value of the option from the configuration file, and sets
-		 * {@code val} only if the value is between the given range (inclusive).
-		 * @param s the value string read from the configuration file
-		 * @param min the lower bound
-		 * @param max the upper bound
-		 */
-		protected void readIntInRange(String s, int min, int max) {
-			int i = Integer.parseInt(s);
-			if (i >= min && i <= max)
-				val = i;
 		}
 	};
 
