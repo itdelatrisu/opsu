@@ -270,6 +270,48 @@ public class Options {
 				}
 			}
 		},
+		SHOW_FPS ("Show FPS Counter", "FpsCounter", "Show an FPS counter in the bottom-right hand corner.", true),
+		SHOW_UNICODE ("Prefer Non-English Metadata", "ShowUnicode", "Where available, song titles will be shown in their native language.", false) {
+			@Override
+			public void click(GameContainer container) {
+				super.click(container);
+				if (bool) {
+					try {
+						Utils.FONT_LARGE.loadGlyphs();
+						Utils.FONT_MEDIUM.loadGlyphs();
+						Utils.FONT_DEFAULT.loadGlyphs();
+					} catch (SlickException e) {
+						Log.warn("Failed to load glyphs.", e);
+					}
+				}
+			}
+		},
+		SCREENSHOT_FORMAT ("Screenshot Format", "ScreenshotFormat", "Press F12 to take a screenshot.") {
+			@Override
+			public String getValueString() { return screenshotFormat[screenshotFormatIndex].toUpperCase(); }
+
+			@Override
+			public void click(GameContainer container) { screenshotFormatIndex = (screenshotFormatIndex + 1) % screenshotFormat.length; }
+
+			@Override
+			public String write() { return Integer.toString(screenshotFormatIndex); }
+
+			@Override
+			public void read(String s) {
+				int i = Integer.parseInt(s);
+				if (i >= 0 && i < screenshotFormat.length)
+					screenshotFormatIndex = i;
+			}
+		},
+		NEW_CURSOR ("Enable New Cursor", "NewCursor", "Use the new cursor style (may cause higher CPU usage).", true) {
+			@Override
+			public void click(GameContainer container) {
+				super.click(container);
+				UI.getCursor().reset();
+			}
+		},
+		DYNAMIC_BACKGROUND ("Enable Dynamic Backgrounds", "DynamicBackground", "The song background will be used as the main menu background.", true),
+		LOAD_VERBOSE ("Show Detailed Loading Progress", "LoadVerbose", "Display more specific loading information in the splash screen.", false),
 		MASTER_VOLUME ("Master Volume", "VolumeUniversal", "Global volume level.", 35, 0, 100) {
 			@Override
 			public void drag(GameContainer container, int d) {
@@ -305,42 +347,42 @@ public class Options {
 			@Override
 			public void read(String s) { readIntInRange(s, -500, 500); }
 		},
-		SCREENSHOT_FORMAT ("Screenshot Format", "ScreenshotFormat", "Press F12 to take a screenshot.") {
+		DISABLE_SOUNDS ("Disable All Sound Effects", "DisableSound", "May resolve Linux sound driver issues.  Requires a restart.",
+				(System.getProperty("os.name").toLowerCase().indexOf("linux") > -1)),
+		KEY_LEFT ("Left Game Key", "keyOsuLeft", "Select this option to input a key.") {
 			@Override
-			public String getValueString() { return screenshotFormat[screenshotFormatIndex].toUpperCase(); }
+			public String getValueString() { return Keyboard.getKeyName(getGameKeyLeft()); }
 
 			@Override
-			public void click(GameContainer container) { screenshotFormatIndex = (screenshotFormatIndex + 1) % screenshotFormat.length; }
+			public String write() { return Keyboard.getKeyName(getGameKeyLeft()); }
 
 			@Override
-			public String write() { return Integer.toString(screenshotFormatIndex); }
-
-			@Override
-			public void read(String s) {
-				int i = Integer.parseInt(s);
-				if (i >= 0 && i < screenshotFormat.length)
-					screenshotFormatIndex = i;
-			}
+			public void read(String s) { setGameKeyLeft(Keyboard.getKeyIndex(s)); }
 		},
-		SHOW_FPS ("Show FPS Counter", "FpsCounter", "Show an FPS counter in the bottom-right hand corner.", true),
-		SHOW_HIT_LIGHTING ("Show Hit Lighting", "HitLighting", "Adds an effect behind hit explosions.", true),
-		SHOW_COMBO_BURSTS ("Show Combo Bursts", "ComboBurst", "A character image is displayed at combo milestones.", true),
-		SHOW_PERFECT_HIT ("Show Perfect Hits", "PerfectHit", "Whether to show perfect hit result bursts (300s, slider ticks).", true),
-		SHOW_FOLLOW_POINTS ("Show Follow Points", "FollowPoints", "Whether to show follow points between hit objects.", true),
-		NEW_CURSOR ("Enable New Cursor", "NewCursor", "Use the new cursor style (may cause higher CPU usage).", true) {
+		KEY_RIGHT ("Right Game Key", "keyOsuRight", "Select this option to input a key.") {
 			@Override
-			public void click(GameContainer container) {
-				super.click(container);
-				UI.getCursor().reset();
-			}
+			public String getValueString() { return Keyboard.getKeyName(getGameKeyRight()); }
+
+			@Override
+			public String write() { return Keyboard.getKeyName(getGameKeyRight()); }
+
+			@Override
+			public void read(String s) { setGameKeyRight(Keyboard.getKeyIndex(s)); }
 		},
-		DYNAMIC_BACKGROUND ("Enable Dynamic Backgrounds", "DynamicBackground", "The song background will be used as the main menu background.", true),
+		DISABLE_MOUSE_WHEEL ("Disable mouse wheel in play mode", "MouseDisableWheel", "During play, you can use the mouse wheel to adjust the volume and pause the game.\nThis will disable that functionality.", false),
+		DISABLE_MOUSE_BUTTONS ("Disable mouse buttons in play mode", "MouseDisableButtons", "This option will disable all mouse buttons.\nSpecifically for people who use their keyboard to click.", false),
 		BACKGROUND_DIM ("Background Dim", "DimLevel", "Percentage to dim the background image during gameplay.", 50, 0, 100) {
 			@Override
 			public void read(String s) { readIntInRange(s, 0, 100); }
 		},
 		FORCE_DEFAULT_PLAYFIELD ("Force Default Playfield", "ForceDefaultPlayfield", "Override the song background with the default playfield background.", false),
 		IGNORE_BEATMAP_SKINS ("Ignore All Beatmap Skins", "IgnoreBeatmapSkins", "Never use skin element overrides provided by beatmaps.", false),
+		SHOW_HIT_LIGHTING ("Show Hit Lighting", "HitLighting", "Adds an effect behind hit explosions.", true),
+		SHOW_COMBO_BURSTS ("Show Combo Bursts", "ComboBurst", "A character image is displayed at combo milestones.", true),
+		SHOW_PERFECT_HIT ("Show Perfect Hits", "PerfectHit", "Whether to show perfect hit result bursts (300s, slider ticks).", true),
+		SHOW_FOLLOW_POINTS ("Show Follow Points", "FollowPoints", "Whether to show follow points between hit objects.", true),
+		SHOW_HIT_ERROR_BAR ("Show Hit Error Bar", "ScoreMeter", "Shows precisely how accurate you were with each hit.", false),
+		LOAD_HD_IMAGES ("Load HD Images", "LoadHDImages", String.format("Loads HD (%s) images when available. Increases memory usage and loading times.", GameImage.HD_SUFFIX), true),
 		FIXED_CS ("Fixed Circle Size (CS)", "FixedCS", "Determines the size of circles and sliders.", 0, 0, 100) {
 			@Override
 			public String getValueString() { return (val == 0) ? "Disabled" : String.format("%.1f", val / 10f); }
@@ -397,7 +439,6 @@ public class Options {
 					val = i;
 			}
 		},
-		LOAD_VERBOSE ("Show Detailed Loading Progress", "LoadVerbose", "Display more specific loading information in the splash screen.", false),
 		CHECKPOINT ("Track Checkpoint", "Checkpoint", "Press Ctrl+L while playing to load a checkpoint, and Ctrl+S to set one.", 0, 0, 3599) {
 			@Override
 			public String getValueString() {
@@ -409,48 +450,7 @@ public class Options {
 			@Override
 			public void read(String s) { readIntInRange(s, 0, 3599); }
 		},
-		DISABLE_SOUNDS ("Disable All Sound Effects", "DisableSound", "May resolve Linux sound driver issues.  Requires a restart.",
-				(System.getProperty("os.name").toLowerCase().indexOf("linux") > -1)),
-		KEY_LEFT ("Left Game Key", "keyOsuLeft", "Select this option to input a key.") {
-			@Override
-			public String getValueString() { return Keyboard.getKeyName(getGameKeyLeft()); }
-
-			@Override
-			public String write() { return Keyboard.getKeyName(getGameKeyLeft()); }
-
-			@Override
-			public void read(String s) { setGameKeyLeft(Keyboard.getKeyIndex(s)); }
-		},
-		KEY_RIGHT ("Right Game Key", "keyOsuRight", "Select this option to input a key.") {
-			@Override
-			public String getValueString() { return Keyboard.getKeyName(getGameKeyRight()); }
-
-			@Override
-			public String write() { return Keyboard.getKeyName(getGameKeyRight()); }
-
-			@Override
-			public void read(String s) { setGameKeyRight(Keyboard.getKeyIndex(s)); }
-		},
-		SHOW_UNICODE ("Prefer Non-English Metadata", "ShowUnicode", "Where available, song titles will be shown in their native language.", false) {
-			@Override
-			public void click(GameContainer container) {
-				super.click(container);
-				if (bool) {
-					try {
-						Utils.FONT_LARGE.loadGlyphs();
-						Utils.FONT_MEDIUM.loadGlyphs();
-						Utils.FONT_DEFAULT.loadGlyphs();
-					} catch (SlickException e) {
-						Log.warn("Failed to load glyphs.", e);
-					}
-				}
-			}
-		},
-		ENABLE_THEME_SONG ("Enable Theme Song", "MenuMusic", "Whether to play the theme song upon starting opsu!", true),
-		SHOW_HIT_ERROR_BAR ("Show Hit Error Bar", "ScoreMeter", "Shows precisely how accurate you were with each hit.", false),
-		LOAD_HD_IMAGES ("Load HD Images", "LoadHDImages", String.format("Loads HD (%s) images when available. Increases memory usage and loading times.", GameImage.HD_SUFFIX), true),
-		DISABLE_MOUSE_WHEEL ("Disable mouse wheel in play mode", "MouseDisableWheel", "During play, you can use the mouse wheel to adjust the volume and pause the game.\nThis will disable that functionality.", false),
-		DISABLE_MOUSE_BUTTONS ("Disable mouse buttons in play mode", "MouseDisableButtons", "This option will disable all mouse buttons.\nSpecifically for people who use their keyboard to click.", false);
+		ENABLE_THEME_SONG ("Enable Theme Song", "MenuMusic", "Whether to play the theme song upon starting opsu!", true);
 
 		/** Option name. */
 		private String name;
