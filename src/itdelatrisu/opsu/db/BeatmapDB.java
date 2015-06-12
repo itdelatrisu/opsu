@@ -479,7 +479,7 @@ public class BeatmapDB {
 			beatmap.epilepsyWarning = rs.getBoolean(35);
 			String bg = rs.getString(36);
 			if (bg != null)
-				beatmap.bg = new File(dir, BeatmapParser.getDBString(rs.getString(36)));
+				beatmap.bg = new File(dir, BeatmapParser.getDBString(bg));
 			beatmap.sliderBorderFromString(rs.getString(37));
 		} catch (SQLException e) {
 			throw e;

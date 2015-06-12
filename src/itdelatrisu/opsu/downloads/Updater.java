@@ -28,6 +28,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -35,6 +36,7 @@ import java.util.Locale;
 import java.util.Properties;
 
 import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
+import org.newdawn.slick.util.Log;
 import org.newdawn.slick.util.ResourceLoader;
 
 /**
@@ -206,7 +208,12 @@ public class Updater {
 			return;
 
 		// get latest version
-		String s = Utils.readDataFromUrl(new URL(Options.VERSION_REMOTE));
+		String s = null;
+		try {
+			s = Utils.readDataFromUrl(new URL(Options.VERSION_REMOTE));
+		} catch (UnknownHostException e) {
+			Log.warn(String.format("Check for updates failed. Please check your internet connection, or your connection to %s.", Options.VERSION_REMOTE));
+		}
 		if (s == null) {
 			status = Status.CONNECTION_ERROR;
 			return;
