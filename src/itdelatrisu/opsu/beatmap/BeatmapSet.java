@@ -139,7 +139,7 @@ public class BeatmapSet {
 	/**
 	 * Checks whether the beatmap set matches a given condition.
 	 * @param type the condition type (ar, cs, od, hp, bpm, length)
-	 * @param operator the operator (=/==, >, >=, <, <=)
+	 * @param operator the operator {@literal (=/==, >, >=, <, <=)}
 	 * @param value the value
 	 * @return true if the condition is met
 	 */
