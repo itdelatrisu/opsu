@@ -19,8 +19,11 @@
 package itdelatrisu.opsu;
 
 import itdelatrisu.opsu.audio.MusicController;
+import itdelatrisu.opsu.beatmap.Beatmap;
+import itdelatrisu.opsu.beatmap.BeatmapSetList;
 import itdelatrisu.opsu.downloads.DownloadList;
 import itdelatrisu.opsu.downloads.Updater;
+import itdelatrisu.opsu.ui.UI;
 
 import org.lwjgl.opengl.Display;
 import org.newdawn.slick.AppGameContainer;
@@ -112,20 +115,23 @@ public class Container extends AppGameContainer {
 		// save user options
 		Options.saveOptions();
 
+		// reset cursor
+		UI.getCursor().reset();
+
 		// destroy images
 		InternalTextureLoader.get().clear();
 
 		// reset image references
 		GameImage.clearReferences();
 		GameData.Grade.clearReferences();
-		OsuFile.resetImageCache();
+		Beatmap.getBackgroundImageCache().clear();
 
 		// prevent loading tracks from re-initializing OpenAL
 		MusicController.reset();
 
-		// reset OsuGroupList data
-		if (OsuGroupList.get() != null)
-			OsuGroupList.get().reset();
+		// reset BeatmapSetList data
+		if (BeatmapSetList.get() != null)
+			BeatmapSetList.get().reset();
 	}
 
 	@Override

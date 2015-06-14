@@ -22,7 +22,10 @@ import itdelatrisu.opsu.audio.HitSound;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
+import itdelatrisu.opsu.beatmap.Beatmap;
+import itdelatrisu.opsu.beatmap.HitObject;
 import itdelatrisu.opsu.downloads.Updater;
+import itdelatrisu.opsu.objects.curves.Curve;
 import itdelatrisu.opsu.replay.Replay;
 import itdelatrisu.opsu.replay.ReplayFrame;
 
@@ -44,14 +47,32 @@ public class GameData {
 	/** Delta multiplier for steady HP drain. */
 	public static final float HP_DRAIN_MULTIPLIER = 1 / 200f;
 
+	/** Time, in milliseconds, for a hit result to remain existent. */
+	public static final int HITRESULT_TIME = 833;
+
 	/** Time, in milliseconds, for a hit result to fade. */
 	public static final int HITRESULT_FADE_TIME = 500;
+
+	/** Time, in milliseconds, for a hit circle to fade. */
+	public static final int HITCIRCLE_FADE_TIME = 300;
 
 	/** Duration, in milliseconds, of a combo pop effect. */
 	private static final int COMBO_POP_TIME = 250;
 
 	/** Time, in milliseconds, for a hit error tick to fade. */
 	private static final int HIT_ERROR_FADE_TIME = 5000;
+
+	/** Size of a hit circle at the end of the hit animation. */
+	private static final float HITCIRCLE_ANIM_SCALE = 1.38f;
+
+	/** Size of the hit result text at the end of its animation. */
+	private static final float HITCIRCLE_TEXT_ANIM_SCALE = 1.28f;
+
+	/** Time, in milliseconds, for the hit result text to bounce. */
+	private static final int HITCIRCLE_TEXT_BOUNCE_TIME = 100;
+
+	/** Time, in milliseconds, for the hit result text to fade. */
+	private static final int HITCIRCLE_TEXT_FADE_TIME = 833;
 
 	/** Letter grades. */
 	public enum Grade {
@@ -170,7 +191,7 @@ public class GameData {
 	private int[] hitResultOffset;
 
 	/** List of hit result objects associated with hit objects. */
-	private LinkedBlockingDeque<OsuHitObjectResult> hitResultList;
+	private LinkedBlockingDeque<HitObjectResult> hitResultList;
 
 	/**
 	 * Class to store hit error information.
@@ -205,10 +226,11 @@ public class GameData {
 	/** List containing recent hit error information. */
 	private LinkedBlockingDeque<HitErrorInfo> hitErrorList;
 
-	/**
-	 * Hit result helper class.
-	 */
-	private class OsuHitObjectResult {
+	/** Hit object types, used for drawing results. */
+	public enum HitObjectType { CIRCLE, SLIDERTICK, SLIDER_FIRST, SLIDER_LAST, SPINNER }
+
+	/** Hit result helper class. */
+	private class HitObjectResult {
 		/** Object start time. */
 		public int time;
 
@@ -221,11 +243,17 @@ public class GameData {
 		/** Combo color. */
 		public Color color;
 
-		/** Whether the hit object was a spinner. */
-		public boolean isSpinner;
+		/** The type of the hit object. */
+		public HitObjectType hitResultType;
 
 		/** Alpha level (for fading out). */
 		public float alpha = 1f;
+
+		/** Slider curve. */
+		public Curve curve;
+
+		/** Whether or not to expand when animating. */
+		public boolean expand;
 
 		/**
 		 * Constructor.
@@ -234,15 +262,19 @@ public class GameData {
 		 * @param x the center x coordinate
 		 * @param y the center y coordinate
 		 * @param color the color of the hit object
-		 * @param isSpinner whether the hit object was a spinner
+		 * @param curve the slider curve (or null if not applicable)
+		 * @param expand whether or not the hit result animation should expand (if applicable)
 		 */
-		public OsuHitObjectResult(int time, int result, float x, float y, Color color, boolean isSpinner) {
+		public HitObjectResult(int time, int result, float x, float y, Color color,
+				HitObjectType hitResultType, Curve curve, boolean expand) {
 			this.time = time;
 			this.result = result;
 			this.x = x;
 			this.y = y;
 			this.color = color;
-			this.isSpinner = isSpinner;
+			this.hitResultType = hitResultType;
+			this.curve = curve;
+			this.expand = expand;
 		}
 	}
 
@@ -312,7 +344,7 @@ public class GameData {
 	/**
 	 * Constructor for score viewing.
 	 * This will initialize all parameters and images needed for the
-	 * {@link #drawRankingElements(Graphics, OsuFile)} method.
+	 * {@link #drawRankingElements(Graphics, Beatmap)} method.
 	 * @param s the ScoreData object
 	 * @param width container width
 	 * @param height container height
@@ -350,7 +382,13 @@ public class GameData {
 		health = 100f;
 		healthDisplay = 100f;
 		hitResultCount = new int[HIT_MAX];
-		hitResultList = new LinkedBlockingDeque<OsuHitObjectResult>();
+		if (hitResultList != null) {
+			for (HitObjectResult hitResult : hitResultList) {
+				if (hitResult.curve != null)
+					hitResult.curve.discardCache();
+			}
+		}
+		hitResultList = new LinkedBlockingDeque<HitObjectResult>();
 		hitErrorList = new LinkedBlockingDeque<HitErrorInfo>();
 		fullObjectCount = 0;
 		combo = 0;
@@ -423,21 +461,37 @@ public class GameData {
 	}
 
 	/**
-	 * Returns a default/score text symbol image for a character.
+	 * Returns a default text symbol image for a digit.
+	 * @param i the digit [0-9]
 	 */
 	public Image getDefaultSymbolImage(int i) { return defaultSymbols[i]; }
+
+	/**
+	 * Returns a score text symbol image for a character.
+	 * @param c the character [0-9,.%x]
+	 */
 	public Image getScoreSymbolImage(char c) { return scoreSymbols.get(c); }
 
 	/**
-	 * Sets or returns the health drain rate.
+	 * Sets the health drain rate.
+	 * @param drainRate the new drain rate [0-10]
 	 */
 	public void setDrainRate(float drainRate) { this.drainRate = drainRate; }
+
+	/**
+	 * Returns the health drain rate.
+	 */
 	public float getDrainRate() { return drainRate; }
 
 	/**
-	 * Sets or returns the difficulty.
+	 * Sets the overall difficulty level.
+	 * @param difficulty the new difficulty [0-10]
 	 */
 	public void setDifficulty(float difficulty) { this.difficulty = difficulty; }
+
+	/**
+	 * Returns the overall difficulty level.
+	 */
 	public float getDifficulty() { return difficulty; }
 
 	/**
@@ -572,8 +626,8 @@ public class GameData {
 					width - margin, symbolHeight, 0.60f, 1f, true);
 
 		// map progress circle
-		OsuFile osu = MusicController.getOsuFile();
-		int firstObjectTime = osu.objects[0].getTime();
+		Beatmap beatmap = MusicController.getBeatmap();
+		int firstObjectTime = beatmap.objects[0].getTime();
 		int trackPosition = MusicController.getPosition();
 		float circleDiameter = symbolHeight * 0.60f;
 		int circleX = (int) (width - margin - (  // max width: "100.00%"
@@ -590,7 +644,7 @@ public class GameData {
 			if (trackPosition > firstObjectTime) {
 				// map progress (white)
 				g.fillArc(circleX, symbolHeight, circleDiameter, circleDiameter,
-						-90, -90 + (int) (360f * (trackPosition - firstObjectTime) / (osu.endTime - firstObjectTime))
+						-90, -90 + (int) (360f * (trackPosition - firstObjectTime) / (beatmap.endTime - firstObjectTime))
 				);
 			} else {
 				// lead-in time (yellow)
@@ -732,9 +786,9 @@ public class GameData {
 	/**
 	 * Draws ranking elements: score, results, ranking, game mods.
 	 * @param g the graphics context
-	 * @param osu the OsuFile
+	 * @param beatmap the beatmap
 	 */
-	public void drawRankingElements(Graphics g, OsuFile osu) {
+	public void drawRankingElements(Graphics g, Beatmap beatmap) {
 		// TODO Version 2 skins
 		float rankingHeight = 75;
 		float scoreTextScale = 1.0f;
@@ -813,13 +867,12 @@ public class GameData {
 		g.setColor(Utils.COLOR_BLACK_ALPHA);
 		g.fillRect(0, 0, width, 100 * uiScale);
 		rankingTitle.draw((width * 0.97f) - rankingTitle.getWidth(), 0);
-		float c = width * 0.01f;
-		Utils.FONT_LARGE.drawString(c, c,
-				String.format("%s - %s [%s]", osu.getArtist(), osu.getTitle(), osu.version), Color.white);
-		Utils.FONT_MEDIUM.drawString(c, c + Utils.FONT_LARGE.getLineHeight() - 6,
-				String.format("Beatmap by %s", osu.creator), Color.white);
-		Utils.FONT_MEDIUM.drawString(
-				c, c + Utils.FONT_LARGE.getLineHeight() + Utils.FONT_MEDIUM.getLineHeight() - 10,
+		float marginX = width * 0.01f, marginY = height * 0.002f;
+		Utils.FONT_LARGE.drawString(marginX, marginY,
+				String.format("%s - %s [%s]", beatmap.getArtist(), beatmap.getTitle(), beatmap.version), Color.white);
+		Utils.FONT_MEDIUM.drawString(marginX, marginY + Utils.FONT_LARGE.getLineHeight() - 6,
+				String.format("Beatmap by %s", beatmap.creator), Color.white);
+		Utils.FONT_MEDIUM.drawString(marginX, marginY + Utils.FONT_LARGE.getLineHeight() + Utils.FONT_MEDIUM.getLineHeight() - 10,
 				String.format("Played on %s.", scoreData.getTimeString()), Color.white);
 
 		// mod icons
@@ -836,20 +889,15 @@ public class GameData {
 
 	/**
 	 * Draws stored hit results and removes them from the list as necessary.
-	 * @param trackPosition the current track position
+	 * @param trackPosition the current track position (in ms)
 	 */
 	public void drawHitResults(int trackPosition) {
-		Iterator<OsuHitObjectResult> iter = hitResultList.iterator();
+		Iterator<HitObjectResult> iter = hitResultList.iterator();
 		while (iter.hasNext()) {
-			OsuHitObjectResult hitResult = iter.next();
-			if (hitResult.time + HITRESULT_FADE_TIME > trackPosition) {
-				// hit result
-				hitResults[hitResult.result].setAlpha(hitResult.alpha);
-				hitResults[hitResult.result].drawCentered(hitResult.x, hitResult.y);
-				hitResults[hitResult.result].setAlpha(1f);
-
+			HitObjectResult hitResult = iter.next();
+			if (hitResult.time + HITRESULT_TIME > trackPosition) {
 				// spinner
-				if (hitResult.isSpinner && hitResult.result != HIT_MISS) {
+				if (hitResult.hitResultType == HitObjectType.SPINNER && hitResult.result != HIT_MISS) {
 					Image spinnerOsu = GameImage.SPINNER_OSU.getImage();
 					spinnerOsu.setAlpha(hitResult.alpha);
 					spinnerOsu.drawCentered(width / 2, height / 4);
@@ -859,26 +907,75 @@ public class GameData {
 				// hit lighting
 				else if (Options.isHitLightingEnabled() && hitResult.result != HIT_MISS &&
 					hitResult.result != HIT_SLIDER30 && hitResult.result != HIT_SLIDER10) {
-					float scale = 1f + ((trackPosition - hitResult.time) / (float) HITRESULT_FADE_TIME);
-					Image scaledLighting  = GameImage.LIGHTING.getImage().getScaledCopy(scale);
-					Image scaledLighting1 = GameImage.LIGHTING1.getImage().getScaledCopy(scale);
-					scaledLighting.setAlpha(hitResult.alpha);
-					scaledLighting1.setAlpha(hitResult.alpha);
+					// TODO: add particle system
+					Image lighting = GameImage.LIGHTING.getImage();
+					lighting.setAlpha(hitResult.alpha);
+					lighting.drawCentered(hitResult.x, hitResult.y, hitResult.color);
+				}
 
-					scaledLighting.draw(hitResult.x - (scaledLighting.getWidth() / 2f),
-							hitResult.y - (scaledLighting.getHeight() / 2f), hitResult.color);
-					scaledLighting1.draw(hitResult.x - (scaledLighting1.getWidth() / 2f),
-							hitResult.y - (scaledLighting1.getHeight() / 2f), hitResult.color);
+				// hit animation
+				if (hitResult.result != HIT_MISS && (
+				    hitResult.hitResultType == HitObjectType.CIRCLE ||
+				    hitResult.hitResultType == HitObjectType.SLIDER_FIRST ||
+				    hitResult.hitResultType == HitObjectType.SLIDER_LAST)) {
+					float scale = (!hitResult.expand) ? 1f : Utils.easeOut(
+							Utils.clamp(trackPosition - hitResult.time, 0, HITCIRCLE_FADE_TIME),
+							1f, HITCIRCLE_ANIM_SCALE - 1f, HITCIRCLE_FADE_TIME
+					);
+					float alpha = Utils.easeOut(
+							Utils.clamp(trackPosition - hitResult.time, 0, HITCIRCLE_FADE_TIME),
+							1f, -1f, HITCIRCLE_FADE_TIME
+					);
+
+					// slider curve
+					if (hitResult.curve != null) {
+						float oldWhiteAlpha = Utils.COLOR_WHITE_FADE.a;
+						float oldColorAlpha = hitResult.color.a;
+						Utils.COLOR_WHITE_FADE.a = alpha;
+						hitResult.color.a = alpha;
+						hitResult.curve.draw(hitResult.color);
+						Utils.COLOR_WHITE_FADE.a = oldWhiteAlpha;
+						hitResult.color.a = oldColorAlpha;
+					}
+
+					// hit circles
+					Image scaledHitCircle = GameImage.HITCIRCLE.getImage().getScaledCopy(scale);
+					Image scaledHitCircleOverlay = GameImage.HITCIRCLE_OVERLAY.getImage().getScaledCopy(scale);
+					scaledHitCircle.setAlpha(alpha);
+					scaledHitCircleOverlay.setAlpha(alpha);
+					scaledHitCircle.drawCentered(hitResult.x, hitResult.y, hitResult.color);
+					scaledHitCircleOverlay.drawCentered(hitResult.x, hitResult.y);
+				}
+
+				// hit result
+				if (hitResult.hitResultType == HitObjectType.CIRCLE ||
+				    hitResult.hitResultType == HitObjectType.SPINNER ||
+				    hitResult.curve != null) {
+					float scale = Utils.easeBounce(
+							Utils.clamp(trackPosition - hitResult.time, 0, HITCIRCLE_TEXT_BOUNCE_TIME),
+							1f, HITCIRCLE_TEXT_ANIM_SCALE - 1f, HITCIRCLE_TEXT_BOUNCE_TIME
+					);
+					float alpha = Utils.easeOut(
+							Utils.clamp((trackPosition - hitResult.time) - HITCIRCLE_FADE_TIME, 0, HITCIRCLE_TEXT_FADE_TIME),
+							1f, -1f, HITCIRCLE_TEXT_FADE_TIME
+					);
+					Image scaledHitResult = hitResults[hitResult.result].getScaledCopy(scale);
+					scaledHitResult.setAlpha(alpha);
+					scaledHitResult.drawCentered(hitResult.x, hitResult.y);
 				}
 
 				hitResult.alpha = 1 - ((float) (trackPosition - hitResult.time) / HITRESULT_FADE_TIME);
-			} else
+			} else {
+				if (hitResult.curve != null)
+					hitResult.curve.discardCache();
 				iter.remove();
+			}
 		}
 	}
 
 	/**
 	 * Changes health by a given percentage, modified by drainRate.
+	 * @param percent the health percentage
 	 */
 	public void changeHealth(float percent) {
 		// TODO: drainRate formula
@@ -890,7 +987,7 @@ public class GameData {
 	}
 
 	/**
-	 * Returns health percentage.
+	 * Returns the current health percentage.
 	 */
 	public float getHealth() { return health; }
 
@@ -905,6 +1002,7 @@ public class GameData {
 
 	/**
 	 * Changes score by a raw value (not affected by other modifiers).
+	 * @param value the score value
 	 */
 	public void changeScore(int value) { score += value; }
 
@@ -914,7 +1012,7 @@ public class GameData {
 	 * @param hit100 the number of 100s
 	 * @param hit50 the number of 50s
 	 * @param miss the number of misses
-	 * @return the percentage
+	 * @return the score percentage
 	 */
 	public static float getScorePercent(int hit300, int hit100, int hit50, int miss) {
 		float percent = 0;
@@ -969,7 +1067,7 @@ public class GameData {
 
 	/**
 	 * Returns letter grade based on score data,
-	 * or Grade.NULL if no objects have been processed.
+	 * or {@code Grade.NULL} if no objects have been processed.
 	 */
 	private Grade getGrade() {
 		return getGrade(
@@ -1073,10 +1171,14 @@ public class GameData {
 		// combo bursts (at 30, 60, 100+50x)
 		if (Options.isComboBurstEnabled() &&
 			(combo == 30 || combo == 60 || (combo >= 100 && combo % 50 == 0))) {
-			if (combo == 30)
-				comboBurstIndex = 0;
-			else
-				comboBurstIndex = (comboBurstIndex + 1) % comboBurstImages.length;
+			if (Options.getSkin().isComboBurstRandom())
+				comboBurstIndex = (int) (Math.random() * comboBurstImages.length);
+			else {
+				if (combo == 30)
+					comboBurstIndex = 0;
+				else
+					comboBurstIndex = (comboBurstIndex + 1) % comboBurstImages.length;
+			}
 			comboBurstAlpha = 0.8f;
 			if ((comboBurstIndex % 2) == 0)
 				comboBurstX = width;
@@ -1105,7 +1207,7 @@ public class GameData {
 	 * @param hitObject the hit object
 	 * @param repeat the current repeat number
 	 */
-	public void sliderTickResult(int time, int result, float x, float y, OsuHitObject hitObject, int repeat) {
+	public void sliderTickResult(int time, int result, float x, float y, HitObject hitObject, int repeat) {
 		int hitValue = 0;
 		switch (result) {
 		case HIT_SLIDER30:
@@ -1135,7 +1237,7 @@ public class GameData {
 			if (!Options.isPerfectHitBurstEnabled())
 				;  // hide perfect hit results
 			else
-				hitResultList.add(new OsuHitObjectResult(time, result, x, y, null, false));
+				hitResultList.add(new HitObjectResult(time, result, x, y, null, HitObjectType.SLIDERTICK, null, false));
 		}
 	}
 	public void sliderFinalResult(int time, int hitSlider30, float x, float y,
@@ -1144,23 +1246,41 @@ public class GameData {
 	}
 
 	/**
-	 * Handles a hit result.
+	 * Returns the score for a hit based on the following score formula:
+	 * <p>
+	 * Score = Hit Value + Hit Value * (Combo * Difficulty * Mod) / 25
+	 * <ul>
+	 * <li><strong>Hit Value:</strong> hit result (50, 100, 300), slider ticks, spinner bonus
+	 * <li><strong>Combo:</strong> combo before this hit - 1 (minimum 0)
+	 * <li><strong>Difficulty:</strong> the beatmap difficulty
+	 * <li><strong>Mod:</strong> mod multipliers
+	 * </ul>
+	 * @param hitValue the hit value
+	 * @return the score value
+	 */
+	private int getScoreForHit(int hitValue) {
+		return hitValue + (int) (hitValue * (Math.max(combo - 1, 0) * difficulty * GameMod.getScoreMultiplier()) / 25);
+	}
+
+	/**
+	 * Handles a hit result and performs all associated calculations.
 	 * @param time the object start time
-	 * @param result the hit result (HIT_* constants)
+	 * @param result the base hit result (HIT_* constants)
 	 * @param x the x coordinate
 	 * @param y the y coordinate
 	 * @param color the combo color
 	 * @param end true if this is the last hit object in the combo
 	 * @param hitObject the hit object
 	 * @param repeat the current repeat number (for sliders, or 0 otherwise)
+	 * @param hitResultType the type of hit object for the result
+	 * @return the actual hit result (HIT_* constants)
 	 */
-	public void hitResult(int time, int result, float x, float y, Color color,
-			boolean end, OsuHitObject hitObject, int repeat) {
+	private int handleHitResult(int time, int result, float x, float y, Color color,
+			boolean end, HitObject hitObject, int repeat, HitObjectType hitResultType) {
+		// update health, score, and combo streak based on hit result
 		int hitValue = 0;
-		boolean perfectHit = false;
 		switch (result) {
 		case HIT_300:
-			perfectHit = true;
 			hitValue = 300;
 			changeHealth(5f);
 			break;
@@ -1183,13 +1303,15 @@ public class GameData {
 			resetComboStreak();
 			break;
 		default:
-			return;
+			return HIT_MISS;
 		}
 		if (hitValue > 0) {
 			SoundController.playHitSound(
 					hitObject.getEdgeHitSoundType(repeat),
 					hitObject.getSampleSet(repeat),
 					hitObject.getAdditionSampleSet(repeat));
+			//TODO merge conflict
+			
 			/**
 			 * https://osu.ppy.sh/wiki/Score
 			 * [SCORE FORMULA]
@@ -1204,7 +1326,11 @@ public class GameData {
 				comboMulti += 1;
 			}
 			score += (hitValue + (hitValue * (comboMulti * getDifficultyMultiplier() * GameMod.getScoreMultiplier()) / 25));
+			
+			// calculate score and increment combo streak
+			changeScore(getScoreForHit(hitValue));
 			incrementComboStreak();
+			//merge conflict end
 		}
 		hitResultCount[result]++;
 		fullObjectCount++;
@@ -1229,12 +1355,43 @@ public class GameData {
 			comboEnd = 0;
 		}
 
-		if (perfectHit && !Options.isPerfectHitBurstEnabled())
+		return result;
+	}
+
+	/**
+	 * Handles a slider hit result.
+	 * @param time the object start time
+	 * @param result the hit result (HIT_* constants)
+	 * @param x the x coordinate
+	 * @param y the y coordinate
+	 * @param color the combo color
+	 * @param end true if this is the last hit object in the combo
+	 * @param hitObject the hit object
+	 * @param repeat the current repeat number (for sliders, or 0 otherwise)
+	 * @param hitResultType the type of hit object for the result
+	 * @param curve the slider curve (or null if not applicable)
+	 * @param expand whether or not the hit result animation should expand (if applicable)
+	 */
+	public void hitResult(int time, int result, float x, float y, Color color,
+						  boolean end, HitObject hitObject, int repeat,
+						  HitObjectType hitResultType, Curve curve, boolean expand) {
+		result = handleHitResult(time, result, x, y, color, end, hitObject, repeat, hitResultType);
+
+		if ((result == HIT_300 || result == HIT_300G || result == HIT_300K) && !Options.isPerfectHitBurstEnabled())
 			;  // hide perfect hit results
 		else if (result == HIT_MISS && (GameMod.RELAX.isActive() || GameMod.AUTOPILOT.isActive()))
 			;  // "relax" and "autopilot" mods: hide misses
-		else
-			hitResultList.add(new OsuHitObjectResult(time, result, x, y, color, hitObject.isSpinner()));
+		else {
+			hitResultList.add(new HitObjectResult(time, result, x, y, color, hitResultType, curve, expand));
+
+			// sliders: add the other curve endpoint for the hit animation
+			if (curve != null) {
+				boolean isFirst = (hitResultType == HitObjectType.SLIDER_FIRST);
+				float[] p = curve.pointAt((isFirst) ? 1f : 0f);
+				HitObjectType type = (isFirst) ? HitObjectType.SLIDER_LAST : HitObjectType.SLIDER_FIRST;
+				hitResultList.add(new HitObjectResult(time, result, p[0], p[1], color, type, null, expand));
+			}
+		}
 	}
 
 	private int getDifficultyMultiplier() {
@@ -1258,21 +1415,21 @@ public class GameData {
 	 * Returns a ScoreData object encapsulating all game data.
 	 * If score data already exists, the existing object will be returned
 	 * (i.e. this will not overwrite existing data).
-	 * @param osu the OsuFile
+	 * @param beatmap the beatmap
 	 * @return the ScoreData object
 	 */
-	public ScoreData getScoreData(OsuFile osu) {
+	public ScoreData getScoreData(Beatmap beatmap) {
 		if (scoreData != null)
 			return scoreData;
 
 		scoreData = new ScoreData();
 		scoreData.timestamp = System.currentTimeMillis() / 1000L;
-		scoreData.MID = osu.beatmapID;
-		scoreData.MSID = osu.beatmapSetID;
-		scoreData.title = osu.title;
-		scoreData.artist = osu.artist;
-		scoreData.creator = osu.creator;
-		scoreData.version = osu.version;
+		scoreData.MID = beatmap.beatmapID;
+		scoreData.MSID = beatmap.beatmapSetID;
+		scoreData.title = beatmap.title;
+		scoreData.artist = beatmap.artist;
+		scoreData.creator = beatmap.creator;
+		scoreData.version = beatmap.version;
 		scoreData.hit300 = hitResultCount[HIT_300];
 		scoreData.hit100 = hitResultCount[HIT_100];
 		scoreData.hit50 = hitResultCount[HIT_50];
@@ -1292,10 +1449,10 @@ public class GameData {
 	 * Returns a Replay object encapsulating all game data.
 	 * If a replay already exists and frames is null, the existing object will be returned.
 	 * @param frames the replay frames
-	 * @param osu the associated OsuFile
+	 * @param beatmap the associated beatmap
 	 * @return the Replay object, or null if none exists and frames is null
 	 */
-	public Replay getReplay(ReplayFrame[] frames, OsuFile osu) {
+	public Replay getReplay(ReplayFrame[] frames, Beatmap beatmap) {
 		if (replay != null && frames == null)
 			return replay;
 
@@ -1303,9 +1460,9 @@ public class GameData {
 			return null;
 
 		replay = new Replay();
-		replay.mode = OsuFile.MODE_OSU;
+		replay.mode = Beatmap.MODE_OSU;
 		replay.version = Updater.get().getBuildDate();
-		replay.beatmapHash = (osu == null) ? "" : Utils.getMD5(osu.getFile());
+		replay.beatmapHash = (beatmap == null) ? "" : Utils.getMD5(beatmap.getFile());
 		replay.playerName = "";  // TODO
 		replay.replayHash = Long.toString(System.currentTimeMillis());  // TODO
 		replay.hit300 = (short) hitResultCount[HIT_300];
@@ -1329,6 +1486,7 @@ public class GameData {
 
 	/**
 	 * Sets the replay object.
+	 * @param replay the replay
 	 */
 	public void setReplay(Replay replay) { this.replay = replay; }
 

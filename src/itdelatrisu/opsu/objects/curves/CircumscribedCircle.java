@@ -19,12 +19,9 @@
 package itdelatrisu.opsu.objects.curves;
 
 import itdelatrisu.opsu.ErrorHandler;
-import itdelatrisu.opsu.GameImage;
-import itdelatrisu.opsu.OsuHitObject;
-import itdelatrisu.opsu.Utils;
+import itdelatrisu.opsu.beatmap.HitObject;
 
 import org.newdawn.slick.Color;
-import org.newdawn.slick.Image;
 
 /**
  * Representation of a curve along a Circumscribed Circle of three points.
@@ -53,21 +50,13 @@ public class CircumscribedCircle extends Curve {
 	/** The start and end angles for drawing. */
 	private float drawStartAngle, drawEndAngle;
 
-	/** The number of steps in the curve to draw. */
-	private float step;
-
-	/** Points along the curve. */
-	private Vec2f[] curve;
-
 	/**
 	 * Constructor.
-	 * @param hitObject the associated OsuHitObject
+	 * @param hitObject the associated HitObject
 	 * @param color the color of this curve
 	 */
-	public CircumscribedCircle(OsuHitObject hitObject, Color color) {
+	public CircumscribedCircle(HitObject hitObject, Color color) {
 		super(hitObject, color);
-
-		this.step = hitObject.getPixelLength() / 5f;
 
 		// construct the three points
 		this.start = new Vec2f(getX(0), getY(0));
@@ -114,7 +103,7 @@ public class CircumscribedCircle extends Curve {
 
 		// find an angle with an arc length of pixelLength along this circle
 		this.radius = startAngPoint.len();
-		float pixelLength = hitObject.getPixelLength() * OsuHitObject.getXMultiplier();
+		float pixelLength = hitObject.getPixelLength() * HitObject.getXMultiplier();
 		float arcAng = pixelLength / radius;  // len = theta * r / theta = len / r
 
 		// now use it for our new end angle
@@ -125,6 +114,7 @@ public class CircumscribedCircle extends Curve {
 		this.drawStartAngle = (float) ((startAng + (startAng > endAng ? -HALF_PI : HALF_PI)) * 180 / Math.PI);
 
 		// calculate points
+		float step = hitObject.getPixelLength() / CURVE_POINTS_SEPERATION;
 		curve = new Vec2f[(int) step + 1];
 		for (int i = 0; i < curve.length; i++) {
 			float[] xy = pointAt(i / step);
@@ -176,16 +166,6 @@ public class CircumscribedCircle extends Curve {
 			(float) (Math.cos(ang) * radius + circleCenter.x),
 			(float) (Math.sin(ang) * radius + circleCenter.y)
 		};
-	}
-
-	@Override
-	public void draw() {
-		Image hitCircle = GameImage.HITCIRCLE.getImage();
-		Image hitCircleOverlay = GameImage.HITCIRCLE_OVERLAY.getImage();
-		for (int i = 0; i < step; i++)
-			hitCircleOverlay.drawCentered(curve[i].x, curve[i].y, Utils.COLOR_WHITE_FADE);
-		for (int i = 0; i < step; i++)
-			hitCircle.drawCentered(curve[i].x, curve[i].y, color);
 	}
 
 	@Override

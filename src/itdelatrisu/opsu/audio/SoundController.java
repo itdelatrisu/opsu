@@ -20,8 +20,8 @@ package itdelatrisu.opsu.audio;
 
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.Options;
-import itdelatrisu.opsu.OsuHitObject;
 import itdelatrisu.opsu.audio.HitSound.SampleSet;
+import itdelatrisu.opsu.beatmap.HitObject;
 
 import java.io.File;
 import java.io.IOException;
@@ -164,7 +164,7 @@ public class SoundController {
 		}
 		if (bestIndex >= 0)
 			return new MultiClip(ref, AudioSystem.getAudioInputStream(formats[bestIndex], audioIn));
-		
+
 		// still couldn't find anything, try the default clip format
 		return new MultiClip(ref, AudioSystem.getAudioInputStream(clip.getFormat(), audioIn));
 	}
@@ -177,11 +177,14 @@ public class SoundController {
 	 */
 	private static String getSoundFileName(String filename) {
 		String wav = String.format("%s.wav", filename), mp3 = String.format("%s.mp3", filename);
-		File skinWAV = new File(Options.getSkinDir(), wav), skinMP3 = new File(Options.getSkinDir(), mp3);
-		if (skinWAV.isFile())
-			return skinWAV.getAbsolutePath();
-		if (skinMP3.isFile())
-			return skinMP3.getAbsolutePath();
+		File skinDir = Options.getSkin().getDirectory();
+		if (skinDir != null) {
+			File skinWAV = new File(skinDir, wav), skinMP3 = new File(skinDir, mp3);
+			if (skinWAV.isFile())
+				return skinWAV.getAbsolutePath();
+			if (skinMP3.isFile())
+				return skinMP3.getAbsolutePath();
+		}
 		if (ResourceLoader.resourceExists(wav))
 			return wav;
 		if (ResourceLoader.resourceExists(mp3))
@@ -204,7 +207,14 @@ public class SoundController {
 				ErrorHandler.error(String.format("Could not find sound file '%s'.", s.getFileName()), null, false);
 				continue;
 			}
-			s.setClip(loadClip(currentFileName, currentFileName.endsWith(".mp3")));
+			MultiClip newClip = loadClip(currentFileName, currentFileName.endsWith(".mp3"));
+			if (s.getClip() != null) {  // clip previously loaded (e.g. program restart)
+				if (newClip != null) {
+					s.getClip().destroy();  // destroy previous clip
+					s.setClip(newClip);
+				}
+			} else
+				s.setClip(newClip);
 			currentFileIndex++;
 		}
 
@@ -216,7 +226,14 @@ public class SoundController {
 					ErrorHandler.error(String.format("Could not find hit sound file '%s'.", filename), null, false);
 					continue;
 				}
-				s.setClip(ss, loadClip(currentFileName, false));
+				MultiClip newClip = loadClip(currentFileName, false);
+				if (s.getClip(ss) != null) {  // clip previously loaded (e.g. program restart)
+					if (newClip != null) {
+						s.getClip(ss).destroy();  // destroy previous clip
+						s.setClip(ss, newClip);
+					}
+				} else
+					s.setClip(ss, newClip);
 				currentFileIndex++;
 			}
 		}
@@ -262,7 +279,7 @@ public class SoundController {
 	}
 
 	/**
-	 * Plays hit sound(s) using an OsuHitObject bitmask.
+	 * Plays hit sound(s) using a HitObject bitmask.
 	 * @param hitSound the hit sound (bitmask)
 	 * @param sampleSet the sample set
 	 * @param additionSampleSet the 'addition' sample set
@@ -276,16 +293,20 @@ public class SoundController {
 			return;
 
 		// play all sounds
-		HitSound.setSampleSet(sampleSet);
-		playClip(HitSound.NORMAL.getClip(), volume, null);
+		if (hitSound == HitObject.SOUND_NORMAL || Options.getSkin().isLayeredHitSounds()) {
+			HitSound.setSampleSet(sampleSet);
+			playClip(HitSound.NORMAL.getClip(), volume, null);
+		}
 
-		HitSound.setSampleSet(additionSampleSet);
-		if ((hitSound & OsuHitObject.SOUND_WHISTLE) > 0)
-			playClip(HitSound.WHISTLE.getClip(), volume, null);
-		if ((hitSound & OsuHitObject.SOUND_FINISH) > 0)
-			playClip(HitSound.FINISH.getClip(), volume, null);
-		if ((hitSound & OsuHitObject.SOUND_CLAP) > 0)
-			playClip(HitSound.CLAP.getClip(), volume, null);
+		if (hitSound != HitObject.SOUND_NORMAL) {
+			HitSound.setSampleSet(additionSampleSet);
+			if ((hitSound & HitObject.SOUND_WHISTLE) > 0)
+				playClip(HitSound.WHISTLE.getClip(), volume, null);
+			if ((hitSound & HitObject.SOUND_FINISH) > 0)
+				playClip(HitSound.FINISH.getClip(), volume, null);
+			if ((hitSound & HitObject.SOUND_CLAP) > 0)
+				playClip(HitSound.CLAP.getClip(), volume, null);
+		}
 	}
 
 	/**

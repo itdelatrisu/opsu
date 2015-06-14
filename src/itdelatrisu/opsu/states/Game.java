@@ -22,29 +22,32 @@ import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.GameData;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.GameMod;
-import itdelatrisu.opsu.MenuButton;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.Options;
-import itdelatrisu.opsu.OsuFile;
-import itdelatrisu.opsu.OsuHitObject;
-import itdelatrisu.opsu.OsuParser;
-import itdelatrisu.opsu.OsuTimingPoint;
 import itdelatrisu.opsu.ScoreData;
-import itdelatrisu.opsu.UI;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.HitSound;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
-import itdelatrisu.opsu.db.OsuDB;
+import itdelatrisu.opsu.beatmap.Beatmap;
+import itdelatrisu.opsu.beatmap.BeatmapParser;
+import itdelatrisu.opsu.beatmap.HitObject;
+import itdelatrisu.opsu.beatmap.TimingPoint;
+import itdelatrisu.opsu.db.BeatmapDB;
 import itdelatrisu.opsu.db.ScoreDB;
 import itdelatrisu.opsu.objects.Circle;
 import itdelatrisu.opsu.objects.DummyObject;
-import itdelatrisu.opsu.objects.HitObject;
+import itdelatrisu.opsu.objects.GameObject;
 import itdelatrisu.opsu.objects.Slider;
 import itdelatrisu.opsu.objects.Spinner;
+import itdelatrisu.opsu.objects.curves.Curve;
+import itdelatrisu.opsu.render.FrameBufferCache;
+import itdelatrisu.opsu.replay.PlaybackSpeed;
 import itdelatrisu.opsu.replay.Replay;
 import itdelatrisu.opsu.replay.ReplayFrame;
+import itdelatrisu.opsu.ui.MenuButton;
+import itdelatrisu.opsu.ui.UI;
 
 import java.io.File;
 import java.util.LinkedList;
@@ -95,17 +98,17 @@ public class Game extends BasicGameState {
 	/** Stack position offset modifier. */
 	private static final float STACK_OFFSET_MODIFIER = 0.05f;
 
-	/** The associated OsuFile object. */
-	private OsuFile osu;
+	/** The associated beatmap. */
+	private Beatmap beatmap;
 
 	/** The associated GameData object. */
 	private GameData data;
 
-	/** Current hit object index in OsuHitObject[] array. */
+	/** Current hit object index (in both hit object arrays). */
 	private int objectIndex = 0;
 
-	/** The map's HitObjects, indexed by objectIndex. */
-	private HitObject[] hitObjects;
+	/** The map's game objects, indexed by objectIndex. */
+	private GameObject[] gameObjects;
 
 	/** Delay time, in milliseconds, before song starts. */
 	private int leadInTime;
@@ -211,6 +214,9 @@ public class Game extends BasicGameState {
 	/** Whether or not the cursor should be pressed using the "auto" mod. */
 	private boolean autoMousePressed;
 
+	/** Playback speed (used in replays and "auto" mod). */
+	private PlaybackSpeed playbackSpeed;
+
 	// game-related variables
 	private GameContainer container;
 	private StateBasedGame game;
@@ -254,7 +260,7 @@ public class Game extends BasicGameState {
 			trackPosition = pauseTime;
 		else if (deathTime > -1)  // "Easy" mod: health bar increasing
 			trackPosition = deathTime;
-		int firstObjectTime = osu.objects[0].getTime();
+		int firstObjectTime = beatmap.objects[0].getTime();
 		int timeDiff = firstObjectTime - trackPosition;
 
 		g.setBackground(Color.black);
@@ -269,11 +275,11 @@ public class Game extends BasicGameState {
 		float dimLevel = Options.getBackgroundDim();
 		if (trackPosition < firstObjectTime) {
 			if (timeDiff < approachTime)
-				dimLevel += (1f - dimLevel) * ((float) timeDiff / Math.min(approachTime, firstObjectTime));
+				dimLevel += (1f - dimLevel) * ((float) timeDiff / approachTime);
 			else
 				dimLevel = 1f;
 		}
-		if (Options.isDefaultPlayfieldForced() || !osu.drawBG(width, height, dimLevel, false)) {
+		if (Options.isDefaultPlayfieldForced() || !beatmap.drawBG(width, height, dimLevel, false)) {
 			Image playfield = GameImage.PLAYFIELD.getImage();
 			playfield.setAlpha(dimLevel);
 			playfield.draw();
@@ -292,51 +298,51 @@ public class Game extends BasicGameState {
 			float[] autoXY = null;
 			if (isLeadIn()) {
 				// lead-in
-				float progress = Math.max((float) (leadInTime - osu.audioLeadIn) / approachTime, 0f);
+				float progress = Math.max((float) (leadInTime - beatmap.audioLeadIn) / approachTime, 0f);
 				autoMouseY = (int) (height / (2f - progress));
 			} else if (objectIndex == 0 && trackPosition < firstObjectTime) {
 				// before first object
 				timeDiff = firstObjectTime - trackPosition;
 				if (timeDiff < approachTime) {
-					float[] xy = hitObjects[0].getPointAt(trackPosition);
-					autoXY = getPointAt(autoMouseX, autoMouseY, xy[0], xy[1], 1f - ((float) timeDiff / Math.min(approachTime, firstObjectTime)));
+					float[] xy = gameObjects[0].getPointAt(trackPosition);
+					autoXY = getPointAt(autoMouseX, autoMouseY, xy[0], xy[1], 1f - ((float) timeDiff / approachTime));
 				}
-			} else if (objectIndex < osu.objects.length) {
+			} else if (objectIndex < beatmap.objects.length) {
 				// normal object
-				int objectTime = osu.objects[objectIndex].getTime();
+				int objectTime = beatmap.objects[objectIndex].getTime();
 				if (trackPosition < objectTime) {
-					float[] xyStart = hitObjects[objectIndex - 1].getPointAt(trackPosition);
-					int startTime = hitObjects[objectIndex - 1].getEndTime();
-					if (osu.breaks != null && breakIndex < osu.breaks.size()) {
+					float[] xyStart = gameObjects[objectIndex - 1].getPointAt(trackPosition);
+					int startTime = gameObjects[objectIndex - 1].getEndTime();
+					if (beatmap.breaks != null && breakIndex < beatmap.breaks.size()) {
 						// starting a break: keep cursor at previous hit object position
-						if (breakTime > 0 || objectTime > osu.breaks.get(breakIndex))
+						if (breakTime > 0 || objectTime > beatmap.breaks.get(breakIndex))
 							autoXY = xyStart;
 
 						// after a break ends: move startTime to break end time
 						else if (breakIndex > 1) {
-							int lastBreakEndTime = osu.breaks.get(breakIndex - 1);
+							int lastBreakEndTime = beatmap.breaks.get(breakIndex - 1);
 							if (objectTime > lastBreakEndTime && startTime < lastBreakEndTime)
 								startTime = lastBreakEndTime;
 						}
 					}
 					if (autoXY == null) {
-						float[] xyEnd = hitObjects[objectIndex].getPointAt(trackPosition);
+						float[] xyEnd = gameObjects[objectIndex].getPointAt(trackPosition);
 						int totalTime = objectTime - startTime;
 						autoXY = getPointAt(xyStart[0], xyStart[1], xyEnd[0], xyEnd[1], (float) (trackPosition - startTime) / totalTime);
 
 						// hit circles: show a mouse press
 						int offset300 = hitResultOffset[GameData.HIT_300];
-						if ((osu.objects[objectIndex].isCircle() && objectTime - trackPosition < offset300) ||
-						    (osu.objects[objectIndex - 1].isCircle() && trackPosition - osu.objects[objectIndex - 1].getTime() < offset300))
+						if ((beatmap.objects[objectIndex].isCircle() && objectTime - trackPosition < offset300) ||
+						    (beatmap.objects[objectIndex - 1].isCircle() && trackPosition - beatmap.objects[objectIndex - 1].getTime() < offset300))
 							autoMousePressed = true;
 					}
 				} else {
-					autoXY = hitObjects[objectIndex].getPointAt(trackPosition);
+					autoXY = gameObjects[objectIndex].getPointAt(trackPosition);
 					autoMousePressed = true;
 				}
 			} else {
 				// last object
-				autoXY = hitObjects[objectIndex - 1].getPointAt(trackPosition);
+				autoXY = gameObjects[objectIndex - 1].getPointAt(trackPosition);
 			}
 
 			// set mouse coordinates
@@ -388,12 +394,12 @@ public class Game extends BasicGameState {
 		}
 
 		// break periods
-		if (osu.breaks != null && breakIndex < osu.breaks.size() && breakTime > 0) {
-			int endTime = osu.breaks.get(breakIndex);
+		if (beatmap.breaks != null && breakIndex < beatmap.breaks.size() && breakTime > 0) {
+			int endTime = beatmap.breaks.get(breakIndex);
 			int breakLength = endTime - breakTime;
 
 			// letterbox effect (black bars on top/bottom)
-			if (osu.letterboxInBreaks && breakLength >= 4000) {
+			if (beatmap.letterboxInBreaks && breakLength >= 4000) {
 				g.setColor(Color.black);
 				g.fillRect(0, 0, width, height * 0.125f);
 				g.fillRect(0, height * 0.875f, width, height * 0.125f);
@@ -441,7 +447,7 @@ public class Game extends BasicGameState {
 
 			// skip beginning
 			if (objectIndex == 0 &&
-			    trackPosition < osu.objects[0].getTime() - SKIP_OFFSET)
+			    trackPosition < beatmap.objects[0].getTime() - SKIP_OFFSET)
 				skipButton.draw();
 
 			// show retries
@@ -465,40 +471,41 @@ public class Game extends BasicGameState {
 				trackPosition = (leadInTime - Options.getMusicOffset()) * -1;  // render approach circles during song lead-in
 
 			// countdown
-			if (osu.countdown > 0) {  // TODO: implement half/double rate settings
+			if (beatmap.countdown > 0) {
+				float speedModifier = GameMod.getSpeedMultiplier() * playbackSpeed.getModifier();
 				timeDiff = firstObjectTime - trackPosition;
-				if (timeDiff >= 500 && timeDiff < 3000) {
-					if (timeDiff >= 1500) {
+				if (timeDiff >= 500 * speedModifier && timeDiff < 3000 * speedModifier) {
+					if (timeDiff >= 1500 * speedModifier) {
 						GameImage.COUNTDOWN_READY.getImage().drawCentered(width / 2, height / 2);
 						if (!countdownReadySound) {
 							SoundController.playSound(SoundEffect.READY);
 							countdownReadySound = true;
 						}
 					}
-					if (timeDiff < 2000) {
+					if (timeDiff < 2000 * speedModifier) {
 						GameImage.COUNTDOWN_3.getImage().draw(0, 0);
 						if (!countdown3Sound) {
 							SoundController.playSound(SoundEffect.COUNT3);
 							countdown3Sound = true;
 						}
 					}
-					if (timeDiff < 1500) {
+					if (timeDiff < 1500 * speedModifier) {
 						GameImage.COUNTDOWN_2.getImage().draw(width - GameImage.COUNTDOWN_2.getImage().getWidth(), 0);
 						if (!countdown2Sound) {
 							SoundController.playSound(SoundEffect.COUNT2);
 							countdown2Sound = true;
 						}
 					}
-					if (timeDiff < 1000) {
+					if (timeDiff < 1000 * speedModifier) {
 						GameImage.COUNTDOWN_1.getImage().drawCentered(width / 2, height / 2);
 						if (!countdown1Sound) {
 							SoundController.playSound(SoundEffect.COUNT1);
 							countdown1Sound = true;
 						}
 					}
-				} else if (timeDiff >= -500 && timeDiff < 500) {
+				} else if (timeDiff >= -500 * speedModifier && timeDiff < 500 * speedModifier) {
 					Image go = GameImage.COUNTDOWN_GO.getImage();
-					go.setAlpha((timeDiff < 0) ? 1 - (timeDiff / -1000f) : 1);
+					go.setAlpha((timeDiff < 0) ? 1 - (timeDiff / speedModifier / -500f) : 1);
 					go.drawCentered(width / 2, height / 2);
 					if (!countdownGoSound) {
 						SoundController.playSound(SoundEffect.GO);
@@ -514,6 +521,10 @@ public class Game extends BasicGameState {
 
 		if (GameMod.AUTO.isActive())
 			GameImage.UNRANKED.getImage().drawCentered(width / 2, height * 0.077f);
+
+		// draw replay speed button
+		if (isReplay || GameMod.AUTO.isActive())
+			playbackSpeed.getButton().draw();
 
 		// returning from pause screen
 		if (pauseTime > -1 && pausedMouseX > -1 && pausedMouseY > -1) {
@@ -539,7 +550,6 @@ public class Game extends BasicGameState {
 			UI.draw(g, autoMouseX, autoMouseY, Utils.isGameKeyPressed());
 		else
 			UI.draw(g);
-
 	}
 
 	@Override
@@ -548,6 +558,8 @@ public class Game extends BasicGameState {
 		UI.update(delta);
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
 		skipButton.hoverUpdate(delta, mouseX, mouseY);
+		if (isReplay || GameMod.AUTO.isActive())
+			playbackSpeed.getButton().hoverUpdate(delta, mouseX, mouseY);
 		int trackPosition = MusicController.getPosition();
 
 		// returning from pause screen: must click previous mouse position
@@ -660,10 +672,10 @@ public class Game extends BasicGameState {
 		}
 
 		// map complete!
-		if (objectIndex >= hitObjects.length || (MusicController.trackEnded() && objectIndex > 0)) {
+		if (objectIndex >= gameObjects.length || (MusicController.trackEnded() && objectIndex > 0)) {
 			// track ended before last object was processed: force a hit result
-			if (MusicController.trackEnded() && objectIndex < hitObjects.length)
-				hitObjects[objectIndex].update(true, delta, mouseX, mouseY, false, trackPosition);
+			if (MusicController.trackEnded() && objectIndex < gameObjects.length)
+				gameObjects[objectIndex].update(true, delta, mouseX, mouseY, false, trackPosition);
 
 			// if checkpoint used, skip ranking screen
 			if (checkpointLoaded)
@@ -681,11 +693,11 @@ public class Game extends BasicGameState {
 						replayFrames.getFirst().setTimeDiff(replaySkipTime * -1);
 					replayFrames.addFirst(ReplayFrame.getStartFrame(replaySkipTime));
 					replayFrames.addFirst(ReplayFrame.getStartFrame(0));
-					Replay r = data.getReplay(replayFrames.toArray(new ReplayFrame[replayFrames.size()]), osu);
+					Replay r = data.getReplay(replayFrames.toArray(new ReplayFrame[replayFrames.size()]), beatmap);
 					if (r != null && !unranked)
 						r.save();
 				}
-				ScoreData score = data.getScoreData(osu);
+				ScoreData score = data.getScoreData(beatmap);
 
 				// add score to database
 				if (!unranked && !isReplay)
@@ -697,23 +709,21 @@ public class Game extends BasicGameState {
 		}
 
 		// timing points
-		if (timingPointIndex < osu.timingPoints.size()) {
-			OsuTimingPoint timingPoint = osu.timingPoints.get(timingPointIndex);
+		if (timingPointIndex < beatmap.timingPoints.size()) {
+			TimingPoint timingPoint = beatmap.timingPoints.get(timingPointIndex);
 			if (trackPosition >= timingPoint.getTime()) {
-				setBeatLength(timingPoint);
-				HitSound.setDefaultSampleSet(timingPoint.getSampleType());
-				SoundController.setSampleVolume(timingPoint.getSampleVolume());
+				setBeatLength(timingPoint, true);
 				timingPointIndex++;
 			}
 		}
 
 		// song beginning
-		if (objectIndex == 0 && trackPosition < osu.objects[0].getTime())
+		if (objectIndex == 0 && trackPosition < beatmap.objects[0].getTime())
 			return;  // nothing to do here
 
 		// break periods
-		if (osu.breaks != null && breakIndex < osu.breaks.size()) {
-			int breakValue = osu.breaks.get(breakIndex);
+		if (beatmap.breaks != null && breakIndex < beatmap.breaks.size()) {
+			int breakValue = beatmap.breaks.get(breakIndex);
 			if (breakTime > 0) {  // in a break period
 				if (trackPosition < breakValue)
 					return;
@@ -765,13 +775,13 @@ public class Game extends BasicGameState {
 
 		// update objects (loop in unlikely event of any skipped indexes)
 		boolean keyPressed = keys != ReplayFrame.KEY_NONE;
-		while (objectIndex < hitObjects.length && trackPosition > osu.objects[objectIndex].getTime()) {
+		while (objectIndex < gameObjects.length && trackPosition > beatmap.objects[objectIndex].getTime()) {
 			// check if we've already passed the next object's start time
 			boolean overlap = (objectIndex + 1 < hitObjects.length &&
 					trackPosition > osu.objects[objectIndex + 1].getTime() - hitResultOffset[GameData.HIT_50]);
 
 			// update hit object and check completion status
-			if (hitObjects[objectIndex].update(overlap, delta, mouseX, mouseY, keyPressed, trackPosition))
+			if (gameObjects[objectIndex].update(overlap, delta, mouseX, mouseY, keyPressed, trackPosition))
 				objectIndex++;  // done, so increment object index
 			else
 				break;
@@ -807,7 +817,7 @@ public class Game extends BasicGameState {
 			}
 
 			// pause game
-			if (pauseTime < 0 && breakTime <= 0 && trackPosition >= osu.objects[0].getTime()) {
+			if (pauseTime < 0 && breakTime <= 0 && trackPosition >= beatmap.objects[0].getTime()) {
 				pausedMouseX = mouseX;
 				pausedMouseY = mouseY;
 				pausePulse = 0f;
@@ -824,7 +834,7 @@ public class Game extends BasicGameState {
 			// restart
 			if (input.isKeyDown(Input.KEY_RCONTROL) || input.isKeyDown(Input.KEY_LCONTROL)) {
 				try {
-					if (trackPosition < osu.objects[0].getTime())
+					if (trackPosition < beatmap.objects[0].getTime())
 						retries--;  // don't count this retry (cancel out later increment)
 					restart = Restart.MANUAL;
 					enter(container, game);
@@ -851,7 +861,7 @@ public class Game extends BasicGameState {
 			// load checkpoint
 			if (input.isKeyDown(Input.KEY_RCONTROL) || input.isKeyDown(Input.KEY_LCONTROL)) {
 				int checkpoint = Options.getCheckpoint();
-				if (checkpoint == 0 || checkpoint > osu.endTime)
+				if (checkpoint == 0 || checkpoint > beatmap.endTime)
 					break;  // invalid checkpoint
 				try {
 					restart = Restart.MANUAL;
@@ -866,11 +876,12 @@ public class Game extends BasicGameState {
 
 					// skip to checkpoint
 					MusicController.setPosition(checkpoint);
-					while (objectIndex < hitObjects.length &&
-							osu.objects[objectIndex++].getTime() <= checkpoint)
+					MusicController.setPitch(GameMod.getSpeedMultiplier() * playbackSpeed.getModifier());
+					while (objectIndex < gameObjects.length &&
+							beatmap.objects[objectIndex++].getTime() <= checkpoint)
 						;
 					objectIndex--;
-					lastReplayTime = osu.objects[objectIndex].getTime();
+					lastReplayTime = beatmap.objects[objectIndex].getTime();
 				} catch (SlickException e) {
 					ErrorHandler.error("Failed to load checkpoint.", e, false);
 				}
@@ -896,13 +907,13 @@ public class Game extends BasicGameState {
 
 	@Override
 	public void mousePressed(int button, int x, int y) {
-		if (Options.isMouseDisabled())
-			return;
-
 		// watching replay
-		if (isReplay) {
-			// only allow skip button
-			if (button != Input.MOUSE_MIDDLE_BUTTON && skipButton.contains(x, y))
+		if (isReplay || GameMod.AUTO.isActive()) {
+			if (button == Input.MOUSE_MIDDLE_BUTTON)
+				return;
+
+			// skip button
+			if (skipButton.contains(x, y))
 				skipIntro();
 			if(y < 50){
 				float pos = (float)x / width * osu.endTime;
@@ -912,10 +923,13 @@ public class Game extends BasicGameState {
 			return;
 		}
 
+		if (Options.isMouseDisabled())
+			return;
+
 		// mouse wheel: pause the game
 		if (button == Input.MOUSE_MIDDLE_BUTTON && !Options.isMouseWheelDisabled()) {
 			int trackPosition = MusicController.getPosition();
-			if (pauseTime < 0 && breakTime <= 0 && trackPosition >= osu.objects[0].getTime()) {
+			if (pauseTime < 0 && breakTime <= 0 && trackPosition >= beatmap.objects[0].getTime()) {
 				pausedMouseX = x;
 				pausedMouseY = y;
 				pausePulse = 0f;
@@ -1031,8 +1045,11 @@ public class Game extends BasicGameState {
 			throws SlickException {
 		UI.enter();
 
-		if (osu == null || osu.objects == null)
-			throw new RuntimeException("Running game with no OsuFile loaded.");
+		if (beatmap == null || beatmap.objects == null)
+			throw new RuntimeException("Running game with no beatmap loaded.");
+
+		// free all previously cached hitobject to framebuffer mappings if some still exist
+		FrameBufferCache.getInstance().freeMap();
 
 		// grab the mouse (not working for touchscreen)
 //		container.setMouseGrabbed(true);
@@ -1053,10 +1070,14 @@ public class Game extends BasicGameState {
 			// reset game data
 			resetGameData();
 
-			// needs to play before setting position to resume without lag later
-			MusicController.play(false);
-			MusicController.setPosition(0);
-			MusicController.pause();
+			// load the first timingPoint for stacking
+			if (!beatmap.timingPoints.isEmpty()) {
+				TimingPoint timingPoint = beatmap.timingPoints.get(0);
+				if (!timingPoint.isInherited()) {
+					setBeatLength(timingPoint, true);
+					timingPointIndex++;
+				}
+			}
 
 			if (!osu.timingPoints.isEmpty()) {
 				OsuTimingPoint timingPoint = osu.timingPoints.get(0);
@@ -1067,39 +1088,39 @@ public class Game extends BasicGameState {
 			hitObjects = new HitObject[osu.objects.length];
 			
 			// initialize object maps
-			for (int i = 0; i < osu.objects.length; i++) {
-				OsuHitObject hitObject = osu.objects[i];
+			Color[] combo = beatmap.getComboColors();
+			for (int i = 0; i < beatmap.objects.length; i++) {
+				HitObject hitObject = beatmap.objects[i];
 
 				// is this the last note in the combo?
 				boolean comboEnd = false;
 				if (i + 1 >= osu.objects.length || osu.objects[i + 1].isNewCombo())
 					comboEnd = true;
 
-				Color color = osu.combo[hitObject.getComboIndex()];
+				Color color = combo[hitObject.getComboIndex()];
 
 				// pass beatLength to hit objects
 				int hitObjectTime = hitObject.getTime();
-				int timingPointIndex = 0;
-				while (timingPointIndex < osu.timingPoints.size()) {
-					OsuTimingPoint timingPoint = osu.timingPoints.get(timingPointIndex);
+				while (timingPointIndex < beatmap.timingPoints.size()) {
+					TimingPoint timingPoint = beatmap.timingPoints.get(timingPointIndex);
 					if (timingPoint.getTime() > hitObjectTime)
 						break;
-					setBeatLength(timingPoint);
+					setBeatLength(timingPoint, false);
 					timingPointIndex++;
 				}
 
 				try {
 					if (hitObject.isCircle())
-						hitObjects[i] = new Circle(hitObject, this, data, color, comboEnd);
+						gameObjects[i] = new Circle(hitObject, this, data, color, comboEnd);
 					else if (hitObject.isSlider())
-						hitObjects[i] = new Slider(hitObject, this, data, color, comboEnd);
+						gameObjects[i] = new Slider(hitObject, this, data, color, comboEnd);
 					else if (hitObject.isSpinner())
-						hitObjects[i] = new Spinner(hitObject, this, data);
+						gameObjects[i] = new Spinner(hitObject, this, data);
 				} catch (Exception e) {
-					// try to handle the error gracefully: substitute in a dummy HitObject
+					// try to handle the error gracefully: substitute in a dummy GameObject
 					ErrorHandler.error(String.format("Failed to create %s at index %d:\n%s",
 							hitObject.getTypeName(), i, hitObject.toString()), e, true);
-					hitObjects[i] = new DummyObject(hitObject);
+					gameObjects[i] = new DummyObject(hitObject);
 					continue;
 				}
 			}
@@ -1108,19 +1129,19 @@ public class Game extends BasicGameState {
 			calculateStacks();
 
 			// load the first timingPoint
-			if (!osu.timingPoints.isEmpty()) {
-				OsuTimingPoint timingPoint = osu.timingPoints.get(0);
+			timingPointIndex = 0;
+			beatLengthBase = beatLength = 1;
+			if (!beatmap.timingPoints.isEmpty()) {
+				TimingPoint timingPoint = beatmap.timingPoints.get(0);
 				if (!timingPoint.isInherited()) {
-					beatLengthBase = beatLength = timingPoint.getBeatLength();
-					HitSound.setDefaultSampleSet(timingPoint.getSampleType());
-					SoundController.setSampleVolume(timingPoint.getSampleVolume());
+					setBeatLength(timingPoint, true);
 					timingPointIndex++;
 				}
 			}
 
 			// unhide cursor for "auto" mod and replays
 			if (GameMod.AUTO.isActive() || isReplay)
-				UI.showCursor();
+				UI.getCursor().show();
 
 			// load replay frames
 			if (isReplay) {
@@ -1156,11 +1177,20 @@ public class Game extends BasicGameState {
 				replayFrames.add(new ReplayFrame(0, 0, input.getMouseX(), input.getMouseY(), 0));
 			}
 
-			leadInTime = osu.audioLeadIn + approachTime;
+			leadInTime = beatmap.audioLeadIn + approachTime;
 			restart = Restart.FALSE;
+
+			// needs to play before setting position to resume without lag later
+			MusicController.play(false);
+			MusicController.setPosition(0);
+			MusicController.setPitch(GameMod.getSpeedMultiplier());
+			MusicController.pause();
 		}
 
 		skipButton.resetHover();
+		if (isReplay || GameMod.AUTO.isActive())
+			playbackSpeed.getButton().resetHover();
+		MusicController.setPitch(GameMod.getSpeedMultiplier() * playbackSpeed.getModifier());
 	}
 
 	@Override
@@ -1170,11 +1200,14 @@ public class Game extends BasicGameState {
 
 		// re-hide cursor
 		if (GameMod.AUTO.isActive() || isReplay)
-			UI.hideCursor();
+			UI.getCursor().hide();
 
 		// replays
 		if (isReplay)
 			GameMod.loadModState(previousMods);
+
+		// reset playback speed
+		MusicController.setPitch(1f);
 	}
 
 	/**
@@ -1185,29 +1218,29 @@ public class Game extends BasicGameState {
 	private void drawHitObjects(Graphics g, int trackPosition) {
 		// include previous object in follow points
 		int lastObjectIndex = -1;
-		if (objectIndex > 0 && objectIndex < osu.objects.length &&
-		    trackPosition < osu.objects[objectIndex].getTime() && !osu.objects[objectIndex - 1].isSpinner())
+		if (objectIndex > 0 && objectIndex < beatmap.objects.length &&
+		    trackPosition < beatmap.objects[objectIndex].getTime() && !beatmap.objects[objectIndex - 1].isSpinner())
 			lastObjectIndex = objectIndex - 1;
 
 		// draw hit objects in reverse order, or else overlapping objects are unreadable
 		Stack<Integer> stack = new Stack<Integer>();
-		for (int index = objectIndex; index < hitObjects.length && osu.objects[index].getTime() < trackPosition + approachTime; index++) {
+		for (int index = objectIndex; index < gameObjects.length && beatmap.objects[index].getTime() < trackPosition + approachTime; index++) {
 			stack.add(index);
 
 			// draw follow points
 			if (!Options.isFollowPointEnabled())
 				continue;
-			if (osu.objects[index].isSpinner()) {
+			if (beatmap.objects[index].isSpinner()) {
 				lastObjectIndex = -1;
 				continue;
 			}
-			if (lastObjectIndex != -1 && !osu.objects[index].isNewCombo()) {
+			if (lastObjectIndex != -1 && !beatmap.objects[index].isNewCombo()) {
 				// calculate points
 				final int followPointInterval = container.getHeight() / 14;
-				int lastObjectEndTime = hitObjects[lastObjectIndex].getEndTime() + 1;
-				int objectStartTime = osu.objects[index].getTime();
-				float[] startXY = hitObjects[lastObjectIndex].getPointAt(lastObjectEndTime);
-				float[] endXY = hitObjects[index].getPointAt(objectStartTime);
+				int lastObjectEndTime = gameObjects[lastObjectIndex].getEndTime() + 1;
+				int objectStartTime = beatmap.objects[index].getTime();
+				float[] startXY = gameObjects[lastObjectIndex].getPointAt(lastObjectEndTime);
+				float[] endXY = gameObjects[index].getPointAt(objectStartTime);
 				float xDiff = endXY[0] - startXY[0];
 				float yDiff = endXY[1] - startXY[1];
 				float dist = (float) Math.hypot(xDiff, yDiff);
@@ -1254,29 +1287,32 @@ public class Game extends BasicGameState {
 		}
 
 		while (!stack.isEmpty())
-			hitObjects[stack.pop()].draw(g, trackPosition);
+			gameObjects[stack.pop()].draw(g, trackPosition);
 
 		// draw OsuHitObjectResult objects
 		data.drawHitResults(trackPosition);
 	}
 
 	/**
-	 * Loads all required data from an OsuFile.
-	 * @param osu the OsuFile to load
+	 * Loads all required data from a beatmap.
+	 * @param beatmap the beatmap to load
 	 */
-	public void loadOsuFile(OsuFile osu) {
-		this.osu = osu;
-		Display.setTitle(String.format("%s - %s", game.getTitle(), osu.toString()));
-		if (osu.timingPoints == null || osu.combo == null)
-			OsuDB.load(osu, OsuDB.LOAD_ARRAY);
-		OsuParser.parseHitObjects(osu);
-		HitSound.setDefaultSampleSet(osu.sampleSet);
+	public void loadBeatmap(Beatmap beatmap) {
+		this.beatmap = beatmap;
+		Display.setTitle(String.format("%s - %s", game.getTitle(), beatmap.toString()));
+		if (beatmap.timingPoints == null)
+			BeatmapDB.load(beatmap, BeatmapDB.LOAD_ARRAY);
+		BeatmapParser.parseHitObjects(beatmap);
+		HitSound.setDefaultSampleSet(beatmap.sampleSet);
 	}
 
 	/**
 	 * Resets all game data and structures.
 	 */
 	public void resetGameData() {
+		//conflict
+		gameObjects = new GameObject[beatmap.objects.length];
+		//
 		data.clear();
 		objectIndex = 0;
 		breakIndex = 0;
@@ -1301,16 +1337,17 @@ public class Game extends BasicGameState {
 		autoMouseY = 0;
 		autoMousePressed = false;
 		flashlightRadius = container.getHeight() * 2 / 3;
+		playbackSpeed = PlaybackSpeed.NORMAL;
 
 		System.gc();
 	}
 
 	/**
 	 * Skips the beginning of a track.
-	 * @return true if skipped, false otherwise
+	 * @return {@code true} if skipped, {@code false} otherwise
 	 */
 	private synchronized boolean skipIntro() {
-		int firstObjectTime = osu.objects[0].getTime();
+		int firstObjectTime = beatmap.objects[0].getTime();
 		int trackPosition = MusicController.getPosition();
 		if (objectIndex == 0 && trackPosition < firstObjectTime - SKIP_OFFSET) {
 			if (isLeadIn()) {
@@ -1318,6 +1355,7 @@ public class Game extends BasicGameState {
 				MusicController.resume();
 			}
 			MusicController.setPosition(firstObjectTime - SKIP_OFFSET);
+			MusicController.setPitch(GameMod.getSpeedMultiplier() * playbackSpeed.getModifier());
 			replaySkipTime = (isReplay) ? -1 : trackPosition;
 			if (isReplay) {
 				replayX = (int) skipButton.getX();
@@ -1337,7 +1375,7 @@ public class Game extends BasicGameState {
 		int height = container.getHeight();
 
 		// set images
-		File parent = osu.getFile().getParentFile();
+		File parent = beatmap.getFile().getParentFile();
 		for (GameImage img : GameImage.values()) {
 			if (img.isSkinnable()) {
 				img.setDefaultImage();
@@ -1365,26 +1403,11 @@ public class Game extends BasicGameState {
 	 */
 	private void setMapModifiers() {
 		// map-based properties, re-initialized each game
-		float circleSize = osu.circleSize;
-		float approachRate = osu.approachRate;
-		float overallDifficulty = osu.overallDifficulty;
-		float HPDrainRate = osu.HPDrainRate;
-
-		// "Hard Rock" modifiers
-		if (GameMod.HARD_ROCK.isActive()) {
-			circleSize = Math.min(circleSize * 1.4f, 10);
-			approachRate = Math.min(approachRate * 1.4f, 10);
-			overallDifficulty = Math.min(overallDifficulty * 1.4f, 10);
-			HPDrainRate = Math.min(HPDrainRate * 1.4f, 10);
-		}
-
-		// "Easy" modifiers
-		else if (GameMod.EASY.isActive()) {
-			circleSize /= 2f;
-			approachRate /= 2f;
-			overallDifficulty /= 2f;
-			HPDrainRate /= 2f;
-		}
+		float multiplier = GameMod.getDifficultyMultiplier();
+		float circleSize = Math.min(beatmap.circleSize * multiplier, 10f);
+		float approachRate = Math.min(beatmap.approachRate * multiplier, 10f);
+		float overallDifficulty = Math.min(beatmap.overallDifficulty * multiplier, 10f);
+		float HPDrainRate = Math.min(beatmap.HPDrainRate * multiplier, 10f);
 
 		// fixed difficulty overrides
 		if (Options.getFixedCS() > 0f)
@@ -1399,12 +1422,14 @@ public class Game extends BasicGameState {
 		// Stack modifier scales with hit object size
 		// StackOffset = HitObjectRadius / 10
 		int diameter = (int) (104 - (circleSize * 8));
-		OsuHitObject.setStackOffset(diameter * STACK_OFFSET_MODIFIER);
+		HitObject.setStackOffset(diameter * STACK_OFFSET_MODIFIER);
 
 		// initialize objects
 		Circle.init(container, circleSize);
-		Slider.init(container, circleSize, osu);
+		Slider.init(container, circleSize, beatmap);
 		Spinner.init(container);
+		Curve.init(container.getWidth(), container.getHeight(), circleSize, (Options.isBeatmapSkinIgnored()) ?
+				Options.getSkin().getSliderBorderColor() : beatmap.getSliderBorderColor());
 
 		// approachRate (hit object approach time)
 		if (approachRate < 5)
@@ -1436,9 +1461,14 @@ public class Game extends BasicGameState {
 	}
 
 	/**
-	 * Sets/returns whether entering the state will restart it.
+	 * Sets the restart state.
+	 * @param restart the new restart state
 	 */
 	public void setRestart(Restart restart) { this.restart = restart; }
+
+	/**
+	 * Returns the current restart state.
+	 */
 	public Restart getRestart() { return restart; }
 
 	/**
@@ -1463,12 +1493,18 @@ public class Game extends BasicGameState {
 
 	/**
 	 * Sets the beat length fields based on a given timing point.
+	 * @param timingPoint the timing point
+	 * @param setSampleSet whether to set the hit sample set based on the timing point
 	 */
-	private void setBeatLength(OsuTimingPoint timingPoint) {
+	private void setBeatLength(TimingPoint timingPoint, boolean setSampleSet) {
 		if (!timingPoint.isInherited())
 			beatLengthBase = beatLength = timingPoint.getBeatLength();
 		else
 			beatLength = beatLengthBase * timingPoint.getSliderMultiplier();
+		if (setSampleSet) {
+			HitSound.setDefaultSampleSet(timingPoint.getSampleType());
+			SoundController.setSampleVolume(timingPoint.getSampleVolume());
+		}
 	}
 
 	/**
@@ -1540,18 +1576,18 @@ public class Game extends BasicGameState {
 	 */
 	private void sendGameKeyPress(int keys, int x, int y, int trackPosition) {
 		System.out.println("Game Key Pressed"+keys+" "+x+" "+y+" "+objectIndex);
-		if (objectIndex >= hitObjects.length)  // nothing to do here
+		if (objectIndex >= gameObjects.length)  // nothing to do here
 			return;
 
-		OsuHitObject hitObject = osu.objects[objectIndex];
+		HitObject hitObject = beatmap.objects[objectIndex];
 
 		// circles
-		if (hitObject.isCircle() && hitObjects[objectIndex].mousePressed(x, y, trackPosition))
+		if (hitObject.isCircle() && gameObjects[objectIndex].mousePressed(x, y, trackPosition))
 			objectIndex++;  // circle hit
 
 		// sliders
 		else if (hitObject.isSlider())
-			hitObjects[objectIndex].mousePressed(x, y, trackPosition);
+			gameObjects[objectIndex].mousePressed(x, y, trackPosition);
 	}
 
 	/**
@@ -1565,8 +1601,8 @@ public class Game extends BasicGameState {
 	private ReplayFrame addReplayFrame(int x, int y, int keys, int time) {
 		int timeDiff = time - lastReplayTime;
 		lastReplayTime = time;
-		int cx = (int) ((x - OsuHitObject.getXOffset()) / OsuHitObject.getXMultiplier());
-		int cy = (int) ((y - OsuHitObject.getYOffset()) / OsuHitObject.getYMultiplier());
+		int cx = (int) ((x - HitObject.getXOffset()) / HitObject.getXMultiplier());
+		int cy = (int) ((y - HitObject.getYOffset()) / HitObject.getYMultiplier());
 		ReplayFrame frame = new ReplayFrame(timeDiff, time, cx, cy, keys);
 		if (replayFrames != null)
 			replayFrames.add(frame);
@@ -1603,14 +1639,14 @@ public class Game extends BasicGameState {
 			return;
 
 		int width = container.getWidth(), height = container.getHeight();
-		boolean firstObject = (objectIndex == 0 && trackPosition < osu.objects[0].getTime());
+		boolean firstObject = (objectIndex == 0 && trackPosition < beatmap.objects[0].getTime());
 		if (isLeadIn()) {
 			// lead-in: expand area
-			float progress = Math.max((float) (leadInTime - osu.audioLeadIn) / approachTime, 0f);
+			float progress = Math.max((float) (leadInTime - beatmap.audioLeadIn) / approachTime, 0f);
 			flashlightRadius = width - (int) ((width - (height * 2 / 3)) * progress);
 		} else if (firstObject) {
 			// before first object: shrink area
-			int timeDiff = osu.objects[0].getTime() - trackPosition;
+			int timeDiff = beatmap.objects[0].getTime() - trackPosition;
 			flashlightRadius = width;
 			if (timeDiff < approachTime) {
 				float progress = (float) timeDiff / approachTime;
@@ -1626,10 +1662,10 @@ public class Game extends BasicGameState {
 				targetRadius = height / 2;
 			else
 				targetRadius = height / 3;
-			if (osu.breaks != null && breakIndex < osu.breaks.size() && breakTime > 0) {
+			if (beatmap.breaks != null && breakIndex < beatmap.breaks.size() && breakTime > 0) {
 				// breaks: expand at beginning, shrink at end
 				flashlightRadius = targetRadius;
-				int endTime = osu.breaks.get(breakIndex);
+				int endTime = beatmap.breaks.get(breakIndex);
 				int breakLength = endTime - breakTime;
 				if (breakLength > approachTime * 3) {
 					float progress = 1f;
@@ -1662,8 +1698,8 @@ public class Game extends BasicGameState {
 	 */
 	private void calculateStacks() {
 		// reverse pass for stack calculation
-		for (int i = hitObjects.length - 1; i > 0; i--) {
-			OsuHitObject hitObjectI = osu.objects[i];
+		for (int i = gameObjects.length - 1; i > 0; i--) {
+			HitObject hitObjectI = beatmap.objects[i];
 
 			// already calculated
 			if (hitObjectI.getStack() != 0 || hitObjectI.isSpinner())
@@ -1671,33 +1707,33 @@ public class Game extends BasicGameState {
 
 			// search for hit objects in stack
 			for (int n = i - 1; n >= 0; n--) {
-				OsuHitObject hitObjectN = osu.objects[n];
+				HitObject hitObjectN = beatmap.objects[n];
 				if (hitObjectN.isSpinner())
 					continue;
 
 				// check if in range stack calculation
-				float timeI = hitObjectI.getTime() - (STACK_TIMEOUT * osu.stackLeniency);
-				float timeN = hitObjectN.isSlider() ? hitObjects[n].getEndTime() : hitObjectN.getTime();
+				float timeI = hitObjectI.getTime() - (STACK_TIMEOUT * beatmap.stackLeniency);
+				float timeN = hitObjectN.isSlider() ? gameObjects[n].getEndTime() : hitObjectN.getTime();
 				if (timeI > timeN)
 					break;
 
 				// possible special case: if slider end in the stack,
 				// all next hit objects in stack move right down
 				if (hitObjectN.isSlider()) {
-					float[] p1 = hitObjects[i].getPointAt(hitObjectI.getTime());
-					float[] p2 = hitObjects[n].getPointAt(hitObjects[n].getEndTime());
+					float[] p1 = gameObjects[i].getPointAt(hitObjectI.getTime());
+					float[] p2 = gameObjects[n].getPointAt(gameObjects[n].getEndTime());
 					float distance = Utils.distance(p1[0], p1[1], p2[0], p2[1]);
 
 					// check if hit object part of this stack
-					if (distance < STACK_LENIENCE * OsuHitObject.getXMultiplier()) {
+					if (distance < STACK_LENIENCE * HitObject.getXMultiplier()) {
 						int offset = hitObjectI.getStack() - hitObjectN.getStack() + 1;
 						for (int j = n + 1; j <= i; j++) {
-							OsuHitObject hitObjectJ = osu.objects[j];
-							p1 = hitObjects[j].getPointAt(hitObjectJ.getTime());
+							HitObject hitObjectJ = beatmap.objects[j];
+							p1 = gameObjects[j].getPointAt(hitObjectJ.getTime());
 							distance = Utils.distance(p1[0], p1[1], p2[0], p2[1]);
 
 							// hit object below slider end
-							if (distance < STACK_LENIENCE * OsuHitObject.getXMultiplier())
+							if (distance < STACK_LENIENCE * HitObject.getXMultiplier())
 								hitObjectJ.setStack(hitObjectJ.getStack() - offset);
 						}
 						break;  // slider end always start of the stack: reset calculation
@@ -1717,9 +1753,9 @@ public class Game extends BasicGameState {
 		}
 
 		// update hit object positions
-		for (int i = 0; i < hitObjects.length; i++) {
-			if (osu.objects[i].getStack() != 0)
-				hitObjects[i].updatePosition();
+		for (int i = 0; i < gameObjects.length; i++) {
+			if (beatmap.objects[i].getStack() != 0)
+				gameObjects[i].updatePosition();
 		}
 	}
 }

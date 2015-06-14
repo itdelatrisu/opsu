@@ -21,11 +21,12 @@ package itdelatrisu.opsu.downloads;
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.Options;
-import itdelatrisu.opsu.OsuGroupList;
-import itdelatrisu.opsu.UI;
 import itdelatrisu.opsu.Utils;
+import itdelatrisu.opsu.beatmap.BeatmapSetList;
 import itdelatrisu.opsu.downloads.Download.DownloadListener;
 import itdelatrisu.opsu.downloads.Download.Status;
+import itdelatrisu.opsu.downloads.servers.DownloadServer;
+import itdelatrisu.opsu.ui.UI;
 
 import java.io.File;
 
@@ -85,7 +86,7 @@ public class DownloadNode {
 		buttonBaseX = width * 0.024f;
 		buttonBaseY = height * 0.2f;
 		buttonWidth = width * 0.7f;
-		buttonHeight = Utils.FONT_MEDIUM.getLineHeight() * 2f;
+		buttonHeight = Utils.FONT_MEDIUM.getLineHeight() * 2.1f;
 		buttonOffset = buttonHeight * 1.1f;
 
 		// download info
@@ -239,22 +240,26 @@ public class DownloadNode {
 	 * @see #getDownload()
 	 */
 	public void createDownload(DownloadServer server) {
-		if (download == null) {
-			String path = String.format("%s%c%d", Options.getOSZDir(), File.separatorChar, beatmapSetID);
-			String rename = String.format("%d %s - %s.osz", beatmapSetID, artist, title);
-			this.download = new Download(server.getURL(beatmapSetID), path, rename);
-			download.setListener(new DownloadListener() {
-				@Override
-				public void completed() {
-					UI.sendBarNotification(String.format("Download complete: %s", getTitle()));
-				}
+		if (download != null)
+			return;
 
-				@Override
-				public void error() {
-					UI.sendBarNotification("Download failed due to a connection error.");
-				}
-			});
-		}
+		String url = server.getDownloadURL(beatmapSetID);
+		if (url == null)
+			return;
+		String path = String.format("%s%c%d", Options.getOSZDir(), File.separatorChar, beatmapSetID);
+		String rename = String.format("%d %s - %s.osz", beatmapSetID, artist, title);
+		this.download = new Download(url, path, rename);
+		download.setListener(new DownloadListener() {
+			@Override
+			public void completed() {
+				UI.sendBarNotification(String.format("Download complete: %s", getTitle()));
+			}
+
+			@Override
+			public void error() {
+				UI.sendBarNotification("Download failed due to a connection error.");
+			}
+		});
 	}
 
 	/**
@@ -320,7 +325,7 @@ public class DownloadNode {
 		g.fillRect(buttonBaseX, y, buttonWidth, buttonHeight);
 
 		// map is already loaded
-		if (OsuGroupList.get().containsBeatmapSetID(beatmapSetID)) {
+		if (BeatmapSetList.get().containsBeatmapSetID(beatmapSetID)) {
 			g.setColor(Utils.COLOR_BLUE_BUTTON);
 			g.fillRect(buttonBaseX, y, buttonWidth, buttonHeight);
 		}
@@ -340,13 +345,15 @@ public class DownloadNode {
 		textX += img.getWidth() + buttonWidth * 0.001f;
 
 		// text
-		// TODO: if the title/artist line is too long, shorten it (e.g. add "...")
+		// TODO: if the title/artist line is too long, shorten it (e.g. add "...") instead of just clipping
 		if (Options.useUnicodeMetadata())  // load glyphs
 			Utils.loadGlyphs(Utils.FONT_BOLD, getTitle(), getArtist());
+		g.setClip((int) textX, (int) (y + marginY), (int) (edgeX - textX - Utils.FONT_DEFAULT.getWidth(creator)), Utils.FONT_BOLD.getLineHeight());
 		Utils.FONT_BOLD.drawString(
 				textX, y + marginY,
 				String.format("%s - %s%s", getArtist(), getTitle(),
 						(dl != null) ? String.format(" [%s]", dl.getStatus().getName()) : ""), Color.white);
+		g.clearClip();
 		Utils.FONT_DEFAULT.drawString(
 				textX, y + marginY + Utils.FONT_BOLD.getLineHeight(),
 				String.format("Last updated: %s", date), Color.white);

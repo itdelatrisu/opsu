@@ -20,17 +20,17 @@ package itdelatrisu.opsu.states;
 
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.GameMod;
-import itdelatrisu.opsu.MenuButton;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.Options;
-import itdelatrisu.opsu.OsuGroupList;
-import itdelatrisu.opsu.OsuGroupNode;
 import itdelatrisu.opsu.ScoreData;
-import itdelatrisu.opsu.UI;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
+import itdelatrisu.opsu.beatmap.BeatmapSetList;
+import itdelatrisu.opsu.beatmap.BeatmapSetNode;
+import itdelatrisu.opsu.ui.MenuButton;
+import itdelatrisu.opsu.ui.UI;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -66,9 +66,9 @@ public class ButtonMenu extends BasicGameState {
 		BEATMAP (new Button[] { Button.CLEAR_SCORES, Button.DELETE, Button.CANCEL }) {
 			@Override
 			public String[] getTitle(GameContainer container, StateBasedGame game) {
-				OsuGroupNode node = ((ButtonMenu) game.getState(Opsu.STATE_BUTTONMENU)).getNode();
-				String osuString = (node != null) ? OsuGroupList.get().getBaseNode(node.index).toString() : "";
-				return new String[] { osuString, "What do you want to do with this beatmap?" };
+				BeatmapSetNode node = ((ButtonMenu) game.getState(Opsu.STATE_BUTTONMENU)).getNode();
+				String beatmapString = (node != null) ? BeatmapSetList.get().getBaseNode(node.index).toString() : "";
+				return new String[] { beatmapString, "What do you want to do with this beatmap?" };
 			}
 
 			@Override
@@ -86,9 +86,9 @@ public class ButtonMenu extends BasicGameState {
 		BEATMAP_DELETE_SELECT (new Button[] { Button.DELETE_GROUP, Button.DELETE_SONG, Button.CANCEL_DELETE }) {
 			@Override
 			public String[] getTitle(GameContainer container, StateBasedGame game) {
-				OsuGroupNode node = ((ButtonMenu) game.getState(Opsu.STATE_BUTTONMENU)).getNode();
-				String osuString = (node != null) ? node.toString() : "";
-				return new String[] { String.format("Are you sure you wish to delete '%s' from disk?", osuString) };
+				BeatmapSetNode node = ((ButtonMenu) game.getState(Opsu.STATE_BUTTONMENU)).getNode();
+				String beatmapString = (node != null) ? node.toString() : "";
+				return new String[] { String.format("Are you sure you wish to delete '%s' from disk?", beatmapString) };
 			}
 
 			@Override
@@ -314,10 +314,10 @@ public class ButtonMenu extends BasicGameState {
 		public void draw(GameContainer container, StateBasedGame game, Graphics g) {
 			// draw title
 			if (actualTitle != null) {
-				float c = container.getWidth() * 0.02f;
+				float marginX = container.getWidth() * 0.015f, marginY = container.getHeight() * 0.01f;
 				int lineHeight = Utils.FONT_LARGE.getLineHeight();
 				for (int i = 0, size = actualTitle.size(); i < size; i++)
-					Utils.FONT_LARGE.drawString(c, c + (i * lineHeight), actualTitle.get(i), Color.white);
+					Utils.FONT_LARGE.drawString(marginX, marginY + (i * lineHeight), actualTitle.get(i), Color.white);
 			}
 
 			// draw buttons
@@ -451,7 +451,7 @@ public class ButtonMenu extends BasicGameState {
 			@Override
 			public void click(GameContainer container, StateBasedGame game) {
 				SoundController.playSound(SoundEffect.MENUHIT);
-				OsuGroupNode node = ((ButtonMenu) game.getState(Opsu.STATE_BUTTONMENU)).getNode();
+				BeatmapSetNode node = ((ButtonMenu) game.getState(Opsu.STATE_BUTTONMENU)).getNode();
 				((SongMenu) game.getState(Opsu.STATE_SONGMENU)).doStateActionOnLoad(MenuState.BEATMAP, node);
 				game.enterState(Opsu.STATE_SONGMENU, new EmptyTransition(), new FadeInTransition(Color.black));
 			}
@@ -460,8 +460,8 @@ public class ButtonMenu extends BasicGameState {
 			@Override
 			public void click(GameContainer container, StateBasedGame game) {
 				SoundController.playSound(SoundEffect.MENUHIT);
-				OsuGroupNode node = ((ButtonMenu) game.getState(Opsu.STATE_BUTTONMENU)).getNode();
-				MenuState ms = (node.osuFileIndex == -1 || node.osuFiles.size() == 1) ?
+				BeatmapSetNode node = ((ButtonMenu) game.getState(Opsu.STATE_BUTTONMENU)).getNode();
+				MenuState ms = (node.beatmapIndex == -1 || node.getBeatmapSet().size() == 1) ?
 						MenuState.BEATMAP_DELETE_CONFIRM : MenuState.BEATMAP_DELETE_SELECT;
 				((ButtonMenu) game.getState(Opsu.STATE_BUTTONMENU)).setMenuState(ms, node);
 				game.enterState(Opsu.STATE_BUTTONMENU);
@@ -478,7 +478,7 @@ public class ButtonMenu extends BasicGameState {
 			@Override
 			public void click(GameContainer container, StateBasedGame game) {
 				SoundController.playSound(SoundEffect.MENUHIT);
-				OsuGroupNode node = ((ButtonMenu) game.getState(Opsu.STATE_BUTTONMENU)).getNode();
+				BeatmapSetNode node = ((ButtonMenu) game.getState(Opsu.STATE_BUTTONMENU)).getNode();
 				((SongMenu) game.getState(Opsu.STATE_SONGMENU)).doStateActionOnLoad(MenuState.BEATMAP_DELETE_CONFIRM, node);
 				game.enterState(Opsu.STATE_SONGMENU, new EmptyTransition(), new FadeInTransition(Color.black));
 			}
@@ -493,7 +493,7 @@ public class ButtonMenu extends BasicGameState {
 			@Override
 			public void click(GameContainer container, StateBasedGame game) {
 				SoundController.playSound(SoundEffect.MENUHIT);
-				OsuGroupNode node = ((ButtonMenu) game.getState(Opsu.STATE_BUTTONMENU)).getNode();
+				BeatmapSetNode node = ((ButtonMenu) game.getState(Opsu.STATE_BUTTONMENU)).getNode();
 				((SongMenu) game.getState(Opsu.STATE_SONGMENU)).doStateActionOnLoad(MenuState.BEATMAP_DELETE_SELECT, node);
 				game.enterState(Opsu.STATE_SONGMENU, new EmptyTransition(), new FadeInTransition(Color.black));
 			}
@@ -582,7 +582,7 @@ public class ButtonMenu extends BasicGameState {
 	private MenuState menuState;
 
 	/** The song node to process in the state. */
-	private OsuGroupNode node;
+	private BeatmapSetNode node;
 
 	/** The score data to process in the state. */
 	private ScoreData scoreData;
@@ -691,7 +691,7 @@ public class ButtonMenu extends BasicGameState {
 	 * @param menuState the new menu state
 	 * @param node the song node to process in the state
 	 */
-	public void setMenuState(MenuState menuState, OsuGroupNode node) { setMenuState(menuState, node, null); }
+	public void setMenuState(MenuState menuState, BeatmapSetNode node) { setMenuState(menuState, node, null); }
 
 	/**
 	 * Changes the menu state.
@@ -706,7 +706,7 @@ public class ButtonMenu extends BasicGameState {
 	 * @param node the song node to process in the state
 	 * @param scoreData the score scoreData
 	 */
-	private void setMenuState(MenuState menuState, OsuGroupNode node, ScoreData scoreData) {
+	private void setMenuState(MenuState menuState, BeatmapSetNode node, ScoreData scoreData) {
 		this.menuState = menuState;
 		this.node = node;
 		this.scoreData = scoreData;
@@ -715,7 +715,7 @@ public class ButtonMenu extends BasicGameState {
 	/**
 	 * Returns the song node being processed, or null if none.
 	 */
-	private OsuGroupNode getNode() { return node; }
+	private BeatmapSetNode getNode() { return node; }
 
 	/**
 	 * Returns the score data being processed, or null if none.

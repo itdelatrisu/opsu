@@ -20,16 +20,16 @@ package itdelatrisu.opsu.states;
 
 import itdelatrisu.opsu.GameData;
 import itdelatrisu.opsu.GameImage;
-import itdelatrisu.opsu.MenuButton;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.Options;
-import itdelatrisu.opsu.OsuFile;
-import itdelatrisu.opsu.UI;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
+import itdelatrisu.opsu.beatmap.Beatmap;
 import itdelatrisu.opsu.replay.Replay;
+import itdelatrisu.opsu.ui.MenuButton;
+import itdelatrisu.opsu.ui.UI;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -102,14 +102,14 @@ public class GameRanking extends BasicGameState {
 		int width = container.getWidth();
 		int height = container.getHeight();
 
-		OsuFile osu = MusicController.getOsuFile();
+		Beatmap beatmap = MusicController.getBeatmap();
 
 		// background
-		if (!osu.drawBG(width, height, 0.7f, true))
+		if (!beatmap.drawBG(width, height, 0.7f, true))
 			GameImage.PLAYFIELD.getImage().draw(0,0);
 
 		// ranking screen elements
-		data.drawRankingElements(g, osu);
+		data.drawRankingElements(g, beatmap);
 
 		// buttons
 		replayButton.draw();
@@ -201,8 +201,8 @@ public class GameRanking extends BasicGameState {
 		}
 
 		if (returnToGame) {
-			OsuFile osu = MusicController.getOsuFile();
-			gameState.loadOsuFile(osu);
+			Beatmap beatmap = MusicController.getBeatmap();
+			gameState.loadBeatmap(beatmap);
 			SoundController.playSound(SoundEffect.MENUHIT);
 			game.enterState(Opsu.STATE_GAME, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 			return;
@@ -244,7 +244,8 @@ public class GameRanking extends BasicGameState {
 			songMenu.resetGameDataOnLoad();
 			songMenu.resetTrackOnLoad();
 		}
-		UI.resetCursor();
+		if (UI.getCursor().isSkinned())
+			UI.getCursor().reset();
 		game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 	}
 

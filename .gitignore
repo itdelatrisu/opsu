@@ -15,5 +15,10 @@
 .classpath
 .project
 
+# IntelliJ
+.idea/
+*.iml
+*.iws
+
 Thumbs.db
 /target

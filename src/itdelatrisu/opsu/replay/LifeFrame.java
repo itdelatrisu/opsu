@@ -16,13 +16,13 @@
  * along with opsu!.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+package itdelatrisu.opsu.replay;
+
 /**
  * Captures a single life frame.
  *
  * @author smoogipooo (https://github.com/smoogipooo/osu-Replay-API/)
  */
-package itdelatrisu.opsu.replay;
-
 public class LifeFrame {
 	/** Time. */
 	private int time;

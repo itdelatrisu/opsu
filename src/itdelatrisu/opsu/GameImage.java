@@ -110,6 +110,7 @@ public enum GameImage {
 	APPROACHCIRCLE ("approachcircle", "png"),
 
 	// Slider
+	SLIDER_GRADIENT ("slidergradient", "png"),
 	SLIDER_BALL ("sliderb", "sliderb%d", "png"),
 	SLIDER_FOLLOWCIRCLE ("sliderfollowcircle", "png"),
 	REVERSEARROW ("reversearrow", "png"),
@@ -202,7 +203,6 @@ public enum GameImage {
 	SCORE_PERCENT ("score-percent", "png"),
 	SCORE_X ("score-x", "png"),
 	LIGHTING ("lighting", "png"),
-	LIGHTING1 ("lighting1", "png"),
 
 	// Game Mods
 	MOD_EASY ("selection-mod-easy", "png", false, false),
@@ -227,6 +227,11 @@ public enum GameImage {
 	SELECTION_OPTIONS_OVERLAY ("selection-options-over", "png", false, false),
 	SELECTION_OTHER_OPTIONS ("selection-selectoptions", "png", false, false),
 	SELECTION_OTHER_OPTIONS_OVERLAY ("selection-selectoptions-over", "png", false, false),
+
+	// Replay Speed Buttons
+	REPLAY_PLAYBACK_NORMAL ("playback-normal", "png", false, false),
+	REPLAY_PLAYBACK_DOUBLE ("playback-double", "png", false, false),
+	REPLAY_PLAYBACK_HALF ("playback-half", "png", false, false),
 
 	// Non-Game Components
 	VOLUME ("volume-bg", "png", false, false) {
@@ -329,6 +334,14 @@ public enum GameImage {
 			return REPOSITORY.process_sub(img, w, h);
 		}
 	},
+	OPTIONS_BG ("options-background", "png|jpg", false, true) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			img.setAlpha(0.7f);
+			return img.getScaledCopy(w, h);
+		}
+	},
+
 	// TODO: ensure this image hasn't been modified (checksum?)
 	ALPHA_MAP ("alpha", "png", false, false);
 
@@ -376,10 +389,13 @@ public enum GameImage {
 	/** The unscaled container height that uiscale is based on. */
 	private static final int UNSCALED_HEIGHT = 768;
 
+	/** Filename suffix for HD images. */
+	public static final String HD_SUFFIX = "@2x";
+
 	/** Image HD/SD suffixes. */
 	private static final String[]
-			SUFFIXES_HD = new String[] { "@2x", "" },
-			SUFFIXES_SD = new String[] { "" };
+		SUFFIXES_HD = new String[] { HD_SUFFIX, "" },
+		SUFFIXES_SD = new String[] { "" };
 
 	/**
 	 * Initializes the GameImage class with container dimensions.
@@ -550,6 +566,7 @@ public enum GameImage {
 	/**
 	 * Sets the image associated with this resource to another image.
 	 * The skin image takes priority over the default image.
+	 * @param img the image to set
 	 */
 	public void setImage(Image img) {
 		if (skinImage != null)
@@ -561,6 +578,8 @@ public enum GameImage {
 	/**
 	 * Sets an image associated with this resource to another image.
 	 * The skin image takes priority over the default image.
+	 * @param img the image to set
+	 * @param index the index in the image array
 	 */
 	public void setImage(Image img, int index) {
 		if (skinImages != null) {
@@ -581,8 +600,9 @@ public enum GameImage {
 			return;
 
 		// try to load multiple images
+		File skinDir = Options.getSkin().getDirectory();
 		if (filenameFormat != null) {
-			if (((defaultImages = loadImageArray(Options.getSkinDir())) != null) ||
+			if ((skinDir != null && ((defaultImages = loadImageArray(skinDir)) != null)) ||
 			    ((defaultImages = loadImageArray(null)) != null)) {
 				process();
 				return;
@@ -590,7 +610,7 @@ public enum GameImage {
 		}
 
 		// try to load a single image
-		if (((defaultImage = loadImageSingle(Options.getSkinDir())) != null) ||
+		if ((skinDir != null && ((defaultImage = loadImageSingle(skinDir)) != null)) ||
 		    ((defaultImage = loadImageSingle(null)) != null)) {
 			process();
 			return;
@@ -602,6 +622,7 @@ public enum GameImage {
 	/**
 	 * Sets the associated skin image.
 	 * If the path does not contain the image, the default image is used.
+	 * @param dir the image directory to search
 	 * @return true if a new skin image is loaded, false otherwise
 	 */
 	public boolean setSkinImage(File dir) {
@@ -632,6 +653,7 @@ public enum GameImage {
 
 	/**
 	 * Attempts to load multiple Images from the GameImage.
+	 * @param dir the image directory to search, or null to use the default resource locations
 	 * @return an array of the loaded images, or null if not found
 	 */
 	private Image[] loadImageArray(File dir) {
@@ -649,7 +671,7 @@ public enum GameImage {
 					// add image to list
 					try {
 						Image img = new Image(name);
-						if (suffix.equals("@2x"))
+						if (suffix.equals(HD_SUFFIX))
 							img = img.getScaledCopy(0.5f);
 						list.add(img);
 					} catch (SlickException e) {
@@ -666,6 +688,7 @@ public enum GameImage {
 
 	/**
 	 * Attempts to load a single Image from the GameImage.
+	 * @param dir the image directory to search, or null to use the default resource locations
 	 * @return the loaded image, or null if not found
 	 */
 	private Image loadImageSingle(File dir) {
@@ -674,7 +697,7 @@ public enum GameImage {
 			if (name != null) {
 				try {
 					Image img = new Image(name);
-					if (suffix.equals("@2x"))
+					if (suffix.equals(HD_SUFFIX))
 						img = img.getScaledCopy(0.5f);
 					return img;
 				} catch (SlickException e) {

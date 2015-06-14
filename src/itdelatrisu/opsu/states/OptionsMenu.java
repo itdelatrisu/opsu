@@ -19,15 +19,15 @@
 package itdelatrisu.opsu.states;
 
 import itdelatrisu.opsu.GameImage;
-import itdelatrisu.opsu.MenuButton;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.Options.GameOption;
-import itdelatrisu.opsu.UI;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
+import itdelatrisu.opsu.ui.MenuButton;
+import itdelatrisu.opsu.ui.UI;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -52,12 +52,14 @@ public class OptionsMenu extends BasicGameState {
 		DISPLAY ("Display", new GameOption[] {
 			GameOption.SCREEN_RESOLUTION,
 //			GameOption.FULLSCREEN,
+			GameOption.SKIN,
 			GameOption.TARGET_FPS,
 			GameOption.SHOW_FPS,
 			GameOption.SHOW_UNICODE,
 			GameOption.SCREENSHOT_FORMAT,
 			GameOption.NEW_CURSOR,
 			GameOption.DYNAMIC_BACKGROUND,
+			GameOption.LOAD_HD_IMAGES,
 			GameOption.LOAD_VERBOSE
 		}),
 		MUSIC ("Music", new GameOption[] {
@@ -90,8 +92,7 @@ public class OptionsMenu extends BasicGameState {
 			GameOption.FIXED_HP,
 			GameOption.FIXED_AR,
 			GameOption.FIXED_OD,
-			GameOption.CHECKPOINT,
-			GameOption.LOAD_HD_IMAGES
+			GameOption.CHECKPOINT
 		});
 
 		/** Total number of tabs. */
@@ -180,9 +181,9 @@ public class OptionsMenu extends BasicGameState {
 
 		// option tabs
 		Image tabImage = GameImage.MENU_TAB.getImage();
-		float tabX = (width / 50) + (tabImage.getWidth() / 2f);
-		float tabY = Utils.FONT_LARGE.getLineHeight() + Utils.FONT_DEFAULT.getLineHeight() +
-				height * 0.03f + (tabImage.getHeight() / 2f);
+		float tabX = width * 0.032f + Utils.FONT_DEFAULT.getWidth("Change the way opsu! behaves") + (tabImage.getWidth() / 2);
+		float tabY = Utils.FONT_XLARGE.getLineHeight() + Utils.FONT_DEFAULT.getLineHeight() +
+				height * 0.015f - (tabImage.getHeight() / 2f);
 		int tabOffset = Math.min(tabImage.getWidth(), width / OptionTab.SIZE);
 		for (OptionTab tab : OptionTab.values())
 			tab.button = new MenuButton(tabImage, tabX + (tab.ordinal() * tabOffset), tabY);
@@ -201,12 +202,16 @@ public class OptionsMenu extends BasicGameState {
 		int width = container.getWidth();
 		int height = container.getHeight();
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
+		float lineY = OptionTab.DISPLAY.button.getY() + (GameImage.MENU_TAB.getImage().getHeight() / 2f);
 
 		// title
-		float c = container.getWidth() * 0.02f;
-		Utils.FONT_LARGE.drawString(c, c, "Game Options", Color.white);
-		Utils.FONT_DEFAULT.drawString(c, c + Utils.FONT_LARGE.getLineHeight() * 0.9f,
-				"Click or drag an option to change it.", Color.white);
+		float marginX = width * 0.015f, marginY = height * 0.01f;
+		Utils.FONT_XLARGE.drawString(marginX, marginY, "Options", Color.white);
+		Utils.FONT_DEFAULT.drawString(marginX, marginY + Utils.FONT_XLARGE.getLineHeight() * 0.92f,
+				"Change the way opsu! behaves", Color.white);
+
+		// background
+		GameImage.OPTIONS_BG.getImage().draw(0, lineY);
 
 		// game options
 		g.setLineWidth(1f);
@@ -235,7 +240,6 @@ public class OptionsMenu extends BasicGameState {
 				currentTab.getName(), true, false);
 		g.setColor(Color.white);
 		g.setLineWidth(2f);
-		float lineY = OptionTab.DISPLAY.button.getY() + (GameImage.MENU_TAB.getImage().getHeight() / 2f);
 		g.drawLine(0, lineY, width, lineY);
 		g.resetLineWidth();
 
@@ -302,7 +306,7 @@ public class OptionsMenu extends BasicGameState {
 
 		// options (click only)
 		GameOption option = getOptionAt(y);
-		if (option != GameOption.NULL)
+		if (option != null)
 			option.click(container);
 
 		// special key entry states
@@ -338,7 +342,7 @@ public class OptionsMenu extends BasicGameState {
 
 		// options (drag only)
 		GameOption option = getOptionAt(oldy);
-		if (option != GameOption.NULL)
+		if (option != null)
 			option.drag(container, diff);
 	}
 
@@ -425,14 +429,13 @@ public class OptionsMenu extends BasicGameState {
 	 * @return the option, or GameOption.NULL if no such option exists
 	 */
 	private GameOption getOptionAt(int y) {
-		GameOption option = GameOption.NULL;
-
 		if (y < textY || y > textY + (offsetY * maxOptionsScreen))
-			return option;
+			return null;
 
 		int index = (y - textY + Utils.FONT_LARGE.getLineHeight()) / offsetY;
-		if (index < currentTab.options.length)
-			option = currentTab.options[index];
-		return option;
+		if (index >= currentTab.options.length)
+			return null;
+
+		return currentTab.options[index];
 	}
 }

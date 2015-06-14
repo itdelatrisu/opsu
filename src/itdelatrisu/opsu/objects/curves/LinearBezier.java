@@ -18,50 +18,46 @@
 
 package itdelatrisu.opsu.objects.curves;
 
-import itdelatrisu.opsu.GameImage;
-import itdelatrisu.opsu.OsuHitObject;
-import itdelatrisu.opsu.Utils;
+import itdelatrisu.opsu.beatmap.HitObject;
 
-import java.util.Iterator;
 import java.util.LinkedList;
 
 import org.newdawn.slick.Color;
-import org.newdawn.slick.Image;
 
 /**
- * Representation of a Bezier curve with equidistant points.
+ * Representation of Bezier curve with equidistant points.
  * http://pomax.github.io/bezierinfo/#tracing
  *
  * @author fluddokt (https://github.com/fluddokt)
  */
-public class LinearBezier extends Curve {
-	/** The angles of the first and last control points for drawing. */
-	private float startAngle, endAngle;
-
-	/** List of Bezier curves in the set of points. */
-	private LinkedList<Bezier2> beziers = new LinkedList<Bezier2>();
-
-	/** Points along the curve at equal distance. */
-	private Vec2f[] curve;
-
-	/** The number of points along the curve. */
-	private int ncurve;
-
+public class LinearBezier extends EqualDistanceMultiCurve {
 	/**
 	 * Constructor.
-	 * @param hitObject the associated OsuHitObject
+	 * @param hitObject the associated HitObject
 	 * @param color the color of this curve
+	 * @param line whether a new curve should be generated for each sequential pair
 	 */
-	public LinearBezier(OsuHitObject hitObject, Color color) {
+	public LinearBezier(HitObject hitObject, Color color, boolean line) {
 		super(hitObject, color);
 
-		// splits points into different Beziers if has the same points (red points)
+		LinkedList<CurveType> beziers = new LinkedList<CurveType>();
+
+		// Beziers: splits points into different Beziers if has the same points (red points)
+		// a b c - c d - d e f g
+		// Lines: generate a new curve for each sequential pair
+		// ab  bc  cd  de  ef  fg
 		int controlPoints = hitObject.getSliderX().length + 1;
 		LinkedList<Vec2f> points = new LinkedList<Vec2f>();  // temporary list of points to separate different Bezier curves
 		Vec2f lastPoi = null;
 		for (int i = 0; i < controlPoints; i++) {
 			Vec2f tpoi = new Vec2f(getX(i), getY(i));
-			if (lastPoi != null && tpoi.equals(lastPoi)) {
+			if (line) {
+				if (lastPoi != null) {
+					points.add(tpoi);
+					beziers.add(new Bezier2(points.toArray(new Vec2f[0])));
+					points.clear();
+				}
+			} else if (lastPoi != null && tpoi.equals(lastPoi)) {
 				if (points.size() >= 2)
 					beziers.add(new Bezier2(points.toArray(new Vec2f[0])));
 				points.clear();
@@ -69,7 +65,7 @@ public class LinearBezier extends Curve {
 			points.add(tpoi);
 			lastPoi = tpoi;
 		}
-		if (points.size() < 2) {
+		if (line || points.size() < 2) {
 			// trying to continue Bezier with less than 2 points
 			// probably ending on a red point, just ignore it
 		} else {
@@ -77,105 +73,6 @@ public class LinearBezier extends Curve {
 			points.clear();
 		}
 
-		// find the length of all beziers
-//		int totalDistance = 0;
-//		for (Bezier2 bez : beziers) {
-//			totalDistance += bez.totalDistance();
-//		}
-
-		// now try to creates points the are equidistant to each other
-		this.ncurve = (int) (hitObject.getPixelLength() / 5f);
-		this.curve = new Vec2f[ncurve + 1];
-
-		float distanceAt = 0;
-		Iterator<Bezier2> iter = beziers.iterator();
-		int curPoint = 0;
-		Bezier2 curBezier = iter.next();
-		Vec2f lastCurve = curBezier.getCurve()[0];
-		float lastDistanceAt = 0;
-
-		// length of Bezier should equal pixel length (in 640x480)
-		float pixelLength = hitObject.getPixelLength() * OsuHitObject.getXMultiplier();
-
-		// for each distance, try to get in between the two points that are between it
-		for (int i = 0; i < ncurve + 1; i++) {
-			int prefDistance = (int) (i * pixelLength / ncurve);
-			while (distanceAt < prefDistance) {
-				lastDistanceAt = distanceAt;
-				lastCurve = curBezier.getCurve()[curPoint];
-				distanceAt += curBezier.getCurveDistances()[curPoint++];
-
-				if (curPoint >= curBezier.points()) {
-					if (iter.hasNext()) {
-						curBezier = iter.next();
-						curPoint = 0;
-					} else {
-						curPoint = curBezier.points() - 1;
-						if (lastDistanceAt == distanceAt) {
-							// out of points even though the preferred distance hasn't been reached
-							break;
-						}
-					}
-				}
-			}
-			Vec2f thisCurve = curBezier.getCurve()[curPoint];
-
-			// interpolate the point between the two closest distances
-			if (distanceAt - lastDistanceAt > 1) {
-				float t = (prefDistance - lastDistanceAt) / (distanceAt - lastDistanceAt);
-				curve[i] = new Vec2f(lerp(lastCurve.x, thisCurve.x, t), lerp(lastCurve.y, thisCurve.y, t));
-			} else
-				curve[i] = thisCurve;
-		}
-
-//		if (hitObject.getRepeatCount() > 1) {
-			Vec2f c1 = curve[0];
-			int cnt = 1;
-			Vec2f c2 = curve[cnt++];
-			while (cnt <= ncurve && c2.cpy().sub(c1).len() < 1)
-				c2 = curve[cnt++];
-			this.startAngle = (float) (Math.atan2(c2.y - c1.y, c2.x - c1.x) * 180 / Math.PI);
-
-			c1 = curve[ncurve];
-			cnt = ncurve - 1;
-			c2 = curve[cnt--];
-			while (cnt >= 0 && c2.cpy().sub(c1).len() < 1)
-				c2 = curve[cnt--];
-			this.endAngle = (float) (Math.atan2(c2.y - c1.y, c2.x - c1.x) * 180 / Math.PI);
-//		}
+		init(beziers);
 	}
-
-	@Override
-	public float[] pointAt(float t) {
-		float indexF = t * ncurve;
-		int index = (int) indexF;
-		if (index >= ncurve) {
-			Vec2f poi = curve[ncurve];
-			return new float[] { poi.x, poi.y };
-		} else {
-			Vec2f poi = curve[index];
-			Vec2f poi2 = curve[index + 1];
-			float t2 = indexF - index;
-			return new float[] {
-				lerp(poi.x, poi2.x, t2),
-				lerp(poi.y, poi2.y, t2)
-			};
-		}
-	}
-
-	@Override
-	public void draw() {
-		Image hitCircle = GameImage.HITCIRCLE.getImage();
-		Image hitCircleOverlay = GameImage.HITCIRCLE_OVERLAY.getImage();
-		for (int i = curve.length - 2; i >= 0; i--)
-			hitCircleOverlay.drawCentered(curve[i].x, curve[i].y, Utils.COLOR_WHITE_FADE);
-		for (int i = curve.length - 2; i >= 0; i--)
-			hitCircle.drawCentered(curve[i].x, curve[i].y, color);
-	}
-
-	@Override
-	public float getEndAngle() { return endAngle; }
-
-	@Override
-	public float getStartAngle() { return startAngle; }
 }

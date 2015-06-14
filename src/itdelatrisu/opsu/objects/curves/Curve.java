@@ -18,9 +18,17 @@
 
 package itdelatrisu.opsu.objects.curves;
 
-import itdelatrisu.opsu.OsuHitObject;
+import itdelatrisu.opsu.GameImage;
+import itdelatrisu.opsu.Options;
+import itdelatrisu.opsu.Utils;
+import itdelatrisu.opsu.beatmap.HitObject;
+import itdelatrisu.opsu.render.CurveRenderState;
+import itdelatrisu.opsu.skins.Skin;
 
+import org.lwjgl.opengl.GLContext;
 import org.newdawn.slick.Color;
+import org.newdawn.slick.Image;
+import org.newdawn.slick.util.Log;
 
 /**
  * Representation of a curve.
@@ -28,11 +36,17 @@ import org.newdawn.slick.Color;
  * @author fluddokt (https://github.com/fluddokt)
  */
 public abstract class Curve {
-	/** The associated OsuHitObject. */
-	protected OsuHitObject hitObject;
+	/** Points generated along the curve should be spaced this far apart. */
+	protected static float CURVE_POINTS_SEPERATION = 5;
 
-	/** The color of this curve. */
-	protected Color color;
+	/** The curve border color. */
+	private static Color borderColor;
+
+	/** Whether OpenGL 3.0 is supported. */
+	private static boolean openGL30 = false;
+
+	/** The associated HitObject. */
+	protected HitObject hitObject;
 
 	/** The scaled starting x, y coordinates. */
 	protected float x, y;
@@ -40,18 +54,43 @@ public abstract class Curve {
 	/** The scaled slider x, y coordinate lists. */
 	protected float[] sliderX, sliderY;
 
+	/** Per-curve render-state used for the new style curve renders. */
+	private CurveRenderState renderState;
+
+	/** Points along the curve (set by inherited classes). */
+	protected Vec2f[] curve;
+
 	/**
 	 * Constructor.
-	 * @param hitObject the associated OsuHitObject
+	 * @param hitObject the associated HitObject
 	 * @param color the color of this curve
 	 */
-	protected Curve(OsuHitObject hitObject, Color color) {
+	protected Curve(HitObject hitObject, Color color) {
 		this.hitObject = hitObject;
 		this.x = hitObject.getScaledX();
 		this.y = hitObject.getScaledY();
 		this.sliderX = hitObject.getScaledSliderX();
 		this.sliderY = hitObject.getScaledSliderY();
-		this.color = color;
+		this.renderState = null;
+	}
+
+	/**
+	 * Set the width and height of the container that Curves get drawn into.
+	 * Should be called before any curves are drawn.
+	 * @param width the container width
+	 * @param height the container height
+	 * @param circleSize the circle size
+	 * @param borderColor the curve border color
+	 */
+	public static void init(int width, int height, float circleSize, Color borderColor) {
+		Curve.borderColor = borderColor;
+		openGL30 = GLContext.getCapabilities().OpenGL30;
+		if (openGL30)
+			CurveRenderState.init(width, height, circleSize);
+		else {
+			if (Options.getSkin().getSliderStyle() != Skin.STYLE_PEPPYSLIDER)
+				Log.warn("New slider style requires OpenGL 3.0, which is not supported.");
+		}
 	}
 
 	/**
@@ -63,8 +102,29 @@ public abstract class Curve {
 
 	/**
 	 * Draws the full curve to the graphics context.
+	 * @param color the color filter
 	 */
-	public abstract void draw();
+	public void draw(Color color) {
+		if (curve == null)
+			return;
+
+		// peppysliders
+		if (Options.getSkin().getSliderStyle() == Skin.STYLE_PEPPYSLIDER || !openGL30) {
+			Image hitCircle = GameImage.HITCIRCLE.getImage();
+			Image hitCircleOverlay = GameImage.HITCIRCLE_OVERLAY.getImage();
+			for (int i = 0; i < curve.length; i++)
+				hitCircleOverlay.drawCentered(curve[i].x, curve[i].y, Utils.COLOR_WHITE_FADE);
+			for (int i = 0; i < curve.length; i++)
+				hitCircle.drawCentered(curve[i].x, curve[i].y, color);
+		}
+
+		// mmsliders
+		else {
+			if (renderState == null)
+				renderState = new CurveRenderState(hitObject);
+			renderState.draw(color, borderColor, curve);
+		}
+	}
 
 	/**
 	 * Returns the angle of the first control point.
@@ -93,5 +153,13 @@ public abstract class Curve {
 	 */
 	protected float lerp(float a, float b, float t) {
 		return a * (1 - t) + b * t;
+	}
+
+	/**
+	 * Discards the slider cache (only used for mmsliders).
+	 */
+	public void discardCache() {
+		if (renderState != null)
+			renderState.discardCache();
 	}
 }

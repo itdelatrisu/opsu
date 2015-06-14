@@ -42,7 +42,7 @@ import org.newdawn.slick.util.Log;
  * play at any given time and a channel is reserved so music will always play. 
  *
  * @author kevin
- * @author Nathan Sweet <misc@n4te.com>
+ * @author Nathan Sweet {@literal <misc@n4te.com>}
  */
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class Music {

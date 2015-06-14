@@ -18,6 +18,8 @@
 
 package itdelatrisu.opsu;
 
+import itdelatrisu.opsu.ui.MenuButton;
+
 import java.util.Arrays;
 import java.util.Collections;
 
@@ -33,7 +35,7 @@ public enum GameMod {
 	              "Easy", "Reduces overall difficulty - larger circles, more forgiving HP drain, less accuracy required."),
 	NO_FAIL       (Category.EASY, 1, GameImage.MOD_NO_FAIL, "NF", 1, Input.KEY_W, 0.5f,
 	              "NoFail", "You can't fail.  No matter what."),
-	HALF_TIME     (Category.EASY, 2, GameImage.MOD_HALF_TIME, "HT", 256, Input.KEY_E, 0.3f, false,
+	HALF_TIME     (Category.EASY, 2, GameImage.MOD_HALF_TIME, "HT", 256, Input.KEY_E, 0.3f,
 	              "HalfTime", "Less zoom."),
 	HARD_ROCK     (Category.HARD, 0, GameImage.MOD_HARD_ROCK, "HR", 16, Input.KEY_A, 1.06f,
 	              "HardRock", "Everything just got a bit harder..."),
@@ -41,7 +43,7 @@ public enum GameMod {
 	              "SuddenDeath", "Miss a note and fail."),
 //	PERFECT       (Category.HARD, 1, GameImage.MOD_PERFECT, "PF", 64, Input.KEY_S, 1f,
 //	              "Perfect", "SS or quit."),
-	DOUBLE_TIME   (Category.HARD, 2, GameImage.MOD_DOUBLE_TIME, "DT", 64, Input.KEY_D, 1.12f, false,
+	DOUBLE_TIME   (Category.HARD, 2, GameImage.MOD_DOUBLE_TIME, "DT", 64, Input.KEY_D, 1.12f,
 	              "DoubleTime", "Zoooooooooom."),
 //	NIGHTCORE     (Category.HARD, 2, GameImage.MOD_NIGHTCORE, "NT", 64, Input.KEY_D, 1.12f,
 //	              "Nightcore", "uguuuuuuuu"),
@@ -173,6 +175,12 @@ public enum GameMod {
 	/** The last calculated score multiplier, or -1f if it must be recalculated. */
 	private static float scoreMultiplier = -1f;
 
+	/** The last calculated track speed multiplier, or -1f if it must be recalculated. */
+	private static float speedMultiplier = -1f;
+
+	/** The last calculated difficulty multiplier, or -1f if it must be recalculated. */
+	private static float difficultyMultiplier = -1f;
+
 	/**
 	 * Initializes the game mods.
 	 * @param width the container width
@@ -198,7 +206,7 @@ public enum GameMod {
 			mod.active = false;
 		}
 
-		scoreMultiplier = -1f;
+		scoreMultiplier = speedMultiplier = difficultyMultiplier = -1f;
 	}
 
 	/**
@@ -214,6 +222,36 @@ public enum GameMod {
 			scoreMultiplier = multiplier;
 		}
 		return scoreMultiplier;
+	}
+
+	/**
+	 * Returns the current track speed multiplier from all active mods.
+	 */
+	public static float getSpeedMultiplier() {
+		if (speedMultiplier < 0f) {
+			if (DOUBLE_TIME.isActive())
+				speedMultiplier = 1.5f;
+			else if (HALF_TIME.isActive())
+				speedMultiplier = 0.75f;
+			else
+				speedMultiplier = 1f;
+		}
+		return speedMultiplier;
+	}
+
+	/**
+	 * Returns the current difficulty multiplier from all active mods.
+	 */
+	public static float getDifficultyMultiplier() {
+		if (difficultyMultiplier < 0f) {
+			if (HARD_ROCK.isActive())
+				difficultyMultiplier = 1.4f;
+			else if (EASY.isActive())
+				difficultyMultiplier = 0.5f;
+			else
+				difficultyMultiplier = 1f;
+		}
+		return difficultyMultiplier;
 	}
 
 	/**
@@ -233,6 +271,7 @@ public enum GameMod {
 	 * @param state the state (bitwise OR of active mods)
 	 */
 	public static void loadModState(int state) {
+		scoreMultiplier = speedMultiplier = difficultyMultiplier = -1f;
 		for (GameMod mod : GameMod.values())
 			mod.active = ((state & mod.getBit()) > 0);
 	}
@@ -352,7 +391,7 @@ public enum GameMod {
 			return;
 
 		active = !active;
-		scoreMultiplier = -1f;
+		scoreMultiplier = speedMultiplier = difficultyMultiplier = -1f;
 
 		if (checkInverse) {
 			if (AUTO.isActive()) {

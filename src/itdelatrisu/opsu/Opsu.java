@@ -31,6 +31,7 @@ import itdelatrisu.opsu.states.MainMenu;
 import itdelatrisu.opsu.states.OptionsMenu;
 import itdelatrisu.opsu.states.SongMenu;
 import itdelatrisu.opsu.states.Splash;
+import itdelatrisu.opsu.ui.UI;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -45,7 +46,6 @@ import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.state.transition.FadeInTransition;
 import org.newdawn.slick.state.transition.FadeOutTransition;
-import org.newdawn.slick.util.ClasspathLocation;
 import org.newdawn.slick.util.DefaultLogSystem;
 import org.newdawn.slick.util.FileSystemLocation;
 import org.newdawn.slick.util.Log;
@@ -128,14 +128,14 @@ public class Opsu extends StateBasedGame {
 			System.setProperty("org.lwjgl.librarypath", nativeDir.getAbsolutePath());
 
 		// set the resource paths
-		ResourceLoader.removeAllResourceLocations();
-		ResourceLoader.addResourceLocation(new FileSystemLocation(Options.getSkinDir()));
-		ResourceLoader.addResourceLocation(new ClasspathLocation());
-		ResourceLoader.addResourceLocation(new FileSystemLocation(new File(".")));
 		ResourceLoader.addResourceLocation(new FileSystemLocation(new File("./res/")));
 
 		// initialize databases
-		DBController.init();
+		try {
+			DBController.init();
+		} catch (UnsatisfiedLinkError e) {
+			errorAndExit(e, "The databases could not be initialized.");
+		}
 
 		// check if just updated
 		if (args.length >= 2)
@@ -176,12 +176,7 @@ public class Opsu extends StateBasedGame {
 				}
 			}
 		} catch (SlickException e) {
-			// JARs will not run properly inside directories containing '!'
-			// http://bugs.java.com/view_bug.do?bug_id=4523159
-			if (new File("").getAbsolutePath().indexOf('!') != -1)
-				ErrorHandler.error("Cannot run JAR from path containing '!'.", null, false);
-			else
-				ErrorHandler.error("Error while creating game container.", e, true);
+			errorAndExit(e, "An error occurred while creating the game container.");
 		}
 	}
 
@@ -207,7 +202,8 @@ public class Opsu extends StateBasedGame {
 				} else
 					songMenu.resetTrackOnLoad();
 			}
-			UI.resetCursor();
+			if (UI.getCursor().isSkinned())
+				UI.getCursor().reset();
 			this.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 			return false;
 		}
@@ -241,5 +237,21 @@ public class Opsu extends StateBasedGame {
 				ErrorHandler.error("Failed to close server socket.", e, false);
 			}
 		}
+	}
+
+	/**
+	 * Throws an error and exits the application with the given message.
+	 * @param e the exception that caused the crash
+	 * @param message the message to display
+	 */
+	private static void errorAndExit(Throwable e, String message) {
+		// JARs will not run properly inside directories containing '!'
+		// http://bugs.java.com/view_bug.do?bug_id=4523159
+		if (Utils.isJarRunning() && Utils.getRunningDirectory() != null &&
+		    Utils.getRunningDirectory().getAbsolutePath().indexOf('!') != -1)
+			ErrorHandler.error("JARs cannot be run from some paths containing '!'. Please move or rename the file and try again.", null, false);
+		else
+			ErrorHandler.error(message, e, true);
+		System.exit(1);
 	}
 }

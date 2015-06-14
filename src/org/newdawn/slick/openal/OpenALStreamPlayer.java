@@ -46,7 +46,7 @@ import org.newdawn.slick.util.ResourceLoader;
  * as required.
  * 
  * @author Kevin Glass
- * @author Nathan Sweet <misc@n4te.com>
+ * @author Nathan Sweet  {@literal <misc@n4te.com>}
  * @author Rockstar play and setPosition cleanup 
  */
 public class OpenALStreamPlayer {

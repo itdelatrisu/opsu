@@ -20,8 +20,11 @@ package itdelatrisu.opsu;
 
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
+import itdelatrisu.opsu.beatmap.HitObject;
 import itdelatrisu.opsu.downloads.Download;
 import itdelatrisu.opsu.downloads.DownloadNode;
+import itdelatrisu.opsu.replay.PlaybackSpeed;
+import itdelatrisu.opsu.ui.UI;
 
 import java.awt.Font;
 import java.awt.image.BufferedImage;
@@ -34,6 +37,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.SocketTimeoutException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
@@ -49,6 +53,9 @@ import java.util.Scanner;
 
 import javax.imageio.ImageIO;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
@@ -78,10 +85,6 @@ public class Utils {
 		COLOR_BLUE_BACKGROUND = new Color(74, 130, 255),
 		COLOR_BLUE_BUTTON     = new Color(40, 129, 237),
 		COLOR_ORANGE_BUTTON   = new Color(200, 90, 3),
-		COLOR_GREEN_OBJECT    = new Color(26, 207, 26),
-		COLOR_BLUE_OBJECT     = new Color(46, 136, 248),
-		COLOR_RED_OBJECT      = new Color(243, 48, 77),
-		COLOR_ORANGE_OBJECT   = new Color(255, 200, 32),
 		COLOR_YELLOW_ALPHA    = new Color(255, 255, 0, 0.4f),
 		COLOR_WHITE_FADE      = new Color(255, 255, 255, 1f),
 		COLOR_RED_HOVER       = new Color(255, 112, 112),
@@ -90,13 +93,9 @@ public class Utils {
 		COLOR_LIGHT_GREEN     = new Color(128,255,128),
 		COLOR_LIGHT_BLUE      = new Color(128,128,255),
 		COLOR_GREEN_SEARCH    = new Color(173, 255, 47),
-		COLOR_DARK_GRAY       = new Color(0.3f, 0.3f, 0.3f, 1f);
-
-	/** The default map colors, used when a map does not provide custom colors. */
-	public static final Color[] DEFAULT_COMBO = {
-		COLOR_ORANGE_OBJECT, COLOR_GREEN_OBJECT,
-		COLOR_BLUE_OBJECT, COLOR_RED_OBJECT,
-	};
+		COLOR_DARK_GRAY       = new Color(0.3f, 0.3f, 0.3f, 1f),
+		COLOR_RED_HIGHLIGHT   = new Color(246, 154, 161),
+		COLOR_BLUE_HIGHLIGHT  = new Color(173, 216, 230);
 
 	/** Game fonts. */
 	public static UnicodeFont
@@ -161,15 +160,18 @@ public class Utils {
 			FONT_MEDIUM  = new UnicodeFont(font.deriveFont(fontBase * 3 / 2));
 			FONT_SMALL   = new UnicodeFont(font.deriveFont(fontBase));
 			ColorEffect colorEffect = new ColorEffect();
-			loadFont(FONT_DEFAULT, 2, colorEffect);
-			loadFont(FONT_BOLD, 2, colorEffect);
-			loadFont(FONT_XLARGE, 4, colorEffect);
-			loadFont(FONT_LARGE, 4, colorEffect);
-			loadFont(FONT_MEDIUM, 3, colorEffect);
-			loadFont(FONT_SMALL, 1, colorEffect);
+			loadFont(FONT_DEFAULT, colorEffect);
+			loadFont(FONT_BOLD, colorEffect);
+			loadFont(FONT_XLARGE, colorEffect);
+			loadFont(FONT_LARGE, colorEffect);
+			loadFont(FONT_MEDIUM, colorEffect);
+			loadFont(FONT_SMALL, colorEffect);
 		} catch (Exception e) {
 			ErrorHandler.error("Failed to load fonts.", e, true);
 		}
+
+		// load skin
+		Options.loadSkin();
 
 		// initialize game images
 		for (GameImage img : GameImage.values()) {
@@ -180,8 +182,11 @@ public class Utils {
 		// initialize game mods
 		GameMod.init(width, height);
 
+		// initialize playback buttons
+		PlaybackSpeed.init(width, height);
+
 		// initialize hit objects
-		OsuHitObject.init(width, height);
+		HitObject.init(width, height);
 
 		// initialize download nodes
 		DownloadNode.init(width, height);
@@ -331,15 +336,11 @@ public class Utils {
 	/**
 	 * Loads a Unicode font.
 	 * @param font the font to load
-	 * @param padding the top and bottom padding
 	 * @param effect the font effect
 	 * @throws SlickException
 	 */
 	@SuppressWarnings("unchecked")
-	private static void loadFont(UnicodeFont font, int padding,
-			Effect effect) throws SlickException {
-		font.setPaddingTop(padding);
-		font.setPaddingBottom(padding);
+	private static void loadFont(UnicodeFont font, Effect effect) throws SlickException {
 		font.addAsciiGlyphs();
 		font.getEffects().add(effect);
 		font.loadGlyphs();
@@ -516,6 +517,7 @@ public class Utils {
 	 * Returns a the contents of a URL as a string.
 	 * @param url the remote URL
 	 * @return the contents as a string, or null if any error occurred
+	 * @author Roland Illig (http://stackoverflow.com/a/4308662)
 	 */
 	public static String readDataFromUrl(URL url) throws IOException {
 		// open connection
@@ -545,6 +547,42 @@ public class Utils {
 			Log.warn("Connection to server timed out.", e);
 			throw e;
 		}
+	}
+
+	/**
+	 * Returns a JSON object from a URL.
+	 * @param url the remote URL
+	 * @return the JSON object, or null if an error occurred
+	 */
+	public static JSONObject readJsonObjectFromUrl(URL url) throws IOException {
+		String s = Utils.readDataFromUrl(url);
+		JSONObject json = null;
+		if (s != null) {
+			try {
+				json = new JSONObject(s);
+			} catch (JSONException e) {
+				ErrorHandler.error("Failed to create JSON object.", e, true);
+			}
+		}
+		return json;
+	}
+
+	/**
+	 * Returns a JSON array from a URL.
+	 * @param url the remote URL
+	 * @return the JSON array, or null if an error occurred
+	 */
+	public static JSONArray readJsonArrayFromUrl(URL url) throws IOException {
+		String s = Utils.readDataFromUrl(url);
+		JSONArray json = null;
+		if (s != null) {
+			try {
+				json = new JSONArray(s);
+			} catch (JSONException e) {
+				ErrorHandler.error("Failed to create JSON array.", e, true);
+			}
+		}
+		return json;
 	}
 
 	/**
@@ -600,5 +638,61 @@ public class Utils {
 			return String.format("%02d:%02d", seconds / 60, seconds % 60);
 		else
 			return String.format("%02d:%02d:%02d", seconds / 3600, (seconds / 60) % 60, seconds % 60);
+	}
+
+	/**
+	 * Cubic ease out function.
+	 * @param t the current time
+	 * @param a the starting position
+	 * @param b the finishing position
+	 * @param d the duration
+	 * @return the eased float
+	 */
+	public static float easeOut(float t, float a, float b, float d) {
+		return b * ((t = t / d - 1f) * t * t + 1f) + a;
+	}
+
+	/**
+	 * Fake bounce ease function.
+	 * @param t the current time
+	 * @param a the starting position
+	 * @param b the finishing position
+	 * @param d the duration
+	 * @return the eased float
+	 */
+	public static float easeBounce(float t, float a, float b, float d) {
+		if (t < d / 2)
+			return easeOut(t, a, b, d);
+		return easeOut(d - t, a, b, d);
+	}
+
+	/**
+	 * Returns whether or not the application is running within a JAR.
+	 * @return true if JAR, false if file
+	 */
+	public static boolean isJarRunning() {
+		return Opsu.class.getResource(String.format("%s.class", Opsu.class.getSimpleName())).toString().startsWith("jar:");
+	}
+
+	/**
+	 * Returns the directory where the application is being run.
+	 */
+	public static File getRunningDirectory() {
+		try {
+			return new File(Opsu.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
+		} catch (URISyntaxException e) {
+			Log.error("Could not get the running directory.", e);
+			return null;
+		}
+	}
+
+	/**
+	 * Parses the integer string argument as a boolean:
+	 * {@code 1} is {@code true}, and all other values are {@code false}.
+	 * @param s the {@code String} containing the boolean representation to be parsed
+	 * @return the boolean represented by the string argument
+	 */
+	public static boolean parseBoolean(String s) {
+		return (Integer.parseInt(s) == 1);
 	}
 }

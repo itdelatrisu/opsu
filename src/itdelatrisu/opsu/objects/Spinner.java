@@ -19,12 +19,14 @@
 package itdelatrisu.opsu.objects;
 
 import itdelatrisu.opsu.GameData;
+import itdelatrisu.opsu.GameData.HitObjectType;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.GameMod;
-import itdelatrisu.opsu.OsuHitObject;
+import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
+import itdelatrisu.opsu.beatmap.HitObject;
 import itdelatrisu.opsu.states.Game;
 
 import org.newdawn.slick.Color;
@@ -35,7 +37,7 @@ import org.newdawn.slick.Image;
 /**
  * Data type representing a spinner object.
  */
-public class Spinner implements HitObject {
+public class Spinner implements GameObject {
 	/** Container dimensions. */
 	private static int width, height;
 
@@ -62,8 +64,8 @@ public class Spinner implements HitObject {
 
 	private static final float MAX_ANG_DIFF = DELTA_UPDATE_TIME * 477 / 60 / 1000 * TWO_PI; // ~95.3
 	
-	/** The associated OsuHitObject. */
-	private OsuHitObject hitObject;
+	/** The associated HitObject. */
+	private HitObject hitObject;
 
 	/** The associated GameData object. */
 	private GameData data;
@@ -110,11 +112,11 @@ public class Spinner implements HitObject {
 
 	/**
 	 * Constructor.
-	 * @param hitObject the associated OsuHitObject
+	 * @param hitObject the associated HitObject
 	 * @param game the associated Game object
 	 * @param data the associated GameData object
 	 */
-	public Spinner(OsuHitObject hitObject, Game game, GameData data) {
+	public Spinner(HitObject hitObject, Game game, GameData data) {
 		this.hitObject = hitObject;
 		this.data = data;
 
@@ -132,15 +134,17 @@ public class Spinner implements HitObject {
 			return;
 
 		boolean spinnerComplete = (rotations >= rotationsNeeded);
+		float alpha = Utils.clamp(1 - (float) timeDiff / FADE_IN_TIME, 0f, 1f);
 
 		// darken screen
-		float alpha = Utils.clamp(1 - (float) timeDiff / FADE_IN_TIME, 0f, 1f);
-		float oldAlpha = Utils.COLOR_BLACK_ALPHA.a;
-		if (timeDiff > 0)
-			Utils.COLOR_BLACK_ALPHA.a *= alpha;
-		g.setColor(Utils.COLOR_BLACK_ALPHA);
-		g.fillRect(0, 0, width, height);
-		Utils.COLOR_BLACK_ALPHA.a = oldAlpha;
+		if (Options.getSkin().isSpinnerFadePlayfield()) {
+			float oldAlpha = Utils.COLOR_BLACK_ALPHA.a;
+			if (timeDiff > 0)
+				Utils.COLOR_BLACK_ALPHA.a *= alpha;
+			g.setColor(Utils.COLOR_BLACK_ALPHA);
+			g.fillRect(0, 0, width, height);
+			Utils.COLOR_BLACK_ALPHA.a = oldAlpha;
+		}
 
 		// rpm
 		Image rpmImg = GameImage.SPINNER_RPM.getImage();
@@ -198,7 +202,7 @@ public class Spinner implements HitObject {
 			result = GameData.HIT_MISS;
 
 		data.hitResult(hitObject.getEndTime(), result, width / 2, height / 2,
-				Color.transparent, true, hitObject, 0);
+				Color.transparent, true, hitObject, 0, HitObjectType.SPINNER, null, true);
 		return result;
 	}
 

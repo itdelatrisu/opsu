@@ -19,10 +19,12 @@
 package itdelatrisu.opsu.objects;
 
 import itdelatrisu.opsu.GameData;
+import itdelatrisu.opsu.GameData.HitObjectType;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.GameMod;
-import itdelatrisu.opsu.OsuHitObject;
+import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.Utils;
+import itdelatrisu.opsu.beatmap.HitObject;
 import itdelatrisu.opsu.states.Game;
 
 import org.newdawn.slick.Color;
@@ -32,14 +34,14 @@ import org.newdawn.slick.Graphics;
 /**
  * Data type representing a circle object.
  */
-public class Circle implements HitObject {
+public class Circle implements GameObject {
 	/** The amount of time, in milliseconds, to fade in the circle. */
 	private static final int FADE_IN_TIME = 375;
 
 	private static float diameter;
 	
-	/** The associated OsuHitObject. */
-	private OsuHitObject hitObject;
+	/** The associated HitObject. */
+	private HitObject hitObject;
 
 	/** The scaled starting x, y coordinates. */
 	private float x, y;
@@ -69,17 +71,22 @@ public class Circle implements HitObject {
 		GameImage.HITCIRCLE.setImage(GameImage.HITCIRCLE.getImage().getScaledCopy(diameterInt, diameterInt));
 		GameImage.HITCIRCLE_OVERLAY.setImage(GameImage.HITCIRCLE_OVERLAY.getImage().getScaledCopy(diameterInt, diameterInt));
 		GameImage.APPROACHCIRCLE.setImage(GameImage.APPROACHCIRCLE.getImage().getScaledCopy(diameterInt, diameterInt));
+		/*int diameter = (int) (104 - (circleSize * 8));
+		diameter = (int) (diameter * HitObject.getXMultiplier());  // convert from Osupixels (640x480)
+		GameImage.HITCIRCLE.setImage(GameImage.HITCIRCLE.getImage().getScaledCopy(diameter, diameter));
+		GameImage.HITCIRCLE_OVERLAY.setImage(GameImage.HITCIRCLE_OVERLAY.getImage().getScaledCopy(diameter, diameter));
+		GameImage.APPROACHCIRCLE.setImage(GameImage.APPROACHCIRCLE.getImage().getScaledCopy(diameter, diameter));*/
 	}
 
 	/**
 	 * Constructor.
-	 * @param hitObject the associated OsuHitObject
+	 * @param hitObject the associated HitObject
 	 * @param game the associated Game object
 	 * @param data the associated GameData object
 	 * @param color the color of this circle
 	 * @param comboEnd true if this is the last hit object in the combo
 	 */
-	public Circle(OsuHitObject hitObject, Game game, GameData data, Color color, boolean comboEnd) {
+	public Circle(HitObject hitObject, Game game, GameData data, Color color, boolean comboEnd) {
 		this.hitObject = hitObject;
 		this.game = game;
 		this.data = data;
@@ -102,9 +109,13 @@ public class Circle implements HitObject {
 		if (timeDiff >= 0)
 			GameImage.APPROACHCIRCLE.getImage().getScaledCopy(approachScale).drawCentered(x, y, color);
 		GameImage.HITCIRCLE.getImage().drawCentered(x, y, color);
-		GameImage.HITCIRCLE_OVERLAY.getImage().drawCentered(x, y, Utils.COLOR_WHITE_FADE);
+		boolean overlayAboveNumber = Options.getSkin().isHitCircleOverlayAboveNumber();
+		if (!overlayAboveNumber)
+			GameImage.HITCIRCLE_OVERLAY.getImage().drawCentered(x, y, Utils.COLOR_WHITE_FADE);
 		data.drawSymbolNumber(hitObject.getComboNumber(), x, y,
 				GameImage.HITCIRCLE.getImage().getWidth() * 0.40f / data.getDefaultSymbolImage(0).getHeight(), alpha);
+		if (overlayAboveNumber)
+			GameImage.HITCIRCLE_OVERLAY.getImage().drawCentered(x, y, Utils.COLOR_WHITE_FADE);
 
 		Utils.COLOR_WHITE_FADE.a = oldAlpha;
 	}
@@ -144,7 +155,7 @@ public class Circle implements HitObject {
 
 			if (result > -1) {
 				data.addHitError(hitObject.getTime(), x, y, timeDiff);
-				data.hitResult(hitObject.getTime(), result, this.x, this.y, color, comboEnd, hitObject, 0);
+				data.hitResult(trackPosition, result, this.x, this.y, color, comboEnd, hitObject, 0, HitObjectType.CIRCLE, null, true);
 				return true;
 			}
 		}
@@ -160,17 +171,17 @@ public class Circle implements HitObject {
 
 		if (trackPosition > time + hitResultOffset[GameData.HIT_50]) {
 			if (isAutoMod)  // "auto" mod: catch any missed notes due to lag
-				data.hitResult(time, GameData.HIT_300, x, y, color, comboEnd, hitObject, 0);
+				data.hitResult(time, GameData.HIT_300, x, y, color, comboEnd, hitObject, 0, HitObjectType.CIRCLE, null, true);
 
 			else  // no more points can be scored, so send a miss
-				data.hitResult(time, GameData.HIT_MISS, x, y, null, comboEnd, hitObject, 0);
+				data.hitResult(trackPosition, GameData.HIT_MISS, x, y, null, comboEnd, hitObject, 0, HitObjectType.CIRCLE, null, true);
 			return true;
 		}
 
 		// "auto" mod: send a perfect hit result
 		else if (isAutoMod) {
 			if (Math.abs(trackPosition - time) < hitResultOffset[GameData.HIT_300]) {
-				data.hitResult(time, GameData.HIT_300, x, y, color, comboEnd, hitObject, 0);
+				data.hitResult(time, GameData.HIT_300, x, y, color, comboEnd, hitObject, 0, HitObjectType.CIRCLE, null, true);
 				return true;
 			}
 		}
