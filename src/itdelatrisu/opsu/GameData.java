@@ -293,11 +293,12 @@ public class GameData {
 	/** Displayed health (for animation, slightly behind health). */
 	private float healthDisplay;
 
-	/** Beatmap HPDrainRate value. (0:easy ~ 10:hard) */
-	private float drainRate = 5f;
+	/** The difficulty multiplier used in the score formula. */
+	private int difficultyMultiplier = 2;
 
-	/** Beatmap OverallDifficulty value. (0:easy ~ 10:hard) */
-	private float difficulty = 5f;
+	/** Beatmap HPDrainRate value. (0:easy ~ 10:hard) */
+	@SuppressWarnings("unused")
+	private float drainRate = 5f;
 
 	/** Default text symbol images. */
 	private Image[] defaultSymbols;
@@ -374,6 +375,7 @@ public class GameData {
 		health = 100f;
 		healthDisplay = 100f;
 		hitResultCount = new int[HIT_MAX];
+		drainRate = 5f;
 		if (hitResultList != null) {
 			for (HitObjectResult hitResult : hitResultList) {
 				if (hitResult.curve != null)
@@ -469,22 +471,6 @@ public class GameData {
 	 * @param drainRate the new drain rate [0-10]
 	 */
 	public void setDrainRate(float drainRate) { this.drainRate = drainRate; }
-
-	/**
-	 * Returns the health drain rate.
-	 */
-	public float getDrainRate() { return drainRate; }
-
-	/**
-	 * Sets the overall difficulty level.
-	 * @param difficulty the new difficulty [0-10]
-	 */
-	public void setDifficulty(float difficulty) { this.difficulty = difficulty; }
-
-	/**
-	 * Returns the overall difficulty level.
-	 */
-	public float getDifficulty() { return difficulty; }
 
 	/**
 	 * Sets the array of hit result offsets.
@@ -1192,7 +1178,6 @@ public class GameData {
 		switch (result) {
 		case HIT_SLIDER30:
 			hitValue = 30;
-			incrementComboStreak();
 			changeHealth(1f);
 			SoundController.playHitSound(
 					hitObject.getEdgeHitSoundType(repeat),
@@ -1201,7 +1186,6 @@ public class GameData {
 			break;
 		case HIT_SLIDER10:
 			hitValue = 10;
-			incrementComboStreak();
 			SoundController.playHitSound(HitSound.SLIDERTICK);
 			break;
 		case HIT_MISS:
@@ -1210,15 +1194,18 @@ public class GameData {
 		default:
 			return;
 		}
-		fullObjectCount++;
 
 		if (hitValue > 0) {
+			// calculate score and increment combo streak
 			score += hitValue;
+			incrementComboStreak();
+
 			if (!Options.isPerfectHitBurstEnabled())
 				;  // hide perfect hit results
 			else
 				hitResultList.add(new HitObjectResult(time, result, x, y, null, HitObjectType.SLIDERTICK, null, false));
 		}
+		fullObjectCount++;
 	}
 
 	/**
@@ -1228,14 +1215,34 @@ public class GameData {
 	 * <ul>
 	 * <li><strong>Hit Value:</strong> hit result (50, 100, 300), slider ticks, spinner bonus
 	 * <li><strong>Combo:</strong> combo before this hit - 1 (minimum 0)
-	 * <li><strong>Difficulty:</strong> the beatmap difficulty
+	 * <li><strong>Difficulty:</strong> the difficulty setting (see {@link #calculateDifficultyMultiplier(float, float, float)})
 	 * <li><strong>Mod:</strong> mod multipliers
 	 * </ul>
 	 * @param hitValue the hit value
 	 * @return the score value
 	 */
 	private int getScoreForHit(int hitValue) {
-		return hitValue + (int) (hitValue * (Math.max(combo - 1, 0) * difficulty * GameMod.getScoreMultiplier()) / 25);
+		return hitValue + (int) (hitValue * (Math.max(combo - 1, 0) * difficultyMultiplier * GameMod.getScoreMultiplier()) / 25);
+	}
+
+	/**
+	 * Computes and stores the difficulty multiplier used in the score formula.
+	 * @param drainRate the raw HP drain rate value
+	 * @param circleSize the raw circle size value
+	 * @param overallDifficulty the raw overall difficulty value
+	 */
+	public void calculateDifficultyMultiplier(float drainRate, float circleSize, float overallDifficulty) {
+		float sum = drainRate + circleSize + overallDifficulty;  // typically 2~27
+		if (sum <= 5f)
+			difficultyMultiplier = 2;
+		else if (sum <= 12f)
+			difficultyMultiplier = 3;
+		else if (sum <= 17f)
+			difficultyMultiplier = 4;
+		else if (sum <= 24f)
+			difficultyMultiplier = 5;
+		else //if (sum <= 30f)
+			difficultyMultiplier = 6;
 	}
 
 	/**
@@ -1331,21 +1338,21 @@ public class GameData {
 	public void hitResult(int time, int result, float x, float y, Color color,
 						  boolean end, HitObject hitObject, int repeat,
 						  HitObjectType hitResultType, Curve curve, boolean expand) {
-		result = handleHitResult(time, result, x, y, color, end, hitObject, repeat, hitResultType);
+		int hitResult = handleHitResult(time, result, x, y, color, end, hitObject, repeat, hitResultType);
 
-		if ((result == HIT_300 || result == HIT_300G || result == HIT_300K) && !Options.isPerfectHitBurstEnabled())
+		if ((hitResult == HIT_300 || hitResult == HIT_300G || hitResult == HIT_300K) && !Options.isPerfectHitBurstEnabled())
 			;  // hide perfect hit results
-		else if (result == HIT_MISS && (GameMod.RELAX.isActive() || GameMod.AUTOPILOT.isActive()))
+		else if (hitResult == HIT_MISS && (GameMod.RELAX.isActive() || GameMod.AUTOPILOT.isActive()))
 			;  // "relax" and "autopilot" mods: hide misses
 		else {
-			hitResultList.add(new HitObjectResult(time, result, x, y, color, hitResultType, curve, expand));
+			hitResultList.add(new HitObjectResult(time, hitResult, x, y, color, hitResultType, curve, expand));
 
 			// sliders: add the other curve endpoint for the hit animation
 			if (curve != null) {
 				boolean isFirst = (hitResultType == HitObjectType.SLIDER_FIRST);
 				float[] p = curve.pointAt((isFirst) ? 1f : 0f);
 				HitObjectType type = (isFirst) ? HitObjectType.SLIDER_LAST : HitObjectType.SLIDER_FIRST;
-				hitResultList.add(new HitObjectResult(time, result, p[0], p[1], color, type, null, expand));
+				hitResultList.add(new HitObjectResult(time, hitResult, p[0], p[1], color, type, null, expand));
 			}
 		}
 	}

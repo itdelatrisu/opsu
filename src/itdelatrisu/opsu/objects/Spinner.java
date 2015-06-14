@@ -41,6 +41,9 @@ public class Spinner implements GameObject {
 	/** Container dimensions. */
 	private static int width, height;
 
+	/** The map's overall difficulty value. */
+	private static float overallDifficulty = 5f;
+
 	/** The number of rotation velocities to store. */
 	// note: currently takes about 200ms to spin up (4 * 50)
 	private static final int MAX_ROTATION_VELOCITIES = 50;
@@ -97,10 +100,12 @@ public class Spinner implements GameObject {
 	/**
 	 * Initializes the Spinner data type with images and dimensions.
 	 * @param container the game container
+	 * @param difficulty the map's overall difficulty value
 	 */
-	public static void init(GameContainer container) {
+	public static void init(GameContainer container, float difficulty) {
 		width  = container.getWidth();
 		height = container.getHeight();
+		overallDifficulty = difficulty;
 	}
 
 	/**
@@ -114,7 +119,7 @@ public class Spinner implements GameObject {
 		this.data = data;
 
 		// calculate rotations needed
-		float spinsPerMinute = 100 + (data.getDifficulty() * 15);
+		float spinsPerMinute = 100 + (overallDifficulty * 15);
 		rotationsNeeded = spinsPerMinute * (hitObject.getEndTime() - hitObject.getTime()) / 60000f;
 	}
 

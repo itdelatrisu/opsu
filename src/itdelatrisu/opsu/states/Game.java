@@ -1393,7 +1393,7 @@ public class Game extends BasicGameState {
 		// initialize objects
 		Circle.init(container, circleSize);
 		Slider.init(container, circleSize, beatmap);
-		Spinner.init(container);
+		Spinner.init(container, overallDifficulty);
 		Curve.init(container.getWidth(), container.getHeight(), circleSize, (Options.isBeatmapSkinIgnored()) ?
 				Options.getSkin().getSliderBorderColor() : beatmap.getSliderBorderColor());
 
@@ -1409,11 +1409,13 @@ public class Game extends BasicGameState {
 		hitResultOffset[GameData.HIT_100]  = (int) (138 - (overallDifficulty * 8));
 		hitResultOffset[GameData.HIT_50]   = (int) (198 - (overallDifficulty * 10));
 		hitResultOffset[GameData.HIT_MISS] = (int) (500 - (overallDifficulty * 10));
-
-		// HPDrainRate (health change), overallDifficulty (scoring)
-		data.setDrainRate(HPDrainRate);
-		data.setDifficulty(overallDifficulty);
 		data.setHitResultOffset(hitResultOffset);
+
+		// HPDrainRate (health change)
+		data.setDrainRate(HPDrainRate);
+
+		// difficulty multiplier (scoring)
+		data.calculateDifficultyMultiplier(beatmap.HPDrainRate, beatmap.circleSize, beatmap.overallDifficulty);
 	}
 
 	/**

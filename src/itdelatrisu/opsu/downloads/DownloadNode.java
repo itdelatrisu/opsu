@@ -260,6 +260,8 @@ public class DownloadNode {
 				UI.sendBarNotification("Download failed due to a connection error.");
 			}
 		});
+		if (Options.useUnicodeMetadata())  // load glyphs
+			Utils.loadGlyphs(Utils.FONT_LARGE, getTitle(), null);
 	}
 
 	/**
