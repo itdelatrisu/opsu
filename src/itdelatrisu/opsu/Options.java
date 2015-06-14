@@ -303,6 +303,20 @@ public class Options {
 					screenshotFormatIndex = i;
 			}
 		},
+		CURSOR_SIZE ("Cursor Size", "CursorSize", "Change the cursor scale.", 100, 50, 200) {
+			@Override
+			public String getValueString() { return String.format("%.2fx", val / 100f); }
+
+			@Override
+			public String write() { return String.format(Locale.US, "%.2f", val / 100f); }
+
+			@Override
+			public void read(String s) {
+				int i = (int) (Float.parseFloat(s) * 100f);
+				if (i >= 50 && i <= 200)
+					val = i;
+			}
+		},
 		NEW_CURSOR ("Enable New Cursor", "NewCursor", "Use the new cursor style (may cause higher CPU usage).", true) {
 			@Override
 			public void click(GameContainer container) {
@@ -831,6 +845,12 @@ public class Options {
 	 * @return the port
 	 */
 	public static int getPort() { return port; }
+
+	/**
+	 * Returns the cursor scale.
+	 * @return the scale [0.5, 2]
+	 */
+	public static float getCursorScale() { return GameOption.CURSOR_SIZE.getIntegerValue() / 100f; }
 
 	/**
 	 * Returns whether or not the new cursor type is enabled.

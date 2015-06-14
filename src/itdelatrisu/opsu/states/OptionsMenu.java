@@ -57,7 +57,6 @@ public class OptionsMenu extends BasicGameState {
 			GameOption.SHOW_FPS,
 			GameOption.SHOW_UNICODE,
 			GameOption.SCREENSHOT_FORMAT,
-			GameOption.NEW_CURSOR,
 			GameOption.DYNAMIC_BACKGROUND,
 			GameOption.LOAD_HD_IMAGES,
 			GameOption.LOAD_VERBOSE
@@ -85,7 +84,9 @@ public class OptionsMenu extends BasicGameState {
 			GameOption.KEY_LEFT,
 			GameOption.KEY_RIGHT,
 			GameOption.DISABLE_MOUSE_WHEEL,
-			GameOption.DISABLE_MOUSE_BUTTONS
+			GameOption.DISABLE_MOUSE_BUTTONS,
+			GameOption.CURSOR_SIZE,
+			GameOption.NEW_CURSOR
 		}),
 		CUSTOM ("Custom", new GameOption[] {
 			GameOption.FIXED_CS,

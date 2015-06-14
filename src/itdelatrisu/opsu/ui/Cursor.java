@@ -128,6 +128,17 @@ public class Cursor {
 		int FPSmod = (Options.getTargetFPS() / 60);
 		Skin skin = Options.getSkin();
 
+		// scale cursor
+		float cursorScale = Options.getCursorScale();
+		if (mousePressed && skin.isCursorExpanded())
+			cursorScale *= 1.25f;  // increase the cursor size if pressed
+		if (cursorScale != 1f) {
+			cursor = cursor.getScaledCopy(cursorScale);
+			cursorTrail = cursorTrail.getScaledCopy(cursorScale);
+			if (hasMiddle)
+				cursorMiddle = cursorMiddle.getScaledCopy(cursorScale);
+		}
+
 		// TODO: use an image buffer
 		if (newStyle) {
 			// new style: add all points between cursor movements
@@ -173,14 +184,6 @@ public class Cursor {
 				cursorTrail.drawCentered(cx, cy);
 		}
 		cursorTrail.drawCentered(mouseX, mouseY);
-
-		// increase the cursor size if pressed
-		if (mousePressed && skin.isCursorExpanded()) {
-			final float scale = 1.25f;
-			cursor = cursor.getScaledCopy(scale);
-			if (hasMiddle)
-				cursorMiddle = cursorMiddle.getScaledCopy(scale);
-		}
 
 		// draw the other components
 		if (newStyle && skin.isCursorRotated())
