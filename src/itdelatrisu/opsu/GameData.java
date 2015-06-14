@@ -1241,11 +1241,12 @@ public class GameData {
 		}
 	}
 	public void sliderFinalResult(int time, int hitSlider30, float x, float y,
-			OsuHitObject hitObject, int currentRepeats) {
+			HitObject hitObject, int currentRepeats) {
 		score += 30;
 	}
 
 	/**
+	 * https://osu.ppy.sh/wiki/Score
 	 * Returns the score for a hit based on the following score formula:
 	 * <p>
 	 * Score = Hit Value + Hit Value * (Combo * Difficulty * Mod) / 25
@@ -1256,10 +1257,15 @@ public class GameData {
 	 * <li><strong>Mod:</strong> mod multipliers
 	 * </ul>
 	 * @param hitValue the hit value
+	 * @param hitObject 
 	 * @return the score value
 	 */
-	private int getScoreForHit(int hitValue) {
-		return hitValue + (int) (hitValue * (Math.max(combo - 1, 0) * difficulty * GameMod.getScoreMultiplier()) / 25);
+	private int getScoreForHit(int hitValue, HitObject hitObject) {
+		int comboMulti = Math.max(combo - 1, 0);
+		if(hitObject.isSlider()){
+			comboMulti += 1;
+		}
+		return (hitValue + (int)(hitValue * (comboMulti * getDifficultyMultiplier() * GameMod.getScoreMultiplier()) / 25));
 	}
 
 	/**
@@ -1310,25 +1316,9 @@ public class GameData {
 					hitObject.getEdgeHitSoundType(repeat),
 					hitObject.getSampleSet(repeat),
 					hitObject.getAdditionSampleSet(repeat));
-			//TODO merge conflict
-			
-			/**
-			 * https://osu.ppy.sh/wiki/Score
-			 * [SCORE FORMULA]
-			 * Score = Hit Value + Hit Value * (Combo * Difficulty * Mod) / 25
-			 * - Hit Value: hit result (50, 100, 300), slider ticks, spinner bonus
-			 * - Combo: combo before this hit - 1 (minimum 0)
-			 * - Difficulty: the beatmap difficulty
-			 * - Mod: mod multipliers
-			 */
-			int comboMulti = Math.max(combo - 1, 0);
-			if(hitObject.isSlider()){
-				comboMulti += 1;
-			}
-			score += (hitValue + (hitValue * (comboMulti * getDifficultyMultiplier() * GameMod.getScoreMultiplier()) / 25));
-			
+
 			// calculate score and increment combo streak
-			changeScore(getScoreForHit(hitValue));
+			changeScore(getScoreForHit(hitValue, hitObject));
 			incrementComboStreak();
 			//merge conflict end
 		}
@@ -1398,8 +1388,10 @@ public class GameData {
 		return difficultyMultiplier;
 	}
 
+	/**
+	 * https://osu.ppy.sh/wiki/Score#How_to_calculate_the_Difficulty_multiplier
+	 */
 	public void calculateDifficultyMultiplier() {
-		//https://osu.ppy.sh/wiki/Score#How_to_calculate_the_Difficulty_multiplier
 		//TODO   THE LIES ( difficultyMultiplier )
 		/*
 			924 3x1/4 beat notes 0.14stars
@@ -1408,8 +1400,9 @@ public class GameData {
 			
 			seems to be based on hitobject density?  (Total Objects/Time)
 		 */
-		
-		difficultyMultiplier = (int)((circleSize + difficulty + drainRate) / 6) + 2;
+		float mult =  ((circleSize + difficulty + drainRate) / 6) + 1.5f;
+		System.out.println("diffuculty Multiplier : "+ mult);
+		difficultyMultiplier = (int)mult;
 	}
 	/**
 	 * Returns a ScoreData object encapsulating all game data.

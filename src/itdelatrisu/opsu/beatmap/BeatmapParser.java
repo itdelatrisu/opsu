@@ -589,6 +589,8 @@ public class BeatmapParser {
 		// parse hit objects now?
 		if (parseObjects)
 			parseHitObjects(beatmap);
+		
+		beatmap.md5Hash = Utils.getMD5(file);
 
 		return beatmap;
 	}

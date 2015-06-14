@@ -66,7 +66,7 @@ public class Circle implements GameObject {
 	 */
 	public static void init(GameContainer container, float circleSize) {
 		diameter =  (108 - (circleSize * 8));
-		diameter =  (diameter * OsuHitObject.getXMultiplier());  // convert from Osupixels (640x480)
+		diameter =  (diameter * HitObject.getXMultiplier());  // convert from Osupixels (640x480)
 		int diameterInt = (int)diameter;
 		GameImage.HITCIRCLE.setImage(GameImage.HITCIRCLE.getImage().getScaledCopy(diameterInt, diameterInt));
 		GameImage.HITCIRCLE_OVERLAY.setImage(GameImage.HITCIRCLE_OVERLAY.getImage().getScaledCopy(diameterInt, diameterInt));

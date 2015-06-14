@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -57,6 +58,10 @@ public class BeatmapSetList {
 
 	/** Set of all beatmap set IDs for the parsed beatmaps. */
 	private HashSet<Integer> MSIDdb;
+	
+	/** Map of all hash to Beatmap . */
+	public HashMap<String, Beatmap> beatmapHashesToFile;
+
 
 	/** Index of current expanded node (-1 if no node is expanded). */
 	private int expandedIndex;
@@ -83,6 +88,7 @@ public class BeatmapSetList {
 	private BeatmapSetList() {
 		parsedNodes = new ArrayList<BeatmapSetNode>();
 		MSIDdb = new HashSet<Integer>();
+		beatmapHashesToFile = new HashMap<String, Beatmap>();
 		reset();
 	}
 
@@ -117,6 +123,10 @@ public class BeatmapSetList {
 		int msid = beatmaps.get(0).beatmapSetID;
 		if (msid > 0)
 			MSIDdb.add(msid);
+		for(Beatmap f : beatmaps) {
+			beatmapHashesToFile.put(f.md5Hash, f);
+		}
+
 
 		return node;
 	}
@@ -501,4 +511,8 @@ public class BeatmapSetList {
 	 * @return true if id is in the list
 	 */
 	public boolean containsBeatmapSetID(int id) { return MSIDdb.contains(id); }
+	
+	public Beatmap getFileFromBeatmapHash(String beatmapHash) {
+		return beatmapHashesToFile.get(beatmapHash);
+	}
 }

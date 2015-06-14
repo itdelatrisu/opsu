@@ -21,9 +21,9 @@ package itdelatrisu.opsu.replay;
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.GameMod;
 import itdelatrisu.opsu.Options;
-import itdelatrisu.opsu.OsuFile;
 import itdelatrisu.opsu.ScoreData;
 import itdelatrisu.opsu.Utils;
+import itdelatrisu.opsu.beatmap.Beatmap;
 import itdelatrisu.opsu.io.OsuReader;
 import itdelatrisu.opsu.io.OsuWriter;
 
@@ -150,7 +150,7 @@ public class Replay {
 	 * @param osu the OsuFile
 	 * @return the ScoreData object
 	 */
-	public ScoreData getScoreData(OsuFile osu) {
+	public ScoreData getScoreData(Beatmap osu) {
 		if (scoreData != null)
 			return scoreData;
 
@@ -186,7 +186,6 @@ public class Replay {
 	private void loadHeader(OsuReader reader) throws IOException {
 		this.mode = reader.readByte();
 		this.version = reader.readInt();
-		//System.out.println("Header:"+file.getName()+" "+mode+" "+version);
 		this.beatmapHash = reader.readString();
 		this.playerName = reader.readString();
 		this.replayHash = reader.readString();
@@ -208,7 +207,6 @@ public class Replay {
 	 * @throws IOException
 	 */
 	private void loadData(OsuReader reader) throws IOException {
-		//System.out.println("Load Data");
 		// life data
 		String[] lifeData = reader.readString().split(",");
 		List<LifeFrame> lifeFrameList = new ArrayList<LifeFrame>(lifeData.length);

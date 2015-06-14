@@ -618,21 +618,21 @@ public class Game extends BasicGameState {
 			if(replayIndex-1 >= 1 && replayIndex < replay.frames.length && trackPosition < replay.frames[replayIndex-1].getTime()){
 				replayIndex = 0;
 				while(objectIndex>=0){
-					hitObjects[objectIndex].reset();
+					gameObjects[objectIndex].reset();
 					objectIndex--;
 					
 				}
-				// load the first timingPoint
-				if (!osu.timingPoints.isEmpty()) {
-					OsuTimingPoint timingPoint = osu.timingPoints.get(0);
+				// reset game data
+				resetGameData();
+
+				// load the first timingPoint for stacking
+				if (!beatmap.timingPoints.isEmpty()) {
+					TimingPoint timingPoint = beatmap.timingPoints.get(0);
 					if (!timingPoint.isInherited()) {
-						beatLengthBase = beatLength = timingPoint.getBeatLength();
-						HitSound.setDefaultSampleSet(timingPoint.getSampleType());
-						SoundController.setSampleVolume(timingPoint.getSampleVolume());
+						setBeatLength(timingPoint, true);
 						timingPointIndex++;
 					}
 				}
-				resetGameData();
 			}
 
 			// update and run replay frames
@@ -777,8 +777,8 @@ public class Game extends BasicGameState {
 		boolean keyPressed = keys != ReplayFrame.KEY_NONE;
 		while (objectIndex < gameObjects.length && trackPosition > beatmap.objects[objectIndex].getTime()) {
 			// check if we've already passed the next object's start time
-			boolean overlap = (objectIndex + 1 < hitObjects.length &&
-					trackPosition > osu.objects[objectIndex + 1].getTime() - hitResultOffset[GameData.HIT_50]);
+			boolean overlap = (objectIndex + 1 < gameObjects.length &&
+					trackPosition > beatmap.objects[objectIndex + 1].getTime() - hitResultOffset[GameData.HIT_50]);
 
 			// update hit object and check completion status
 			if (gameObjects[objectIndex].update(overlap, delta, mouseX, mouseY, keyPressed, trackPosition))
@@ -915,8 +915,15 @@ public class Game extends BasicGameState {
 			// skip button
 			if (skipButton.contains(x, y))
 				skipIntro();
+
+			// playback speed button
+			else if (playbackSpeed.getButton().contains(x, y)) {
+				playbackSpeed = playbackSpeed.next();
+				MusicController.setPitch(GameMod.getSpeedMultiplier() * playbackSpeed.getModifier());
+			}
+
 			if(y < 50){
-				float pos = (float)x / width * osu.endTime;
+				float pos = (float)x / width * beatmap.endTime;
 				System.out.println("Seek to"+pos);
 				MusicController.setPosition((int)pos);
 			}
@@ -1067,6 +1074,7 @@ public class Game extends BasicGameState {
 			} else if (restart == Restart.REPLAY)
 				retries = 0;
 
+			gameObjects = new GameObject[beatmap.objects.length];
 			// reset game data
 			resetGameData();
 
@@ -1078,14 +1086,6 @@ public class Game extends BasicGameState {
 					timingPointIndex++;
 				}
 			}
-
-			if (!osu.timingPoints.isEmpty()) {
-				OsuTimingPoint timingPoint = osu.timingPoints.get(0);
-				if (!timingPoint.isInherited()) {
-					beatLengthBase = beatLength = timingPoint.getBeatLength();
-				}
-			}
-			hitObjects = new HitObject[osu.objects.length];
 			
 			// initialize object maps
 			Color[] combo = beatmap.getComboColors();
@@ -1094,7 +1094,7 @@ public class Game extends BasicGameState {
 
 				// is this the last note in the combo?
 				boolean comboEnd = false;
-				if (i + 1 >= osu.objects.length || osu.objects[i + 1].isNewCombo())
+				if (i + 1 < beatmap.objects.length && beatmap.objects[i + 1].isNewCombo())
 					comboEnd = true;
 
 				Color color = combo[hitObject.getComboIndex()];
@@ -1145,7 +1145,6 @@ public class Game extends BasicGameState {
 
 			// load replay frames
 			if (isReplay) {
-				//System.out.println(replay.toString());
 				// load mods
 				previousMods = GameMod.getModState();
 				GameMod.loadModState(replay.mods);
@@ -1310,9 +1309,6 @@ public class Game extends BasicGameState {
 	 * Resets all game data and structures.
 	 */
 	public void resetGameData() {
-		//conflict
-		gameObjects = new GameObject[beatmap.objects.length];
-		//
 		data.clear();
 		objectIndex = 0;
 		breakIndex = 0;

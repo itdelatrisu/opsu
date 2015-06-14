@@ -2,9 +2,9 @@ package itdelatrisu.opsu.replay;
 
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.Options;
-import itdelatrisu.opsu.OsuFile;
-import itdelatrisu.opsu.OsuGroupList;
 import itdelatrisu.opsu.ScoreData;
+import itdelatrisu.opsu.beatmap.Beatmap;
+import itdelatrisu.opsu.beatmap.BeatmapSetList;
 import itdelatrisu.opsu.db.ScoreDB;
 
 import java.io.File;
@@ -16,7 +16,7 @@ public class ReplayImporter {
 			try {
 				Replay r = new Replay(replayToImport);
 				r.loadHeader();
-				OsuFile oFile = OsuGroupList.get().getFileFromBeatmapHash(r.beatmapHash);
+				Beatmap oFile = BeatmapSetList.get().getFileFromBeatmapHash(r.beatmapHash);
 				if(oFile != null){
 					File replaydir = Options.getReplayDir();
 					if (!replaydir.isDirectory()) {

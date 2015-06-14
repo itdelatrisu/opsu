@@ -118,7 +118,7 @@ public class Slider implements GameObject {
 		containerHeight = container.getHeight();
 		
 		diameter =  (108 - (circleSize * 8));
-		diameter =  (diameter * OsuHitObject.getXMultiplier());  // convert from Osupixels (640x480)
+		diameter =  (diameter * HitObject.getXMultiplier());  // convert from Osupixels (640x480)
 		int diameterInt = (int)diameter;
 		
 		followRadius = diameter / 2 * 3f;
