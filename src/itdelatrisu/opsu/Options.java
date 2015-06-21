@@ -128,7 +128,7 @@ public class Options {
 			return new File("./");
 
 		String OS = System.getProperty("os.name").toLowerCase();
-		if (OS.indexOf("nix") >= 0 || OS.indexOf("nux") >= 0 || OS.indexOf("aix") > 0) {
+		if (OS.contains("nix") || OS.contains("nux") || OS.contains("aix")) {
 			String rootPath = System.getenv(env);
 			if (rootPath == null) {
 				String home = System.getProperty("user.home");
@@ -137,8 +137,10 @@ public class Options {
 				rootPath = String.format("%s/%s", home, fallback);
 			}
 			File dir = new File(rootPath, "opsu");
-			if (!dir.isDirectory())
-				dir.mkdir();
+			if (!dir.isDirectory()) {
+				if (!dir.mkdir())
+					ErrorHandler.error(String.format("Failed to create configuration folder at %s/opsu", rootPath), null, false);
+			}
 			return dir;
 		} else
 			return new File("./");
@@ -223,10 +225,13 @@ public class Options {
 
 			@Override
 			public void read(String s) {
+				String str = "?";
 				try {
-					Resolution res = Resolution.valueOf(String.format("RES_%s", s.replace('x', '_')));
-					resolution = res;
-				} catch (IllegalArgumentException e) {}
+					str = String.format("RES_%s", s.replace('x', '_'));
+					resolution = Resolution.valueOf(str);
+				} catch (IllegalArgumentException e) {
+					ErrorHandler.error(String.format("Invalid resolution in config file: %s", str), e, false);
+				}
 			}
 		},
 //		FULLSCREEN ("Fullscreen Mode", "Fullscreen", "Restart to apply changes.", false),
@@ -347,7 +352,7 @@ public class Options {
 			public String getValueString() { return String.format("%dms", val); }
 		},
 		DISABLE_SOUNDS ("Disable All Sound Effects", "DisableSound", "May resolve Linux sound driver issues.  Requires a restart.",
-				(System.getProperty("os.name").toLowerCase().indexOf("linux") > -1)),
+				(System.getProperty("os.name").toLowerCase().contains("linux"))),
 		KEY_LEFT ("Left Game Key", "keyOsuLeft", "Select this option to input a key.") {
 			@Override
 			public String getValueString() { return Keyboard.getKeyName(getGameKeyLeft()); }
@@ -1065,12 +1070,16 @@ public class Options {
 			return beatmapDir;
 
 		// search for directory
-		for (int i = 0; i < BEATMAP_DIRS.length; i++) {
-			beatmapDir = new File(BEATMAP_DIRS[i]);
+		for (String BEATMAP_DIR : BEATMAP_DIRS) {
+			beatmapDir = new File(BEATMAP_DIR);
 			if (beatmapDir.isDirectory())
 				return beatmapDir;
 		}
-		beatmapDir.mkdir();  // none found, create new directory
+		// none found, create new directory
+		assert beatmapDir != null;
+		if (!beatmapDir.mkdir())
+			ErrorHandler.error(String.format("Failed to create beatmap folder at %s",
+					beatmapDir.getAbsolutePath()), null, false);
 		return beatmapDir;
 	}
 
@@ -1084,7 +1093,9 @@ public class Options {
 			return oszDir;
 
 		oszDir = new File(DATA_DIR, "SongPacks/");
-		oszDir.mkdir();
+		if (!oszDir.mkdir())
+			ErrorHandler.error(String.format("Failed to create song folder at %s",
+					oszDir.getAbsolutePath()), null, false);
 		return oszDir;
 	}
 
@@ -1124,12 +1135,16 @@ public class Options {
 			return skinRootDir;
 
 		// search for directory
-		for (int i = 0; i < SKIN_ROOT_DIRS.length; i++) {
-			skinRootDir = new File(SKIN_ROOT_DIRS[i]);
+		for (String SKIN_ROOT_DIR : SKIN_ROOT_DIRS) {
+			skinRootDir = new File(SKIN_ROOT_DIR);
 			if (skinRootDir.isDirectory())
 				return skinRootDir;
 		}
-		skinRootDir.mkdir();  // none found, create new directory
+		// none found, create new directory
+		assert skinRootDir != null;
+		if (!skinRootDir.mkdir())
+			ErrorHandler.error(String.format("Failed to create skin folder at %s",
+					skinRootDir.getAbsolutePath()), null, false);
 		return skinRootDir;
 	}
 
@@ -1229,7 +1244,7 @@ public class Options {
 
 		// create option map
 		if (optionMap == null) {
-			optionMap = new HashMap<String, GameOption>();
+			optionMap = new HashMap<>();
 			for (GameOption option : GameOption.values())
 				optionMap.put(option.getDisplayName(), option);
 		}
