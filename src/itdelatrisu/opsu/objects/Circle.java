@@ -38,6 +38,7 @@ public class Circle implements GameObject {
 	/** The amount of time, in milliseconds, to fade in the circle. */
 	private static final int FADE_IN_TIME = 375;
 
+	/** The diameter of Circle Hitobjects */
 	private static float diameter;
 	
 	/** The associated HitObject. */
@@ -58,7 +59,6 @@ public class Circle implements GameObject {
 	/** Whether or not the circle result ends the combo streak. */
 	private boolean comboEnd;
 
-	
 	/**
 	 * Initializes the Circle data type with map modifiers, images, and dimensions.
 	 * @param container the game container
@@ -71,11 +71,6 @@ public class Circle implements GameObject {
 		GameImage.HITCIRCLE.setImage(GameImage.HITCIRCLE.getImage().getScaledCopy(diameterInt, diameterInt));
 		GameImage.HITCIRCLE_OVERLAY.setImage(GameImage.HITCIRCLE_OVERLAY.getImage().getScaledCopy(diameterInt, diameterInt));
 		GameImage.APPROACHCIRCLE.setImage(GameImage.APPROACHCIRCLE.getImage().getScaledCopy(diameterInt, diameterInt));
-		/*int diameter = (int) (104 - (circleSize * 8));
-		diameter = (int) (diameter * HitObject.getXMultiplier());  // convert from Osupixels (640x480)
-		GameImage.HITCIRCLE.setImage(GameImage.HITCIRCLE.getImage().getScaledCopy(diameter, diameter));
-		GameImage.HITCIRCLE_OVERLAY.setImage(GameImage.HITCIRCLE_OVERLAY.getImage().getScaledCopy(diameter, diameter));
-		GameImage.APPROACHCIRCLE.setImage(GameImage.APPROACHCIRCLE.getImage().getScaledCopy(diameter, diameter));*/
 	}
 
 	/**

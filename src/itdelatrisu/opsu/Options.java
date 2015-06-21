@@ -695,7 +695,7 @@ public class Options {
 	private static Skin skin;
 
 	/** Frame limiters. */
-	private static final int[] targetFPS = { 60, 120, 240, 30, 20, 15, 12 };
+	private static final int[] targetFPS = { 60, 120, 240 };
 
 	/** Index in targetFPS[] array. */
 	private static int targetFPSindex = 0;
@@ -1084,6 +1084,7 @@ public class Options {
 		replayImportDir.mkdir();
 		return replayImportDir;
 	}
+	
 	/**
 	 * Returns the screenshot directory.
 	 * If invalid, this will return a "Screenshot" directory.

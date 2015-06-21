@@ -625,7 +625,7 @@ public class Game extends BasicGameState {
 				// reset game data
 				resetGameData();
 
-				// load the first timingPoint for stacking
+				// load the first timingPoint
 				if (!beatmap.timingPoints.isEmpty()) {
 					TimingPoint timingPoint = beatmap.timingPoints.get(0);
 					if (!timingPoint.isInherited()) {
@@ -922,7 +922,7 @@ public class Game extends BasicGameState {
 				MusicController.setPitch(GameMod.getSpeedMultiplier() * playbackSpeed.getModifier());
 			}
 
-			if(y < 50){
+			if(!GameMod.AUTO.isActive() && y < 50){
 				float pos = (float)x / width * beatmap.endTime;
 				System.out.println("Seek to"+pos);
 				MusicController.setPosition((int)pos);
@@ -1086,7 +1086,7 @@ public class Game extends BasicGameState {
 					timingPointIndex++;
 				}
 			}
-			
+
 			// initialize object maps
 			Color[] combo = beatmap.getComboColors();
 			for (int i = 0; i < beatmap.objects.length; i++) {
@@ -1094,7 +1094,7 @@ public class Game extends BasicGameState {
 
 				// is this the last note in the combo?
 				boolean comboEnd = false;
-				if (i + 1 < beatmap.objects.length && beatmap.objects[i + 1].isNewCombo())
+				if (i + 1 >= beatmap.objects.length || beatmap.objects[i + 1].isNewCombo())
 					comboEnd = true;
 
 				Color color = combo[hitObject.getComboIndex()];
@@ -1435,7 +1435,7 @@ public class Game extends BasicGameState {
 
 		// overallDifficulty (hit result time offsets)
 		hitResultOffset = new int[GameData.HIT_MAX];
-		//*
+		/*
 		float mult = 0.608f;
 		hitResultOffset[GameData.HIT_300]  = (int) ((128 - (overallDifficulty * 9.6))*mult);
 		hitResultOffset[GameData.HIT_100]  = (int) ((224 - (overallDifficulty * 12.8))*mult);
@@ -1571,7 +1571,6 @@ public class Game extends BasicGameState {
 	 * @param keys the keys that are pressed
 	 */
 	private void sendGameKeyPress(int keys, int x, int y, int trackPosition) {
-		System.out.println("Game Key Pressed"+keys+" "+x+" "+y+" "+objectIndex);
 		if (objectIndex >= gameObjects.length)  // nothing to do here
 			return;
 

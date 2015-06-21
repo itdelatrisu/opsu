@@ -122,7 +122,6 @@ public class Slider implements GameObject {
 		int diameterInt = (int)diameter;
 		
 		followRadius = diameter / 2 * 3f;
-		//TODO conflict	
 		/* 
 		int diameter = (int) (104 - (circleSize * 8));
 		diameter = (int) (diameter * HitObject.getXMultiplier());  // convert from Osupixels (640x480)
@@ -345,7 +344,7 @@ public class Slider implements GameObject {
 			result = GameData.HIT_50;
 		else
 			result = GameData.HIT_MISS;
-		
+
 		float cx, cy;
 		HitObjectType type;
 		if (currentRepeats % 2 == 0) {  // last circle
@@ -433,7 +432,7 @@ public class Slider implements GameObject {
 			if (keyPressed || GameMod.RELAX.isActive()) {
 				float[] c = curve.pointAt(getT(trackPosition, false));
 				double distance = Math.hypot(c[0] - mouseX, c[1] - mouseY);
-				if (distance < followRadius) //TODO IDK Magic numbers
+				if (distance < followRadius)
 					sliderClickedFinal = true;
 			}
 

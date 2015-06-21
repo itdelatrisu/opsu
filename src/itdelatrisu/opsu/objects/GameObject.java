@@ -74,4 +74,6 @@ public interface GameObject {
 	 * Resets the hit object so that it can be reused.
 	 */
 	public void reset();
+
+	
 }

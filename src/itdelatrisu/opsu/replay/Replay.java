@@ -19,7 +19,6 @@
 package itdelatrisu.opsu.replay;
 
 import itdelatrisu.opsu.ErrorHandler;
-import itdelatrisu.opsu.GameMod;
 import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.ScoreData;
 import itdelatrisu.opsu.Utils;
@@ -373,8 +372,8 @@ public class Replay {
 
 	@Override
 	public String toString() {
-		final int LINE_SPLIT = 1;
-		final int MAX_LINES = LINE_SPLIT * 99999999;
+		final int LINE_SPLIT = 5;
+		final int MAX_LINES = LINE_SPLIT * 10;
 
 		StringBuilder sb = new StringBuilder();
 		sb.append("File: "); sb.append(file.getName()); sb.append('\n');
