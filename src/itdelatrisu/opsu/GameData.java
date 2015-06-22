@@ -293,19 +293,8 @@ public class GameData {
 	/** Displayed health (for animation, slightly behind health). */
 	private float healthDisplay;
 
-	/** Beatmap HPDrainRate value. (0:easy ~ 10:hard) */
-	private float drainRate = 5f;
-
-	/** Beatmap OverallDifficulty value. (0:easy ~ 10:hard) */
-	private float difficulty = 5f;
-
-	/** Beatmap ApproachRate value. (0:easy ~ 10:hard) */
-	private float approachRate = 5f;
-	
-	/** Beatmap CircleSize value. (2:big ~ 7:small) */
-	private float circleSize = 5f;
-	
-	private int difficultyMultiplier = -1;
+	/** The difficulty multiplier used in the score formula. */
+	private int difficultyMultiplier = 2;
 
 	/** Default text symbol images. */
 	private Image[] defaultSymbols;
@@ -472,40 +461,6 @@ public class GameData {
 	 */
 	public Image getScoreSymbolImage(char c) { return scoreSymbols.get(c); }
 
-	/**
-	 * Sets the health drain rate.
-	 * @param drainRate the new drain rate [0-10]
-	 */
-	public void setDrainRate(float drainRate) { this.drainRate = drainRate; }
-
-	/**
-	 * Returns the health drain rate.
-	 */
-	public float getDrainRate() { return drainRate; }
-
-	/**
-	 * Sets the overall difficulty level.
-	 * @param difficulty the new difficulty [0-10]
-	 */
-	public void setDifficulty(float difficulty) { this.difficulty = difficulty; }
-
-	/**
-	 * Returns the overall difficulty level.
-	 */
-	public float getDifficulty() { return difficulty; }
-
-	/**
-	 * Sets or returns the approach rate.
-	 */
-	public void setApproachRate(float approachRate) { this.approachRate = approachRate; }
-	public float getApproachRate() { return approachRate; }
-	
-	/**
-	 * Sets or returns the approach rate.
-	 */
-	public void setCircleSize(float circleSize) { this.circleSize = circleSize; }
-	public float getCircleSize() { return circleSize; }
-	
 	/**
 	 * Sets the array of hit result offsets.
 	 */
@@ -1212,7 +1167,6 @@ public class GameData {
 		switch (result) {
 		case HIT_SLIDER30:
 			hitValue = 30;
-			incrementComboStreak();
 			changeHealth(1f);
 			SoundController.playHitSound(
 					hitObject.getEdgeHitSoundType(repeat),
@@ -1221,7 +1175,6 @@ public class GameData {
 			break;
 		case HIT_SLIDER10:
 			hitValue = 10;
-			incrementComboStreak();
 			SoundController.playHitSound(HitSound.SLIDERTICK);
 			break;
 		case HIT_MISS:
@@ -1230,15 +1183,18 @@ public class GameData {
 		default:
 			return;
 		}
-		fullObjectCount++;
 
 		if (hitValue > 0) {
+			// calculate score and increment combo streak
 			score += hitValue;
+			incrementComboStreak();
+
 			if (!Options.isPerfectHitBurstEnabled())
 				;  // hide perfect hit results
 			else
 				hitResultList.add(new HitObjectResult(time, result, x, y, null, HitObjectType.SLIDERTICK, null, false));
 		}
+		fullObjectCount++;
 	}
 	public void sliderFinalResult(int time, int hitSlider30, float x, float y,
 			HitObject hitObject, int currentRepeats) {
@@ -1253,7 +1209,7 @@ public class GameData {
 	 * <ul>
 	 * <li><strong>Hit Value:</strong> hit result (50, 100, 300), slider ticks, spinner bonus
 	 * <li><strong>Combo:</strong> combo before this hit - 1 (minimum 0)
-	 * <li><strong>Difficulty:</strong> the beatmap difficulty
+	 * <li><strong>Difficulty:</strong> the difficulty setting (see {@link #calculateDifficultyMultiplier(float, float, float)})
 	 * <li><strong>Mod:</strong> mod multipliers
 	 * </ul>
 	 * @param hitValue the hit value
@@ -1265,9 +1221,44 @@ public class GameData {
 		if(hitObject.isSlider()){
 			comboMulti += 1;
 		}
-		return (hitValue + (int)(hitValue * (comboMulti * getDifficultyMultiplier() * GameMod.getScoreMultiplier()) / 25));
+		return (hitValue + (int)(hitValue * (comboMulti * difficultyMultiplier * GameMod.getScoreMultiplier()) / 25));
 	}
-
+	/**
+	 * https://osu.ppy.sh/wiki/Score#How_to_calculate_the_Difficulty_multiplier
+	 * Computes and stores the difficulty multiplier used in the score formula.
+	 * @param drainRate the raw HP drain rate value
+	 * @param circleSize the raw circle size value
+	 * @param overallDifficulty the raw overall difficulty value
+	 */
+	public void calculateDifficultyMultiplier(float drainRate, float circleSize, float overallDifficulty) {
+		//TODO   THE LIES ( difficultyMultiplier )
+		//*
+		float sum = drainRate + circleSize + overallDifficulty;  // typically 2~27
+		if (sum <= 5f)
+			difficultyMultiplier = 2;
+		else if (sum <= 12f)
+			difficultyMultiplier = 3;
+		else if (sum <= 17f)
+			difficultyMultiplier = 4;
+		else if (sum <= 24f)
+			difficultyMultiplier = 5;
+		else //if (sum <= 30f)
+			difficultyMultiplier = 6;
+		//*/
+		
+		/*
+			924 3x1/4 beat notes 0.14stars
+			924 3x1beat 0.28stars
+			912 3x1beat wth 1 extra note 10 sec away 0.29stars
+			
+			seems to be based on hitobject density?  (Total Objects/Time)
+		 */
+		/*
+		float mult =  ((circleSize + overallDifficulty + drainRate) / 6) + 1.5f;
+		System.out.println("diffuculty Multiplier : "+ mult);
+		difficultyMultiplier = (int)mult;
+		*/
+	}
 	/**
 	 * Handles a hit result and performs all associated calculations.
 	 * @param time the object start time
@@ -1291,18 +1282,15 @@ public class GameData {
 			changeHealth(5f);
 			break;
 		case HIT_100:
-			System.out.println("100! "+hitObject+" "+hitObject.getTime()+" "+hitObject.getTypeName());
 			hitValue = 100;
 			changeHealth(2f);
 			comboEnd |= 1;
 			break;
 		case HIT_50:
-			System.out.println("50! "+hitObject+" "+hitObject.getTime()+" "+hitObject.getTypeName());
 			hitValue = 50;
 			comboEnd |= 2;
 			break;
 		case HIT_MISS:
-			System.out.println("miss! "+hitObject+" "+hitObject.getTime()+" "+hitObject.getTypeName());
 			hitValue = 0;
 			changeHealth(-10f);
 			comboEnd |= 2;
@@ -1320,7 +1308,6 @@ public class GameData {
 			// calculate score and increment combo streak
 			changeScore(getScoreForHit(hitValue, hitObject));
 			incrementComboStreak();
-			//merge conflict end
 		}
 		hitResultCount[result]++;
 		fullObjectCount++;
@@ -1365,45 +1352,26 @@ public class GameData {
 	public void hitResult(int time, int result, float x, float y, Color color,
 						  boolean end, HitObject hitObject, int repeat,
 						  HitObjectType hitResultType, Curve curve, boolean expand) {
-		result = handleHitResult(time, result, x, y, color, end, hitObject, repeat, hitResultType);
+		int hitResult = handleHitResult(time, result, x, y, color, end, hitObject, repeat, hitResultType);
 
-		if ((result == HIT_300 || result == HIT_300G || result == HIT_300K) && !Options.isPerfectHitBurstEnabled())
+		if ((hitResult == HIT_300 || hitResult == HIT_300G || hitResult == HIT_300K) && !Options.isPerfectHitBurstEnabled())
 			;  // hide perfect hit results
-		else if (result == HIT_MISS && (GameMod.RELAX.isActive() || GameMod.AUTOPILOT.isActive()))
+		else if (hitResult == HIT_MISS && (GameMod.RELAX.isActive() || GameMod.AUTOPILOT.isActive()))
 			;  // "relax" and "autopilot" mods: hide misses
 		else {
-			hitResultList.add(new HitObjectResult(time, result, x, y, color, hitResultType, curve, expand));
+			hitResultList.add(new HitObjectResult(time, hitResult, x, y, color, hitResultType, curve, expand));
 
 			// sliders: add the other curve endpoint for the hit animation
 			if (curve != null) {
 				boolean isFirst = (hitResultType == HitObjectType.SLIDER_FIRST);
 				float[] p = curve.pointAt((isFirst) ? 1f : 0f);
 				HitObjectType type = (isFirst) ? HitObjectType.SLIDER_LAST : HitObjectType.SLIDER_FIRST;
-				hitResultList.add(new HitObjectResult(time, result, p[0], p[1], color, type, null, expand));
+				hitResultList.add(new HitObjectResult(time, hitResult, p[0], p[1], color, type, null, expand));
 			}
 		}
 	}
 
-	private int getDifficultyMultiplier() {
-		return difficultyMultiplier;
-	}
 
-	/**
-	 * https://osu.ppy.sh/wiki/Score#How_to_calculate_the_Difficulty_multiplier
-	 */
-	public void calculateDifficultyMultiplier() {
-		//TODO   THE LIES ( difficultyMultiplier )
-		/*
-			924 3x1/4 beat notes 0.14stars
-			924 3x1beat 0.28stars
-			912 3x1beat wth 1 extra note 10 sec away 0.29stars
-			
-			seems to be based on hitobject density?  (Total Objects/Time)
-		 */
-		float mult =  ((circleSize + difficulty + drainRate) / 6) + 1.5f;
-		System.out.println("diffuculty Multiplier : "+ mult);
-		difficultyMultiplier = (int)mult;
-	}
 	/**
 	 * Returns a ScoreData object encapsulating all game data.
 	 * If score data already exists, the existing object will be returned

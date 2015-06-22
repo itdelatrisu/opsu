@@ -924,7 +924,6 @@ public class Game extends BasicGameState {
 
 			if(!GameMod.AUTO.isActive() && y < 50){
 				float pos = (float)x / width * beatmap.endTime;
-				System.out.println("Seek to"+pos);
 				MusicController.setPosition((int)pos);
 			}
 			return;
@@ -1403,8 +1402,9 @@ public class Game extends BasicGameState {
 		float circleSize = Math.min(beatmap.circleSize * multiplier, 10f);
 		float approachRate = Math.min(beatmap.approachRate * multiplier, 10f);
 		float overallDifficulty = Math.min(beatmap.overallDifficulty * multiplier, 10f);
-		float HPDrainRate = Math.min(beatmap.HPDrainRate * multiplier, 10f);
-
+		//TODO never actually used, everything seems to be using GameData.HP_DRAIN_MULTIPLIER
+		float HPDrainRate = Math.min(beatmap.HPDrainRate * multiplier, 10f); 
+		
 		// fixed difficulty overrides
 		if (Options.getFixedCS() > 0f)
 			circleSize = Options.getFixedCS();
@@ -1423,7 +1423,7 @@ public class Game extends BasicGameState {
 		// initialize objects
 		Circle.init(container, circleSize);
 		Slider.init(container, circleSize, beatmap);
-		Spinner.init(container);
+		Spinner.init(container, overallDifficulty);
 		Curve.init(container.getWidth(), container.getHeight(), circleSize, (Options.isBeatmapSkinIgnored()) ?
 				Options.getSkin().getSliderBorderColor() : beatmap.getSliderBorderColor());
 
@@ -1446,14 +1446,11 @@ public class Game extends BasicGameState {
 		hitResultOffset[GameData.HIT_100]  = (int) (138 - (overallDifficulty * 8));
 		hitResultOffset[GameData.HIT_50]   = (int) (198 - (overallDifficulty * 10));
 		hitResultOffset[GameData.HIT_MISS] = (int) (500 - (overallDifficulty * 10));
-		//*/
-		// HPDrainRate (health change), overallDifficulty (scoring)
-		data.setDrainRate(HPDrainRate);
-		data.setDifficulty(overallDifficulty);
-		data.setApproachRate(approachRate);
-		data.setCircleSize(circleSize);
 		data.setHitResultOffset(hitResultOffset);
-		data.calculateDifficultyMultiplier();
+		//*/
+
+		// difficulty multiplier (scoring)
+		data.calculateDifficultyMultiplier(beatmap.HPDrainRate, beatmap.circleSize, beatmap.overallDifficulty);
 	}
 
 	/**

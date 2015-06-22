@@ -41,6 +41,9 @@ public class Spinner implements GameObject {
 	/** Container dimensions. */
 	private static int width, height;
 
+	/** The map's overall difficulty value. */
+	private static float overallDifficulty = 5f;
+
 	/** The number of rotation velocities to store. */
 	private int maxStoredDeltaAngles;
 
@@ -104,10 +107,12 @@ public class Spinner implements GameObject {
 	/**
 	 * Initializes the Spinner data type with images and dimensions.
 	 * @param container the game container
+	 * @param difficulty the map's overall difficulty value
 	 */
-	public static void init(GameContainer container) {
+	public static void init(GameContainer container, float difficulty) {
 		width  = container.getWidth();
 		height = container.getHeight();
+		overallDifficulty = difficulty;
 	}
 
 	/**
@@ -160,7 +165,7 @@ public class Spinner implements GameObject {
 		storedDeltaAngle = new float[maxStoredDeltaAngles];
 		
 		// calculate rotations needed
-		float spinsPerMinute = 100 + (data.getDifficulty() * 15);
+		float spinsPerMinute = 100 + (overallDifficulty * 15);
 		rotationsNeeded = spinsPerMinute * (hitObject.getEndTime() - hitObject.getTime()) / 60000f;
 	}
 
@@ -263,7 +268,6 @@ public class Spinner implements GameObject {
 		if (isSpinning && !(keyPressed || GameMod.RELAX.isActive()))
 			isSpinning = false;
 
-		System.out.println("Spinner update "+mouseX+" "+mouseY+" "+deltaOverflow);
 		// spin automatically
 		// http://osu.ppy.sh/wiki/FAQ#Spinners
 		

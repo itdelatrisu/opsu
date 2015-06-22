@@ -117,15 +117,11 @@ public class Slider implements GameObject {
 		containerWidth = container.getWidth();
 		containerHeight = container.getHeight();
 		
-		diameter =  (108 - (circleSize * 8));
+		diameter =  (104 - (circleSize * 8));
 		diameter =  (diameter * HitObject.getXMultiplier());  // convert from Osupixels (640x480)
 		int diameterInt = (int)diameter;
 		
 		followRadius = diameter / 2 * 3f;
-		/* 
-		int diameter = (int) (104 - (circleSize * 8));
-		diameter = (int) (diameter * HitObject.getXMultiplier());  // convert from Osupixels (640x480)
-		*/
 		// slider ball
 		if (GameImage.SLIDER_BALL.hasSkinImages() ||
 		    (!GameImage.SLIDER_BALL.hasSkinImage() && GameImage.SLIDER_BALL.getImages() != null))
