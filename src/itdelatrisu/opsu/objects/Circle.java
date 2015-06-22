@@ -132,10 +132,8 @@ public class Circle implements GameObject {
 			result = GameData.HIT_100;
 		else if (timeDiff <= hitResultOffset[GameData.HIT_50])
 			result = GameData.HIT_50;
-		else if (timeDiff <= hitResultOffset[GameData.HIT_MISS]){
+		else if (timeDiff <= hitResultOffset[GameData.HIT_MISS])
 			result = GameData.HIT_MISS;
-			System.out.println(timeDiff);
-		}
 		//else not a hit
 
 		return result;

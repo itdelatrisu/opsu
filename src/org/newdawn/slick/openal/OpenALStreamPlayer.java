@@ -41,6 +41,7 @@ import org.lwjgl.openal.OpenALException;
 import org.newdawn.slick.util.Log;
 import org.newdawn.slick.util.ResourceLoader;
 
+
 /**
  * A generic tool to work on a supplied stream, pulling out PCM data and buffered it to OpenAL
  * as required.
@@ -224,6 +225,7 @@ public class OpenALStreamPlayer {
 	 */
 	public void setup(float pitch) {
 		this.pitch = pitch;
+		syncPosition();
 	}
 	
 	/**
@@ -354,7 +356,7 @@ public class OpenALStreamPlayer {
 			}
 
 			playedPos = streamPos;
-			syncStartTime = getTime() - playedPos * 1000 / sampleSize / sampleRate;
+			syncStartTime = (long) (getTime() - (playedPos * 1000 / sampleSize / sampleRate)/pitch);
 
 			startPlayback(); 
 
@@ -403,23 +405,33 @@ public class OpenALStreamPlayer {
 		float thisPosition = getALPosition();
 		long thisTime = getTime();
 		float dxPosition = thisPosition - lastUpdatePosition;
-		long dxTime = thisTime - syncStartTime;
+		float dxTime = (thisTime - syncStartTime) * pitch;
 
 		// hard reset
 		if (Math.abs(thisPosition - dxTime / 1000f) > 1 / 2f) {
-			syncStartTime = thisTime - ((long) (thisPosition * 1000));
-			dxTime = thisTime - syncStartTime;
+			//System.out.println("Time HARD Reset"+" "+thisPosition+" "+(dxTime / 1000f));
+			syncPosition();
+			dxTime = (thisTime - syncStartTime) * pitch;
 			avgDiff = 0;
 		}
 		if ((int) (dxPosition * 1000) != 0) { // lastPosition != thisPosition
 			float diff = thisPosition * 1000 - (dxTime);
+			
 			avgDiff = (diff + avgDiff * 9) / 10;
-			syncStartTime -= (int) (avgDiff/2);
-			dxTime = thisTime - syncStartTime;
+			if(Math.abs(avgDiff) >= 1){
+				syncStartTime -= (int)(avgDiff);
+				avgDiff -=  (int)(avgDiff);
+				dxTime = (thisTime - syncStartTime) * pitch;
+			}
 			lastUpdatePosition = thisPosition;
 		}
+		
 
 		return dxTime / 1000f;
+	}
+	private void syncPosition(){
+		syncStartTime = getTime() - (long) ( getALPosition() * 1000 / pitch);
+		avgDiff = 0;
 	}
 
 	/**

@@ -227,6 +227,8 @@ public class Game extends BasicGameState {
 
 	private int height;
 
+	private boolean seeking;
+
 	public Game(int state) {
 		this.state = state;
 	}
@@ -615,7 +617,7 @@ public class Game extends BasicGameState {
 				updateGame(replayX, replayY, delta, MusicController.getPosition(), lastKeysPressed);
 			
 			//TODO probably should to disable sounds then reseek to the new position
-			if(replayIndex-1 >= 1 && replayIndex < replay.frames.length && trackPosition < replay.frames[replayIndex-1].getTime()){
+			if(seeking && replayIndex-1 >= 1 && replayIndex < replay.frames.length && trackPosition < replay.frames[replayIndex-1].getTime()){
 				replayIndex = 0;
 				while(objectIndex>=0){
 					gameObjects[objectIndex].reset();
@@ -633,6 +635,7 @@ public class Game extends BasicGameState {
 						timingPointIndex++;
 					}
 				}
+				seeking = false;
 			}
 
 			// update and run replay frames
@@ -925,6 +928,7 @@ public class Game extends BasicGameState {
 			if(!GameMod.AUTO.isActive() && y < 50){
 				float pos = (float)x / width * beatmap.endTime;
 				MusicController.setPosition((int)pos);
+				seeking = true;
 			}
 			return;
 		}
@@ -1074,6 +1078,8 @@ public class Game extends BasicGameState {
 				retries = 0;
 
 			gameObjects = new GameObject[beatmap.objects.length];
+			playbackSpeed = PlaybackSpeed.NORMAL;
+
 			// reset game data
 			resetGameData();
 
@@ -1332,8 +1338,7 @@ public class Game extends BasicGameState {
 		autoMouseY = 0;
 		autoMousePressed = false;
 		flashlightRadius = container.getHeight() * 2 / 3;
-		playbackSpeed = PlaybackSpeed.NORMAL;
-
+		
 		System.gc();
 	}
 
@@ -1402,9 +1407,8 @@ public class Game extends BasicGameState {
 		float circleSize = Math.min(beatmap.circleSize * multiplier, 10f);
 		float approachRate = Math.min(beatmap.approachRate * multiplier, 10f);
 		float overallDifficulty = Math.min(beatmap.overallDifficulty * multiplier, 10f);
-		//TODO never actually used, everything seems to be using GameData.HP_DRAIN_MULTIPLIER
-		float HPDrainRate = Math.min(beatmap.HPDrainRate * multiplier, 10f); 
-		
+		float HPDrainRate = Math.min(beatmap.HPDrainRate * multiplier, 10f);
+
 		// fixed difficulty overrides
 		if (Options.getFixedCS() > 0f)
 			circleSize = Options.getFixedCS();
@@ -1448,6 +1452,9 @@ public class Game extends BasicGameState {
 		hitResultOffset[GameData.HIT_MISS] = (int) (500 - (overallDifficulty * 10));
 		data.setHitResultOffset(hitResultOffset);
 		//*/
+
+		// HPDrainRate (health change)
+		data.setDrainRate(HPDrainRate);
 
 		// difficulty multiplier (scoring)
 		data.calculateDifficultyMultiplier(beatmap.HPDrainRate, beatmap.circleSize, beatmap.overallDifficulty);

@@ -296,6 +296,10 @@ public class GameData {
 	/** The difficulty multiplier used in the score formula. */
 	private int difficultyMultiplier = 2;
 
+	/** Beatmap HPDrainRate value. (0:easy ~ 10:hard) */
+	@SuppressWarnings("unused")
+	private float drainRate = 5f;
+
 	/** Default text symbol images. */
 	private Image[] defaultSymbols;
 
@@ -371,6 +375,7 @@ public class GameData {
 		health = 100f;
 		healthDisplay = 100f;
 		hitResultCount = new int[HIT_MAX];
+		drainRate = 5f;
 		if (hitResultList != null) {
 			for (HitObjectResult hitResult : hitResultList) {
 				if (hitResult.curve != null)
@@ -460,6 +465,12 @@ public class GameData {
 	 * @param c the character [0-9,.%x]
 	 */
 	public Image getScoreSymbolImage(char c) { return scoreSymbols.get(c); }
+
+	/**
+	 * Sets the health drain rate.
+	 * @param drainRate the new drain rate [0-10]
+	 */
+	public void setDrainRate(float drainRate) { this.drainRate = drainRate; }
 
 	/**
 	 * Sets the array of hit result offsets.
@@ -1423,7 +1434,7 @@ public class GameData {
 		replay = new Replay();
 		replay.mode = Beatmap.MODE_OSU;
 		replay.version = Updater.get().getBuildDate();
-		replay.beatmapHash = (beatmap == null) ? "" : Utils.getMD5(beatmap.getFile());
+		replay.beatmapHash = (beatmap == null) ? "" : beatmap.md5Hash;//Utils.getMD5(beatmap.getFile());
 		replay.playerName = "";  // TODO
 		replay.replayHash = Long.toString(System.currentTimeMillis());  // TODO
 		replay.hit300 = (short) hitResultCount[HIT_300];
