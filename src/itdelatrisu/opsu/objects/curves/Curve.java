@@ -25,6 +25,7 @@ import itdelatrisu.opsu.beatmap.HitObject;
 import itdelatrisu.opsu.render.CurveRenderState;
 import itdelatrisu.opsu.skins.Skin;
 
+import org.lwjgl.opengl.ContextCapabilities;
 import org.lwjgl.opengl.GLContext;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Image;
@@ -42,8 +43,8 @@ public abstract class Curve {
 	/** The curve border color. */
 	private static Color borderColor;
 
-	/** Whether OpenGL 3.0 is supported. */
-	private static boolean openGL30 = false;
+	/** Whether mmsliders are supported. */
+	private static boolean mmsliderSupported = false;
 
 	/** The associated HitObject. */
 	protected HitObject hitObject;
@@ -84,12 +85,14 @@ public abstract class Curve {
 	 */
 	public static void init(int width, int height, float circleSize, Color borderColor) {
 		Curve.borderColor = borderColor;
-		openGL30 = GLContext.getCapabilities().OpenGL30;
-		if (openGL30)
+
+		ContextCapabilities capabilities = GLContext.getCapabilities();
+		mmsliderSupported = capabilities.GL_EXT_framebuffer_object && capabilities.OpenGL32;
+		if (mmsliderSupported)
 			CurveRenderState.init(width, height, circleSize);
 		else {
 			if (Options.getSkin().getSliderStyle() != Skin.STYLE_PEPPYSLIDER)
-				Log.warn("New slider style requires OpenGL 3.0, which is not supported.");
+				Log.warn("New slider style requires FBO support and OpenGL 3.2.");
 		}
 	}
 
@@ -109,7 +112,7 @@ public abstract class Curve {
 			return;
 
 		// peppysliders
-		if (Options.getSkin().getSliderStyle() == Skin.STYLE_PEPPYSLIDER || !openGL30) {
+		if (Options.getSkin().getSliderStyle() == Skin.STYLE_PEPPYSLIDER || !mmsliderSupported) {
 			Image hitCircle = GameImage.HITCIRCLE.getImage();
 			Image hitCircleOverlay = GameImage.HITCIRCLE_OVERLAY.getImage();
 			for (int i = 0; i < curve.length; i++)
