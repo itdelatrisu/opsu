@@ -122,11 +122,14 @@ public class FrameBufferCache {
 		return buffer;
 	}
 
+	/**
+	 * Clear the cache pool of Framebuffers.
+	 * If there were any previous Framebuffers in the cache delete them
+	 * this is necessary for cases when the game gets re-started with a
+	 * different resolution without closing the process
+	 */
 	public static void shutdown()
 	{
-		//if there were any previous Framebuffers in the cache delete them
-		//this is necessary for cases when the game gets re-started with a
-		//different resolution without closing the process
 		FrameBufferCache fbcInstance = FrameBufferCache.getInstance();
 		for(Rendertarget target: fbcInstance.cache)
 		{

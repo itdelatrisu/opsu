@@ -75,7 +75,12 @@ public class CurveRenderState {
 		//scale = scale * 118 / 128; //for curves exactly as big as the sliderball
 		FrameBufferCache.init(width, height);
 	}
-	
+
+	/**
+	 * Undo the static state. Static state setup caused by calls to 
+	 * {@link #draw(org.newdawn.slick.Color, org.newdawn.slick.Color, itdelatrisu.opsu.objects.curves.Vec2f[])}
+	 * are undone.
+	 */
 	public static void shutdown()
 	{
 		staticState.shutdown();
@@ -144,7 +149,7 @@ public class CurveRenderState {
 	}
 
 	/**
-	 * Discard the cache.
+	 * Discard the cache mapping for this curve object
 	 */
 	public void discardCache() {
 		fbo = null;
@@ -454,14 +459,17 @@ public class CurveRenderState {
 			}
 		}
 
+		/**
+		 * Cleanup any OpenGL objects that may have been initialized.
+		 */
 		private void shutdown()
 		{
 			if(gradientTexture != 0)
 			{
-			GL11.glDeleteTextures(gradientTexture);
-			gradientTexture = 0;
+				GL11.glDeleteTextures(gradientTexture);
+				gradientTexture = 0;
 			}
-			
+
 			if(program != 0)
 			{
 				GL20.glDeleteProgram(program);

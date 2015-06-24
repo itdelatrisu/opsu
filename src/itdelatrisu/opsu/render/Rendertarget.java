@@ -40,7 +40,7 @@ public class Rendertarget {
 
 	/** The renderbuffer ID for the depth buffer that this rendertarget renders into. */
 	private final int depthBufferID;
-	
+
 	/**
 	 * Create a new FBO.
 	 * @param width the width
@@ -115,7 +115,7 @@ public class Rendertarget {
 
 		return buffer;
 	}
-	
+
 	/**
 	 * Destroy the OpenGL objects associated with this Rendertarget. Do not try
 	 * to use this rendertarget with OpenGL after calling this method.

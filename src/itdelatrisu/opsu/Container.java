@@ -133,7 +133,7 @@ public class Container extends AppGameContainer {
 		// reset BeatmapSetList data
 		if (BeatmapSetList.get() != null)
 			BeatmapSetList.get().reset();
-		
+
 		// delete OpenGL objects involved in the Curve rendering
 		CurveRenderState.shutdown();
 	}
