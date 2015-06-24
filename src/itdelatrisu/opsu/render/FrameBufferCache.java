@@ -122,6 +122,20 @@ public class FrameBufferCache {
 		return buffer;
 	}
 
+	public static void shutdown()
+	{
+		//if there were any previous Framebuffers in the cache delete them
+		//this is necessary for cases when the game gets re-started with a
+		//different resolution without closing the process
+		FrameBufferCache fbcInstance = FrameBufferCache.getInstance();
+		for(Rendertarget target: fbcInstance.cache)
+		{
+			target.destroyRTT();
+		}
+		fbcInstance.cache.clear();
+		fbcInstance.freeMap();
+	}
+
 	/**
 	 * There should only ever be one framebuffer cache, this function returns
 	 * that one framebuffer cache instance.

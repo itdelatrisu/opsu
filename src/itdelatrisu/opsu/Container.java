@@ -23,6 +23,7 @@ import itdelatrisu.opsu.beatmap.Beatmap;
 import itdelatrisu.opsu.beatmap.BeatmapSetList;
 import itdelatrisu.opsu.downloads.DownloadList;
 import itdelatrisu.opsu.downloads.Updater;
+import itdelatrisu.opsu.render.CurveRenderState;
 import itdelatrisu.opsu.ui.UI;
 
 import org.lwjgl.opengl.Display;
@@ -132,6 +133,9 @@ public class Container extends AppGameContainer {
 		// reset BeatmapSetList data
 		if (BeatmapSetList.get() != null)
 			BeatmapSetList.get().reset();
+		
+		// delete OpenGL objects involved in the Curve rendering
+		CurveRenderState.shutdown();
 	}
 
 	@Override

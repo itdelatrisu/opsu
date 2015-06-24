@@ -75,6 +75,12 @@ public class CurveRenderState {
 		//scale = scale * 118 / 128; //for curves exactly as big as the sliderball
 		FrameBufferCache.init(width, height);
 	}
+	
+	public static void shutdown()
+	{
+		staticState.shutdown();
+		FrameBufferCache.shutdown();
+	}
 
 	/**
 	 * Creates an object to hold the render state that's necessary to draw a curve.
@@ -445,6 +451,26 @@ public class CurveRenderState {
 				texLoc = GL20.glGetUniformLocation(program, "tex");
 				colLoc = GL20.glGetUniformLocation(program, "col_tint");
 				colBorderLoc = GL20.glGetUniformLocation(program, "col_border");
+			}
+		}
+
+		private void shutdown()
+		{
+			if(gradientTexture != 0)
+			{
+			GL11.glDeleteTextures(gradientTexture);
+			gradientTexture = 0;
+			}
+			
+			if(program != 0)
+			{
+				GL20.glDeleteProgram(program);
+				program = 0;
+				attribLoc = 0;
+				texCoordLoc = 0;
+				colLoc = 0;
+				colBorderLoc = 0;
+				texLoc = 0;
 			}
 		}
 	}

@@ -35,9 +35,12 @@ public class Rendertarget {
 	/** The FBO ID. */
 	private final int fboID;
 
-	/** The texture ID. */
+	/** The texture ID. for the color buffer this rendertarget renders into. */
 	private final int textureID;
 
+	/** The renderbuffer ID for the depth buffer that this rendertarget renders into. */
+	private final int depthBufferID;
+	
 	/**
 	 * Create a new FBO.
 	 * @param width the width
@@ -48,6 +51,7 @@ public class Rendertarget {
 		this.height = height;
 		fboID = GL30.glGenFramebuffers();
 		textureID = GL11.glGenTextures();
+		depthBufferID = GL30.glGenRenderbuffers();
 	}
 
 	/**
@@ -99,10 +103,9 @@ public class Rendertarget {
 		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST);
 		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST);
 
-		int fboDepth = GL30.glGenRenderbuffers();
-		GL30.glBindRenderbuffer(GL30.GL_RENDERBUFFER, fboDepth);
+		GL30.glBindRenderbuffer(GL30.GL_RENDERBUFFER, buffer.depthBufferID);
 		GL30.glRenderbufferStorage(GL30.GL_RENDERBUFFER, GL11.GL_DEPTH_COMPONENT, width, height);
-		GL30.glFramebufferRenderbuffer(GL30.GL_FRAMEBUFFER, GL30.GL_DEPTH_ATTACHMENT, GL30.GL_RENDERBUFFER, fboDepth);
+		GL30.glFramebufferRenderbuffer(GL30.GL_FRAMEBUFFER, GL30.GL_DEPTH_ATTACHMENT, GL30.GL_RENDERBUFFER, buffer.depthBufferID);
 
 		GL32.glFramebufferTexture(GL30.GL_FRAMEBUFFER, GL30.GL_COLOR_ATTACHMENT0, fboTexture, 0);
 		GL20.glDrawBuffers(GL30.GL_COLOR_ATTACHMENT0);
@@ -111,5 +114,16 @@ public class Rendertarget {
 		GL30.glBindFramebuffer(GL30.GL_DRAW_FRAMEBUFFER, old_framebuffer);
 
 		return buffer;
+	}
+	
+	/**
+	 * Destroy the OpenGL objects associated with this Rendertarget. Do not try
+	 * to use this rendertarget with OpenGL after calling this method.
+	 */
+	public void destroyRTT()
+	{
+		GL30.glDeleteFramebuffers(fboID);
+		GL30.glDeleteRenderbuffers(depthBufferID);
+		GL11.glDeleteTextures(textureID);
 	}
 }
