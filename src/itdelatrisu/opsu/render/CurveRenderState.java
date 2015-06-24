@@ -451,6 +451,8 @@ public class CurveRenderState {
 					String error = GL20.glGetProgramInfoLog(program, 1024);
 					Log.error("Program linking failed.", new Exception(error));
 				}
+				GL20.glDeleteShader(vtxShdr);
+				GL20.glDeleteShader(frgShdr);
 				attribLoc = GL20.glGetAttribLocation(program, "in_position");
 				texCoordLoc = GL20.glGetAttribLocation(program, "in_tex_coord");
 				texLoc = GL20.glGetUniformLocation(program, "tex");
