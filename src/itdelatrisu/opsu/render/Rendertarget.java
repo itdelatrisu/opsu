@@ -35,7 +35,7 @@ public class Rendertarget {
 	/** The FBO ID. */
 	private final int fboID;
 
-	/** The texture ID. for the color buffer this rendertarget renders into. */
+	/** The texture ID for the color buffer this rendertarget renders into. */
 	private final int textureID;
 
 	/** The renderbuffer ID for the depth buffer that this rendertarget renders into. */
@@ -120,8 +120,7 @@ public class Rendertarget {
 	 * Destroy the OpenGL objects associated with this Rendertarget. Do not try
 	 * to use this rendertarget with OpenGL after calling this method.
 	 */
-	public void destroyRTT()
-	{
+	public void destroyRTT() {
 		GL30.glDeleteFramebuffers(fboID);
 		GL30.glDeleteRenderbuffers(depthBufferID);
 		GL11.glDeleteTextures(textureID);

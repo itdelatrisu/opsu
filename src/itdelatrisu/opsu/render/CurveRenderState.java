@@ -81,8 +81,7 @@ public class CurveRenderState {
 	 * {@link #draw(org.newdawn.slick.Color, org.newdawn.slick.Color, itdelatrisu.opsu.objects.curves.Vec2f[])}
 	 * are undone.
 	 */
-	public static void shutdown()
-	{
+	public static void shutdown() {
 		staticState.shutdown();
 		FrameBufferCache.shutdown();
 	}
@@ -149,7 +148,7 @@ public class CurveRenderState {
 	}
 
 	/**
-	 * Discard the cache mapping for this curve object
+	 * Discard the cache mapping for this curve object.
 	 */
 	public void discardCache() {
 		fbo = null;
@@ -464,16 +463,13 @@ public class CurveRenderState {
 		/**
 		 * Cleanup any OpenGL objects that may have been initialized.
 		 */
-		private void shutdown()
-		{
-			if(gradientTexture != 0)
-			{
+		private void shutdown() {
+			if (gradientTexture != 0) {
 				GL11.glDeleteTextures(gradientTexture);
 				gradientTexture = 0;
 			}
 
-			if(program != 0)
-			{
+			if (program != 0) {
 				GL20.glDeleteProgram(program);
 				program = 0;
 				attribLoc = 0;
