@@ -19,16 +19,20 @@
 package itdelatrisu.opsu.beatmap;
 
 import itdelatrisu.opsu.ErrorHandler;
+import itdelatrisu.opsu.MD5InputStreamWrapper;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.db.BeatmapDB;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -205,7 +209,15 @@ public class BeatmapParser {
 		Beatmap beatmap = new Beatmap(file);
 		beatmap.timingPoints = new ArrayList<TimingPoint>();
 
-		try (BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF-8"))) {
+		try (InputStream inFileStream = new BufferedInputStream(new FileInputStream(file));){
+			MD5InputStreamWrapper md5stream = null;
+			try {
+				md5stream = new MD5InputStreamWrapper(inFileStream);
+			} catch (NoSuchAlgorithmException e1) {
+				ErrorHandler.error("Failed to get MD5 hash stream.", e1, true);
+			}
+			BufferedReader in = new BufferedReader(new InputStreamReader(md5stream!=null?md5stream:inFileStream, "UTF-8"));
+			
 			String line = in.readLine();
 			String tokens[] = null;
 			while (line != null) {
@@ -578,6 +590,8 @@ public class BeatmapParser {
 					break;
 				}
 			}
+			if (md5stream != null)
+				beatmap.md5Hash = md5stream.getMD5();
 		} catch (IOException e) {
 			ErrorHandler.error(String.format("Failed to read file '%s'.", file.getAbsolutePath()), e, false);
 		}

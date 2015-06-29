@@ -69,4 +69,11 @@ public interface GameObject {
 	 * Updates the position of the hit object.
 	 */
 	public void updatePosition();
+	
+	/**
+	 * Resets the hit object so that it can be reused.
+	 */
+	public void reset();
+
+	
 }

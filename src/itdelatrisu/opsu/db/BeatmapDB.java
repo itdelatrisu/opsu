@@ -43,7 +43,7 @@ public class BeatmapDB {
 	 * Current database version.
 	 * This value should be changed whenever the database format changes.
 	 */
-	private static final String DATABASE_VERSION = "2014-06-08";
+	private static final String DATABASE_VERSION = "2015-06-11";
 
 	/** Minimum batch size ratio ({@code batchSize/cacheSize}) to invoke batch loading. */
 	private static final float LOAD_BATCH_MIN_RATIO = 0.2f;
@@ -96,7 +96,7 @@ public class BeatmapDB {
 			insertStmt = connection.prepareStatement(
 				"INSERT INTO beatmaps VALUES (" +
 				"?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, " +
-				"?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+				"?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 			);
 			selectStmt = connection.prepareStatement("SELECT * FROM beatmaps WHERE dir = ? AND file = ?");
 			deleteMapStmt = connection.prepareStatement("DELETE FROM beatmaps WHERE dir = ? AND file = ?");
@@ -122,7 +122,8 @@ public class BeatmapDB {
 					"bpmMin INTEGER, bpmMax INTEGER, endTime INTEGER, " +
 					"audioFile TEXT, audioLeadIn INTEGER, previewTime INTEGER, countdown INTEGER, sampleSet TEXT, stackLeniency REAL, " +
 					"mode INTEGER, letterboxInBreaks BOOLEAN, widescreenStoryboard BOOLEAN, epilepsyWarning BOOLEAN, " +
-					"bg TEXT, sliderBorder TEXT, timingPoints TEXT, breaks TEXT, combo TEXT" +
+					"bg TEXT, sliderBorder TEXT, timingPoints TEXT, breaks TEXT, combo TEXT," +
+					"md5hash TEXT" +
 				"); " +
 				"CREATE TABLE IF NOT EXISTS info (" +
 					"key TEXT NOT NULL UNIQUE, value TEXT" +
@@ -340,6 +341,7 @@ public class BeatmapDB {
 			stmt.setString(38, beatmap.timingPointsToString());
 			stmt.setString(39, beatmap.breaksToString());
 			stmt.setString(40, beatmap.comboToString());
+			stmt.setString(41, beatmap.md5Hash);
 		} catch (SQLException e) {
 			throw e;
 		} catch (Exception e) {
@@ -481,6 +483,7 @@ public class BeatmapDB {
 			if (bg != null)
 				beatmap.bg = new File(dir, BeatmapParser.getDBString(bg));
 			beatmap.sliderBorderFromString(rs.getString(37));
+			beatmap.md5Hash = BeatmapParser.getDBString(rs.getString(41));
 		} catch (SQLException e) {
 			throw e;
 		} catch (Exception e) {

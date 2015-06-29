@@ -1207,8 +1207,13 @@ public class GameData {
 		}
 		fullObjectCount++;
 	}
+	public void sliderFinalResult(int time, int hitSlider30, float x, float y,
+			HitObject hitObject, int currentRepeats) {
+		score += 30;
+	}
 
 	/**
+	 * https://osu.ppy.sh/wiki/Score
 	 * Returns the score for a hit based on the following score formula:
 	 * <p>
 	 * Score = Hit Value + Hit Value * (Combo * Difficulty * Mod) / 25
@@ -1219,19 +1224,26 @@ public class GameData {
 	 * <li><strong>Mod:</strong> mod multipliers
 	 * </ul>
 	 * @param hitValue the hit value
+	 * @param hitObject 
 	 * @return the score value
 	 */
-	private int getScoreForHit(int hitValue) {
-		return hitValue + (int) (hitValue * (Math.max(combo - 1, 0) * difficultyMultiplier * GameMod.getScoreMultiplier()) / 25);
+	private int getScoreForHit(int hitValue, HitObject hitObject) {
+		int comboMulti = Math.max(combo - 1, 0);
+		if(hitObject.isSlider()){
+			comboMulti += 1;
+		}
+		return (hitValue + (int)(hitValue * (comboMulti * difficultyMultiplier * GameMod.getScoreMultiplier()) / 25));
 	}
-
 	/**
+	 * https://osu.ppy.sh/wiki/Score#How_to_calculate_the_Difficulty_multiplier
 	 * Computes and stores the difficulty multiplier used in the score formula.
 	 * @param drainRate the raw HP drain rate value
 	 * @param circleSize the raw circle size value
 	 * @param overallDifficulty the raw overall difficulty value
 	 */
 	public void calculateDifficultyMultiplier(float drainRate, float circleSize, float overallDifficulty) {
+		//TODO   THE LIES ( difficultyMultiplier )
+		//*
 		float sum = drainRate + circleSize + overallDifficulty;  // typically 2~27
 		if (sum <= 5f)
 			difficultyMultiplier = 2;
@@ -1243,8 +1255,21 @@ public class GameData {
 			difficultyMultiplier = 5;
 		else //if (sum <= 30f)
 			difficultyMultiplier = 6;
+		//*/
+		
+		/*
+			924 3x1/4 beat notes 0.14stars
+			924 3x1beat 0.28stars
+			912 3x1beat wth 1 extra note 10 sec away 0.29stars
+			
+			seems to be based on hitobject density?  (Total Objects/Time)
+		 */
+		/*
+		float mult =  ((circleSize + overallDifficulty + drainRate) / 6) + 1.5f;
+		System.out.println("diffuculty Multiplier : "+ mult);
+		difficultyMultiplier = (int)mult;
+		*/
 	}
-
 	/**
 	 * Handles a hit result and performs all associated calculations.
 	 * @param time the object start time
@@ -1292,7 +1317,7 @@ public class GameData {
 					hitObject.getAdditionSampleSet(repeat));
 
 			// calculate score and increment combo streak
-			changeScore(getScoreForHit(hitValue));
+			changeScore(getScoreForHit(hitValue, hitObject));
 			incrementComboStreak();
 		}
 		hitResultCount[result]++;
@@ -1357,6 +1382,7 @@ public class GameData {
 		}
 	}
 
+
 	/**
 	 * Returns a ScoreData object encapsulating all game data.
 	 * If score data already exists, the existing object will be returned
@@ -1387,6 +1413,7 @@ public class GameData {
 		scoreData.perfect = (comboMax == fullObjectCount);
 		scoreData.mods = GameMod.getModState();
 		scoreData.replayString = (replay == null) ? null : replay.getReplayFilename();
+		scoreData.playerName = "OpsuPlayer"; //TODO GameDataPlayerName?
 		return scoreData;
 	}
 
@@ -1407,7 +1434,7 @@ public class GameData {
 		replay = new Replay();
 		replay.mode = Beatmap.MODE_OSU;
 		replay.version = Updater.get().getBuildDate();
-		replay.beatmapHash = (beatmap == null) ? "" : Utils.getMD5(beatmap.getFile());
+		replay.beatmapHash = (beatmap == null) ? "" : beatmap.md5Hash;//Utils.getMD5(beatmap.getFile());
 		replay.playerName = "";  // TODO
 		replay.replayHash = Long.toString(System.currentTimeMillis());  // TODO
 		replay.hit300 = (short) hitResultCount[HIT_300];

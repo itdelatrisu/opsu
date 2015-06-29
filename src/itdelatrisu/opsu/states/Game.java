@@ -223,6 +223,12 @@ public class Game extends BasicGameState {
 	private Input input;
 	private int state;
 
+	private int width;
+
+	private int height;
+
+	private boolean seeking;
+
 	public Game(int state) {
 		this.state = state;
 	}
@@ -234,8 +240,8 @@ public class Game extends BasicGameState {
 		this.game = game;
 		input = container.getInput();
 
-		int width = container.getWidth();
-		int height = container.getHeight();
+		width = container.getWidth();
+		height = container.getHeight();
 
 		// create offscreen graphics
 		offscreen = new Image(width, height);
@@ -609,6 +615,28 @@ public class Game extends BasicGameState {
 			// out of frames, use previous data
 			if (replayIndex >= replay.frames.length)
 				updateGame(replayX, replayY, delta, MusicController.getPosition(), lastKeysPressed);
+			
+			//TODO probably should to disable sounds then reseek to the new position
+			if(seeking && replayIndex-1 >= 1 && replayIndex < replay.frames.length && trackPosition < replay.frames[replayIndex-1].getTime()){
+				replayIndex = 0;
+				while(objectIndex>=0){
+					gameObjects[objectIndex].reset();
+					objectIndex--;
+					
+				}
+				// reset game data
+				resetGameData();
+
+				// load the first timingPoint
+				if (!beatmap.timingPoints.isEmpty()) {
+					TimingPoint timingPoint = beatmap.timingPoints.get(0);
+					if (!timingPoint.isInherited()) {
+						setBeatLength(timingPoint, true);
+						timingPointIndex++;
+					}
+				}
+				seeking = false;
+			}
 
 			// update and run replay frames
 			while (replayIndex < replay.frames.length && trackPosition >= replay.frames[replayIndex].getTime()) {
@@ -753,7 +781,7 @@ public class Game extends BasicGameState {
 		while (objectIndex < gameObjects.length && trackPosition > beatmap.objects[objectIndex].getTime()) {
 			// check if we've already passed the next object's start time
 			boolean overlap = (objectIndex + 1 < gameObjects.length &&
-					trackPosition > beatmap.objects[objectIndex + 1].getTime() - hitResultOffset[GameData.HIT_300]);
+					trackPosition > beatmap.objects[objectIndex + 1].getTime() - hitResultOffset[GameData.HIT_50]);
 
 			// update hit object and check completion status
 			if (gameObjects[objectIndex].update(overlap, delta, mouseX, mouseY, keyPressed, trackPosition))
@@ -897,6 +925,11 @@ public class Game extends BasicGameState {
 				MusicController.setPitch(GameMod.getSpeedMultiplier() * playbackSpeed.getModifier());
 			}
 
+			if(!GameMod.AUTO.isActive() && y < 50){
+				float pos = (float)x / width * beatmap.endTime;
+				MusicController.setPosition((int)pos);
+				seeking = true;
+			}
 			return;
 		}
 
@@ -1044,6 +1077,9 @@ public class Game extends BasicGameState {
 			} else if (restart == Restart.REPLAY)
 				retries = 0;
 
+			gameObjects = new GameObject[beatmap.objects.length];
+			playbackSpeed = PlaybackSpeed.NORMAL;
+
 			// reset game data
 			resetGameData();
 
@@ -1063,7 +1099,7 @@ public class Game extends BasicGameState {
 
 				// is this the last note in the combo?
 				boolean comboEnd = false;
-				if (i + 1 < beatmap.objects.length && beatmap.objects[i + 1].isNewCombo())
+				if (i + 1 >= beatmap.objects.length || beatmap.objects[i + 1].isNewCombo())
 					comboEnd = true;
 
 				Color color = combo[hitObject.getComboIndex()];
@@ -1278,7 +1314,6 @@ public class Game extends BasicGameState {
 	 * Resets all game data and structures.
 	 */
 	public void resetGameData() {
-		gameObjects = new GameObject[beatmap.objects.length];
 		data.clear();
 		objectIndex = 0;
 		breakIndex = 0;
@@ -1303,8 +1338,7 @@ public class Game extends BasicGameState {
 		autoMouseY = 0;
 		autoMousePressed = false;
 		flashlightRadius = container.getHeight() * 2 / 3;
-		playbackSpeed = PlaybackSpeed.NORMAL;
-
+		
 		System.gc();
 	}
 
@@ -1405,11 +1439,19 @@ public class Game extends BasicGameState {
 
 		// overallDifficulty (hit result time offsets)
 		hitResultOffset = new int[GameData.HIT_MAX];
+		/*
+		float mult = 0.608f;
+		hitResultOffset[GameData.HIT_300]  = (int) ((128 - (overallDifficulty * 9.6))*mult);
+		hitResultOffset[GameData.HIT_100]  = (int) ((224 - (overallDifficulty * 12.8))*mult);
+		hitResultOffset[GameData.HIT_50]   = (int) ((320 - (overallDifficulty * 16))*mult);
+		hitResultOffset[GameData.HIT_MISS] = (int) ((1000 - (overallDifficulty * 10))*mult);
+		/*/
 		hitResultOffset[GameData.HIT_300]  = (int) (78 - (overallDifficulty * 6));
 		hitResultOffset[GameData.HIT_100]  = (int) (138 - (overallDifficulty * 8));
 		hitResultOffset[GameData.HIT_50]   = (int) (198 - (overallDifficulty * 10));
 		hitResultOffset[GameData.HIT_MISS] = (int) (500 - (overallDifficulty * 10));
 		data.setHitResultOffset(hitResultOffset);
+		//*/
 
 		// HPDrainRate (health change)
 		data.setDrainRate(HPDrainRate);

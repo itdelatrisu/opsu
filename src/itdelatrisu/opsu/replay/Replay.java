@@ -20,14 +20,18 @@ package itdelatrisu.opsu.replay;
 
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.Options;
+import itdelatrisu.opsu.ScoreData;
 import itdelatrisu.opsu.Utils;
+import itdelatrisu.opsu.beatmap.Beatmap;
 import itdelatrisu.opsu.io.OsuReader;
 import itdelatrisu.opsu.io.OsuWriter;
 
+import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.CharBuffer;
 import java.nio.charset.CharsetEncoder;
 import java.nio.charset.StandardCharsets;
@@ -100,6 +104,8 @@ public class Replay {
 	/** Seed. (?) */
 	public int seed;
 
+	private ScoreData scoreData;
+
 	/** Seed string. */
 	private static final String SEED_STRING = "-12345";
 
@@ -130,6 +136,46 @@ public class Replay {
 		reader.close();
 		loaded = true;
 	}
+	
+	public void loadHeader() throws IOException {
+		OsuReader reader = new OsuReader(file);
+		loadHeader(reader);
+		reader.close();
+	}
+	/**
+	 * Returns a ScoreData object encapsulating all game data.
+	 * If score data already exists, the existing object will be returned
+	 * (i.e. this will not overwrite existing data).
+	 * @param osu the OsuFile
+	 * @return the ScoreData object
+	 */
+	public ScoreData getScoreData(Beatmap osu) {
+		if (scoreData != null)
+			return scoreData;
+
+		scoreData = new ScoreData();
+		scoreData.timestamp = file.lastModified() / 1000L;
+		scoreData.MID = osu.beatmapID;
+		scoreData.MSID = osu.beatmapSetID;
+		scoreData.title = osu.title;
+		scoreData.artist = osu.artist;
+		scoreData.creator = osu.creator;
+		scoreData.version = osu.version;
+		scoreData.hit300 = hit300;
+		scoreData.hit100 = hit100;
+		scoreData.hit50 = hit50;
+		scoreData.geki = geki;
+		scoreData.katu = katu;
+		scoreData.miss = miss;
+		scoreData.score = score;
+		scoreData.combo = combo;
+		scoreData.perfect = perfect;
+		scoreData.mods = mods;
+		scoreData.replayString = file!=null ? file.getName() : getReplayFilename();
+		scoreData.playerName = playerName!=null ? playerName : "No Name";
+		return scoreData;
+	}
+
 
 	/**
 	 * Loads the replay header data.
@@ -232,7 +278,7 @@ public class Replay {
 		new Thread() {
 			@Override
 			public void run() {
-				try (FileOutputStream out = new FileOutputStream(file)) {
+				try (OutputStream out = new BufferedOutputStream(new FileOutputStream(file))) {
 					OsuWriter writer = new OsuWriter(out);
 
 					// header

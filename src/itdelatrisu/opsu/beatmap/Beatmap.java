@@ -184,7 +184,10 @@ public class Beatmap implements Comparable<Beatmap> {
 
 	/** Slider border color. If null, the skin value is used. */
 	public Color sliderBorder;
-
+	
+	/** md5 hash of this file */
+	public String md5Hash;
+	
 	/**
 	 * [HitObjects]
 	 */
