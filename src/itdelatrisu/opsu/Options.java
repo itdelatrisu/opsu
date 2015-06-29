@@ -333,19 +333,19 @@ public class Options {
 			@Override
 			public void drag(GameContainer container, int d) {
 				super.drag(container, d);
-				container.setMusicVolume(getMasterVolume() * getMusicVolume());
+				MusicController.setVolume(getMasterVolume() * getMusicVolume());
 			}
 		},
 		MUSIC_VOLUME ("Music Volume", "VolumeMusic", "Volume of music.", 80, 0, 100) {
 			@Override
 			public void drag(GameContainer container, int d) {
 				super.drag(container, d);
-				container.setMusicVolume(getMasterVolume() * getMusicVolume());
+				MusicController.setVolume(getMasterVolume() * getMusicVolume());
 			}
 		},
 		EFFECT_VOLUME ("Effect Volume", "VolumeEffect", "Volume of menu and game sounds.", 70, 0, 100),
 		HITSOUND_VOLUME ("Hit Sound Volume", "VolumeHitSound", "Volume of hit sounds.", 30, 0, 100),
-		MUSIC_OFFSET ("Music Offset", "Offset", "Adjust this value if hit objects are out of sync.", -75, -500, 500) {
+		MUSIC_OFFSET ("Music Offset", "Offset", "Adjust this value if hit objects are out of sync.", 0, -500, 500) {
 			@Override
 			public String getValueString() { return String.format("%dms", val); }
 		},

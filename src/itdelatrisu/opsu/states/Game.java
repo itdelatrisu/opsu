@@ -679,7 +679,6 @@ public class Game extends BasicGameState {
 			// track ended before last object was processed: force a hit result
 			if (MusicController.trackEnded() && objectIndex < gameObjects.length)
 				gameObjects[objectIndex].update(true, delta, mouseX, mouseY, false, trackPosition);
-
 			// if checkpoint used, skip ranking screen
 			if (checkpointLoaded)
 				game.closeRequested();
@@ -879,7 +878,7 @@ public class Game extends BasicGameState {
 
 					// skip to checkpoint
 					MusicController.setPosition(checkpoint);
-					MusicController.setPitch(GameMod.getSpeedMultiplier() * playbackSpeed.getModifier());
+					MusicController.setSpeed(GameMod.getSpeedMultiplier() * playbackSpeed.getModifier());
 					while (objectIndex < gameObjects.length &&
 							beatmap.objects[objectIndex++].getTime() <= checkpoint)
 						;
@@ -922,7 +921,7 @@ public class Game extends BasicGameState {
 			// playback speed button
 			else if (playbackSpeed.getButton().contains(x, y)) {
 				playbackSpeed = playbackSpeed.next();
-				MusicController.setPitch(GameMod.getSpeedMultiplier() * playbackSpeed.getModifier());
+				MusicController.setSpeed(GameMod.getSpeedMultiplier() * playbackSpeed.getModifier());
 			}
 
 			if(!GameMod.AUTO.isActive() && y < 50){
@@ -1187,14 +1186,14 @@ public class Game extends BasicGameState {
 			// needs to play before setting position to resume without lag later
 			MusicController.play(false);
 			MusicController.setPosition(0);
-			MusicController.setPitch(GameMod.getSpeedMultiplier());
+			MusicController.setSpeed(GameMod.getSpeedMultiplier());
 			MusicController.pause();
 		}
 
 		skipButton.resetHover();
 		if (isReplay || GameMod.AUTO.isActive())
 			playbackSpeed.getButton().resetHover();
-		MusicController.setPitch(GameMod.getSpeedMultiplier() * playbackSpeed.getModifier());
+		MusicController.setSpeed(GameMod.getSpeedMultiplier() * playbackSpeed.getModifier());
 	}
 
 	@Override
@@ -1211,7 +1210,7 @@ public class Game extends BasicGameState {
 			GameMod.loadModState(previousMods);
 
 		// reset playback speed
-		MusicController.setPitch(1f);
+		MusicController.setSpeed(1f);
 	}
 
 	/**
@@ -1355,7 +1354,6 @@ public class Game extends BasicGameState {
 				MusicController.resume();
 			}
 			MusicController.setPosition(firstObjectTime - SKIP_OFFSET);
-			MusicController.setPitch(GameMod.getSpeedMultiplier() * playbackSpeed.getModifier());
 			replaySkipTime = (isReplay) ? -1 : trackPosition;
 			if (isReplay) {
 				replayX = (int) skipButton.getX();

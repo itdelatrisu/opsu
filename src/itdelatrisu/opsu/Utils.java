@@ -32,6 +32,7 @@ import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -40,6 +41,7 @@ import java.net.SocketTimeoutException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.ByteBuffer;
+import java.nio.file.Files;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
@@ -193,6 +195,9 @@ public class Utils {
 
 		// initialize UI components
 		UI.init(container, game);
+
+		// initialize native library loader
+		NativeLoader.init();
 	}
 
 	/**
@@ -469,9 +474,64 @@ public class Utils {
 					file.delete();
 			}
 		}
-
 		// delete the directory
 		dir.delete();
+	}
+
+
+	public static void extractResource(String name, String targetPath) {
+		File target = new File(targetPath);
+		if (target.exists())
+			return;
+
+		if (!target.getParentFile().exists())
+			target.getParentFile().mkdirs();
+		try {
+			// open resource file as stream
+			FileOutputStream out = new FileOutputStream(target);
+			InputStream in = Opsu.class.getResourceAsStream(name);
+
+			// write buffer to file
+			byte[] buffer = new byte[1024];
+			int len = in.read(buffer);
+			while (len != -1) {
+				out.write(buffer, 0, len);
+				len = in.read(buffer);
+			}
+			out.close();
+			in.close();
+		} catch (IOException e) {
+			ErrorHandler.error(null, e, true);
+		}
+	}
+
+	public static void copyDirectory(File directory, String targetPath) {
+		if (!directory.isDirectory())
+			return;
+
+		for (File file : directory.listFiles()) {
+			File target = new File(targetPath + "/" + file.getName());
+			// skip if target file equal, replace if not
+			if (target.exists() && !target.isDirectory())
+				if(target.length() == file.length())
+					continue;
+				else
+					target.delete();
+
+			// recursive copy
+			if (file.isDirectory()) {
+				copyDirectory(file, target.getAbsolutePath());
+				continue;
+			}
+
+			if (!target.getParentFile().exists())
+				target.getParentFile().mkdirs();
+			try {
+				Files.copy(file.toPath(), target.toPath());
+			} catch (IOException e) {
+				ErrorHandler.error(null, e, true);
+			}
+		}
 	}
 
 	/**

@@ -407,7 +407,7 @@ public class Music {
 		if (!playing) {
 			return;
 		}
-       
+
 		if (fadeTime > 0) {
 			fadeTime -= delta;
 			if (fadeTime < 0) {
@@ -417,7 +417,7 @@ public class Music {
 					return;
 				}
 			}
-			
+
 			float offset = (fadeEndGain - fadeStartGain) * (1 - (fadeTime / (float)fadeDuration));
 			setVolume(fadeStartGain + offset);
 		}

@@ -30,6 +30,27 @@
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-install-plugin</artifactId>
+				<version>2.4</version>
+				<executions>
+					<execution>
+						<phase>validate</phase>
+						<goals>
+							<goal>install-file</goal>
+						</goals>
+						<configuration>
+							<groupId>com.googlecode.gstreamer-java</groupId>
+							<artifactId>gstreamer-java</artifactId>
+							<version>1.6</version>
+							<packaging>jar</packaging>
+							<file>${basedir}/libs/gstreamer-java-1.6.jar</file>
+							<generatePom>true</generatePom>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.2</version>
 				<configuration>
@@ -208,6 +229,11 @@
 			<groupId>com.github.jponge</groupId>
 			<artifactId>lzma-java</artifactId>
 			<version>1.2</version>
+		</dependency>
+		<dependency>
+			<groupId>com.googlecode.gstreamer-java</groupId>
+			<artifactId>gstreamer-java</artifactId>
+			<version>1.6</version>
 		</dependency>
 	</dependencies>
 </project>

@@ -31,6 +31,7 @@ package org.newdawn.slick;
 import java.io.IOException;
 import java.util.Properties;
 
+import itdelatrisu.opsu.audio.MusicController;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.Sys;
 import org.lwjgl.input.Cursor;
@@ -678,8 +679,8 @@ public abstract class GameContainer implements GUIContext {
 		}
 		
 		input.poll(width, height);
-	
-		Music.poll(delta);
+
+		MusicController.update(delta);
 		if (!paused) {
 			storedDelta += delta;
 			
