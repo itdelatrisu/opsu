@@ -1090,7 +1090,7 @@ public class Options {
 		oszDir.mkdir();
 		return oszDir;
 	}
-	
+
 	/**
 	 * Returns the replay import directory.
 	 * If invalid, this will create and return a "ReplayImport" directory.
@@ -1104,7 +1104,7 @@ public class Options {
 		replayImportDir.mkdir();
 		return replayImportDir;
 	}
-	
+
 	/**
 	 * Returns the screenshot directory.
 	 * If invalid, this will return a "Screenshot" directory.

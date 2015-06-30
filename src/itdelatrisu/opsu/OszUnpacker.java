@@ -33,7 +33,7 @@ public class OszUnpacker {
 	/** The index of the current file being unpacked. */
 	private static int fileIndex = -1;
 
-	/** The total number of directories to parse. */
+	/** The total number of files to unpack. */
 	private static File[] files;
 
 	// This class should not be instantiated.

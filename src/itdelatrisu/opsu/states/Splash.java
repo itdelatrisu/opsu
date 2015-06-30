@@ -25,9 +25,9 @@ import itdelatrisu.opsu.OszUnpacker;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
-import itdelatrisu.opsu.replay.ReplayImporter;
-import itdelatrisu.opsu.beatmap.BeatmapSetList;
 import itdelatrisu.opsu.beatmap.BeatmapParser;
+import itdelatrisu.opsu.beatmap.BeatmapSetList;
+import itdelatrisu.opsu.replay.ReplayImporter;
 import itdelatrisu.opsu.ui.UI;
 
 import java.io.File;
@@ -128,7 +128,7 @@ public class Splash extends BasicGameState {
 
 						// parse song directory
 						BeatmapParser.parseAllFiles(beatmapDir);
-						
+
 						// import replays
 						ReplayImporter.importAllReplaysFromDir(Options.getReplayImportDir());
 

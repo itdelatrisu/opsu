@@ -63,6 +63,9 @@ public class ScoreData implements Comparable<ScoreData> {
 	/** The replay string. */
 	public String replayString;
 
+	/** The player name. */
+	public String playerName;
+
 	/** Time since the score was achieved. */
 	private String timeSince;
 
@@ -77,9 +80,6 @@ public class ScoreData implements Comparable<ScoreData> {
 
 	/** The tooltip string. */
 	private String tooltip;
-	
-	/** The players Name. */
-	public String playerName;
 
 	/** Drawing values. */
 	private static float baseX, baseY, buttonWidth, buttonHeight, buttonOffset;
@@ -262,9 +262,10 @@ public class ScoreData implements Comparable<ScoreData> {
 		);
 
 		// hit counts (custom: osu! shows user instead, above score)
+		String player = (playerName == null) ? "" : String.format("  (%s)", playerName);
 		Utils.FONT_SMALL.drawString(
 				textX, y + textOffset + Utils.FONT_MEDIUM.getLineHeight(),
-				String.format("300:%d  100:%d  50:%d  Miss:%d Name:%s", hit300, hit100, hit50, miss, getPlayerName()),
+				String.format("300:%d  100:%d  50:%d  Miss:%d%s", hit300, hit100, hit50, miss, player),
 				Color.white
 		);
 
@@ -335,11 +336,6 @@ public class ScoreData implements Comparable<ScoreData> {
 		);
 	}
 
-	public String getPlayerName() {
-		if(playerName == null)
-			return "Null Name";
-		return playerName;
-	}
 	@Override
 	public int compareTo(ScoreData that) {
 		if (this.score != that.score)

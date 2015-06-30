@@ -38,9 +38,9 @@ public class Circle implements GameObject {
 	/** The amount of time, in milliseconds, to fade in the circle. */
 	private static final int FADE_IN_TIME = 375;
 
-	/** The diameter of Circle Hitobjects */
+	/** The diameter of hit circles. */
 	private static float diameter;
-	
+
 	/** The associated HitObject. */
 	private HitObject hitObject;
 
@@ -65,9 +65,9 @@ public class Circle implements GameObject {
 	 * @param circleSize the map's circleSize value
 	 */
 	public static void init(GameContainer container, float circleSize) {
-		diameter =  (104 - (circleSize * 8));
-		diameter =  (diameter * HitObject.getXMultiplier());  // convert from Osupixels (640x480)
-		int diameterInt = (int)diameter;
+		diameter = (104 - (circleSize * 8));
+		diameter = (diameter * HitObject.getXMultiplier());  // convert from Osupixels (640x480)
+		int diameterInt = (int) diameter;
 		GameImage.HITCIRCLE.setImage(GameImage.HITCIRCLE.getImage().getScaledCopy(diameterInt, diameterInt));
 		GameImage.HITCIRCLE_OVERLAY.setImage(GameImage.HITCIRCLE_OVERLAY.getImage().getScaledCopy(diameterInt, diameterInt));
 		GameImage.APPROACHCIRCLE.setImage(GameImage.APPROACHCIRCLE.getImage().getScaledCopy(diameterInt, diameterInt));
@@ -123,7 +123,6 @@ public class Circle implements GameObject {
 	private int hitResult(int time) {
 		int timeDiff = Math.abs(time);
 
-		
 		int[] hitResultOffset = game.getHitResultOffsets();
 		int result = -1;
 		if (timeDiff <= hitResultOffset[GameData.HIT_300])
@@ -142,13 +141,13 @@ public class Circle implements GameObject {
 	@Override
 	public boolean mousePressed(int x, int y, int trackPosition) {
 		double distance = Math.hypot(this.x - x, this.y - y);
-		if (distance < diameter/2) {
+		if (distance < diameter / 2) {
 			int timeDiff = trackPosition - hitObject.getTime();
 			int result = hitResult(timeDiff);
 
 			if (result > -1) {
 				data.addHitError(hitObject.getTime(), x, y, timeDiff);
-				data.hitResult(trackPosition, result, this.x, this.y, color, comboEnd, hitObject, 0, HitObjectType.CIRCLE, null, true);
+				data.hitResult(trackPosition, result, this.x, this.y, color, comboEnd, hitObject, HitObjectType.CIRCLE, true, 0, null, false);
 				return true;
 			}
 		}
@@ -164,17 +163,17 @@ public class Circle implements GameObject {
 
 		if (trackPosition > time + hitResultOffset[GameData.HIT_50]) {
 			if (isAutoMod)  // "auto" mod: catch any missed notes due to lag
-				data.hitResult(time, GameData.HIT_300, x, y, color, comboEnd, hitObject, 0, HitObjectType.CIRCLE, null, true);
+				data.hitResult(time, GameData.HIT_300, x, y, color, comboEnd, hitObject, HitObjectType.CIRCLE, true, 0, null, false);
 
 			else  // no more points can be scored, so send a miss
-				data.hitResult(trackPosition, GameData.HIT_MISS, x, y, null, comboEnd, hitObject, 0, HitObjectType.CIRCLE, null, true);
+				data.hitResult(trackPosition, GameData.HIT_MISS, x, y, null, comboEnd, hitObject, HitObjectType.CIRCLE, true, 0, null, false);
 			return true;
 		}
 
 		// "auto" mod: send a perfect hit result
 		else if (isAutoMod) {
 			if (Math.abs(trackPosition - time) < hitResultOffset[GameData.HIT_300]) {
-				data.hitResult(time, GameData.HIT_300, x, y, color, comboEnd, hitObject, 0, HitObjectType.CIRCLE, null, true);
+				data.hitResult(time, GameData.HIT_300, x, y, color, comboEnd, hitObject, HitObjectType.CIRCLE, true, 0, null, false);
 				return true;
 			}
 		}
@@ -199,7 +198,5 @@ public class Circle implements GameObject {
 	}
 
 	@Override
-	public void reset() {
-		
-	}
+	public void reset() {}
 }

@@ -49,9 +49,11 @@ public class Slider implements GameObject {
 
 	/** Rate at which slider ticks are placed. */
 	private static float sliderTickRate = 1.0f;
-	
+
+	/** Follow circle radius. */
 	private static float followRadius;
-	
+
+	/** The diameter of hit circles. */
 	private static float diameter;
 
 	/** The amount of time, in milliseconds, to fade in the slider. */
@@ -81,8 +83,11 @@ public class Slider implements GameObject {
 	/** The time duration of the slider including repeats, in milliseconds. */
 	private float sliderTimeTotal = 0f;
 
-	/** Whether or not the result of the initial/final hit circles have been processed. */
-	private boolean sliderClickedInitial = false, sliderClickedFinal = false;
+	/** Whether or not the result of the initial hit circle has been processed. */
+	private boolean sliderClickedInitial = false;
+
+	/** Whether or not the slider was held to the end. */
+	private boolean sliderHeldToEnd = false;
 
 	/** Whether or not to show the follow circle. */
 	private boolean followCircleActive = false;
@@ -104,8 +109,6 @@ public class Slider implements GameObject {
 
 	/** Container dimensions. */
 	private static int containerWidth, containerHeight;
-	
-	
 
 	/**
 	 * Initializes the Slider data type with images and dimensions.
@@ -116,12 +119,13 @@ public class Slider implements GameObject {
 	public static void init(GameContainer container, float circleSize, Beatmap beatmap) {
 		containerWidth = container.getWidth();
 		containerHeight = container.getHeight();
-		
-		diameter =  (104 - (circleSize * 8));
-		diameter =  (diameter * HitObject.getXMultiplier());  // convert from Osupixels (640x480)
-		int diameterInt = (int)diameter;
-		
+
+		diameter = (104 - (circleSize * 8));
+		diameter = (diameter * HitObject.getXMultiplier());  // convert from Osupixels (640x480)
+		int diameterInt = (int) diameter;
+
 		followRadius = diameter / 2 * 3f;
+
 		// slider ball
 		if (GameImage.SLIDER_BALL.hasSkinImages() ||
 		    (!GameImage.SLIDER_BALL.hasSkinImage() && GameImage.SLIDER_BALL.getImages() != null))
@@ -283,51 +287,49 @@ public class Slider implements GameObject {
 		/*
 			time     scoredelta score-hit-initial-tick= unaccounted
 			(1/4   - 1)		396 - 300 - 30	 		46
-			(1+1/4 - 2)		442 - 300 - 30 - 10		
+			(1+1/4 - 2)		442 - 300 - 30 - 10
 			(2+1/4 - 3)		488 - 300 - 30 - 2*10	896 (408)5x
-			(3+1/4 - 4)		534 - 300 - 30 - 3*10	
-			(4+1/4 - 5)		580 - 300 - 30 - 4*10	
-			(5+1/4 - 6) 	626	- 300 - 30 - 5*10	
-			(6+1/4 - 7)		672	- 300 - 30 - 6*10	
-			
+			(3+1/4 - 4)		534 - 300 - 30 - 3*10
+			(4+1/4 - 5)		580 - 300 - 30 - 4*10
+			(5+1/4 - 6) 	626	- 300 - 30 - 5*10
+			(6+1/4 - 7)		672	- 300 - 30 - 6*10
+
 			difficultyMulti = 3	(+36 per combo)
-			
-			score = 
+
+			score =
 			(t)ticks(10) * nticks +
-			(h)hitValue 
-			(c)combo (hitValue/25 * difficultyMultiplier*(combo-1)) 
+			(h)hitValue
+			(c)combo (hitValue/25 * difficultyMultiplier*(combo-1))
 			(i)initialHit (30) +
 			(f)finalHit(30) +
-			
+
 			s     t       h          c     i     f
 			626 - 10*5 - 300  - 276(-216 - 30 - 30) (all)(7x)
 			240 - 10*5 - 100  - 90 (-60     <- 30>) (no final or initial)(6x)
-			
+
 			218 - 10*4 - 100  - 78 (-36       - 30) (4 tick no initial)(5x)
 			196 - 10*3 - 100  - 66 (-24       - 30 ) (3 tick no initial)(4x)
 			112 - 10*2 - 50   - 42 (-12       - 30 ) (2 tick no initial)(3x)
 			96  - 10   - 50   - 36 ( -6       - 30 ) (1 tick no initial)(2x)
-			
+
 			206 - 10*4 - 100  - 66 (-36       - 30 ) (4 tick no initial)(4x)
 			184 - 10*3 - 100  - 54 (-24       - 30 ) (3 tick no initial)(3x)
 			90  - 10   - 50   - 30 (          - 30 ) (1 tick no initial)(0x)
-			
+
 			194 - 10*4 - 100  - 54 (-24       - 30 ) (4 tick no initial)(3x)
-			
+
 			170 - 10*4 - 100  - 30 (     - 30      ) (4 tick no final)(0x)
 			160 - 10*3 - 100  - 30 (     - 30      ) (3 tick no final)(0x)
 			100 - 10*2 - 50   - 30 (     - 30      ) (2 tick no final)(0x)
-			
+
 			198 - 10*5 - 100  - 48 (-36            ) (no initial and final)(5x)
 			110        - 50   -    (     - 30 - 30 ) (final and initial no tick)(0x)
 			80         - 50   -    (       <- 30>  ) (only final or initial)(0x)
-			
+
 			140 - 10*4 - 100  - 0                    (4 ticks only)(0x)
 			80  - 10*3 - 50   - 0                    (3 tick only)(0x)
 			70  - 10*2 - 50   - 0                    (2 tick only)(0x)
 			60  - 10   - 50   - 0                    (1 tick only)(0x)
-			
-			
 		*/
 		float tickRatio = (float) ticksHit / tickIntervals;
 
@@ -354,7 +356,8 @@ public class Slider implements GameObject {
 			type = HitObjectType.SLIDER_FIRST;
 		}
 		data.hitResult(hitObject.getTime() + (int) sliderTimeTotal, result,
-				cx, cy, color, comboEnd, hitObject, currentRepeats + 1, type, curve, sliderClickedFinal);
+				cx, cy, color, comboEnd, hitObject, type, sliderHeldToEnd,
+				currentRepeats + 1, curve, sliderHeldToEnd);
 
 		return result;
 	}
@@ -429,21 +432,17 @@ public class Slider implements GameObject {
 				float[] c = curve.pointAt(getT(trackPosition, false));
 				double distance = Math.hypot(c[0] - mouseX, c[1] - mouseY);
 				if (distance < followRadius)
-					sliderClickedFinal = true;
+					sliderHeldToEnd = true;
 			}
 
 			// final circle hit
-			if (sliderClickedFinal){
+			if (sliderHeldToEnd)
 				ticksHit++;
-				data.sliderFinalResult(hitObject.getTime(), GameData.HIT_SLIDER30, this.x, this.y, hitObject, currentRepeats);
-			}
 
 			// "auto" mod: always send a perfect hit result
 			if (isAutoMod)
 				ticksHit = tickIntervals;
 
-			//TODO missing the final shouldn't increment the combo 
-			
 			// calculate and send slider result
 			hitResult();
 			return true;
@@ -501,8 +500,8 @@ public class Slider implements GameObject {
 			}
 
 			// held near end of slider
-			if (!sliderClickedFinal && trackPosition > hitObject.getTime() + sliderTimeTotal - hitResultOffset[GameData.HIT_300])
-				sliderClickedFinal = true;
+			if (!sliderHeldToEnd && trackPosition > hitObject.getTime() + sliderTimeTotal - hitResultOffset[GameData.HIT_300])
+				sliderHeldToEnd = true;
 		} else {
 			followCircleActive = false;
 
@@ -563,12 +562,11 @@ public class Slider implements GameObject {
 	@Override
 	public void reset() {
 		sliderClickedInitial = false;
-		sliderClickedFinal = false;
+		sliderHeldToEnd = false;
 		followCircleActive = false;
 		currentRepeats = 0;
 		tickIndex = 0;
 		ticksHit = 0;
 		tickIntervals = 1;
 	}
-
 }

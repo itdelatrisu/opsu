@@ -74,7 +74,7 @@ public class ErrorHandler {
 
 	/**
 	 * Displays an error popup and logs the given error.
-	 * @param error a descR of the error
+	 * @param error a description of the error
 	 * @param e the exception causing the error
 	 * @param report whether to ask to report the error
 	 */

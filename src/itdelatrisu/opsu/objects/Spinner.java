@@ -58,13 +58,14 @@ public class Spinner implements GameObject {
 		AUTO_MULTIPLIER = 1 / 20f,         // angle = 477/60f * delta/1000f * TWO_PI;
 		SPUN_OUT_MULTIPLIER = 1 / 33.25f;  // angle = 287/60f * delta/1000f * TWO_PI;
 
+	/** Maximum angle difference. */
+	private static final float MAX_ANG_DIFF = DELTA_UPDATE_TIME * AUTO_MULTIPLIER; // ~95.3
+
 	/** PI constants. */
 	private static final float
 		TWO_PI  = (float) (Math.PI * 2),
 		HALF_PI = (float) (Math.PI / 2);
 
-	private static final float MAX_ANG_DIFF = DELTA_UPDATE_TIME * AUTO_MULTIPLIER; // ~95.3
-	
 	/** The associated HitObject. */
 	private HitObject hitObject;
 
@@ -97,10 +98,10 @@ public class Spinner implements GameObject {
 
 	/** Current index of the stored velocities in rotations/second. */
 	private int deltaAngleIndex = 0;
-	
+
 	/** The remaining amount of the angle that was not used. */
 	private float deltaAngleOverflow = 0;
-	
+
 	/** The RPM that is drawn to the screen. */
 	private int drawnRPM = 0;
 
@@ -124,46 +125,47 @@ public class Spinner implements GameObject {
 	public Spinner(HitObject hitObject, Game game, GameData data) {
 		this.hitObject = hitObject;
 		this.data = data;
+
 /*
 		1 beat = 731.707317073171ms
 			RPM at frame X with spinner Y beats long
 				10	20	30	40	50	60 <frame#
-		1.00	306	418	457	470		
-		1.25	323	424	459	471	475	
+		1.00	306	418	457	470
+		1.25	323	424	459	471	475
 		1.5		305	417	456	470	475	477
-		1.75	322	417	456	471	475	
+		1.75	322	417	456	471	475
 		2.00	304	410	454	469	474	476
 		2.25	303	410	451	467	474	476
 		2.50	303	417	456	470	475	476
 		2.75	302	416	456	470	475	476
 		3.00	301	416	456	470	475		<-- ~2sec
-		4.00	274	414	453	470	475	
-		5.00	281	409	454	469	475	
+		4.00	274	414	453	470	475
+		5.00	281	409	454	469	475
 		6.00	232	392	451	467	472	476
-		6.25	193	378	443	465		
-		6.50	133	344	431	461		
+		6.25	193	378	443	465
+		6.50	133	344	431	461
 		6.75	85	228	378	435	463	472	<-- ~5sec
-		7.00	53	154	272	391	447		
-		8.00	53	154	272	391	447	
-		9.00	53	154	272	400	450	
-		10.00	53	154	272	400	450	
+		7.00	53	154	272	391	447
+		8.00	53	154	272	391	447
+		9.00	53	154	272	400	450
+		10.00	53	154	272	400	450
 		15.00	53	154	272	391	444	466
-		20.00	61	154	272	400	447	
+		20.00	61	154	272	400	447
 		25.00	53	154	272	391	447	466
 		^beats
 */
-		//TODO not correct at all, but close enough?
-		//<2sec ~ 12 ~ 200ms
-		//>5sec ~ 48 ~ 800ms
+		// TODO not correct at all, but close enough?
+		// <2sec ~ 12 ~ 200ms
+		// >5sec ~ 48 ~ 800ms
+
 		final int minVel = 12;
 		final int maxVel = 48;
 		final int minTime = 2000;
 		final int maxTime = 5000;
-		maxStoredDeltaAngles = (int) Utils.clamp(
-				(hitObject.getEndTime() - hitObject.getTime() - minTime) * (maxVel-minVel)/(maxTime-minTime) + minVel
-				, minVel, maxVel);
+		maxStoredDeltaAngles = (int) Utils.clamp((hitObject.getEndTime() - hitObject.getTime() - minTime)
+				* (maxVel - minVel) / (maxTime - minTime) + minVel, minVel, maxVel);
 		storedDeltaAngle = new float[maxStoredDeltaAngles];
-		
+
 		// calculate rotations needed
 		float spinsPerMinute = 100 + (overallDifficulty * 15);
 		rotationsNeeded = spinsPerMinute * (hitObject.getEndTime() - hitObject.getTime()) / 60000f;
@@ -245,19 +247,18 @@ public class Spinner implements GameObject {
 			result = GameData.HIT_MISS;
 
 		data.hitResult(hitObject.getEndTime(), result, width / 2, height / 2,
-				Color.transparent, true, hitObject, 0, HitObjectType.SPINNER, null, true);
+				Color.transparent, true, hitObject, HitObjectType.SPINNER, true, 0, null, false);
 		return result;
 	}
 
 	@Override
-	public boolean mousePressed(int x, int y, int trackPosition) { 
+	public boolean mousePressed(int x, int y, int trackPosition) {
 		lastAngle = (float) Math.atan2(x - (height / 2), y - (width / 2));
 		return false;
 	}
 
 	@Override
 	public boolean update(boolean overlap, int delta, int mouseX, int mouseY, boolean keyPressed, int trackPosition) {
-
 		// end of spinner
 		if (overlap || trackPosition > hitObject.getEndTime()) {
 			hitResult();
@@ -270,9 +271,9 @@ public class Spinner implements GameObject {
 
 		// spin automatically
 		// http://osu.ppy.sh/wiki/FAQ#Spinners
-		
+
 		deltaOverflow += delta;
-		
+
 		float angleDiff = 0;
 		if (GameMod.AUTO.isActive()) {
 			angleDiff = delta * AUTO_MULTIPLIER;
@@ -289,13 +290,12 @@ public class Spinner implements GameObject {
 				isSpinning = true;
 				return false;
 			}
+
 			angleDiff = angle - lastAngle;
-			if(Math.abs(angleDiff) > 0.01f){
+			if (Math.abs(angleDiff) > 0.01f)
 				lastAngle = angle;
-			}else{
+			else
 				angleDiff = 0;
-			}
-			
 		}
 
 		// make angleDiff the smallest angle change possible
@@ -304,36 +304,36 @@ public class Spinner implements GameObject {
 			angleDiff += TWO_PI;
 		else if (angleDiff > Math.PI)
 			angleDiff -= TWO_PI;
-		
-		//may be a problem at higher frame rate due to float point round off
+
+		// may be a problem at higher frame rate due to floating point round off
 		if (isSpinning)
 			deltaAngleOverflow += angleDiff;
-		
+
 		while (deltaOverflow >= DELTA_UPDATE_TIME) {
 			// spin caused by the cursor
-			float deltaAngle = 0; 
-			if (isSpinning){
+			float deltaAngle = 0;
+			if (isSpinning) {
 				deltaAngle = deltaAngleOverflow * DELTA_UPDATE_TIME / deltaOverflow;
 				deltaAngleOverflow -= deltaAngle;
-				deltaAngle =  Utils.clamp(deltaAngle, -MAX_ANG_DIFF, MAX_ANG_DIFF);
+				deltaAngle = Utils.clamp(deltaAngle, -MAX_ANG_DIFF, MAX_ANG_DIFF);
 			}
 			sumDeltaAngle -= storedDeltaAngle[deltaAngleIndex];
 			sumDeltaAngle += deltaAngle;
 			storedDeltaAngle[deltaAngleIndex++] = deltaAngle;
 			deltaAngleIndex %= storedDeltaAngle.length;
 			deltaOverflow -= DELTA_UPDATE_TIME;
-		
-			float rotationAngle = sumDeltaAngle / maxStoredDeltaAngles;
-			rotationAngle =  Utils.clamp(rotationAngle, -MAX_ANG_DIFF, MAX_ANG_DIFF);
-			float rotationPerSec = rotationAngle * (1000/DELTA_UPDATE_TIME) / TWO_PI;
 
-			drawnRPM = (int)(Math.abs(rotationPerSec * 60));
-			
+			float rotationAngle = sumDeltaAngle / maxStoredDeltaAngles;
+			rotationAngle = Utils.clamp(rotationAngle, -MAX_ANG_DIFF, MAX_ANG_DIFF);
+			float rotationPerSec = rotationAngle * (1000 / DELTA_UPDATE_TIME) / TWO_PI;
+
+			drawnRPM = (int) (Math.abs(rotationPerSec * 60));
+
 			rotate(rotationAngle);
 			if (Math.abs(rotationAngle) > 0.00001f)
 				data.changeHealth(DELTA_UPDATE_TIME * GameData.HP_DRAIN_MULTIPLIER);
-	
 		}
+
 		//TODO may need to update 1 more time when the spinner ends?
 		return false;
 	}
@@ -380,21 +380,17 @@ public class Spinner implements GameObject {
 			//TODO seems to give 1100 points per spin but also an extra 100 for some spinners
 			if (newRotations > rotationsNeeded) {  // extra rotations
 				data.changeScore(1000);
-				
 				SoundController.playSound(SoundEffect.SPINNERBONUS);
 			}
 			data.changeScore(100);
 			SoundController.playSound(SoundEffect.SPINNERSPIN);
-			
 		}
-		/*
-		//The extra 100 for some spinners (mostly wrong)
-		if (Math.floor(newRotations + 0.5f) > rotations + 0.5f) {
-			if (newRotations + 0.5f > rotationsNeeded) {  // extra rotations
-				data.changeScore(100);
-			}
-		}
-		//*/
+
+		// extra 100 for some spinners (mostly wrong)
+//		if (Math.floor(newRotations + 0.5f) > rotations + 0.5f) {
+//			if (newRotations + 0.5f > rotationsNeeded)  // extra rotations
+//				data.changeScore(100);
+//		}
 
 		rotations = newRotations;
 	}
@@ -403,9 +399,8 @@ public class Spinner implements GameObject {
 	public void reset() {
 		deltaAngleIndex = 0;
 		sumDeltaAngle = 0;
-		for(int i=0; i<storedDeltaAngle.length; i++){
+		for (int i = 0; i < storedDeltaAngle.length; i++)
 			storedDeltaAngle[i] = 0;
-		}
 		drawRotation = 0;
 		rotations = 0;
 		deltaOverflow = 0;

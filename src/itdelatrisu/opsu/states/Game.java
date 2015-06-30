@@ -217,17 +217,14 @@ public class Game extends BasicGameState {
 	/** Playback speed (used in replays and "auto" mod). */
 	private PlaybackSpeed playbackSpeed;
 
+	/** Whether the game is currently seeking to a replay position. */
+	private boolean isSeeking;
+
 	// game-related variables
 	private GameContainer container;
 	private StateBasedGame game;
 	private Input input;
 	private int state;
-
-	private int width;
-
-	private int height;
-
-	private boolean seeking;
 
 	public Game(int state) {
 		this.state = state;
@@ -240,8 +237,8 @@ public class Game extends BasicGameState {
 		this.game = game;
 		input = container.getInput();
 
-		width = container.getWidth();
-		height = container.getHeight();
+		int width = container.getWidth();
+		int height = container.getHeight();
 
 		// create offscreen graphics
 		offscreen = new Image(width, height);
@@ -615,15 +612,16 @@ public class Game extends BasicGameState {
 			// out of frames, use previous data
 			if (replayIndex >= replay.frames.length)
 				updateGame(replayX, replayY, delta, MusicController.getPosition(), lastKeysPressed);
-			
+
 			//TODO probably should to disable sounds then reseek to the new position
-			if(seeking && replayIndex-1 >= 1 && replayIndex < replay.frames.length && trackPosition < replay.frames[replayIndex-1].getTime()){
+			if (isSeeking && replayIndex - 1 >= 1 && replayIndex < replay.frames.length &&
+			    trackPosition < replay.frames[replayIndex - 1].getTime()) {
 				replayIndex = 0;
-				while(objectIndex>=0){
+				while (objectIndex >= 0) {
 					gameObjects[objectIndex].reset();
 					objectIndex--;
-					
 				}
+
 				// reset game data
 				resetGameData();
 
@@ -635,7 +633,7 @@ public class Game extends BasicGameState {
 						timingPointIndex++;
 					}
 				}
-				seeking = false;
+				isSeeking = false;
 			}
 
 			// update and run replay frames
@@ -925,10 +923,11 @@ public class Game extends BasicGameState {
 				MusicController.setPitch(GameMod.getSpeedMultiplier() * playbackSpeed.getModifier());
 			}
 
-			if(!GameMod.AUTO.isActive() && y < 50){
-				float pos = (float)x / width * beatmap.endTime;
-				MusicController.setPosition((int)pos);
-				seeking = true;
+			// TODO
+			else if (!GameMod.AUTO.isActive() && y < 50) {
+				float pos = (float) x / container.getWidth() * beatmap.endTime;
+				MusicController.setPosition((int) pos);
+				isSeeking = true;
 			}
 			return;
 		}
@@ -1338,7 +1337,7 @@ public class Game extends BasicGameState {
 		autoMouseY = 0;
 		autoMousePressed = false;
 		flashlightRadius = container.getHeight() * 2 / 3;
-		
+
 		System.gc();
 	}
 
@@ -1439,19 +1438,16 @@ public class Game extends BasicGameState {
 
 		// overallDifficulty (hit result time offsets)
 		hitResultOffset = new int[GameData.HIT_MAX];
-		/*
-		float mult = 0.608f;
-		hitResultOffset[GameData.HIT_300]  = (int) ((128 - (overallDifficulty * 9.6))*mult);
-		hitResultOffset[GameData.HIT_100]  = (int) ((224 - (overallDifficulty * 12.8))*mult);
-		hitResultOffset[GameData.HIT_50]   = (int) ((320 - (overallDifficulty * 16))*mult);
-		hitResultOffset[GameData.HIT_MISS] = (int) ((1000 - (overallDifficulty * 10))*mult);
-		/*/
 		hitResultOffset[GameData.HIT_300]  = (int) (78 - (overallDifficulty * 6));
 		hitResultOffset[GameData.HIT_100]  = (int) (138 - (overallDifficulty * 8));
 		hitResultOffset[GameData.HIT_50]   = (int) (198 - (overallDifficulty * 10));
 		hitResultOffset[GameData.HIT_MISS] = (int) (500 - (overallDifficulty * 10));
+		//final float mult = 0.608f;
+		//hitResultOffset[GameData.HIT_300]  = (int) ((128 - (overallDifficulty * 9.6)) * mult);
+		//hitResultOffset[GameData.HIT_100]  = (int) ((224 - (overallDifficulty * 12.8)) * mult);
+		//hitResultOffset[GameData.HIT_50]   = (int) ((320 - (overallDifficulty * 16)) * mult);
+		//hitResultOffset[GameData.HIT_MISS] = (int) ((1000 - (overallDifficulty * 10)) * mult);
 		data.setHitResultOffset(hitResultOffset);
-		//*/
 
 		// HPDrainRate (health change)
 		data.setDrainRate(HPDrainRate);

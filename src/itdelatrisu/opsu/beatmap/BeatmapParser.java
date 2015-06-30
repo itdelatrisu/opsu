@@ -19,9 +19,9 @@
 package itdelatrisu.opsu.beatmap;
 
 import itdelatrisu.opsu.ErrorHandler;
-import itdelatrisu.opsu.MD5InputStreamWrapper;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.db.BeatmapDB;
+import itdelatrisu.opsu.io.MD5InputStreamWrapper;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
@@ -67,6 +67,9 @@ public class BeatmapParser {
 
 	/** The current status. */
 	private static Status status = Status.NONE;
+
+	/** If no Provider supports a MessageDigestSpi implementation for the MD5 algorithm. */
+	private static boolean hasNoMD5Algorithm = false;
 
 	// This class should not be instantiated.
 	private BeatmapParser() {}
@@ -209,15 +212,11 @@ public class BeatmapParser {
 		Beatmap beatmap = new Beatmap(file);
 		beatmap.timingPoints = new ArrayList<TimingPoint>();
 
-		try (InputStream inFileStream = new BufferedInputStream(new FileInputStream(file));){
-			MD5InputStreamWrapper md5stream = null;
-			try {
-				md5stream = new MD5InputStreamWrapper(inFileStream);
-			} catch (NoSuchAlgorithmException e1) {
-				ErrorHandler.error("Failed to get MD5 hash stream.", e1, true);
-			}
-			BufferedReader in = new BufferedReader(new InputStreamReader(md5stream!=null?md5stream:inFileStream, "UTF-8"));
-			
+		try (
+			InputStream bis = new BufferedInputStream(new FileInputStream(file));
+			MD5InputStreamWrapper md5stream = (!hasNoMD5Algorithm) ? new MD5InputStreamWrapper(bis) : null;
+			BufferedReader in = new BufferedReader(new InputStreamReader((md5stream != null) ? md5stream : bis, "UTF-8"));
+		) {
 			String line = in.readLine();
 			String tokens[] = null;
 			while (line != null) {
@@ -594,6 +593,12 @@ public class BeatmapParser {
 				beatmap.md5Hash = md5stream.getMD5();
 		} catch (IOException e) {
 			ErrorHandler.error(String.format("Failed to read file '%s'.", file.getAbsolutePath()), e, false);
+		} catch (NoSuchAlgorithmException e) {
+			ErrorHandler.error("Failed to get MD5 hash stream.", e, true);
+
+			// retry without MD5
+			hasNoMD5Algorithm = true;
+			return parseFile(file, dir, beatmaps, parseObjects);
 		}
 
 		// no associated audio file?

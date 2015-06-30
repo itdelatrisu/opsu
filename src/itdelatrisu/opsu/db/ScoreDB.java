@@ -97,12 +97,9 @@ public class ScoreDB {
 
 		// prepare sql statements
 		try {
-			
-			//TODO  timestamp as primary key should prevent importing the same replay multiple times
-			//but if for some magical reason two different replays has the same time stamp
-			//it will fail, such as copying replays from another drive? which will reset
-			//the last modified of the file.
 			insertStmt = connection.prepareStatement(
+				// TODO: There will be problems if multiple replays have the same
+				// timestamp (e.g. when imported) due to timestamp being the primary key.
 				"INSERT OR IGNORE INTO scores VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 			);
 			selectMapStmt = connection.prepareStatement(
@@ -145,7 +142,7 @@ public class ScoreDB {
 					"combo INTEGER, " +
 					"perfect BOOLEAN, " +
 					"mods INTEGER, " +
-					"replay TEXT," +
+					"replay TEXT, " +
 					"playerName TEXT"+
 				");" +
 				"CREATE TABLE IF NOT EXISTS info (" +
@@ -294,7 +291,6 @@ public class ScoreDB {
 		stmt.setInt(17, data.mods);
 		stmt.setString(18, data.replayString);
 		stmt.setString(19, data.playerName);
-		
 	}
 
 	/**

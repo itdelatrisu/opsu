@@ -1,17 +1,17 @@
 /*
  *  opsu! - an open-source osu! client
  *  Copyright (C) 2014, 2015 Jeffrey Han
- * 
+ *
  *  opsu! is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
  *  (at your option) any later version.
- * 
+ *
  *  opsu! is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- * 
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with opsu!.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -77,7 +77,7 @@ public class CurveRenderState {
 	}
 
 	/**
-	 * Undo the static state. Static state setup caused by calls to 
+	 * Undo the static state. Static state setup caused by calls to
 	 * {@link #draw(org.newdawn.slick.Color, org.newdawn.slick.Color, itdelatrisu.opsu.objects.curves.Vec2f[])}
 	 * are undone.
 	 */
@@ -280,7 +280,7 @@ public class CurveRenderState {
 		for (int i = 0; i < curve.length * 2 - 1; ++i)
 			GL11.glDrawArrays(GL11.GL_TRIANGLE_FAN, i * (NewCurveStyleState.DIVIDES + 2), NewCurveStyleState.DIVIDES + 2);
 		GL20.glDisableVertexAttribArray(staticState.texCoordLoc);
-		GL20.glDisableVertexAttribArray(staticState.attribLoc);		
+		GL20.glDisableVertexAttribArray(staticState.attribLoc);
 		GL15.glDeleteBuffers(vtx_buf);
 		endRender(state);
 	}
@@ -335,7 +335,7 @@ public class CurveRenderState {
 		buff.put(1f);
 		//GL11.glVertex4f(x + 90 * (float) Math.sin(0.0), y + 90 * (float) Math.cos(0.0), 1.0f, 1.0f);
 	}
-	
+
 	/**
 	 * Contains all the necessary state that needs to be tracked to draw curves
 	 * in the new style and not re-create the shader each time.
@@ -360,16 +360,16 @@ public class CurveRenderState {
 
 		/** OpenGL shader uniform location of the color attribute. */
 		protected int colLoc = 0;
-		
+
 		/** OpenGL shader uniform location of the border color attribute. */
 		protected int colBorderLoc = 0;
-		
+
 		/** OpenGL shader uniform location of the texture sampler attribute. */
 		protected int texLoc = 0;
 
 		/** OpenGL texture id for the gradient texture for the curve. */
 		protected int gradientTexture = 0;
-		
+
 		/**
 		 * Reads the first row of the slider gradient texture and upload it as
 		 * a 1D texture to OpenGL if it hasn't already been done.

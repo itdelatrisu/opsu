@@ -25,6 +25,7 @@ import itdelatrisu.opsu.OszUnpacker;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.beatmap.BeatmapParser;
+import itdelatrisu.opsu.replay.ReplayImporter;
 
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
@@ -285,6 +286,9 @@ public class UI {
 			text = (BeatmapParser.getStatus() == BeatmapParser.Status.INSERTING) ?
 					"Updating database..." : "Loading beatmaps...";
 			progress = BeatmapParser.getParserProgress();
+		} else if ((file = ReplayImporter.getCurrentFileName()) != null) {
+			text = "Importing replays...";
+			progress = ReplayImporter.getLoadingProgress();
 		} else if ((file = SoundController.getCurrentFileName()) != null) {
 			text = "Loading sounds...";
 			progress = SoundController.getLoadingProgress();

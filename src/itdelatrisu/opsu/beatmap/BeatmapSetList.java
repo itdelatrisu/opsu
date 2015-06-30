@@ -58,10 +58,9 @@ public class BeatmapSetList {
 
 	/** Set of all beatmap set IDs for the parsed beatmaps. */
 	private HashSet<Integer> MSIDdb;
-	
-	/** Map of all hash to Beatmap . */
-	public HashMap<String, Beatmap> beatmapHashesToFile;
 
+	/** Map of all MD5 hashes to beatmaps. */
+	private HashMap<String, Beatmap> beatmapHashDB;
 
 	/** Index of current expanded node (-1 if no node is expanded). */
 	private int expandedIndex;
@@ -88,7 +87,7 @@ public class BeatmapSetList {
 	private BeatmapSetList() {
 		parsedNodes = new ArrayList<BeatmapSetNode>();
 		MSIDdb = new HashSet<Integer>();
-		beatmapHashesToFile = new HashMap<String, Beatmap>();
+		beatmapHashDB = new HashMap<String, Beatmap>();
 		reset();
 	}
 
@@ -123,10 +122,12 @@ public class BeatmapSetList {
 		int msid = beatmaps.get(0).beatmapSetID;
 		if (msid > 0)
 			MSIDdb.add(msid);
-		for(Beatmap f : beatmaps) {
-			beatmapHashesToFile.put(f.md5Hash, f);
-		}
 
+		// add MD5 hashes to table
+		for (Beatmap beatmap : beatmaps) {
+			if (beatmap.md5Hash != null)
+				beatmapHashDB.put(beatmap.md5Hash, beatmap);
+		}
 
 		return node;
 	}
@@ -511,8 +512,13 @@ public class BeatmapSetList {
 	 * @return true if id is in the list
 	 */
 	public boolean containsBeatmapSetID(int id) { return MSIDdb.contains(id); }
-	
-	public Beatmap getFileFromBeatmapHash(String beatmapHash) {
-		return beatmapHashesToFile.get(beatmapHash);
+
+	/**
+	 * Returns the beatmap associated with the given hash.
+	 * @param beatmapHash the MD5 hash
+	 * @return the associated beatmap, or {@code null} if no match was found
+	 */
+	public Beatmap getBeatmapFromHash(String beatmapHash) {
+		return beatmapHashDB.get(beatmapHash);
 	}
 }

@@ -56,6 +56,9 @@ public class Replay {
 	/** The associated file. */
 	private File file;
 
+	/** The associated score data. */
+	private ScoreData scoreData;
+
 	/** Whether or not the replay data has been loaded from the file. */
 	public boolean loaded = false;
 
@@ -104,8 +107,6 @@ public class Replay {
 	/** Seed. (?) */
 	public int seed;
 
-	private ScoreData scoreData;
-
 	/** Seed string. */
 	private static final String SEED_STRING = "-12345";
 
@@ -136,46 +137,16 @@ public class Replay {
 		reader.close();
 		loaded = true;
 	}
-	
+
+	/**
+	 * Loads the replay header only.
+	 * @throws IOException failure to load the data
+	 */
 	public void loadHeader() throws IOException {
 		OsuReader reader = new OsuReader(file);
 		loadHeader(reader);
 		reader.close();
 	}
-	/**
-	 * Returns a ScoreData object encapsulating all game data.
-	 * If score data already exists, the existing object will be returned
-	 * (i.e. this will not overwrite existing data).
-	 * @param osu the OsuFile
-	 * @return the ScoreData object
-	 */
-	public ScoreData getScoreData(Beatmap osu) {
-		if (scoreData != null)
-			return scoreData;
-
-		scoreData = new ScoreData();
-		scoreData.timestamp = file.lastModified() / 1000L;
-		scoreData.MID = osu.beatmapID;
-		scoreData.MSID = osu.beatmapSetID;
-		scoreData.title = osu.title;
-		scoreData.artist = osu.artist;
-		scoreData.creator = osu.creator;
-		scoreData.version = osu.version;
-		scoreData.hit300 = hit300;
-		scoreData.hit100 = hit100;
-		scoreData.hit50 = hit50;
-		scoreData.geki = geki;
-		scoreData.katu = katu;
-		scoreData.miss = miss;
-		scoreData.score = score;
-		scoreData.combo = combo;
-		scoreData.perfect = perfect;
-		scoreData.mods = mods;
-		scoreData.replayString = file!=null ? file.getName() : getReplayFilename();
-		scoreData.playerName = playerName!=null ? playerName : "No Name";
-		return scoreData;
-	}
-
 
 	/**
 	 * Loads the replay header data.
@@ -258,6 +229,40 @@ public class Replay {
 			}
 			this.frames = replayFrameList.toArray(new ReplayFrame[replayFrameList.size()]);
 		}
+	}
+
+	/**
+	 * Returns a ScoreData object encapsulating all replay data.
+	 * If score data already exists, the existing object will be returned
+	 * (i.e. this will not overwrite existing data).
+	 * @param beatmap the beatmap
+	 * @return the ScoreData object
+	 */
+	public ScoreData getScoreData(Beatmap beatmap) {
+		if (scoreData != null)
+			return scoreData;
+
+		scoreData = new ScoreData();
+		scoreData.timestamp = file.lastModified() / 1000L;
+		scoreData.MID = beatmap.beatmapID;
+		scoreData.MSID = beatmap.beatmapSetID;
+		scoreData.title = beatmap.title;
+		scoreData.artist = beatmap.artist;
+		scoreData.creator = beatmap.creator;
+		scoreData.version = beatmap.version;
+		scoreData.hit300 = hit300;
+		scoreData.hit100 = hit100;
+		scoreData.hit50 = hit50;
+		scoreData.geki = geki;
+		scoreData.katu = katu;
+		scoreData.miss = miss;
+		scoreData.score = score;
+		scoreData.combo = combo;
+		scoreData.perfect = perfect;
+		scoreData.mods = mods;
+		scoreData.replayString = getReplayFilename();
+		scoreData.playerName = playerName;
+		return scoreData;
 	}
 
 	/**

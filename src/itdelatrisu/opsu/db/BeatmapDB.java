@@ -122,7 +122,7 @@ public class BeatmapDB {
 					"bpmMin INTEGER, bpmMax INTEGER, endTime INTEGER, " +
 					"audioFile TEXT, audioLeadIn INTEGER, previewTime INTEGER, countdown INTEGER, sampleSet TEXT, stackLeniency REAL, " +
 					"mode INTEGER, letterboxInBreaks BOOLEAN, widescreenStoryboard BOOLEAN, epilepsyWarning BOOLEAN, " +
-					"bg TEXT, sliderBorder TEXT, timingPoints TEXT, breaks TEXT, combo TEXT," +
+					"bg TEXT, sliderBorder TEXT, timingPoints TEXT, breaks TEXT, combo TEXT, " +
 					"md5hash TEXT" +
 				"); " +
 				"CREATE TABLE IF NOT EXISTS info (" +
@@ -483,7 +483,7 @@ public class BeatmapDB {
 			if (bg != null)
 				beatmap.bg = new File(dir, BeatmapParser.getDBString(bg));
 			beatmap.sliderBorderFromString(rs.getString(37));
-			beatmap.md5Hash = BeatmapParser.getDBString(rs.getString(41));
+			beatmap.md5Hash = rs.getString(41);
 		} catch (SQLException e) {
 			throw e;
 		} catch (Exception e) {

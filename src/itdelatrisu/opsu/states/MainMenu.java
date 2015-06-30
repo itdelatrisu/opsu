@@ -32,8 +32,8 @@ import itdelatrisu.opsu.beatmap.BeatmapSetNode;
 import itdelatrisu.opsu.downloads.Updater;
 import itdelatrisu.opsu.states.ButtonMenu.MenuState;
 import itdelatrisu.opsu.ui.MenuButton;
-import itdelatrisu.opsu.ui.UI;
 import itdelatrisu.opsu.ui.MenuButton.Expand;
+import itdelatrisu.opsu.ui.UI;
 
 import java.awt.Desktop;
 import java.io.IOException;

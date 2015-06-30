@@ -65,7 +65,5 @@ public class DummyObject implements GameObject {
 	}
 
 	@Override
-	public void reset() {
-		
-	}
+	public void reset() {}
 }
