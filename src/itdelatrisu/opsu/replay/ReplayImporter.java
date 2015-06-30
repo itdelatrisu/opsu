@@ -27,11 +27,18 @@ import itdelatrisu.opsu.db.ScoreDB;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
+
+import org.newdawn.slick.util.Log;
 
 /**
  * Importer for replay files.
  */
 public class ReplayImporter {
+	/** The subdirectory (within the replay import directory) to move replays that could not be imported. */
+	private static final String FAILED_IMPORT_DIR = "failed";
+
 	/** The index of the current file being imported. */
 	private static int fileIndex = -1;
 
@@ -75,18 +82,24 @@ public class ReplayImporter {
 			try {
 				r.loadHeader();
 			} catch (IOException e) {
+				moveToFailedDirectory(file);
 				ErrorHandler.error(String.format("Failed to import replay '%s'. The replay file could not be parsed.", file.getName()), e, false);
 				continue;
 			}
 			Beatmap beatmap = BeatmapSetList.get().getBeatmapFromHash(r.beatmapHash);
 			if (beatmap != null) {
-				File moveToFile = new File(replayDir, String.format("%s.osr", r.getReplayFilename()));
-				if (!file.renameTo(moveToFile)) {
-					ErrorHandler.error(String.format("Failed to import replay '%s'. The replay file could not be moved to the replay directory.", file.getName()), null, false);
-					//continue;
-				}
+				// add score to database
 				ScoreDB.addScore(r.getScoreData(beatmap));
+
+				// move to replay directory
+				File moveToFile = new File(replayDir, String.format("%s.osr", r.getReplayFilename()));
+				try {
+					Files.move(file.toPath(), moveToFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+				} catch (IOException e) {
+					Log.warn(String.format("Failed to move replay '%s' to the replay directory '%s'.", file, replayDir), e);
+				}
 			} else {
+				moveToFailedDirectory(file);
 				ErrorHandler.error(String.format("Failed to import replay '%s'. The associated beatmap could not be found.", file.getName()), null, false);
 				continue;
 			}
@@ -94,6 +107,21 @@ public class ReplayImporter {
 
 		fileIndex = -1;
 		files = null;
+	}
+
+	/**
+	 * Moves a replay file into the failed import directory.
+	 * @param file the file to move
+	 */
+	private static void moveToFailedDirectory(File file) {
+		File dir = new File(Options.getReplayImportDir(), FAILED_IMPORT_DIR);
+		dir.mkdir();
+		File moveToFile = new File(dir, file.getName());
+		try {
+			Files.move(file.toPath(), moveToFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+		} catch (IOException e) {
+			Log.warn(String.format("Failed to move replay '%s' to the failed import directory '%s'.", file, dir), e);
+		}
 	}
 
 	/**

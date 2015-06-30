@@ -184,6 +184,13 @@ public class Options {
 			@Override
 			public void read(String s) { replayDir = new File(s); }
 		},
+		REPLAY_IMPORT_DIRECTORY ("ReplayImportDirectory") {
+			@Override
+			public String write() { return getReplayImportDir().getAbsolutePath(); }
+
+			@Override
+			public void read(String s) { replayImportDir = new File(s); }
+		},
 		SKIN_DIRECTORY ("SkinDirectory") {
 			@Override
 			public String write() { return getSkinRootDir().getAbsolutePath(); }
