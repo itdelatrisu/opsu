@@ -157,6 +157,14 @@ public class DownloadNode {
 	public static void clipToResultArea(Graphics g) {
 		g.setClip((int) buttonBaseX, (int) buttonBaseY, (int) buttonWidth, (int) (buttonOffset * maxResultsShown));
 	}
+	
+	/**
+	 * Sets a clip to the download area.
+	 * @param g the graphics context
+	 */
+	public static void clipToDownloadArea(Graphics g) {
+		g.setClip((int) infoBaseX, (int) infoBaseY, (int) infoWidth, (int) (infoHeight * maxDownloadsShown));
+	}
 
 	/**
 	 * Returns true if the coordinates are within the bounds of the
@@ -188,6 +196,21 @@ public class DownloadNode {
 	}
 
 	/**
+	 * Returns the button(Results) offset.
+	 * @return the button offset
+	 */
+	public static float getButtonOffset(){
+		return buttonOffset;
+	}
+	
+	/**
+	 * Returns the info(Download) height.
+	 * @return the infoHeight
+	 */
+	public static float getInfoHeight(){
+		return infoHeight;
+	}
+	/**
 	 * Returns true if the coordinates are within the bounds of the
 	 * download information button area.
 	 * @param cx the x coordinate
@@ -201,12 +224,14 @@ public class DownloadNode {
 	/**
 	 * Draws the scroll bar for the download result buttons.
 	 * @param g the graphics context
-	 * @param index the start button index
+	 * @param position the start button index
 	 * @param total the total number of buttons
 	 */
-	public static void drawResultScrollbar(Graphics g, int index, int total) {
-		UI.drawScrollbar(g, index, total, maxResultsShown, buttonBaseX, buttonBaseY,
-				buttonWidth * 1.01f, buttonHeight, buttonOffset, BG_NORMAL, Color.white, true);
+	public static void drawResultScrollbar(Graphics g, float position, float total) {
+		UI.drawScrollbar(g, position, total, maxResultsShown * buttonOffset, 
+				buttonBaseX, buttonBaseY, 
+				buttonWidth * 1.01f, (maxResultsShown-1) * buttonOffset + buttonHeight, 
+				BG_NORMAL, Color.white, true);
 	}
 
 	/**
@@ -215,9 +240,9 @@ public class DownloadNode {
 	 * @param index the start index
 	 * @param total the total number of downloads
 	 */
-	public static void drawDownloadScrollbar(Graphics g, int index, int total) {
-		UI.drawScrollbar(g, index, total, maxDownloadsShown, infoBaseX, infoBaseY,
-				infoWidth, infoHeight, infoHeight, BG_NORMAL, Color.white, true);
+	public static void drawDownloadScrollbar(Graphics g, float index, float total) {
+		UI.drawScrollbar(g, index, total, maxDownloadsShown * infoHeight, infoBaseX, infoBaseY,
+				infoWidth, maxDownloadsShown * infoHeight, BG_NORMAL, Color.white, true);
 	}
 
 	/**
@@ -310,15 +335,15 @@ public class DownloadNode {
 	/**
 	 * Draws the download result as a rectangular button.
 	 * @param g the graphics context
-	 * @param index the index (to offset the button from the topmost button)
+	 * @param position the index (to offset the button from the topmost button)
 	 * @param hover true if the mouse is hovering over this button
 	 * @param focus true if the button is focused
 	 * @param previewing true if the beatmap is currently being previewed
 	 */
-	public void drawResult(Graphics g, int index, boolean hover, boolean focus, boolean previewing) {
+	public void drawResult(Graphics g, float position, boolean hover, boolean focus, boolean previewing) {
 		float textX = buttonBaseX + buttonWidth * 0.001f;
 		float edgeX = buttonBaseX + buttonWidth * 0.985f;
-		float y = buttonBaseY + index * buttonOffset;
+		float y = buttonBaseY + position;
 		float marginY = buttonHeight * 0.04f;
 		Download dl = DownloadList.get().getDownload(beatmapSetID);
 
@@ -350,12 +375,14 @@ public class DownloadNode {
 		// TODO: if the title/artist line is too long, shorten it (e.g. add "...") instead of just clipping
 		if (Options.useUnicodeMetadata())  // load glyphs
 			Utils.loadGlyphs(Utils.FONT_BOLD, getTitle(), getArtist());
-		g.setClip((int) textX, (int) (y + marginY), (int) (edgeX - textX - Utils.FONT_DEFAULT.getWidth(creator)), Utils.FONT_BOLD.getLineHeight());
+		
+		// TODO can't set clip again or else old clip will be cleared
+		//g.setClip((int) textX, (int) (y + marginY), (int) (edgeX - textX - Utils.FONT_DEFAULT.getWidth(creator)), Utils.FONT_BOLD.getLineHeight());
 		Utils.FONT_BOLD.drawString(
 				textX, y + marginY,
 				String.format("%s - %s%s", getArtist(), getTitle(),
 						(dl != null) ? String.format(" [%s]", dl.getStatus().getName()) : ""), Color.white);
-		g.clearClip();
+		//g.clearClip();
 		Utils.FONT_DEFAULT.drawString(
 				textX, y + marginY + Utils.FONT_BOLD.getLineHeight(),
 				String.format("Last updated: %s", date), Color.white);
@@ -367,11 +394,11 @@ public class DownloadNode {
 	/**
 	 * Draws the download information.
 	 * @param g the graphics context
-	 * @param index the index (to offset from the topmost position)
+	 * @param position the index (to offset from the topmost position)
 	 * @param id the list index
 	 * @param hover true if the mouse is hovering over this button
 	 */
-	public void drawDownload(Graphics g, int index, int id, boolean hover) {
+	public void drawDownload(Graphics g, float position, int id, boolean hover) {
 		if (download == null) {
 			ErrorHandler.error("Trying to draw download information for button without Download object.", null, false);
 			return;
@@ -379,7 +406,7 @@ public class DownloadNode {
 
 		float textX = infoBaseX + infoWidth * 0.02f;
 		float edgeX = infoBaseX + infoWidth * 0.985f;
-		float y = infoBaseY + index * infoHeight;
+		float y = infoBaseY + position;
 		float marginY = infoHeight * 0.04f;
 
 		// rectangle outline

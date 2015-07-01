@@ -82,7 +82,7 @@ public class ScoreData implements Comparable<ScoreData> {
 	private String tooltip;
 
 	/** Drawing values. */
-	private static float baseX, baseY, buttonWidth, buttonHeight, buttonOffset;
+	private static float baseX, baseY, buttonWidth, buttonHeight, buttonOffset, buttonAreaHeight;
 
 	/** Button background colors. */
 	private static final Color
@@ -101,8 +101,16 @@ public class ScoreData implements Comparable<ScoreData> {
 		float gradeHeight = GameImage.MENU_BUTTON_BG.getImage().getHeight() * 0.45f;
 		buttonHeight = Math.max(gradeHeight, Utils.FONT_DEFAULT.getLineHeight() * 3.03f);
 		buttonOffset = buttonHeight + gradeHeight / 10f;
+		buttonAreaHeight = (SongMenu.MAX_SCORE_BUTTONS - 1) * buttonOffset + buttonHeight;
 	}
 
+	/**
+	 * Returns the Buttons Offset
+	 */
+	public static float getButtonOffset() {
+		return buttonOffset;
+	}
+	
 	/**
 	 * Returns true if the coordinates are within the bounds of the
 	 * button at the given index.
@@ -133,9 +141,17 @@ public class ScoreData implements Comparable<ScoreData> {
 	 * @param index the start button index
 	 * @param total the total number of buttons
 	 */
-	public static void drawScrollbar(Graphics g, int index, int total) {
-		UI.drawScrollbar(g, index, total, SongMenu.MAX_SCORE_BUTTONS, 0, baseY,
-				0, buttonHeight, buttonOffset, null, Color.white, false);
+	public static void drawScrollbar(Graphics g, float pos, float total) {
+		UI.drawScrollbar(g, pos, total, SongMenu.MAX_SCORE_BUTTONS * buttonOffset, 0, baseY,
+				0, buttonAreaHeight, null, Color.white, false);
+	}
+	
+	/**
+	 * Sets a clip to the area.
+	 * @param g the graphics context
+	 */
+	public static void clipToDownloadArea(Graphics g) {
+		g.setClip((int) baseX, (int) baseY, (int) buttonWidth, (int) (buttonAreaHeight));
 	}
 
 	/**
@@ -229,11 +245,11 @@ public class ScoreData implements Comparable<ScoreData> {
 	 * @param prevScore the previous (lower) score, or -1 if none
 	 * @param focus whether the button is focused
 	 */
-	public void draw(Graphics g, int index, int rank, long prevScore, boolean focus) {
+	public void draw(Graphics g, float position, int rank, long prevScore, boolean focus) {
 		Image img = getGrade().getMenuImage();
 		float textX = baseX + buttonWidth * 0.24f;
 		float edgeX = baseX + buttonWidth * 0.98f;
-		float y = baseY + index * (buttonOffset);
+		float y = baseY + position;
 		float midY = y + buttonHeight / 2f;
 		float marginY = Utils.FONT_DEFAULT.getLineHeight() * 0.01f;
 
