@@ -220,6 +220,15 @@ public class Game extends BasicGameState {
 	/** Whether the game is currently seeking to a replay position. */
 	private boolean isSeeking;
 
+	/** Music position bar coordinates and dimensions (for replay seeking). */
+	private float musicBarX, musicBarY, musicBarWidth, musicBarHeight;
+
+	/** Music position bar background colors. */
+	private static final Color
+		MUSICBAR_NORMAL = new Color(12, 9, 10, 0.25f),
+		MUSICBAR_HOVER  = new Color(12, 9, 10, 0.35f),
+		MUSICBAR_FILL   = new Color(255, 255, 255, 0.75f);
+
 	// game-related variables
 	private GameContainer container;
 	private StateBasedGame game;
@@ -244,6 +253,12 @@ public class Game extends BasicGameState {
 		offscreen = new Image(width, height);
 		gOffscreen = offscreen.getGraphics();
 		gOffscreen.setBackground(Color.black);
+
+		// initialize music position bar location
+		musicBarX = width * 0.01f;
+		musicBarY = height * 0.05f;
+		musicBarWidth = Math.max(width * 0.005f, 7);
+		musicBarHeight = height * 0.9f;
 
 		// create the associated GameData object
 		data = new GameData(width, height);
@@ -525,6 +540,18 @@ public class Game extends BasicGameState {
 		if (isReplay || GameMod.AUTO.isActive())
 			playbackSpeed.getButton().draw();
 
+		// draw music position bar (for replay seeking)
+		if (isReplay && Options.isReplaySeekingEnabled()) {
+			int mouseX = input.getMouseX(), mouseY = input.getMouseY();
+			g.setColor((musicPositionBarContains(mouseX, mouseY)) ? MUSICBAR_HOVER : MUSICBAR_NORMAL);
+			g.fillRoundRect(musicBarX, musicBarY, musicBarWidth, musicBarHeight, 4);
+			if (!isLeadIn()) {
+				g.setColor(MUSICBAR_FILL);
+				float musicBarPosition = Math.min((float) trackPosition / beatmap.endTime, 1f);
+				g.fillRoundRect(musicBarX, musicBarY, musicBarWidth, musicBarHeight * musicBarPosition, 4);
+			}
+		}
+
 		// returning from pause screen
 		if (pauseTime > -1 && pausedMouseX > -1 && pausedMouseY > -1) {
 			// darken the screen
@@ -613,7 +640,7 @@ public class Game extends BasicGameState {
 			if (replayIndex >= replay.frames.length)
 				updateGame(replayX, replayY, delta, MusicController.getPosition(), lastKeysPressed);
 
-			//TODO probably should to disable sounds then reseek to the new position
+			// seeking to a position earlier than original track position
 			if (isSeeking && replayIndex - 1 >= 1 && replayIndex < replay.frames.length &&
 			    trackPosition < replay.frames[replayIndex - 1].getTime()) {
 				replayIndex = 0;
@@ -633,7 +660,6 @@ public class Game extends BasicGameState {
 						timingPointIndex++;
 					}
 				}
-				isSeeking = false;
 			}
 
 			// update and run replay frames
@@ -648,6 +674,12 @@ public class Game extends BasicGameState {
 			}
 			mouseX = replayX;
 			mouseY = replayY;
+
+			// unmute sounds
+			if (isSeeking) {
+				isSeeking = false;
+				SoundController.mute(false);
+			}
 		}
 
 		data.updateDisplays(delta);
@@ -923,9 +955,10 @@ public class Game extends BasicGameState {
 				MusicController.setPitch(GameMod.getSpeedMultiplier() * playbackSpeed.getModifier());
 			}
 
-			// TODO
-			else if (!GameMod.AUTO.isActive() && y < 50) {
-				float pos = (float) x / container.getWidth() * beatmap.endTime;
+			// replay seeking
+			else if (Options.isReplaySeekingEnabled() && !GameMod.AUTO.isActive() && musicPositionBarContains(x, y)) {
+				SoundController.mute(true);  // mute sounds while seeking
+				float pos = (y - musicBarY) / musicBarHeight * beatmap.endTime;
 				MusicController.setPosition((int) pos);
 				isSeeking = true;
 			}
@@ -1188,6 +1221,8 @@ public class Game extends BasicGameState {
 			MusicController.setPosition(0);
 			MusicController.setPitch(GameMod.getSpeedMultiplier());
 			MusicController.pause();
+
+			SoundController.mute(false);
 		}
 
 		skipButton.resetHover();
@@ -1752,5 +1787,15 @@ public class Game extends BasicGameState {
 			if (beatmap.objects[i].getStack() != 0)
 				gameObjects[i].updatePosition();
 		}
+	}
+
+	/**
+	 * Returns true if the coordinates are within the music position bar bounds.
+	 * @param cx the x coordinate
+	 * @param cy the y coordinate
+	 */
+	private boolean musicPositionBarContains(float cx, float cy) {
+		return ((cx > musicBarX && cx < musicBarX + musicBarWidth) &&
+		        (cy > musicBarY && cy < musicBarY + musicBarHeight));
 	}
 }

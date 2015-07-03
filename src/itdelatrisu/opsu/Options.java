@@ -453,7 +453,8 @@ public class Options {
 						val - TimeUnit.MINUTES.toSeconds(TimeUnit.SECONDS.toMinutes(val)));
 			}
 		},
-		ENABLE_THEME_SONG ("Enable Theme Song", "MenuMusic", "Whether to play the theme song upon starting opsu!", true);
+		ENABLE_THEME_SONG ("Enable Theme Song", "MenuMusic", "Whether to play the theme song upon starting opsu!", true),
+		REPLAY_SEEKING ("Replay Seeking", "ReplaySeeking", "Enable a seeking bar on the left side of the screen during replays.", false);
 
 		/** Option name. */
 		private String name;
@@ -957,6 +958,12 @@ public class Options {
 	 * @return true if enabled
 	 */
 	public static boolean isThemeSongEnabled() { return GameOption.ENABLE_THEME_SONG.getBooleanValue(); }
+
+	/**
+	 * Returns whether or not replay seeking is enabled.
+	 * @return true if enabled
+	 */
+	public static boolean isReplaySeekingEnabled() { return GameOption.REPLAY_SEEKING.getBooleanValue(); }
 
 	/**
 	 * Sets the track checkpoint time, if within bounds.

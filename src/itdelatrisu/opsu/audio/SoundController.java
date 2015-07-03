@@ -59,6 +59,9 @@ public class SoundController {
 	/** Sample volume multiplier, from timing points [0, 1]. */
 	private static float sampleVolumeMultiplier = 1f;
 
+	/** Whether all sounds are muted. */
+	private static boolean isMuted;
+
 	/** The name of the current sound file being loaded. */
 	private static String currentFileName;
 
@@ -261,7 +264,7 @@ public class SoundController {
 		if (clip == null)  // clip failed to load properly
 			return;
 
-		if (volume > 0f) {
+		if (volume > 0f && !isMuted) {
 			try {
 				clip.start(volume, listener);
 			} catch (LineUnavailableException e) {
@@ -316,6 +319,12 @@ public class SoundController {
 	public static void playHitSound(SoundComponent s) {
 		playClip(s.getClip(), Options.getHitSoundVolume() * sampleVolumeMultiplier * Options.getMasterVolume(), null);
 	}
+
+	/**
+	 * Mutes or unmutes all sounds (hit sounds and sound effects).
+	 * @param mute true to mute, false to unmute
+	 */
+	public static void mute(boolean mute) { isMuted = mute; }
 
 	/**
 	 * Returns the name of the current file being loaded, or null if none.
