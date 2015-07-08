@@ -454,7 +454,8 @@ public class Options {
 			}
 		},
 		ENABLE_THEME_SONG ("Enable Theme Song", "MenuMusic", "Whether to play the theme song upon starting opsu!", true),
-		REPLAY_SEEKING ("Replay Seeking", "ReplaySeeking", "Enable a seeking bar on the left side of the screen during replays.", false);
+		REPLAY_SEEKING ("Replay Seeking", "ReplaySeeking", "Enable a seeking bar on the left side of the screen during replays.", false),
+		DISABLE_UPDATER ("Disable Automatic Updates", "DisableUpdater", "Disable automatic checking for updates upon starting opsu!.", false);
 
 		/** Option name. */
 		private String name;
@@ -964,6 +965,12 @@ public class Options {
 	 * @return true if enabled
 	 */
 	public static boolean isReplaySeekingEnabled() { return GameOption.REPLAY_SEEKING.getBooleanValue(); }
+
+	/**
+	 * Returns whether or not automatic checking for updates is disabled.
+	 * @return true if disabled
+	 */
+	public static boolean isUpdaterDisabled() { return GameOption.DISABLE_UPDATER.getBooleanValue(); }
 
 	/**
 	 * Sets the track checkpoint time, if within bounds.

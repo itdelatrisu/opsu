@@ -94,7 +94,8 @@ public class OptionsMenu extends BasicGameState {
 			GameOption.FIXED_AR,
 			GameOption.FIXED_OD,
 			GameOption.CHECKPOINT,
-			GameOption.REPLAY_SEEKING
+			GameOption.REPLAY_SEEKING,
+			GameOption.DISABLE_UPDATER
 		});
 
 		/** Total number of tabs. */

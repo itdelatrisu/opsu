@@ -142,16 +142,18 @@ public class Opsu extends StateBasedGame {
 			Updater.get().setUpdateInfo(args[0], args[1]);
 
 		// check for updates
-		new Thread() {
-			@Override
-			public void run() {
-				try {
-					Updater.get().checkForUpdates();
-				} catch (IOException e) {
-					Log.warn("Check for updates failed.", e);
+		if (!Options.isUpdaterDisabled()) {
+			new Thread() {
+				@Override
+				public void run() {
+					try {
+						Updater.get().checkForUpdates();
+					} catch (IOException e) {
+						Log.warn("Check for updates failed.", e);
+					}
 				}
-			}
-		}.start();
+			}.start();
+		}
 
 		// start the game
 		try {
