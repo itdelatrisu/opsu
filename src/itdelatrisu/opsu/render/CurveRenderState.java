@@ -24,8 +24,10 @@ import itdelatrisu.opsu.objects.curves.Vec2f;
 
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
 
 import org.lwjgl.BufferUtils;
+import org.lwjgl.opengl.EXTFramebufferObject;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL14;
@@ -114,10 +116,14 @@ public class CurveRenderState {
 				mapping = cache.insert(hitObject);
 			fbo = mapping;
 
-			int old_fb = GL11.glGetInteger(GL30.GL_FRAMEBUFFER_BINDING);
-			int old_tex = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D);
+			int oldFb = GL11.glGetInteger(EXTFramebufferObject.GL_FRAMEBUFFER_BINDING_EXT);
+			int oldTex = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D);
 
-			GL30.glBindFramebuffer(GL30.GL_DRAW_FRAMEBUFFER, fbo.getID());
+			//glGetInteger requires a buffer of size 16, even though just 4
+			//values are returned in this specific case
+			IntBuffer oldViewport = BufferUtils.createIntBuffer(16);
+			GL11.glGetInteger(GL11.GL_VIEWPORT, oldViewport);
+			EXTFramebufferObject.glBindFramebufferEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT, fbo.getID());
 			GL11.glViewport(0, 0, fbo.width, fbo.height);
 			GL11.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 			GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
@@ -125,8 +131,9 @@ public class CurveRenderState {
 			this.draw_curve(color, borderColor, curve);
 			color.a = 1f;
 
-			GL11.glBindTexture(GL11.GL_TEXTURE_2D, old_tex);
-			GL30.glBindFramebuffer(GL30.GL_DRAW_FRAMEBUFFER, old_fb);
+			GL11.glBindTexture(GL11.GL_TEXTURE_2D, oldTex);
+			EXTFramebufferObject.glBindFramebufferEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT, oldFb);
+			GL11.glViewport(oldViewport.get(0), oldViewport.get(1), oldViewport.get(2), oldViewport.get(3));
 			Utils.COLOR_WHITE_FADE.a = alpha;
 		}
 
