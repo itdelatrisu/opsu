@@ -93,7 +93,6 @@ public class Rendertarget {
 	public static Rendertarget createRTTFramebuffer(int width, int height) {
 		int old_framebuffer = GL11.glGetInteger(EXTFramebufferObject.GL_FRAMEBUFFER_BINDING_EXT);
 		int old_texture = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D);
-		int old_drawbuffer = GL11.glGetInteger(GL11.GL_DRAW_BUFFER);
 		Rendertarget buffer = new Rendertarget(width,height);
 		buffer.bind();
 
@@ -111,7 +110,7 @@ public class Rendertarget {
 
 		GL11.glBindTexture(GL11.GL_TEXTURE_2D, old_texture);
 		EXTFramebufferObject.glBindFramebufferEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT, old_framebuffer);
-		
+
 		return buffer;
 	}
 
