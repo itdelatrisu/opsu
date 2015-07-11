@@ -21,6 +21,7 @@ package itdelatrisu.opsu;
 
 import itdelatrisu.opsu.GameData.Grade;
 import itdelatrisu.opsu.states.SongMenu;
+import itdelatrisu.opsu.ui.UI;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -66,6 +67,9 @@ public class ScoreData implements Comparable<ScoreData> {
 
 	/** The replay string. */
 	public String replayString;
+
+	/** The player name. */
+	public String playerName;
 
 	/** Time since the score was achieved. */
 	private String timeSince;
@@ -171,6 +175,7 @@ public class ScoreData implements Comparable<ScoreData> {
 		this.perfect = rs.getBoolean(16);
 		this.mods = rs.getInt(17);
 		this.replayString = rs.getString(18);
+		this.playerName = rs.getString(19);
 	}
 
 	/**
@@ -265,9 +270,10 @@ public class ScoreData implements Comparable<ScoreData> {
 		);
 
 		// hit counts (custom: osu! shows user instead, above score)
+		String player = (playerName == null) ? "" : String.format("  (%s)", playerName);
 		Utils.FONT_SMALL.drawString(
 				textX, y + textOffset + Utils.FONT_MEDIUM.getLineHeight(),
-				String.format("300:%d  100:%d  50:%d  Miss:%d", hit300, hit100, hit50, miss),
+				String.format("300:%d  100:%d  50:%d  Miss:%d%s", hit300, hit100, hit50, miss, player),
 				Color.white
 		);
 

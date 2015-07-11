@@ -24,6 +24,7 @@ import itdelatrisu.opsu.GameData;
 import itdelatrisu.opsu.GameData.HitObjectType;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.GameMod;
+import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.beatmap.Beatmap;
 import itdelatrisu.opsu.beatmap.HitObject;
@@ -53,6 +54,12 @@ public class Slider implements GameObject {
 	/** Rate at which slider ticks are placed. */
 	private static float sliderTickRate = 1.0f;
 
+	/** Follow circle radius. */
+	private static float followRadius;
+
+	/** The diameter of hit circles. */
+	private static float diameter;
+
 	/** The amount of time, in milliseconds, to fade in the slider. */
 	private static final int FADE_IN_TIME = 375;
 
@@ -80,8 +87,11 @@ public class Slider implements GameObject {
 	/** The time duration of the slider including repeats, in milliseconds. */
 	private float sliderTimeTotal = 0f;
 
-	/** Whether or not the result of the initial/final hit circles have been processed. */
-	private boolean sliderClickedInitial = false, sliderClickedFinal = false;
+	/** Whether or not the result of the initial hit circle has been processed. */
+	private boolean sliderClickedInitial = false;
+
+	/** Whether or not the slider was held to the end. */
+	private boolean sliderHeldToEnd = false;
 
 	/** Whether or not to show the follow circle. */
 	private boolean followCircleActive = false;
@@ -114,8 +124,11 @@ public class Slider implements GameObject {
 		containerWidth = container.getWidth();
 		containerHeight = container.getHeight();
 
-		int diameter = (int) (104 - (circleSize * 8));
-		diameter = (int) (diameter * HitObject.getXMultiplier());  // convert from Osupixels (640x480)
+		diameter = (104 - (circleSize * 8));
+		diameter = (diameter * HitObject.getXMultiplier());  // convert from Osupixels (640x480)
+		int diameterInt = (int) diameter;
+
+		followRadius = diameter / 2 * 3f;
 
 		// slider ball
 		if (GameImage.SLIDER_BALL.hasSkinImages() ||
@@ -124,11 +137,11 @@ public class Slider implements GameObject {
 		else
 			sliderBallImages = new Image[]{ GameImage.SLIDER_BALL.getImage() };
 		for (int i = 0; i < sliderBallImages.length; i++)
-			sliderBallImages[i] = sliderBallImages[i].getScaledCopy(diameter * 118 / 128, diameter * 118 / 128);
+			sliderBallImages[i] = sliderBallImages[i].getScaledCopy(diameterInt * 118 / 128, diameterInt * 118 / 128);
 
-		GameImage.SLIDER_FOLLOWCIRCLE.setImage(GameImage.SLIDER_FOLLOWCIRCLE.getImage().getScaledCopy(diameter * 259 / 128, diameter * 259 / 128));
-		GameImage.REVERSEARROW.setImage(GameImage.REVERSEARROW.getImage().getScaledCopy(diameter, diameter));
-		GameImage.SLIDER_TICK.setImage(GameImage.SLIDER_TICK.getImage().getScaledCopy(diameter / 4, diameter / 4));
+		GameImage.SLIDER_FOLLOWCIRCLE.setImage(GameImage.SLIDER_FOLLOWCIRCLE.getImage().getScaledCopy(diameterInt * 259 / 128, diameterInt * 259 / 128));
+		GameImage.REVERSEARROW.setImage(GameImage.REVERSEARROW.getImage().getScaledCopy(diameterInt, diameterInt));
+		GameImage.SLIDER_TICK.setImage(GameImage.SLIDER_TICK.getImage().getScaledCopy(diameterInt / 4, diameterInt / 4));
 
 		sliderMultiplier = beatmap.sliderMultiplier;
 		sliderTickRate = beatmap.sliderTickRate;
@@ -173,12 +186,25 @@ public class Slider implements GameObject {
 		float fadeinScale = (timeDiff - game.getApproachTime() + FADE_IN_TIME) / (float) FADE_IN_TIME;
 		float approachScale = 1 + scale * 3;
 		float alpha = Utils.clamp(1 - fadeinScale, 0, 1);
+		boolean overlayAboveNumber = Options.getSkin().isHitCircleOverlayAboveNumber();
 
 		float oldAlpha = Utils.COLOR_WHITE_FADE.a;
 		Utils.COLOR_WHITE_FADE.a = color.a = alpha;
+		Image hitCircleOverlay = GameImage.HITCIRCLE_OVERLAY.getImage();
+		Image hitCircle = GameImage.HITCIRCLE.getImage();
+		float[] endPos = curve.pointAt(1);
 
-		// curve
 		curve.draw(color);
+		color.a = alpha;
+
+		// end circle
+		hitCircle.drawCentered(endPos[0], endPos[1], color);
+		hitCircleOverlay.drawCentered(endPos[0], endPos[1], Utils.COLOR_WHITE_FADE);
+
+		// start circle
+		hitCircle.drawCentered(x, y, color);
+		if (!overlayAboveNumber)
+			hitCircleOverlay.drawCentered(x, y, Utils.COLOR_WHITE_FADE);
 
 		// ticks
 		if (ticksT != null) {
@@ -188,23 +214,13 @@ public class Slider implements GameObject {
 				tick.drawCentered(c[0], c[1], Utils.COLOR_WHITE_FADE);
 			}
 		}
-
-		Image hitCircleOverlay = GameImage.HITCIRCLE_OVERLAY.getImage();
-		Image hitCircle = GameImage.HITCIRCLE.getImage();
-
-		// end circle
-		float[] endPos = curve.pointAt(1);
-		hitCircle.drawCentered(endPos[0], endPos[1], color);
-		hitCircleOverlay.drawCentered(endPos[0], endPos[1], Utils.COLOR_WHITE_FADE);
-
-		// start circle
-		hitCircle.drawCentered(x, y, color);
-		hitCircleOverlay.drawCentered(x, y, Utils.COLOR_WHITE_FADE);
 		if (sliderClickedInitial)
 			;  // don't draw current combo number if already clicked
 		else
 			data.drawSymbolNumber(hitObject.getComboNumber(), x, y,
-					hitCircle.getWidth() * 0.40f / data.getDefaultSymbolImage(0).getHeight(), alpha);
+			        hitCircle.getWidth() * 0.40f / data.getDefaultSymbolImage(0).getHeight(), alpha);
+		if (overlayAboveNumber)
+			hitCircleOverlay.drawCentered(x, y, Utils.COLOR_WHITE_FADE);
 
 		// repeats
 		for (int tcurRepeat = currentRepeats; tcurRepeat <= currentRepeats + 1; tcurRepeat++) {
@@ -272,6 +288,53 @@ public class Slider implements GameObject {
 	 * @return the hit result (GameData.HIT_* constants)
 	 */
 	private int hitResult() {
+		/*
+			time     scoredelta score-hit-initial-tick= unaccounted
+			(1/4   - 1)		396 - 300 - 30	 		46
+			(1+1/4 - 2)		442 - 300 - 30 - 10
+			(2+1/4 - 3)		488 - 300 - 30 - 2*10	896 (408)5x
+			(3+1/4 - 4)		534 - 300 - 30 - 3*10
+			(4+1/4 - 5)		580 - 300 - 30 - 4*10
+			(5+1/4 - 6) 	626	- 300 - 30 - 5*10
+			(6+1/4 - 7)		672	- 300 - 30 - 6*10
+
+			difficultyMulti = 3	(+36 per combo)
+
+			score =
+			(t)ticks(10) * nticks +
+			(h)hitValue
+			(c)combo (hitValue/25 * difficultyMultiplier*(combo-1))
+			(i)initialHit (30) +
+			(f)finalHit(30) +
+
+			s     t       h          c     i     f
+			626 - 10*5 - 300  - 276(-216 - 30 - 30) (all)(7x)
+			240 - 10*5 - 100  - 90 (-60     <- 30>) (no final or initial)(6x)
+
+			218 - 10*4 - 100  - 78 (-36       - 30) (4 tick no initial)(5x)
+			196 - 10*3 - 100  - 66 (-24       - 30 ) (3 tick no initial)(4x)
+			112 - 10*2 - 50   - 42 (-12       - 30 ) (2 tick no initial)(3x)
+			96  - 10   - 50   - 36 ( -6       - 30 ) (1 tick no initial)(2x)
+
+			206 - 10*4 - 100  - 66 (-36       - 30 ) (4 tick no initial)(4x)
+			184 - 10*3 - 100  - 54 (-24       - 30 ) (3 tick no initial)(3x)
+			90  - 10   - 50   - 30 (          - 30 ) (1 tick no initial)(0x)
+
+			194 - 10*4 - 100  - 54 (-24       - 30 ) (4 tick no initial)(3x)
+
+			170 - 10*4 - 100  - 30 (     - 30      ) (4 tick no final)(0x)
+			160 - 10*3 - 100  - 30 (     - 30      ) (3 tick no final)(0x)
+			100 - 10*2 - 50   - 30 (     - 30      ) (2 tick no final)(0x)
+
+			198 - 10*5 - 100  - 48 (-36            ) (no initial and final)(5x)
+			110        - 50   -    (     - 30 - 30 ) (final and initial no tick)(0x)
+			80         - 50   -    (       <- 30>  ) (only final or initial)(0x)
+
+			140 - 10*4 - 100  - 0                    (4 ticks only)(0x)
+			80  - 10*3 - 50   - 0                    (3 tick only)(0x)
+			70  - 10*2 - 50   - 0                    (2 tick only)(0x)
+			60  - 10   - 50   - 0                    (1 tick only)(0x)
+		*/
 		float tickRatio = (float) ticksHit / tickIntervals;
 
 		int result;
@@ -297,7 +360,8 @@ public class Slider implements GameObject {
 			type = HitObjectType.SLIDER_FIRST;
 		}
 		data.hitResult(hitObject.getTime() + (int) sliderTimeTotal, result,
-				cx, cy, color, comboEnd, hitObject, currentRepeats + 1, type, curve, sliderClickedFinal);
+				cx, cy, color, comboEnd, hitObject, type, sliderHeldToEnd,
+				currentRepeats + 1, curve, sliderHeldToEnd);
 
 		return result;
 	}
@@ -308,8 +372,7 @@ public class Slider implements GameObject {
 			return false;
 
 		double distance = Math.hypot(this.x - x, this.y - y);
-		int circleRadius = GameImage.HITCIRCLE.getImage().getWidth() / 2;
-		if (distance < circleRadius) {
+		if (distance < diameter / 2) {
 			int timeDiff = Math.abs(trackPosition - hitObject.getTime());
 			int[] hitResultOffset = game.getHitResultOffsets();
 
@@ -365,20 +428,19 @@ public class Slider implements GameObject {
 		}
 
 		// end of slider
-		if (overlap || trackPosition > hitObject.getTime() + sliderTimeTotal) {
+		if (trackPosition > hitObject.getTime() + sliderTimeTotal) {
 			tickIntervals++;
 
 			// check if cursor pressed and within end circle
 			if (keyPressed || GameMod.RELAX.isActive()) {
 				float[] c = curve.pointAt(getT(trackPosition, false));
 				double distance = Math.hypot(c[0] - mouseX, c[1] - mouseY);
-				int followCircleRadius = GameImage.SLIDER_FOLLOWCIRCLE.getImage().getWidth() / 2;
-				if (distance < followCircleRadius)
-					sliderClickedFinal = true;
+				if (distance < followRadius)
+					sliderHeldToEnd = true;
 			}
 
 			// final circle hit
-			if (sliderClickedFinal)
+			if (sliderHeldToEnd)
 				ticksHit++;
 
 			// "auto" mod: always send a perfect hit result
@@ -417,8 +479,7 @@ public class Slider implements GameObject {
 		// holding slider...
 		float[] c = curve.pointAt(getT(trackPosition, false));
 		double distance = Math.hypot(c[0] - mouseX, c[1] - mouseY);
-		int followCircleRadius = GameImage.SLIDER_FOLLOWCIRCLE.getImage().getWidth() / 2;
-		if (((keyPressed || GameMod.RELAX.isActive()) && distance < followCircleRadius) || isAutoMod) {
+		if (((keyPressed || GameMod.RELAX.isActive()) && distance < followRadius) || isAutoMod) {
 			// mouse pressed and within follow circle
 			followCircleActive = true;
 			data.changeHealth(delta * GameData.HP_DRAIN_MULTIPLIER);
@@ -443,8 +504,8 @@ public class Slider implements GameObject {
 			}
 
 			// held near end of slider
-			if (!sliderClickedFinal && trackPosition > hitObject.getTime() + sliderTimeTotal - hitResultOffset[GameData.HIT_300])
-				sliderClickedFinal = true;
+			if (!sliderHeldToEnd && trackPosition > hitObject.getTime() + sliderTimeTotal - hitResultOffset[GameData.HIT_300])
+				sliderHeldToEnd = true;
 		} else {
 			followCircleActive = false;
 
@@ -500,5 +561,16 @@ public class Slider implements GameObject {
 			float floor = (float) Math.floor(t);
 			return (floor % 2 == 0) ? t - floor : floor + 1 - t;
 		}
+	}
+
+	@Override
+	public void reset() {
+		sliderClickedInitial = false;
+		sliderHeldToEnd = false;
+		followCircleActive = false;
+		currentRepeats = 0;
+		tickIndex = 0;
+		ticksHit = 0;
+		tickIntervals = 1;
 	}
 }

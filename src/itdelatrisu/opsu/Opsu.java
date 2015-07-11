@@ -33,6 +33,8 @@ import itdelatrisu.opsu.states.MainMenu;
 import itdelatrisu.opsu.states.OptionsMenu;
 import itdelatrisu.opsu.states.SongMenu;
 import itdelatrisu.opsu.states.Splash;
+import itdelatrisu.opsu.ui.UI;
+
 
 //import java.io.File;
 import java.io.FileNotFoundException;
@@ -40,8 +42,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.net.ServerSocket;
-
-//import com.badlogic.gdx.Game;
 
 /*
 import org.newdawn.slick.Color;
@@ -145,6 +145,7 @@ public class Opsu extends StateBasedGame {
 		ResourceLoader.addResourceLocation(new FileSystemLocation(new File("res/"),true));
 		ResourceLoader.addResourceLocation(new ClasspathLocation());
 		ResourceLoader.addResourceLocation(new FileSystemLocation(new File(".")));
+		//ResourceLoader.addResourceLocation(new FileSystemLocation(new File("./res/")));
 
 		// initialize databases
 		try {
@@ -186,7 +187,7 @@ public class Opsu extends StateBasedGame {
 				app.setIcons(icons);
 				app.setForceExit(true);
 
-				app.start();
+				//app.start();
 
 				/*
 				// run update if available
@@ -224,7 +225,8 @@ public class Opsu extends StateBasedGame {
 				} else
 					songMenu.resetTrackOnLoad();
 			}
-			UI.resetCursor();
+			if (UI.getCursor().isSkinned())
+				UI.getCursor().reset();
 			this.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 			return false;
 		}

@@ -20,16 +20,14 @@ package itdelatrisu.opsu.states;
 
 import fluddokt.opsu.fake.*;
 import itdelatrisu.opsu.GameImage;
-import itdelatrisu.opsu.MenuButton;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.Options;
-import itdelatrisu.opsu.OsuParser;
 import itdelatrisu.opsu.OszUnpacker;
-import itdelatrisu.opsu.UI;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
+import itdelatrisu.opsu.beatmap.BeatmapParser;
 import itdelatrisu.opsu.beatmap.BeatmapSetList;
 import itdelatrisu.opsu.beatmap.BeatmapSetNode;
 import itdelatrisu.opsu.downloads.Download;
@@ -39,6 +37,8 @@ import itdelatrisu.opsu.downloads.servers.BloodcatServer;
 import itdelatrisu.opsu.downloads.servers.DownloadServer;
 import itdelatrisu.opsu.downloads.servers.HexideServer;
 import itdelatrisu.opsu.downloads.servers.OsuMirrorServer;
+import itdelatrisu.opsu.ui.MenuButton;
+import itdelatrisu.opsu.ui.UI;
 
 
 //import java.io.File;
@@ -634,7 +634,7 @@ public class DownloadsMenu extends BasicGameState {
 					// invoke unpacker and parser
 					File[] dirs = OszUnpacker.unpackAllFiles(Options.getOSZDir(), Options.getBeatmapDir());
 					if (dirs != null && dirs.length > 0) {
-						BeatmapSetNode node = OsuParser.parseDirectories(dirs);
+						BeatmapSetNode node = BeatmapParser.parseDirectories(dirs);
 						if (node != null) {
 							// stop preview
 							previewID = -1;
@@ -766,7 +766,7 @@ public class DownloadsMenu extends BasicGameState {
 		switch (key) {
 		case Input.KEY_ESCAPE:
 			if (importThread != null) {
-				// beatmap importing: stop parsing beatmaps by sending interrupt to OsuParser
+				// beatmap importing: stop parsing beatmaps by sending interrupt to BeatmapParser
 				importThread.interrupt();
 			} else if (!search.getText().isEmpty()) {
 				// clear search text

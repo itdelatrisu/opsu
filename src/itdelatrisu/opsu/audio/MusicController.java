@@ -21,8 +21,8 @@ package itdelatrisu.opsu.audio;
 import fluddokt.opsu.fake.*;
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.Options;
-import itdelatrisu.opsu.OsuParser;
 import itdelatrisu.opsu.beatmap.Beatmap;
+import itdelatrisu.opsu.beatmap.BeatmapParser;
 
 /*
 import java.io.File;
@@ -93,7 +93,7 @@ public class MusicController {
 			reset();
 			System.gc();
 
-			switch (OsuParser.getExtension(beatmap.audioFilename.getName())) {
+			switch (BeatmapParser.getExtension(beatmap.audioFilename.getName())) {
 			case "ogg":
 			case "mp3":
 			//	trackLoader = new Thread() {
@@ -231,7 +231,7 @@ public class MusicController {
 	}
 
 	/**
-	 * Returns the position in the current track, in ms.
+	 * Returns the position in the current track, in milliseconds.
 	 * If no track is loaded, 0 will be returned.
 	 */
 	public static int getPosition() {
@@ -245,6 +245,7 @@ public class MusicController {
 
 	/**
 	 * Seeks to a position in the current track.
+	 * @param position the new track position (in ms)
 	 */
 	public static boolean setPosition(int position) {
 		return (trackExists() && position >= 0 && player.setPosition(position / 1000f));
@@ -263,6 +264,7 @@ public class MusicController {
 
 		if (duration == 0) {
 			/*
+			// TAudioFileFormat method only works for MP3s
 			if (lastBeatmap.audioFilename.getName().endsWith(".mp3")) {
 				try {
 					AudioFileFormat fileFormat = AudioSystem.getAudioFileFormat(lastBeatmap.audioFilename);
@@ -275,6 +277,8 @@ public class MusicController {
 				} catch (UnsupportedAudioFileException | IOException e) {}
 			}
 			*/
+
+			// fallback: use beatmap end time (often not the track duration)
 			duration = lastBeatmap.endTime;
 		}
 		return duration;
@@ -296,7 +300,7 @@ public class MusicController {
 
 	/**
 	 * Sets the music volume.
-	 * @param volume [0, 1]
+	 * @param volume the new volume [0, 1]
 	 */
 	public static void setVolume(float volume) {
 		SoundStore.get().setMusicVolume((isTrackDimmed()) ? volume * dimLevel : volume);
@@ -304,7 +308,7 @@ public class MusicController {
 
 	/**
 	 * Sets the music pitch (and speed).
-	 * @param pitch
+	 * @param pitch the new pitch
 	 */
 	public static void setPitch(float pitch) {
 		SoundStore.get().setMusicPitch(pitch);

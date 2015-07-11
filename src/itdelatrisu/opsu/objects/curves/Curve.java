@@ -18,18 +18,22 @@
 
 package itdelatrisu.opsu.objects.curves;
 
+import fluddokt.opsu.fake.*;
+
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.beatmap.HitObject;
-import fluddokt.opsu.fake.*;
+import itdelatrisu.opsu.render.CurveRenderState;
+import itdelatrisu.opsu.skins.Skin;
 
 /*
+import org.lwjgl.opengl.ContextCapabilities;
+import org.lwjgl.opengl.GLContext;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Image;
+import org.newdawn.slick.util.Log;
 */
-
-
 
 /**
  * Representation of a curve.
@@ -40,6 +44,12 @@ public abstract class Curve {
 	/** Points generated along the curve should be spaced this far apart. */
 	protected static float CURVE_POINTS_SEPERATION = 5;
 
+	/** The curve border color. */
+	private static Color borderColor;
+
+	/** Whether mmsliders are supported. */
+	private static boolean mmsliderSupported = false;
+
 	/** The associated HitObject. */
 	protected HitObject hitObject;
 
@@ -48,6 +58,9 @@ public abstract class Curve {
 
 	/** The scaled slider x, y coordinate lists. */
 	protected float[] sliderX, sliderY;
+
+	/** Per-curve render-state used for the new style curve renders. */
+	private CurveRenderState renderState;
 
 	/** Points along the curve (set by inherited classes). */
 	protected Vec2f[] curve;
@@ -63,6 +76,28 @@ public abstract class Curve {
 		this.y = hitObject.getScaledY();
 		this.sliderX = hitObject.getScaledSliderX();
 		this.sliderY = hitObject.getScaledSliderY();
+		this.renderState = null;
+	}
+
+	/**
+	 * Set the width and height of the container that Curves get drawn into.
+	 * Should be called before any curves are drawn.
+	 * @param width the container width
+	 * @param height the container height
+	 * @param circleSize the circle size
+	 * @param borderColor the curve border color
+	 */
+	public static void init(int width, int height, float circleSize, Color borderColor) {
+		Curve.borderColor = borderColor;
+
+		ContextCapabilities capabilities = GLContext.getCapabilities();
+		mmsliderSupported = capabilities.GL_EXT_framebuffer_object && capabilities.OpenGL32;
+		if (mmsliderSupported)
+			CurveRenderState.init(width, height, circleSize);
+		else {
+			if (Options.getSkin().getSliderStyle() != Skin.STYLE_PEPPYSLIDER)
+				Log.warn("New slider style requires FBO support and OpenGL 3.2.");
+		}
 	}
 
 	/**
@@ -80,12 +115,22 @@ public abstract class Curve {
 		if (curve == null)
 			return;
 
-		Image hitCircle = GameImage.HITCIRCLE.getImage();
-		Image hitCircleOverlay = GameImage.HITCIRCLE_OVERLAY.getImage();
-		for (int i = 0; i < curve.length; i+=Options.getSliderQuality())
-			hitCircleOverlay.drawCentered(curve[i].x, curve[i].y, Utils.COLOR_WHITE_FADE);
-		for (int i = 0; i < curve.length; i+=Options.getSliderQuality())
-			hitCircle.drawCentered(curve[i].x, curve[i].y, color);
+		// peppysliders
+		if (Options.getSkin().getSliderStyle() == Skin.STYLE_PEPPYSLIDER || !mmsliderSupported) {
+			Image hitCircle = GameImage.HITCIRCLE.getImage();
+			Image hitCircleOverlay = GameImage.HITCIRCLE_OVERLAY.getImage();
+			for (int i = 0; i < curve.length; i+=Options.getSliderQuality())
+				hitCircleOverlay.drawCentered(curve[i].x, curve[i].y, Utils.COLOR_WHITE_FADE);
+			for (int i = 0; i < curve.length; i+=Options.getSliderQuality())
+				hitCircle.drawCentered(curve[i].x, curve[i].y, color);
+		}
+
+		// mmsliders
+		else {
+			if (renderState == null)
+				renderState = new CurveRenderState(hitObject);
+			renderState.draw(color, borderColor, curve);
+		}
 	}
 
 	/**
@@ -115,5 +160,13 @@ public abstract class Curve {
 	 */
 	protected float lerp(float a, float b, float t) {
 		return a * (1 - t) + b * t;
+	}
+
+	/**
+	 * Discards the slider cache (only used for mmsliders).
+	 */
+	public void discardCache() {
+		if (renderState != null)
+			renderState.discardCache();
 	}
 }

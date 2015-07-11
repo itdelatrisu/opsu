@@ -19,20 +19,22 @@
 package itdelatrisu.opsu;
 
 import fluddokt.opsu.fake.*;
-
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
 import itdelatrisu.opsu.beatmap.HitObject;
 import itdelatrisu.opsu.downloads.Download;
 import itdelatrisu.opsu.downloads.DownloadNode;
 import itdelatrisu.opsu.replay.PlaybackSpeed;
+import itdelatrisu.opsu.ui.UI;
+
 
 //import java.awt.Font;
 //import java.awt.image.BufferedImage;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 //import java.io.File;
-//import java.io.FileInputStream;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -41,6 +43,7 @@ import java.net.SocketTimeoutException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
@@ -51,6 +54,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Scanner;
+
 
 /*
 import javax.imageio.ImageIO;
@@ -89,10 +93,6 @@ public class Utils {
 		COLOR_BLUE_BACKGROUND = new Color(74, 130, 255),
 		COLOR_BLUE_BUTTON     = new Color(40, 129, 237),
 		COLOR_ORANGE_BUTTON   = new Color(200, 90, 3),
-		COLOR_GREEN_OBJECT    = new Color(26, 207, 26),
-		COLOR_BLUE_OBJECT     = new Color(46, 136, 248),
-		COLOR_RED_OBJECT      = new Color(243, 48, 77),
-		COLOR_ORANGE_OBJECT   = new Color(255, 200, 32),
 		COLOR_YELLOW_ALPHA    = new Color(255, 255, 0, 0.4f),
 		COLOR_WHITE_FADE      = new Color(255, 255, 255, 1f),
 		COLOR_RED_HOVER       = new Color(255, 112, 112),
@@ -104,12 +104,6 @@ public class Utils {
 		COLOR_DARK_GRAY       = new Color(0.3f, 0.3f, 0.3f, 1f),
 		COLOR_RED_HIGHLIGHT   = new Color(246, 154, 161),
 		COLOR_BLUE_HIGHLIGHT  = new Color(173, 216, 230);
-
-	/** The default map colors, used when a map does not provide custom colors. */
-	public static final Color[] DEFAULT_COMBO = {
-		COLOR_ORANGE_OBJECT, COLOR_GREEN_OBJECT,
-		COLOR_BLUE_OBJECT, COLOR_RED_OBJECT,
-	};
 
 	/** Game fonts. */
 	public static UnicodeFont
@@ -185,6 +179,9 @@ public class Utils {
 		} catch (Exception e) {
 			ErrorHandler.error("Failed to load fonts.", e, true);
 		}
+
+		// load skin
+		Options.loadSkin();
 
 		// initialize game images
 		for (GameImage img : GameImage.values()) {
@@ -620,7 +617,7 @@ public class Utils {
 	 */
 	public static String getMD5(File file) {
 		try {
-			InputStream in = new BufferedInputStream(new FileInputStream(file));
+			InputStream in = new BufferedInputStream(new FileInputStream(file.getIOFile()));
 			MessageDigest md = MessageDigest.getInstance("MD5");
 			byte[] buf = new byte[4096];
 
@@ -701,5 +698,53 @@ public class Utils {
 			Log.error("Could not get the running directory.", e);
 			return null;
 		}
+	}
+
+	/**
+	 * Parses the integer string argument as a boolean:
+	 * {@code 1} is {@code true}, and all other values are {@code false}.
+	 * @param s the {@code String} containing the boolean representation to be parsed
+	 * @return the boolean represented by the string argument
+	 */
+	public static boolean parseBoolean(String s) {
+		return (Integer.parseInt(s) == 1);
+	}
+	
+	
+	/**
+	 * to get around not having java.nio.file.Files;
+	 * //http://stackoverflow.com/questions/4770004/how-to-move-rename-file-from-internal-app-storage-to-external-storage-on-android
+	 * @param src
+	 * @param dst
+	 * @throws IOException
+	 */
+	public static void moveFile(File src, File dst) throws IOException {
+		if(src.getIOFile().renameTo(dst.getIOFile())){
+			return;
+		}
+		FileInputStream instream = new FileInputStream(src.getIOFile());
+		FileOutputStream outstream = new FileOutputStream(dst.getIOFile());
+		FileChannel inChannel = instream.getChannel();
+		FileChannel outChannel = outstream.getChannel();
+		try
+		{
+			long total = 0;
+			long size = inChannel.size();
+			while (total < size){
+				total += inChannel.transferTo(total, size-total, outChannel);
+			}
+		}
+		finally
+		{
+			if(instream != null)
+				instream.close();
+			if(outstream != null)
+				outstream.close();
+			if (inChannel != null)
+				inChannel.close();
+			if (outChannel != null)
+				outChannel.close();
+		}
+		src.delete();
 	}
 }

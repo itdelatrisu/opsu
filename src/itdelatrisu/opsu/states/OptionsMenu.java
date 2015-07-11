@@ -20,15 +20,15 @@ package itdelatrisu.opsu.states;
 
 import fluddokt.opsu.fake.*;
 import itdelatrisu.opsu.GameImage;
-import itdelatrisu.opsu.MenuButton;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.Options.GameOption;
-import itdelatrisu.opsu.UI;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
+import itdelatrisu.opsu.ui.MenuButton;
+import itdelatrisu.opsu.ui.UI;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -54,11 +54,12 @@ public class OptionsMenu extends BasicGameState {
 	/** Option tabs. */
 	private enum OptionTab {
 		DISPLAY ("Display", new GameOption[] {
+			GameOption.SKIN,
 			GameOption.SHOW_FPS,
 			GameOption.SHOW_UNICODE,
 			//GameOption.SCREENSHOT_FORMAT,
-			GameOption.NEW_CURSOR,
 			GameOption.DYNAMIC_BACKGROUND,
+			GameOption.LOAD_HD_IMAGES,
 			GameOption.LOAD_VERBOSE,
 			GameOption.MOBILE_UI_SCALING,
 			(com.badlogic.gdx.Gdx.app.getType() == ApplicationType.Desktop) ? 
@@ -90,7 +91,9 @@ public class OptionsMenu extends BasicGameState {
 			GameOption.KEY_LEFT,
 			GameOption.KEY_RIGHT,
 			GameOption.DISABLE_MOUSE_WHEEL,
-			GameOption.DISABLE_MOUSE_BUTTONS
+			GameOption.DISABLE_MOUSE_BUTTONS,
+			GameOption.CURSOR_SIZE,
+			GameOption.NEW_CURSOR
 		}),
 		CUSTOM ("Custom", new GameOption[] {
 			GameOption.FIXED_CS,
@@ -98,6 +101,7 @@ public class OptionsMenu extends BasicGameState {
 			GameOption.FIXED_AR,
 			GameOption.FIXED_OD,
 			GameOption.CHECKPOINT,
+			GameOption.REPLAY_SEEKING,
 			GameOption.IN_GAME_PAUSE,
 			GameOption.LOAD_HD_IMAGES,
 			GameOption.SLIDER_QUALITY,
@@ -179,7 +183,6 @@ public class OptionsMenu extends BasicGameState {
 	@Override
 	public void init(GameContainer container, StateBasedGame game)
 			throws SlickException {
-		
 		this.container = container;
 		this.game = game;
 		this.input = container.getInput();
@@ -315,7 +318,7 @@ public class OptionsMenu extends BasicGameState {
 
 		// options (click only)
 		GameOption option = getOptionAt(y);
-		if (option != GameOption.NULL)
+		if (option != null)
 			option.click(container);
 
 		// special key entry states
@@ -351,7 +354,7 @@ public class OptionsMenu extends BasicGameState {
 
 		// options (drag only)
 		GameOption option = getOptionAt(oldy);
-		if (option != GameOption.NULL)
+		if (option != null)
 			option.drag(container, diff);
 	}
 
@@ -446,14 +449,13 @@ public class OptionsMenu extends BasicGameState {
 	 * @return the option, or GameOption.NULL if no such option exists
 	 */
 	private GameOption getOptionAt(int y) {
-		GameOption option = GameOption.NULL;
-
 		if (y < textY || y > textY + (offsetY * maxOptionsScreen))
-			return option;
+			return null;
 
 		int index = (int)((y - textY) / (float)offsetY + 0.3f);
-		if (index < currentTab.options.length)
-			option = currentTab.options[index];
-		return option;
+		if (index >= currentTab.options.length)
+			return null;
+
+		return currentTab.options[index];
 	}
 }

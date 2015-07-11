@@ -20,8 +20,8 @@ package itdelatrisu.opsu.db;
 
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.Options;
-import itdelatrisu.opsu.OsuParser;
 import itdelatrisu.opsu.beatmap.Beatmap;
+import itdelatrisu.opsu.beatmap.BeatmapParser;
 
 //import java.io.File;
 import java.sql.Connection;
@@ -45,7 +45,7 @@ public class BeatmapDB {
 	 * Current database version.
 	 * This value should be changed whenever the database format changes.
 	 */
-	private static final String DATABASE_VERSION = "2014-03-08";
+	private static final String DATABASE_VERSION = "2015-06-11";
 
 	/** Minimum batch size ratio ({@code batchSize/cacheSize}) to invoke batch loading. */
 	private static final float LOAD_BATCH_MIN_RATIO = 0.2f;
@@ -65,6 +65,8 @@ public class BeatmapDB {
 	/** Current size of beatmap cache table. */
 	private static int cacheSize = -1;
 
+	private static String insertQueryString;
+
 	// This class should not be instantiated.
 	private BeatmapDB() {}
 
@@ -80,16 +82,8 @@ public class BeatmapDB {
 		// create the database
 		createDatabase();
 
-		// prepare sql statements
+		// prepare sql statements (used below)
 		try {
-			insertStmt = connection.prepareStatement(
-				"INSERT INTO beatmaps VALUES (" +
-				"?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, " +
-				"?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-			);
-			selectStmt = connection.prepareStatement("SELECT * FROM beatmaps WHERE dir = ? AND file = ?");
-			deleteMapStmt = connection.prepareStatement("DELETE FROM beatmaps WHERE dir = ? AND file = ?");
-			deleteGroupStmt = connection.prepareStatement("DELETE FROM beatmaps WHERE dir = ?");
 			updateSizeStmt = connection.prepareStatement("REPLACE INTO info (key, value) VALUES ('size', ?)");
 		} catch (SQLException e) {
 			ErrorHandler.error("Failed to prepare beatmap statements.", e, true);
@@ -100,6 +94,21 @@ public class BeatmapDB {
 
 		// check the database version
 		checkVersion();
+
+		// prepare sql statements (not used here)
+		try {
+			insertQueryString = (
+				"INSERT INTO beatmaps VALUES (" +
+				"?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, " +
+				"?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+			);
+			insertStmt = connection.prepareStatement(insertQueryString);
+			selectStmt = connection.prepareStatement("SELECT * FROM beatmaps WHERE dir = ? AND file = ?");
+			deleteMapStmt = connection.prepareStatement("DELETE FROM beatmaps WHERE dir = ? AND file = ?");
+			deleteGroupStmt = connection.prepareStatement("DELETE FROM beatmaps WHERE dir = ?");
+		} catch (SQLException e) {
+			ErrorHandler.error("Failed to prepare beatmap statements.", e, true);
+		}
 	}
 
 	/**
@@ -118,7 +127,8 @@ public class BeatmapDB {
 					"bpmMin INTEGER, bpmMax INTEGER, endTime INTEGER, " +
 					"audioFile TEXT, audioLeadIn INTEGER, previewTime INTEGER, countdown INTEGER, sampleSet TEXT, stackLeniency REAL, " +
 					"mode INTEGER, letterboxInBreaks BOOLEAN, widescreenStoryboard BOOLEAN, epilepsyWarning BOOLEAN, " +
-					"bg TEXT, timingPoints TEXT, breaks TEXT, combo TEXT" +
+					"bg TEXT, sliderBorder TEXT, timingPoints TEXT, breaks TEXT, combo TEXT, " +
+					"md5hash TEXT" +
 				");\n" +
 				"CREATE TABLE IF NOT EXISTS info (" +
 					"key TEXT NOT NULL UNIQUE, value TEXT" +
@@ -258,9 +268,7 @@ public class BeatmapDB {
 			
 			//insertStmt batch doesn't seem to get cleared after execution and clearing seem to crash
 			insertStmt = connection.prepareStatement(
-					"INSERT INTO beatmaps VALUES (" +
-					"?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, " +
-					"?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+					insertQueryString
 				);
 
 			// batch insert
@@ -340,10 +348,12 @@ public class BeatmapDB {
 			stmt.setBoolean(33, beatmap.letterboxInBreaks);
 			stmt.setBoolean(34, beatmap.widescreenStoryboard);
 			stmt.setBoolean(35, beatmap.epilepsyWarning);
-			stmt.setString(36, beatmap.bg);
-			stmt.setString(37, beatmap.timingPointsToString());
-			stmt.setString(38, beatmap.breaksToString());
-			stmt.setString(39, beatmap.comboToString());
+			stmt.setString(36, (beatmap.bg == null) ? null : beatmap.bg.getName());
+			stmt.setString(37, beatmap.sliderBorderToString());
+			stmt.setString(38, beatmap.timingPointsToString());
+			stmt.setString(39, beatmap.breaksToString());
+			stmt.setString(40, beatmap.comboToString());
+			stmt.setString(41, beatmap.md5Hash);
 		} catch (SQLException e) {
 			throw e;
 		} catch (Exception e) {
@@ -448,16 +458,17 @@ public class BeatmapDB {
 	 */
 	private static void setBeatmapFields(ResultSet rs, Beatmap beatmap) throws SQLException {
 		try {
+			File dir = beatmap.getFile().getParentFile();
 			beatmap.beatmapID = rs.getInt(4);
 			beatmap.beatmapSetID = rs.getInt(5);
-			beatmap.title = OsuParser.getDBString(rs.getString(6));
-			beatmap.titleUnicode = OsuParser.getDBString(rs.getString(7));
-			beatmap.artist = OsuParser.getDBString(rs.getString(8));
-			beatmap.artistUnicode = OsuParser.getDBString(rs.getString(9));
-			beatmap.creator = OsuParser.getDBString(rs.getString(10));
-			beatmap.version = OsuParser.getDBString(rs.getString(11));
-			beatmap.source = OsuParser.getDBString(rs.getString(12));
-			beatmap.tags = OsuParser.getDBString(rs.getString(13));
+			beatmap.title = BeatmapParser.getDBString(rs.getString(6));
+			beatmap.titleUnicode = BeatmapParser.getDBString(rs.getString(7));
+			beatmap.artist = BeatmapParser.getDBString(rs.getString(8));
+			beatmap.artistUnicode = BeatmapParser.getDBString(rs.getString(9));
+			beatmap.creator = BeatmapParser.getDBString(rs.getString(10));
+			beatmap.version = BeatmapParser.getDBString(rs.getString(11));
+			beatmap.source = BeatmapParser.getDBString(rs.getString(12));
+			beatmap.tags = BeatmapParser.getDBString(rs.getString(13));
 			beatmap.hitObjectCircle = rs.getInt(14);
 			beatmap.hitObjectSlider = rs.getInt(15);
 			beatmap.hitObjectSpinner = rs.getInt(16);
@@ -470,17 +481,21 @@ public class BeatmapDB {
 			beatmap.bpmMin = rs.getInt(23);
 			beatmap.bpmMax = rs.getInt(24);
 			beatmap.endTime = rs.getInt(25);
-			beatmap.audioFilename = new File(beatmap.getFile().getParentFile(), OsuParser.getDBString(rs.getString(26)));
+			beatmap.audioFilename = new File(dir, BeatmapParser.getDBString(rs.getString(26)));
 			beatmap.audioLeadIn = rs.getInt(27);
 			beatmap.previewTime = rs.getInt(28);
 			beatmap.countdown = rs.getByte(29);
-			beatmap.sampleSet = OsuParser.getDBString(rs.getString(30));
+			beatmap.sampleSet = BeatmapParser.getDBString(rs.getString(30));
 			beatmap.stackLeniency = rs.getFloat(31);
 			beatmap.mode = rs.getByte(32);
 			beatmap.letterboxInBreaks = rs.getBoolean(33);
 			beatmap.widescreenStoryboard = rs.getBoolean(34);
 			beatmap.epilepsyWarning = rs.getBoolean(35);
-			beatmap.bg = OsuParser.getDBString(rs.getString(36));
+			String bg = rs.getString(36);
+			if (bg != null)
+				beatmap.bg = new File(dir, BeatmapParser.getDBString(bg));
+			beatmap.sliderBorderFromString(rs.getString(37));
+			beatmap.md5Hash = rs.getString(41);
 		} catch (SQLException e) {
 			throw e;
 		} catch (Exception e) {
@@ -496,9 +511,9 @@ public class BeatmapDB {
 	 */
 	private static void setBeatmapArrayFields(ResultSet rs, Beatmap beatmap) throws SQLException {
 		try {
-			beatmap.timingPointsFromString(rs.getString(37));
-			beatmap.breaksFromString(rs.getString(38));
-			beatmap.comboFromString(rs.getString(39));
+			beatmap.timingPointsFromString(rs.getString(38));
+			beatmap.breaksFromString(rs.getString(39));
+			beatmap.comboFromString(rs.getString(40));
 		} catch (SQLException e) {
 			throw e;
 		} catch (Exception e) {

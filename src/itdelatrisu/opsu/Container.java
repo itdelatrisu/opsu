@@ -24,6 +24,8 @@ import itdelatrisu.opsu.beatmap.Beatmap;
 import itdelatrisu.opsu.beatmap.BeatmapSetList;
 import itdelatrisu.opsu.downloads.DownloadList;
 import itdelatrisu.opsu.downloads.Updater;
+import itdelatrisu.opsu.render.CurveRenderState;
+import itdelatrisu.opsu.ui.UI;
 
 /*
 import org.lwjgl.opengl.Display;
@@ -118,13 +120,16 @@ public class Container extends AppGameContainer {
 		// save user options
 		Options.saveOptions();
 
+		// reset cursor
+		UI.getCursor().reset();
+
 		// destroy images
 		InternalTextureLoader.get().clear();
 
 		// reset image references
 		GameImage.clearReferences();
 		GameData.Grade.clearReferences();
-		Beatmap.resetImageCache();
+		Beatmap.getBackgroundImageCache().clear();
 
 		// prevent loading tracks from re-initializing OpenAL
 		MusicController.reset();
@@ -132,6 +137,9 @@ public class Container extends AppGameContainer {
 		// reset BeatmapSetList data
 		if (BeatmapSetList.get() != null)
 			BeatmapSetList.get().reset();
+
+		// delete OpenGL objects involved in the Curve rendering
+		CurveRenderState.shutdown();
 	}
 
 	@Override

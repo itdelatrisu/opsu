@@ -24,18 +24,16 @@ import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.GameData;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.GameMod;
-import itdelatrisu.opsu.MenuButton;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.Options;
-import itdelatrisu.opsu.OsuParser;
 import itdelatrisu.opsu.ScoreData;
-import itdelatrisu.opsu.UI;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.HitSound;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
 import itdelatrisu.opsu.beatmap.Beatmap;
+import itdelatrisu.opsu.beatmap.BeatmapParser;
 import itdelatrisu.opsu.beatmap.HitObject;
 import itdelatrisu.opsu.beatmap.TimingPoint;
 import itdelatrisu.opsu.db.BeatmapDB;
@@ -45,9 +43,13 @@ import itdelatrisu.opsu.objects.DummyObject;
 import itdelatrisu.opsu.objects.GameObject;
 import itdelatrisu.opsu.objects.Slider;
 import itdelatrisu.opsu.objects.Spinner;
+import itdelatrisu.opsu.objects.curves.Curve;
+import itdelatrisu.opsu.render.FrameBufferCache;
 import itdelatrisu.opsu.replay.PlaybackSpeed;
 import itdelatrisu.opsu.replay.Replay;
 import itdelatrisu.opsu.replay.ReplayFrame;
+import itdelatrisu.opsu.ui.MenuButton;
+import itdelatrisu.opsu.ui.UI;
 
 
 //import java.io.File;
@@ -224,6 +226,18 @@ public class Game extends BasicGameState {
 	/** Playback speed (used in replays and "auto" mod). */
 	private PlaybackSpeed playbackSpeed;
 
+	/** Whether the game is currently seeking to a replay position. */
+	private boolean isSeeking;
+
+	/** Music position bar coordinates and dimensions (for replay seeking). */
+	private float musicBarX, musicBarY, musicBarWidth, musicBarHeight;
+
+	/** Music position bar background colors. */
+	private static final Color
+		MUSICBAR_NORMAL = new Color(12, 9, 10, 0.25f),
+		MUSICBAR_HOVER  = new Color(12, 9, 10, 0.35f),
+		MUSICBAR_FILL   = new Color(255, 255, 255, 0.75f);
+
 	// game-related variables
 	private GameContainer container;
 	private StateBasedGame game;
@@ -248,6 +262,12 @@ public class Game extends BasicGameState {
 		offscreen = new Image(width, height);
 		gOffscreen = offscreen.getGraphics();
 		gOffscreen.setBackground(Color.black);
+
+		// initialize music position bar location
+		musicBarX = width * 0.01f;
+		musicBarY = height * 0.05f;
+		musicBarWidth = Math.max(width * 0.005f, 7);
+		musicBarHeight = height * 0.9f;
 
 		// create the associated GameData object
 		data = new GameData(width, height);
@@ -280,7 +300,7 @@ public class Game extends BasicGameState {
 		float dimLevel = Options.getBackgroundDim();
 		if (trackPosition < firstObjectTime) {
 			if (timeDiff < approachTime)
-				dimLevel += (1f - dimLevel) * ((float) timeDiff / Math.min(approachTime, firstObjectTime));
+				dimLevel += (1f - dimLevel) * ((float) timeDiff / approachTime);
 			else
 				dimLevel = 1f;
 		}
@@ -311,7 +331,7 @@ public class Game extends BasicGameState {
 				timeDiff = firstObjectTime - trackPosition;
 				if (timeDiff < approachTime) {
 					float[] xy = gameObjects[0].getPointAt(trackPosition);
-					autoXY = getPointAt(autoMouseX, autoMouseY, xy[0], xy[1], 1f - ((float) timeDiff / Math.min(approachTime, firstObjectTime)));
+					autoXY = getPointAt(autoMouseX, autoMouseY, xy[0], xy[1], 1f - ((float) timeDiff / approachTime));
 				}
 			} else if (objectIndex < beatmap.objects.length) {
 				// normal object
@@ -376,23 +396,23 @@ public class Game extends BasicGameState {
 			g.setDrawMode(Graphics.MODE_ALPHA_MAP);
 			g.clearAlphaMap();
 		*/
-			int mouseX, mouseY;
+			int tMouseX, tMouseY;
 			if (pauseTime > -1 && pausedMouseX > -1 && pausedMouseY > -1) {
-				mouseX = pausedMouseX;
-				mouseY = pausedMouseY;
+				tMouseX = pausedMouseX;
+				tMouseY = pausedMouseY;
 			} else if (GameMod.AUTO.isActive() || GameMod.AUTOPILOT.isActive()) {
-				mouseX = autoMouseX;
-				mouseY = autoMouseY;
+				tMouseX = autoMouseX;
+				tMouseY = autoMouseY;
 			} else if (isReplay) {
-				mouseX = replayX;
-				mouseY = replayY;
+				tMouseX = replayX;
+				tMouseY = replayY;
 			} else {
-				mouseX = input.getMouseX();
-				mouseY = input.getMouseY();
+				tMouseX = input.getMouseX();
+				tMouseY = input.getMouseY();
 			}
 			int alphaRadius = flashlightRadius * 256 / 215;
-			int alphaX = mouseX - alphaRadius / 2;
-			int alphaY = mouseY - alphaRadius / 2;
+			int alphaX = tMouseX - alphaRadius / 2;
+			int alphaY = tMouseY - alphaRadius / 2;
 			
 			/*
 			GameImage.ALPHA_MAP.getImage().draw(alphaX, alphaY, alphaRadius, alphaRadius);
@@ -573,6 +593,18 @@ public class Game extends BasicGameState {
 				)
 			pauseButton.draw();
 
+		// draw music position bar (for replay seeking)
+		if (isReplay && Options.isReplaySeekingEnabled()) {
+			int mouseX = input.getMouseX(), mouseY = input.getMouseY();
+			g.setColor((musicPositionBarContains(mouseX, mouseY)) ? MUSICBAR_HOVER : MUSICBAR_NORMAL);
+			g.fillRoundRect(musicBarX, musicBarY, musicBarWidth, musicBarHeight, 4);
+			if (!isLeadIn()) {
+				g.setColor(MUSICBAR_FILL);
+				float musicBarPosition = Math.min((float) trackPosition / beatmap.endTime, 1f);
+				g.fillRoundRect(musicBarX, musicBarY, musicBarWidth, musicBarHeight * musicBarPosition, 4);
+			}
+		}
+
 		// returning from pause screen
 		if (pauseTime > -1 && pausedMouseX > -1 && pausedMouseY > -1) {
 			// darken the screen
@@ -597,7 +629,6 @@ public class Game extends BasicGameState {
 			UI.draw(g, autoMouseX, autoMouseY, Utils.isGameKeyPressed());
 		else
 			UI.draw(g);
-
 	}
 
 	@Override
@@ -662,6 +693,28 @@ public class Game extends BasicGameState {
 			if (replayIndex >= replay.frames.length)
 				updateGame(replayX, replayY, delta, MusicController.getPosition(), lastKeysPressed);
 
+			// seeking to a position earlier than original track position
+			if (isSeeking && replayIndex - 1 >= 1 && replayIndex < replay.frames.length &&
+			    trackPosition < replay.frames[replayIndex - 1].getTime()) {
+				replayIndex = 0;
+				while (objectIndex >= 0) {
+					gameObjects[objectIndex].reset();
+					objectIndex--;
+				}
+
+				// reset game data
+				resetGameData();
+
+				// load the first timingPoint
+				if (!beatmap.timingPoints.isEmpty()) {
+					TimingPoint timingPoint = beatmap.timingPoints.get(0);
+					if (!timingPoint.isInherited()) {
+						setBeatLength(timingPoint, true);
+						timingPointIndex++;
+					}
+				}
+			}
+
 			// update and run replay frames
 			while (replayIndex < replay.frames.length && trackPosition >= replay.frames[replayIndex].getTime()) {
 				ReplayFrame frame = replay.frames[replayIndex];
@@ -674,6 +727,12 @@ public class Game extends BasicGameState {
 			}
 			mouseX = replayX;
 			mouseY = replayY;
+
+			// unmute sounds
+			if (isSeeking) {
+				isSeeking = false;
+				SoundController.mute(false);
+			}
 		}
 
 		data.updateDisplays(delta);
@@ -805,7 +864,7 @@ public class Game extends BasicGameState {
 		while (objectIndex < gameObjects.length && trackPosition > beatmap.objects[objectIndex].getTime()) {
 			// check if we've already passed the next object's start time
 			boolean overlap = (objectIndex + 1 < gameObjects.length &&
-					trackPosition > beatmap.objects[objectIndex + 1].getTime() - hitResultOffset[GameData.HIT_300]);
+					trackPosition > beatmap.objects[objectIndex + 1].getTime() - hitResultOffset[GameData.HIT_50]);
 
 			// update hit object and check completion status
 			if (gameObjects[objectIndex].update(overlap, delta, mouseX, mouseY, keyPressed, trackPosition))
@@ -957,6 +1016,13 @@ public class Game extends BasicGameState {
 				MusicController.setPitch(GameMod.getSpeedMultiplier() * playbackSpeed.getModifier());
 			}
 
+			// replay seeking
+			else if (Options.isReplaySeekingEnabled() && !GameMod.AUTO.isActive() && musicPositionBarContains(x, y)) {
+				SoundController.mute(true);  // mute sounds while seeking
+				float pos = (y - musicBarY) / musicBarHeight * beatmap.endTime;
+				MusicController.setPosition((int) pos);
+				isSeeking = true;
+			}
 			return;
 		}
 
@@ -977,6 +1043,7 @@ public class Game extends BasicGameState {
 			keys = ReplayFrame.KEY_M2;
 		if (keys != ReplayFrame.KEY_NONE)
 			gameKeyPressed(keys, x, y, MusicController.getPosition());
+		
 		lastMouseX = x;
 		lastMouseY = y;
 	}
@@ -1078,6 +1145,8 @@ public class Game extends BasicGameState {
 			lastKeysPressed &= ~keys;  // clear keys bits
 			addReplayFrameAndRun(x, y, lastKeysPressed, trackPosition);
 		}
+		lastMouseX = x;
+		lastMouseY = y;
 	}
 
 	@Override
@@ -1096,6 +1165,9 @@ public class Game extends BasicGameState {
 		if (beatmap == null || beatmap.objects == null)
 			throw new RuntimeException("Running game with no beatmap loaded.");
 
+		// free all previously cached hitobject to framebuffer mappings if some still exist
+		FrameBufferCache.getInstance().freeMap();
+
 		// grab the mouse (not working for touchscreen)
 //		container.setMouseGrabbed(true);
 
@@ -1112,6 +1184,9 @@ public class Game extends BasicGameState {
 			} else if (restart == Restart.REPLAY)
 				retries = 0;
 
+			gameObjects = new GameObject[beatmap.objects.length];
+			playbackSpeed = PlaybackSpeed.NORMAL;
+
 			// reset game data
 			resetGameData();
 
@@ -1125,15 +1200,16 @@ public class Game extends BasicGameState {
 			}
 
 			// initialize object maps
+			Color[] combo = beatmap.getComboColors();
 			for (int i = 0; i < beatmap.objects.length; i++) {
 				HitObject hitObject = beatmap.objects[i];
 
 				// is this the last note in the combo?
 				boolean comboEnd = false;
-				if (i + 1 < beatmap.objects.length && beatmap.objects[i + 1].isNewCombo())
+				if (i + 1 >= beatmap.objects.length || beatmap.objects[i + 1].isNewCombo())
 					comboEnd = true;
 
-				Color color = beatmap.combo[hitObject.getComboIndex()];
+				Color color = combo[hitObject.getComboIndex()];
 
 				// pass beatLength to hit objects
 				int hitObjectTime = hitObject.getTime();
@@ -1177,7 +1253,7 @@ public class Game extends BasicGameState {
 
 			// unhide cursor for "auto" mod and replays
 			if (GameMod.AUTO.isActive() || isReplay)
-				UI.showCursor();
+				UI.getCursor().show();
 
 			// load replay frames
 			if (isReplay) {
@@ -1220,6 +1296,8 @@ public class Game extends BasicGameState {
 			MusicController.setPosition(0);
 			MusicController.setPitch(GameMod.getSpeedMultiplier());
 			MusicController.pause();
+
+			SoundController.mute(false);
 		}
 
 		skipButton.resetHover();
@@ -1235,7 +1313,7 @@ public class Game extends BasicGameState {
 
 		// re-hide cursor
 		if (GameMod.AUTO.isActive() || isReplay)
-			UI.hideCursor();
+			UI.getCursor().hide();
 
 		// replays
 		if (isReplay)
@@ -1335,9 +1413,9 @@ public class Game extends BasicGameState {
 	public void loadBeatmap(Beatmap beatmap) {
 		this.beatmap = beatmap;
 		Display.setTitle(String.format("%s - %s", game.getTitle(), beatmap.toString()));
-		if (beatmap.timingPoints == null || beatmap.combo == null)
+		if (beatmap.timingPoints == null)
 			BeatmapDB.load(beatmap, BeatmapDB.LOAD_ARRAY);
-		OsuParser.parseHitObjects(beatmap);
+		BeatmapParser.parseHitObjects(beatmap);
 		HitSound.setDefaultSampleSet(beatmap.sampleSet);
 	}
 
@@ -1345,7 +1423,6 @@ public class Game extends BasicGameState {
 	 * Resets all game data and structures.
 	 */
 	public void resetGameData() {
-		gameObjects = new GameObject[beatmap.objects.length];
 		data.clear();
 		objectIndex = 0;
 		breakIndex = 0;
@@ -1370,14 +1447,13 @@ public class Game extends BasicGameState {
 		autoMouseY = 0;
 		autoMousePressed = false;
 		flashlightRadius = container.getHeight() * 2 / 3;
-		playbackSpeed = PlaybackSpeed.NORMAL;
 
 		System.gc();
 	}
 
 	/**
 	 * Skips the beginning of a track.
-	 * @return true if skipped, false otherwise
+	 * @return {@code true} if skipped, {@code false} otherwise
 	 */
 	private synchronized boolean skipIntro() {
 		int firstObjectTime = beatmap.objects[0].getTime();
@@ -1463,7 +1539,9 @@ public class Game extends BasicGameState {
 		// initialize objects
 		Circle.init(container, circleSize);
 		Slider.init(container, circleSize, beatmap);
-		Spinner.init(container);
+		Spinner.init(container, overallDifficulty);
+		Curve.init(container.getWidth(), container.getHeight(), circleSize, (Options.isBeatmapSkinIgnored()) ?
+				Options.getSkin().getSliderBorderColor() : beatmap.getSliderBorderColor());
 
 		// approachRate (hit object approach time)
 		if (approachRate < 5)
@@ -1477,17 +1555,29 @@ public class Game extends BasicGameState {
 		hitResultOffset[GameData.HIT_100]  = (int) (138 - (overallDifficulty * 8));
 		hitResultOffset[GameData.HIT_50]   = (int) (198 - (overallDifficulty * 10));
 		hitResultOffset[GameData.HIT_MISS] = (int) (500 - (overallDifficulty * 10));
-
-		// HPDrainRate (health change), overallDifficulty (scoring)
-		data.setDrainRate(HPDrainRate);
-		data.setDifficulty(overallDifficulty);
+		//final float mult = 0.608f;
+		//hitResultOffset[GameData.HIT_300]  = (int) ((128 - (overallDifficulty * 9.6)) * mult);
+		//hitResultOffset[GameData.HIT_100]  = (int) ((224 - (overallDifficulty * 12.8)) * mult);
+		//hitResultOffset[GameData.HIT_50]   = (int) ((320 - (overallDifficulty * 16)) * mult);
+		//hitResultOffset[GameData.HIT_MISS] = (int) ((1000 - (overallDifficulty * 10)) * mult);
 		data.setHitResultOffset(hitResultOffset);
+
+		// HPDrainRate (health change)
+		data.setDrainRate(HPDrainRate);
+
+		// difficulty multiplier (scoring)
+		data.calculateDifficultyMultiplier(beatmap.HPDrainRate, beatmap.circleSize, beatmap.overallDifficulty);
 	}
 
 	/**
-	 * Sets/returns whether entering the state will restart it.
+	 * Sets the restart state.
+	 * @param restart the new restart state
 	 */
 	public void setRestart(Restart restart) { this.restart = restart; }
+
+	/**
+	 * Returns the current restart state.
+	 */
 	public Restart getRestart() { return restart; }
 
 	/**
@@ -1775,5 +1865,15 @@ public class Game extends BasicGameState {
 			if (beatmap.objects[i].getStack() != 0)
 				gameObjects[i].updatePosition();
 		}
+	}
+
+	/**
+	 * Returns true if the coordinates are within the music position bar bounds.
+	 * @param cx the x coordinate
+	 * @param cy the y coordinate
+	 */
+	private boolean musicPositionBarContains(float cx, float cy) {
+		return ((cx > musicBarX && cx < musicBarX + musicBarWidth) &&
+		        (cy > musicBarY && cy < musicBarY + musicBarHeight));
 	}
 }

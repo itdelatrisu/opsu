@@ -18,6 +18,7 @@
 
 package itdelatrisu.opsu.io;
 
+import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 /*
 import java.io.File;
@@ -54,7 +55,7 @@ public class OsuReader {
 	 * @param source the input stream to read from
 	 */
 	public OsuReader(InputStream source) {
-		this.reader = new DataInputStream(source);
+		this.reader = new DataInputStream(new BufferedInputStream(source));
 	}
 
 	/**

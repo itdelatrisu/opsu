@@ -536,6 +536,7 @@ public class SoundStore {
 	 */
 	public void setMusicPitch(float pitch) {
 		if (soundWorks) {
+			stream.setup(pitch);
 			AL10.alSourcef(sources.get(0), AL10.AL_PITCH, pitch);
 		}
 	}

@@ -67,4 +67,7 @@ public class DummyObject implements GameObject {
 		this.x = hitObject.getScaledX();
 		this.y = hitObject.getScaledY();
 	}
+
+	@Override
+	public void reset() {}
 }

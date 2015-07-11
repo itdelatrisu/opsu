@@ -20,6 +20,8 @@ package itdelatrisu.opsu;
 
 import fluddokt.opsu.fake.*;
 
+import itdelatrisu.opsu.ui.MenuButton;
+
 import java.util.Arrays;
 import java.util.Collections;
 /*

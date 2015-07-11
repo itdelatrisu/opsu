@@ -21,7 +21,6 @@ package itdelatrisu.opsu.beatmap;
 import fluddokt.opsu.fake.File;
 
 import itdelatrisu.opsu.ErrorHandler;
-import itdelatrisu.opsu.SongSort;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.db.BeatmapDB;
@@ -31,6 +30,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -61,6 +61,9 @@ public class BeatmapSetList {
 	/** Set of all beatmap set IDs for the parsed beatmaps. */
 	private HashSet<Integer> MSIDdb;
 
+	/** Map of all MD5 hashes to beatmaps. */
+	private HashMap<String, Beatmap> beatmapHashDB;
+
 	/** Index of current expanded node (-1 if no node is expanded). */
 	private int expandedIndex;
 
@@ -86,6 +89,7 @@ public class BeatmapSetList {
 	private BeatmapSetList() {
 		parsedNodes = new ArrayList<BeatmapSetNode>();
 		MSIDdb = new HashSet<Integer>();
+		beatmapHashDB = new HashMap<String, Beatmap>();
 		reset();
 	}
 
@@ -120,6 +124,12 @@ public class BeatmapSetList {
 		int msid = beatmaps.get(0).beatmapSetID;
 		if (msid > 0)
 			MSIDdb.add(msid);
+
+		// add MD5 hashes to table
+		for (Beatmap beatmap : beatmaps) {
+			if (beatmap.md5Hash != null)
+				beatmapHashDB.put(beatmap.md5Hash, beatmap);
+		}
 
 		return node;
 	}
@@ -380,7 +390,7 @@ public class BeatmapSetList {
 			return;
 
 		// sort the list
-		Collections.sort(nodes, SongSort.getSort().getComparator());
+		Collections.sort(nodes, BeatmapSortOrder.getSort().getComparator());
 		expandedIndex = -1;
 		expandedStartNode = expandedEndNode = null;
 
@@ -504,4 +514,13 @@ public class BeatmapSetList {
 	 * @return true if id is in the list
 	 */
 	public boolean containsBeatmapSetID(int id) { return MSIDdb.contains(id); }
+
+	/**
+	 * Returns the beatmap associated with the given hash.
+	 * @param beatmapHash the MD5 hash
+	 * @return the associated beatmap, or {@code null} if no match was found
+	 */
+	public Beatmap getBeatmapFromHash(String beatmapHash) {
+		return beatmapHashDB.get(beatmapHash);
+	}
 }

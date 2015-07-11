@@ -24,25 +24,25 @@ import itdelatrisu.opsu.GameData;
 import itdelatrisu.opsu.GameData.Grade;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.GameMod;
-import itdelatrisu.opsu.MenuButton;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.Options;
-import itdelatrisu.opsu.OsuParser;
 import itdelatrisu.opsu.OszUnpacker;
 import itdelatrisu.opsu.ScoreData;
-import itdelatrisu.opsu.SongSort;
-import itdelatrisu.opsu.UI;
 import itdelatrisu.opsu.Utils;
 //import itdelatrisu.opsu.audio.MultiClip;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
 import itdelatrisu.opsu.beatmap.Beatmap;
+import itdelatrisu.opsu.beatmap.BeatmapParser;
 import itdelatrisu.opsu.beatmap.BeatmapSetList;
 import itdelatrisu.opsu.beatmap.BeatmapSetNode;
+import itdelatrisu.opsu.beatmap.BeatmapSortOrder;
 import itdelatrisu.opsu.db.BeatmapDB;
 import itdelatrisu.opsu.db.ScoreDB;
 import itdelatrisu.opsu.states.ButtonMenu.MenuState;
+import itdelatrisu.opsu.ui.MenuButton;
+import itdelatrisu.opsu.ui.UI;
 
 //import java.io.File;
 import java.util.Map;
@@ -231,7 +231,7 @@ public class SongMenu extends BasicGameState {
 		footerY = height - GameImage.SELECTION_MODS.getImage().getHeight();
 
 		// initialize sorts
-		for (SongSort sort : SongSort.values())
+		for (BeatmapSortOrder sort : BeatmapSortOrder.values())
 			sort.init(width, headerY - SongMenu.DIVIDER_LINE_WIDTH / 2);
 
 		// initialize score data buttons
@@ -394,15 +394,15 @@ public class SongMenu extends BasicGameState {
 		selectOptionsButton.draw();
 
 		// sorting tabs
-		SongSort currentSort = SongSort.getSort();
-		SongSort hoverSort = null;
-		for (SongSort sort : SongSort.values()) {
+		BeatmapSortOrder currentSort = BeatmapSortOrder.getSort();
+		BeatmapSortOrder hoverSort = null;
+		for (BeatmapSortOrder sort : BeatmapSortOrder.values()) {
 			if (sort.contains(mouseX, mouseY)) {
 				hoverSort = sort;
 				break;
 			}
 		}
-		for (SongSort sort : SongSort.VALUES_REVERSED) {
+		for (BeatmapSortOrder sort : BeatmapSortOrder.VALUES_REVERSED) {
 			if (sort != currentSort)
 				sort.draw(false, sort == hoverSort);
 		}
@@ -642,10 +642,10 @@ public class SongMenu extends BasicGameState {
 			return;
 
 		// sorting buttons
-		for (SongSort sort : SongSort.values()) {
+		for (BeatmapSortOrder sort : BeatmapSortOrder.values()) {
 			if (sort.contains(x, y)) {
-				if (sort != SongSort.getSort()) {
-					SongSort.setSort(sort);
+				if (sort != BeatmapSortOrder.getSort()) {
+					BeatmapSortOrder.setSort(sort);
 					SoundController.playSound(SoundEffect.MENUCLICK);
 					BeatmapSetNode oldFocusBase = BeatmapSetList.get().getBaseNode(focusNode.index);
 					int oldFocusFileIndex = focusNode.beatmapIndex;
@@ -737,7 +737,7 @@ public class SongMenu extends BasicGameState {
 		case Input.ANDROID_BACK:
 		case Input.KEY_ESCAPE:
 			if (reloadThread != null) {
-				// beatmap reloading: stop parsing beatmaps by sending interrupt to OsuParser
+				// beatmap reloading: stop parsing beatmaps by sending interrupt to BeatmapParser
 				reloadThread.interrupt();
 			} else if (!search.getText().isEmpty()) {
 				// clear search text
@@ -1100,7 +1100,7 @@ public class SongMenu extends BasicGameState {
 						// invoke unpacker and parser
 						File beatmapDir = Options.getBeatmapDir();
 						OszUnpacker.unpackAllFiles(Options.getOSZDir(), beatmapDir);
-						OsuParser.parseAllFiles(beatmapDir);
+						BeatmapParser.parseAllFiles(beatmapDir);
 
 						// initialize song list
 						if (BeatmapSetList.get().size() > 0) {

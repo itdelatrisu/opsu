@@ -16,10 +16,13 @@
  * along with opsu!.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package itdelatrisu.opsu;
+package itdelatrisu.opsu.beatmap;
 
-import itdelatrisu.opsu.beatmap.Beatmap;
-import itdelatrisu.opsu.beatmap.BeatmapSetNode;
+import fluddokt.opsu.fake.*;
+
+import itdelatrisu.opsu.GameImage;
+import itdelatrisu.opsu.ui.MenuButton;
+import itdelatrisu.opsu.ui.UI;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -28,11 +31,11 @@ import java.util.Comparator;
 /*
 import org.newdawn.slick.Image;
 */
-import fluddokt.opsu.fake.*;
+
 /**
- * BeatmapSetNode sorts.
+ * Beatmap sorting orders.
  */
-public enum SongSort {
+public enum BeatmapSortOrder {
 	TITLE   (0, "Title",   new TitleOrder()),
 	ARTIST  (1, "Artist",  new ArtistOrder()),
 	CREATOR (2, "Creator", new CreatorOrder()),
@@ -54,27 +57,27 @@ public enum SongSort {
 	/** Total number of sorts. */
 	private static final int SIZE = values().length;
 
-	/** Array of SongSort objects in reverse order. */
-	public static final SongSort[] VALUES_REVERSED;
+	/** Array of BeatmapSortOrder objects in reverse order. */
+	public static final BeatmapSortOrder[] VALUES_REVERSED;
 	static {
 		VALUES_REVERSED = values();
 		Collections.reverse(Arrays.asList(VALUES_REVERSED));
 	}
 
 	/** Current sort. */
-	private static SongSort currentSort = TITLE;
+	private static BeatmapSortOrder currentSort = TITLE;
 
 	/**
 	 * Returns the current sort.
 	 * @return the current sort
 	 */
-	public static SongSort getSort() { return currentSort; }
+	public static BeatmapSortOrder getSort() { return currentSort; }
 
 	/**
 	 * Sets a new sort.
 	 * @param sort the new sort
 	 */
-	public static void setSort(SongSort sort) { SongSort.currentSort = sort; }
+	public static void setSort(BeatmapSortOrder sort) { BeatmapSortOrder.currentSort = sort; }
 
 	/**
 	 * Compares two BeatmapSetNode objects by title.
@@ -112,7 +115,7 @@ public enum SongSort {
 	private static class BPMOrder implements Comparator<BeatmapSetNode> {
 		@Override
 		public int compare(BeatmapSetNode v, BeatmapSetNode w) {
-			return Integer2.compare(v.getBeatmapSet().get(0).bpmMax, w.getBeatmapSet().get(0).bpmMax);
+			return Integer.compare(v.getBeatmapSet().get(0).bpmMax, w.getBeatmapSet().get(0).bpmMax);
 		}
 	}
 
@@ -134,7 +137,7 @@ public enum SongSort {
 				if (beatmap.endTime > wMax)
 					wMax = beatmap.endTime;
 			}
-			return Integer2.compare(vMax, wMax);
+			return Integer.compare(vMax, wMax);
 		}
 	}
 
@@ -144,7 +147,7 @@ public enum SongSort {
 	 * @param name the sort name
 	 * @param comparator the comparator for the sort
 	 */
-	SongSort(int id, String name, Comparator<BeatmapSetNode> comparator) {
+	BeatmapSortOrder(int id, String name, Comparator<BeatmapSetNode> comparator) {
 		this.id = id;
 		this.name = name;
 		this.comparator = comparator;
@@ -158,7 +161,7 @@ public enum SongSort {
 	public void init(int containerWidth, float bottomY) {
 		Image tab = GameImage.MENU_TAB.getImage();
 		int tabWidth = tab.getWidth();
-		float buttonX = containerWidth / 3f;
+		float buttonX = containerWidth / 2f;
 		float tabOffset = (containerWidth - buttonX - tabWidth) / (SIZE - 1);
 		if (tabOffset > tabWidth) {  // prevent tabs from being spaced out
 			tabOffset = tabWidth;

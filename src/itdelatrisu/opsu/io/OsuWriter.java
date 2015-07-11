@@ -18,6 +18,7 @@
 
 package itdelatrisu.opsu.io;
 
+import java.io.BufferedOutputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -51,7 +52,7 @@ public class OsuWriter {
 	 * @param dest the output stream to write to
 	 */
 	public OsuWriter(OutputStream dest) {
-		this.writer = new DataOutputStream(dest);
+		this.writer = new DataOutputStream(new BufferedOutputStream(dest));
 	}
 
 	/**

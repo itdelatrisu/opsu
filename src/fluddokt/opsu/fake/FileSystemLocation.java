@@ -13,6 +13,8 @@ public class FileSystemLocation {
 		this(dir, false);
 	}
 	public FileSystemLocation(File dir, boolean tryInternal) {
+		if (dir == null)
+			return;
 		f = dir;
 		String path = f.getPath()+"/";
 		internal = Gdx.files.internal(path);

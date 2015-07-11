@@ -68,6 +68,9 @@ public class SoundController {
 	/** Sample volume multiplier, from timing points [0, 1]. */
 	private static float sampleVolumeMultiplier = 1f;
 
+	/** Whether all sounds are muted. */
+	private static boolean isMuted;
+
 	/** The name of the current sound file being loaded. */
 	private static String currentFileName;
 
@@ -192,11 +195,14 @@ public class SoundController {
 	 */
 	private static String getSoundFileName(String filename) {
 		String wav = String.format("%s.wav", filename), mp3 = String.format("%s.mp3", filename);
-		File skinWAV = new File(Options.getSkinDir(), wav), skinMP3 = new File(Options.getSkinDir(), mp3);
-		if (skinWAV.isFile())
-			return skinWAV.getAbsolutePath();
-		if (skinMP3.isFile())
-			return skinMP3.getAbsolutePath();
+		File skinDir = Options.getSkin().getDirectory();
+		if (skinDir != null) {
+			File skinWAV = new File(skinDir, wav), skinMP3 = new File(skinDir, mp3);
+			if (skinWAV.isFile())
+				return skinWAV.getAbsolutePath();
+			if (skinMP3.isFile())
+				return skinMP3.getAbsolutePath();
+		}
 		if (ResourceLoader.resourceExists(wav))
 			return wav;
 		if (ResourceLoader.resourceExists(mp3))
@@ -219,7 +225,14 @@ public class SoundController {
 				ErrorHandler.error(String.format("Could not find sound file '%s'.", s.getFileName()), null, false);
 				continue;
 			}
-			s.setClip(loadClip(currentFileName, currentFileName.endsWith(".mp3")));
+			MultiClip newClip = loadClip(currentFileName, currentFileName.endsWith(".mp3"));
+			if (s.getClip() != null) {  // clip previously loaded (e.g. program restart)
+				if (newClip != null) {
+					s.getClip().destroy();  // destroy previous clip
+					s.setClip(newClip);
+				}
+			} else
+				s.setClip(newClip);
 			currentFileIndex++;
 		}
 
@@ -231,7 +244,14 @@ public class SoundController {
 					ErrorHandler.error(String.format("Could not find hit sound file '%s'.", filename), null, false);
 					continue;
 				}
-				s.setClip(ss, loadClip(currentFileName, false));
+				MultiClip newClip = loadClip(currentFileName, false);
+				if (s.getClip(ss) != null) {  // clip previously loaded (e.g. program restart)
+					if (newClip != null) {
+						s.getClip(ss).destroy();  // destroy previous clip
+						s.setClip(ss, newClip);
+					}
+				} else
+					s.setClip(ss, newClip);
 				currentFileIndex++;
 			}
 		}
@@ -259,7 +279,7 @@ public class SoundController {
 		if (clip == null)  // clip failed to load properly
 			return;
 
-		if (volume > 0f) {
+		if (volume > 0f && !isMuted) {
 			//try {
 				clip.start(volume, listener);
 			//} catch (LineUnavailableException e) {
@@ -291,16 +311,20 @@ public class SoundController {
 			return;
 
 		// play all sounds
-		HitSound.setSampleSet(sampleSet);
-		playClip(HitSound.NORMAL.getClip(), volume, null);
+		if (hitSound == HitObject.SOUND_NORMAL || Options.getSkin().isLayeredHitSounds()) {
+			HitSound.setSampleSet(sampleSet);
+			playClip(HitSound.NORMAL.getClip(), volume, null);
+		}
 
-		HitSound.setSampleSet(additionSampleSet);
-		if ((hitSound & HitObject.SOUND_WHISTLE) > 0)
-			playClip(HitSound.WHISTLE.getClip(), volume, null);
-		if ((hitSound & HitObject.SOUND_FINISH) > 0)
-			playClip(HitSound.FINISH.getClip(), volume, null);
-		if ((hitSound & HitObject.SOUND_CLAP) > 0)
-			playClip(HitSound.CLAP.getClip(), volume, null);
+		if (hitSound != HitObject.SOUND_NORMAL) {
+			HitSound.setSampleSet(additionSampleSet);
+			if ((hitSound & HitObject.SOUND_WHISTLE) > 0)
+				playClip(HitSound.WHISTLE.getClip(), volume, null);
+			if ((hitSound & HitObject.SOUND_FINISH) > 0)
+				playClip(HitSound.FINISH.getClip(), volume, null);
+			if ((hitSound & HitObject.SOUND_CLAP) > 0)
+				playClip(HitSound.CLAP.getClip(), volume, null);
+		}
 	}
 
 	/**
@@ -310,6 +334,12 @@ public class SoundController {
 	public static void playHitSound(SoundComponent s) {
 		playClip(s.getClip(), Options.getHitSoundVolume() * sampleVolumeMultiplier * Options.getMasterVolume(), null);
 	}
+
+	/**
+	 * Mutes or unmutes all sounds (hit sounds and sound effects).
+	 * @param mute true to mute, false to unmute
+	 */
+	public static void mute(boolean mute) { isMuted = mute; }
 
 	/**
 	 * Returns the name of the current file being loaded, or null if none.

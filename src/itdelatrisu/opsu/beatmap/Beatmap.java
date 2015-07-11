@@ -18,23 +18,19 @@
 
 package itdelatrisu.opsu.beatmap;
 
-import itdelatrisu.opsu.Options;
-import itdelatrisu.opsu.Utils;
+import fluddokt.opsu.fake.*;
 
+import itdelatrisu.opsu.Options;
 
 //import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedList;
+
 /*
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Image;
-import org.newdawn.slick.SlickException;
 import org.newdawn.slick.util.Log;
 */
-
-
-import fluddokt.opsu.fake.*;
 
 /**
  * Beatmap structure storing data parsed from OSU files.
@@ -43,11 +39,13 @@ public class Beatmap implements Comparable<Beatmap> {
 	/** Game modes. */
 	public static final byte MODE_OSU = 0, MODE_TAIKO = 1, MODE_CTB = 2, MODE_MANIA = 3;
 
-	/** Map of all loaded background images. */
-	private static HashMap<Beatmap, Image> bgImageMap = new HashMap<Beatmap, Image>();
+	/** Background image cache. */
+	private static final BeatmapImageCache bgImageCache = new BeatmapImageCache();
 
-	/** Maximum number of cached images before all get erased. */
-	private static final int MAX_CACHE_SIZE = 10;
+	/**
+	 * Returns the background image cache.
+	 */
+	public static BeatmapImageCache getBackgroundImageCache() { return bgImageCache; }
 
 	/** The OSU File object associated with this beatmap. */
 	private File file;
@@ -162,11 +160,11 @@ public class Beatmap implements Comparable<Beatmap> {
 	 * [Events]
 	 */
 
-	/** Background image file name. */
-	public String bg;
+	/** Background image file. */
+	public File bg;
 
-	/** Background video file name. */
-//	public String video;
+	/** Background video file. */
+//	public File video;
 
 	/** All break periods (start time, end time, ...). */
 	public ArrayList<Integer> breaks;
@@ -185,8 +183,14 @@ public class Beatmap implements Comparable<Beatmap> {
 	 * [Colours]
 	 */
 
-	/** Combo colors (max 8). */
+	/** Combo colors (max 8). If null, the skin value is used. */
 	public Color[] combo;
+
+	/** Slider border color. If null, the skin value is used. */
+	public Color sliderBorder;
+
+	/** MD5 hash of this file. */
+	public String md5Hash;
 
 	/**
 	 * [HitObjects]
@@ -203,30 +207,6 @@ public class Beatmap implements Comparable<Beatmap> {
 
 	/** Last object end time (in ms). */
 	public int endTime = -1;
-
-	/**
-	 * Destroys all cached background images and resets the cache.
-	 */
-	public static void clearImageCache() {
-		for (Image img : bgImageMap.values()) {
-			if (img != null && !img.isDestroyed()) {
-				try {
-					img.destroy();
-				} catch (SlickException e) {
-					Log.warn(String.format("Failed to destroy image '%s'.", img.getResourceReference()), e);
-				}
-			}
-		}
-		resetImageCache();
-	}
-
-	/**
-	 * Resets the image cache.
-	 * This does NOT destroy images, so be careful of memory leaks!
-	 */
-	public static void resetImageCache() {
-		bgImageMap = new HashMap<Beatmap, Image>();
-	}
 
 	/**
 	 * Constructor.
@@ -261,6 +241,24 @@ public class Beatmap implements Comparable<Beatmap> {
 	}
 
 	/**
+	 * Returns the list of combo colors (max 8).
+	 * If the beatmap does not provide colors, the skin colors will be returned instead.
+	 * @return the combo colors
+	 */
+	public Color[] getComboColors() {
+		return (combo != null) ? combo : Options.getSkin().getComboColors();
+	}
+
+	/**
+	 * Returns the slider border color.
+	 * If the beatmap does not provide a color, the skin color will be returned instead.
+	 * @return the slider border color
+	 */
+	public Color getSliderBorderColor() {
+		return (sliderBorder != null) ? sliderBorder : Options.getSkin().getSliderBorderColor();
+	}
+
+	/**
 	 * Draws the beatmap background.
 	 * @param width the container width
 	 * @param height the container height
@@ -272,12 +270,10 @@ public class Beatmap implements Comparable<Beatmap> {
 		if (bg == null)
 			return false;
 		try {
-			Image bgImage = bgImageMap.get(this);
+			Image bgImage = bgImageCache.get(this);
 			if (bgImage == null) {
-				if (bgImageMap.size() > MAX_CACHE_SIZE)
-					clearImageCache();
-				bgImage = new Image(new File(file.getParentFile(), bg).getAbsolutePath());
-				bgImageMap.put(this, bgImage);
+				bgImage = new Image(bg.getAbsolutePath());
+				bgImageCache.put(this, bgImage);
 			}
 
 			int swidth = width;
@@ -405,7 +401,7 @@ public class Beatmap implements Comparable<Beatmap> {
 	 * or null if the field is null or the default combo.
 	 */
 	public String comboToString() {
-		if (combo == null || combo == Utils.DEFAULT_COMBO)
+		if (combo == null)
 			return null;
 
 		StringBuilder sb = new StringBuilder();
@@ -428,7 +424,6 @@ public class Beatmap implements Comparable<Beatmap> {
 	 * @param s the string
 	 */
 	public void comboFromString(String s) {
-		this.combo = Utils.DEFAULT_COMBO;
 		if (s == null)
 			return;
 
@@ -440,5 +435,28 @@ public class Beatmap implements Comparable<Beatmap> {
 		}
 		if (!colors.isEmpty())
 			this.combo = colors.toArray(new Color[colors.size()]);
+	}
+
+	/**
+	 * Returns the {@link #sliderBorder} field formatted as a string,
+	 * or null if the field is null.
+	 */
+	public String sliderBorderToString() {
+		if (sliderBorder == null)
+			return null;
+
+		return String.format("%d,%d,%d", sliderBorder.getRed(), sliderBorder.getGreen(), sliderBorder.getBlue());
+	}
+
+	/**
+	 * Sets the {@link #sliderBorder} field from a string.
+	 * @param s the string
+	 */
+	public void sliderBorderFromString(String s) {
+		if (s == null)
+			return;
+
+		String[] rgb = s.split(",");
+		this.sliderBorder = new Color(new Color(Integer.parseInt(rgb[0]), Integer.parseInt(rgb[1]), Integer.parseInt(rgb[2])));
 	}
 }

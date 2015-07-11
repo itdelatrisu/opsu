@@ -23,13 +23,14 @@ import fluddokt.opsu.fake.*;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.Options;
-import itdelatrisu.opsu.OsuParser;
 import itdelatrisu.opsu.OszUnpacker;
-import itdelatrisu.opsu.UI;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
+import itdelatrisu.opsu.beatmap.BeatmapParser;
 import itdelatrisu.opsu.beatmap.BeatmapSetList;
+import itdelatrisu.opsu.replay.ReplayImporter;
+import itdelatrisu.opsu.ui.UI;
 
 /*
 import java.io.File;
@@ -58,6 +59,9 @@ public class Splash extends BasicGameState {
 	/** Number of times the 'Esc' key has been pressed. */
 	private int escapeCount = 0;
 
+	/** Whether the skin being loaded is a new skin (for program restarts). */
+	private boolean newSkin = false;
+
 	// game-related variables
 	private int state;
 	private GameContainer container;
@@ -71,6 +75,10 @@ public class Splash extends BasicGameState {
 	public void init(GameContainer container, StateBasedGame game)
 			throws SlickException {
 		this.container = container;
+
+		// check if skin changed
+		if (Options.getSkin() != null)
+			this.newSkin = (Options.getSkin().getDirectory() != Options.getSkinDir());
 
 		// load Utils class first (needed in other 'init' methods)
 		Utils.init(container, game);
@@ -92,11 +100,27 @@ public class Splash extends BasicGameState {
 		if (!init) {
 			init = true;
 
+			// resources already loaded (from application restart)
 			if (BeatmapSetList.get() != null) {
-				// resources already loaded (from application restart)
-				finished = true;
-			} else {
-				// load resources in a new thread
+				// reload sounds if skin changed
+				if (newSkin) {
+					thread = new Thread() {
+						@Override
+						public void run() {
+							// TODO: only reload each sound if actually needed?
+							SoundController.init();
+
+							finished = true;
+							thread = null;
+						}
+					};
+					thread.start();
+				} else  // don't reload anything
+					finished = true;
+			}
+
+			// load all resources in a new thread
+			else {
 				thread = new Thread() {
 					@Override
 					public void run() {
@@ -106,7 +130,10 @@ public class Splash extends BasicGameState {
 						OszUnpacker.unpackAllFiles(Options.getOSZDir(), beatmapDir);
 
 						// parse song directory
-						OsuParser.parseAllFiles(beatmapDir);
+						BeatmapParser.parseAllFiles(beatmapDir);
+
+						// import replays
+						ReplayImporter.importAllReplaysFromDir(Options.getReplayImportDir());
 
 						// load sounds
 						SoundController.init();
@@ -154,7 +181,7 @@ public class Splash extends BasicGameState {
 			if (++escapeCount >= 3)
 				container.exit();
 
-			// stop parsing beatmaps by sending interrupt to OsuParser
+			// stop parsing beatmaps by sending interrupt to BeatmapParser
 			else if (thread != null)
 				thread.interrupt();
 		}

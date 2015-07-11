@@ -16,16 +16,16 @@
  * along with opsu!.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package itdelatrisu.opsu;
+package itdelatrisu.opsu.beatmap;
 
 import fluddokt.opsu.fake.*;
-import itdelatrisu.opsu.beatmap.Beatmap;
-import itdelatrisu.opsu.beatmap.BeatmapSetList;
-import itdelatrisu.opsu.beatmap.BeatmapSetNode;
-import itdelatrisu.opsu.beatmap.HitObject;
-import itdelatrisu.opsu.beatmap.TimingPoint;
-import itdelatrisu.opsu.db.BeatmapDB;
 
+import itdelatrisu.opsu.ErrorHandler;
+import itdelatrisu.opsu.Utils;
+import itdelatrisu.opsu.db.BeatmapDB;
+import itdelatrisu.opsu.io.MD5InputStreamWrapper;
+
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 /*
 import java.io.File;
@@ -34,22 +34,25 @@ import java.io.FileReader;
 */
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+
 /*
 import org.newdawn.slick.Color;
 import org.newdawn.slick.util.Log;
 */
 
 /**
- * Parser for OSU files.
+ * Parser for beatmaps.
  */
-public class OsuParser {
+public class BeatmapParser {
 	/** The string lookup database. */
 	private static HashMap<String, String> stringdb = new HashMap<String, String>();
 
@@ -71,8 +74,11 @@ public class OsuParser {
 	/** The current status. */
 	private static Status status = Status.NONE;
 
+	/** If no Provider supports a MessageDigestSpi implementation for the MD5 algorithm. */
+	private static boolean hasNoMD5Algorithm = false;
+
 	// This class should not be instantiated.
-	private OsuParser() {}
+	private BeatmapParser() {}
 
 	/**
 	 * Invokes parser for each OSU file in a root directory and
@@ -212,7 +218,11 @@ public class OsuParser {
 		Beatmap beatmap = new Beatmap(file);
 		beatmap.timingPoints = new ArrayList<TimingPoint>();
 
-		try (BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF-8"))) {
+		try (
+			InputStream bis = new BufferedInputStream(new FileInputStream(file));
+			MD5InputStreamWrapper md5stream = (!hasNoMD5Algorithm) ? new MD5InputStreamWrapper(bis) : null;
+			BufferedReader in = new BufferedReader(new InputStreamReader((md5stream != null) ? md5stream : bis, "UTF-8"));
+		) {
 			String line = in.readLine();
 			String tokens[] = null;
 			while (line != null) {
@@ -286,13 +296,13 @@ public class OsuParser {
 
 								break;
 							case "LetterboxInBreaks":
-								beatmap.letterboxInBreaks = (Integer.parseInt(tokens[1]) == 1);
+								beatmap.letterboxInBreaks = Utils.parseBoolean(tokens[1]);
 								break;
 							case "WidescreenStoryboard":
-								beatmap.widescreenStoryboard = (Integer.parseInt(tokens[1]) == 1);
+								beatmap.widescreenStoryboard = Utils.parseBoolean(tokens[1]);
 								break;
 							case "EpilepsyWarning":
-								beatmap.epilepsyWarning = (Integer.parseInt(tokens[1]) == 1);
+								beatmap.epilepsyWarning = Utils.parseBoolean(tokens[1]);
 							default:
 								break;
 							}
@@ -445,9 +455,9 @@ public class OsuParser {
 						switch (tokens[0]) {
 						case "0":  // background
 							tokens[2] = tokens[2].replaceAll("^\"|\"$", "");
-							String ext = OsuParser.getExtension(tokens[2]);
+							String ext = BeatmapParser.getExtension(tokens[2]);
 							if (ext.equals("jpg") || ext.equals("png"))
-								beatmap.bg = getDBString(tokens[2]);
+								beatmap.bg = new File(dir, getDBString(tokens[2]));
 							break;
 						case "2":  // break periods
 							try {
@@ -510,6 +520,12 @@ public class OsuParser {
 						if ((tokens = tokenize(line)) == null)
 							continue;
 						try {
+							String[] rgb = tokens[1].split(",");
+							Color color = new Color(
+								Integer.parseInt(rgb[0]),
+								Integer.parseInt(rgb[1]),
+								Integer.parseInt(rgb[2])
+							);
 							switch (tokens[0]) {
 							case "Combo1":
 							case "Combo2":
@@ -519,12 +535,11 @@ public class OsuParser {
 							case "Combo6":
 							case "Combo7":
 							case "Combo8":
-								String[] rgb = tokens[1].split(",");
-								colors.add(new Color(
-									Integer.parseInt(rgb[0]),
-									Integer.parseInt(rgb[1]),
-									Integer.parseInt(rgb[2])
-								));
+								colors.add(color);
+								break;
+							case "SliderBorder":
+								beatmap.sliderBorder = color;
+								break;
 							default:
 								break;
 							}
@@ -580,17 +595,21 @@ public class OsuParser {
 					break;
 				}
 			}
+			if (md5stream != null)
+				beatmap.md5Hash = md5stream.getMD5();
 		} catch (IOException e) {
 			ErrorHandler.error(String.format("Failed to read file '%s'.", file.getAbsolutePath()), e, false);
+		} catch (NoSuchAlgorithmException e) {
+			ErrorHandler.error("Failed to get MD5 hash stream.", e, true);
+
+			// retry without MD5
+			hasNoMD5Algorithm = true;
+			return parseFile(file, dir, beatmaps, parseObjects);
 		}
 
 		// no associated audio file?
 		if (beatmap.audioFilename == null)
 			return null;
-
-		// if no custom colors, use the default color scheme
-		if (beatmap.combo == null)
-			beatmap.combo = Utils.DEFAULT_COMBO;
 
 		// parse hit objects now?
 		if (parseObjects)
@@ -624,6 +643,7 @@ public class OsuParser {
 			}
 
 			// combo info
+			Color[] combo = beatmap.getComboColors();
 			int comboIndex = 0;   // color index
 			int comboNumber = 1;  // combo number
 
@@ -651,7 +671,7 @@ public class OsuParser {
 					if (hitObject.isNewCombo() || first) {
 						int skip = (hitObject.isSpinner() ? 0 : 1) + hitObject.getComboSkip();
 						for (int i = 0; i < skip; i++) {
-							comboIndex = (comboIndex + 1) % beatmap.combo.length;
+							comboIndex = (comboIndex + 1) % combo.length;
 							comboNumber = 1;
 						}
 						first = false;

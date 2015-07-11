@@ -21,14 +21,18 @@ package itdelatrisu.opsu.replay;
 import fluddokt.opsu.fake.*;
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.Options;
+import itdelatrisu.opsu.ScoreData;
 import itdelatrisu.opsu.Utils;
+import itdelatrisu.opsu.beatmap.Beatmap;
 import itdelatrisu.opsu.io.OsuReader;
 import itdelatrisu.opsu.io.OsuWriter;
 
+import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 //import java.io.File;
 //import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetEncoder;
@@ -53,6 +57,9 @@ import org.apache.commons.compress.compressors.lzma.LZMACompressorInputStream;
 public class Replay {
 	/** The associated file. */
 	private File file;
+
+	/** The associated score data. */
+	private ScoreData scoreData;
 
 	/** Whether or not the replay data has been loaded from the file. */
 	public boolean loaded = false;
@@ -131,6 +138,16 @@ public class Replay {
 		loadData(reader);
 		reader.close();
 		loaded = true;
+	}
+
+	/**
+	 * Loads the replay header only.
+	 * @throws IOException failure to load the data
+	 */
+	public void loadHeader() throws IOException {
+		OsuReader reader = new OsuReader(file);
+		loadHeader(reader);
+		reader.close();
 	}
 
 	/**
@@ -217,6 +234,40 @@ public class Replay {
 	}
 
 	/**
+	 * Returns a ScoreData object encapsulating all replay data.
+	 * If score data already exists, the existing object will be returned
+	 * (i.e. this will not overwrite existing data).
+	 * @param beatmap the beatmap
+	 * @return the ScoreData object
+	 */
+	public ScoreData getScoreData(Beatmap beatmap) {
+		if (scoreData != null)
+			return scoreData;
+
+		scoreData = new ScoreData();
+		scoreData.timestamp = file.lastModified() / 1000L;
+		scoreData.MID = beatmap.beatmapID;
+		scoreData.MSID = beatmap.beatmapSetID;
+		scoreData.title = beatmap.title;
+		scoreData.artist = beatmap.artist;
+		scoreData.creator = beatmap.creator;
+		scoreData.version = beatmap.version;
+		scoreData.hit300 = hit300;
+		scoreData.hit100 = hit100;
+		scoreData.hit50 = hit50;
+		scoreData.geki = geki;
+		scoreData.katu = katu;
+		scoreData.miss = miss;
+		scoreData.score = score;
+		scoreData.combo = combo;
+		scoreData.perfect = perfect;
+		scoreData.mods = mods;
+		scoreData.replayString = getReplayFilename();
+		scoreData.playerName = playerName;
+		return scoreData;
+	}
+
+	/**
 	 * Saves the replay data to a file in the replays directory.
 	 */
 	public void save() {
@@ -234,7 +285,7 @@ public class Replay {
 		new Thread() {
 			@Override
 			public void run() {
-				try (FileOutputStream out = new FileOutputStream(file)) {
+				try (OutputStream out = new BufferedOutputStream(new FileOutputStream(file))) {
 					OsuWriter writer = new OsuWriter(out);
 
 					// header
