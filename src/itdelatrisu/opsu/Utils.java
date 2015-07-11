@@ -289,11 +289,9 @@ public class Utils {
 	public static void takeScreenShot() {
 		// create the screenshot directory
 		File dir = Options.getScreenshotDir();
-		if (!dir.isDirectory()) {
-			if (!dir.mkdir()) {
-				ErrorHandler.error("Failed to create screenshot directory.", null, false);
-				return;
-			}
+		if (!dir.isDirectory() && !dir.mkdir()) {
+			ErrorHandler.error(String.format("Failed to create screenshot directory at '%s'.", dir.getAbsolutePath()), null, false);
+			return;
 		}
 
 		// create file name

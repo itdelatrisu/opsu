@@ -140,8 +140,8 @@ public class Options {
 				rootPath = String.format("%s/%s", home, fallback);
 			}
 			File dir = new File(rootPath, "opsu");
-			if (!dir.isDirectory())
-				dir.mkdir();
+			if (!dir.isDirectory() && !dir.mkdir())
+				ErrorHandler.error(String.format("Failed to create configuration folder at '%s/opsu'.", rootPath), null, false);
 			return dir;
 		} else
 			return new File("./");
@@ -357,7 +357,7 @@ public class Options {
 			public String getValueString() { return String.format("%dms", val); }
 		},
 		DISABLE_SOUNDS ("Disable All Sound Effects", "DisableSound", "May resolve Linux sound driver issues.  Requires a restart.",
-				(System.getProperty("os.name").toLowerCase().indexOf("linux") > -1)),
+				(System.getProperty("os.name").toLowerCase().contains("linux"))),
 		KEY_LEFT ("Left Game Key", "keyOsuLeft", "Select this option to input a key.") {
 			@Override
 			public String getValueString() { return Keyboard.getKeyName(getGameKeyLeft()); }
@@ -1094,7 +1094,10 @@ public class Options {
 			if (beatmapDir.isDirectory())
 				return beatmapDir;
 		}
-		beatmapDir.mkdir();  // none found, create new directory
+
+		// none found, create new directory
+		if (!beatmapDir.mkdir())
+			ErrorHandler.error(String.format("Failed to create beatmap directory at '%s'.", beatmapDir.getAbsolutePath()), null, false);
 		return beatmapDir;
 	}
 
@@ -1108,7 +1111,8 @@ public class Options {
 			return oszDir;
 
 		oszDir = new File(DATA_DIR, "SongPacks/");
-		oszDir.mkdir();
+		if (!oszDir.isDirectory() && !oszDir.mkdir())
+			ErrorHandler.error(String.format("Failed to create song packs directory at '%s'.", oszDir.getAbsolutePath()), null, false);
 		return oszDir;
 	}
 
@@ -1122,7 +1126,8 @@ public class Options {
 			return replayImportDir;
 
 		replayImportDir = new File(DATA_DIR, "ReplayImport/");
-		replayImportDir.mkdir();
+		if (!replayImportDir.isDirectory() && !replayImportDir.mkdir())
+			ErrorHandler.error(String.format("Failed to create replay import directory at '%s'.", replayImportDir.getAbsolutePath()), null, false);
 		return replayImportDir;
 	}
 
@@ -1167,7 +1172,10 @@ public class Options {
 			if (skinRootDir.isDirectory())
 				return skinRootDir;
 		}
-		skinRootDir.mkdir();  // none found, create new directory
+
+		// none found, create new directory
+		if (!skinRootDir.mkdir())
+			ErrorHandler.error(String.format("Failed to create skins directory at '%s'.", skinRootDir.getAbsolutePath()), null, false);
 		return skinRootDir;
 	}
 
