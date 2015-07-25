@@ -18,7 +18,9 @@ public abstract class StateBasedGame extends Game2 implements InputProcessor {
 	String title;
 	OrderedSet<InputListener> keyListeners = new OrderedSet<InputListener>();
 	boolean rightIsPressed;
-
+	int touchX = 0;
+	int touchY = 0;
+	
 	public StateBasedGame(String name) {
 		this.title = name;
 		Display.setTitle(name);
@@ -49,6 +51,9 @@ public abstract class StateBasedGame extends Game2 implements InputProcessor {
 			currentState.leave(gc, this);
 			currentState = nextState;
 			nextState = null;
+			touchX = 0;
+			touchY = 0;
+			
 			if (!currentState.inited) {
 				currentState.init(gc, this);
 				currentState.inited = true;
@@ -168,11 +173,14 @@ public abstract class StateBasedGame extends Game2 implements InputProcessor {
 					currentState.mouseReleased(Input.MOUSE_RIGHT_BUTTON, oldx, oldy);
 				}
 				currentState.mousePressed(Input.MOUSE_RIGHT_BUTTON, oldx, oldy );
+				gc.getInput().setMouseRighButtontDown(true);
 				rightIsPressed = true;
 			} else {
 				currentState.mousePressed(button, screenX, screenY);
 				oldx = screenX;
 				oldy = screenY;
+				touchX = screenX;
+				touchY = screenY;
 			}
 		} catch (Throwable e) {
 			e.printStackTrace();
@@ -188,8 +196,13 @@ public abstract class StateBasedGame extends Game2 implements InputProcessor {
 		}
 		if (pointer > 0){
 			currentState.mouseReleased(Input.MOUSE_RIGHT_BUTTON, oldx, oldy);
+			gc.getInput().setMouseRighButtontDown(false);
 			rightIsPressed = false;
 		} else {
+			int dx = screenX - touchX;
+			int dy = screenY - touchY;
+			if( dx*dx + dy*dy < 10 * 10)
+				currentState.mouseClicked(button, screenX, screenY, 1);
 			currentState.mouseReleased(button, screenX, screenY);
 			oldx = screenX;
 			oldy = screenY;

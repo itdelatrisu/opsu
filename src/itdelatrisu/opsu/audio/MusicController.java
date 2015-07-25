@@ -248,7 +248,8 @@ public class MusicController {
 	 * @param position the new track position (in ms)
 	 */
 	public static boolean setPosition(int position) {
-		return (trackExists() && position >= 0 && player.setPosition(position / 1000f));
+		//return (trackExists() && position >= 0 && player.setPosition(position / 1000f));
+		return (trackExists() && player.setPosition(position / 1000f));
 	}
 
 	/**

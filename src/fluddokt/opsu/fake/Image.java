@@ -24,6 +24,7 @@ public class Image {
 	Image parentImage;
 	FrameBuffer fb;
 	FBGraphics fbg;
+	Pixmap pixmap;
 	
 	private class FBGraphics extends Graphics{
 		FrameBuffer fb;
@@ -393,8 +394,10 @@ public class Image {
 		return filename;
 	}
 
-	public float getAlphaAt(int i, int j) {
-		return 1;
+	public float getAlphaAt(int x, int y) {
+		if(pixmap == null)
+			pixmap = new Pixmap(ResourceLoader.getFileHandle(filename));
+		return pixmap.getPixel((int)(x *pixmap.getWidth() / width), (int) (y * pixmap.getHeight() / height))&0xff;
 	}
 
 	public Graphics getGraphics() {
@@ -405,6 +408,10 @@ public class Image {
 		}
 	}
 
-
-
+	//Color singGetColor = new Color();
+	public Color getColor(int x, int y) {
+		if(pixmap == null)
+			pixmap = new Pixmap(ResourceLoader.getFileHandle(filename));
+		return new Color(pixmap.getPixel((int)(x *pixmap.getWidth() / width), (int) (y * pixmap.getHeight() / height)));
+	}
 }

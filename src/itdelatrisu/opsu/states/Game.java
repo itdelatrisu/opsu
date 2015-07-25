@@ -114,7 +114,7 @@ public class Game extends BasicGameState {
 	private GameObject[] gameObjects;
 
 	/** Delay time, in milliseconds, before song starts. */
-	private int leadInTime;
+	//private int leadInTime;
 
 	/** Hit object approach time, in milliseconds. */
 	private int approachTime;
@@ -324,7 +324,7 @@ public class Game extends BasicGameState {
 			float[] autoXY = null;
 			if (isLeadIn()) {
 				// lead-in
-				float progress = Math.max((float) (leadInTime - beatmap.audioLeadIn) / approachTime, 0f);
+				float progress = Math.max((float) (-trackPosition - beatmap.audioLeadIn) / approachTime, 0f);
 				autoMouseY = (int) (height / (2f - progress));
 			} else if (objectIndex == 0 && trackPosition < firstObjectTime) {
 				// before first object
@@ -384,7 +384,8 @@ public class Game extends BasicGameState {
 			// render hit objects offscreen
 			Graphics.setCurrent(gOffscreen);
 		*/
-			int trackPos = (isLeadIn()) ? (leadInTime - Options.getMusicOffset()) * -1 : trackPosition;
+			//int trackPos = (isLeadIn()) ? (leadInTime - Options.getMusicOffset()) * -1 : trackPosition;
+			int trackPos = trackPosition;
 		/*
 			drawHitObjects(gOffscreen, trackPos);
 
@@ -528,8 +529,10 @@ public class Game extends BasicGameState {
 				Utils.COLOR_WHITE_FADE.a = oldAlpha;
 			}
 
+			/*
 			if (isLeadIn())
 				trackPosition = (leadInTime - Options.getMusicOffset()) * -1;  // render approach circles during song lead-in
+			*/
 
 			// countdown
 			if (beatmap.countdown > 0) {
@@ -677,9 +680,11 @@ public class Game extends BasicGameState {
 
 		// stop updating during song lead-in
 		if (isLeadIn()) {
+			/*
 			leadInTime -= delta;
 			if (!isLeadIn())
 				MusicController.resume();
+			*/
 			return;
 		}
 
@@ -947,10 +952,12 @@ public class Game extends BasicGameState {
 					restart = Restart.MANUAL;
 					enter(container, game);
 					checkpointLoaded = true;
+					/*
 					if (isLeadIn()) {
 						leadInTime = 0;
 						MusicController.resume();
 					}
+					*/
 					SoundController.playSound(SoundEffect.MENUHIT);
 					UI.sendBarNotification("Checkpoint loaded.");
 
@@ -1288,14 +1295,14 @@ public class Game extends BasicGameState {
 				replayFrames.add(new ReplayFrame(0, 0, input.getMouseX(), input.getMouseY(), 0));
 			}
 
-			leadInTime = beatmap.audioLeadIn + approachTime;
+			int leadInTime = beatmap.audioLeadIn + approachTime;
 			restart = Restart.FALSE;
 
 			// needs to play before setting position to resume without lag later
 			MusicController.play(false);
-			MusicController.setPosition(0);
+			MusicController.setPosition( -leadInTime );
 			MusicController.setPitch(GameMod.getSpeedMultiplier());
-			MusicController.pause();
+			//MusicController.pause();
 
 			SoundController.mute(false);
 		}
@@ -1459,10 +1466,12 @@ public class Game extends BasicGameState {
 		int firstObjectTime = beatmap.objects[0].getTime();
 		int trackPosition = MusicController.getPosition();
 		if (objectIndex == 0 && trackPosition < firstObjectTime - SKIP_OFFSET) {
+			/*
 			if (isLeadIn()) {
 				leadInTime = 0;
 				MusicController.resume();
 			}
+			*/
 			MusicController.setPosition(firstObjectTime - SKIP_OFFSET);
 			MusicController.setPitch(GameMod.getSpeedMultiplier() * playbackSpeed.getModifier());
 			replaySkipTime = (isReplay) ? -1 : trackPosition;
@@ -1583,7 +1592,7 @@ public class Game extends BasicGameState {
 	/**
 	 * Returns whether or not the track is in the lead-in time state.
 	 */
-	public boolean isLeadIn() { return leadInTime > 0; }
+	public boolean isLeadIn() { return MusicController.getPosition() < 0; }
 
 	/**
 	 * Returns the object approach time, in milliseconds.
@@ -1750,7 +1759,7 @@ public class Game extends BasicGameState {
 		boolean firstObject = (objectIndex == 0 && trackPosition < beatmap.objects[0].getTime());
 		if (isLeadIn()) {
 			// lead-in: expand area
-			float progress = Math.max((float) (leadInTime - beatmap.audioLeadIn) / approachTime, 0f);
+			float progress = Math.max((float) (-trackPosition - beatmap.audioLeadIn) / approachTime, 0f);
 			flashlightRadius = width - (int) ((width - (height * 2 / 3)) * progress);
 		} else if (firstObject) {
 			// before first object: shrink area
@@ -1873,7 +1882,7 @@ public class Game extends BasicGameState {
 	 * @param cy the y coordinate
 	 */
 	private boolean musicPositionBarContains(float cx, float cy) {
-		return ((cx > musicBarX && cx < musicBarX + musicBarWidth) &&
+		return ((cx > musicBarX && cx < musicBarX + musicBarWidth*10) &&
 		        (cy > musicBarY && cy < musicBarY + musicBarHeight));
 	}
 }

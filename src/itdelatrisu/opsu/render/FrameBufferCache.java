@@ -117,6 +117,8 @@ public class FrameBufferCache {
 
 		// no unmapped RTTFramebuffer found, create a new one
 		buffer = Rendertarget.createRTTFramebuffer(width, height);
+		//buffer = Rendertarget.createRTTFramebuffer(512, 512);
+		
 		cache.add(buffer);
 		cacheMap.put(obj, buffer);
 		return buffer;

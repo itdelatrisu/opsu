@@ -605,7 +605,7 @@ public class SongMenu extends BasicGameState {
 	public int getID() { return state; }
 
 	@Override
-	public void mousePressed(int button, int x, int y) {
+	public void mouseClicked(int button, int x, int y, int clickCount) {
 		// check mouse button
 		if (button == Input.MOUSE_MIDDLE_BUTTON)
 			return;

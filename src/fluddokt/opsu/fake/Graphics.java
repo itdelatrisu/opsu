@@ -3,6 +3,7 @@ package fluddokt.opsu.fake;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
@@ -198,6 +199,13 @@ public class Graphics {
 		
 		batch.draw(tex, x, y, wid / 2, hei / 2, wid, hei, 1, 1,
 				rotation);
+	}
+	public void drawTexture(Texture tex, float x, float y, float wid,
+			float hei) {
+		checkMode(SPRITE);
+		if (tex == null)
+			throw new Error("Texture is null");
+		batch.draw(tex, x, y, wid, hei);
 	}
 
 	static Graphics g = new Graphics();

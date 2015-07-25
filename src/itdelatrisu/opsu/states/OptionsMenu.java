@@ -61,7 +61,6 @@ public class OptionsMenu extends BasicGameState {
 			GameOption.DYNAMIC_BACKGROUND,
 			GameOption.LOAD_HD_IMAGES,
 			GameOption.LOAD_VERBOSE,
-			GameOption.MOBILE_UI_SCALING,
 			(com.badlogic.gdx.Gdx.app.getType() == ApplicationType.Desktop) ? 
 					GameOption.SCREEN_RESOLUTION : GameOption.NULL,
 //			GameOption.FULLSCREEN,
@@ -102,9 +101,14 @@ public class OptionsMenu extends BasicGameState {
 			GameOption.FIXED_OD,
 			GameOption.CHECKPOINT,
 			GameOption.REPLAY_SEEKING,
-			GameOption.IN_GAME_PAUSE,
 			GameOption.LOAD_HD_IMAGES,
+		}),
+		EXTRA ("Extras", new GameOption[] {
+			GameOption.MOBILE_UI_SCALING,
+			GameOption.IN_GAME_PAUSE,
+			GameOption.NEW_SLIDER,
 			GameOption.SLIDER_QUALITY,
+			GameOption.DISABLE_CURSOR,
 		});
 
 		/** Total number of tabs. */

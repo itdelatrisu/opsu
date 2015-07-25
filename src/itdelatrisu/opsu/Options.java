@@ -465,8 +465,17 @@ public class Options {
 				, 2, 30) {
 			@Override
 			public String getValueString() { return (val == 0) ? "Disabled" : String.format("%.1f", val / 10f); }
+			
+			@Override
+			public void read(String s) {
+				int i = (int) (Float.parseFloat(s) * 10f);
+				if (i >= 0 && i <= 100)
+					val = i;
+			}
 		},
-		SLIDER_QUALITY ("Slider Quality", "SliderQuality", "Lower values for better looking sliders.") {//, 1, 1, 7) {
+		NEW_SLIDER("Enable New Slider", "NewSlider", "Use the new Slider style.",true),
+		
+		SLIDER_QUALITY ("Slider Quality", "SliderQuality", "Lower values for better looking sliders (For old sliders).") {//, 1, 1, 7) {
 			@Override
 			public String getValueString() { 
 				switch(val){
@@ -500,6 +509,7 @@ public class Options {
 		},
 		ENABLE_THEME_SONG ("Enable Theme Song", "MenuMusic", "Whether to play the theme song upon starting opsu!", true),
 		REPLAY_SEEKING ("Replay Seeking", "ReplaySeeking", "Enable a seeking bar on the left side of the screen during replays.", false),
+		DISABLE_CURSOR ("Disable Cursor", "DisableCursor", "", false),
 		;
 
 		/** Option name. */
@@ -924,6 +934,12 @@ public class Options {
 	 * @return true if enabled
 	 */
 	public static boolean isNewCursorEnabled() { return GameOption.NEW_CURSOR.getBooleanValue(); }
+
+	/**
+	 * Returns whether or not the new cursor type is enabled.
+	 * @return true if enabled
+	 */
+	public static boolean isDisableCursor() { return GameOption.DISABLE_CURSOR.getBooleanValue(); }
 
 	/**
 	 * Returns whether or not the main menu background should be the current track image.

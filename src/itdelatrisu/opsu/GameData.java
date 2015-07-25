@@ -599,6 +599,8 @@ public class GameData {
 		Beatmap beatmap = MusicController.getBeatmap();
 		int firstObjectTime = beatmap.objects[0].getTime();
 		int trackPosition = MusicController.getPosition();
+		if(trackPosition < 0)
+			trackPosition = 0;
 		float circleDiameter = symbolHeight * 0.60f;
 		int circleX = (int) (width - margin - (  // max width: "100.00%"
 				getScoreSymbolImage('1').getWidth() +

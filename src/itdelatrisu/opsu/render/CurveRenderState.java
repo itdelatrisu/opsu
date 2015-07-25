@@ -17,14 +17,23 @@
  */
 package itdelatrisu.opsu.render;
 
+import fluddokt.opsu.fake.*;
+import fluddokt.opsu.fake.gl.*;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.beatmap.HitObject;
 import itdelatrisu.opsu.objects.curves.Vec2f;
 
-import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 
+import com.badlogic.gdx.graphics.Pixmap;
+import com.badlogic.gdx.graphics.Pixmap.Format;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Gdx2DPixmap;
+import com.badlogic.gdx.graphics.glutils.PixmapTextureData;
+import com.badlogic.gdx.graphics.glutils.ShaderProgram;
+
+/*
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
@@ -35,6 +44,7 @@ import org.lwjgl.opengl.GL30;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.util.Log;
+*/
 
 /**
  * Hold the temporary render state that needs to be restored again after the new
@@ -117,19 +127,24 @@ public class CurveRenderState {
 			int old_fb = GL11.glGetInteger(GL30.GL_FRAMEBUFFER_BINDING);
 			int old_tex = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D);
 
-			GL30.glBindFramebuffer(GL30.GL_DRAW_FRAMEBUFFER, fbo.getID());
-			GL11.glViewport(0, 0, fbo.width, fbo.height);
+			//GL30.glBindFramebuffer(GL30.GL_DRAW_FRAMEBUFFER, fbo.getID());
+			//GL11.glViewport(0, 0, fbo.width, fbo.height);
+			fbo.bind();
 			GL11.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 			GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
 			Utils.COLOR_WHITE_FADE.a = 1.0f;
 			this.draw_curve(color, borderColor, curve);
 			color.a = 1f;
 
+			fbo.unbind();
+			
 			GL11.glBindTexture(GL11.GL_TEXTURE_2D, old_tex);
 			GL30.glBindFramebuffer(GL30.GL_DRAW_FRAMEBUFFER, old_fb);
+			//GL11.glViewport(0, 0, containerWidth, containerHeight);
 			Utils.COLOR_WHITE_FADE.a = alpha;
 		}
 
+		/*
 		// draw a fullscreen quad with the texture that contains the curve
 		GL11.glEnable(GL11.GL_TEXTURE_2D);
 		GL11.glDisable(GL11.GL_TEXTURE_1D);
@@ -145,6 +160,45 @@ public class CurveRenderState {
 		GL11.glTexCoord2f(1.0f, 0.0f);
 		GL11.glVertex2i(fbo.width, fbo.height);
 		GL11.glEnd();
+		*/
+
+		Graphics.getGraphics().setColor(new Color(1f, 1f, 1f, alpha));
+		fbo.draw(0, 0, containerWidth, containerHeight);
+		
+		
+		//fbo.bindTexture();
+		//fbo.fbo.getColorBufferTexture().
+		//GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
+		//GL11.glBindTexture(GL11.GL_TEXTURE_2D, fbo.getTextureID());
+		//GL11.glBindTexture(GL11.GL_TEXTURE_2D, staticState.gradientTexture);
+		
+		/*GL11.glBegin();
+		//setup buffers
+		int vtx_buf = GL15.glGenBuffers();
+		FloatBuffer buff = BufferUtils.createByteBuffer(9999).asFloatBuffer();
+		
+		float tas = 1;//0.7f;
+		buff.put(new float[]{
+				0,0,-tas,-tas,
+				0,1,-tas,tas,
+				1,1,tas,tas,
+				1,0,tas,-tas
+		});
+		buff.flip();
+		GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, vtx_buf);
+		GL15.glBufferData(GL15.GL_ARRAY_BUFFER, buff, GL15.GL_STATIC_DRAW);
+		
+		//use shader
+		//draw buffers
+		GL20.glVertexAttribPointer(GL11.vertLoc, 2, GL11.GL_FLOAT, false, 4*4, 4*2);
+		GL20.glVertexAttribPointer(GL11.texCoordLoc, 2, GL11.GL_FLOAT, false, 4*4, 0);
+		GL20.glUniform4f(GL11.colBorderLoc, 1, 1, 1,alpha);
+		
+		GL11.glDrawArrays(GL11.GL_TRIANGLE_FAN, 0, 4);
+		GL15.glDeleteBuffers(vtx_buf);
+		
+		GL11.glEnd();
+		//*/
 	}
 
 	/**
@@ -177,7 +231,7 @@ public class CurveRenderState {
 	 */
 	private RenderState startRender() {
 		RenderState state = new RenderState();
-		state.smoothedPoly = GL11.glGetBoolean(GL11.GL_POLYGON_SMOOTH);
+		//state.smoothedPoly = GL11.glGetBoolean(GL11.GL_POLYGON_SMOOTH);
 		state.blendEnabled = GL11.glGetBoolean(GL11.GL_BLEND);
 		state.depthEnabled = GL11.glGetBoolean(GL11.GL_DEPTH_TEST);
 		state.depthWriteEnabled = GL11.glGetBoolean(GL11.GL_DEPTH_WRITEMASK);
@@ -185,27 +239,31 @@ public class CurveRenderState {
 		state.texUnit = GL11.glGetInteger(GL13.GL_ACTIVE_TEXTURE);
 		state.oldProgram = GL11.glGetInteger(GL20.GL_CURRENT_PROGRAM);
 		state.oldArrayBuffer = GL11.glGetInteger(GL15.GL_ARRAY_BUFFER_BINDING);
-		GL11.glDisable(GL11.GL_POLYGON_SMOOTH);
+		//GL11.glDisable(GL11.GL_POLYGON_SMOOTH);
 		GL11.glEnable(GL11.GL_BLEND);
-		GL14.glBlendEquation(GL14.GL_FUNC_ADD);
+		//GL14.glBlendEquation(GL14.GL_FUNC_ADD);
 		GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 		GL11.glEnable(GL11.GL_DEPTH_TEST);
 		GL11.glDepthMask(true);
 		GL11.glDisable(GL11.GL_TEXTURE_2D);
 		GL11.glEnable(GL11.GL_TEXTURE_1D);
-		GL11.glBindTexture(GL11.GL_TEXTURE_1D, staticState.gradientTexture);
-		GL11.glTexParameteri(GL11.GL_TEXTURE_1D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR_MIPMAP_LINEAR);
+		//GL11.glBindTexture(GL11.GL_TEXTURE_1D, staticState.gradientTexture);
+		staticState.gradientTexture.bind();
+		GL11.glTexParameteri(GL11.GL_TEXTURE_1D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR);
 		GL11.glTexParameteri(GL11.GL_TEXTURE_1D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR);
-		GL11.glTexParameteri(GL11.GL_TEXTURE_1D, GL11.GL_TEXTURE_WRAP_S, GL11.GL_CLAMP);
-
+		GL11.glTexParameteri(GL11.GL_TEXTURE_1D, GL11.GL_TEXTURE_WRAP_S, GL11.GL_CLAMP_TO_EDGE);
+		GL11.glTexParameteri(GL11.GL_TEXTURE_1D, GL11.GL_TEXTURE_WRAP_T, GL11.GL_CLAMP_TO_EDGE);
+		
 		GL20.glUseProgram(0);
 
+		/*
 		GL11.glMatrixMode(GL11.GL_PROJECTION);
 		GL11.glPushMatrix();
 		GL11.glLoadIdentity();
 		GL11.glMatrixMode(GL11.GL_MODELVIEW);
 		GL11.glPushMatrix();
 		GL11.glLoadIdentity();
+		*/
 
 		return state;
 	}
@@ -215,10 +273,12 @@ public class CurveRenderState {
 	 * @param state the old state to restore
 	 */
 	private void endRender(RenderState state) {
+		/*
 		GL11.glMatrixMode(GL11.GL_PROJECTION);
 		GL11.glPopMatrix();
 		GL11.glMatrixMode(GL11.GL_MODELVIEW);
 		GL11.glPopMatrix();
+		*/
 		GL11.glEnable(GL11.GL_BLEND);
 		GL20.glUseProgram(state.oldProgram);
 		GL13.glActiveTexture(state.texUnit);
@@ -267,7 +327,8 @@ public class CurveRenderState {
 		buff.flip();
 		GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, vtx_buf);
 		GL15.glBufferData(GL15.GL_ARRAY_BUFFER, buff, GL15.GL_STATIC_DRAW);
-		GL20.glUseProgram(staticState.program);
+		//GL20.glUseProgram(staticState.program);
+		staticState.program.begin();
 		GL20.glEnableVertexAttribArray(staticState.attribLoc);
 		GL20.glEnableVertexAttribArray(staticState.texCoordLoc);
 		GL20.glUniform1i(staticState.texLoc, 0);
@@ -277,11 +338,15 @@ public class CurveRenderState {
 		//2*4 is for skipping the first 2 floats (u,v)
 		GL20.glVertexAttribPointer(staticState.attribLoc, 4, GL11.GL_FLOAT, false, 6 * 4, 2 * 4);
 		GL20.glVertexAttribPointer(staticState.texCoordLoc, 2, GL11.GL_FLOAT, false, 6 * 4, 0);
+
+		GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
+
 		for (int i = 0; i < curve.length * 2 - 1; ++i)
 			GL11.glDrawArrays(GL11.GL_TRIANGLE_FAN, i * (NewCurveStyleState.DIVIDES + 2), NewCurveStyleState.DIVIDES + 2);
 		GL20.glDisableVertexAttribArray(staticState.texCoordLoc);
 		GL20.glDisableVertexAttribArray(staticState.attribLoc);
 		GL15.glDeleteBuffers(vtx_buf);
+		staticState.program.end();
 		endRender(state);
 	}
 
@@ -350,7 +415,9 @@ public class CurveRenderState {
 		protected static final int DIVIDES = 30;
 
 		/** OpenGL shader program ID used to draw and recolor the curve. */
-		protected int program = 0;
+		//protected int program = 0;
+		protected ShaderProgram program = null;
+		
 
 		/** OpenGL shader attribute location of the vertex position attribute. */
 		protected int attribLoc = 0;
@@ -368,16 +435,19 @@ public class CurveRenderState {
 		protected int texLoc = 0;
 
 		/** OpenGL texture id for the gradient texture for the curve. */
-		protected int gradientTexture = 0;
-
+		//protected int gradientTexture = 0;
+		protected Texture gradientTexture = null;
 		/**
 		 * Reads the first row of the slider gradient texture and upload it as
 		 * a 1D texture to OpenGL if it hasn't already been done.
 		 */
 		public void initGradient() {
-			if (gradientTexture == 0) {
+			if (gradientTexture == null) {
+				
 				Image slider = GameImage.SLIDER_GRADIENT.getImage().getScaledCopy(1.0f / GameImage.getUIscale());
-				staticState.gradientTexture = GL11.glGenTextures();
+				
+				/*
+				//staticState.gradientTexture = GL11.glGenTextures();
 				ByteBuffer buff = BufferUtils.createByteBuffer(slider.getWidth() * 4);
 				for (int i = 0; i < slider.getWidth(); ++i) {
 					Color col = slider.getColor(i, 0);
@@ -387,9 +457,29 @@ public class CurveRenderState {
 					buff.put((byte) (255 * col.a));
 				}
 				buff.flip();
+				
 				GL11.glBindTexture(GL11.GL_TEXTURE_1D, gradientTexture);
 				GL11.glTexImage1D(GL11.GL_TEXTURE_1D, 0, GL11.GL_RGBA, slider.getWidth(), 0, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, buff);
 				GL30.glGenerateMipmap(GL11.GL_TEXTURE_1D);
+				*/
+				
+				Gdx2DPixmap g2dpix = new Gdx2DPixmap(slider.getWidth(), 1, Gdx2DPixmap.GDX2D_FORMAT_RGBA8888);
+				for (int i = 0; i < slider.getWidth(); ++i) {
+					Color col = slider.getColor(i, 0);
+					g2dpix.setPixel(i, 0, col.getRed()<<24 | col.getGreen()<<16 | col.getBlue()<<8 | col.getAlpha());
+				}
+
+				gradientTexture = new Texture(
+					new PixmapTextureData(
+						new Pixmap(g2dpix)
+						, Format.RGBA8888, 
+						/*useMipMaps*/true, 
+						/*disposePixmap*/false, 
+						/*managed*/true
+					)
+					
+				);
+				
 			}
 		}
 
@@ -398,16 +488,58 @@ public class CurveRenderState {
 		 * if it hasn't already been compiled and linked.
 		 */
 		public void initShaderProgram() {
+			if (program == null) {
+				String vertexShader = 
+					"#version 100\n"
+					+ "\n"
+					+ "attribute vec4 in_position;\n"
+					+ "attribute vec2 in_tex_coord;\n"
+					+ "\n"
+					+ "varying vec2 tex_coord;\n"
+					+ "void main()\n"
+					+ "{\n"
+					+ "    gl_Position = in_position;\n"
+					+ "    tex_coord = in_tex_coord;\n"
+					+ "}";
+				String fragmentShader = 
+					"#version 100\n"
+					+ "precision mediump float;\n"
+					+ "\n"
+					+ "uniform sampler2D tex;\n"
+					+ "uniform vec2 tex_size;\n"
+					+ "uniform vec3 col_tint;\n"
+					+ "uniform vec4 col_border;\n"
+					+ "\n"
+					+ "varying vec2 tex_coord;\n"
+					+ "\n"
+					+ "void main()\n"
+					+ "{\n"
+					+ "    vec4 in_color = texture2D(tex, tex_coord);\n"
+					+ "    float blend_factor = in_color.r-in_color.b;\n"
+					+ "    vec4 new_color = vec4(mix(in_color.xyz*col_border.xyz,col_tint,blend_factor),in_color.w);\n"
+					+ "    gl_FragColor = new_color;\n"
+					+ "}";
+				program = new ShaderProgram(vertexShader, fragmentShader);
+				System.out.println("Program Log: "+program.getLog()+" ");
+				
+				attribLoc = program.getAttributeLocation("in_position");// prg.glGetAttribLocation(program, "in_position");
+				texCoordLoc = program.getAttributeLocation("in_tex_coord");//GL20.glGetAttribLocation(program, "in_tex_coord");
+				texLoc = program.getUniformLocation("tex");//GL20.glGetUniformLocation(program, "tex");
+				colLoc = program.getUniformLocation("col_tint");//GL20.glGetUniformLocation(program, "col_tint");
+				colBorderLoc = program.getUniformLocation	("col_border");// GL20.glGetUniformLocation(program, "col_border");
+			}
+			/*
 			if (program == 0) {
 				program = GL20.glCreateProgram();
 				int vtxShdr = GL20.glCreateShader(GL20.GL_VERTEX_SHADER);
 				int frgShdr = GL20.glCreateShader(GL20.GL_FRAGMENT_SHADER);
-				GL20.glShaderSource(vtxShdr, "#version 330\n"
+				GL20.glShaderSource(vtxShdr, 
+						"#version 100\n"
 						+ "\n"
-						+ "layout(location = 0) in vec4 in_position;\n"
-						+ "layout(location = 1) in vec2 in_tex_coord;\n"
+						+ "attribute vec4 in_position;\n"
+						+ "attribute vec2 in_tex_coord;\n"
 						+ "\n"
-						+ "out vec2 tex_coord;\n"
+						+ "varying vec2 tex_coord;\n"
 						+ "void main()\n"
 						+ "{\n"
 						+ "    gl_Position = in_position;\n"
@@ -419,22 +551,25 @@ public class CurveRenderState {
 					String error = GL20.glGetShaderInfoLog(vtxShdr, 1024);
 					Log.error("Vertex Shader compilation failed.", new Exception(error));
 				}
-				GL20.glShaderSource(frgShdr, "#version 330\n"
+				GL20.glShaderSource(frgShdr, 
+						"#version 100\n"
+						+ "#ifdef GL_ES\n"
+						+ "precision mediump float;\n"
+						+ "#endif\n"
 						+ "\n"
-						+ "uniform sampler1D tex;\n"
+						+ "uniform sampler2D tex;\n"
 						+ "uniform vec2 tex_size;\n"
 						+ "uniform vec3 col_tint;\n"
 						+ "uniform vec4 col_border;\n"
 						+ "\n"
-						+ "in vec2 tex_coord;\n"
-						+ "layout(location = 0) out vec4 out_colour;\n"
+						+ "varying vec2 tex_coord;\n"
 						+ "\n"
 						+ "void main()\n"
 						+ "{\n"
-						+ "    vec4 in_color = texture(tex, tex_coord.x);\n"
+						+ "    vec4 in_color = texture2D(tex, tex_coord);\n"
 						+ "    float blend_factor = in_color.r-in_color.b;\n"
 						+ "    vec4 new_color = vec4(mix(in_color.xyz*col_border.xyz,col_tint,blend_factor),in_color.w);\n"
-						+ "    out_colour = new_color;\n"
+						+ "    gl_FragColor = new_color;\n"
 						+ "}");
 				GL20.glCompileShader(frgShdr);
 				res = GL20.glGetShaderi(frgShdr, GL20.GL_COMPILE_STATUS);
@@ -458,20 +593,25 @@ public class CurveRenderState {
 				colLoc = GL20.glGetUniformLocation(program, "col_tint");
 				colBorderLoc = GL20.glGetUniformLocation(program, "col_border");
 			}
+			*/
 		}
 
 		/**
 		 * Cleanup any OpenGL objects that may have been initialized.
 		 */
 		private void shutdown() {
-			if (gradientTexture != 0) {
-				GL11.glDeleteTextures(gradientTexture);
-				gradientTexture = 0;
+			if (gradientTexture != null) {
+				//GL11.glDeleteTextures(gradientTexture);
+				//gradientTexture = 0;
+				gradientTexture.dispose();
+				gradientTexture = null;
 			}
 
-			if (program != 0) {
-				GL20.glDeleteProgram(program);
-				program = 0;
+			if (program != null) { //(program != 0) {
+				//GL20.glDeleteProgram(program);
+				//program = 0;
+				program.dispose();
+				program = null;
 				attribLoc = 0;
 				texCoordLoc = 0;
 				colLoc = 0;

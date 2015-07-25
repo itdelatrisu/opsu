@@ -87,6 +87,7 @@ public class Input {
 	public static final int ANDROID_BACK = Keys.BACK;
 	public static final int ANDROID_MENU = Keys.MENU;
 
+	boolean isRightButtonDown = false;
 
 	public int getMouseY() {
 		return Gdx.input.getY();
@@ -106,7 +107,13 @@ public class Input {
 	}
 
 	public boolean isMouseButtonDown(int button) {
+		if (button == MOUSE_RIGHT_BUTTON && isRightButtonDown)
+			return true;
 		return Gdx.input.isButtonPressed(button);
+	}
+	
+	public void setMouseRighButtontDown(boolean b) {
+		isRightButtonDown = b;
 	}
 
 }

@@ -115,7 +115,7 @@ public enum BeatmapSortOrder {
 	private static class BPMOrder implements Comparator<BeatmapSetNode> {
 		@Override
 		public int compare(BeatmapSetNode v, BeatmapSetNode w) {
-			return Integer.compare(v.getBeatmapSet().get(0).bpmMax, w.getBeatmapSet().get(0).bpmMax);
+			return Integer2.compare(v.getBeatmapSet().get(0).bpmMax, w.getBeatmapSet().get(0).bpmMax);
 		}
 	}
 
@@ -137,7 +137,7 @@ public enum BeatmapSortOrder {
 				if (beatmap.endTime > wMax)
 					wMax = beatmap.endTime;
 			}
-			return Integer.compare(vMax, wMax);
+			return Integer2.compare(vMax, wMax);
 		}
 	}
 

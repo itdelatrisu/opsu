@@ -90,8 +90,9 @@ public abstract class Curve {
 	public static void init(int width, int height, float circleSize, Color borderColor) {
 		Curve.borderColor = borderColor;
 
-		ContextCapabilities capabilities = GLContext.getCapabilities();
-		mmsliderSupported = capabilities.GL_EXT_framebuffer_object && capabilities.OpenGL32;
+		
+		//ContextCapabilities capabilities = GLContext.getCapabilities();
+		mmsliderSupported = true;//capabilities.GL_EXT_framebuffer_object && capabilities.OpenGL32;
 		if (mmsliderSupported)
 			CurveRenderState.init(width, height, circleSize);
 		else {
@@ -116,7 +117,8 @@ public abstract class Curve {
 			return;
 
 		// peppysliders
-		if (Options.getSkin().getSliderStyle() == Skin.STYLE_PEPPYSLIDER || !mmsliderSupported) {
+		if (Options.getSkin().getSliderStyle() == Skin.STYLE_PEPPYSLIDER || !mmsliderSupported
+				|| !Options.GameOption.NEW_SLIDER.getBooleanValue() ) {
 			Image hitCircle = GameImage.HITCIRCLE.getImage();
 			Image hitCircleOverlay = GameImage.HITCIRCLE_OVERLAY.getImage();
 			for (int i = 0; i < curve.length; i+=Options.getSliderQuality())

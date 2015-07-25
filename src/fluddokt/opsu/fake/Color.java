@@ -56,7 +56,26 @@ public class Color {
 		b = color.b;
 		a = color.a;
 	}
+	
+	public Color(int rgba) {
+		init(rgba);
+	}
+	
 
+	public void init(int rgba) {
+		init(
+			(rgba >> 24) & 0xff,
+			(rgba >> 16) & 0xff,
+			(rgba >>  8) & 0xff,
+			(rgba      ) & 0xff
+		);
+	}
+	public void init(int r, int g, int b, int a) {
+		this.r = r / 255f;
+		this.g = g / 255f;
+		this.b = b / 255f;
+		this.a = a / 255f;
+	}
 	public Color() {
 	}
 
@@ -86,6 +105,10 @@ public class Color {
 		b = ocol.b;
 		a = ocol.a;
 		return this;
+	}
+
+	public int getAlpha() {
+		return (int)(a * 255);
 	}
 
 	

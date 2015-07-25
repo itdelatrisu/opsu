@@ -87,14 +87,25 @@ public class AudioDevicePlayer2 extends AudioDevicePlayer {
 						if(samplePos > nextSamplePos){
 							resetStream();
 						}
-						int skipby = nextSamplePos - samplePos;
-						int actualSkip = (int) currentStream.skip(skipby);
-						System.out.println("Skipby: "+skipby+" actual:"+actualSkip);
-						samplePos += actualSkip;
+						if(nextSamplePos >= 0) {
+							int skipby = nextSamplePos - samplePos;
+							int actualSkip = (int) currentStream.skip(skipby);
+							System.out.println("Skipby: "+skipby+" actual:"+actualSkip);
+							samplePos += actualSkip;
+						} else {
+							samplePos = nextSamplePos;
+						}
 						setNextPosition = false;
 						adl.requestSync(thisAudioDevicePlayer);
 					}
-					int len  = currentStream.read(rbuf);
+					int len = 0;
+					
+					if (samplePos < 0){
+						len = Math.min(rbuf.length, -samplePos);
+						for (int i=0; i<len; i++)
+							rbuf[i] = 0;
+					} else
+						len = currentStream.read(rbuf);
 					if (!initedAD) {
 						initedAD = true;
 						System.out.println("PlayThread Music Init AD "+sampleRate+" "+channels);
