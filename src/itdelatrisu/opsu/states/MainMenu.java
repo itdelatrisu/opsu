@@ -33,8 +33,9 @@ import itdelatrisu.opsu.downloads.Updater;
 import itdelatrisu.opsu.states.ButtonMenu.MenuState;
 import itdelatrisu.opsu.ui.MenuButton;
 import itdelatrisu.opsu.ui.MenuButton.Expand;
-import itdelatrisu.opsu.ui.animations.AnimationEquation;
 import itdelatrisu.opsu.ui.UI;
+import itdelatrisu.opsu.ui.animations.AnimatedValue;
+import itdelatrisu.opsu.ui.animations.AnimationEquation;
 
 import java.awt.Desktop;
 import java.io.IOException;
@@ -62,7 +63,7 @@ import org.newdawn.slick.state.transition.FadeOutTransition;
  */
 public class MainMenu extends BasicGameState {
 	/** Idle time, in milliseconds, before returning the logo to its original position. */
-	private static final short MOVE_DELAY = 5000;
+	private static final short LOGO_IDLE_DELAY = 10000;
 
 	/** Max alpha level of the menu background. */
 	private static final float BG_MAX_ALPHA = 0.9f;
@@ -70,11 +71,20 @@ public class MainMenu extends BasicGameState {
 	/** Logo button that reveals other buttons on click. */
 	private MenuButton logo;
 
-	/** Whether or not the logo has been clicked. */
-	private boolean logoClicked = false;
+	/** Logo states. */
+	private enum LogoState { DEFAULT, OPENING, OPEN, CLOSING }
+
+	/** Current logo state. */
+	private LogoState logoState = LogoState.DEFAULT;
 
 	/** Delay timer, in milliseconds, before starting to move the logo back to the center. */
 	private int logoTimer = 0;
+
+	/** Logo horizontal offset for opening and closing actions. */
+	private AnimatedValue logoOpen, logoClose;
+
+	/** Logo button alpha levels. */
+	private AnimatedValue logoButtonAlpha;
 
 	/** Main "Play" and "Exit" buttons. */
 	private MenuButton playButton, exitButton;
@@ -98,7 +108,7 @@ public class MainMenu extends BasicGameState {
 	private Stack<Integer> previous;
 
 	/** Background alpha level (for fade-in effect). */
-	private float bgAlpha = 0f;
+	private AnimatedValue bgAlpha = new AnimatedValue(1100, 0f, BG_MAX_ALPHA, AnimationEquation.LINEAR);
 
 	/** Whether or not a notification was already sent upon entering. */
 	private boolean enterNotification = false;
@@ -154,7 +164,7 @@ public class MainMenu extends BasicGameState {
 		logo.setHoverAnimationEquation(logoAnimationEquation);
 		playButton.setHoverAnimationEquation(logoAnimationEquation);
 		exitButton.setHoverAnimationEquation(logoAnimationEquation);
-		final float logoHoverScale = 1.1f;
+		final float logoHoverScale = 1.08f;
 		logo.setHoverExpand(logoHoverScale);
 		playButton.setHoverExpand(logoHoverScale);
 		exitButton.setHoverExpand(logoHoverScale);
@@ -203,6 +213,12 @@ public class MainMenu extends BasicGameState {
 		updateButton = new MenuButton(bangImg, startX - bangImg.getWidth(), startY - bangImg.getHeight());
 		updateButton.setHoverExpand(1.15f);
 
+		// logo animations
+		float centerOffsetX = container.getWidth() / 5f;
+		logoOpen = new AnimatedValue(400, 0, centerOffsetX, AnimationEquation.OUT_QUAD);
+		logoClose = new AnimatedValue(2200, centerOffsetX, 0, AnimationEquation.OUT_QUAD);
+		logoButtonAlpha = new AnimatedValue(300, 0f, 1f, AnimationEquation.LINEAR);
+
 		reset();
 	}
 
@@ -215,11 +231,11 @@ public class MainMenu extends BasicGameState {
 		// draw background
 		Beatmap beatmap = MusicController.getBeatmap();
 		if (Options.isDynamicBackgroundEnabled() &&
-			beatmap != null && beatmap.drawBG(width, height, bgAlpha, true))
+			beatmap != null && beatmap.drawBG(width, height, bgAlpha.getValue(), true))
 				;
 		else {
 			Image bg = GameImage.MENU_BG.getImage();
-			bg.setAlpha(bgAlpha);
+			bg.setAlpha(bgAlpha.getValue());
 			bg.draw();
 		}
 
@@ -235,7 +251,7 @@ public class MainMenu extends BasicGameState {
 		downloadsButton.draw();
 
 		// draw buttons
-		if (logoTimer > 0) {
+		if (logoState == LogoState.OPEN || logoState == LogoState.CLOSING) {
 			playButton.draw();
 			exitButton.draw();
 		}
@@ -336,46 +352,44 @@ public class MainMenu extends BasicGameState {
 				MusicController.toggleTrackDimmed(0.33f);
 
 		// fade in background
-		if (bgAlpha < BG_MAX_ALPHA) {
-			bgAlpha += delta / 1000f;
-			if (bgAlpha > BG_MAX_ALPHA)
-				bgAlpha = BG_MAX_ALPHA;
-		}
+		bgAlpha.update(delta);
 
 		// buttons
-		if (logoClicked) {
-			if (logoTimer == 0) {  // shifting to left
-				if (logo.getX() > container.getWidth() / 3.3f)
-					logo.setX(logo.getX() - delta);
-				else
-					logoTimer = 1;
-			} else if (logoTimer >= MOVE_DELAY)  // timer over: shift back to center
-				logoClicked = false;
-			else {  // increment timer
+		int centerX = container.getWidth() / 2;
+		float currentLogoButtonAlpha;
+		switch (logoState) {
+		case DEFAULT:
+			break;
+		case OPENING:
+			if (logoOpen.update(delta))  // shifting to left
+				logo.setX(centerX - logoOpen.getValue());
+			else {
+				logoState = LogoState.OPEN;
+				logoTimer = 0;
+				logoButtonAlpha.setTime(0);
+			}
+			break;
+		case OPEN:
+			if (logoButtonAlpha.update(delta)) {  // fade in buttons
+				currentLogoButtonAlpha = logoButtonAlpha.getValue();
+				playButton.getImage().setAlpha(currentLogoButtonAlpha);
+				exitButton.getImage().setAlpha(currentLogoButtonAlpha);
+			} else if (logoTimer >= LOGO_IDLE_DELAY) {  // timer over: shift back to center
+				logoState = LogoState.CLOSING;
+				logoClose.setTime(0);
+				logoTimer = 0;
+			} else  // increment timer
 				logoTimer += delta;
-				if (logoTimer <= 500) {
-					// fade in buttons
-					playButton.getImage().setAlpha(logoTimer / 400f);
-					exitButton.getImage().setAlpha(logoTimer / 400f);
-				}
+			break;
+		case CLOSING:
+			if (logoButtonAlpha.update(-delta)) {  // fade out buttons
+				currentLogoButtonAlpha = logoButtonAlpha.getValue();
+				playButton.getImage().setAlpha(currentLogoButtonAlpha);
+				exitButton.getImage().setAlpha(currentLogoButtonAlpha);
 			}
-		} else {
-			// fade out buttons
-			if (logoTimer > 0) {
-				float alpha = playButton.getImage().getAlpha();
-				if (alpha > 0f) {
-					playButton.getImage().setAlpha(alpha - (delta / 200f));
-					exitButton.getImage().setAlpha(alpha - (delta / 200f));
-				} else
-					logoTimer = 0;
-			}
-
-			// move back to original location
-			if (logo.getX() < container.getWidth() / 2) {
-				logo.setX(logo.getX() + (delta / 3f));
-				if (logo.getX() > container.getWidth() / 2)
-					logo.setX(container.getWidth() / 2);
-			}
+			if (logoClose.update(delta))  // shifting to right
+				logo.setX(centerX - logoClose.getValue());
+			break;
 		}
 
 		// tooltips
@@ -471,7 +485,7 @@ public class MainMenu extends BasicGameState {
 				SongMenu menu = (SongMenu) game.getState(Opsu.STATE_SONGMENU);
 				menu.setFocus(BeatmapSetList.get().getBaseNode(previous.pop()), -1, true, false);
 				if (Options.isDynamicBackgroundEnabled())
-					bgAlpha = 0f;
+					bgAlpha.setTime(0);
 			} else
 				MusicController.setPosition(0);
 			UI.sendBarNotification("<< Previous");
@@ -511,9 +525,10 @@ public class MainMenu extends BasicGameState {
 		}
 
 		// start moving logo (if clicked)
-		else if (!logoClicked) {
+		else if (logoState == LogoState.DEFAULT || logoState == LogoState.CLOSING) {
 			if (logo.contains(x, y, 0.25f)) {
-				logoClicked = true;
+				logoState = LogoState.OPENING;
+				logoOpen.setTime(0);
 				logoTimer = 0;
 				playButton.getImage().setAlpha(0f);
 				exitButton.getImage().setAlpha(0f);
@@ -522,7 +537,7 @@ public class MainMenu extends BasicGameState {
 		}
 
 		// other button actions (if visible)
-		else if (logoClicked) {
+		else if (logoState == LogoState.OPEN || logoState == LogoState.OPENING) {
 			if (logo.contains(x, y, 0.25f) || playButton.contains(x, y, 0.25f)) {
 				SoundController.playSound(SoundEffect.MENUHIT);
 				enterSongMenu();
@@ -546,8 +561,9 @@ public class MainMenu extends BasicGameState {
 			break;
 		case Input.KEY_P:
 			SoundController.playSound(SoundEffect.MENUHIT);
-			if (!logoClicked) {
-				logoClicked = true;
+			if (logoState == LogoState.DEFAULT || logoState == LogoState.CLOSING) {
+				logoState = LogoState.OPENING;
+				logoOpen.setTime(0);
 				logoTimer = 0;
 				playButton.getImage().setAlpha(0f);
 				exitButton.getImage().setAlpha(0f);
@@ -595,8 +611,11 @@ public class MainMenu extends BasicGameState {
 	public void reset() {
 		// reset logo
 		logo.setX(container.getWidth() / 2);
-		logoClicked = false;
+		logoOpen.setTime(0);
+		logoClose.setTime(0);
+		logoButtonAlpha.setTime(0);
 		logoTimer = 0;
+		logoState = LogoState.DEFAULT;
 
 		logo.resetHover();
 		playButton.resetHover();
@@ -625,7 +644,7 @@ public class MainMenu extends BasicGameState {
 				previous.add(node.index);
 		}
 		if (Options.isDynamicBackgroundEnabled() && !sameAudio && !MusicController.isThemePlaying())
-			bgAlpha = 0f;
+			bgAlpha.setTime(0);
 	}
 
 	/**

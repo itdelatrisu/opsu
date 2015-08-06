@@ -162,7 +162,7 @@ public class Spinner implements GameObject {
 		final int maxVel = 48;
 		final int minTime = 2000;
 		final int maxTime = 5000;
-		maxStoredDeltaAngles = (int) Utils.clamp((hitObject.getEndTime() - hitObject.getTime() - minTime)
+		maxStoredDeltaAngles = Utils.clamp((hitObject.getEndTime() - hitObject.getTime() - minTime)
 				* (maxVel - minVel) / (maxTime - minTime) + minVel, minVel, maxVel);
 		storedDeltaAngle = new float[maxStoredDeltaAngles];
 

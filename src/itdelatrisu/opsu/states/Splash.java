@@ -29,13 +29,14 @@ import itdelatrisu.opsu.beatmap.BeatmapParser;
 import itdelatrisu.opsu.beatmap.BeatmapSetList;
 import itdelatrisu.opsu.replay.ReplayImporter;
 import itdelatrisu.opsu.ui.UI;
+import itdelatrisu.opsu.ui.animations.AnimatedValue;
+import itdelatrisu.opsu.ui.animations.AnimationEquation;
 
 import java.io.File;
 
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
-import org.newdawn.slick.Image;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.BasicGameState;
@@ -47,6 +48,9 @@ import org.newdawn.slick.state.StateBasedGame;
  * Loads game resources and enters "Main Menu" state.
  */
 public class Splash extends BasicGameState {
+	/** Minimum time, in milliseconds, to display the splash screen (and fade in the logo). */
+	private static final int MIN_SPLASH_TIME = 300;
+
 	/** Whether or not loading has completed. */
 	private boolean finished = false;
 
@@ -58,6 +62,9 @@ public class Splash extends BasicGameState {
 
 	/** Whether the skin being loaded is a new skin (for program restarts). */
 	private boolean newSkin = false;
+
+	/** Logo alpha level. */
+	private AnimatedValue logoAlpha;
 
 	// game-related variables
 	private int state;
@@ -80,6 +87,8 @@ public class Splash extends BasicGameState {
 		// load Utils class first (needed in other 'init' methods)
 		Utils.init(container, game);
 
+		// fade in logo
+		this.logoAlpha = new AnimatedValue(MIN_SPLASH_TIME, 0f, 1f, AnimationEquation.LINEAR);
 		GameImage.MENU_LOGO.getImage().setAlpha(0f);
 	}
 
@@ -144,13 +153,11 @@ public class Splash extends BasicGameState {
 		}
 
 		// fade in logo
-		Image logo = GameImage.MENU_LOGO.getImage();
-		float alpha = logo.getAlpha();
-		if (alpha < 1f)
-			logo.setAlpha(alpha + (delta / 500f));
+		if (logoAlpha.update(delta))
+			GameImage.MENU_LOGO.getImage().setAlpha(logoAlpha.getValue());
 
 		// change states when loading complete
-		if (finished && alpha >= 1f) {
+		if (finished && logoAlpha.getValue() >= 1f) {
 			// initialize song list
 			if (BeatmapSetList.get().size() > 0) {
 				BeatmapSetList.get().init();
