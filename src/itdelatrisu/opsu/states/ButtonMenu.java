@@ -31,6 +31,8 @@ import itdelatrisu.opsu.beatmap.BeatmapSetList;
 import itdelatrisu.opsu.beatmap.BeatmapSetNode;
 import itdelatrisu.opsu.ui.MenuButton;
 import itdelatrisu.opsu.ui.UI;
+import itdelatrisu.opsu.ui.animations.AnimatedValue;
+import itdelatrisu.opsu.ui.animations.AnimationEquation;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -261,8 +263,11 @@ public class ButtonMenu extends BasicGameState {
 		/** The actual title string list, generated upon entering the state. */
 		private List<String> actualTitle;
 
+		/** The horizontal center offset, used for the initial button animation. */
+		private AnimatedValue centerOffset;
+
 		/** Initial x coordinate offsets left/right of center (for shifting animation), times width. (TODO) */
-		private static final float OFFSET_WIDTH_RATIO = 1 / 18f;
+		private static final float OFFSET_WIDTH_RATIO = 1 / 25f;
 
 		/**
 		 * Constructor.
@@ -336,18 +341,14 @@ public class ButtonMenu extends BasicGameState {
 		 */
 		public void update(GameContainer container, int delta, int mouseX, int mouseY) {
 			float center = container.getWidth() / 2f;
+			boolean centerOffsetUpdated = centerOffset.update(delta);
+			float centerOffsetX = centerOffset.getValue();
 			for (int i = 0; i < buttons.length; i++) {
 				menuButtons[i].hoverUpdate(delta, mouseX, mouseY);
 
 				// move button to center
-				float x = menuButtons[i].getX();
-				if (i % 2 == 0) {
-					if (x < center)
-						menuButtons[i].setX(Math.min(x + (delta / 5f), center));
-				} else {
-					if (x > center)
-						menuButtons[i].setX(Math.max(x - (delta / 5f), center));
-				}
+				if (centerOffsetUpdated)
+					menuButtons[i].setX((i % 2 == 0) ? center + centerOffsetX : center - centerOffsetX);
 			}
 		}
 
@@ -404,9 +405,10 @@ public class ButtonMenu extends BasicGameState {
 		 */
 		public void enter(GameContainer container, StateBasedGame game) {
 			float center = container.getWidth() / 2f;
-			float centerOffset = container.getWidth() * OFFSET_WIDTH_RATIO;
+			float centerOffsetX = container.getWidth() * OFFSET_WIDTH_RATIO;
+			centerOffset = new AnimatedValue(700, centerOffsetX, 0, AnimationEquation.OUT_BOUNCE);
 			for (int i = 0; i < buttons.length; i++) {
-				menuButtons[i].setX(center + ((i % 2 == 0) ? centerOffset * -1 : centerOffset));
+				menuButtons[i].setX(center + ((i % 2 == 0) ? centerOffsetX : centerOffsetX * -1));
 				menuButtons[i].resetHover();
 			}
 

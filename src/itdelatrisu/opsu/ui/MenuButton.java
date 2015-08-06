@@ -18,7 +18,8 @@
 
 package itdelatrisu.opsu.ui;
 
-import itdelatrisu.opsu.Utils;
+import itdelatrisu.opsu.ui.animations.AnimatedValue;
+import itdelatrisu.opsu.ui.animations.AnimationEquation;
 
 import org.newdawn.slick.Animation;
 import org.newdawn.slick.Color;
@@ -63,11 +64,23 @@ public class MenuButton {
 	/** The hover actions for this button. */
 	private int hoverEffect = 0;
 
-	/** The current and max scale of the button. */
-	private float scale = 1f, hoverScale = 1.25f;
+	/** The hover animation duration, in milliseconds. */
+	private int animationDuration = 100;
 
-	/** The current and base alpha level of the button. */
-	private float alpha = 1f, baseAlpha = 0.75f;
+	/** The hover animation equation. */
+	private AnimationEquation animationEqn = AnimationEquation.LINEAR;
+
+	/** The scale of the button. */
+	private AnimatedValue scale;
+
+	/** The default max scale of the button. */
+	private static final float DEFAULT_SCALE_MAX = 1.25f;
+
+	/** The alpha level of the button. */
+	private AnimatedValue alpha;
+
+	/** The default base alpha level of the button. */
+	private static final float DEFAULT_ALPHA_BASE = 0.75f;
 
 	/** The scaled expansion direction for the button. */
 	private Expand dir = Expand.CENTER;
@@ -75,8 +88,11 @@ public class MenuButton {
 	/** Scaled expansion directions. */
 	public enum Expand { CENTER, UP, RIGHT, LEFT, DOWN, UP_RIGHT, UP_LEFT, DOWN_RIGHT, DOWN_LEFT; }
 
-	/** The current and max rotation angles  of the button. */
-	private float angle = 0f, maxAngle = 30f;
+	/** The rotation angle of the button. */
+	private AnimatedValue angle;
+
+	/** The default max rotation angle of the button. */
+	private static final float DEFAULT_ANGLE_MAX = 30f;
 
 	/**
 	 * Creates a new button from an Image.
@@ -192,15 +208,15 @@ public class MenuButton {
 				float oldAlpha = image.getAlpha();
 				float oldAngle = image.getRotation();
 				if ((hoverEffect & EFFECT_EXPAND) > 0) {
-					if (scale != 1f) {
-						image = image.getScaledCopy(scale);
+					if (scale.getValue() != 1f) {
+						image = image.getScaledCopy(scale.getValue());
 						image.setAlpha(oldAlpha);
 					}
 				}
 				if ((hoverEffect & EFFECT_FADE) > 0)
-					image.setAlpha(alpha);
+					image.setAlpha(alpha.getValue());
 				if ((hoverEffect & EFFECT_ROTATE) > 0)
-					image.setRotation(angle);
+					image.setRotation(angle.getValue());
 				image.draw(x - xRadius, y - yRadius, filter);
 				if (image == this.img) {
 					image.setAlpha(oldAlpha);
@@ -217,9 +233,10 @@ public class MenuButton {
 				imgR.draw(x + xRadius - imgR.getWidth(), y - yRadius, filter);
 			} else if ((hoverEffect & EFFECT_FADE) > 0) {
 				float a = image.getAlpha(), aL = imgL.getAlpha(), aR = imgR.getAlpha();
-				image.setAlpha(alpha);
-				imgL.setAlpha(alpha);
-				imgR.setAlpha(alpha);
+				float currentAlpha = alpha.getValue();
+				image.setAlpha(currentAlpha);
+				imgL.setAlpha(currentAlpha);
+				imgR.setAlpha(currentAlpha);
 				image.draw(x - xRadius + imgL.getWidth(), y - yRadius, filter);
 				imgL.draw(x - xRadius, y - yRadius, filter);
 				imgR.draw(x + xRadius - imgR.getWidth(), y - yRadius, filter);
@@ -267,28 +284,61 @@ public class MenuButton {
 	 */
 	public void resetHover() {
 		if ((hoverEffect & EFFECT_EXPAND) > 0) {
-			this.scale = 1f;
+			scale.setTime(0);
 			setHoverRadius();
 		}
 		if ((hoverEffect & EFFECT_FADE) > 0)
-			this.alpha = baseAlpha;
+			alpha.setTime(0);
 		if ((hoverEffect & EFFECT_ROTATE) > 0)
-			this.angle = 0f;
+			angle.setTime(0);
 	}
 
 	/**
 	 * Removes all hover effects that have been set for the button.
 	 */
-	public void removeHoverEffects() { hoverEffect = 0; }
+	public void removeHoverEffects() {
+		this.hoverEffect = 0;
+		this.scale = null;
+		this.alpha = null;
+		this.angle = null;
+	}
+
+	/**
+	 * Sets the hover animation duration.
+	 * @param duration the duration, in milliseconds
+	 */
+	public void setHoverAnimationDuration(int duration) {
+		this.animationDuration = duration;
+		if (scale != null)
+			scale.setDuration(duration);
+		if (alpha != null)
+			alpha.setDuration(duration);
+		if (angle != null)
+			angle.setDuration(duration);
+	}
+
+	/**
+	 * Sets the hover animation equation.
+	 * @param eqn the equation to use
+	 */
+	public void setHoverAnimationEquation(AnimationEquation eqn) {
+		this.animationEqn = eqn;
+		if (scale != null)
+			scale.setEquation(eqn);
+		if (alpha != null)
+			alpha.setEquation(eqn);
+		if (angle != null)
+			angle.setEquation(eqn);
+	}
 
 	/**
 	 * Sets the "expand" hover effect.
 	 */
-	public void setHoverExpand() { hoverEffect |= EFFECT_EXPAND; }
+	public void setHoverExpand() { setHoverExpand(DEFAULT_SCALE_MAX, this.dir); }
 
 	/**
 	 * Sets the "expand" hover effect.
-	 * @param scale the maximum scale factor (default 1.25f)
+	 * @param scale the maximum scale factor
 	 */
 	public void setHoverExpand(float scale) { setHoverExpand(scale, this.dir); }
 
@@ -296,45 +346,45 @@ public class MenuButton {
 	 * Sets the "expand" hover effect.
 	 * @param dir the expansion direction
 	 */
-	public void setHoverExpand(Expand dir) { setHoverExpand(this.hoverScale, dir); }
+	public void setHoverExpand(Expand dir) { setHoverExpand(DEFAULT_SCALE_MAX, dir); }
 
 	/**
 	 * Sets the "expand" hover effect.
-	 * @param scale the maximum scale factor (default 1.25f)
+	 * @param scale the maximum scale factor
 	 * @param dir the expansion direction
 	 */
 	public void setHoverExpand(float scale, Expand dir) {
 		hoverEffect |= EFFECT_EXPAND;
-		this.hoverScale = scale;
+		this.scale = new AnimatedValue(animationDuration, 1f, scale, animationEqn);
 		this.dir = dir;
 	}
 
 	/**
 	 * Sets the "fade" hover effect.
 	 */
-	public void setHoverFade() { hoverEffect |= EFFECT_FADE; }
+	public void setHoverFade() { setHoverFade(DEFAULT_ALPHA_BASE); }
 
 	/**
 	 * Sets the "fade" hover effect.
-	 * @param baseAlpha the base alpha level to fade in from (default 0.7f)
+	 * @param baseAlpha the base alpha level to fade in from
 	 */
 	public void setHoverFade(float baseAlpha) {
 		hoverEffect |= EFFECT_FADE;
-		this.baseAlpha = baseAlpha;
+		this.alpha = new AnimatedValue(animationDuration, baseAlpha, 1f, animationEqn);
 	}
 
 	/**
 	 * Sets the "rotate" hover effect.
 	 */
-	public void setHoverRotate() { hoverEffect |= EFFECT_ROTATE; }
+	public void setHoverRotate() { setHoverRotate(DEFAULT_ANGLE_MAX); }
 
 	/**
 	 * Sets the "rotate" hover effect.
-	 * @param maxAngle the maximum rotation angle, in degrees (default 30f)
+	 * @param maxAngle the maximum rotation angle, in degrees
 	 */
 	public void setHoverRotate(float maxAngle) {
 		hoverEffect |= EFFECT_ROTATE;
-		this.maxAngle = maxAngle;
+		this.angle = new AnimatedValue(animationDuration, 0f, maxAngle, animationEqn);
 	}
 
 	/**
@@ -371,45 +421,21 @@ public class MenuButton {
 		if (hoverEffect == 0)
 			return;
 
+		int d = delta * (isHover ? 1 : -1);
+
 		// scale the button
 		if ((hoverEffect & EFFECT_EXPAND) > 0) {
-			int sign = 0;
-			if (isHover && scale < hoverScale)
-				sign = 1;
-			else if (!isHover && scale > 1f)
-				sign = -1;
-			if (sign != 0) {
-				scale = Utils.getBoundedValue(scale, sign * (hoverScale - 1f) * delta / 100f, 1, hoverScale);
+			if (scale.update(d))
 				setHoverRadius();
-			}
 		}
 
 		// fade the button
-		if ((hoverEffect & EFFECT_FADE) > 0) {
-			int sign = 0;
-			if (isHover && alpha < 1f)
-				sign = 1;
-			else if (!isHover && alpha > baseAlpha)
-				sign = -1;
-			if (sign != 0)
-				alpha = Utils.getBoundedValue(alpha, sign * (1f - baseAlpha) * delta / 200f, baseAlpha, 1f);
-		}
+		if ((hoverEffect & EFFECT_FADE) > 0)
+			alpha.update(d);
 
 		// rotate the button
-		if ((hoverEffect & EFFECT_ROTATE) > 0) {
-			int sign = 0;
-			boolean right = (maxAngle > 0);
-			if (isHover && angle != maxAngle)
-				sign = (right) ? 1 : -1;
-			else if (!isHover && angle != 0)
-				sign = (right) ? -1 : 1;
-			if (sign != 0) {
-				float diff = sign * Math.abs(maxAngle) * delta / 125f;
-				angle = (right) ?
-					Utils.getBoundedValue(angle, diff, 0, maxAngle) :
-					Utils.getBoundedValue(angle, diff, maxAngle, 0);
-			}
-		}
+		if ((hoverEffect & EFFECT_ROTATE) > 0)
+			angle.update(d);
 	}
 
 	/**
@@ -422,10 +448,11 @@ public class MenuButton {
 			image = anim.getCurrentFrame();
 
 		int xOffset = 0, yOffset = 0;
+		float currentScale = scale.getValue();
 		if (dir != Expand.CENTER) {
 			// offset by difference between normal/scaled image dimensions
-			xOffset = (int) ((scale - 1f) * image.getWidth());
-			yOffset = (int) ((scale - 1f) * image.getHeight());
+			xOffset = (int) ((currentScale - 1f) * image.getWidth());
+			yOffset = (int) ((currentScale - 1f) * image.getHeight());
 			if (dir == Expand.UP || dir == Expand.DOWN)
 				xOffset = 0;    // no horizontal offset
 			if (dir == Expand.RIGHT || dir == Expand.LEFT)
@@ -435,7 +462,7 @@ public class MenuButton {
 			if (dir == Expand.DOWN ||  dir == Expand.DOWN_LEFT || dir == Expand.DOWN_RIGHT)
 				yOffset *= -1;  // flip y for down
 		}
-		this.xRadius = ((image.getWidth() * scale) + xOffset) / 2f;
-		this.yRadius = ((image.getHeight() * scale) + yOffset) / 2f;
+		this.xRadius = ((image.getWidth() * currentScale) + xOffset) / 2f;
+		this.yRadius = ((image.getHeight() * currentScale) + yOffset) / 2f;
 	}
 }

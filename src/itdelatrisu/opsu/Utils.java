@@ -247,6 +247,22 @@ public class Utils {
 	 * @return the clamped value
 	 * @author fluddokt
 	 */
+	public static int clamp(int val, int low, int high) {
+		if (val < low)
+			return low;
+		if (val > high)
+			return high;
+		return val;
+	}
+
+	/**
+	 * Clamps a value between a lower and upper bound.
+	 * @param val the value to clamp
+	 * @param low the lower bound
+	 * @param high the upper bound
+	 * @return the clamped value
+	 * @author fluddokt
+	 */
 	public static float clamp(float val, float low, float high) {
 		if (val < low)
 			return low;

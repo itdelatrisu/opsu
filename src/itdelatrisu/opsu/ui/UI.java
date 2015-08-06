@@ -26,6 +26,7 @@ import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.beatmap.BeatmapParser;
 import itdelatrisu.opsu.replay.ReplayImporter;
+import itdelatrisu.opsu.ui.animations.AnimationEquation;
 
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
@@ -106,6 +107,8 @@ public class UI {
 			Image back = GameImage.MENU_BACK.getImage();
 			backButton = new MenuButton(back, back.getWidth() / 2f, container.getHeight() - (back.getHeight() / 2f));
 		}
+		backButton.setHoverAnimationDuration(350);
+		backButton.setHoverAnimationEquation(AnimationEquation.IN_OUT_BACK);
 		backButton.setHoverExpand(MenuButton.Expand.UP_RIGHT);
 	}
 

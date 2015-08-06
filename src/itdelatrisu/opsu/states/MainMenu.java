@@ -33,6 +33,7 @@ import itdelatrisu.opsu.downloads.Updater;
 import itdelatrisu.opsu.states.ButtonMenu.MenuState;
 import itdelatrisu.opsu.ui.MenuButton;
 import itdelatrisu.opsu.ui.MenuButton.Expand;
+import itdelatrisu.opsu.ui.animations.AnimationEquation;
 import itdelatrisu.opsu.ui.UI;
 
 import java.awt.Desktop;
@@ -145,9 +146,18 @@ public class MainMenu extends BasicGameState {
 		exitButton = new MenuButton(exitImg,
 				width * 0.75f - exitOffset, (height / 2) + (exitImg.getHeight() / 2f)
 		);
-		logo.setHoverExpand(1.05f);
-		playButton.setHoverExpand(1.05f);
-		exitButton.setHoverExpand(1.05f);
+		final int logoAnimationDuration = 350;
+		logo.setHoverAnimationDuration(logoAnimationDuration);
+		playButton.setHoverAnimationDuration(logoAnimationDuration);
+		exitButton.setHoverAnimationDuration(logoAnimationDuration);
+		final AnimationEquation logoAnimationEquation = AnimationEquation.IN_OUT_BACK;
+		logo.setHoverAnimationEquation(logoAnimationEquation);
+		playButton.setHoverAnimationEquation(logoAnimationEquation);
+		exitButton.setHoverAnimationEquation(logoAnimationEquation);
+		final float logoHoverScale = 1.1f;
+		logo.setHoverExpand(logoHoverScale);
+		playButton.setHoverExpand(logoHoverScale);
+		exitButton.setHoverExpand(logoHoverScale);
 
 		// initialize music buttons
 		int musicWidth  = GameImage.MUSIC_PLAY.getImage().getWidth();
@@ -170,6 +180,8 @@ public class MainMenu extends BasicGameState {
 		// initialize downloads button
 		Image dlImg = GameImage.DOWNLOADS.getImage();
 		downloadsButton = new MenuButton(dlImg, width - dlImg.getWidth() / 2f, height / 2f);
+		downloadsButton.setHoverAnimationDuration(350);
+		downloadsButton.setHoverAnimationEquation(AnimationEquation.IN_OUT_BACK);
 		downloadsButton.setHoverExpand(1.03f, Expand.LEFT);
 
 		// initialize repository button
@@ -179,6 +191,8 @@ public class MainMenu extends BasicGameState {
 			repoButton = new MenuButton(repoImg,
 					startX - repoImg.getWidth(), startY - repoImg.getHeight()
 			);
+			repoButton.setHoverAnimationDuration(350);
+			repoButton.setHoverAnimationEquation(AnimationEquation.IN_OUT_BACK);
 			repoButton.setHoverExpand();
 			startX -= repoImg.getWidth() * 1.75f;
 		} else

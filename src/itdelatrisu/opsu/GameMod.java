@@ -19,6 +19,7 @@
 package itdelatrisu.opsu;
 
 import itdelatrisu.opsu.ui.MenuButton;
+import itdelatrisu.opsu.ui.animations.AnimationEquation;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -199,6 +200,8 @@ public enum GameMod {
 			mod.button = new MenuButton(img,
 					baseX + (offsetX * mod.categoryIndex) + img.getWidth() / 2f,
 					mod.category.getY());
+			mod.button.setHoverAnimationDuration(300);
+			mod.button.setHoverAnimationEquation(AnimationEquation.IN_OUT_BACK);
 			mod.button.setHoverExpand(1.2f);
 			mod.button.setHoverRotate(10f);
 

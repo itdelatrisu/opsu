@@ -48,6 +48,7 @@ import itdelatrisu.opsu.replay.Replay;
 import itdelatrisu.opsu.replay.ReplayFrame;
 import itdelatrisu.opsu.ui.MenuButton;
 import itdelatrisu.opsu.ui.UI;
+import itdelatrisu.opsu.ui.animations.AnimationEquation;
 
 import java.io.File;
 import java.util.LinkedList;
@@ -1425,6 +1426,8 @@ public class Game extends BasicGameState {
 			Image skip = GameImage.SKIP.getImage();
 			skipButton = new MenuButton(skip, width - skip.getWidth() / 2f, height - (skip.getHeight() / 2f));
 		}
+		skipButton.setHoverAnimationDuration(350);
+		skipButton.setHoverAnimationEquation(AnimationEquation.IN_OUT_BACK);
 		skipButton.setHoverExpand(1.1f, MenuButton.Expand.UP_LEFT);
 
 		// load other images...

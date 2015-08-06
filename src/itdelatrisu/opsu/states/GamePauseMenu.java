@@ -27,6 +27,7 @@ import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
 import itdelatrisu.opsu.ui.MenuButton;
 import itdelatrisu.opsu.ui.UI;
+import itdelatrisu.opsu.ui.animations.AnimationEquation;
 
 import org.lwjgl.input.Keyboard;
 import org.newdawn.slick.Color;
@@ -227,6 +228,14 @@ public class GamePauseMenu extends BasicGameState {
 		continueButton = new MenuButton(GameImage.PAUSE_CONTINUE.getImage(), width / 2f, height * 0.25f);
 		retryButton = new MenuButton(GameImage.PAUSE_RETRY.getImage(), width / 2f, height * 0.5f);
 		backButton = new MenuButton(GameImage.PAUSE_BACK.getImage(), width / 2f, height * 0.75f);
+		final int buttonAnimationDuration = 300;
+		continueButton.setHoverAnimationDuration(buttonAnimationDuration);
+		retryButton.setHoverAnimationDuration(buttonAnimationDuration);
+		backButton.setHoverAnimationDuration(buttonAnimationDuration);
+		final AnimationEquation buttonAnimationEquation = AnimationEquation.IN_OUT_BACK;
+		continueButton.setHoverAnimationEquation(buttonAnimationEquation);
+		retryButton.setHoverAnimationEquation(buttonAnimationEquation);
+		backButton.setHoverAnimationEquation(buttonAnimationEquation);
 		continueButton.setHoverExpand();
 		retryButton.setHoverExpand();
 		backButton.setHoverExpand();
