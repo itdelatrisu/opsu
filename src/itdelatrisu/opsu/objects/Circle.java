@@ -97,11 +97,17 @@ public class Circle implements GameObject {
 		float fadeinScale = (timeDiff - game.getApproachTime() + FADE_IN_TIME) / (float) FADE_IN_TIME;
 		float approachScale = 1 + scale * 3;
 		float alpha = Utils.clamp(1 - fadeinScale, 0, 1);
-
+		
+		if (GameMod.HIDDEN.isActive()) {
+			float fadeOutScale = -(float)(timeDiff-game.getApproachTime())/game.getDecayTime();
+			float fadeOutAlpha = Utils.clamp(1-fadeOutScale, 0, 1);
+			alpha = Math.min(alpha, fadeOutAlpha);
+		}
+		
 		float oldAlpha = Utils.COLOR_WHITE_FADE.a;
 		Utils.COLOR_WHITE_FADE.a = color.a = alpha;
 
-		if (timeDiff >= 0)
+		if (timeDiff >= 0 && !GameMod.HIDDEN.isActive())
 			GameImage.APPROACHCIRCLE.getImage().getScaledCopy(approachScale).drawCentered(x, y, color);
 		GameImage.HITCIRCLE.getImage().drawCentered(x, y, color);
 		boolean overlayAboveNumber = Options.getSkin().isHitCircleOverlayAboveNumber();

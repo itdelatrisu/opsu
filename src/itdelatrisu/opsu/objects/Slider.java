@@ -210,6 +210,11 @@ public class Slider implements GameObject {
 				tick.drawCentered(c[0], c[1], Utils.COLOR_WHITE_FADE);
 			}
 		}
+		if (GameMod.HIDDEN.isActive()) {
+			float fadeOutScale = -(float)(timeDiff-game.getApproachTime())/game.getDecayTime();
+			float fadeOutAlpha = Utils.clamp(1-fadeOutScale, 0, 1);
+			alpha = Math.min(alpha, fadeOutAlpha);
+		}
 		if (sliderClickedInitial)
 			;  // don't draw current combo number if already clicked
 		else
@@ -243,36 +248,38 @@ public class Slider implements GameObject {
 
 		if (timeDiff >= 0) {
 			// approach circle
-			GameImage.APPROACHCIRCLE.getImage().getScaledCopy(approachScale).drawCentered(x, y, color);
+			if(!GameMod.HIDDEN.isActive())
+				GameImage.APPROACHCIRCLE.getImage().getScaledCopy(approachScale).drawCentered(x, y, color);
 		} else {
 			// Since update() might not have run before drawing during a replay, the
 			// slider time may not have been calculated, which causes NAN numbers and flicker.
 			if (sliderTime == 0)
 				return;
+			
+			if(!GameMod.HIDDEN.isActive()){
+				float[] c = curve.pointAt(getT(trackPosition, false));
+				float[] c2 = curve.pointAt(getT(trackPosition, false) + 0.01f);
 
-			float[] c = curve.pointAt(getT(trackPosition, false));
-			float[] c2 = curve.pointAt(getT(trackPosition, false) + 0.01f);
+				float t = getT(trackPosition, false);
+//				float dis = hitObject.getPixelLength() * HitObject.getXMultiplier() * (t - (int) t);
+//				Image sliderBallFrame = sliderBallImages[(int) (dis / (diameter * Math.PI) * 30) % sliderBallImages.length];
+				Image sliderBallFrame = sliderBallImages[(int) (t * sliderTime * 60 / 1000) % sliderBallImages.length];
+				float angle = (float) (Math.atan2(c2[1] - c[1], c2[0] - c[0]) * 180 / Math.PI);
+				sliderBallFrame.setRotation(angle);
+				sliderBallFrame.drawCentered(c[0], c[1]);
 
-			float t = getT(trackPosition, false);
-//			float dis = hitObject.getPixelLength() * HitObject.getXMultiplier() * (t - (int) t);
-//			Image sliderBallFrame = sliderBallImages[(int) (dis / (diameter * Math.PI) * 30) % sliderBallImages.length];
-			Image sliderBallFrame = sliderBallImages[(int) (t * sliderTime * 60 / 1000) % sliderBallImages.length];
-			float angle = (float) (Math.atan2(c2[1] - c[1], c2[0] - c[0]) * 180 / Math.PI);
-			sliderBallFrame.setRotation(angle);
-			sliderBallFrame.drawCentered(c[0], c[1]);
-
-			// follow circle
-			if (followCircleActive) {
-				GameImage.SLIDER_FOLLOWCIRCLE.getImage().drawCentered(c[0], c[1]);
-
-				// "flashlight" mod: dim the screen
-				if (GameMod.FLASHLIGHT.isActive()) {
-					float oldAlphaBlack = Utils.COLOR_BLACK_ALPHA.a;
-					Utils.COLOR_BLACK_ALPHA.a = 0.75f;
-					g.setColor(Utils.COLOR_BLACK_ALPHA);
-					g.fillRect(0, 0, containerWidth, containerHeight);
-					Utils.COLOR_BLACK_ALPHA.a = oldAlphaBlack;
-				}
+				// follow circle
+				if (followCircleActive)
+					GameImage.SLIDER_FOLLOWCIRCLE.getImage().drawCentered(c[0], c[1]);
+			
+			}
+			// "flashlight" mod: dim the screen
+			if (followCircleActive && GameMod.FLASHLIGHT.isActive()) {
+				float oldAlphaBlack = Utils.COLOR_BLACK_ALPHA.a;
+				Utils.COLOR_BLACK_ALPHA.a = 0.75f;
+				g.setColor(Utils.COLOR_BLACK_ALPHA);
+				g.fillRect(0, 0, containerWidth, containerHeight);
+				Utils.COLOR_BLACK_ALPHA.a = oldAlphaBlack;
 			}
 		}
 
