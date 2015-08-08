@@ -15,6 +15,7 @@
 .metadata
 .classpath
 .project
+.externalToolBuilders/
 
 # IntelliJ
 .idea/
