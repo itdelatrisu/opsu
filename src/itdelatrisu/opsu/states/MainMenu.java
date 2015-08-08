@@ -196,7 +196,7 @@ public class MainMenu extends BasicGameState {
 
 		// initialize repository button
 		float startX = width * 0.997f, startY = height * 0.997f;
-		if (Desktop.isDesktopSupported()) {  // only if a webpage can be opened
+		if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {  // only if a webpage can be opened
 			Image repoImg = GameImage.REPOSITORY.getImage();
 			repoButton = new MenuButton(repoImg,
 					startX - repoImg.getWidth(), startY - repoImg.getHeight()
@@ -501,7 +501,9 @@ public class MainMenu extends BasicGameState {
 		else if (repoButton != null && repoButton.contains(x, y)) {
 			try {
 				Desktop.getDesktop().browse(Options.REPOSITORY_URI);
-			} catch (IOException | UnsupportedOperationException e) {
+			} catch (UnsupportedOperationException e) {
+				UI.sendBarNotification("The repository web page could not be opened.");
+			} catch (IOException e) {
 				ErrorHandler.error("Could not browse to repository URI.", e, false);
 			}
 		}

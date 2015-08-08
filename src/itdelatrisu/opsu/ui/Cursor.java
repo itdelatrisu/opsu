@@ -135,8 +135,6 @@ public class Cursor {
 		if (cursorScale != 1f) {
 			cursor = cursor.getScaledCopy(cursorScale);
 			cursorTrail = cursorTrail.getScaledCopy(cursorScale);
-			if (hasMiddle)
-				cursorMiddle = cursorMiddle.getScaledCopy(cursorScale);
 		}
 
 		// TODO: use an image buffer

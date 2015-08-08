@@ -200,21 +200,18 @@ public class OptionsMenu extends BasicGameState {
 	@Override
 	public void render(GameContainer container, StateBasedGame game, Graphics g)
 			throws SlickException {
-		g.setBackground(Utils.COLOR_BLACK_ALPHA);
-
 		int width = container.getWidth();
 		int height = container.getHeight();
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
-		float lineY = OptionTab.DISPLAY.button.getY() + (GameImage.MENU_TAB.getImage().getHeight() / 2f);
+
+		// background
+		GameImage.OPTIONS_BG.getImage().draw();
 
 		// title
 		float marginX = width * 0.015f, marginY = height * 0.01f;
 		Utils.FONT_XLARGE.drawString(marginX, marginY, "Options", Color.white);
 		Utils.FONT_DEFAULT.drawString(marginX, marginY + Utils.FONT_XLARGE.getLineHeight() * 0.92f,
 				"Change the way opsu! behaves", Color.white);
-
-		// background
-		GameImage.OPTIONS_BG.getImage().draw(0, lineY);
 
 		// game options
 		g.setLineWidth(1f);
@@ -243,6 +240,7 @@ public class OptionsMenu extends BasicGameState {
 				currentTab.getName(), true, false);
 		g.setColor(Color.white);
 		g.setLineWidth(2f);
+		float lineY = OptionTab.DISPLAY.button.getY() + (GameImage.MENU_TAB.getImage().getHeight() / 2f);
 		g.drawLine(0, lineY, width, lineY);
 		g.resetLineWidth();
 

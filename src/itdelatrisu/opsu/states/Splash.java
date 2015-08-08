@@ -49,7 +49,7 @@ import org.newdawn.slick.state.StateBasedGame;
  */
 public class Splash extends BasicGameState {
 	/** Minimum time, in milliseconds, to display the splash screen (and fade in the logo). */
-	private static final int MIN_SPLASH_TIME = 300;
+	private static final int MIN_SPLASH_TIME = 400;
 
 	/** Whether or not loading has completed. */
 	private boolean finished = false;
