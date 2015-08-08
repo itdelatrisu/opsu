@@ -46,6 +46,9 @@ public class Download {
 	/** Read timeout, in ms. */
 	public static final int READ_TIMEOUT = 10000;
 
+	/** Maximum number of HTTP/HTTPS redirects to follow. */
+	public static final int MAX_REDIRECTS = 3;
+
 	/** Time between download speed and ETA updates, in ms. */
 	private static final int UPDATE_INTERVAL = 1000;
 
@@ -172,13 +175,57 @@ public class Download {
 		new Thread() {
 			@Override
 			public void run() {
-				// open connection, get content length
+				// open connection
 				HttpURLConnection conn = null;
 				try {
-					conn = (HttpURLConnection) url.openConnection();
-					conn.setConnectTimeout(CONNECTION_TIMEOUT);
-					conn.setReadTimeout(READ_TIMEOUT);
-					conn.setUseCaches(false);
+					URL downloadURL = url;
+					int redirectCount = 0;
+					boolean isRedirect = false;
+					do {
+						isRedirect = false;
+
+						conn = (HttpURLConnection) downloadURL.openConnection();
+						conn.setConnectTimeout(CONNECTION_TIMEOUT);
+						conn.setReadTimeout(READ_TIMEOUT);
+						conn.setUseCaches(false);
+
+						// allow HTTP <--> HTTPS redirects
+						// http://download.java.net/jdk7u2/docs/technotes/guides/deployment/deployment-guide/upgrade-guide/article-17.html
+						conn.setInstanceFollowRedirects(false);
+						conn.setRequestProperty("User-Agent", "Mozilla/5.0...");
+
+						// check for redirect
+						int status = conn.getResponseCode();
+						if (status == HttpURLConnection.HTTP_MOVED_TEMP || status == HttpURLConnection.HTTP_MOVED_PERM ||
+						    status == HttpURLConnection.HTTP_SEE_OTHER || status == HttpURLConnection.HTTP_USE_PROXY) {
+							URL base = conn.getURL();
+							String location = conn.getHeaderField("Location");
+							URL target = null;
+							if (location != null)
+								target = new URL(base, location);
+							conn.disconnect();
+
+							// check for problems
+							String error = null;
+							if (location == null)
+								error = String.format("Download for URL '%s' is attempting to redirect without a 'location' header.", base.toString());
+							else if (!target.getProtocol().equals("http") && !target.getProtocol().equals("https"))
+								error = String.format("Download for URL '%s' is attempting to redirect to a non-HTTP/HTTPS protocol '%s'.", base.toString(), target.getProtocol());
+							else if (redirectCount > MAX_REDIRECTS)
+								error = String.format("Download for URL '%s' is attempting too many redirects (over %d).", base.toString(), MAX_REDIRECTS);
+							if (error != null) {
+								ErrorHandler.error(error, null, false);
+								throw new IOException();
+							}
+
+							// follow redirect
+							downloadURL = target;
+							redirectCount++;
+							isRedirect = true;
+						}
+					} while (isRedirect);
+
+					// store content length
 					contentLength = conn.getContentLength();
 				} catch (IOException e) {
 					status = Status.ERROR;
