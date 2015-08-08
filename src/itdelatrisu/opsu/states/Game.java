@@ -117,6 +117,10 @@ public class Game extends BasicGameState {
 	/** Hit object approach time, in milliseconds. */
 	private int approachTime;
 
+	/** Decay of elements in hidden mod, in milliseconds. */
+	//TODO: figure out actual formula for decay time
+	private int decayTime = 800;
+	
 	/** Time offsets for obtaining each hit result (indexed by HIT_* constants). */
 	private int[] hitResultOffset;
 
@@ -1515,6 +1519,12 @@ public class Game extends BasicGameState {
 	 */
 	public int getApproachTime() { return approachTime; }
 
+	
+	/**
+	 * Returns the object decay time in hidden mod, in milliseconds.
+	 */
+	public int getDecayTime() { return decayTime; }
+	
 	/**
 	 * Returns an array of hit result offset times, in milliseconds (indexed by GameData.HIT_* constants).
 	 */
