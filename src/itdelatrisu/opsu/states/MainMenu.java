@@ -501,7 +501,7 @@ public class MainMenu extends BasicGameState {
 		else if (repoButton != null && repoButton.contains(x, y)) {
 			try {
 				Desktop.getDesktop().browse(Options.REPOSITORY_URI);
-			} catch (IOException e) {
+			} catch (IOException | UnsupportedOperationException e) {
 				ErrorHandler.error("Could not browse to repository URI.", e, false);
 			}
 		}
