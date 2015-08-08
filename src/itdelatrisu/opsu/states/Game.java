@@ -118,6 +118,7 @@ public class Game extends BasicGameState {
 	private int approachTime;
 
 	/** Decay of elements in hidden mod, in milliseconds. */
+	//TODO: figure out actual formula for decay time
 	private int decayTime = 800;
 	
 	/** Time offsets for obtaining each hit result (indexed by HIT_* constants). */
