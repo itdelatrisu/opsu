@@ -1332,8 +1332,7 @@ public class Game extends BasicGameState {
 			gameObjects[stack.pop()].draw(g, trackPosition);
 
 		// draw OsuHitObjectResult objects
-		if(!GameMod.HIDDEN.isActive())
-			data.drawHitResults(trackPosition);
+		data.drawHitResults(trackPosition);
 	}
 
 	/**
