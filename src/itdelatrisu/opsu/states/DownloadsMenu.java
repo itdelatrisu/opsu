@@ -35,6 +35,7 @@ import itdelatrisu.opsu.downloads.DownloadNode;
 import itdelatrisu.opsu.downloads.servers.BloodcatServer;
 import itdelatrisu.opsu.downloads.servers.DownloadServer;
 import itdelatrisu.opsu.downloads.servers.HexideServer;
+import itdelatrisu.opsu.downloads.servers.MnetworkServer;
 import itdelatrisu.opsu.downloads.servers.YaSOnlineServer;
 import itdelatrisu.opsu.ui.MenuButton;
 import itdelatrisu.opsu.ui.UI;
@@ -74,7 +75,9 @@ public class DownloadsMenu extends BasicGameState {
 	private static final int MIN_REQUEST_INTERVAL = 300;
 
 	/** Available beatmap download servers. */
-	private static final DownloadServer[] SERVERS = { new BloodcatServer(), new HexideServer(), new YaSOnlineServer() };
+	private static final DownloadServer[] SERVERS = {
+		new BloodcatServer(), new HexideServer(), new YaSOnlineServer(), new MnetworkServer()
+	};
 
 	/** The beatmap download server index. */
 	private int serverIndex = 0;
