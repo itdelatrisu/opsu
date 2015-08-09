@@ -139,9 +139,6 @@ public class DownloadsMenu extends BasicGameState {
 	/** Page direction for last query. */
 	private Page lastQueryDir = Page.RESET;
 
-	/** Number of active requests. */
-	private int activeRequests = 0;
-
 	/** Previous and next page buttons. */
 	private MenuButton prevPage, nextPage;
 
@@ -156,6 +153,92 @@ public class DownloadsMenu extends BasicGameState {
 
 	/** The bar notification to send upon entering the state. */
 	private String barNotificationOnLoad;
+
+	/** Search query, executed in {@code queryThread}. */
+	private SearchQuery searchQuery;
+
+	/** Search query helper class. */
+	private class SearchQuery implements Runnable {
+		/** The search query. */
+		private String query;
+
+		/** The download server. */
+		private DownloadServer server;
+
+		/** Whether the query was interrupted. */
+		private boolean interrupted = false;
+
+		/** Whether the query has completed execution. */
+		private boolean complete = false;
+
+		/**
+		 * Constructor.
+		 * @param query the search query
+		 * @param server the download server
+		 */
+		public SearchQuery(String query, DownloadServer server) {
+			this.query = query;
+			this.server = server;
+		}
+
+		/** Interrupt the query and prevent the results from being processed, if not already complete. */
+		public void interrupt() { interrupted = true; }
+
+		/** Returns whether the query has completed execution. */
+		public boolean isComplete() { return complete; }
+
+		@Override
+		public void run() {
+			// check page direction
+			Page lastPageDir = pageDir;
+			pageDir = Page.RESET;
+			int lastPageSize = (resultList != null) ? resultList.length : 0;
+			int newPage = page;
+			if (lastPageDir == Page.RESET)
+				newPage = 1;
+			else if (lastPageDir == Page.NEXT)
+				newPage++;
+			else if (lastPageDir == Page.PREVIOUS)
+				newPage--;
+			try {
+				DownloadNode[] nodes = server.resultList(query, newPage, rankedOnly);
+				if (!interrupted) {
+					// update page total
+					page = newPage;
+					if (nodes != null) {
+						if (lastPageDir == Page.NEXT)
+							pageResultTotal += nodes.length;
+						else if (lastPageDir == Page.PREVIOUS)
+							pageResultTotal -= lastPageSize;
+						else if (lastPageDir == Page.RESET)
+							pageResultTotal = nodes.length;
+					} else
+						pageResultTotal = 0;
+
+					resultList = nodes;
+					totalResults = server.totalResults();
+					focusResult = -1;
+					startResult = 0;
+					if (nodes == null)
+						searchResultString = "An error has occurred.";
+					else {
+						if (query.isEmpty())
+							searchResultString = "Type to search!";
+						else if (totalResults == 0 || resultList.length == 0)
+							searchResultString = "No results found.";
+						else
+							searchResultString = String.format("%d result%s found!",
+									totalResults, (totalResults == 1) ? "" : "s");
+					}
+				}
+			} catch (IOException e) {
+				if (!interrupted)
+					searchResultString = "Could not establish connection to server.";
+			} finally {
+				complete = true;
+			}
+		}
+	}
 
 	// game-related variables
 	private GameContainer container;
@@ -381,72 +464,22 @@ public class DownloadsMenu extends BasicGameState {
 			searchTimer = 0;
 			searchTimerReset = false;
 
-			final String query = search.getText().trim().toLowerCase();
-			final DownloadServer server = SERVERS[serverIndex];
+			String query = search.getText().trim().toLowerCase();
+			DownloadServer server = SERVERS[serverIndex];
 			if ((lastQuery == null || !query.equals(lastQuery)) &&
 			    (query.length() == 0 || query.length() >= server.minQueryLength())) {
 				lastQuery = query;
 				lastQueryDir = pageDir;
 
-				if (queryThread != null && queryThread.isAlive())
+				if (queryThread != null && queryThread.isAlive()) {
 					queryThread.interrupt();
+					if (searchQuery != null)
+						searchQuery.interrupt();
+				}
 
 				// execute query
-				queryThread = new Thread() {
-					@Override
-					public void run() {
-						activeRequests++;
-
-						// check page direction
-						Page lastPageDir = pageDir;
-						pageDir = Page.RESET;
-						int lastPageSize = (resultList != null) ? resultList.length : 0;
-						int newPage = page;
-						if (lastPageDir == Page.RESET)
-							newPage = 1;
-						else if (lastPageDir == Page.NEXT)
-							newPage++;
-						else if (lastPageDir == Page.PREVIOUS)
-							newPage--;
-						try {
-							DownloadNode[] nodes = server.resultList(query, newPage, rankedOnly);
-							if (activeRequests - 1 == 0) {
-								// update page total
-								page = newPage;
-								if (nodes != null) {
-									if (lastPageDir == Page.NEXT)
-										pageResultTotal += nodes.length;
-									else if (lastPageDir == Page.PREVIOUS)
-										pageResultTotal -= lastPageSize;
-									else if (lastPageDir == Page.RESET)
-										pageResultTotal = nodes.length;
-								} else
-									pageResultTotal = 0;
-
-								resultList = nodes;
-								totalResults = server.totalResults();
-								focusResult = -1;
-								startResult = 0;
-								if (nodes == null)
-									searchResultString = "An error has occurred.";
-								else {
-									if (query.isEmpty())
-										searchResultString = "Type to search!";
-									else if (totalResults == 0 || resultList.length == 0)
-										searchResultString = "No results found.";
-									else
-										searchResultString = String.format("%d result%s found!",
-												totalResults, (totalResults == 1) ? "" : "s");
-								}
-							}
-						} catch (IOException e) {
-							searchResultString = "Could not establish connection to server.";
-						} finally {
-							activeRequests--;
-							queryThread = null;
-						}
-					}
-				};
+				searchQuery = new SearchQuery(query, server);
+				queryThread = new Thread(searchQuery);
 				queryThread.start();
 			}
 		}
@@ -579,23 +612,27 @@ public class DownloadsMenu extends BasicGameState {
 			// pages
 			if (nodes.length > 0) {
 				if (page > 1 && prevPage.contains(x, y)) {
-					if (lastQueryDir == Page.PREVIOUS && queryThread != null && queryThread.isAlive())
+					if (lastQueryDir == Page.PREVIOUS && searchQuery != null && !searchQuery.isComplete())
 						;  // don't send consecutive requests
 					else {
 						SoundController.playSound(SoundEffect.MENUCLICK);
 						pageDir = Page.PREVIOUS;
 						lastQuery = null;
+						if (searchQuery != null)
+							searchQuery.interrupt();
 						resetSearchTimer();
 					}
 					return;
 				}
 				if (pageResultTotal < totalResults && nextPage.contains(x, y)) {
-					if (lastQueryDir == Page.NEXT && queryThread != null && queryThread.isAlive())
+					if (lastQueryDir == Page.NEXT && searchQuery != null && !searchQuery.isComplete())
 						;  // don't send consecutive requests
 					else {
 						SoundController.playSound(SoundEffect.MENUCLICK);
 						pageDir = Page.NEXT;
 						lastQuery = null;
+						if (searchQuery != null)
+							searchQuery.interrupt();
 						resetSearchTimer();
 						return;
 					}
@@ -648,6 +685,8 @@ public class DownloadsMenu extends BasicGameState {
 			search.setText("");
 			lastQuery = null;
 			pageDir = Page.RESET;
+			if (searchQuery != null)
+				searchQuery.interrupt();
 			resetSearchTimer();
 			return;
 		}
@@ -656,6 +695,8 @@ public class DownloadsMenu extends BasicGameState {
 			rankedOnly = !rankedOnly;
 			lastQuery = null;
 			pageDir = Page.RESET;
+			if (searchQuery != null)
+				searchQuery.interrupt();
 			resetSearchTimer();
 			return;
 		}
@@ -672,6 +713,8 @@ public class DownloadsMenu extends BasicGameState {
 			serverIndex = (serverIndex + 1) % SERVERS.length;
 			lastQuery = null;
 			pageDir = Page.RESET;
+			if (searchQuery != null)
+				searchQuery.interrupt();
 			resetSearchTimer();
 			return;
 		}
@@ -775,6 +818,8 @@ public class DownloadsMenu extends BasicGameState {
 			SoundController.playSound(SoundEffect.MENUCLICK);
 			lastQuery = null;
 			pageDir = Page.CURRENT;
+			if (searchQuery != null)
+				searchQuery.interrupt();
 			resetSearchTimer();
 			break;
 		case Input.KEY_F7:
