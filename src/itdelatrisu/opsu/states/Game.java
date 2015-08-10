@@ -1103,6 +1103,13 @@ public class Game extends BasicGameState {
 
 		// restart the game
 		if (restart != Restart.FALSE) {
+			// load mods
+			if (isReplay) {
+				previousMods = GameMod.getModState();
+				GameMod.loadModState(replay.mods);
+			}
+
+			// check restart state
 			if (restart == Restart.NEW) {
 				// new game
 				loadImages();
@@ -1187,10 +1194,6 @@ public class Game extends BasicGameState {
 
 			// load replay frames
 			if (isReplay) {
-				// load mods
-				previousMods = GameMod.getModState();
-				GameMod.loadModState(replay.mods);
-
 				// load initial data
 				replayX = container.getWidth() / 2;
 				replayY = container.getHeight() / 2;

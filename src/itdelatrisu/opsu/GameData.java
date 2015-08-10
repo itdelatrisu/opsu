@@ -1037,9 +1037,9 @@ public class GameData {
 	 * or {@code Grade.NULL} if no objects have been processed.
 	 */
 	private Grade getGrade() {
-		boolean silver = scoreData==null?
-				(GameMod.HIDDEN.isActive() || GameMod.FLASHLIGHT.isActive()):
-				(scoreData.mods&(GameMod.HIDDEN.getBit()|GameMod.FLASHLIGHT.getBit()))!=0;
+		boolean silver = (scoreData == null) ?
+				(GameMod.HIDDEN.isActive() || GameMod.FLASHLIGHT.isActive()) :
+				(scoreData.mods & (GameMod.HIDDEN.getBit() | GameMod.FLASHLIGHT.getBit())) != 0;
 		return getGrade(
 			hitResultCount[HIT_300], hitResultCount[HIT_100],
 			hitResultCount[HIT_50], hitResultCount[HIT_MISS],
