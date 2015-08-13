@@ -38,7 +38,9 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.net.InetAddress;
 import java.net.ServerSocket;
+import java.net.UnknownHostException;
 
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
@@ -116,12 +118,14 @@ public class Opsu extends StateBasedGame {
 
 		// only allow a single instance
 		try {
-			SERVER_SOCKET = new ServerSocket(Options.getPort());
+			SERVER_SOCKET = new ServerSocket(Options.getPort(), 1, InetAddress.getLocalHost());
+		} catch (UnknownHostException e) {
+			// shouldn't happen
 		} catch (IOException e) {
 			ErrorHandler.error(String.format(
 					"opsu! could not be launched for one of these reasons:\n" +
 					"- An instance of opsu! is already running.\n" +
-					"- Another program is running on port %d. " +
+					"- Another program is bound to port %d. " +
 					"You can change the port opsu! uses by editing the \"Port\" field in the configuration file.",
 					Options.getPort()), null, false);
 			System.exit(1);

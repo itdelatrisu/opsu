@@ -212,7 +212,7 @@ public class Options {
 			@Override
 			public void read(String s) {
 				int i = Integer.parseInt(s);
-				if (i > 0 && i < 65535)
+				if (i > 0 && i <= 65535)
 					port = i;
 			}
 		},
