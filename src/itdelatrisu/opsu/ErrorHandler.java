@@ -62,6 +62,7 @@ public class ErrorHandler {
 		textArea.setCursor(Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR));
 		textArea.setTabSize(2);
 		textArea.setLineWrap(true);
+		textArea.setWrapStyleWord(true);
 	}
 
 	/** Scroll pane holding JTextArea. */

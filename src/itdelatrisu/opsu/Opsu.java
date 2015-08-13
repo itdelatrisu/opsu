@@ -118,7 +118,12 @@ public class Opsu extends StateBasedGame {
 		try {
 			SERVER_SOCKET = new ServerSocket(Options.getPort());
 		} catch (IOException e) {
-			ErrorHandler.error(String.format("Another program is already running on port %d.", Options.getPort()), e, false);
+			ErrorHandler.error(String.format(
+					"opsu! could not be launched for one of these reasons:\n" +
+					"- An instance of opsu! is already running.\n" +
+					"- Another program is running on port %d. " +
+					"You can change the port opsu! uses by editing the \"Port\" field in the configuration file.",
+					Options.getPort()), null, false);
 			System.exit(1);
 		}
 
