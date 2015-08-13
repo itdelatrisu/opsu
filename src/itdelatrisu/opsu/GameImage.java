@@ -328,10 +328,16 @@ public enum GameImage {
 			return img.getScaledCopy((h / 17f) / img.getHeight());
 		}
 	},
-	BANG ("bang", "png", false, false) {
+	DOWNLOAD ("download", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			return REPOSITORY.process_sub(img, w, h);
+			return img.getScaledCopy((h / 14f) / img.getHeight());
+		}
+	},
+	UPDATE ("update", "png", false, false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy((h / 14f) / img.getHeight());
 		}
 	},
 	OPTIONS_BG ("options-background", "png|jpg", false, true) {
