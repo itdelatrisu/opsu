@@ -18,6 +18,7 @@
 
 package itdelatrisu.opsu.ui;
 
+import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.ui.animations.AnimatedValue;
 import itdelatrisu.opsu.ui.animations.AnimationEquation;
 
@@ -69,6 +70,9 @@ public class MenuButton {
 
 	/** The hover animation equation. */
 	private AnimationEquation animationEqn = AnimationEquation.LINEAR;
+
+	/** Whether the animation is advancing forwards (if advancing automatically). */
+	private boolean autoAnimationForward = true;
 
 	/** The scale of the button. */
 	private AnimatedValue scale;
@@ -291,6 +295,7 @@ public class MenuButton {
 			alpha.setTime(0);
 		if ((hoverEffect & EFFECT_ROTATE) > 0)
 			angle.setTime(0);
+		autoAnimationForward = true;
 	}
 
 	/**
@@ -301,6 +306,7 @@ public class MenuButton {
 		this.scale = null;
 		this.alpha = null;
 		this.angle = null;
+		autoAnimationForward = true;
 	}
 
 	/**
@@ -436,6 +442,38 @@ public class MenuButton {
 		// rotate the button
 		if ((hoverEffect & EFFECT_ROTATE) > 0)
 			angle.update(d);
+	}
+
+	/**
+	 * Automatically advances the hover animation in a loop.
+	 * @param delta the delta interval
+	 * @param reverseAtEnd whether to reverse or restart the animation upon reaching the end
+	 */
+	public void autoHoverUpdate(int delta, boolean reverseAtEnd) {
+		if (hoverEffect == 0)
+			return;
+
+		int time = ((hoverEffect & EFFECT_EXPAND) > 0) ? scale.getTime() :
+		           ((hoverEffect & EFFECT_FADE)   > 0) ? alpha.getTime() :
+		           ((hoverEffect & EFFECT_ROTATE) > 0) ? angle.getTime() : -1;
+		if (time == -1)
+			return;
+
+		int d = delta * (autoAnimationForward ? 1 : -1);
+		if (Utils.getBoundedValue(time, d, 0, animationDuration) == time) {
+			if (reverseAtEnd)
+				autoAnimationForward = !autoAnimationForward;
+			else {
+				if ((hoverEffect & EFFECT_EXPAND) > 0)
+					scale.setTime(0);
+				if ((hoverEffect & EFFECT_FADE) > 0)
+					alpha.setTime(0);
+				if ((hoverEffect & EFFECT_ROTATE) > 0)
+					angle.setTime(0);
+			}
+		}
+
+		hoverUpdate(delta, autoAnimationForward);
 	}
 
 	/**
