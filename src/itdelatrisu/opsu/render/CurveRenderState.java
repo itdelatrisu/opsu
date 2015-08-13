@@ -409,10 +409,10 @@ public class CurveRenderState {
 				program = GL20.glCreateProgram();
 				int vtxShdr = GL20.glCreateShader(GL20.GL_VERTEX_SHADER);
 				int frgShdr = GL20.glCreateShader(GL20.GL_FRAGMENT_SHADER);
-				GL20.glShaderSource(vtxShdr, "#version 330\n"
+				GL20.glShaderSource(vtxShdr, "#version 130\n"
 						+ "\n"
-						+ "layout(location = 0) in vec4 in_position;\n"
-						+ "layout(location = 1) in vec2 in_tex_coord;\n"
+						+ "in vec4 in_position;\n"
+						+ "in vec2 in_tex_coord;\n"
 						+ "\n"
 						+ "out vec2 tex_coord;\n"
 						+ "void main()\n"
@@ -426,7 +426,7 @@ public class CurveRenderState {
 					String error = GL20.glGetShaderInfoLog(vtxShdr, 1024);
 					Log.error("Vertex Shader compilation failed.", new Exception(error));
 				}
-				GL20.glShaderSource(frgShdr, "#version 330\n"
+				GL20.glShaderSource(frgShdr, "#version 130\n"
 						+ "\n"
 						+ "uniform sampler1D tex;\n"
 						+ "uniform vec2 tex_size;\n"
@@ -434,7 +434,7 @@ public class CurveRenderState {
 						+ "uniform vec4 col_border;\n"
 						+ "\n"
 						+ "in vec2 tex_coord;\n"
-						+ "layout(location = 0) out vec4 out_colour;\n"
+						+ "out vec4 out_colour;\n"
 						+ "\n"
 						+ "void main()\n"
 						+ "{\n"
@@ -451,6 +451,7 @@ public class CurveRenderState {
 				}
 				GL20.glAttachShader(program, vtxShdr);
 				GL20.glAttachShader(program, frgShdr);
+				GL30.glBindFragDataLocation(program, 0, "out_colour");
 				GL20.glLinkProgram(program);
 				res = GL20.glGetProgrami(program, GL20.GL_LINK_STATUS);
 				if (res != GL11.GL_TRUE) {
