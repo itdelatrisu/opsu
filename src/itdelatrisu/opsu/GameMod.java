@@ -56,9 +56,9 @@ public enum GameMod {
 	              "Relax", "You don't need to click.\nGive your clicking/tapping finger a break from the heat of things.\n**UNRANKED**"),
 	AUTOPILOT     (Category.SPECIAL, 1, GameImage.MOD_AUTOPILOT, "AP", 8192, Input.KEY_X, 0f,
 	              "Relax2", "Automatic cursor movement - just follow the rhythm.\n**UNRANKED**"),
-	SPUN_OUT      (Category.SPECIAL, 2, GameImage.MOD_SPUN_OUT, "SO", 4096, Input.KEY_V, 0.9f,
+	SPUN_OUT      (Category.SPECIAL, 2, GameImage.MOD_SPUN_OUT, "SO", 4096, Input.KEY_C, 0.9f,
 	              "SpunOut", "Spinners will be automatically completed."),
-	AUTO          (Category.SPECIAL, 3, GameImage.MOD_AUTO, "", 2048, Input.KEY_B, 1f,
+	AUTO          (Category.SPECIAL, 3, GameImage.MOD_AUTO, "", 2048, Input.KEY_V, 1f,
 	              "Autoplay", "Watch a perfect automated play through the song.");
 
 	/** Mod categories. */
