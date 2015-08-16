@@ -143,8 +143,8 @@ public class Options {
 				rootPath = String.format("%s/%s", home, fallback);
 			}
 			File dir = new File(rootPath, "opsu");
-			if (!dir.isDirectory())
-				dir.mkdir();
+			if (!dir.isDirectory() && !dir.mkdir())
+				ErrorHandler.error(String.format("Failed to create configuration folder at '%s/opsu'.", rootPath), null, false);
 			return dir;
 		} else
 			return new File("./opsu");
@@ -216,7 +216,7 @@ public class Options {
 			@Override
 			public void read(String s) {
 				int i = Integer.parseInt(s);
-				if (i > 0 && i < 65535)
+				if (i > 0 && i <= 65535)
 					port = i;
 			}
 		},
@@ -361,7 +361,9 @@ public class Options {
 			public String getValueString() { return String.format("%dms", val); }
 		},
 		DISABLE_SOUNDS ("Disable All Sound Effects", "DisableSound", "May resolve Linux sound driver issues.  Requires a restart.",
-				(System.getProperty("os.name").toLowerCase().indexOf("linux") > -1)),
+				//(System.getProperty("os.name").toLowerCase().contains("linux"))
+				false
+				),
 		KEY_LEFT ("Left Game Key", "keyOsuLeft", "Select this option to input a key.") {
 			@Override
 			public String getValueString() { return Keyboard.getKeyName(getGameKeyLeft()); }
@@ -457,6 +459,10 @@ public class Options {
 						val - TimeUnit.MINUTES.toSeconds(TimeUnit.SECONDS.toMinutes(val)));
 			}
 		},
+		ENABLE_THEME_SONG ("Enable Theme Song", "MenuMusic", "Whether to play the theme song upon starting opsu!", true),
+		REPLAY_SEEKING ("Replay Seeking", "ReplaySeeking", "Enable a seeking bar on the left side of the screen during replays.", false),
+		DISABLE_UPDATER ("Disable Automatic Updates", "DisableUpdater", "Disable automatic checking for updates upon starting opsu!.", false),
+		
 		IN_GAME_PAUSE("In game pause button", "InGamePause", "Shows a in game pasue button.", false),
 		MOBILE_UI_SCALING ("Scales certain UI elements.", "MobileUIScale", "Scales certain UI elements. Requires Restart", 
 				(com.badlogic.gdx.Gdx.graphics.getWidth()/com.badlogic.gdx.Gdx.graphics.getPpiX()) <= 6.0f?//screen width less than 6 inches
@@ -469,9 +475,12 @@ public class Options {
 			@Override
 			public void read(String s) {
 				int i = (int) (Float.parseFloat(s) * 10f);
-				if (i >= 0 && i <= 100)
+				if (i >= 2 && i <= 30)
 					val = i;
 			}
+			
+			@Override
+			public String write() { return String.format(Locale.US, "%.1f", val / 10f); }
 		},
 		NEW_SLIDER("Enable New Slider", "NewSlider", "Use the new Slider style.",true),
 		
@@ -507,8 +516,6 @@ public class Options {
 					val = 1;
 			}
 		},
-		ENABLE_THEME_SONG ("Enable Theme Song", "MenuMusic", "Whether to play the theme song upon starting opsu!", true),
-		REPLAY_SEEKING ("Replay Seeking", "ReplaySeeking", "Enable a seeking bar on the left side of the screen during replays.", false),
 		DISABLE_CURSOR ("Disable Cursor", "DisableCursor", "", false),
 		;
 
@@ -936,8 +943,8 @@ public class Options {
 	public static boolean isNewCursorEnabled() { return GameOption.NEW_CURSOR.getBooleanValue(); }
 
 	/**
-	 * Returns whether or not the new cursor type is enabled.
-	 * @return true if enabled
+	 * Returns whether to disable the cursor
+	 * @return true if disabled
 	 */
 	public static boolean isDisableCursor() { return GameOption.DISABLE_CURSOR.getBooleanValue(); }
 
@@ -1053,6 +1060,12 @@ public class Options {
 	 * @return true if enabled
 	 */
 	public static boolean isReplaySeekingEnabled() { return GameOption.REPLAY_SEEKING.getBooleanValue(); }
+
+	/**
+	 * Returns whether or not automatic checking for updates is disabled.
+	 * @return true if disabled
+	 */
+	public static boolean isUpdaterDisabled() { return GameOption.DISABLE_UPDATER.getBooleanValue(); }
 
 	/**
 	 * Sets the track checkpoint time, if within bounds.
@@ -1176,7 +1189,10 @@ public class Options {
 			if (beatmapDir.isDirectory())
 				return beatmapDir;
 		}
-		beatmapDir.mkdir();  // none found, create new directory
+
+		// none found, create new directory
+		if (!beatmapDir.mkdir())
+			ErrorHandler.error(String.format("Failed to create beatmap directory at '%s'.", beatmapDir.getAbsolutePath()), null, false);
 		return beatmapDir;
 	}
 
@@ -1190,7 +1206,8 @@ public class Options {
 			return oszDir;
 
 		oszDir = new File(DATA_DIR, "SongPacks/");
-		oszDir.mkdir();
+		if (!oszDir.isDirectory() && !oszDir.mkdir())
+			ErrorHandler.error(String.format("Failed to create song packs directory at '%s'.", oszDir.getAbsolutePath()), null, false);
 		return oszDir;
 	}
 
@@ -1204,7 +1221,8 @@ public class Options {
 			return replayImportDir;
 
 		replayImportDir = new File(DATA_DIR, "ReplayImport/");
-		replayImportDir.mkdir();
+		if (!replayImportDir.isDirectory() && !replayImportDir.mkdir())
+			ErrorHandler.error(String.format("Failed to create replay import directory at '%s'.", replayImportDir.getAbsolutePath()), null, false);
 		return replayImportDir;
 	}
 
@@ -1249,7 +1267,10 @@ public class Options {
 			if (skinRootDir.isDirectory())
 				return skinRootDir;
 		}
-		skinRootDir.mkdir();  // none found, create new directory
+
+		// none found, create new directory
+		if (!skinRootDir.mkdir())
+			ErrorHandler.error(String.format("Failed to create skins directory at '%s'.", skinRootDir.getAbsolutePath()), null, false);
 		return skinRootDir;
 	}
 
@@ -1408,12 +1429,6 @@ public class Options {
 				writer.write(option.write());
 				writer.newLine();
 			}
-			writer.write(String.format("InGamePause = %b", isInGamePauseEnabled()));
-			writer.newLine();
-			writer.write(String.format("MobileUIScale = %.1f", getMobileUIScale()));
-			writer.newLine();
-			writer.write(String.format("SliderQuality = %d", getSliderQuality()));
-			writer.newLine();
 			writer.close();
 		} catch (IOException e) {
 			ErrorHandler.error(String.format("Failed to write to file '%s'.", OPTIONS_FILE.getAbsolutePath()), e, false);

@@ -5,8 +5,14 @@ import java.net.URI;
 
 import com.badlogic.gdx.Gdx;
 
+import fluddokt.opsu.fake.Desktop.Action;
+
 public class Desktop {
 
+	public enum Action {
+		BROWSE
+	}
+	
 	public static boolean isDesktopSupported() {
 		// if(Gdx.app.getType() == ApplicationType.Desktop){
 		// return java.awt.Desktop.isDesktopSupported();
@@ -29,6 +35,10 @@ public class Desktop {
 		// } else {
 		Gdx.net.openURI(uri.toString());
 		// }
+	}
+
+	public boolean isSupported(Action browse) {
+		return true;
 	}
 
 }

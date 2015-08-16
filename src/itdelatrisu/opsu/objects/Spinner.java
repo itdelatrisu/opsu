@@ -166,7 +166,7 @@ public class Spinner implements GameObject {
 		final int maxVel = 48;
 		final int minTime = 2000;
 		final int maxTime = 5000;
-		maxStoredDeltaAngles = (int) Utils.clamp((hitObject.getEndTime() - hitObject.getTime() - minTime)
+		maxStoredDeltaAngles = Utils.clamp((hitObject.getEndTime() - hitObject.getTime() - minTime)
 				* (maxVel - minVel) / (maxTime - minTime) + minVel, minVel, maxVel);
 		storedDeltaAngle = new float[maxStoredDeltaAngles];
 
@@ -214,13 +214,15 @@ public class Spinner implements GameObject {
 		spinnerMetreSub.draw(0, height - spinnerMetreSub.getHeight());
 
 		// main spinner elements
-		float approachScale = 1 - Utils.clamp(((float) timeDiff / (hitObject.getTime() - hitObject.getEndTime())), 0f, 1f);
 		GameImage.SPINNER_CIRCLE.getImage().setAlpha(alpha);
 		GameImage.SPINNER_CIRCLE.getImage().setRotation(drawRotation * 360f);
 		GameImage.SPINNER_CIRCLE.getImage().drawCentered(width / 2, height / 2);
-		Image approachCircleScaled = GameImage.SPINNER_APPROACHCIRCLE.getImage().getScaledCopy(approachScale);
-		approachCircleScaled.setAlpha(alpha);
-		approachCircleScaled.drawCentered(width / 2, height / 2);
+		if (!GameMod.HIDDEN.isActive()) {
+			float approachScale = 1 - Utils.clamp(((float) timeDiff / (hitObject.getTime() - hitObject.getEndTime())), 0f, 1f);
+			Image approachCircleScaled = GameImage.SPINNER_APPROACHCIRCLE.getImage().getScaledCopy(approachScale);
+			approachCircleScaled.setAlpha(alpha);
+			approachCircleScaled.drawCentered(width / 2, height / 2);
+		}
 		GameImage.SPINNER_SPIN.getImage().setAlpha(alpha);
 		GameImage.SPINNER_SPIN.getImage().drawCentered(width / 2, height * 3 / 4);
 

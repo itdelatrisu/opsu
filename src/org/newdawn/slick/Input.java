@@ -1233,7 +1233,7 @@ public class Input {
 		}
 		
 		while (Mouse.next()) {
-			if (Mouse.getEventButton() >= 0) {
+			if (Mouse.getEventButton() >= 0 && Mouse.getEventButton() < mousePressed.length) {
 				if (Mouse.getEventButtonState()) {
 					consumed = false;
 					mousePressed[Mouse.getEventButton()] = true;

@@ -92,12 +92,13 @@ public abstract class Curve {
 
 		
 		//ContextCapabilities capabilities = GLContext.getCapabilities();
-		mmsliderSupported = true;//capabilities.GL_EXT_framebuffer_object && capabilities.OpenGL32;
+		//mmsliderSupported = capabilities.GL_EXT_framebuffer_object && capabilities.OpenGL30;
+		mmsliderSupported = true;
 		if (mmsliderSupported)
 			CurveRenderState.init(width, height, circleSize);
 		else {
 			if (Options.getSkin().getSliderStyle() != Skin.STYLE_PEPPYSLIDER)
-				Log.warn("New slider style requires FBO support and OpenGL 3.2.");
+				Log.warn("New slider style requires FBO support and OpenGL 3.0.");
 		}
 	}
 

@@ -21,6 +21,7 @@ package itdelatrisu.opsu;
 import fluddokt.opsu.fake.*;
 
 import itdelatrisu.opsu.ui.MenuButton;
+import itdelatrisu.opsu.ui.animations.AnimationEquation;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -50,7 +51,7 @@ public enum GameMod {
 	              "DoubleTime", "Zoooooooooom."),
 //	NIGHTCORE     (Category.HARD, 2, GameImage.MOD_NIGHTCORE, "NT", 64, Input.KEY_D, 1.12f,
 //	              "Nightcore", "uguuuuuuuu"),
-	HIDDEN        (Category.HARD, 3, GameImage.MOD_HIDDEN, "HD", 8, Input.KEY_F, 1.06f, false,
+	HIDDEN        (Category.HARD, 3, GameImage.MOD_HIDDEN, "HD", 8, Input.KEY_F, 1.06f,
 	              "Hidden", "Play with no approach circles and fading notes for a slight score advantage."),
 	FLASHLIGHT    (Category.HARD, 4, GameImage.MOD_FLASHLIGHT, "FL", 1024, Input.KEY_G, 1.12f,
 	              "Flashlight", "Restricted view area."),
@@ -58,9 +59,9 @@ public enum GameMod {
 	              "Relax", "You don't need to click.\nGive your clicking/tapping finger a break from the heat of things.\n**UNRANKED**"),
 	AUTOPILOT     (Category.SPECIAL, 1, GameImage.MOD_AUTOPILOT, "AP", 8192, Input.KEY_X, 0f,
 	              "Relax2", "Automatic cursor movement - just follow the rhythm.\n**UNRANKED**"),
-	SPUN_OUT      (Category.SPECIAL, 2, GameImage.MOD_SPUN_OUT, "SO", 4096, Input.KEY_V, 0.9f,
+	SPUN_OUT      (Category.SPECIAL, 2, GameImage.MOD_SPUN_OUT, "SO", 4096, Input.KEY_C, 0.9f,
 	              "SpunOut", "Spinners will be automatically completed."),
-	AUTO          (Category.SPECIAL, 3, GameImage.MOD_AUTO, "", 2048, Input.KEY_B, 1f,
+	AUTO          (Category.SPECIAL, 3, GameImage.MOD_AUTO, "", 2048, Input.KEY_V, 1f,
 	              "Autoplay", "Watch a perfect automated play through the song.");
 
 	/** Mod categories. */
@@ -203,6 +204,8 @@ public enum GameMod {
 			mod.button = new MenuButton(img,
 					baseX + (offsetX * mod.categoryIndex) + img.getWidth() / 2f,
 					mod.category.getY());
+			mod.button.setHoverAnimationDuration(300);
+			mod.button.setHoverAnimationEquation(AnimationEquation.IN_OUT_BACK);
 			mod.button.setHoverExpand(1.2f);
 			mod.button.setHoverRotate(10f);
 

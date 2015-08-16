@@ -125,10 +125,19 @@ public class CurveRenderState {
 			fbo = mapping;
 
 			int old_fb = GL11.glGetInteger(GL30.GL_FRAMEBUFFER_BINDING);
-			int old_tex = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D);
+			/*
+			int oldFb = GL11.glGetInteger(EXTFramebufferObject.GL_FRAMEBUFFER_BINDING_EXT);
+			*/
+			int oldTex = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D);
 
-			//GL30.glBindFramebuffer(GL30.GL_DRAW_FRAMEBUFFER, fbo.getID());
-			//GL11.glViewport(0, 0, fbo.width, fbo.height);
+			//glGetInteger requires a buffer of size 16, even though just 4
+			//values are returned in this specific case
+			/*
+			IntBuffer oldViewport = BufferUtils.createIntBuffer(16);
+			GL11.glGetInteger(GL11.GL_VIEWPORT, oldViewport);
+			EXTFramebufferObject.glBindFramebufferEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT, fbo.getID());
+			GL11.glViewport(0, 0, fbo.width, fbo.height);
+			*/
 			fbo.bind();
 			GL11.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 			GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
@@ -138,9 +147,13 @@ public class CurveRenderState {
 
 			fbo.unbind();
 			
-			GL11.glBindTexture(GL11.GL_TEXTURE_2D, old_tex);
+			
+			GL11.glBindTexture(GL11.GL_TEXTURE_2D, oldTex);
+			/*
+			EXTFramebufferObject.glBindFramebufferEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT, oldFb);
+			GL11.glViewport(oldViewport.get(0), oldViewport.get(1), oldViewport.get(2), oldViewport.get(3));
+			*/
 			GL30.glBindFramebuffer(GL30.GL_DRAW_FRAMEBUFFER, old_fb);
-			//GL11.glViewport(0, 0, containerWidth, containerHeight);
 			Utils.COLOR_WHITE_FADE.a = alpha;
 		}
 
@@ -164,41 +177,6 @@ public class CurveRenderState {
 
 		Graphics.getGraphics().setColor(new Color(1f, 1f, 1f, alpha));
 		fbo.draw(0, 0, containerWidth, containerHeight);
-		
-		
-		//fbo.bindTexture();
-		//fbo.fbo.getColorBufferTexture().
-		//GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
-		//GL11.glBindTexture(GL11.GL_TEXTURE_2D, fbo.getTextureID());
-		//GL11.glBindTexture(GL11.GL_TEXTURE_2D, staticState.gradientTexture);
-		
-		/*GL11.glBegin();
-		//setup buffers
-		int vtx_buf = GL15.glGenBuffers();
-		FloatBuffer buff = BufferUtils.createByteBuffer(9999).asFloatBuffer();
-		
-		float tas = 1;//0.7f;
-		buff.put(new float[]{
-				0,0,-tas,-tas,
-				0,1,-tas,tas,
-				1,1,tas,tas,
-				1,0,tas,-tas
-		});
-		buff.flip();
-		GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, vtx_buf);
-		GL15.glBufferData(GL15.GL_ARRAY_BUFFER, buff, GL15.GL_STATIC_DRAW);
-		
-		//use shader
-		//draw buffers
-		GL20.glVertexAttribPointer(GL11.vertLoc, 2, GL11.GL_FLOAT, false, 4*4, 4*2);
-		GL20.glVertexAttribPointer(GL11.texCoordLoc, 2, GL11.GL_FLOAT, false, 4*4, 0);
-		GL20.glUniform4f(GL11.colBorderLoc, 1, 1, 1,alpha);
-		
-		GL11.glDrawArrays(GL11.GL_TRIANGLE_FAN, 0, 4);
-		GL15.glDeleteBuffers(vtx_buf);
-		
-		GL11.glEnd();
-		//*/
 	}
 
 	/**
@@ -447,7 +425,7 @@ public class CurveRenderState {
 				Image slider = GameImage.SLIDER_GRADIENT.getImage().getScaledCopy(1.0f / GameImage.getUIscale());
 				
 				/*
-				//staticState.gradientTexture = GL11.glGenTextures();
+				staticState.gradientTexture = GL11.glGenTextures();
 				ByteBuffer buff = BufferUtils.createByteBuffer(slider.getWidth() * 4);
 				for (int i = 0; i < slider.getWidth(); ++i) {
 					Color col = slider.getColor(i, 0);
@@ -579,6 +557,7 @@ public class CurveRenderState {
 				}
 				GL20.glAttachShader(program, vtxShdr);
 				GL20.glAttachShader(program, frgShdr);
+				GL30.glBindFragDataLocation(program, 0, "out_colour");
 				GL20.glLinkProgram(program);
 				res = GL20.glGetProgrami(program, GL20.GL_LINK_STATUS);
 				if (res != GL11.GL_TRUE) {

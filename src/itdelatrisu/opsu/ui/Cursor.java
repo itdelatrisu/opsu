@@ -133,7 +133,7 @@ public class Cursor {
 			cursorMiddle = GameImage.CURSOR_MIDDLE.getImage();
 
 		int removeCount = 0;
-		int FPSmod = (Options.getTargetFPS() / 60);
+		float FPSmod = Math.max(container.getFPS(), 1) / 60f;
 		Skin skin = Options.getSkin();
 
 		// scale cursor
@@ -143,8 +143,6 @@ public class Cursor {
 		if (cursorScale != 1f) {
 			cursor = cursor.getScaledCopy(cursorScale);
 			cursorTrail = cursorTrail.getScaledCopy(cursorScale);
-			if (hasMiddle)
-				cursorMiddle = cursorMiddle.getScaledCopy(cursorScale);
 		}
 
 		// TODO: use an image buffer
@@ -159,13 +157,13 @@ public class Cursor {
 			lastX = mouseX;
 			lastY = mouseY;
 
-			removeCount = (cursorX.size() / (6 * FPSmod)) + 1;
+			removeCount = (int) (cursorX.size() / (6 * FPSmod)) + 1;
 		} else {
 			// old style: sample one point at a time
 			cursorX.add(mouseX);
 			cursorY.add(mouseY);
 
-			int max = 10 * FPSmod;
+			int max = (int) (10 * FPSmod);
 			if (cursorX.size() > max)
 				removeCount = cursorX.size() - max;
 		}

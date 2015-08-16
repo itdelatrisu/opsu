@@ -28,6 +28,8 @@ import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.beatmap.BeatmapParser;
 import itdelatrisu.opsu.replay.ReplayImporter;
+import itdelatrisu.opsu.ui.animations.AnimatedValue;
+import itdelatrisu.opsu.ui.animations.AnimationEquation;
 
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
@@ -74,11 +76,8 @@ public class UI {
 	/** Whether or not to check the current tooltip for line breaks. */
 	private static boolean tooltipNewlines;
 
-	/** The current tooltip timer. */
-	private static int tooltipTimer = -1;
-
-	/** Duration, in milliseconds, to fade tooltips. */
-	private static final int TOOLTIP_FADE_TIME = 200;
+	/** The alpha level of the current tooltip (if any). */
+	private static AnimatedValue tooltipAlpha = new AnimatedValue(200, 0f, 1f, AnimationEquation.LINEAR);
 
 	// game-related variables
 	private static GameContainer container;
@@ -110,6 +109,8 @@ public class UI {
 			Image back = GameImage.MENU_BACK.getImage();
 			backButton = new MenuButton(back, back.getWidth() / 2f, container.getHeight() - (back.getHeight() / 2f));
 		}
+		backButton.setHoverAnimationDuration(350);
+		backButton.setHoverAnimationEquation(AnimationEquation.IN_OUT_BACK);
 		backButton.setHoverExpand(MenuButton.Expand.UP_RIGHT);
 	}
 
@@ -121,8 +122,7 @@ public class UI {
 		cursor.update(delta);
 		updateVolumeDisplay(delta);
 		updateBarNotification(delta);
-		if (tooltipTimer > 0)
-			tooltipTimer -= delta;
+		tooltipAlpha.update(-delta);
 	}
 
 	/**
@@ -364,12 +364,7 @@ public class UI {
 		if (s != null) {
 			tooltip = s;
 			tooltipNewlines = newlines;
-			if (tooltipTimer <= 0)
-				tooltipTimer = delta;
-			else
-				tooltipTimer += delta * 2;
-			if (tooltipTimer > TOOLTIP_FADE_TIME)
-				tooltipTimer = TOOLTIP_FADE_TIME;
+			tooltipAlpha.update(delta * 2);
 		}
 	}
 
@@ -379,7 +374,7 @@ public class UI {
 	 * @param g the graphics context
 	 */
 	public static void drawTooltip(Graphics g) {
-		if (tooltipTimer <= 0 || tooltip == null)
+		if (tooltipAlpha.getTime() == 0 || tooltip == null)
 			return;
 
 		int containerWidth = container.getWidth(), containerHeight = container.getHeight();
@@ -412,7 +407,7 @@ public class UI {
 			y = margin;
 
 		// draw tooltip text inside a filled rectangle
-		float alpha = (float) tooltipTimer / TOOLTIP_FADE_TIME;
+		float alpha = tooltipAlpha.getValue();
 		float oldAlpha = Utils.COLOR_BLACK_ALPHA.a;
 		Utils.COLOR_BLACK_ALPHA.a = alpha;
 		g.setColor(Utils.COLOR_BLACK_ALPHA);
@@ -434,7 +429,7 @@ public class UI {
 	 * Resets the tooltip.
 	 */
 	public static void resetTooltip() {
-		tooltipTimer = -1;
+		tooltipAlpha.setTime(0);
 		tooltip = null;
 	}
 

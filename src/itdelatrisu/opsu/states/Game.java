@@ -50,6 +50,7 @@ import itdelatrisu.opsu.replay.Replay;
 import itdelatrisu.opsu.replay.ReplayFrame;
 import itdelatrisu.opsu.ui.MenuButton;
 import itdelatrisu.opsu.ui.UI;
+import itdelatrisu.opsu.ui.animations.AnimationEquation;
 
 
 //import java.io.File;
@@ -118,6 +119,10 @@ public class Game extends BasicGameState {
 
 	/** Hit object approach time, in milliseconds. */
 	private int approachTime;
+
+	/** Decay time for elements in "Hidden" mod, in milliseconds. */
+	//TODO: figure out actual formula for decay time
+	private int decayTime = 800;
 
 	/** Time offsets for obtaining each hit result (indexed by HIT_* constants). */
 	private int[] hitResultOffset;
@@ -624,6 +629,8 @@ public class Game extends BasicGameState {
 			cursorCirclePulse.drawCentered(pausedMouseX, pausedMouseY);
 		}
 
+		Utils.FONT_DEFAULT.drawString(10,10, MusicController.getPosition()+"");
+		
 		if (isReplay)
 			UI.draw(g, replayX, replayY, replayKeyPressed);
 		else if (GameMod.AUTO.isActive())
@@ -1180,6 +1187,13 @@ public class Game extends BasicGameState {
 
 		// restart the game
 		if (restart != Restart.FALSE) {
+			// load mods
+			if (isReplay) {
+				previousMods = GameMod.getModState();
+				GameMod.loadModState(replay.mods);
+			}
+
+			// check restart state
 			if (restart == Restart.NEW) {
 				// new game
 				loadImages();
@@ -1264,10 +1278,6 @@ public class Game extends BasicGameState {
 
 			// load replay frames
 			if (isReplay) {
-				// load mods
-				previousMods = GameMod.getModState();
-				GameMod.loadModState(replay.mods);
-
 				// load initial data
 				replayX = container.getWidth() / 2;
 				replayY = container.getHeight() / 2;
@@ -1509,6 +1519,8 @@ public class Game extends BasicGameState {
 			Image skip = GameImage.SKIP.getImage();
 			skipButton = new MenuButton(skip, width - skip.getWidth() / 2f, height - (skip.getHeight() / 2f));
 		}
+		skipButton.setHoverAnimationDuration(350);
+		skipButton.setHoverAnimationEquation(AnimationEquation.IN_OUT_BACK);
 		skipButton.setHoverExpand(1.1f, MenuButton.Expand.UP_LEFT);
 
 		Image pause = GameImage.MUSIC_PAUSE.getImage().getScaledCopy( 2.5f*Options.getMobileUIScale(0.2f) / Options.getMobileUIScale());
@@ -1598,6 +1610,11 @@ public class Game extends BasicGameState {
 	 * Returns the object approach time, in milliseconds.
 	 */
 	public int getApproachTime() { return approachTime; }
+
+	/**
+	 * Returns the object decay time in the "Hidden" mod, in milliseconds.
+	 */
+	public int getDecayTime() { return decayTime; }
 
 	/**
 	 * Returns an array of hit result offset times, in milliseconds (indexed by GameData.HIT_* constants).

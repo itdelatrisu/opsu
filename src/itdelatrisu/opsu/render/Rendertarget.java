@@ -24,9 +24,6 @@ import fluddokt.opsu.fake.Graphics;
 
 /*
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL20;
-import org.lwjgl.opengl.GL30;
-import org.lwjgl.opengl.GL32;
 */
 
 /**
@@ -59,9 +56,9 @@ public class Rendertarget {
 		this.width = width;
 		this.height = height;
 		/*
-		fboID = GL30.glGenFramebuffers();
+		fboID = EXTFramebufferObject.glGenFramebuffersEXT();
 		textureID = GL11.glGenTextures();
-		depthBufferID = GL30.glGenRenderbuffers();
+		depthBufferID = EXTFramebufferObject.glGenRenderbuffersEXT();
 		*/
 		fbo = new FrameBuffer(Format.RGBA8888, width, height, true);
 	}
@@ -71,7 +68,7 @@ public class Rendertarget {
 	 */
 	public void bind() {
 		/*
-		GL30.glBindFramebuffer(GL30.GL_DRAW_FRAMEBUFFER, fboID);
+		EXTFramebufferObject.glBindFramebufferEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT, fboID);
 		Gdx.gl.glFramebufferRenderbuffer(Gdx.gl.GL_FRAMEBUFFER, Gdx.gl.GL_COLOR_ATTACHMENT0, Gdx.gl.GL_RENDERBUFFER, textureID);
 		Gdx.gl.glFramebufferTexture2D(Gdx.gl.GL_FRAMEBUFFER, Gdx.gl.GL_COLOR_ATTACHMENT0, Gdx.gl.GL_TEXTURE_2D, textureID, 0);
 		Gdx.gl.glFramebufferRenderbuffer(Gdx.gl.GL_FRAMEBUFFER, Gdx.gl.GL_DEPTH_ATTACHMENT, Gdx.gl.GL_RENDERBUFFER, depthBufferID);
@@ -111,7 +108,9 @@ public class Rendertarget {
 	 * Bind the default framebuffer.
 	 */
 	public static void unbind() {
-		//GL30.glBindFramebuffer(GL30.GL_DRAW_FRAMEBUFFER, 0);
+		/*
+		EXTFramebufferObject.glBindFramebufferEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT, 0);
+		*/
 		if(currentFBO != null)
 			currentFBO.end();
 	}
@@ -123,78 +122,28 @@ public class Rendertarget {
 	 * @param height the height
 	*/
 	public static Rendertarget createRTTFramebuffer(int width, int height) {
-		//int old_framebuffer = GL11.glGetInteger(GL30.GL_READ_FRAMEBUFFER_BINDING);
-		//int old_texture = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D);
-		Rendertarget buffer = new Rendertarget(width,height);
-		//buffer.bind();
-
 		/*
+		int old_framebuffer = GL11.glGetInteger(EXTFramebufferObject.GL_FRAMEBUFFER_BINDING_EXT);
+		int old_texture = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D);
+		*/
+		Rendertarget buffer = new Rendertarget(width,height);
+		/*
+		buffer.bind();
+
 		int fboTexture = buffer.textureID;
 		GL11.glBindTexture(GL11.GL_TEXTURE_2D, fboTexture);
-		GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA, width, height, 0, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, null);
+		GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, 4, width, height, 0, GL11.GL_RGBA, GL11.GL_UNSIGNED_INT, (ByteBuffer) null);
 		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST);
 		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST);
-		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL11.GL_CLAMP_TO_EDGE);
-		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, GL11.GL_CLAMP_TO_EDGE);
-		
-		GL30.glBindRenderbuffer(GL30.GL_RENDERBUFFER, buffer.depthBufferID);
-		GL30.glRenderbufferStorage(GL30.GL_RENDERBUFFER, GL11.GL_DEPTH_COMPONENT16, width, height);
-		GL30.glFramebufferRenderbuffer(GL30.GL_FRAMEBUFFER, GL30.GL_DEPTH_ATTACHMENT, GL30.GL_RENDERBUFFER, buffer.depthBufferID);
-		
-		GL32.glFramebufferTexture(GL30.GL_FRAMEBUFFER, GL30.GL_COLOR_ATTACHMENT0, fboTexture, 0);
-		//GL20.glDrawBuffers(GL30.GL_COLOR_ATTACHMENT0);
-		GL30.glFramebufferRenderbuffer(GL30.GL_FRAMEBUFFER, GL30.GL_COLOR_ATTACHMENT0, GL30.GL_RENDERBUFFER, fboTexture);
-		
-		 */
-		/*
-		int texH = height;
-		int texW = width;
-		int tb = buffer.textureID;
-		int rb = buffer.depthBufferID;
-		int fb = buffer.fboID;
-		Gdx.gl.glBindTexture(Gdx.gl.GL_TEXTURE_2D, tb);
-		Gdx.gl.glTexParameteri(Gdx.gl.GL_TEXTURE_2D, Gdx.gl.GL_TEXTURE_MIN_FILTER, Gdx.gl.GL_NEAREST);
-		Gdx.gl.glTexParameteri(Gdx.gl.GL_TEXTURE_2D, Gdx.gl.GL_TEXTURE_MAG_FILTER, Gdx.gl.GL_NEAREST);
-		Gdx.gl.glTexParameteri(Gdx.gl.GL_TEXTURE_2D, Gdx.gl.GL_TEXTURE_WRAP_S, Gdx.gl.GL_CLAMP_TO_EDGE);
-		Gdx.gl.glTexParameteri(Gdx.gl.GL_TEXTURE_2D, Gdx.gl.GL_TEXTURE_WRAP_T, Gdx.gl.GL_CLAMP_TO_EDGE);
-		Gdx.gl.glTexImage2D(Gdx.gl.GL_TEXTURE_2D, 0,  Gdx.gl.GL_RGBA, texH, texH, 0, Gdx.gl.GL_RGBA, Gdx.gl.GL_UNSIGNED_BYTE, 
-		//bbuf
-		null
-		);
-		
-		Gdx.gl.glBindRenderbuffer(Gdx.gl.GL_RENDERBUFFER, rb);
-		Gdx.gl.glRenderbufferStorage(Gdx.gl.GL_RENDERBUFFER, Gdx.gl.GL_DEPTH_COMPONENT16, texW, texH);
-		//Gdx.gl.glBindRenderbuffer(Gdx.gl.GL_RENDERBUFFER, rb2);
-		//Gdx.gl.glRenderbufferStorage(Gdx.gl.GL_RENDERBUFFER, Gdx.gl.GL_DEPTH_COMPONENT16, texW, texH);
-	
 
-		// Bind the framebuffer
-		Gdx.gl.glBindFramebuffer(Gdx.gl.GL_FRAMEBUFFER, fb);
-		 
-		// specify texture as color attachment
-		Gdx.gl.glFramebufferRenderbuffer(Gdx.gl.GL_FRAMEBUFFER, Gdx.gl.GL_COLOR_ATTACHMENT0, Gdx.gl.GL_RENDERBUFFER, tb);
-		Gdx.gl.glFramebufferTexture2D(Gdx.gl.GL_FRAMEBUFFER, Gdx.gl.GL_COLOR_ATTACHMENT0, Gdx.gl.GL_TEXTURE_2D, tb, 0);
-		 
-		// attach render buffer as depth buffer
-		Gdx.gl.glFramebufferRenderbuffer(Gdx.gl.GL_FRAMEBUFFER, Gdx.gl.GL_DEPTH_ATTACHMENT, Gdx.gl.GL_RENDERBUFFER, rb);
-		//Gdx.gl.glFramebufferRenderbuffer(Gdx.gl.GL_FRAMEBUFFER, Gdx.gl.GL_STENCIL_ATTACHMENT, Gdx.gl.GL_RENDERBUFFER, rb2);
-		
-		switch( GL20.glCheckFramebufferStatus(GL20.GL_FRAMEBUFFER)){
-		 case GL20.GL_FRAMEBUFFER_COMPLETE:
-	            System.out.println("Frame Buffer Complete");
-	            break;
+		EXTFramebufferObject.glBindRenderbufferEXT(EXTFramebufferObject.GL_RENDERBUFFER_EXT, buffer.depthBufferID);
+		EXTFramebufferObject.glRenderbufferStorageEXT(EXTFramebufferObject.GL_RENDERBUFFER_EXT, GL11.GL_DEPTH_COMPONENT, width, height);
+		EXTFramebufferObject.glFramebufferRenderbufferEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT, EXTFramebufferObject.GL_DEPTH_ATTACHMENT_EXT, EXTFramebufferObject.GL_RENDERBUFFER_EXT, buffer.depthBufferID);
 
-	        case GL20.GL_FRAMEBUFFER_UNSUPPORTED:
-	        	System.out.println("Frame Buffer unsupported");
-	            break;
+		EXTFramebufferObject.glFramebufferTexture2DEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT, EXTFramebufferObject.GL_COLOR_ATTACHMENT0_EXT, GL11.GL_TEXTURE_2D, fboTexture, 0);
 
-	        default:
-	        	System.out.println("Frame Buffer unknown" + GL20.glCheckFramebufferStatus(GL20.GL_FRAMEBUFFER) );
-		}
-		
-		
 		GL11.glBindTexture(GL11.GL_TEXTURE_2D, old_texture);
-		GL30.glBindFramebuffer(GL30.GL_DRAW_FRAMEBUFFER, old_framebuffer);
+		EXTFramebufferObject.glBindFramebufferEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT, old_framebuffer);
 */
 	
 		return buffer;
@@ -205,9 +154,11 @@ public class Rendertarget {
 	 * to use this rendertarget with OpenGL after calling this method.
 	 */
 	public void destroyRTT() {
-		//GL30.glDeleteFramebuffers(fboID);
-		//GL30.glDeleteRenderbuffers(depthBufferID);
-		//GL11.glDeleteTextures(textureID);
+		/*
+		EXTFramebufferObject.glDeleteFramebuffersEXT(fboID);
+		EXTFramebufferObject.glDeleteRenderbuffersEXT(depthBufferID);
+		GL11.glDeleteTextures(textureID);
+		*/
 		fbo.dispose();
 	}
 }

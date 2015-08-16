@@ -214,6 +214,11 @@ public class Slider implements GameObject {
 				tick.drawCentered(c[0], c[1], Utils.COLOR_WHITE_FADE);
 			}
 		}
+		if (GameMod.HIDDEN.isActive()) {
+			float fadeOutScale = -(float) (timeDiff - game.getApproachTime()) / game.getDecayTime();
+			float fadeOutAlpha = Utils.clamp(1 - fadeOutScale, 0, 1);
+			alpha = Math.min(alpha, fadeOutAlpha);
+		}
 		if (sliderClickedInitial)
 			;  // don't draw current combo number if already clicked
 		else
@@ -247,7 +252,8 @@ public class Slider implements GameObject {
 
 		if (timeDiff >= 0) {
 			// approach circle
-			GameImage.APPROACHCIRCLE.getImage().getScaledCopy(approachScale).drawCentered(x, y, color);
+			if (!GameMod.HIDDEN.isActive())
+				GameImage.APPROACHCIRCLE.getImage().getScaledCopy(approachScale).drawCentered(x, y, color);
 		} else {
 			// Since update() might not have run before drawing during a replay, the
 			// slider time may not have been calculated, which causes NAN numbers and flicker.

@@ -258,7 +258,7 @@ public class DownloadNode {
 		*/
 		File path =  new File(Options.getOSZDir(),Integer.toString(beatmapSetID));
 		String rename = String.format("%d %s - %s.osz", beatmapSetID, artist, title);
-		this.download = new Download(url, path, rename);
+		Download download = new Download(url, path, rename);
 		download.setListener(new DownloadListener() {
 			@Override
 			public void completed() {
@@ -270,6 +270,7 @@ public class DownloadNode {
 				UI.sendBarNotification("Download failed due to a connection error.");
 			}
 		});
+		this.download = download;
 		if (Options.useUnicodeMetadata())  // load glyphs
 			Utils.loadGlyphs(Utils.FONT_LARGE, getTitle(), null);
 	}
@@ -382,6 +383,7 @@ public class DownloadNode {
 	 * @param hover true if the mouse is hovering over this button
 	 */
 	public void drawDownload(Graphics g, int index, int id, boolean hover) {
+		Download download = this.download;  // in case clearDownload() is called asynchronously
 		if (download == null) {
 			ErrorHandler.error("Trying to draw download information for button without Download object.", null, false);
 			return;

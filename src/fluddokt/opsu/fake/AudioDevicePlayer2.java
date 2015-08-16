@@ -104,6 +104,7 @@ public class AudioDevicePlayer2 extends AudioDevicePlayer {
 						len = Math.min(rbuf.length, -samplePos);
 						for (int i=0; i<len; i++)
 							rbuf[i] = 0;
+						System.out.println("Len :" + len);
 					} else
 						len = currentStream.read(rbuf);
 					if (!initedAD) {
