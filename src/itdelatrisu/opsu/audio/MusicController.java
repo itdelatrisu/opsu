@@ -21,34 +21,25 @@ package itdelatrisu.opsu.audio;
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.beatmap.Beatmap;
-import itdelatrisu.opsu.beatmap.BeatmapParser;
+import itdelatrisu.opsu.Utils;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Field;
-import java.nio.IntBuffer;
 import java.util.Map;
 
 import javax.sound.sampled.AudioFileFormat;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
-import org.lwjgl.BufferUtils;
-import org.lwjgl.openal.AL;
-import org.lwjgl.openal.AL10;
-import org.newdawn.slick.Music;
-import org.newdawn.slick.MusicListener;
-import org.newdawn.slick.SlickException;
-import org.newdawn.slick.openal.Audio;
-import org.newdawn.slick.openal.SoundStore;
+import itdelatrisu.opsu.beatmap.BeatmapParser;
 import org.tritonus.share.sampled.file.TAudioFileFormat;
 
 /**
  * Controller for all music.
  */
 public class MusicController {
-	/** The current music track. */
-	private static Music player;
+	/** The current music player. */
+	public static MusicPlayer player;
 
 	/** The last beatmap passed to play(). */
 	private static Beatmap lastBeatmap;
@@ -91,18 +82,18 @@ public class MusicController {
 			System.gc();
 
 			switch (BeatmapParser.getExtension(beatmap.audioFilename.getName())) {
-			case "ogg":
-			case "mp3":
-				trackLoader = new Thread() {
-					@Override
-					public void run() {
-						loadTrack(beatmap.audioFilename, (preview) ? beatmap.previewTime : 0, loop);
-					}
-				};
-				trackLoader.start();
-				break;
-			default:
-				break;
+				case "ogg":
+				case "mp3":
+					trackLoader = new Thread() {
+						@Override
+						public void run() {
+							loadTrack(beatmap.audioFilename, (preview) ? beatmap.previewTime : 0, loop);
+						}
+					};
+					trackLoader.start();
+					break;
+				default:
+					break;
 			}
 		}
 
@@ -121,17 +112,7 @@ public class MusicController {
 	 */
 	private static void loadTrack(File file, int position, boolean loop) {
 		try {
-			player = new Music(file.getPath(), true);
-			player.addListener(new MusicListener() {
-				@Override
-				public void musicEnded(Music music) {
-					if (music == player)  // don't fire if music swapped
-						trackEnded = true;
-				}
-
-				@Override
-				public void musicSwapped(Music music, Music newMusic) {}
-			});
+			player.load(file);
 			playAt(position, loop);
 		} catch (Exception e) {
 			ErrorHandler.error(String.format("Could not play track '%s'.", file.getName()), e, false);
@@ -148,13 +129,21 @@ public class MusicController {
 			setVolume(Options.getMusicVolume() * Options.getMasterVolume());
 			trackEnded = false;
 			pauseTime = 0f;
+			if (position >= 0)
+				player.setPosition(position);
 			if (loop)
 				player.loop();
 			else
 				player.play();
-			if (position >= 0)
-				player.setPosition(position / 1000f);
 		}
+	}
+
+	/**
+	 * Update tick triggered by container.
+	 * @delta time in ms since the last update.
+	 */
+	public static void update(int delta) {
+		player.update(delta);
 	}
 
 	/**
@@ -178,7 +167,7 @@ public class MusicController {
 	 * Returns true if the current track is playing.
 	 */
 	public static boolean isPlaying() {
-		return (trackExists() && player.playing());
+		return (trackExists() && player.isPlaying());
 	}
 
 	/**
@@ -205,7 +194,6 @@ public class MusicController {
 		if (trackExists()) {
 			pauseTime = 0f;
 			player.resume();
-			player.setVolume(1.0f);
 		}
 	}
 
@@ -233,9 +221,9 @@ public class MusicController {
 	 */
 	public static int getPosition() {
 		if (isPlaying())
-			return (int) (player.getPosition() * 1000 + Options.getMusicOffset());
+			return (int) (player.getPosition() + Options.getMusicOffset());
 		else if (isPaused())
-			return Math.max((int) (pauseTime * 1000 + Options.getMusicOffset()), 0);
+			return Math.max((int) (pauseTime + Options.getMusicOffset()), 0);
 		else
 			return 0;
 	}
@@ -244,8 +232,9 @@ public class MusicController {
 	 * Seeks to a position in the current track.
 	 * @param position the new track position (in ms)
 	 */
-	public static boolean setPosition(int position) {
-		return (trackExists() && position >= 0 && player.setPosition(position / 1000f));
+	public static void setPosition(int position) {
+		if (trackExists() && position >= 0)
+			player.setPosition(position);
 	}
 
 	/**
@@ -298,15 +287,15 @@ public class MusicController {
 	 * @param volume the new volume [0, 1]
 	 */
 	public static void setVolume(float volume) {
-		SoundStore.get().setMusicVolume((isTrackDimmed()) ? volume * dimLevel : volume);
+		player.setVolume(volume);
 	}
 
 	/**
-	 * Sets the music pitch (and speed).
-	 * @param pitch the new pitch
+	 * Sets the music speed.
+	 * @param speed the new speed
 	 */
-	public static void setPitch(float pitch) {
-		SoundStore.get().setMusicPitch(pitch);
+	public static void setSpeed(float speed) {
+		player.setSpeed(speed);
 	}
 
 	/**
@@ -365,20 +354,8 @@ public class MusicController {
 	public static void reset() {
 		stop();
 
-		// interrupt the track loading
-		// TODO: Not sure if the interrupt does anything, and the join kind of
-		// defeats the purpose of threading it, but it is needed since bad things
-		// likely happen when OpenALStreamPlayer source is released asynchronously.
-		if (isTrackLoading()){
-			trackLoader.interrupt();
-			try {
-				trackLoader.join();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		}
 		trackLoader = null;
-
+		if (player != null) player.close();
 		// reset state
 		lastBeatmap = null;
 		duration = 0;
@@ -386,72 +363,5 @@ public class MusicController {
 		themePlaying = false;
 		pauseTime = 0f;
 		trackDimmed = false;
-
-		// releases all sources from previous tracks
-		destroyOpenAL();
-	}
-
-	/**
-	 * Stops and releases all sources, clears each of the specified Audio
-	 * buffers, destroys the OpenAL context, and resets SoundStore for future use.
-	 *
-	 * Calling SoundStore.get().init() will re-initialize the OpenAL context
-	 * after a call to destroyOpenAL (Note: AudioLoader.getXXX calls init for you).
-	 *
-	 * @author davedes (http://slick.ninjacave.com/forum/viewtopic.php?t=3920)
-	 */
-	private static void destroyOpenAL() {
-		if (!trackExists())
-			return;
-		stop();
-
-		try {
-			// get Music object's (private) Audio object reference
-			Field sound = player.getClass().getDeclaredField("sound");
-			sound.setAccessible(true);
-			Audio audio = (Audio) (sound.get(player));
-
-			// first clear the sources allocated by SoundStore
-			int max = SoundStore.get().getSourceCount();
-			IntBuffer buf = BufferUtils.createIntBuffer(max);
-			for (int i = 0; i < max; i++) {
-				int source = SoundStore.get().getSource(i);
-				buf.put(source);
-
-				// stop and detach any buffers at this source
-				AL10.alSourceStop(source);
-				AL10.alSourcei(source, AL10.AL_BUFFER, 0);
-			}
-			buf.flip();
-			AL10.alDeleteSources(buf);
-			int exc = AL10.alGetError();
-			if (exc != AL10.AL_NO_ERROR) {
-				throw new SlickException(
-						"Could not clear SoundStore sources, err: " + exc);
-			}
-
-			// delete any buffer data stored in memory, too...
-			if (audio != null && audio.getBufferID() != 0) {
-				buf = BufferUtils.createIntBuffer(1).put(audio.getBufferID());
-				buf.flip();
-				AL10.alDeleteBuffers(buf);
-				exc = AL10.alGetError();
-				if (exc != AL10.AL_NO_ERROR) {
-					throw new SlickException("Could not clear buffer "
-							+ audio.getBufferID()
-							+ ", err: "+exc);
-				}
-			}
-
-			// clear OpenAL
-			AL.destroy();
-
-			// reset SoundStore so that next time we create a Sound/Music, it will reinit
-			SoundStore.get().clear();
-
-			player = null;
-		} catch (Exception e) {
-			ErrorHandler.error("Failed to destroy OpenAL.", e, true);
-		}
 	}
 }
