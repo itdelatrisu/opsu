@@ -28,6 +28,7 @@ import itdelatrisu.opsu.downloads.Updater;
 import itdelatrisu.opsu.objects.curves.Curve;
 import itdelatrisu.opsu.replay.Replay;
 import itdelatrisu.opsu.replay.ReplayFrame;
+import itdelatrisu.opsu.ui.animations.AnimationEquation;
 
 import java.io.File;
 import java.util.Date;
@@ -255,6 +256,9 @@ public class GameData {
 		/** Whether or not to expand when animating. */
 		public boolean expand;
 
+		/** Whether or not to hide the hit result. */
+		public boolean hideResult;
+
 		/**
 		 * Constructor.
 		 * @param time the result's starting track position
@@ -264,9 +268,10 @@ public class GameData {
 		 * @param color the color of the hit object
 		 * @param curve the slider curve (or null if not applicable)
 		 * @param expand whether or not the hit result animation should expand (if applicable)
+		 * @param hideResult whether or not to hide the hit result (but still show the other animations)
 		 */
 		public HitObjectResult(int time, int result, float x, float y, Color color,
-				HitObjectType hitResultType, Curve curve, boolean expand) {
+				HitObjectType hitResultType, Curve curve, boolean expand, boolean hideResult) {
 			this.time = time;
 			this.result = result;
 			this.x = x;
@@ -275,6 +280,7 @@ public class GameData {
 			this.hitResultType = hitResultType;
 			this.curve = curve;
 			this.expand = expand;
+			this.hideResult = hideResult;
 		}
 	}
 
@@ -872,7 +878,7 @@ public class GameData {
 				}
 
 				// hit lighting
-				else if (Options.isHitLightingEnabled() && hitResult.result != HIT_MISS &&
+				else if (Options.isHitLightingEnabled() && !hitResult.hideResult && hitResult.result != HIT_MISS &&
 					hitResult.result != HIT_SLIDER30 && hitResult.result != HIT_SLIDER10) {
 					// TODO: add particle system
 					Image lighting = GameImage.LIGHTING.getImage();
@@ -885,14 +891,10 @@ public class GameData {
 				    hitResult.hitResultType == HitObjectType.CIRCLE ||
 				    hitResult.hitResultType == HitObjectType.SLIDER_FIRST ||
 				    hitResult.hitResultType == HitObjectType.SLIDER_LAST)) {
-					float scale = (!hitResult.expand) ? 1f : Utils.easeOut(
-							Utils.clamp(trackPosition - hitResult.time, 0, HITCIRCLE_FADE_TIME),
-							1f, HITCIRCLE_ANIM_SCALE - 1f, HITCIRCLE_FADE_TIME
-					);
-					float alpha = Utils.easeOut(
-							Utils.clamp(trackPosition - hitResult.time, 0, HITCIRCLE_FADE_TIME),
-							1f, -1f, HITCIRCLE_FADE_TIME
-					);
+					float progress = AnimationEquation.OUT_CUBIC.calc(
+							(float) Utils.clamp(trackPosition - hitResult.time, 0, HITCIRCLE_FADE_TIME) / HITCIRCLE_FADE_TIME);
+					float scale = (!hitResult.expand) ? 1f : 1f + (HITCIRCLE_ANIM_SCALE - 1f) * progress;
+					float alpha = 1f - progress;
 
 					// slider curve
 					if (hitResult.curve != null) {
@@ -906,26 +908,28 @@ public class GameData {
 					}
 
 					// hit circles
-					Image scaledHitCircle = GameImage.HITCIRCLE.getImage().getScaledCopy(scale);
-					Image scaledHitCircleOverlay = GameImage.HITCIRCLE_OVERLAY.getImage().getScaledCopy(scale);
-					scaledHitCircle.setAlpha(alpha);
-					scaledHitCircleOverlay.setAlpha(alpha);
-					scaledHitCircle.drawCentered(hitResult.x, hitResult.y, hitResult.color);
-					scaledHitCircleOverlay.drawCentered(hitResult.x, hitResult.y);
+					if (!(hitResult.hitResultType == HitObjectType.CIRCLE && GameMod.HIDDEN.isActive())) {
+						// "hidden" mod: expanding animation for only circles not drawn
+						Image scaledHitCircle = GameImage.HITCIRCLE.getImage().getScaledCopy(scale);
+						Image scaledHitCircleOverlay = GameImage.HITCIRCLE_OVERLAY.getImage().getScaledCopy(scale);
+						scaledHitCircle.setAlpha(alpha);
+						scaledHitCircleOverlay.setAlpha(alpha);
+						scaledHitCircle.drawCentered(hitResult.x, hitResult.y, hitResult.color);
+						scaledHitCircleOverlay.drawCentered(hitResult.x, hitResult.y);
+					}
 				}
 
 				// hit result
-				if (hitResult.hitResultType == HitObjectType.CIRCLE ||
+				if (!hitResult.hideResult && (
+					hitResult.hitResultType == HitObjectType.CIRCLE ||
 				    hitResult.hitResultType == HitObjectType.SPINNER ||
-				    hitResult.curve != null) {
-					float scale = Utils.easeBounce(
-							Utils.clamp(trackPosition - hitResult.time, 0, HITCIRCLE_TEXT_BOUNCE_TIME),
-							1f, HITCIRCLE_TEXT_ANIM_SCALE - 1f, HITCIRCLE_TEXT_BOUNCE_TIME
-					);
-					float alpha = Utils.easeOut(
-							Utils.clamp((trackPosition - hitResult.time) - HITCIRCLE_FADE_TIME, 0, HITCIRCLE_TEXT_FADE_TIME),
-							1f, -1f, HITCIRCLE_TEXT_FADE_TIME
-					);
+				    hitResult.curve != null)) {
+					float scaleProgress = AnimationEquation.IN_OUT_BOUNCE.calc(
+							(float) Utils.clamp(trackPosition - hitResult.time, 0, HITCIRCLE_TEXT_BOUNCE_TIME) / HITCIRCLE_TEXT_BOUNCE_TIME);
+					float scale = 1f + (HITCIRCLE_TEXT_ANIM_SCALE - 1f) * scaleProgress;
+					float fadeProgress = AnimationEquation.OUT_CUBIC.calc(
+							(float) Utils.clamp((trackPosition - hitResult.time) - HITCIRCLE_FADE_TIME, 0, HITCIRCLE_TEXT_FADE_TIME) / HITCIRCLE_TEXT_FADE_TIME);
+					float alpha = 1f - fadeProgress;
 					Image scaledHitResult = hitResults[hitResult.result].getScaledCopy(scale);
 					scaledHitResult.setAlpha(alpha);
 					scaledHitResult.drawCentered(hitResult.x, hitResult.y);
@@ -1207,7 +1211,7 @@ public class GameData {
 			if (!Options.isPerfectHitBurstEnabled())
 				;  // hide perfect hit results
 			else
-				hitResultList.add(new HitObjectResult(time, result, x, y, null, HitObjectType.SLIDERTICK, null, false));
+				hitResultList.add(new HitObjectResult(time, result, x, y, null, HitObjectType.SLIDERTICK, null, false, false));
 		}
 		fullObjectCount++;
 	}
@@ -1363,20 +1367,18 @@ public class GameData {
 		int hitResult = handleHitResult(time, result, x, y, color, end, hitObject,
 				hitResultType, repeat, (curve != null && !sliderHeldToEnd));
 
-		if ((hitResult == HIT_300 || hitResult == HIT_300G || hitResult == HIT_300K) && !Options.isPerfectHitBurstEnabled())
-			;  // hide perfect hit results
-		else if (hitResult == HIT_MISS && (GameMod.RELAX.isActive() || GameMod.AUTOPILOT.isActive()))
-			;  // "relax" and "autopilot" mods: hide misses
-		else {
-			hitResultList.add(new HitObjectResult(time, hitResult, x, y, color, hitResultType, curve, expand));
+		if (hitResult == HIT_MISS && (GameMod.RELAX.isActive() || GameMod.AUTOPILOT.isActive()))
+			return;  // "relax" and "autopilot" mods: hide misses
 
-			// sliders: add the other curve endpoint for the hit animation
-			if (curve != null) {
-				boolean isFirst = (hitResultType == HitObjectType.SLIDER_FIRST);
-				float[] p = curve.pointAt((isFirst) ? 1f : 0f);
-				HitObjectType type = (isFirst) ? HitObjectType.SLIDER_LAST : HitObjectType.SLIDER_FIRST;
-				hitResultList.add(new HitObjectResult(time, hitResult, p[0], p[1], color, type, null, expand));
-			}
+		boolean hideResult = (hitResult == HIT_300 || hitResult == HIT_300G || hitResult == HIT_300K) && !Options.isPerfectHitBurstEnabled();
+		hitResultList.add(new HitObjectResult(time, hitResult, x, y, color, hitResultType, curve, expand, hideResult));
+
+		// sliders: add the other curve endpoint for the hit animation
+		if (curve != null) {
+			boolean isFirst = (hitResultType == HitObjectType.SLIDER_FIRST);
+			float[] p = curve.pointAt((isFirst) ? 1f : 0f);
+			HitObjectType type = (isFirst) ? HitObjectType.SLIDER_LAST : HitObjectType.SLIDER_FIRST;
+			hitResultList.add(new HitObjectResult(time, hitResult, p[0], p[1], color, type, null, expand, hideResult));
 		}
 	}
 
