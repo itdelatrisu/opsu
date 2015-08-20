@@ -134,7 +134,7 @@ public class BeatmapParser {
 
 				// check if beatmap is cached
 				String path = String.format("%s/%s", dir.getName(), file.getName());
-				if (map.containsKey(path)) {
+				if (map != null && map.containsKey(path)) {
 					// check last modified times
 					long lastModified = map.get(path);
 					if (lastModified == file.lastModified()) {
