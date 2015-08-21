@@ -64,7 +64,7 @@ public class UI {
 	private static int barNotifTimer = -1;
 
 	/** Duration, in milliseconds, to display bar notifications. */
-	private static final int BAR_NOTIFICATION_TIME = 1250;
+	private static final int BAR_NOTIFICATION_TIME = 1500;
 
 	/** The current tooltip. */
 	private static String tooltip;

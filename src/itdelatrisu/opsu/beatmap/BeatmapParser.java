@@ -19,6 +19,7 @@
 package itdelatrisu.opsu.beatmap;
 
 import itdelatrisu.opsu.ErrorHandler;
+import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.db.BeatmapDB;
 import itdelatrisu.opsu.io.MD5InputStreamWrapper;
@@ -83,6 +84,10 @@ public class BeatmapParser {
 		// create a new BeatmapSetList
 		BeatmapSetList.create();
 
+		// create a new watch service
+		if (Options.isWatchServiceEnabled())
+			BeatmapWatchService.create();
+
 		// parse all directories
 		parseDirectories(root.listFiles());
 	}
@@ -109,6 +114,9 @@ public class BeatmapParser {
 		List<ArrayList<Beatmap>> allBeatmaps = new LinkedList<ArrayList<Beatmap>>();
 		List<Beatmap> cachedBeatmaps = new LinkedList<Beatmap>();  // loaded from database
 		List<Beatmap> parsedBeatmaps = new LinkedList<Beatmap>();  // loaded from parser
+
+		// watch service
+		BeatmapWatchService ws = (Options.isWatchServiceEnabled()) ? BeatmapWatchService.get() : null;
 
 		// parse directories
 		BeatmapSetNode lastNode = null;
@@ -162,6 +170,8 @@ public class BeatmapParser {
 			if (!beatmaps.isEmpty()) {
 				beatmaps.trimToSize();
 				allBeatmaps.add(beatmaps);
+				if (ws != null)
+					ws.registerAll(dir.toPath());
 			}
 
 			// stop parsing files (interrupted)

@@ -36,6 +36,8 @@ import itdelatrisu.opsu.beatmap.BeatmapParser;
 import itdelatrisu.opsu.beatmap.BeatmapSetList;
 import itdelatrisu.opsu.beatmap.BeatmapSetNode;
 import itdelatrisu.opsu.beatmap.BeatmapSortOrder;
+import itdelatrisu.opsu.beatmap.BeatmapWatchService;
+import itdelatrisu.opsu.beatmap.BeatmapWatchService.BeatmapWatchServiceListener;
 import itdelatrisu.opsu.db.BeatmapDB;
 import itdelatrisu.opsu.db.ScoreDB;
 import itdelatrisu.opsu.states.ButtonMenu.MenuState;
@@ -47,6 +49,9 @@ import itdelatrisu.opsu.ui.animations.AnimatedValue;
 import itdelatrisu.opsu.ui.animations.AnimationEquation;
 
 import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.StandardWatchEventKinds;
+import java.nio.file.WatchEvent.Kind;
 import java.util.Map;
 import java.util.Stack;
 
@@ -205,6 +210,9 @@ public class SongMenu extends BasicGameState {
 	/** The text length of the last string in the search TextField. */
 	private int lastSearchTextLength = -1;
 
+	/** Whether the song folder changed (notified via the watch service). */
+	private boolean songFolderChanged = false;
+
 	// game-related variables
 	private GameContainer container;
 	private StateBasedGame game;
@@ -283,6 +291,19 @@ public class SongMenu extends BasicGameState {
 		int loaderDim = GameImage.MENU_MUSICNOTE.getImage().getWidth();
 		SpriteSheet spr = new SpriteSheet(GameImage.MENU_LOADER.getImage(), loaderDim, loaderDim);
 		loader = new Animation(spr, 50);
+
+		// beatmap watch service listener
+		final StateBasedGame game_ = game;
+		BeatmapWatchService.addListener(new BeatmapWatchServiceListener() {
+			@Override
+			public void eventReceived(Kind<?> kind, Path child) {
+				if (!songFolderChanged && kind != StandardWatchEventKinds.ENTRY_MODIFY) {
+					songFolderChanged = true;
+					if (game_.getCurrentStateID() == Opsu.STATE_SONGMENU)
+						UI.sendBarNotification("Changes in Songs folder detected. Hit F5 to refresh.");
+				}
+			}
+		});
 	}
 
 	@Override
@@ -775,8 +796,12 @@ public class SongMenu extends BasicGameState {
 			break;
 		case Input.KEY_F5:
 			SoundController.playSound(SoundEffect.MENUHIT);
-			((ButtonMenu) game.getState(Opsu.STATE_BUTTONMENU)).setMenuState(MenuState.RELOAD);
-			game.enterState(Opsu.STATE_BUTTONMENU);
+			if (songFolderChanged)
+				reloadBeatmaps(false);
+			else {
+				((ButtonMenu) game.getState(Opsu.STATE_BUTTONMENU)).setMenuState(MenuState.RELOAD);
+				game.enterState(Opsu.STATE_BUTTONMENU);
+			}
 			break;
 		case Input.KEY_DELETE:
 			if (focusNode == null)
@@ -949,8 +974,12 @@ public class SongMenu extends BasicGameState {
 		// reset song stack
 		randomStack = new Stack<SongNode>();
 
+		// reload beatmaps if song folder changed
+		if (songFolderChanged && stateAction != MenuState.RELOAD)
+			reloadBeatmaps(false);
+
 		// set focus node if not set (e.g. theme song playing)
-		if (focusNode == null && BeatmapSetList.get().size() > 0)
+		else if (focusNode == null && BeatmapSetList.get().size() > 0)
 			setFocus(BeatmapSetList.get().getRandomNode(), -1, true, true);
 
 		// reset music track
@@ -1069,44 +1098,7 @@ public class SongMenu extends BasicGameState {
 				}
 				break;
 			case RELOAD:  // reload beatmaps
-				// reset state and node references
-				MusicController.reset();
-				startNode = focusNode = null;
-				scoreMap = null;
-				focusScores = null;
-				oldFocusNode = null;
-				randomStack = new Stack<SongNode>();
-				songInfo = null;
-				hoverOffset.setTime(0);
-				hoverIndex = -1;
-				search.setText("");
-				searchTimer = SEARCH_DELAY;
-				searchTransitionTimer = SEARCH_TRANSITION_TIME;
-				searchResultString = null;
-
-				// reload songs in new thread
-				reloadThread = new Thread() {
-					@Override
-					public void run() {
-						// clear the beatmap cache
-						BeatmapDB.clearDatabase();
-
-						// invoke unpacker and parser
-						File beatmapDir = Options.getBeatmapDir();
-						OszUnpacker.unpackAllFiles(Options.getOSZDir(), beatmapDir);
-						BeatmapParser.parseAllFiles(beatmapDir);
-
-						// initialize song list
-						if (BeatmapSetList.get().size() > 0) {
-							BeatmapSetList.get().init();
-							setFocus(BeatmapSetList.get().getRandomNode(), -1, true, true);
-						} else
-							MusicController.playThemeSong();
-
-						reloadThread = null;
-					}
-				};
-				reloadThread.start();
+				reloadBeatmaps(true);
 				break;
 			default:
 				break;
@@ -1308,6 +1300,58 @@ public class SongMenu extends BasicGameState {
 			return scores;
 		} else
 			return null;  // incorrect map
+	}
+
+	/**
+	 * Reloads all beatmaps.
+	 * @param fullReload if true, also clear the beatmap cache and invoke the unpacker
+	 */
+	private void reloadBeatmaps(final boolean fullReload) {
+		songFolderChanged = false;
+
+		// reset state and node references
+		MusicController.reset();
+		startNode = focusNode = null;
+		scoreMap = null;
+		focusScores = null;
+		oldFocusNode = null;
+		randomStack = new Stack<SongNode>();
+		songInfo = null;
+		hoverOffset.setTime(0);
+		hoverIndex = -1;
+		search.setText("");
+		searchTimer = SEARCH_DELAY;
+		searchTransitionTimer = SEARCH_TRANSITION_TIME;
+		searchResultString = null;
+
+		// reload songs in new thread
+		reloadThread = new Thread() {
+			@Override
+			public void run() {
+				File beatmapDir = Options.getBeatmapDir();
+
+				if (fullReload) {
+					// clear the beatmap cache
+					BeatmapDB.clearDatabase();
+	
+					// invoke unpacker
+					OszUnpacker.unpackAllFiles(Options.getOSZDir(), beatmapDir);
+				}
+
+				// invoke parser
+				BeatmapParser.parseAllFiles(beatmapDir);
+
+				// initialize song list
+				if (BeatmapSetList.get().size() > 0) {
+					BeatmapSetList.get().init();
+					setFocus(BeatmapSetList.get().getRandomNode(), -1, true, true);
+				} else
+					MusicController.playThemeSong();
+
+				reloadThread = null;
+			}
+		};
+		reloadThread.start();
 	}
 
 	/**

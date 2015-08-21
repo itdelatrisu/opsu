@@ -27,6 +27,7 @@ import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.beatmap.BeatmapParser;
 import itdelatrisu.opsu.beatmap.BeatmapSetList;
+import itdelatrisu.opsu.beatmap.BeatmapWatchService;
 import itdelatrisu.opsu.replay.ReplayImporter;
 import itdelatrisu.opsu.ui.UI;
 import itdelatrisu.opsu.ui.animations.AnimatedValue;
@@ -63,6 +64,9 @@ public class Splash extends BasicGameState {
 	/** Whether the skin being loaded is a new skin (for program restarts). */
 	private boolean newSkin = false;
 
+	/** Whether the watch service is newly enabled (for program restarts). */
+	private boolean watchServiceChange = false;
+
 	/** Logo alpha level. */
 	private AnimatedValue logoAlpha;
 
@@ -83,6 +87,9 @@ public class Splash extends BasicGameState {
 		// check if skin changed
 		if (Options.getSkin() != null)
 			this.newSkin = (Options.getSkin().getDirectory() != Options.getSkinDir());
+
+		// check if watch service newly enabled
+		this.watchServiceChange = Options.isWatchServiceEnabled() && BeatmapWatchService.get() == null;
 
 		// load Utils class first (needed in other 'init' methods)
 		Utils.init(container, game);
@@ -108,13 +115,18 @@ public class Splash extends BasicGameState {
 
 			// resources already loaded (from application restart)
 			if (BeatmapSetList.get() != null) {
-				// reload sounds if skin changed
-				if (newSkin) {
+				if (newSkin || watchServiceChange) {  // need to reload resources
 					thread = new Thread() {
 						@Override
 						public void run() {
+							// reload beatmaps if watch service newly enabled
+							if (watchServiceChange)
+								BeatmapParser.parseAllFiles(Options.getBeatmapDir());
+
+							// reload sounds if skin changed
 							// TODO: only reload each sound if actually needed?
-							SoundController.init();
+							if (newSkin)
+								SoundController.init();
 
 							finished = true;
 							thread = null;
