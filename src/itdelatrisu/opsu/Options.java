@@ -22,6 +22,7 @@ import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.beatmap.Beatmap;
 import itdelatrisu.opsu.skins.Skin;
 import itdelatrisu.opsu.skins.SkinLoader;
+import itdelatrisu.opsu.ui.Fonts;
 import itdelatrisu.opsu.ui.UI;
 
 import java.io.BufferedReader;
@@ -287,9 +288,9 @@ public class Options {
 				super.click(container);
 				if (bool) {
 					try {
-						Utils.FONT_LARGE.loadGlyphs();
-						Utils.FONT_MEDIUM.loadGlyphs();
-						Utils.FONT_DEFAULT.loadGlyphs();
+						Fonts.LARGE.loadGlyphs();
+						Fonts.MEDIUM.loadGlyphs();
+						Fonts.DEFAULT.loadGlyphs();
 					} catch (SlickException e) {
 						Log.warn("Failed to load glyphs.", e);
 					}

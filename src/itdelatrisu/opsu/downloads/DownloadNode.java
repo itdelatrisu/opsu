@@ -27,6 +27,7 @@ import itdelatrisu.opsu.downloads.Download.DownloadListener;
 import itdelatrisu.opsu.downloads.Download.Status;
 import itdelatrisu.opsu.downloads.servers.DownloadServer;
 import itdelatrisu.opsu.ui.Colors;
+import itdelatrisu.opsu.ui.Fonts;
 import itdelatrisu.opsu.ui.UI;
 
 import java.io.File;
@@ -81,16 +82,16 @@ public class DownloadNode {
 		buttonBaseX = width * 0.024f;
 		buttonBaseY = height * 0.2f;
 		buttonWidth = width * 0.7f;
-		buttonHeight = Utils.FONT_MEDIUM.getLineHeight() * 2.1f;
+		buttonHeight = Fonts.MEDIUM.getLineHeight() * 2.1f;
 		buttonOffset = buttonHeight * 1.1f;
 
 		// download info
 		infoBaseX = width * 0.75f;
-		infoBaseY = height * 0.07f + Utils.FONT_LARGE.getLineHeight() * 2f;
+		infoBaseY = height * 0.07f + Fonts.LARGE.getLineHeight() * 2f;
 		infoWidth = width * 0.25f;
-		infoHeight = Utils.FONT_DEFAULT.getLineHeight() * 2.4f;
+		infoHeight = Fonts.DEFAULT.getLineHeight() * 2.4f;
 
-		float searchY = (height * 0.05f) + Utils.FONT_LARGE.getLineHeight();
+		float searchY = (height * 0.05f) + Fonts.LARGE.getLineHeight();
 		float buttonHeight = height * 0.038f;
 		maxResultsShown = (int) ((height - buttonBaseY - searchY) / buttonOffset);
 		maxDownloadsShown = (int) ((height - infoBaseY - searchY - buttonHeight) / infoHeight);
@@ -257,7 +258,7 @@ public class DownloadNode {
 		});
 		this.download = download;
 		if (Options.useUnicodeMetadata())  // load glyphs
-			Utils.loadGlyphs(Utils.FONT_LARGE, getTitle(), null);
+			Fonts.loadGlyphs(Fonts.LARGE, getTitle());
 	}
 
 	/**
@@ -344,19 +345,21 @@ public class DownloadNode {
 
 		// text
 		// TODO: if the title/artist line is too long, shorten it (e.g. add "...") instead of just clipping
-		if (Options.useUnicodeMetadata())  // load glyphs
-			Utils.loadGlyphs(Utils.FONT_BOLD, getTitle(), getArtist());
-		g.setClip((int) textX, (int) (y + marginY), (int) (edgeX - textX - Utils.FONT_DEFAULT.getWidth(creator)), Utils.FONT_BOLD.getLineHeight());
-		Utils.FONT_BOLD.drawString(
+		if (Options.useUnicodeMetadata()) {  // load glyphs
+			Fonts.loadGlyphs(Fonts.BOLD, getTitle());
+			Fonts.loadGlyphs(Fonts.BOLD, getArtist());
+		}
+		g.setClip((int) textX, (int) (y + marginY), (int) (edgeX - textX - Fonts.DEFAULT.getWidth(creator)), Fonts.BOLD.getLineHeight());
+		Fonts.BOLD.drawString(
 				textX, y + marginY,
 				String.format("%s - %s%s", getArtist(), getTitle(),
 						(dl != null) ? String.format(" [%s]", dl.getStatus().getName()) : ""), Color.white);
 		g.clearClip();
-		Utils.FONT_DEFAULT.drawString(
-				textX, y + marginY + Utils.FONT_BOLD.getLineHeight(),
+		Fonts.DEFAULT.drawString(
+				textX, y + marginY + Fonts.BOLD.getLineHeight(),
 				String.format("Last updated: %s", date), Color.white);
-		Utils.FONT_DEFAULT.drawString(
-				edgeX - Utils.FONT_DEFAULT.getWidth(creator), y + marginY,
+		Fonts.DEFAULT.drawString(
+				edgeX - Fonts.DEFAULT.getWidth(creator), y + marginY,
 				creator, Color.white);
 	}
 
@@ -398,8 +401,8 @@ public class DownloadNode {
 				info = String.format("%s: %.1f%% (%s/%s)", status.getName(), progress,
 						Utils.bytesToString(download.readSoFar()), Utils.bytesToString(download.contentLength()));
 		}
-		Utils.FONT_BOLD.drawString(textX, y + marginY, getTitle(), Color.white);
-		Utils.FONT_DEFAULT.drawString(textX, y + marginY + Utils.FONT_BOLD.getLineHeight(), info, Color.white);
+		Fonts.BOLD.drawString(textX, y + marginY, getTitle(), Color.white);
+		Fonts.DEFAULT.drawString(textX, y + marginY + Fonts.BOLD.getLineHeight(), info, Color.white);
 
 		// 'x' button
 		if (hover) {

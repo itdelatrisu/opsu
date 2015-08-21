@@ -29,6 +29,7 @@ import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
 import itdelatrisu.opsu.beatmap.BeatmapSetList;
 import itdelatrisu.opsu.beatmap.BeatmapSetNode;
+import itdelatrisu.opsu.ui.Fonts;
 import itdelatrisu.opsu.ui.MenuButton;
 import itdelatrisu.opsu.ui.UI;
 import itdelatrisu.opsu.ui.animations.AnimatedValue;
@@ -189,15 +190,15 @@ public class ButtonMenu extends BasicGameState {
 				float mult = GameMod.getScoreMultiplier();
 				String multString = String.format("Score Multiplier: %.2fx", mult);
 				Color multColor = (mult == 1f) ? Color.white : (mult > 1f) ? Color.green : Color.red;
-				float multY = Utils.FONT_LARGE.getLineHeight() * 2 + height * 0.06f;
-				Utils.FONT_LARGE.drawString(
-						(width - Utils.FONT_LARGE.getWidth(multString)) / 2f,
+				float multY = Fonts.LARGE.getLineHeight() * 2 + height * 0.06f;
+				Fonts.LARGE.drawString(
+						(width - Fonts.LARGE.getWidth(multString)) / 2f,
 						multY, multString, multColor);
 
 				// category text
 				for (GameMod.Category category : GameMod.Category.values()) {
-					Utils.FONT_LARGE.drawString(category.getX(),
-							category.getY() - Utils.FONT_LARGE.getLineHeight() / 2f,
+					Fonts.LARGE.drawString(category.getX(),
+							category.getY() - Fonts.LARGE.getLineHeight() / 2f,
 							category.getName(), category.getColor());
 				}
 
@@ -293,7 +294,7 @@ public class ButtonMenu extends BasicGameState {
 			menuButtons = new MenuButton[buttons.length];
 			for (int i = 0; i < buttons.length; i++) {
 				MenuButton b = new MenuButton(button, buttonL, buttonR, center, baseY + (i * offsetY));
-				b.setText(String.format("%d. %s", i + 1, buttons[i].getText()), Utils.FONT_XLARGE, Color.white);
+				b.setText(String.format("%d. %s", i + 1, buttons[i].getText()), Fonts.XLARGE, Color.white);
 				b.setHoverFade();
 				menuButtons[i] = b;
 			}
@@ -306,7 +307,7 @@ public class ButtonMenu extends BasicGameState {
 		 */
 		protected float getBaseY(GameContainer container, StateBasedGame game) {
 			float baseY = container.getHeight() * 0.2f;
-			baseY += ((getTitle(container, game).length - 1) * Utils.FONT_LARGE.getLineHeight());
+			baseY += ((getTitle(container, game).length - 1) * Fonts.LARGE.getLineHeight());
 			return baseY;
 		}
 
@@ -320,9 +321,9 @@ public class ButtonMenu extends BasicGameState {
 			// draw title
 			if (actualTitle != null) {
 				float marginX = container.getWidth() * 0.015f, marginY = container.getHeight() * 0.01f;
-				int lineHeight = Utils.FONT_LARGE.getLineHeight();
+				int lineHeight = Fonts.LARGE.getLineHeight();
 				for (int i = 0, size = actualTitle.size(); i < size; i++)
-					Utils.FONT_LARGE.drawString(marginX, marginY + (i * lineHeight), actualTitle.get(i), Color.white);
+					Fonts.LARGE.drawString(marginX, marginY + (i * lineHeight), actualTitle.get(i), Color.white);
 			}
 
 			// draw buttons
@@ -418,8 +419,8 @@ public class ButtonMenu extends BasicGameState {
 			int maxLineWidth = (int) (container.getWidth() * 0.96f);
 			for (int i = 0; i < title.length; i++) {
 				// wrap text if too long
-				if (Utils.FONT_LARGE.getWidth(title[i]) > maxLineWidth) {
-					List<String> list = Utils.wrap(title[i], Utils.FONT_LARGE, maxLineWidth);
+				if (Fonts.LARGE.getWidth(title[i]) > maxLineWidth) {
+					List<String> list = Utils.wrap(title[i], Fonts.LARGE, maxLineWidth);
 					actualTitle.addAll(list);
 				} else
 					actualTitle.add(title[i]);

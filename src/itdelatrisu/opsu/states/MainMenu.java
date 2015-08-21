@@ -32,6 +32,7 @@ import itdelatrisu.opsu.beatmap.BeatmapSetNode;
 import itdelatrisu.opsu.downloads.Updater;
 import itdelatrisu.opsu.states.ButtonMenu.MenuState;
 import itdelatrisu.opsu.ui.Colors;
+import itdelatrisu.opsu.ui.Fonts;
 import itdelatrisu.opsu.ui.MenuButton;
 import itdelatrisu.opsu.ui.MenuButton.Expand;
 import itdelatrisu.opsu.ui.UI;
@@ -292,15 +293,17 @@ public class MainMenu extends BasicGameState {
 
 		// draw text
 		float marginX = width * 0.015f, topMarginY = height * 0.01f, bottomMarginY = height * 0.015f;
-		g.setFont(Utils.FONT_MEDIUM);
-		float lineHeight = Utils.FONT_MEDIUM.getLineHeight() * 0.925f;
+		g.setFont(Fonts.MEDIUM);
+		float lineHeight = Fonts.MEDIUM.getLineHeight() * 0.925f;
 		g.drawString(String.format("Loaded %d songs and %d beatmaps.",
 				BeatmapSetList.get().getMapSetCount(), BeatmapSetList.get().getMapCount()), marginX, topMarginY);
 		if (MusicController.isTrackLoading())
 			g.drawString("Track loading...", marginX, topMarginY + lineHeight);
 		else if (MusicController.trackExists()) {
-			if (Options.useUnicodeMetadata())  // load glyphs
-				Utils.loadGlyphs(Utils.FONT_MEDIUM, beatmap.titleUnicode, beatmap.artistUnicode);
+			if (Options.useUnicodeMetadata()) {  // load glyphs
+				Fonts.loadGlyphs(Fonts.MEDIUM, beatmap.titleUnicode);
+				Fonts.loadGlyphs(Fonts.MEDIUM, beatmap.artistUnicode);
+			}
 			g.drawString((MusicController.isPlaying()) ? "Now Playing:" : "Paused:", marginX, topMarginY + lineHeight);
 			g.drawString(String.format("%s: %s", beatmap.getArtist(), beatmap.getTitle()), marginX + 25, topMarginY + (lineHeight * 2));
 		}

@@ -21,6 +21,7 @@ package itdelatrisu.opsu;
 import itdelatrisu.opsu.GameData.Grade;
 import itdelatrisu.opsu.states.SongMenu;
 import itdelatrisu.opsu.ui.Colors;
+import itdelatrisu.opsu.ui.Fonts;
 import itdelatrisu.opsu.ui.UI;
 
 import java.sql.ResultSet;
@@ -95,7 +96,7 @@ public class ScoreData implements Comparable<ScoreData> {
 		baseY = topY;
 		buttonWidth = containerWidth * 0.4f;
 		float gradeHeight = GameImage.MENU_BUTTON_BG.getImage().getHeight() * 0.45f;
-		buttonHeight = Math.max(gradeHeight, Utils.FONT_DEFAULT.getLineHeight() * 3.03f);
+		buttonHeight = Math.max(gradeHeight, Fonts.DEFAULT.getLineHeight() * 3.03f);
 		buttonOffset = buttonHeight + gradeHeight / 10f;
 	}
 
@@ -231,7 +232,7 @@ public class ScoreData implements Comparable<ScoreData> {
 		float edgeX = baseX + buttonWidth * 0.98f;
 		float y = baseY + index * (buttonOffset);
 		float midY = y + buttonHeight / 2f;
-		float marginY = Utils.FONT_DEFAULT.getLineHeight() * 0.01f;
+		float marginY = Fonts.DEFAULT.getLineHeight() * 0.01f;
 
 		// rectangle outline
 		g.setColor((focus) ? Colors.BLACK_BG_FOCUS : Colors.BLACK_BG_NORMAL);
@@ -239,9 +240,9 @@ public class ScoreData implements Comparable<ScoreData> {
 
 		// rank
 		if (focus) {
-			Utils.FONT_LARGE.drawString(
+			Fonts.LARGE.drawString(
 					baseX + buttonWidth * 0.04f,
-					y + (buttonHeight - Utils.FONT_LARGE.getLineHeight()) / 2f,
+					y + (buttonHeight - Fonts.LARGE.getLineHeight()) / 2f,
 					Integer.toString(rank + 1), Color.white
 			);
 		}
@@ -250,8 +251,8 @@ public class ScoreData implements Comparable<ScoreData> {
 		img.drawCentered(baseX + buttonWidth * 0.15f, midY);
 
 		// score
-		float textOffset = (buttonHeight - Utils.FONT_MEDIUM.getLineHeight() - Utils.FONT_SMALL.getLineHeight()) / 2f;
-		Utils.FONT_MEDIUM.drawString(
+		float textOffset = (buttonHeight - Fonts.MEDIUM.getLineHeight() - Fonts.SMALL.getLineHeight()) / 2f;
+		Fonts.MEDIUM.drawString(
 				textX, y + textOffset,
 				String.format("Score: %s (%dx)", NumberFormat.getNumberInstance().format(score), combo),
 				Color.white
@@ -259,8 +260,8 @@ public class ScoreData implements Comparable<ScoreData> {
 
 		// hit counts (custom: osu! shows user instead, above score)
 		String player = (playerName == null) ? "" : String.format("  (%s)", playerName);
-		Utils.FONT_SMALL.drawString(
-				textX, y + textOffset + Utils.FONT_MEDIUM.getLineHeight(),
+		Fonts.SMALL.drawString(
+				textX, y + textOffset + Fonts.MEDIUM.getLineHeight(),
 				String.format("300:%d  100:%d  50:%d  Miss:%d%s", hit300, hit100, hit50, miss, player),
 				Color.white
 		);
@@ -276,26 +277,26 @@ public class ScoreData implements Comparable<ScoreData> {
 		if (sb.length() > 0) {
 			sb.setLength(sb.length() - 1);
 			String modString = sb.toString();
-			Utils.FONT_DEFAULT.drawString(
-					edgeX - Utils.FONT_DEFAULT.getWidth(modString),
+			Fonts.DEFAULT.drawString(
+					edgeX - Fonts.DEFAULT.getWidth(modString),
 					y + marginY, modString, Color.white
 			);
 		}
 
 		// accuracy
 		String accuracy = String.format("%.2f%%", getScorePercent());
-		Utils.FONT_DEFAULT.drawString(
-				edgeX - Utils.FONT_DEFAULT.getWidth(accuracy),
-				y + marginY + Utils.FONT_DEFAULT.getLineHeight(),
+		Fonts.DEFAULT.drawString(
+				edgeX - Fonts.DEFAULT.getWidth(accuracy),
+				y + marginY + Fonts.DEFAULT.getLineHeight(),
 				accuracy, Color.white
 		);
 
 		// score difference
 		String diff = (prevScore < 0 || score < prevScore) ?
 				"-" : String.format("+%s", NumberFormat.getNumberInstance().format(score - prevScore));
-		Utils.FONT_DEFAULT.drawString(
-				edgeX - Utils.FONT_DEFAULT.getWidth(diff),
-				y + marginY + Utils.FONT_DEFAULT.getLineHeight() * 2,
+		Fonts.DEFAULT.drawString(
+				edgeX - Fonts.DEFAULT.getWidth(diff),
+				y + marginY + Fonts.DEFAULT.getLineHeight() * 2,
 				diff, Color.white
 		);
 
@@ -303,9 +304,9 @@ public class ScoreData implements Comparable<ScoreData> {
 		if (getTimeSince() != null) {
 			Image clock = GameImage.HISTORY.getImage();
 			clock.drawCentered(baseX + buttonWidth * 1.02f + clock.getWidth() / 2f, midY);
-			Utils.FONT_DEFAULT.drawString(
+			Fonts.DEFAULT.drawString(
 					baseX + buttonWidth * 1.03f + clock.getWidth(),
-					midY - Utils.FONT_DEFAULT.getLineHeight() / 2f,
+					midY - Fonts.DEFAULT.getLineHeight() / 2f,
 					getTimeSince(), Color.white
 			);
 		}

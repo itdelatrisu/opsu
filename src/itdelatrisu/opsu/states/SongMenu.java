@@ -40,6 +40,7 @@ import itdelatrisu.opsu.db.BeatmapDB;
 import itdelatrisu.opsu.db.ScoreDB;
 import itdelatrisu.opsu.states.ButtonMenu.MenuState;
 import itdelatrisu.opsu.ui.Colors;
+import itdelatrisu.opsu.ui.Fonts;
 import itdelatrisu.opsu.ui.MenuButton;
 import itdelatrisu.opsu.ui.UI;
 import itdelatrisu.opsu.ui.animations.AnimatedValue;
@@ -226,8 +227,8 @@ public class SongMenu extends BasicGameState {
 
 		// header/footer coordinates
 		headerY = height * 0.0075f + GameImage.MENU_MUSICNOTE.getImage().getHeight() +
-				Utils.FONT_BOLD.getLineHeight() + Utils.FONT_DEFAULT.getLineHeight() +
-				Utils.FONT_SMALL.getLineHeight();
+				Fonts.BOLD.getLineHeight() + Fonts.DEFAULT.getLineHeight() +
+				Fonts.SMALL.getLineHeight();
 		footerY = height - GameImage.SELECTION_MODS.getImage().getHeight();
 
 		// initialize sorts
@@ -248,11 +249,11 @@ public class SongMenu extends BasicGameState {
 		buttonOffset = (footerY - headerY - DIVIDER_LINE_WIDTH) / MAX_SONG_BUTTONS;
 
 		// search
-		int textFieldX = (int) (width * 0.7125f + Utils.FONT_BOLD.getWidth("Search: "));
-		int textFieldY = (int) (headerY + Utils.FONT_BOLD.getLineHeight() / 2);
+		int textFieldX = (int) (width * 0.7125f + Fonts.BOLD.getWidth("Search: "));
+		int textFieldY = (int) (headerY + Fonts.BOLD.getLineHeight() / 2);
 		search = new TextField(
-				container, Utils.FONT_BOLD, textFieldX, textFieldY,
-				(int) (width * 0.99f) - textFieldX, Utils.FONT_BOLD.getLineHeight()
+				container, Fonts.BOLD, textFieldX, textFieldY,
+				(int) (width * 0.99f) - textFieldX, Fonts.BOLD.getLineHeight()
 		);
 		search.setBackgroundColor(Color.transparent);
 		search.setBorderColor(Color.transparent);
@@ -343,26 +344,27 @@ public class SongMenu extends BasicGameState {
 				songInfo = focusNode.getInfo();
 				if (Options.useUnicodeMetadata()) {  // load glyphs
 					Beatmap beatmap = focusNode.getBeatmapSet().get(0);
-					Utils.loadGlyphs(Utils.FONT_LARGE, beatmap.titleUnicode, beatmap.artistUnicode);
+					Fonts.loadGlyphs(Fonts.LARGE, beatmap.titleUnicode);
+					Fonts.loadGlyphs(Fonts.LARGE, beatmap.artistUnicode);
 				}
 			}
 			marginX += 5;
 			float headerTextY = marginY * 0.2f;
-			Utils.FONT_LARGE.drawString(marginX + iconWidth * 1.05f, headerTextY, songInfo[0], Color.white);
-			headerTextY += Utils.FONT_LARGE.getLineHeight() - 6;
-			Utils.FONT_DEFAULT.drawString(marginX + iconWidth * 1.05f, headerTextY, songInfo[1], Color.white);
-			headerTextY += Utils.FONT_DEFAULT.getLineHeight() - 2;
+			Fonts.LARGE.drawString(marginX + iconWidth * 1.05f, headerTextY, songInfo[0], Color.white);
+			headerTextY += Fonts.LARGE.getLineHeight() - 6;
+			Fonts.DEFAULT.drawString(marginX + iconWidth * 1.05f, headerTextY, songInfo[1], Color.white);
+			headerTextY += Fonts.DEFAULT.getLineHeight() - 2;
 			float speedModifier = GameMod.getSpeedMultiplier();
 			Color color2 = (speedModifier == 1f) ? Color.white :
 				(speedModifier > 1f) ? Colors.RED_HIGHLIGHT : Colors.BLUE_HIGHLIGHT;
-			Utils.FONT_BOLD.drawString(marginX, headerTextY, songInfo[2], color2);
-			headerTextY += Utils.FONT_BOLD.getLineHeight() - 4;
-			Utils.FONT_DEFAULT.drawString(marginX, headerTextY, songInfo[3], Color.white);
-			headerTextY += Utils.FONT_DEFAULT.getLineHeight() - 4;
+			Fonts.BOLD.drawString(marginX, headerTextY, songInfo[2], color2);
+			headerTextY += Fonts.BOLD.getLineHeight() - 4;
+			Fonts.DEFAULT.drawString(marginX, headerTextY, songInfo[3], Color.white);
+			headerTextY += Fonts.DEFAULT.getLineHeight() - 4;
 			float multiplier = GameMod.getDifficultyMultiplier();
 			Color color4 = (multiplier == 1f) ? Color.white :
 				(multiplier > 1f) ? Colors.RED_HIGHLIGHT : Colors.BLUE_HIGHLIGHT;
-			Utils.FONT_SMALL.drawString(marginX, headerTextY, songInfo[4], color4);
+			Fonts.SMALL.drawString(marginX, headerTextY, songInfo[4], color4);
 		}
 
 		// score buttons
@@ -410,8 +412,8 @@ public class SongMenu extends BasicGameState {
 		int searchX = search.getX(), searchY = search.getY();
 		float searchBaseX = width * 0.7f;
 		float searchTextX = width * 0.7125f;
-		float searchRectHeight = Utils.FONT_BOLD.getLineHeight() * 2;
-		float searchExtraHeight = Utils.FONT_DEFAULT.getLineHeight() * 0.7f;
+		float searchRectHeight = Fonts.BOLD.getLineHeight() * 2;
+		float searchExtraHeight = Fonts.DEFAULT.getLineHeight() * 0.7f;
 		float searchProgress = (searchTransitionTimer < SEARCH_TRANSITION_TIME) ?
 				((float) searchTransitionTimer / SEARCH_TRANSITION_TIME) : 1f;
 		float oldAlpha = Colors.BLACK_ALPHA.a;
@@ -425,16 +427,16 @@ public class SongMenu extends BasicGameState {
 		g.setColor(Colors.BLACK_ALPHA);
 		g.fillRect(searchBaseX, headerY + DIVIDER_LINE_WIDTH / 2, width - searchBaseX, searchRectHeight);
 		Colors.BLACK_ALPHA.a = oldAlpha;
-		Utils.FONT_BOLD.drawString(searchTextX, searchY, "Search:", Colors.GREEN_SEARCH);
+		Fonts.BOLD.drawString(searchTextX, searchY, "Search:", Colors.GREEN_SEARCH);
 		if (searchEmpty)
-			Utils.FONT_BOLD.drawString(searchX, searchY, "Type to search!", Color.white);
+			Fonts.BOLD.drawString(searchX, searchY, "Type to search!", Color.white);
 		else {
 			g.setColor(Color.white);
 			// TODO: why is this needed to correctly position the TextField?
 			search.setLocation(searchX - 3, searchY - 1);
 			search.render(container, g);
 			search.setLocation(searchX, searchY);
-			Utils.FONT_DEFAULT.drawString(searchTextX, searchY + Utils.FONT_BOLD.getLineHeight(),
+			Fonts.DEFAULT.drawString(searchTextX, searchY + Fonts.BOLD.getLineHeight(),
 					(searchResultString == null) ? "Searching..." : searchResultString, Color.white);
 		}
 

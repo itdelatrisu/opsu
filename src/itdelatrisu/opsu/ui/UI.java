@@ -178,7 +178,7 @@ public class UI {
 	 */
 	public static void drawTab(float x, float y, String text, boolean selected, boolean isHover) {
 		Image tabImage = GameImage.MENU_TAB.getImage();
-		float tabTextX = x - (Utils.FONT_MEDIUM.getWidth(text) / 2);
+		float tabTextX = x - (Fonts.MEDIUM.getWidth(text) / 2);
 		float tabTextY = y - (tabImage.getHeight() / 2);
 		Color filter, textColor;
 		if (selected) {
@@ -189,7 +189,7 @@ public class UI {
 			textColor = Color.white;
 		}
 		tabImage.drawCentered(x, y, filter);
-		Utils.FONT_MEDIUM.drawString(tabTextX, tabTextY, text, textColor);
+		Fonts.MEDIUM.drawString(tabTextX, tabTextY, text, textColor);
 	}
 
 	/**
@@ -201,14 +201,14 @@ public class UI {
 			return;
 
 		String fps = String.format("%dFPS", container.getFPS());
-		Utils.FONT_BOLD.drawString(
-				container.getWidth() * 0.997f - Utils.FONT_BOLD.getWidth(fps),
-				container.getHeight() * 0.997f - Utils.FONT_BOLD.getHeight(fps),
+		Fonts.BOLD.drawString(
+				container.getWidth() * 0.997f - Fonts.BOLD.getWidth(fps),
+				container.getHeight() * 0.997f - Fonts.BOLD.getHeight(fps),
 				Integer.toString(container.getFPS()), Color.white
 		);
-		Utils.FONT_DEFAULT.drawString(
-				container.getWidth() * 0.997f - Utils.FONT_BOLD.getWidth("FPS"),
-				container.getHeight() * 0.997f - Utils.FONT_BOLD.getHeight("FPS"),
+		Fonts.DEFAULT.drawString(
+				container.getWidth() * 0.997f - Fonts.BOLD.getWidth("FPS"),
+				container.getHeight() * 0.997f - Fonts.BOLD.getHeight("FPS"),
 				"FPS", Color.white
 		);
 	}
@@ -298,16 +298,16 @@ public class UI {
 		// draw loading info
 		float marginX = container.getWidth() * 0.02f, marginY = container.getHeight() * 0.02f;
 		float lineY = container.getHeight() - marginY;
-		int lineOffsetY = Utils.FONT_MEDIUM.getLineHeight();
+		int lineOffsetY = Fonts.MEDIUM.getLineHeight();
 		if (Options.isLoadVerbose()) {
 			// verbose: display percentages and file names
-			Utils.FONT_MEDIUM.drawString(
+			Fonts.MEDIUM.drawString(
 					marginX, lineY - (lineOffsetY * 2),
 					String.format("%s (%d%%)", text, progress), Color.white);
-			Utils.FONT_MEDIUM.drawString(marginX, lineY - lineOffsetY, file, Color.white);
+			Fonts.MEDIUM.drawString(marginX, lineY - lineOffsetY, file, Color.white);
 		} else {
 			// draw loading bar
-			Utils.FONT_MEDIUM.drawString(marginX, lineY - (lineOffsetY * 2), text, Color.white);
+			Fonts.MEDIUM.drawString(marginX, lineY - (lineOffsetY * 2), text, Color.white);
 			g.setColor(Color.white);
 			g.fillRoundRect(marginX, lineY - (lineOffsetY / 2f),
 					(container.getWidth() - (marginX * 2f)) * progress / 100f, lineOffsetY / 4f, 4
@@ -376,20 +376,20 @@ public class UI {
 		int containerWidth = container.getWidth(), containerHeight = container.getHeight();
 		int margin = containerWidth / 100, textMarginX = 2;
 		int offset = GameImage.CURSOR_MIDDLE.getImage().getWidth() / 2;
-		int lineHeight = Utils.FONT_SMALL.getLineHeight();
+		int lineHeight = Fonts.SMALL.getLineHeight();
 		int textWidth = textMarginX * 2, textHeight = lineHeight;
 		if (tooltipNewlines) {
 			String[] lines = tooltip.split("\\n");
-			int maxWidth = Utils.FONT_SMALL.getWidth(lines[0]);
+			int maxWidth = Fonts.SMALL.getWidth(lines[0]);
 			for (int i = 1; i < lines.length; i++) {
-				int w = Utils.FONT_SMALL.getWidth(lines[i]);
+				int w = Fonts.SMALL.getWidth(lines[i]);
 				if (w > maxWidth)
 					maxWidth = w;
 			}
 			textWidth += maxWidth;
 			textHeight += lineHeight * (lines.length - 1);
 		} else
-			textWidth += Utils.FONT_SMALL.getWidth(tooltip);
+			textWidth += Fonts.SMALL.getWidth(tooltip);
 
 		// get drawing coordinates
 		int x = input.getMouseX() + offset, y = input.getMouseY() + offset;
@@ -417,7 +417,7 @@ public class UI {
 		Colors.DARK_GRAY.a = oldAlpha;
 		oldAlpha = Colors.WHITE_ALPHA.a;
 		Colors.WHITE_ALPHA.a = alpha;
-		Utils.FONT_SMALL.drawString(x + textMarginX, y, tooltip, Colors.WHITE_ALPHA);
+		Fonts.SMALL.drawString(x + textMarginX, y, tooltip, Colors.WHITE_ALPHA);
 		Colors.WHITE_ALPHA.a = oldAlpha;
 	}
 
@@ -473,15 +473,15 @@ public class UI {
 		if (barNotifTimer >= BAR_NOTIFICATION_TIME * 0.9f)
 			alpha -= 1 - ((BAR_NOTIFICATION_TIME - barNotifTimer) / (BAR_NOTIFICATION_TIME * 0.1f));
 		int midX = container.getWidth() / 2, midY = container.getHeight() / 2;
-		float barHeight = Utils.FONT_LARGE.getLineHeight() * (1f + 0.6f * Math.min(barNotifTimer * 15f / BAR_NOTIFICATION_TIME, 1f));
+		float barHeight = Fonts.LARGE.getLineHeight() * (1f + 0.6f * Math.min(barNotifTimer * 15f / BAR_NOTIFICATION_TIME, 1f));
 		float oldAlphaB = Colors.BLACK_ALPHA.a, oldAlphaW = Colors.WHITE_ALPHA.a;
 		Colors.BLACK_ALPHA.a *= alpha;
 		Colors.WHITE_ALPHA.a = alpha;
 		g.setColor(Colors.BLACK_ALPHA);
 		g.fillRect(0, midY - barHeight / 2f, container.getWidth(), barHeight);
-		Utils.FONT_LARGE.drawString(
-				midX - Utils.FONT_LARGE.getWidth(barNotif) / 2f,
-				midY - Utils.FONT_LARGE.getLineHeight() / 2.2f,
+		Fonts.LARGE.drawString(
+				midX - Fonts.LARGE.getWidth(barNotif) / 2f,
+				midY - Fonts.LARGE.getLineHeight() / 2.2f,
 				barNotif, Colors.WHITE_ALPHA);
 		Colors.BLACK_ALPHA.a = oldAlphaB;
 		Colors.WHITE_ALPHA.a = oldAlphaW;

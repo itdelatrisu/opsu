@@ -29,6 +29,7 @@ import itdelatrisu.opsu.objects.curves.Curve;
 import itdelatrisu.opsu.replay.Replay;
 import itdelatrisu.opsu.replay.ReplayFrame;
 import itdelatrisu.opsu.ui.Colors;
+import itdelatrisu.opsu.ui.Fonts;
 import itdelatrisu.opsu.ui.animations.AnimationEquation;
 
 import java.io.File;
@@ -841,12 +842,12 @@ public class GameData {
 		g.fillRect(0, 0, width, 100 * uiScale);
 		rankingTitle.draw((width * 0.97f) - rankingTitle.getWidth(), 0);
 		float marginX = width * 0.01f, marginY = height * 0.002f;
-		Utils.FONT_LARGE.drawString(marginX, marginY,
+		Fonts.LARGE.drawString(marginX, marginY,
 				String.format("%s - %s [%s]", beatmap.getArtist(), beatmap.getTitle(), beatmap.version), Color.white);
-		Utils.FONT_MEDIUM.drawString(marginX, marginY + Utils.FONT_LARGE.getLineHeight() - 6,
+		Fonts.MEDIUM.drawString(marginX, marginY + Fonts.LARGE.getLineHeight() - 6,
 				String.format("Beatmap by %s", beatmap.creator), Color.white);
 		String player = (scoreData.playerName == null) ? "" : String.format(" by %s", scoreData.playerName);
-		Utils.FONT_MEDIUM.drawString(marginX, marginY + Utils.FONT_LARGE.getLineHeight() + Utils.FONT_MEDIUM.getLineHeight() - 10,
+		Fonts.MEDIUM.drawString(marginX, marginY + Fonts.LARGE.getLineHeight() + Fonts.MEDIUM.getLineHeight() - 10,
 				String.format("Played%s on %s.", player, scoreData.getTimeString()), Color.white);
 
 		// mod icons

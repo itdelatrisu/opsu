@@ -38,6 +38,7 @@ import itdelatrisu.opsu.downloads.servers.HexideServer;
 import itdelatrisu.opsu.downloads.servers.MnetworkServer;
 import itdelatrisu.opsu.downloads.servers.YaSOnlineServer;
 import itdelatrisu.opsu.ui.Colors;
+import itdelatrisu.opsu.ui.Fonts;
 import itdelatrisu.opsu.ui.MenuButton;
 import itdelatrisu.opsu.ui.UI;
 
@@ -261,17 +262,17 @@ public class DownloadsMenu extends BasicGameState {
 		int width = container.getWidth();
 		int height = container.getHeight();
 		float baseX = width * 0.024f;
-		float searchY = (height * 0.04f) + Utils.FONT_LARGE.getLineHeight();
+		float searchY = (height * 0.04f) + Fonts.LARGE.getLineHeight();
 		float searchWidth = width * 0.3f;
 
 		// search
 		searchTimer = SEARCH_DELAY;
 		searchResultString = "Loading data from server...";
 		search = new TextField(
-				container, Utils.FONT_DEFAULT, (int) baseX, (int) searchY,
-				(int) searchWidth, Utils.FONT_MEDIUM.getLineHeight()
+				container, Fonts.DEFAULT, (int) baseX, (int) searchY,
+				(int) searchWidth, Fonts.MEDIUM.getLineHeight()
 		);
-		search.setBackgroundColor(DownloadNode.BG_NORMAL);
+		search.setBackgroundColor(Colors.BLACK_BG_NORMAL);
 		search.setBorderColor(Color.white);
 		search.setTextColor(Color.white);
 		search.setConsumeEvents(false);
@@ -296,7 +297,7 @@ public class DownloadsMenu extends BasicGameState {
 		float rankedWidth = width * 0.15f;
 		float serverWidth = width * 0.12f;
 		float lowerWidth = width * 0.12f;
-		float topButtonY = searchY + Utils.FONT_MEDIUM.getLineHeight() / 2f;
+		float topButtonY = searchY + Fonts.MEDIUM.getLineHeight() / 2f;
 		float lowerButtonY = height * 0.995f - searchY - buttonHeight / 2f;
 		Image button = GameImage.MENU_BUTTON_MID.getImage();
 		Image buttonL = GameImage.MENU_BUTTON_LEFT.getImage();
@@ -322,9 +323,9 @@ public class DownloadsMenu extends BasicGameState {
 				baseX + searchWidth + buttonMarginX * 2f + resetButtonWidth + rankedButtonWidth / 2f, topButtonY);
 		serverButton = new MenuButton(serverButtonImage, buttonL, buttonR,
 				baseX + searchWidth + buttonMarginX * 3f + resetButtonWidth + rankedButtonWidth + serverButtonWidth / 2f, topButtonY);
-		clearButton.setText("Clear", Utils.FONT_MEDIUM, Color.white);
-		importButton.setText("Import All", Utils.FONT_MEDIUM, Color.white);
-		resetButton.setText("Reset", Utils.FONT_MEDIUM, Color.white);
+		clearButton.setText("Clear", Fonts.MEDIUM, Color.white);
+		importButton.setText("Import All", Fonts.MEDIUM, Color.white);
+		resetButton.setText("Reset", Fonts.MEDIUM, Color.white);
 		clearButton.setHoverFade();
 		importButton.setHoverFade();
 		resetButton.setHoverFade();
@@ -343,13 +344,13 @@ public class DownloadsMenu extends BasicGameState {
 		GameImage.SEARCH_BG.getImage().draw();
 
 		// title
-		Utils.FONT_LARGE.drawString(width * 0.024f, height * 0.03f, "Download Beatmaps!", Color.white);
+		Fonts.LARGE.drawString(width * 0.024f, height * 0.03f, "Download Beatmaps!", Color.white);
 
 		// search
 		g.setColor(Color.white);
 		g.setLineWidth(2f);
 		search.render(container, g);
-		Utils.FONT_BOLD.drawString(
+		Fonts.BOLD.drawString(
 				search.getX() + search.getWidth() * 0.01f, search.getY() + search.getHeight() * 1.3f,
 				searchResultString, Color.white
 		);
@@ -377,9 +378,9 @@ public class DownloadsMenu extends BasicGameState {
 				float baseX = width * 0.024f;
 				float buttonY = height * 0.2f;
 				float buttonWidth = width * 0.7f;
-				Utils.FONT_BOLD.drawString(
-						baseX + (buttonWidth - Utils.FONT_BOLD.getWidth("Page 1")) / 2f,
-						buttonY - Utils.FONT_BOLD.getLineHeight() * 1.3f,
+				Fonts.BOLD.drawString(
+						baseX + (buttonWidth - Fonts.BOLD.getWidth("Page 1")) / 2f,
+						buttonY - Fonts.BOLD.getLineHeight() * 1.3f,
 						String.format("Page %d", page), Color.white
 				);
 				if (page > 1)
@@ -391,10 +392,10 @@ public class DownloadsMenu extends BasicGameState {
 
 		// downloads
 		float downloadsX = width * 0.75f, downloadsY = search.getY();
-		g.setColor(DownloadNode.BG_NORMAL);
+		g.setColor(Colors.BLACK_BG_NORMAL);
 		g.fillRect(downloadsX, downloadsY,
 				width * 0.25f, height - downloadsY * 2f);
-		Utils.FONT_LARGE.drawString(downloadsX + width * 0.015f, downloadsY + height * 0.015f, "Downloads", Color.white);
+		Fonts.LARGE.drawString(downloadsX + width * 0.015f, downloadsY + height * 0.015f, "Downloads", Color.white);
 		int downloadsSize = DownloadList.get().size();
 		if (downloadsSize > 0) {
 			int maxDownloadsShown = DownloadNode.maxDownloadsShown();
@@ -417,9 +418,9 @@ public class DownloadsMenu extends BasicGameState {
 		clearButton.draw(Color.gray);
 		importButton.draw(Color.orange);
 		resetButton.draw(Color.red);
-		rankedButton.setText((rankedOnly) ? "Show Unranked" : "Hide Unranked", Utils.FONT_MEDIUM, Color.white);
+		rankedButton.setText((rankedOnly) ? "Show Unranked" : "Hide Unranked", Fonts.MEDIUM, Color.white);
 		rankedButton.draw(Color.magenta);
-		serverButton.setText(SERVERS[serverIndex].getName(), Utils.FONT_MEDIUM, Color.white);
+		serverButton.setText(SERVERS[serverIndex].getName(), Fonts.MEDIUM, Color.white);
 		serverButton.draw(Color.blue);
 
 		// importing beatmaps

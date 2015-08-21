@@ -18,6 +18,7 @@
 
 package itdelatrisu.opsu;
 
+import itdelatrisu.opsu.ui.Fonts;
 import itdelatrisu.opsu.ui.MenuButton;
 import itdelatrisu.opsu.ui.animations.AnimationEquation;
 
@@ -97,10 +98,10 @@ public enum GameMod {
 		 * @param height the container height
 		 */
 		public void init(int width, int height) {
-			float multY = Utils.FONT_LARGE.getLineHeight() * 2 + height * 0.06f;
+			float multY = Fonts.LARGE.getLineHeight() * 2 + height * 0.06f;
 			float offsetY = GameImage.MOD_EASY.getImage().getHeight() * 1.5f;
 			this.x = width / 30f;
-			this.y = multY + Utils.FONT_LARGE.getLineHeight() * 3f + offsetY * index;
+			this.y = multY + Fonts.LARGE.getLineHeight() * 3f + offsetY * index;
 		}
 
 		/**
@@ -193,7 +194,7 @@ public enum GameMod {
 			c.init(width, height);
 
 		// create buttons
-		float baseX = Category.EASY.getX() + Utils.FONT_LARGE.getWidth(Category.EASY.getName()) * 1.25f;
+		float baseX = Category.EASY.getX() + Fonts.LARGE.getWidth(Category.EASY.getName()) * 1.25f;
 		float offsetX = GameImage.MOD_EASY.getImage().getWidth() * 2.1f;
 		for (GameMod mod : GameMod.values()) {
 			Image img = mod.image.getImage();

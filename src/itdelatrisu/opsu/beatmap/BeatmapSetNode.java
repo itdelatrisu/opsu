@@ -21,8 +21,8 @@ package itdelatrisu.opsu.beatmap;
 import itdelatrisu.opsu.GameData.Grade;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.Options;
-import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.ui.Colors;
+import itdelatrisu.opsu.ui.Fonts;
 
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Image;
@@ -99,14 +99,14 @@ public class BeatmapSetNode {
 
 		// draw text
 		if (Options.useUnicodeMetadata()) {  // load glyphs
-			Utils.loadGlyphs(Utils.FONT_MEDIUM, beatmap.titleUnicode, null);
-			Utils.loadGlyphs(Utils.FONT_DEFAULT, null, beatmap.artistUnicode);
+			Fonts.loadGlyphs(Fonts.MEDIUM, beatmap.titleUnicode);
+			Fonts.loadGlyphs(Fonts.DEFAULT, beatmap.artistUnicode);
 		}
-		Utils.FONT_MEDIUM.drawString(cx, cy, beatmap.getTitle(), textColor);
-		Utils.FONT_DEFAULT.drawString(cx, cy + Utils.FONT_MEDIUM.getLineHeight() - 2,
+		Fonts.MEDIUM.drawString(cx, cy, beatmap.getTitle(), textColor);
+		Fonts.DEFAULT.drawString(cx, cy + Fonts.MEDIUM.getLineHeight() - 2,
 				String.format("%s // %s", beatmap.getArtist(), beatmap.creator), textColor);
 		if (expanded || beatmapSet.size() == 1)
-			Utils.FONT_BOLD.drawString(cx, cy + Utils.FONT_MEDIUM.getLineHeight() + Utils.FONT_DEFAULT.getLineHeight() - 4,
+			Fonts.BOLD.drawString(cx, cy + Fonts.MEDIUM.getLineHeight() + Fonts.DEFAULT.getLineHeight() - 4,
 					beatmap.version, textColor);
 	}
 

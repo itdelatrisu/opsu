@@ -47,6 +47,7 @@ import itdelatrisu.opsu.replay.PlaybackSpeed;
 import itdelatrisu.opsu.replay.Replay;
 import itdelatrisu.opsu.replay.ReplayFrame;
 import itdelatrisu.opsu.ui.Colors;
+import itdelatrisu.opsu.ui.Fonts;
 import itdelatrisu.opsu.ui.MenuButton;
 import itdelatrisu.opsu.ui.UI;
 import itdelatrisu.opsu.ui.animations.AnimationEquation;
@@ -479,7 +480,7 @@ public class Game extends BasicGameState {
 				float oldAlpha = Colors.WHITE_FADE.a;
 				if (timeDiff < -500)
 					Colors.WHITE_FADE.a = (1000 + timeDiff) / 500f;
-				Utils.FONT_MEDIUM.drawString(
+				Fonts.MEDIUM.drawString(
 						2 + (width / 100), retryHeight,
 						String.format("%d retries and counting...", retries),
 						Colors.WHITE_FADE

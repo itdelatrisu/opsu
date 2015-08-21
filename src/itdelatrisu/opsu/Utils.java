@@ -24,9 +24,9 @@ import itdelatrisu.opsu.beatmap.HitObject;
 import itdelatrisu.opsu.downloads.Download;
 import itdelatrisu.opsu.downloads.DownloadNode;
 import itdelatrisu.opsu.replay.PlaybackSpeed;
+import itdelatrisu.opsu.ui.Fonts;
 import itdelatrisu.opsu.ui.UI;
 
-import java.awt.Font;
 import java.awt.image.BufferedImage;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
@@ -46,8 +46,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Scanner;
 
@@ -63,12 +61,8 @@ import org.newdawn.slick.Animation;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
-import org.newdawn.slick.UnicodeFont;
-import org.newdawn.slick.font.effects.ColorEffect;
-import org.newdawn.slick.font.effects.Effect;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.util.Log;
-import org.newdawn.slick.util.ResourceLoader;
 
 import com.sun.jna.platform.FileUtils;
 
@@ -76,14 +70,6 @@ import com.sun.jna.platform.FileUtils;
  * Contains miscellaneous utilities.
  */
 public class Utils {
-	/** Game fonts. */
-	public static UnicodeFont
-		FONT_DEFAULT, FONT_BOLD,
-		FONT_XLARGE, FONT_LARGE, FONT_MEDIUM, FONT_SMALL;
-
-	/** Set of all Unicode strings already loaded per font. */
-	private static HashMap<UnicodeFont, HashSet<String>> loadedGlyphs = new HashMap<UnicodeFont, HashSet<String>>();
-
 	/**
 	 * List of illegal filename characters.
 	 * @see #cleanFileName(String, char)
@@ -128,23 +114,8 @@ public class Utils {
 		GameImage.init(width, height);
 
 		// create fonts
-		float fontBase = 12f * GameImage.getUIscale();
 		try {
-			Font javaFont = Font.createFont(Font.TRUETYPE_FONT, ResourceLoader.getResourceAsStream(Options.FONT_NAME));
-			Font font    = javaFont.deriveFont(Font.PLAIN, (int) (fontBase * 4 / 3));
-			FONT_DEFAULT = new UnicodeFont(font);
-			FONT_BOLD    = new UnicodeFont(font.deriveFont(Font.BOLD));
-			FONT_XLARGE  = new UnicodeFont(font.deriveFont(fontBase * 3));
-			FONT_LARGE   = new UnicodeFont(font.deriveFont(fontBase * 2));
-			FONT_MEDIUM  = new UnicodeFont(font.deriveFont(fontBase * 3 / 2));
-			FONT_SMALL   = new UnicodeFont(font.deriveFont(fontBase));
-			ColorEffect colorEffect = new ColorEffect();
-			loadFont(FONT_DEFAULT, colorEffect);
-			loadFont(FONT_BOLD, colorEffect);
-			loadFont(FONT_XLARGE, colorEffect);
-			loadFont(FONT_LARGE, colorEffect);
-			loadFont(FONT_MEDIUM, colorEffect);
-			loadFont(FONT_SMALL, colorEffect);
+			Fonts.init();
 		} catch (Exception e) {
 			ErrorHandler.error("Failed to load fonts.", e, true);
 		}
@@ -324,54 +295,6 @@ public class Utils {
 				}
 			}
 		}.start();
-	}
-
-	/**
-	 * Loads a Unicode font.
-	 * @param font the font to load
-	 * @param effect the font effect
-	 * @throws SlickException
-	 */
-	@SuppressWarnings("unchecked")
-	private static void loadFont(UnicodeFont font, Effect effect) throws SlickException {
-		font.addAsciiGlyphs();
-		font.getEffects().add(effect);
-		font.loadGlyphs();
-	}
-
-	/**
-	 * Adds and loads glyphs for a beatmap's Unicode title and artist strings.
-	 * @param font the font to add the glyphs to
-	 * @param title the title string
-	 * @param artist the artist string
-	 */
-	public static void loadGlyphs(UnicodeFont font, String title, String artist) {
-		// get set of added strings
-		HashSet<String> set = loadedGlyphs.get(font);
-		if (set == null) {
-			set = new HashSet<String>();
-			loadedGlyphs.put(font, set);
-		}
-
-		// add glyphs if not in set
-		boolean glyphsAdded = false;
-		if (title != null && !title.isEmpty() && !set.contains(title)) {
-			font.addGlyphs(title);
-			set.add(title);
-			glyphsAdded = true;
-		}
-		if (artist != null && !artist.isEmpty() && !set.contains(artist)) {
-			font.addGlyphs(artist);
-			set.add(artist);
-			glyphsAdded = true;
-		}
-		if (glyphsAdded) {
-			try {
-				font.loadGlyphs();
-			} catch (SlickException e) {
-				Log.warn("Failed to load glyphs.", e);
-			}
-		}
 	}
 
 	/**

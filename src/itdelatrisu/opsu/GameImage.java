@@ -18,6 +18,8 @@
 
 package itdelatrisu.opsu;
 
+import itdelatrisu.opsu.ui.Fonts;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -251,14 +253,14 @@ public enum GameImage {
 	MENU_MUSICNOTE ("music-note", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			int r = (int) ((Utils.FONT_LARGE.getLineHeight() + Utils.FONT_DEFAULT.getLineHeight() - 8) / getUIscale());
+			int r = (int) ((Fonts.LARGE.getLineHeight() + Fonts.DEFAULT.getLineHeight() - 8) / getUIscale());
 			return img.getScaledCopy(r, r);
 		}
 	},
 	MENU_LOADER ("loader", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			int r = (int) ((Utils.FONT_LARGE.getLineHeight() + Utils.FONT_DEFAULT.getLineHeight() - 8) / getUIscale());
+			int r = (int) ((Fonts.LARGE.getLineHeight() + Fonts.DEFAULT.getLineHeight() - 8) / getUIscale());
 			return img.getScaledCopy(r / 48f);
 		}
 	},
@@ -312,7 +314,7 @@ public enum GameImage {
 	DELETE ("delete", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
-			int lineHeight = Utils.FONT_DEFAULT.getLineHeight();
+			int lineHeight = Fonts.DEFAULT.getLineHeight();
 			return img.getScaledCopy(lineHeight, lineHeight);
 		}
 	},
