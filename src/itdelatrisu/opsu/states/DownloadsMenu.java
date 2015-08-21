@@ -162,10 +162,10 @@ public class DownloadsMenu extends BasicGameState {
 	/** Search query helper class. */
 	private class SearchQuery implements Runnable {
 		/** The search query. */
-		private String query;
+		private final String query;
 
 		/** The download server. */
-		private DownloadServer server;
+		private final DownloadServer server;
 
 		/** Whether the query was interrupted. */
 		private boolean interrupted = false;
@@ -246,7 +246,7 @@ public class DownloadsMenu extends BasicGameState {
 	private GameContainer container;
 	private StateBasedGame game;
 	private Input input;
-	private int state;
+	private final int state;
 
 	public DownloadsMenu(int state) {
 		this.state = state;

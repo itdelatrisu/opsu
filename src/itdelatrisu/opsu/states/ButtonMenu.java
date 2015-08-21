@@ -256,7 +256,7 @@ public class ButtonMenu extends BasicGameState {
 		};
 
 		/** The buttons in the state. */
-		private Button[] buttons;
+		private final Button[] buttons;
 
 		/** The associated MenuButton objects. */
 		private MenuButton[] menuButtons;
@@ -548,10 +548,10 @@ public class ButtonMenu extends BasicGameState {
 		};
 
 		/** The text to show on the button. */
-		private String text;
+		private final String text;
 
 		/** The button color. */
-		private Color color;
+		private final Color color;
 
 		/**
 		 * Constructor.
@@ -594,7 +594,7 @@ public class ButtonMenu extends BasicGameState {
 	private GameContainer container;
 	private StateBasedGame game;
 	private Input input;
-	private int state;
+	private final int state;
 
 	public ButtonMenu(int state) {
 		this.state = state;

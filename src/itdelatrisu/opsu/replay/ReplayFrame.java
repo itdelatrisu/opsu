@@ -38,13 +38,13 @@ public class ReplayFrame {
 	private int timeDiff;
 
 	/** Time, in milliseconds. */
-	private int time;
+	private final int time;
 
 	/** Cursor coordinates (in OsuPixels). */
-	private float x, y;
+	private final float x, y;
 
 	/** Keys pressed (bitmask). */
-	private int keys;
+	private final int keys;
 
 	/**
 	 * Returns the start frame.

@@ -122,7 +122,7 @@ public class MainMenu extends BasicGameState {
 	private GameContainer container;
 	private StateBasedGame game;
 	private Input input;
-	private int state;
+	private final int state;
 
 	public MainMenu(int state) {
 		this.state = state;

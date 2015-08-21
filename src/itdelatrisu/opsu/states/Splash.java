@@ -67,7 +67,7 @@ public class Splash extends BasicGameState {
 	private AnimatedValue logoAlpha;
 
 	// game-related variables
-	private int state;
+	private final int state;
 	private GameContainer container;
 	private boolean init = false;
 

@@ -39,13 +39,13 @@ public enum BeatmapSortOrder {
 	LENGTH  (4, "Length",  new LengthOrder());
 
 	/** The ID of the sort (used for tab positioning). */
-	private int id;
+	private final int id;
 
 	/** The name of the sort. */
-	private String name;
+	private final String name;
 
 	/** The comparator for the sort. */
-	private Comparator<BeatmapSetNode> comparator;
+	private final Comparator<BeatmapSetNode> comparator;
 
 	/** The tab associated with the sort (displayed in Song Menu screen). */
 	private MenuButton tab;

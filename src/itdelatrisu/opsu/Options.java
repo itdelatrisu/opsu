@@ -459,13 +459,13 @@ public class Options {
 		DISABLE_UPDATER ("Disable Automatic Updates", "DisableUpdater", "Disable automatic checking for updates upon starting opsu!.", false);
 
 		/** Option name. */
-		private String name;
+		private final String name;
 
 		/** Option name, as displayed in the configuration file. */
-		private String displayName;
+		private final String displayName;
 
 		/** Option description. */
-		private String description;
+		private final String description;
 
 		/** The boolean value for the option (if applicable). */
 		protected boolean bool;
@@ -487,7 +487,7 @@ public class Options {
 		 * @param displayName the option name, as displayed in the configuration file
 		 */
 		GameOption(String displayName) {
-			this.displayName = displayName;
+			this(null, displayName, null);
 		}
 
 		/**

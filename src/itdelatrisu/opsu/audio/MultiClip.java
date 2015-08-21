@@ -49,7 +49,7 @@ public class MultiClip {
 	private byte[] audioData;
 
 	/** The name given to this clip. */
-	private String name;
+	private final String name;
 
 	/**
 	 * Constructor.

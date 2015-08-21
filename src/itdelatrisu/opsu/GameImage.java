@@ -359,22 +359,22 @@ public enum GameImage {
 		IMG_JPG = 2;
 
 	/** The file name. */
-	private String filename;
+	private final String filename;
 
 	/** The formatted file name string (for loading multiple images). */
 	private String filenameFormat;
 
 	/** Image file type. */
-	private byte type;
+	private final byte type;
 
 	/**
 	 * Whether or not the image is skinnable by a beatmap.
 	 * These images are typically related to gameplay.
 	 */
-	private boolean skinnable;
+	private final boolean skinnable;
 
 	/** Whether or not to preload the image when the program starts. */
-	private boolean preload;
+	private final boolean preload;
 
 	/** The default image. */
 	private Image defaultImage;

@@ -90,7 +90,7 @@ public class GameData {
 		D   (GameImage.RANKING_D,   GameImage.RANKING_D_SMALL);
 
 		/** GameImages associated with this grade (large and small sizes). */
-		private GameImage large, small;
+		private final GameImage large, small;
 
 		/** Large-size image scaled for use in song menu. */
 		private Image menuImage;
@@ -202,14 +202,14 @@ public class GameData {
 	 */
 	private class HitErrorInfo {
 		/** The correct hit time. */
-		private int time;
+		private final int time;
 
 		/** The coordinates of the hit. */
 		@SuppressWarnings("unused")
-		private int x, y;
+		private final int x, y;
 
 		/** The difference between the correct and actual hit times. */
-		private int timeDiff;
+		private final int timeDiff;
 
 		/**
 		 * Constructor.
@@ -235,31 +235,31 @@ public class GameData {
 	/** Hit result helper class. */
 	private class HitObjectResult {
 		/** Object start time. */
-		public int time;
+		public final int time;
 
 		/** Hit result. */
-		public int result;
+		public final int result;
 
 		/** Object coordinates. */
-		public float x, y;
+		public final float x, y;
 
 		/** Combo color. */
-		public Color color;
+		public final Color color;
 
 		/** The type of the hit object. */
-		public HitObjectType hitResultType;
+		public final HitObjectType hitResultType;
+
+		/** Slider curve. */
+		public final Curve curve;
+
+		/** Whether or not to expand when animating. */
+		public final boolean expand;
+
+		/** Whether or not to hide the hit result. */
+		public final boolean hideResult;
 
 		/** Alpha level (for fading out). */
 		public float alpha = 1f;
-
-		/** Slider curve. */
-		public Curve curve;
-
-		/** Whether or not to expand when animating. */
-		public boolean expand;
-
-		/** Whether or not to hide the hit result. */
-		public boolean hideResult;
 
 		/**
 		 * Constructor.

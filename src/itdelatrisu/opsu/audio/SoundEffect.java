@@ -42,7 +42,7 @@ public enum SoundEffect implements SoundController.SoundComponent {
 	SPINNERSPIN ("spinnerspin");
 
 	/** The file name. */
-	private String filename;
+	private final String filename;
 
 	/** The Clip associated with the sound effect. */
 	private MultiClip clip;

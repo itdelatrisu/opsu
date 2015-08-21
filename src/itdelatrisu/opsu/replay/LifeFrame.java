@@ -25,10 +25,10 @@ package itdelatrisu.opsu.replay;
  */
 public class LifeFrame {
 	/** Time. */
-	private int time;
+	private final int time;
 
 	/** Percentage. */
-	private float percentage;
+	private final float percentage;
 
 	/**
 	 * Constructor.

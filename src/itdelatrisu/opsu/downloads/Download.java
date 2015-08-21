@@ -61,7 +61,7 @@ public class Download {
 		ERROR ("Error");
 
 		/** The status name. */
-		private String name;
+		private final String name;
 
 		/**
 		 * Constructor.

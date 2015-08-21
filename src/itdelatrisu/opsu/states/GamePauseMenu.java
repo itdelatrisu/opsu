@@ -62,7 +62,7 @@ public class GamePauseMenu extends BasicGameState {
 	private GameContainer container;
 	private StateBasedGame game;
 	private Input input;
-	private int state;
+	private final int state;
 	private Game gameState;
 
 	public GamePauseMenu(int state) {

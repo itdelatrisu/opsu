@@ -68,7 +68,7 @@ public class GameRanking extends BasicGameState {
 	// game-related variables
 	private GameContainer container;
 	private StateBasedGame game;
-	private int state;
+	private final int state;
 	private Input input;
 
 	public GameRanking(int state) {

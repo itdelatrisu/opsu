@@ -240,7 +240,7 @@ public class Game extends BasicGameState {
 	private GameContainer container;
 	private StateBasedGame game;
 	private Input input;
-	private int state;
+	private final int state;
 
 	public Game(int state) {
 		this.state = state;

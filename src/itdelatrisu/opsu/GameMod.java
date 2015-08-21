@@ -69,13 +69,13 @@ public enum GameMod {
 		SPECIAL (2, "Special", Color.white);
 
 		/** Drawing index. */
-		private int index;
+		private final int index;
 
 		/** Category name. */
-		private String name;
+		private final String name;
 
 		/** Text color. */
-		private Color color;
+		private final Color color;
 
 		/** The coordinates of the category. */
 		private float x, y;
@@ -126,37 +126,37 @@ public enum GameMod {
 	}
 
 	/** The category for the mod. */
-	private Category category;
+	private final Category category;
 
 	/** The index in the category (for positioning). */
-	private int categoryIndex;
+	private final int categoryIndex;
 
 	/** The file name of the mod image. */
-	private GameImage image;
+	private final GameImage image;
 
 	/** The abbreviation for the mod. */
-	private String abbrev;
+	private final String abbrev;
 
 	/**
 	 * Bit value associated with the mod.
 	 * See the osu! API: https://github.com/peppy/osu-api/wiki#mods
 	 */
-	private int bit;
+	private final int bit;
 
 	/** The shortcut key associated with the mod. */
-	private int key;
+	private final int key;
 
 	/** The score multiplier. */
-	private float multiplier;
+	private final float multiplier;
 
 	/** Whether or not the mod is implemented. */
-	private boolean implemented;
+	private final boolean implemented;
 
 	/** The name of the mod. */
-	private String name;
+	private final String name;
 
 	/** The description of the mod. */
-	private String description;
+	private final String description;
 
 	/** Whether or not this mod is active. */
 	private boolean active = false;

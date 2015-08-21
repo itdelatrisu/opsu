@@ -114,10 +114,10 @@ public class OptionsMenu extends BasicGameState {
 		private static OptionTab[] values = values();
 
 		/** Tab name. */
-		private String name;
+		private final String name;
 
 		/** Options array. */
-		public GameOption[] options;
+		public final GameOption[] options;
 
 		/** Associated tab button. */
 		public MenuButton button;
@@ -167,7 +167,7 @@ public class OptionsMenu extends BasicGameState {
 	private StateBasedGame game;
 	private Input input;
 	private Graphics g;
-	private int state;
+	private final int state;
 
 	public OptionsMenu(int state) {
 		this.state = state;
