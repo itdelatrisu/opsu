@@ -20,6 +20,7 @@ package itdelatrisu.opsu.states;
 
 import itdelatrisu.opsu.GameData;
 import itdelatrisu.opsu.GameImage;
+import itdelatrisu.opsu.GameMod;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.Utils;
@@ -113,7 +114,7 @@ public class GameRanking extends BasicGameState {
 
 		// buttons
 		replayButton.draw();
-		if (data.isGameplay())
+		if (data.isGameplay() && !GameMod.AUTO.isActive())
 			retryButton.draw();
 		UI.getBackButton().draw();
 
@@ -175,7 +176,8 @@ public class GameRanking extends BasicGameState {
 		// replay
 		Game gameState = (Game) game.getState(Opsu.STATE_GAME);
 		boolean returnToGame = false;
-		if (replayButton.contains(x, y)) {
+		boolean replayButtonPressed = replayButton.contains(x, y);
+		if (replayButtonPressed && !(data.isGameplay() && GameMod.AUTO.isActive())) {
 			Replay r = data.getReplay(null, null);
 			if (r != null) {
 				try {
@@ -194,7 +196,9 @@ public class GameRanking extends BasicGameState {
 		}
 
 		// retry
-		else if (data.isGameplay() && retryButton.contains(x, y)) {
+		else if (data.isGameplay() &&
+		         (!GameMod.AUTO.isActive() && retryButton.contains(x, y)) ||
+		         (GameMod.AUTO.isActive() && replayButtonPressed)) {
 			gameState.setReplay(null);
 			gameState.setRestart(Game.Restart.MANUAL);
 			returnToGame = true;
@@ -221,7 +225,7 @@ public class GameRanking extends BasicGameState {
 		} else {
 			SoundController.playSound(SoundEffect.APPLAUSE);
 			retryButton.resetHover();
-			replayButton.setY(replayY);
+			replayButton.setY(!GameMod.AUTO.isActive() ? replayY : retryY);
 		}
 		replayButton.resetHover();
 	}

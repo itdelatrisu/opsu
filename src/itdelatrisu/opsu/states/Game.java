@@ -738,6 +738,7 @@ public class Game extends BasicGameState {
 						r.save();
 				}
 				ScoreData score = data.getScoreData(beatmap);
+				data.setGameplay(!isReplay);
 
 				// add score to database
 				if (!unranked && !isReplay)
@@ -1110,6 +1111,8 @@ public class Game extends BasicGameState {
 				previousMods = GameMod.getModState();
 				GameMod.loadModState(replay.mods);
 			}
+
+			data.setGameplay(true);
 
 			// check restart state
 			if (restart == Restart.NEW) {

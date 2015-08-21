@@ -324,7 +324,7 @@ public class GameData {
 	private Replay replay;
 
 	/** Whether this object is used for gameplay (true) or score viewing (false). */
-	private boolean gameplay;
+	private boolean isGameplay;
 
 	/** Container dimensions. */
 	private int width, height;
@@ -337,7 +337,7 @@ public class GameData {
 	public GameData(int width, int height) {
 		this.width = width;
 		this.height = height;
-		this.gameplay = true;
+		this.isGameplay = true;
 
 		clear();
 	}
@@ -353,7 +353,7 @@ public class GameData {
 	public GameData(ScoreData s, int width, int height) {
 		this.width = width;
 		this.height = height;
-		this.gameplay = false;
+		this.isGameplay = false;
 
 		this.scoreData = s;
 		this.score = s.score;
@@ -1468,7 +1468,13 @@ public class GameData {
 	 * Returns whether or not this object is used for gameplay.
 	 * @return true if gameplay, false if score viewing
 	 */
-	public boolean isGameplay() { return gameplay; }
+	public boolean isGameplay() { return isGameplay; }
+
+	/**
+	 * Sets whether or not this object is used for gameplay.
+	 * @return true if gameplay, false if score viewing
+	 */
+	public void setGameplay(boolean gameplay) { this.isGameplay = gameplay; }
 
 	/**
 	 * Adds the hit into the list of hit error information.
