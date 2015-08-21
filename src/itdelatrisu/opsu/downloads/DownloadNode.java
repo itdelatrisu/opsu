@@ -69,12 +69,6 @@ public class DownloadNode {
 	/** Container width. */
 	private static int containerWidth;
 
-	/** Button background colors. */
-	public static final Color
-		BG_NORMAL = new Color(0, 0, 0, 0.25f),
-		BG_HOVER  = new Color(0, 0, 0, 0.5f),
-		BG_FOCUS  = new Color(0, 0, 0, 0.75f);
-
 	/**
 	 * Initializes the base coordinates for drawing.
 	 * @param width the container width
@@ -207,7 +201,7 @@ public class DownloadNode {
 	 */
 	public static void drawResultScrollbar(Graphics g, int index, int total) {
 		UI.drawScrollbar(g, index, total, maxResultsShown, buttonBaseX, buttonBaseY,
-				buttonWidth * 1.01f, buttonHeight, buttonOffset, BG_NORMAL, Color.white, true);
+				buttonWidth * 1.01f, buttonHeight, buttonOffset, Colors.BLACK_BG_NORMAL, Color.white, true);
 	}
 
 	/**
@@ -218,7 +212,7 @@ public class DownloadNode {
 	 */
 	public static void drawDownloadScrollbar(Graphics g, int index, int total) {
 		UI.drawScrollbar(g, index, total, maxDownloadsShown, infoBaseX, infoBaseY,
-				infoWidth, infoHeight, infoHeight, BG_NORMAL, Color.white, true);
+				infoWidth, infoHeight, infoHeight, Colors.BLACK_BG_NORMAL, Color.white, true);
 	}
 
 	/**
@@ -325,7 +319,7 @@ public class DownloadNode {
 		Download dl = DownloadList.get().getDownload(beatmapSetID);
 
 		// rectangle outline
-		g.setColor((focus) ? BG_FOCUS : (hover) ? BG_HOVER : BG_NORMAL);
+		g.setColor((focus) ? Colors.BLACK_BG_FOCUS : (hover) ? Colors.BLACK_BG_HOVER : Colors.BLACK_BG_NORMAL);
 		g.fillRect(buttonBaseX, y, buttonWidth, buttonHeight);
 
 		// map is already loaded
@@ -386,7 +380,7 @@ public class DownloadNode {
 		float marginY = infoHeight * 0.04f;
 
 		// rectangle outline
-		g.setColor((id % 2 == 0) ? BG_HOVER : BG_NORMAL);
+		g.setColor((id % 2 == 0) ? Colors.BLACK_BG_HOVER : Colors.BLACK_BG_NORMAL);
 		g.fillRect(infoBaseX, y, infoWidth, infoHeight);
 
 		// text

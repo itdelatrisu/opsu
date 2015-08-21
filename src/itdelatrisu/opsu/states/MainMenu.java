@@ -117,11 +117,6 @@ public class MainMenu extends BasicGameState {
 	/** Music position bar coordinates and dimensions. */
 	private float musicBarX, musicBarY, musicBarWidth, musicBarHeight;
 
-	/** Music position bar background colors. */
-	private static final Color
-		BG_NORMAL = new Color(0, 0, 0, 0.25f),
-		BG_HOVER  = new Color(0, 0, 0, 0.5f);
-
 	// game-related variables
 	private GameContainer container;
 	private StateBasedGame game;
@@ -274,7 +269,7 @@ public class MainMenu extends BasicGameState {
 
 		// draw music position bar
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
-		g.setColor((musicPositionBarContains(mouseX, mouseY)) ? BG_HOVER : BG_NORMAL);
+		g.setColor((musicPositionBarContains(mouseX, mouseY)) ? Colors.BLACK_BG_HOVER : Colors.BLACK_BG_NORMAL);
 		g.fillRoundRect(musicBarX, musicBarY, musicBarWidth, musicBarHeight, 4);
 		g.setColor(Color.white);
 		if (!MusicController.isTrackLoading() && beatmap != null) {

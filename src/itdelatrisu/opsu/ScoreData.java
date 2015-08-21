@@ -20,6 +20,7 @@ package itdelatrisu.opsu;
 
 import itdelatrisu.opsu.GameData.Grade;
 import itdelatrisu.opsu.states.SongMenu;
+import itdelatrisu.opsu.ui.Colors;
 import itdelatrisu.opsu.ui.UI;
 
 import java.sql.ResultSet;
@@ -83,11 +84,6 @@ public class ScoreData implements Comparable<ScoreData> {
 
 	/** Drawing values. */
 	private static float baseX, baseY, buttonWidth, buttonHeight, buttonOffset;
-
-	/** Button background colors. */
-	private static final Color
-		BG_NORMAL = new Color(0, 0, 0, 0.25f),
-		BG_FOCUS  = new Color(0, 0, 0, 0.75f);
 
 	/**
 	 * Initializes the base coordinates for drawing.
@@ -238,7 +234,7 @@ public class ScoreData implements Comparable<ScoreData> {
 		float marginY = Utils.FONT_DEFAULT.getLineHeight() * 0.01f;
 
 		// rectangle outline
-		g.setColor((focus) ? BG_FOCUS : BG_NORMAL);
+		g.setColor((focus) ? Colors.BLACK_BG_FOCUS : Colors.BLACK_BG_NORMAL);
 		g.fillRect(baseX, y, buttonWidth, buttonHeight);
 
 		// rank
