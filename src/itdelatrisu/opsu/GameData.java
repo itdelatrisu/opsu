@@ -1188,7 +1188,7 @@ public class GameData {
 		switch (result) {
 		case HIT_SLIDER30:
 			hitValue = 30;
-			changeHealth(1f);
+			changeHealth(2f);
 			SoundController.playHitSound(
 					hitObject.getEdgeHitSoundType(repeat),
 					hitObject.getSampleSet(repeat),
@@ -1196,6 +1196,7 @@ public class GameData {
 			break;
 		case HIT_SLIDER10:
 			hitValue = 10;
+			changeHealth(1f);
 			SoundController.playHitSound(HitSound.SLIDERTICK);
 			break;
 		case HIT_MISS:

@@ -485,7 +485,6 @@ public class Slider implements GameObject {
 		if (((keyPressed || GameMod.RELAX.isActive()) && distance < followRadius) || isAutoMod) {
 			// mouse pressed and within follow circle
 			followCircleActive = true;
-			data.changeHealth(delta * GameData.HP_DRAIN_MULTIPLIER);
 
 			// held during new repeat
 			if (isNewRepeat) {
