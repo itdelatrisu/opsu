@@ -28,6 +28,7 @@ import itdelatrisu.opsu.downloads.Updater;
 import itdelatrisu.opsu.objects.curves.Curve;
 import itdelatrisu.opsu.replay.Replay;
 import itdelatrisu.opsu.replay.ReplayFrame;
+import itdelatrisu.opsu.ui.Colors;
 import itdelatrisu.opsu.ui.animations.AnimationEquation;
 
 import java.io.File;
@@ -620,7 +621,7 @@ public class GameData {
 				);
 			} else {
 				// lead-in time (yellow)
-				g.setColor(Utils.COLOR_YELLOW_ALPHA);
+				g.setColor(Colors.YELLOW_ALPHA);
 				g.fillArc(circleX, symbolHeight, circleDiameter, circleDiameter,
 						-90 + (int) (360f * trackPosition / firstObjectTime), -90
 				);
@@ -657,27 +658,27 @@ public class GameData {
 			float hitErrorY = height / uiScale - margin - 10;
 			float barY = (hitErrorY - 3) * uiScale, barHeight = 6 * uiScale;
 			float tickY = (hitErrorY - 10) * uiScale, tickHeight = 20 * uiScale;
-			float oldAlphaBlack = Utils.COLOR_BLACK_ALPHA.a;
-			Utils.COLOR_BLACK_ALPHA.a = hitErrorAlpha;
-			g.setColor(Utils.COLOR_BLACK_ALPHA);
+			float oldAlphaBlack = Colors.BLACK_ALPHA.a;
+			Colors.BLACK_ALPHA.a = hitErrorAlpha;
+			g.setColor(Colors.BLACK_ALPHA);
 			g.fillRect((hitErrorX - 3 - hitResultOffset[HIT_50]) * uiScale, tickY,
 					(hitResultOffset[HIT_50] * 2) * uiScale, tickHeight);
-			Utils.COLOR_BLACK_ALPHA.a = oldAlphaBlack;
-			Utils.COLOR_LIGHT_ORANGE.a = hitErrorAlpha;
-			g.setColor(Utils.COLOR_LIGHT_ORANGE);
+			Colors.BLACK_ALPHA.a = oldAlphaBlack;
+			Colors.LIGHT_ORANGE.a = hitErrorAlpha;
+			g.setColor(Colors.LIGHT_ORANGE);
 			g.fillRect((hitErrorX - 3 - hitResultOffset[HIT_50]) * uiScale, barY,
 					(hitResultOffset[HIT_50] * 2) * uiScale, barHeight);
-			Utils.COLOR_LIGHT_ORANGE.a = 1f;
-			Utils.COLOR_LIGHT_GREEN.a = hitErrorAlpha;
-			g.setColor(Utils.COLOR_LIGHT_GREEN);
+			Colors.LIGHT_ORANGE.a = 1f;
+			Colors.LIGHT_GREEN.a = hitErrorAlpha;
+			g.setColor(Colors.LIGHT_GREEN);
 			g.fillRect((hitErrorX - 3 - hitResultOffset[HIT_100]) * uiScale, barY,
 					(hitResultOffset[HIT_100] * 2) * uiScale, barHeight);
-			Utils.COLOR_LIGHT_GREEN.a = 1f;
-			Utils.COLOR_LIGHT_BLUE.a = hitErrorAlpha;
-			g.setColor(Utils.COLOR_LIGHT_BLUE);
+			Colors.LIGHT_GREEN.a = 1f;
+			Colors.LIGHT_BLUE.a = hitErrorAlpha;
+			g.setColor(Colors.LIGHT_BLUE);
 			g.fillRect((hitErrorX - 3 - hitResultOffset[HIT_300]) * uiScale, barY,
 					(hitResultOffset[HIT_300] * 2) * uiScale, barHeight);
-			Utils.COLOR_LIGHT_BLUE.a = 1f;
+			Colors.LIGHT_BLUE.a = 1f;
 			white.a = hitErrorAlpha;
 			g.setColor(white);
 			g.fillRect((hitErrorX - 1.5f) * uiScale, tickY, 3 * uiScale, tickHeight);
@@ -836,7 +837,7 @@ public class GameData {
 
 		// header
 		Image rankingTitle = GameImage.RANKING_TITLE.getImage();
-		g.setColor(Utils.COLOR_BLACK_ALPHA);
+		g.setColor(Colors.BLACK_ALPHA);
 		g.fillRect(0, 0, width, 100 * uiScale);
 		rankingTitle.draw((width * 0.97f) - rankingTitle.getWidth(), 0);
 		float marginX = width * 0.01f, marginY = height * 0.002f;
@@ -898,12 +899,12 @@ public class GameData {
 
 					// slider curve
 					if (hitResult.curve != null) {
-						float oldWhiteAlpha = Utils.COLOR_WHITE_FADE.a;
+						float oldWhiteAlpha = Colors.WHITE_FADE.a;
 						float oldColorAlpha = hitResult.color.a;
-						Utils.COLOR_WHITE_FADE.a = alpha;
+						Colors.WHITE_FADE.a = alpha;
 						hitResult.color.a = alpha;
 						hitResult.curve.draw(hitResult.color);
-						Utils.COLOR_WHITE_FADE.a = oldWhiteAlpha;
+						Colors.WHITE_FADE.a = oldWhiteAlpha;
 						hitResult.color.a = oldColorAlpha;
 					}
 

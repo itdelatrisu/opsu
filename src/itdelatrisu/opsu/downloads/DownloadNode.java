@@ -26,6 +26,7 @@ import itdelatrisu.opsu.beatmap.BeatmapSetList;
 import itdelatrisu.opsu.downloads.Download.DownloadListener;
 import itdelatrisu.opsu.downloads.Download.Status;
 import itdelatrisu.opsu.downloads.servers.DownloadServer;
+import itdelatrisu.opsu.ui.Colors;
 import itdelatrisu.opsu.ui.UI;
 
 import java.io.File;
@@ -329,7 +330,7 @@ public class DownloadNode {
 
 		// map is already loaded
 		if (BeatmapSetList.get().containsBeatmapSetID(beatmapSetID)) {
-			g.setColor(Utils.COLOR_BLUE_BUTTON);
+			g.setColor(Colors.BLUE_BUTTON);
 			g.fillRect(buttonBaseX, y, buttonWidth, buttonHeight);
 		}
 
@@ -337,7 +338,7 @@ public class DownloadNode {
 		if (dl != null) {
 			float progress = dl.getProgress();
 			if (progress > 0f) {
-				g.setColor(Utils.COLOR_GREEN);
+				g.setColor(Colors.GREEN);
 				g.fillRect(buttonBaseX, y, buttonWidth * progress / 100f, buttonHeight);
 			}
 		}

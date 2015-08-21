@@ -60,7 +60,6 @@ import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 import org.newdawn.slick.Animation;
-import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
@@ -77,26 +76,6 @@ import com.sun.jna.platform.FileUtils;
  * Contains miscellaneous utilities.
  */
 public class Utils {
-	/** Game colors. */
-	public static final Color
-		COLOR_BLACK_ALPHA     = new Color(0, 0, 0, 0.5f),
-		COLOR_WHITE_ALPHA     = new Color(255, 255, 255, 0.5f),
-		COLOR_BLUE_DIVIDER    = new Color(49, 94, 237),
-		COLOR_BLUE_BACKGROUND = new Color(74, 130, 255),
-		COLOR_BLUE_BUTTON     = new Color(40, 129, 237),
-		COLOR_ORANGE_BUTTON   = new Color(200, 90, 3),
-		COLOR_YELLOW_ALPHA    = new Color(255, 255, 0, 0.4f),
-		COLOR_WHITE_FADE      = new Color(255, 255, 255, 1f),
-		COLOR_RED_HOVER       = new Color(255, 112, 112),
-		COLOR_GREEN           = new Color(137, 201, 79),
-		COLOR_LIGHT_ORANGE    = new Color(255,192,128),
-		COLOR_LIGHT_GREEN     = new Color(128,255,128),
-		COLOR_LIGHT_BLUE      = new Color(128,128,255),
-		COLOR_GREEN_SEARCH    = new Color(173, 255, 47),
-		COLOR_DARK_GRAY       = new Color(0.3f, 0.3f, 0.3f, 1f),
-		COLOR_RED_HIGHLIGHT   = new Color(246, 154, 161),
-		COLOR_BLUE_HIGHLIGHT  = new Color(173, 216, 230);
-
 	/** Game fonts. */
 	public static UnicodeFont
 		FONT_DEFAULT, FONT_BOLD,

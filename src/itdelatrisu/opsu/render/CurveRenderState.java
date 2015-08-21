@@ -18,9 +18,9 @@
 package itdelatrisu.opsu.render;
 
 import itdelatrisu.opsu.GameImage;
-import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.beatmap.HitObject;
 import itdelatrisu.opsu.objects.curves.Vec2f;
+import itdelatrisu.opsu.ui.Colors;
 
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
@@ -127,14 +127,14 @@ public class CurveRenderState {
 			GL11.glViewport(0, 0, fbo.width, fbo.height);
 			GL11.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 			GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
-			Utils.COLOR_WHITE_FADE.a = 1.0f;
+			Colors.WHITE_FADE.a = 1.0f;
 			this.draw_curve(color, borderColor, curve);
 			color.a = 1f;
 
 			GL11.glBindTexture(GL11.GL_TEXTURE_2D, oldTex);
 			EXTFramebufferObject.glBindFramebufferEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT, oldFb);
 			GL11.glViewport(oldViewport.get(0), oldViewport.get(1), oldViewport.get(2), oldViewport.get(3));
-			Utils.COLOR_WHITE_FADE.a = alpha;
+			Colors.WHITE_FADE.a = alpha;
 		}
 
 		// draw a fullscreen quad with the texture that contains the curve

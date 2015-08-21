@@ -46,6 +46,7 @@ import itdelatrisu.opsu.render.FrameBufferCache;
 import itdelatrisu.opsu.replay.PlaybackSpeed;
 import itdelatrisu.opsu.replay.Replay;
 import itdelatrisu.opsu.replay.ReplayFrame;
+import itdelatrisu.opsu.ui.Colors;
 import itdelatrisu.opsu.ui.MenuButton;
 import itdelatrisu.opsu.ui.UI;
 import itdelatrisu.opsu.ui.animations.AnimationEquation;
@@ -475,15 +476,15 @@ public class Game extends BasicGameState {
 						GameImage.SCOREBAR_BG.getImage().getHeight(),
 						GameImage.SCOREBAR_KI.getImage().getHeight()
 				);
-				float oldAlpha = Utils.COLOR_WHITE_FADE.a;
+				float oldAlpha = Colors.WHITE_FADE.a;
 				if (timeDiff < -500)
-					Utils.COLOR_WHITE_FADE.a = (1000 + timeDiff) / 500f;
+					Colors.WHITE_FADE.a = (1000 + timeDiff) / 500f;
 				Utils.FONT_MEDIUM.drawString(
 						2 + (width / 100), retryHeight,
 						String.format("%d retries and counting...", retries),
-						Utils.COLOR_WHITE_FADE
+						Colors.WHITE_FADE
 				);
-				Utils.COLOR_WHITE_FADE.a = oldAlpha;
+				Colors.WHITE_FADE.a = oldAlpha;
 			}
 
 			if (isLeadIn())
@@ -560,7 +561,7 @@ public class Game extends BasicGameState {
 		// returning from pause screen
 		if (pauseTime > -1 && pausedMouseX > -1 && pausedMouseY > -1) {
 			// darken the screen
-			g.setColor(Utils.COLOR_BLACK_ALPHA);
+			g.setColor(Colors.BLACK_ALPHA);
 			g.fillRect(0, 0, width, height);
 
 			// draw glowing hit select circle and pulse effect

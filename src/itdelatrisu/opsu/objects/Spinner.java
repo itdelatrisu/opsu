@@ -28,6 +28,7 @@ import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
 import itdelatrisu.opsu.beatmap.HitObject;
 import itdelatrisu.opsu.states.Game;
+import itdelatrisu.opsu.ui.Colors;
 
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
@@ -183,12 +184,12 @@ public class Spinner implements GameObject {
 
 		// darken screen
 		if (Options.getSkin().isSpinnerFadePlayfield()) {
-			float oldAlpha = Utils.COLOR_BLACK_ALPHA.a;
+			float oldAlpha = Colors.BLACK_ALPHA.a;
 			if (timeDiff > 0)
-				Utils.COLOR_BLACK_ALPHA.a *= alpha;
-			g.setColor(Utils.COLOR_BLACK_ALPHA);
+				Colors.BLACK_ALPHA.a *= alpha;
+			g.setColor(Colors.BLACK_ALPHA);
 			g.fillRect(0, 0, width, height);
-			Utils.COLOR_BLACK_ALPHA.a = oldAlpha;
+			Colors.BLACK_ALPHA.a = oldAlpha;
 		}
 
 		// rpm

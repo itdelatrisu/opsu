@@ -20,10 +20,10 @@ package itdelatrisu.opsu.objects.curves;
 
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.Options;
-import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.beatmap.HitObject;
 import itdelatrisu.opsu.render.CurveRenderState;
 import itdelatrisu.opsu.skins.Skin;
+import itdelatrisu.opsu.ui.Colors;
 
 import org.lwjgl.opengl.ContextCapabilities;
 import org.lwjgl.opengl.GLContext;
@@ -116,7 +116,7 @@ public abstract class Curve {
 			Image hitCircle = GameImage.HITCIRCLE.getImage();
 			Image hitCircleOverlay = GameImage.HITCIRCLE_OVERLAY.getImage();
 			for (int i = 0; i < curve.length; i++)
-				hitCircleOverlay.drawCentered(curve[i].x, curve[i].y, Utils.COLOR_WHITE_FADE);
+				hitCircleOverlay.drawCentered(curve[i].x, curve[i].y, Colors.WHITE_FADE);
 			for (int i = 0; i < curve.length; i++)
 				hitCircle.drawCentered(curve[i].x, curve[i].y, color);
 		}

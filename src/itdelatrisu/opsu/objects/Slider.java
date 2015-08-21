@@ -31,6 +31,7 @@ import itdelatrisu.opsu.objects.curves.CircumscribedCircle;
 import itdelatrisu.opsu.objects.curves.Curve;
 import itdelatrisu.opsu.objects.curves.LinearBezier;
 import itdelatrisu.opsu.states.Game;
+import itdelatrisu.opsu.ui.Colors;
 
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
@@ -184,8 +185,8 @@ public class Slider implements GameObject {
 		float alpha = Utils.clamp(1 - fadeinScale, 0, 1);
 		boolean overlayAboveNumber = Options.getSkin().isHitCircleOverlayAboveNumber();
 
-		float oldAlpha = Utils.COLOR_WHITE_FADE.a;
-		Utils.COLOR_WHITE_FADE.a = color.a = alpha;
+		float oldAlpha = Colors.WHITE_FADE.a;
+		Colors.WHITE_FADE.a = color.a = alpha;
 		Image hitCircleOverlay = GameImage.HITCIRCLE_OVERLAY.getImage();
 		Image hitCircle = GameImage.HITCIRCLE.getImage();
 		float[] endPos = curve.pointAt(1);
@@ -195,19 +196,19 @@ public class Slider implements GameObject {
 
 		// end circle
 		hitCircle.drawCentered(endPos[0], endPos[1], color);
-		hitCircleOverlay.drawCentered(endPos[0], endPos[1], Utils.COLOR_WHITE_FADE);
+		hitCircleOverlay.drawCentered(endPos[0], endPos[1], Colors.WHITE_FADE);
 
 		// start circle
 		hitCircle.drawCentered(x, y, color);
 		if (!overlayAboveNumber)
-			hitCircleOverlay.drawCentered(x, y, Utils.COLOR_WHITE_FADE);
+			hitCircleOverlay.drawCentered(x, y, Colors.WHITE_FADE);
 
 		// ticks
 		if (ticksT != null) {
 			Image tick = GameImage.SLIDER_TICK.getImage();
 			for (int i = 0; i < ticksT.length; i++) {
 				float[] c = curve.pointAt(ticksT[i]);
-				tick.drawCentered(c[0], c[1], Utils.COLOR_WHITE_FADE);
+				tick.drawCentered(c[0], c[1], Colors.WHITE_FADE);
 			}
 		}
 		if (GameMod.HIDDEN.isActive()) {
@@ -221,7 +222,7 @@ public class Slider implements GameObject {
 			data.drawSymbolNumber(hitObject.getComboNumber(), x, y,
 			        hitCircle.getWidth() * 0.40f / data.getDefaultSymbolImage(0).getHeight(), alpha);
 		if (overlayAboveNumber)
-			hitCircleOverlay.drawCentered(x, y, Utils.COLOR_WHITE_FADE);
+			hitCircleOverlay.drawCentered(x, y, Colors.WHITE_FADE);
 
 		// repeats
 		for (int tcurRepeat = currentRepeats; tcurRepeat <= currentRepeats + 1; tcurRepeat++) {
@@ -273,16 +274,16 @@ public class Slider implements GameObject {
 
 				// "flashlight" mod: dim the screen
 				if (GameMod.FLASHLIGHT.isActive()) {
-					float oldAlphaBlack = Utils.COLOR_BLACK_ALPHA.a;
-					Utils.COLOR_BLACK_ALPHA.a = 0.75f;
-					g.setColor(Utils.COLOR_BLACK_ALPHA);
+					float oldAlphaBlack = Colors.BLACK_ALPHA.a;
+					Colors.BLACK_ALPHA.a = 0.75f;
+					g.setColor(Colors.BLACK_ALPHA);
 					g.fillRect(0, 0, containerWidth, containerHeight);
-					Utils.COLOR_BLACK_ALPHA.a = oldAlphaBlack;
+					Colors.BLACK_ALPHA.a = oldAlphaBlack;
 				}
 			}
 		}
 
-		Utils.COLOR_WHITE_FADE.a = oldAlpha;
+		Colors.WHITE_FADE.a = oldAlpha;
 	}
 
 	/**

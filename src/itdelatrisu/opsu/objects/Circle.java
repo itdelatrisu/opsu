@@ -26,6 +26,7 @@ import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.beatmap.HitObject;
 import itdelatrisu.opsu.states.Game;
+import itdelatrisu.opsu.ui.Colors;
 
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
@@ -104,21 +105,21 @@ public class Circle implements GameObject {
 			alpha = Math.min(alpha, fadeOutAlpha);
 		}
 
-		float oldAlpha = Utils.COLOR_WHITE_FADE.a;
-		Utils.COLOR_WHITE_FADE.a = color.a = alpha;
+		float oldAlpha = Colors.WHITE_FADE.a;
+		Colors.WHITE_FADE.a = color.a = alpha;
 
 		if (timeDiff >= 0 && !GameMod.HIDDEN.isActive())
 			GameImage.APPROACHCIRCLE.getImage().getScaledCopy(approachScale).drawCentered(x, y, color);
 		GameImage.HITCIRCLE.getImage().drawCentered(x, y, color);
 		boolean overlayAboveNumber = Options.getSkin().isHitCircleOverlayAboveNumber();
 		if (!overlayAboveNumber)
-			GameImage.HITCIRCLE_OVERLAY.getImage().drawCentered(x, y, Utils.COLOR_WHITE_FADE);
+			GameImage.HITCIRCLE_OVERLAY.getImage().drawCentered(x, y, Colors.WHITE_FADE);
 		data.drawSymbolNumber(hitObject.getComboNumber(), x, y,
 				GameImage.HITCIRCLE.getImage().getWidth() * 0.40f / data.getDefaultSymbolImage(0).getHeight(), alpha);
 		if (overlayAboveNumber)
-			GameImage.HITCIRCLE_OVERLAY.getImage().drawCentered(x, y, Utils.COLOR_WHITE_FADE);
+			GameImage.HITCIRCLE_OVERLAY.getImage().drawCentered(x, y, Colors.WHITE_FADE);
 
-		Utils.COLOR_WHITE_FADE.a = oldAlpha;
+		Colors.WHITE_FADE.a = oldAlpha;
 	}
 
 	/**

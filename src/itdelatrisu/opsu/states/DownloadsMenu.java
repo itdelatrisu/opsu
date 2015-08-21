@@ -37,6 +37,7 @@ import itdelatrisu.opsu.downloads.servers.DownloadServer;
 import itdelatrisu.opsu.downloads.servers.HexideServer;
 import itdelatrisu.opsu.downloads.servers.MnetworkServer;
 import itdelatrisu.opsu.downloads.servers.YaSOnlineServer;
+import itdelatrisu.opsu.ui.Colors;
 import itdelatrisu.opsu.ui.MenuButton;
 import itdelatrisu.opsu.ui.UI;
 
@@ -424,7 +425,7 @@ public class DownloadsMenu extends BasicGameState {
 		// importing beatmaps
 		if (importThread != null) {
 			// darken the screen
-			g.setColor(Utils.COLOR_BLACK_ALPHA);
+			g.setColor(Colors.BLACK_ALPHA);
 			g.fillRect(0, 0, width, height);
 
 			UI.drawLoadingProgress(g);

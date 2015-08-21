@@ -39,6 +39,7 @@ import itdelatrisu.opsu.beatmap.BeatmapSortOrder;
 import itdelatrisu.opsu.db.BeatmapDB;
 import itdelatrisu.opsu.db.ScoreDB;
 import itdelatrisu.opsu.states.ButtonMenu.MenuState;
+import itdelatrisu.opsu.ui.Colors;
 import itdelatrisu.opsu.ui.MenuButton;
 import itdelatrisu.opsu.ui.UI;
 import itdelatrisu.opsu.ui.animations.AnimatedValue;
@@ -317,10 +318,10 @@ public class SongMenu extends BasicGameState {
 		g.clearClip();
 
 		// top/bottom bars
-		g.setColor(Utils.COLOR_BLACK_ALPHA);
+		g.setColor(Colors.BLACK_ALPHA);
 		g.fillRect(0, 0, width, headerY);
 		g.fillRect(0, footerY, width, height - footerY);
-		g.setColor(Utils.COLOR_BLUE_DIVIDER);
+		g.setColor(Colors.BLUE_DIVIDER);
 		g.setLineWidth(DIVIDER_LINE_WIDTH);
 		g.drawLine(0, headerY, width, headerY);
 		g.drawLine(0, footerY, width, footerY);
@@ -353,14 +354,14 @@ public class SongMenu extends BasicGameState {
 			headerTextY += Utils.FONT_DEFAULT.getLineHeight() - 2;
 			float speedModifier = GameMod.getSpeedMultiplier();
 			Color color2 = (speedModifier == 1f) ? Color.white :
-				(speedModifier > 1f) ? Utils.COLOR_RED_HIGHLIGHT : Utils.COLOR_BLUE_HIGHLIGHT;
+				(speedModifier > 1f) ? Colors.RED_HIGHLIGHT : Colors.BLUE_HIGHLIGHT;
 			Utils.FONT_BOLD.drawString(marginX, headerTextY, songInfo[2], color2);
 			headerTextY += Utils.FONT_BOLD.getLineHeight() - 4;
 			Utils.FONT_DEFAULT.drawString(marginX, headerTextY, songInfo[3], Color.white);
 			headerTextY += Utils.FONT_DEFAULT.getLineHeight() - 4;
 			float multiplier = GameMod.getDifficultyMultiplier();
 			Color color4 = (multiplier == 1f) ? Color.white :
-				(multiplier > 1f) ? Utils.COLOR_RED_HIGHLIGHT : Utils.COLOR_BLUE_HIGHLIGHT;
+				(multiplier > 1f) ? Colors.RED_HIGHLIGHT : Colors.BLUE_HIGHLIGHT;
 			Utils.FONT_SMALL.drawString(marginX, headerTextY, songInfo[4], color4);
 		}
 
@@ -413,18 +414,18 @@ public class SongMenu extends BasicGameState {
 		float searchExtraHeight = Utils.FONT_DEFAULT.getLineHeight() * 0.7f;
 		float searchProgress = (searchTransitionTimer < SEARCH_TRANSITION_TIME) ?
 				((float) searchTransitionTimer / SEARCH_TRANSITION_TIME) : 1f;
-		float oldAlpha = Utils.COLOR_BLACK_ALPHA.a;
+		float oldAlpha = Colors.BLACK_ALPHA.a;
 		if (searchEmpty) {
 			searchRectHeight += (1f - searchProgress) * searchExtraHeight;
-			Utils.COLOR_BLACK_ALPHA.a = 0.5f - searchProgress * 0.3f;
+			Colors.BLACK_ALPHA.a = 0.5f - searchProgress * 0.3f;
 		} else {
 			searchRectHeight += searchProgress * searchExtraHeight;
-			Utils.COLOR_BLACK_ALPHA.a = 0.2f + searchProgress * 0.3f;
+			Colors.BLACK_ALPHA.a = 0.2f + searchProgress * 0.3f;
 		}
-		g.setColor(Utils.COLOR_BLACK_ALPHA);
+		g.setColor(Colors.BLACK_ALPHA);
 		g.fillRect(searchBaseX, headerY + DIVIDER_LINE_WIDTH / 2, width - searchBaseX, searchRectHeight);
-		Utils.COLOR_BLACK_ALPHA.a = oldAlpha;
-		Utils.FONT_BOLD.drawString(searchTextX, searchY, "Search:", Utils.COLOR_GREEN_SEARCH);
+		Colors.BLACK_ALPHA.a = oldAlpha;
+		Utils.FONT_BOLD.drawString(searchTextX, searchY, "Search:", Colors.GREEN_SEARCH);
 		if (searchEmpty)
 			Utils.FONT_BOLD.drawString(searchX, searchY, "Type to search!", Color.white);
 		else {
@@ -449,14 +450,14 @@ public class SongMenu extends BasicGameState {
 					startIndex += startNode.beatmapIndex;
 				UI.drawScrollbar(g, startIndex, totalNodes, MAX_SONG_BUTTONS,
 						width, headerY + DIVIDER_LINE_WIDTH / 2, 0, buttonOffset - DIVIDER_LINE_WIDTH * 1.5f, buttonOffset,
-						Utils.COLOR_BLACK_ALPHA, Color.white, true);
+						Colors.BLACK_ALPHA, Color.white, true);
 			}
 		}
 
 		// reloading beatmaps
 		if (reloadThread != null) {
 			// darken the screen
-			g.setColor(Utils.COLOR_BLACK_ALPHA);
+			g.setColor(Colors.BLACK_ALPHA);
 			g.fillRect(0, 0, width, height);
 
 			UI.drawLoadingProgress(g);

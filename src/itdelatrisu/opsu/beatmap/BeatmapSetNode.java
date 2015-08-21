@@ -22,6 +22,7 @@ import itdelatrisu.opsu.GameData.Grade;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.Utils;
+import itdelatrisu.opsu.ui.Colors;
 
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Image;
@@ -78,10 +79,10 @@ public class BeatmapSetNode {
 				bgColor = Color.white;
 				textColor = Options.getSkin().getSongSelectActiveTextColor();
 			} else
-				bgColor = Utils.COLOR_BLUE_BUTTON;
+				bgColor = Colors.BLUE_BUTTON;
 			beatmap = beatmapSet.get(beatmapIndex);
 		} else {
-			bgColor = Utils.COLOR_ORANGE_BUTTON;
+			bgColor = Colors.ORANGE_BUTTON;
 			beatmap = beatmapSet.get(0);
 		}
 		bg.draw(x, y, bgColor);

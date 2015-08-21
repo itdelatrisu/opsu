@@ -26,6 +26,7 @@ import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
+import itdelatrisu.opsu.ui.Colors;
 import itdelatrisu.opsu.ui.MenuButton;
 import itdelatrisu.opsu.ui.UI;
 
@@ -248,7 +249,7 @@ public class OptionsMenu extends BasicGameState {
 
 		// key entry state
 		if (keyEntryLeft || keyEntryRight) {
-			g.setColor(Utils.COLOR_BLACK_ALPHA);
+			g.setColor(Colors.BLACK_ALPHA);
 			g.fillRect(0, 0, width, height);
 			g.setColor(Color.white);
 			String prompt = (keyEntryLeft) ?
@@ -420,7 +421,7 @@ public class OptionsMenu extends BasicGameState {
 		Utils.FONT_LARGE.drawString(width / 30, y, option.getName(), color);
 		Utils.FONT_LARGE.drawString(width / 2, y, option.getValueString(), color);
 		Utils.FONT_SMALL.drawString(width / 30, y + textHeight, option.getDescription(), color);
-		g.setColor(Utils.COLOR_WHITE_ALPHA);
+		g.setColor(Colors.WHITE_ALPHA);
 		g.drawLine(0, y + textHeight, width, y + textHeight);
 	}
 

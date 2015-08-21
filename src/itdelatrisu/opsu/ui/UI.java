@@ -185,7 +185,7 @@ public class UI {
 			filter = Color.white;
 			textColor = Color.black;
 		} else {
-			filter = (isHover) ? Utils.COLOR_RED_HOVER : Color.red;
+			filter = (isHover) ? Colors.RED_HOVER : Color.red;
 			textColor = Color.white;
 		}
 		tabImage.drawCentered(x, y, filter);
@@ -404,21 +404,21 @@ public class UI {
 
 		// draw tooltip text inside a filled rectangle
 		float alpha = tooltipAlpha.getValue();
-		float oldAlpha = Utils.COLOR_BLACK_ALPHA.a;
-		Utils.COLOR_BLACK_ALPHA.a = alpha;
-		g.setColor(Utils.COLOR_BLACK_ALPHA);
-		Utils.COLOR_BLACK_ALPHA.a = oldAlpha;
+		float oldAlpha = Colors.BLACK_ALPHA.a;
+		Colors.BLACK_ALPHA.a = alpha;
+		g.setColor(Colors.BLACK_ALPHA);
+		Colors.BLACK_ALPHA.a = oldAlpha;
 		g.fillRect(x, y, textWidth, textHeight);
-		oldAlpha = Utils.COLOR_DARK_GRAY.a;
-		Utils.COLOR_DARK_GRAY.a = alpha;
-		g.setColor(Utils.COLOR_DARK_GRAY);
+		oldAlpha = Colors.DARK_GRAY.a;
+		Colors.DARK_GRAY.a = alpha;
+		g.setColor(Colors.DARK_GRAY);
 		g.setLineWidth(1);
 		g.drawRect(x, y, textWidth, textHeight);
-		Utils.COLOR_DARK_GRAY.a = oldAlpha;
-		oldAlpha = Utils.COLOR_WHITE_ALPHA.a;
-		Utils.COLOR_WHITE_ALPHA.a = alpha;
-		Utils.FONT_SMALL.drawString(x + textMarginX, y, tooltip, Utils.COLOR_WHITE_ALPHA);
-		Utils.COLOR_WHITE_ALPHA.a = oldAlpha;
+		Colors.DARK_GRAY.a = oldAlpha;
+		oldAlpha = Colors.WHITE_ALPHA.a;
+		Colors.WHITE_ALPHA.a = alpha;
+		Utils.FONT_SMALL.drawString(x + textMarginX, y, tooltip, Colors.WHITE_ALPHA);
+		Colors.WHITE_ALPHA.a = oldAlpha;
 	}
 
 	/**
@@ -474,17 +474,17 @@ public class UI {
 			alpha -= 1 - ((BAR_NOTIFICATION_TIME - barNotifTimer) / (BAR_NOTIFICATION_TIME * 0.1f));
 		int midX = container.getWidth() / 2, midY = container.getHeight() / 2;
 		float barHeight = Utils.FONT_LARGE.getLineHeight() * (1f + 0.6f * Math.min(barNotifTimer * 15f / BAR_NOTIFICATION_TIME, 1f));
-		float oldAlphaB = Utils.COLOR_BLACK_ALPHA.a, oldAlphaW = Utils.COLOR_WHITE_ALPHA.a;
-		Utils.COLOR_BLACK_ALPHA.a *= alpha;
-		Utils.COLOR_WHITE_ALPHA.a = alpha;
-		g.setColor(Utils.COLOR_BLACK_ALPHA);
+		float oldAlphaB = Colors.BLACK_ALPHA.a, oldAlphaW = Colors.WHITE_ALPHA.a;
+		Colors.BLACK_ALPHA.a *= alpha;
+		Colors.WHITE_ALPHA.a = alpha;
+		g.setColor(Colors.BLACK_ALPHA);
 		g.fillRect(0, midY - barHeight / 2f, container.getWidth(), barHeight);
 		Utils.FONT_LARGE.drawString(
 				midX - Utils.FONT_LARGE.getWidth(barNotif) / 2f,
 				midY - Utils.FONT_LARGE.getLineHeight() / 2.2f,
-				barNotif, Utils.COLOR_WHITE_ALPHA);
-		Utils.COLOR_BLACK_ALPHA.a = oldAlphaB;
-		Utils.COLOR_WHITE_ALPHA.a = oldAlphaW;
+				barNotif, Colors.WHITE_ALPHA);
+		Colors.BLACK_ALPHA.a = oldAlphaB;
+		Colors.WHITE_ALPHA.a = oldAlphaW;
 	}
 
 	/**

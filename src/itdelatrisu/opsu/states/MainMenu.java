@@ -31,6 +31,7 @@ import itdelatrisu.opsu.beatmap.BeatmapSetList;
 import itdelatrisu.opsu.beatmap.BeatmapSetNode;
 import itdelatrisu.opsu.downloads.Updater;
 import itdelatrisu.opsu.states.ButtonMenu.MenuState;
+import itdelatrisu.opsu.ui.Colors;
 import itdelatrisu.opsu.ui.MenuButton;
 import itdelatrisu.opsu.ui.MenuButton.Expand;
 import itdelatrisu.opsu.ui.UI;
@@ -246,12 +247,12 @@ public class MainMenu extends BasicGameState {
 		}
 
 		// top/bottom horizontal bars
-		float oldAlpha = Utils.COLOR_BLACK_ALPHA.a;
-		Utils.COLOR_BLACK_ALPHA.a = 0.2f;
-		g.setColor(Utils.COLOR_BLACK_ALPHA);
+		float oldAlpha = Colors.BLACK_ALPHA.a;
+		Colors.BLACK_ALPHA.a = 0.2f;
+		g.setColor(Colors.BLACK_ALPHA);
 		g.fillRect(0, 0, width, height / 9f);
 		g.fillRect(0, height * 8 / 9f, width, height / 9f);
-		Utils.COLOR_BLACK_ALPHA.a = oldAlpha;
+		Colors.BLACK_ALPHA.a = oldAlpha;
 
 		// draw downloads button
 		downloadsButton.draw();
