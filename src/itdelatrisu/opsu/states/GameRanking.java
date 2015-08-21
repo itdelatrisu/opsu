@@ -243,11 +243,10 @@ public class GameRanking extends BasicGameState {
 	 */
 	private void returnToSongMenu() {
 		SoundController.playSound(SoundEffect.MENUBACK);
-		if (data.isGameplay()) {
-			SongMenu songMenu = (SongMenu) game.getState(Opsu.STATE_SONGMENU);
-			songMenu.resetGameDataOnLoad();
+		SongMenu songMenu = (SongMenu) game.getState(Opsu.STATE_SONGMENU);
+		if (data.isGameplay())
 			songMenu.resetTrackOnLoad();
-		}
+		songMenu.resetGameDataOnLoad();
 		if (UI.getCursor().isSkinned())
 			UI.getCursor().reset();
 		game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));

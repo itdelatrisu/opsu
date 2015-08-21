@@ -1318,8 +1318,12 @@ public class SongMenu extends BasicGameState {
 			return;
 
 		SoundController.playSound(SoundEffect.MENUHIT);
-		MultiClip.destroyExtraClips();
 		Beatmap beatmap = MusicController.getBeatmap();
+		if (focusNode == null || beatmap != focusNode.getBeatmapSet().get(focusNode.beatmapIndex)) {
+			UI.sendBarNotification("Unable to load the beatmap audio.");
+			return;
+		}
+		MultiClip.destroyExtraClips();
 		Game gameState = (Game) game.getState(Opsu.STATE_GAME);
 		gameState.loadBeatmap(beatmap);
 		gameState.setRestart(Game.Restart.NEW);

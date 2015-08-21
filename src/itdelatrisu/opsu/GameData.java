@@ -1472,7 +1472,7 @@ public class GameData {
 
 	/**
 	 * Sets whether or not this object is used for gameplay.
-	 * @return true if gameplay, false if score viewing
+	 * @param gameplay true if gameplay, false if score viewing
 	 */
 	public void setGameplay(boolean gameplay) { this.isGameplay = gameplay; }
 

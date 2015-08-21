@@ -22,6 +22,7 @@ import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.beatmap.Beatmap;
 import itdelatrisu.opsu.beatmap.BeatmapParser;
+import itdelatrisu.opsu.ui.UI;
 
 import java.io.File;
 import java.io.IOException;
@@ -41,6 +42,7 @@ import org.newdawn.slick.MusicListener;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.openal.Audio;
 import org.newdawn.slick.openal.SoundStore;
+import org.newdawn.slick.util.ResourceLoader;
 import org.tritonus.share.sampled.file.TAudioFileFormat;
 
 /**
@@ -87,6 +89,13 @@ public class MusicController {
 	public static void play(final Beatmap beatmap, final boolean loop, final boolean preview) {
 		// new track: load and play
 		if (lastBeatmap == null || !beatmap.audioFilename.equals(lastBeatmap.audioFilename)) {
+			final File audioFile = beatmap.audioFilename;
+			if (!audioFile.isFile() && !ResourceLoader.resourceExists(audioFile.getPath())) {
+				UI.sendBarNotification(String.format("Could not find track '%s'.", audioFile.getName()));
+				System.out.println(beatmap);
+				return;
+			}
+
 			reset();
 			System.gc();
 
@@ -96,7 +105,7 @@ public class MusicController {
 				trackLoader = new Thread() {
 					@Override
 					public void run() {
-						loadTrack(beatmap.audioFilename, (preview) ? beatmap.previewTime : 0, loop);
+						loadTrack(audioFile, (preview) ? beatmap.previewTime : 0, loop);
 					}
 				};
 				trackLoader.start();

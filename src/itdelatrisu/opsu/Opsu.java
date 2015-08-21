@@ -201,12 +201,9 @@ public class Opsu extends StateBasedGame {
 			SongMenu songMenu = (SongMenu) this.getState(Opsu.STATE_SONGMENU);
 			if (id == STATE_GAMERANKING) {
 				GameData data = ((GameRanking) this.getState(Opsu.STATE_GAMERANKING)).getGameData();
-				if (data != null && data.isGameplay()) {
-					songMenu.resetGameDataOnLoad();
+				if (data != null && data.isGameplay())
 					songMenu.resetTrackOnLoad();
-				}
 			} else {
-				songMenu.resetGameDataOnLoad();
 				if (id == STATE_GAME) {
 					MusicController.pause();
 					MusicController.resume();
@@ -215,6 +212,7 @@ public class Opsu extends StateBasedGame {
 			}
 			if (UI.getCursor().isSkinned())
 				UI.getCursor().reset();
+			songMenu.resetGameDataOnLoad();
 			this.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 			return false;
 		}
