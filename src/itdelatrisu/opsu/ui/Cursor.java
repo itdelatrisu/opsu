@@ -107,26 +107,23 @@ public class Cursor {
 	public void draw(int mouseX, int mouseY, boolean mousePressed) {
 		// determine correct cursor image
 		Image cursor = null, cursorMiddle = null, cursorTrail = null;
-		boolean skinned = GameImage.CURSOR.hasBeatmapSkinImage();
+		boolean beatmapSkinned = GameImage.CURSOR.hasBeatmapSkinImage();
 		boolean newStyle, hasMiddle;
-		if (skinned) {
+		Skin skin = Options.getSkin();
+		if (beatmapSkinned) {
 			newStyle = true;  // osu! currently treats all beatmap cursors as new-style cursors
 			hasMiddle = GameImage.CURSOR_MIDDLE.hasBeatmapSkinImage();
 		} else
 			newStyle = hasMiddle = Options.isNewCursorEnabled();
-		if (skinned || newStyle) {
+		if (newStyle || beatmapSkinned) {
 			cursor = GameImage.CURSOR.getImage();
 			cursorTrail = GameImage.CURSOR_TRAIL.getImage();
 		} else {
-			cursor = GameImage.CURSOR_OLD.getImage();
-			cursorTrail = GameImage.CURSOR_TRAIL_OLD.getImage();
+			cursor = GameImage.CURSOR.hasGameSkinImage() ? GameImage.CURSOR.getImage() : GameImage.CURSOR_OLD.getImage();
+			cursorTrail = GameImage.CURSOR_TRAIL.hasGameSkinImage() ? GameImage.CURSOR_TRAIL.getImage() : GameImage.CURSOR_TRAIL_OLD.getImage();
 		}
 		if (hasMiddle)
 			cursorMiddle = GameImage.CURSOR_MIDDLE.getImage();
-
-		int removeCount = 0;
-		float FPSmod = Math.max(container.getFPS(), 1) / 60f;
-		Skin skin = Options.getSkin();
 
 		// scale cursor
 		float cursorScale = Options.getCursorScale();
@@ -138,6 +135,8 @@ public class Cursor {
 		}
 
 		// TODO: use an image buffer
+		int removeCount = 0;
+		float FPSmod = Math.max(container.getFPS(), 1) / 60f;
 		if (newStyle) {
 			// new style: add all points between cursor movements
 			if (lastX < 0) {

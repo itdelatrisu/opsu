@@ -371,7 +371,7 @@ public enum GameImage {
 	 * Whether or not the image is skinnable by a beatmap.
 	 * These images are typically related to gameplay.
 	 */
-	private final boolean skinnable;
+	private final boolean beatmapSkinnable;
 
 	/** Whether or not to preload the image when the program starts. */
 	private final boolean preload;
@@ -381,6 +381,9 @@ public enum GameImage {
 
 	/** The default image array. */
 	private Image[] defaultImages;
+
+	/** Whether the image is currently skinned by a game skin. */
+	private boolean isSkinned = false;
 
 	/** The beatmap skin image (optional, temporary). */
 	private Image skinImage;
@@ -429,6 +432,7 @@ public enum GameImage {
 		for (GameImage img : GameImage.values()) {
 			img.defaultImage = img.skinImage = null;
 			img.defaultImages = img.skinImages = null;
+			img.isSkinned = false;
 		}
 	}
 
@@ -519,21 +523,21 @@ public enum GameImage {
 	 * Constructor for general images.
 	 * @param filename the image file name
 	 * @param type the file types (separated by '|')
-	 * @param skinnable whether or not the image is beatmap-skinnable
+	 * @param beatmapSkinnable whether or not the image is beatmap-skinnable
 	 * @param preload whether or not to preload the image
 	 */
-	GameImage(String filename, String type, boolean skinnable, boolean preload) {
+	GameImage(String filename, String type, boolean beatmapSkinnable, boolean preload) {
 		this.filename = filename;
 		this.type = getType(type);
-		this.skinnable = skinnable;
+		this.beatmapSkinnable = beatmapSkinnable;
 		this.preload = preload;
 	}
 
 	/**
 	 * Returns whether or not the image is beatmap-skinnable.
-	 * @return true if skinnable
+	 * @return true if beatmap-skinnable
 	 */
-	public boolean isBeatmapSkinnable() { return skinnable; }
+	public boolean isBeatmapSkinnable() { return beatmapSkinnable; }
 
 	/**
 	 * Returns whether or not to preload the image when the program starts.
@@ -610,16 +614,26 @@ public enum GameImage {
 		// try to load multiple images
 		File skinDir = Options.getSkin().getDirectory();
 		if (filenameFormat != null) {
-			if ((skinDir != null && ((defaultImages = loadImageArray(skinDir)) != null)) ||
-			    ((defaultImages = loadImageArray(null)) != null)) {
+			if (skinDir != null && ((defaultImages = loadImageArray(skinDir)) != null)) {
+				isSkinned = true;
+				process();
+				return;
+			}
+			if ((defaultImages = loadImageArray(null)) != null) {
+				isSkinned = false;
 				process();
 				return;
 			}
 		}
 
 		// try to load a single image
-		if ((skinDir != null && ((defaultImage = loadImageSingle(skinDir)) != null)) ||
-		    ((defaultImage = loadImageSingle(null)) != null)) {
+		if (skinDir != null && ((defaultImage = loadImageSingle(skinDir)) != null)) {
+			isSkinned = true;
+			process();
+			return;
+		}
+		if ((defaultImage = loadImageSingle(null)) != null) {
+			isSkinned = false;
 			process();
 			return;
 		}
@@ -715,6 +729,12 @@ public enum GameImage {
 		}
 		return null;
 	}
+
+	/**
+	 * Returns whether the default image loaded is part of a game skin.
+	 * @return true if a game skin image is loaded, false if the default image is loaded
+	 */
+	public boolean hasGameSkinImage() { return isSkinned; }
 
 	/**
 	 * Returns whether a beatmap skin image is currently loaded.

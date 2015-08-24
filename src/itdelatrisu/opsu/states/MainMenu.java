@@ -220,7 +220,7 @@ public class MainMenu extends BasicGameState {
 		float centerOffsetX = width / 5f;
 		logoOpen = new AnimatedValue(400, 0, centerOffsetX, AnimationEquation.OUT_QUAD);
 		logoClose = new AnimatedValue(2200, centerOffsetX, 0, AnimationEquation.OUT_QUAD);
-		logoButtonAlpha = new AnimatedValue(300, 0f, 1f, AnimationEquation.LINEAR);
+		logoButtonAlpha = new AnimatedValue(200, 0f, 1f, AnimationEquation.LINEAR);
 
 		reset();
 	}
