@@ -210,7 +210,7 @@ public class Opsu extends StateBasedGame {
 				} else
 					songMenu.resetTrackOnLoad();
 			}
-			if (UI.getCursor().isSkinned())
+			if (UI.getCursor().isBeatmapSkinned())
 				UI.getCursor().reset();
 			songMenu.resetGameDataOnLoad();
 			this.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));

@@ -37,8 +37,8 @@ public enum GameImage {
 	CURSOR ("cursor", "png"),
 	CURSOR_MIDDLE ("cursormiddle", "png"),
 	CURSOR_TRAIL ("cursortrail", "png"),
-	CURSOR_OLD ("cursor2", "png", false, false),
-	CURSOR_TRAIL_OLD ("cursortrail2", "png", false, false),
+	CURSOR_OLD ("cursor2", "png", false, false),  // custom
+	CURSOR_TRAIL_OLD ("cursortrail2", "png", false, false),  // custom
 
 	// Game
 	SECTION_PASS ("section-pass", "png"),
@@ -496,7 +496,7 @@ public enum GameImage {
 	}
 
 	/**
-	 * Constructor for game-related images (skinnable and preloaded).
+	 * Constructor for game-related images (beatmap-skinnable and preloaded).
 	 * @param filename the image file name
 	 * @param type the file types (separated by '|')
 	 */
@@ -505,7 +505,7 @@ public enum GameImage {
 	}
 
 	/**
-	 * Constructor for an array of game-related images (skinnable and preloaded).
+	 * Constructor for an array of game-related images (beatmap-skinnable and preloaded).
 	 * @param filename the image file name
 	 * @param filenameFormat the formatted file name string (for loading multiple images)
 	 * @param type the file types (separated by '|')
@@ -519,7 +519,7 @@ public enum GameImage {
 	 * Constructor for general images.
 	 * @param filename the image file name
 	 * @param type the file types (separated by '|')
-	 * @param skinnable whether or not the image is skinnable
+	 * @param skinnable whether or not the image is beatmap-skinnable
 	 * @param preload whether or not to preload the image
 	 */
 	GameImage(String filename, String type, boolean skinnable, boolean preload) {
@@ -530,10 +530,10 @@ public enum GameImage {
 	}
 
 	/**
-	 * Returns whether or not the image is skinnable.
+	 * Returns whether or not the image is beatmap-skinnable.
 	 * @return true if skinnable
 	 */
-	public boolean isSkinnable() { return skinnable; }
+	public boolean isBeatmapSkinnable() { return skinnable; }
 
 	/**
 	 * Returns whether or not to preload the image when the program starts.
@@ -543,7 +543,7 @@ public enum GameImage {
 
 	/**
 	 * Returns the image associated with this resource.
-	 * The skin image takes priority over the default image.
+	 * The beatmap skin image takes priority over the default image.
 	 */
 	public Image getImage() {
 		setDefaultImage();
@@ -564,7 +564,7 @@ public enum GameImage {
 
 	/**
 	 * Returns the image array associated with this resource.
-	 * The skin images takes priority over the default images.
+	 * The beatmap skin images takes priority over the default images.
 	 */
 	public Image[] getImages() {
 		setDefaultImage();
@@ -573,7 +573,7 @@ public enum GameImage {
 
 	/**
 	 * Sets the image associated with this resource to another image.
-	 * The skin image takes priority over the default image.
+	 * The beatmap skin image takes priority over the default image.
 	 * @param img the image to set
 	 */
 	public void setImage(Image img) {
@@ -585,7 +585,7 @@ public enum GameImage {
 
 	/**
 	 * Sets an image associated with this resource to another image.
-	 * The skin image takes priority over the default image.
+	 * The beatmap skin image takes priority over the default image.
 	 * @param img the image to set
 	 * @param index the index in the image array
 	 */
@@ -628,17 +628,17 @@ public enum GameImage {
 	}
 
 	/**
-	 * Sets the associated skin image.
+	 * Sets the associated beatmap skin image.
 	 * If the path does not contain the image, the default image is used.
 	 * @param dir the image directory to search
 	 * @return true if a new skin image is loaded, false otherwise
 	 */
-	public boolean setSkinImage(File dir) {
+	public boolean setBeatmapSkinImage(File dir) {
 		if (dir == null)
 			return false;
 
 		// destroy the existing images, if any
-		destroySkinImage();
+		destroyBeatmapSkinImage();
 
 		// beatmap skins disabled
 		if (Options.isBeatmapSkinIgnored())
@@ -717,21 +717,21 @@ public enum GameImage {
 	}
 
 	/**
-	 * Returns whether a skin image is currently loaded.
-	 * @return true if skin image exists
+	 * Returns whether a beatmap skin image is currently loaded.
+	 * @return true if a beatmap skin image exists
 	 */
-	public boolean hasSkinImage() { return (skinImage != null && !skinImage.isDestroyed()); }
+	public boolean hasBeatmapSkinImage() { return (skinImage != null && !skinImage.isDestroyed()); }
 
 	/**
-	 * Returns whether skin images are currently loaded.
-	 * @return true if any skin image exists
+	 * Returns whether beatmap skin images are currently loaded.
+	 * @return true if any beatmap skin image exists
 	 */
-	public boolean hasSkinImages() { return (skinImages != null); }
+	public boolean hasBeatmapSkinImages() { return (skinImages != null); }
 
 	/**
-	 * Destroys the associated skin image(s), if any.
+	 * Destroys the associated beatmap skin image(s), if any.
 	 */
-	public void destroySkinImage() {
+	public void destroyBeatmapSkinImage() {
 		if (skinImage == null && skinImages == null)
 			return;
 		try {
@@ -748,7 +748,7 @@ public enum GameImage {
 				skinImages = null;
 			}
 		} catch (SlickException e) {
-			ErrorHandler.error(String.format("Failed to destroy skin images for '%s'.", this.name()), e, true);
+			ErrorHandler.error(String.format("Failed to destroy beatmap skin images for '%s'.", this.name()), e, true);
 		}
 	}
 

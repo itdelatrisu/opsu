@@ -107,11 +107,11 @@ public class Cursor {
 	public void draw(int mouseX, int mouseY, boolean mousePressed) {
 		// determine correct cursor image
 		Image cursor = null, cursorMiddle = null, cursorTrail = null;
-		boolean skinned = GameImage.CURSOR.hasSkinImage();
+		boolean skinned = GameImage.CURSOR.hasBeatmapSkinImage();
 		boolean newStyle, hasMiddle;
 		if (skinned) {
 			newStyle = true;  // osu! currently treats all beatmap cursors as new-style cursors
-			hasMiddle = GameImage.CURSOR_MIDDLE.hasSkinImage();
+			hasMiddle = GameImage.CURSOR_MIDDLE.hasBeatmapSkinImage();
 		} else
 			newStyle = hasMiddle = Options.isNewCursorEnabled();
 		if (skinned || newStyle) {
@@ -253,13 +253,13 @@ public class Cursor {
 	}
 
 	/**
-	 * Resets all cursor data and skins.
+	 * Resets all cursor data and beatmap skins.
 	 */
 	public void reset() {
 		// destroy skin images
-		GameImage.CURSOR.destroySkinImage();
-		GameImage.CURSOR_MIDDLE.destroySkinImage();
-		GameImage.CURSOR_TRAIL.destroySkinImage();
+		GameImage.CURSOR.destroyBeatmapSkinImage();
+		GameImage.CURSOR_MIDDLE.destroyBeatmapSkinImage();
+		GameImage.CURSOR_TRAIL.destroyBeatmapSkinImage();
 
 		// reset locations
 		resetLocations();
@@ -282,10 +282,10 @@ public class Cursor {
 	/**
 	 * Returns whether or not the cursor is skinned.
 	 */
-	public boolean isSkinned() {
-		return (GameImage.CURSOR.hasSkinImage() ||
-		        GameImage.CURSOR_MIDDLE.hasSkinImage() ||
-		        GameImage.CURSOR_TRAIL.hasSkinImage());
+	public boolean isBeatmapSkinned() {
+		return (GameImage.CURSOR.hasBeatmapSkinImage() ||
+		        GameImage.CURSOR_MIDDLE.hasBeatmapSkinImage() ||
+		        GameImage.CURSOR_TRAIL.hasBeatmapSkinImage());
 	}
 
 	/**

@@ -128,8 +128,8 @@ public class Slider implements GameObject {
 		followRadius = diameter / 2 * 3f;
 
 		// slider ball
-		if (GameImage.SLIDER_BALL.hasSkinImages() ||
-		    (!GameImage.SLIDER_BALL.hasSkinImage() && GameImage.SLIDER_BALL.getImages() != null))
+		if (GameImage.SLIDER_BALL.hasBeatmapSkinImages() ||
+		    (!GameImage.SLIDER_BALL.hasBeatmapSkinImage() && GameImage.SLIDER_BALL.getImages() != null))
 			sliderBallImages = GameImage.SLIDER_BALL.getImages();
 		else
 			sliderBallImages = new Image[]{ GameImage.SLIDER_BALL.getImage() };

@@ -1424,9 +1424,9 @@ public class Game extends BasicGameState {
 		// set images
 		File parent = beatmap.getFile().getParentFile();
 		for (GameImage img : GameImage.values()) {
-			if (img.isSkinnable()) {
+			if (img.isBeatmapSkinnable()) {
 				img.setDefaultImage();
-				img.setSkinImage(parent);
+				img.setBeatmapSkinImage(parent);
 			}
 		}
 

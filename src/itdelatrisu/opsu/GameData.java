@@ -132,7 +132,7 @@ public class GameData {
 				return menuImage;
 
 			Image img = getSmallImage();
-			if (!small.hasSkinImage())  // save default image only
+			if (!small.hasBeatmapSkinImage())  // save default image only
 				this.menuImage = img;
 			return img;
 		}
@@ -408,8 +408,8 @@ public class GameData {
 		// gameplay-specific images
 		if (isGameplay()) {
 			// combo burst images
-			if (GameImage.COMBO_BURST.hasSkinImages() ||
-			    (!GameImage.COMBO_BURST.hasSkinImage() && GameImage.COMBO_BURST.getImages() != null))
+			if (GameImage.COMBO_BURST.hasBeatmapSkinImages() ||
+			    (!GameImage.COMBO_BURST.hasBeatmapSkinImage() && GameImage.COMBO_BURST.getImages() != null))
 				comboBurstImages = GameImage.COMBO_BURST.getImages();
 			else
 				comboBurstImages = new Image[]{ GameImage.COMBO_BURST.getImage() };

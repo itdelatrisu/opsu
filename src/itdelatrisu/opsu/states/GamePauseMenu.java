@@ -87,10 +87,10 @@ public class GamePauseMenu extends BasicGameState {
 
 		// don't draw default background if button skinned and background unskinned
 		boolean buttonsSkinned =
-			GameImage.PAUSE_CONTINUE.hasSkinImage() ||
-			GameImage.PAUSE_RETRY.hasSkinImage() ||
-			GameImage.PAUSE_BACK.hasSkinImage();
-		if (!buttonsSkinned || bg.hasSkinImage())
+			GameImage.PAUSE_CONTINUE.hasBeatmapSkinImage() ||
+			GameImage.PAUSE_RETRY.hasBeatmapSkinImage() ||
+			GameImage.PAUSE_BACK.hasBeatmapSkinImage();
+		if (!buttonsSkinned || bg.hasBeatmapSkinImage())
 			bg.getImage().draw();
 		else
 			g.setBackground(Color.black);
@@ -134,7 +134,7 @@ public class GamePauseMenu extends BasicGameState {
 				SoundController.playSound(SoundEffect.MENUBACK);
 				((SongMenu) game.getState(Opsu.STATE_SONGMENU)).resetGameDataOnLoad();
 				MusicController.playAt(MusicController.getBeatmap().previewTime, true);
-				if (UI.getCursor().isSkinned())
+				if (UI.getCursor().isBeatmapSkinned())
 					UI.getCursor().reset();
 				game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 			} else {
@@ -188,7 +188,7 @@ public class GamePauseMenu extends BasicGameState {
 				MusicController.playAt(MusicController.getBeatmap().previewTime, true);
 			else
 				MusicController.resume();
-			if (UI.getCursor().isSkinned())
+			if (UI.getCursor().isBeatmapSkinned())
 				UI.getCursor().reset();
 			game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 		}

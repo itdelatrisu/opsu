@@ -427,7 +427,7 @@ public class Utils {
 		if (str.length() != 0)
 			list.add(str);
 		return list;
-    }
+	}
 
 	/**
 	 * Returns a the contents of a URL as a string.

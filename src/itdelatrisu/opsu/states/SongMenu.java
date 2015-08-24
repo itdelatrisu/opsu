@@ -1006,8 +1006,8 @@ public class SongMenu extends BasicGameState {
 
 			// destroy skin images, if any
 			for (GameImage img : GameImage.values()) {
-				if (img.isSkinnable())
-					img.destroySkinImage();
+				if (img.isBeatmapSkinnable())
+					img.destroyBeatmapSkinImage();
 			}
 
 			// reload scores
@@ -1333,7 +1333,7 @@ public class SongMenu extends BasicGameState {
 				if (fullReload) {
 					// clear the beatmap cache
 					BeatmapDB.clearDatabase();
-	
+
 					// invoke unpacker
 					OszUnpacker.unpackAllFiles(Options.getOSZDir(), beatmapDir);
 				}

@@ -247,7 +247,7 @@ public class GameRanking extends BasicGameState {
 		if (data.isGameplay())
 			songMenu.resetTrackOnLoad();
 		songMenu.resetGameDataOnLoad();
-		if (UI.getCursor().isSkinned())
+		if (UI.getCursor().isBeatmapSkinned())
 			UI.getCursor().reset();
 		game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 	}
