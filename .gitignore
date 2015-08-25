@@ -21,6 +21,11 @@
 .idea/
 *.iml
 *.iws
+*.ipr
+
+# Gradle
+.gradle
+build/
 
 Thumbs.db
 /target

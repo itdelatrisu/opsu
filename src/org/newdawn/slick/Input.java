@@ -1078,10 +1078,10 @@ public class Input {
 				throw new SlickException("Unable to create controller - no jinput found - add jinput.jar to your classpath");
 			}
 			throw new SlickException("Unable to create controllers");
-		} catch (NoClassDefFoundError e) {
+		} catch (NoClassDefFoundError | UnsatisfiedLinkError e) {
 			// forget it, no jinput availble
 		}
-	}
+    }
 	
 	/**
 	 * Notification from an event handle that an event has been consumed

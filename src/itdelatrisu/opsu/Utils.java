@@ -80,7 +80,7 @@ public class Utils {
 		24, 25, 26, 27, 28, 29, 30, 31, 58, 42, 63, 92, 47
 	};
 	static {
-	    Arrays.sort(illegalChars);
+		Arrays.sort(illegalChars);
 	}
 
 	// game-related variables
@@ -323,15 +323,15 @@ public class Utils {
 			return null;
 
 		boolean doReplace = (replace > 0 && Arrays.binarySearch(illegalChars, replace) < 0);
-	    StringBuilder cleanName = new StringBuilder();
-	    for (int i = 0, n = badFileName.length(); i < n; i++) {
-	        int c = badFileName.charAt(i);
-	        if (Arrays.binarySearch(illegalChars, c) < 0)
-	            cleanName.append((char) c);
-	        else if (doReplace)
-	        	cleanName.append(replace);
-	    }
-	    return cleanName.toString();
+		StringBuilder cleanName = new StringBuilder();
+		for (int i = 0, n = badFileName.length(); i < n; i++) {
+			int c = badFileName.charAt(i);
+			if (Arrays.binarySearch(illegalChars, c) < 0)
+				cleanName.append((char) c);
+			else if (doReplace)
+				cleanName.append(replace);
+		}
+		return cleanName.toString();
 	}
 
 	/**
@@ -584,5 +584,12 @@ public class Utils {
 	 */
 	public static boolean parseBoolean(String s) {
 		return (Integer.parseInt(s) == 1);
+	}
+
+	/**
+	 * Linear interpolation of a and b at t.
+	 */
+	public static float lerp(float a, float b, float t) {
+		return a * (1 - t) + b * t;
 	}
 }
