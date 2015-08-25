@@ -33,7 +33,6 @@ import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL14;
 import org.lwjgl.opengl.GL15;
 import org.lwjgl.opengl.GL20;
-import org.lwjgl.opengl.GL30;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.util.Log;
@@ -396,7 +395,7 @@ public class CurveRenderState {
 				buff.flip();
 				GL11.glBindTexture(GL11.GL_TEXTURE_1D, gradientTexture);
 				GL11.glTexImage1D(GL11.GL_TEXTURE_1D, 0, GL11.GL_RGBA, slider.getWidth(), 0, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, buff);
-				GL30.glGenerateMipmap(GL11.GL_TEXTURE_1D);
+				EXTFramebufferObject.glGenerateMipmapEXT(GL11.GL_TEXTURE_1D);
 			}
 		}
 
@@ -409,12 +408,12 @@ public class CurveRenderState {
 				program = GL20.glCreateProgram();
 				int vtxShdr = GL20.glCreateShader(GL20.GL_VERTEX_SHADER);
 				int frgShdr = GL20.glCreateShader(GL20.GL_FRAGMENT_SHADER);
-				GL20.glShaderSource(vtxShdr, "#version 130\n"
+				GL20.glShaderSource(vtxShdr, "#version 110\n"
 						+ "\n"
-						+ "in vec4 in_position;\n"
-						+ "in vec2 in_tex_coord;\n"
+						+ "attribute vec4 in_position;\n"
+						+ "attribute vec2 in_tex_coord;\n"
 						+ "\n"
-						+ "out vec2 tex_coord;\n"
+						+ "varying vec2 tex_coord;\n"
 						+ "void main()\n"
 						+ "{\n"
 						+ "    gl_Position = in_position;\n"
@@ -426,22 +425,21 @@ public class CurveRenderState {
 					String error = GL20.glGetShaderInfoLog(vtxShdr, 1024);
 					Log.error("Vertex Shader compilation failed.", new Exception(error));
 				}
-				GL20.glShaderSource(frgShdr, "#version 130\n"
+				GL20.glShaderSource(frgShdr, "#version 110\n"
 						+ "\n"
 						+ "uniform sampler1D tex;\n"
 						+ "uniform vec2 tex_size;\n"
 						+ "uniform vec3 col_tint;\n"
 						+ "uniform vec4 col_border;\n"
 						+ "\n"
-						+ "in vec2 tex_coord;\n"
-						+ "out vec4 out_colour;\n"
+						+ "varying vec2 tex_coord;\n"
 						+ "\n"
 						+ "void main()\n"
 						+ "{\n"
-						+ "    vec4 in_color = texture(tex, tex_coord.x);\n"
+						+ "    vec4 in_color = texture1D(tex, tex_coord.x);\n"
 						+ "    float blend_factor = in_color.r-in_color.b;\n"
 						+ "    vec4 new_color = vec4(mix(in_color.xyz*col_border.xyz,col_tint,blend_factor),in_color.w);\n"
-						+ "    out_colour = new_color;\n"
+						+ "    gl_FragColor = new_color;\n"
 						+ "}");
 				GL20.glCompileShader(frgShdr);
 				res = GL20.glGetShaderi(frgShdr, GL20.GL_COMPILE_STATUS);
@@ -451,7 +449,6 @@ public class CurveRenderState {
 				}
 				GL20.glAttachShader(program, vtxShdr);
 				GL20.glAttachShader(program, frgShdr);
-				GL30.glBindFragDataLocation(program, 0, "out_colour");
 				GL20.glLinkProgram(program);
 				res = GL20.glGetProgrami(program, GL20.GL_LINK_STATUS);
 				if (res != GL11.GL_TRUE) {
