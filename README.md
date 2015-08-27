@@ -40,22 +40,19 @@ the song menu.
 ## Building
 opsu! is distributed as both a Maven and Gradle project.
 
+### Maven
+Maven builds are built to the `target` directory.
+* To run the project, execute the Maven goal `compile`.
+* To create a single executable JAR file, execute the Maven goal `package -Djar`.
+  This will compile a jar to `target/opsu-${version}.jar` with the libraries,
+  resources and natives packed inside the jar.
+
 ### Gradle
 Gradle builds are built to the `build` directory.
 * To run the project, execute the Gradle task `run`.
-* To create a single executable JAR file, execute the Gradle task
-  `build`. This will compile a jar to `build/libs/opsu-${version}.jar` with
-  the libraries, resources and natives packed inside the jar.
-  
-### Maven
-Maven builds are built to the `target` directory.
-* To run the project, execute the Maven goal `compile exec:exec`.
-* To create a single executable JAR file, execute the Maven goal
-  `install -Djar`.  This will link the LWJGL native libraries using a
-  [modified version](https://github.com/itdelatrisu/JarSplicePlus) of
-  [JarSplice](http://ninjacave.com/jarsplice), which is included in the
-  `tools` directory in both its original and modified forms.  The resulting
-  file will be located in `target/opsu-${version}-runnable.jar`.
+* To create a single executable JAR file, execute the Gradle task `build`.
+  This will compile a jar to `build/libs/opsu-${version}.jar` with the libraries,
+  resources and natives packed inside the jar.
 
 ## Credits
 This software was created by Jeffrey Han 

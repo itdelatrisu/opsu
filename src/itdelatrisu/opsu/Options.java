@@ -18,13 +18,6 @@
 
 package itdelatrisu.opsu;
 
-import itdelatrisu.opsu.audio.MusicController;
-import itdelatrisu.opsu.beatmap.Beatmap;
-import itdelatrisu.opsu.skins.Skin;
-import itdelatrisu.opsu.skins.SkinLoader;
-import itdelatrisu.opsu.ui.Fonts;
-import itdelatrisu.opsu.ui.UI;
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -38,6 +31,9 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
+import java.util.jar.Attributes;
+import java.util.jar.JarFile;
+import java.util.jar.Manifest;
 
 import org.lwjgl.input.Keyboard;
 import org.newdawn.slick.GameContainer;
@@ -48,10 +44,20 @@ import org.newdawn.slick.util.FileSystemLocation;
 import org.newdawn.slick.util.Log;
 import org.newdawn.slick.util.ResourceLoader;
 
+import itdelatrisu.opsu.audio.MusicController;
+import itdelatrisu.opsu.beatmap.Beatmap;
+import itdelatrisu.opsu.skins.Skin;
+import itdelatrisu.opsu.skins.SkinLoader;
+import itdelatrisu.opsu.ui.Fonts;
+import itdelatrisu.opsu.ui.UI;
+
 /**
  * Handles all user options.
  */
 public class Options {
+	/** Whether to use XDG directories. */
+	private static final boolean USE_XDG = checkXDGFlag();
+
 	/** The config directory. */
 	private static final File CONFIG_DIR = getXDGBaseDir("XDG_CONFIG_HOME", ".config");
 
@@ -121,14 +127,34 @@ public class Options {
 	private static int port = 49250;
 
 	/**
+	 * Returns whether the XDG flag in the manifest (if any) is set to "true".
+	 * @return true if XDG directories are enabled, false otherwise
+	 */
+	private static boolean checkXDGFlag() {
+		JarFile jarFile = Utils.getJarFile();
+		if (jarFile == null)
+			return false;
+		try {
+			Manifest manifest = jarFile.getManifest();
+			if (manifest == null)
+				return false;
+			Attributes attributes = manifest.getMainAttributes();
+			String value = attributes.getValue("Use-XDG");
+			return (value != null && value.equalsIgnoreCase("true"));
+		} catch (IOException e) {
+			return false;
+		}
+	}
+
+	/**
 	 * Returns the directory based on the XDG base directory specification for
-	 * Unix-like operating systems, only if the system property "XDG" has been defined.
+	 * Unix-like operating systems, only if the "XDG" flag is enabled.
 	 * @param env the environment variable to check (XDG_*_*)
 	 * @param fallback the fallback directory relative to ~home
 	 * @return the XDG base directory, or the working directory if unavailable
 	 */
 	private static File getXDGBaseDir(String env, String fallback) {
-		if (System.getProperty("XDG") == null)
+		if (!USE_XDG)
 			return new File("./");
 
 		String OS = System.getProperty("os.name").toLowerCase();

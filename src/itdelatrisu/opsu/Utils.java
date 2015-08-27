@@ -18,15 +18,6 @@
 
 package itdelatrisu.opsu;
 
-import itdelatrisu.opsu.audio.SoundController;
-import itdelatrisu.opsu.audio.SoundEffect;
-import itdelatrisu.opsu.beatmap.HitObject;
-import itdelatrisu.opsu.downloads.Download;
-import itdelatrisu.opsu.downloads.DownloadNode;
-import itdelatrisu.opsu.replay.PlaybackSpeed;
-import itdelatrisu.opsu.ui.Fonts;
-import itdelatrisu.opsu.ui.UI;
-
 import java.awt.image.BufferedImage;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
@@ -48,6 +39,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Scanner;
+import java.util.jar.JarFile;
 
 import javax.imageio.ImageIO;
 
@@ -65,6 +57,15 @@ import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.util.Log;
 
 import com.sun.jna.platform.FileUtils;
+
+import itdelatrisu.opsu.audio.SoundController;
+import itdelatrisu.opsu.audio.SoundEffect;
+import itdelatrisu.opsu.beatmap.HitObject;
+import itdelatrisu.opsu.downloads.Download;
+import itdelatrisu.opsu.downloads.DownloadNode;
+import itdelatrisu.opsu.replay.PlaybackSpeed;
+import itdelatrisu.opsu.ui.Fonts;
+import itdelatrisu.opsu.ui.UI;
 
 /**
  * Contains miscellaneous utilities.
@@ -565,7 +566,24 @@ public class Utils {
 	}
 
 	/**
+	 * Returns the JarFile for the application.
+	 * @return the JAR file, or null if it could not be determined
+	 */
+	public static JarFile getJarFile() {
+		if (!isJarRunning())
+			return null;
+
+		try {
+			return new JarFile(new File(Opsu.class.getProtectionDomain().getCodeSource().getLocation().toURI()), false);
+		} catch (URISyntaxException | IOException e) {
+			Log.error("Could not determine the JAR file.", e);
+			return null;
+		}
+	}
+
+	/**
 	 * Returns the directory where the application is being run.
+	 * @return the directory, or null if it could not be determined
 	 */
 	public static File getRunningDirectory() {
 		try {

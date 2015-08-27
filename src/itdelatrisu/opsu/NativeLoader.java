@@ -23,9 +23,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.security.CodeSource;
 import java.util.Enumeration;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -47,41 +44,32 @@ public class NativeLoader {
 		if (!NATIVE_DIR.exists())
 			NATIVE_DIR.mkdir();
 
-		CodeSource src = NativeLoader.class.getProtectionDomain().getCodeSource();
-		if (src != null) {
-			URI jar = null;
-			try {
-				jar = src.getLocation().toURI();
-			} catch (URISyntaxException e) {
-				e.printStackTrace();
-				return;
+		JarFile jarFile = Utils.getJarFile();
+		if (jarFile == null)
+			return;
+
+		Enumeration<JarEntry> entries = jarFile.entries();
+		while (entries.hasMoreElements()) {
+			JarEntry e = entries.nextElement();
+			if (e == null)
+				break;
+
+			File f = new File(NATIVE_DIR, e.getName());
+			if (isNativeFile(e.getName()) && !e.isDirectory() && e.getName().indexOf('/') == -1 && !f.exists()) {
+				InputStream in = jarFile.getInputStream(jarFile.getEntry(e.getName()));
+				OutputStream out = new FileOutputStream(f);
+
+				byte[] buffer = new byte[65536];
+				int bufferSize;
+				while ((bufferSize = in.read(buffer, 0, buffer.length)) != -1)
+					out.write(buffer, 0, bufferSize);
+
+				in.close();
+				out.close();
 			}
-
-			JarFile jarFile = new JarFile(new File(jar), false);
-			Enumeration<JarEntry> entries = jarFile.entries();
-
-			while (entries.hasMoreElements()) {
-				JarEntry e = entries.nextElement();
-				if (e == null)
-					break;
-
-				File f = new File(NATIVE_DIR, e.getName());
-				if (isNativeFile(e.getName()) && !e.isDirectory() && e.getName().indexOf('/') == -1 && !f.exists()) {
-					InputStream in = jarFile.getInputStream(jarFile.getEntry(e.getName()));
-					OutputStream out = new FileOutputStream(f);
-
-					byte[] buffer = new byte[65536];
-					int bufferSize;
-					while ((bufferSize = in.read(buffer, 0, buffer.length)) != -1)
-						out.write(buffer, 0, bufferSize);
-
-					in.close();
-					out.close();
-				}
-			}
-
-			jarFile.close();
 		}
+
+		jarFile.close();
 	}
 
 	/**

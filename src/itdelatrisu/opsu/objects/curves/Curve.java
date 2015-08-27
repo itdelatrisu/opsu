@@ -150,6 +150,7 @@ public abstract class Curve {
 	 * @param i the control point index
 	 */
 	public float getY(int i) { return (i == 0) ? y : sliderY[i - 1]; }
+
 	/**
 	 * Discards the slider cache (only used for mmsliders).
 	 */
