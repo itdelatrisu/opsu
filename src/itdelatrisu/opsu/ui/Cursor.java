@@ -29,6 +29,7 @@ import java.nio.IntBuffer;
 import java.util.Iterator;
 import java.util.LinkedList;
 
+import itdelatrisu.opsu.ui.animations.AnimationEquation;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.LWJGLException;
 import org.newdawn.slick.GameContainer;
@@ -49,6 +50,16 @@ public class Cursor {
 
 	/** Cursor rotation angle. */
 	private float cursorAngle = 0f;
+
+	/** The milliseconds when the cursor was last pressed, used for scale animation */
+	private long lastCursorPressTime = 0L;
+	/** Whether or not the cursor was pressed in the last frame, used for scale animation */
+	private boolean lastCursorPressState = false;
+
+	/** The amount the cursor scale increases, if enabled, when pressed */
+	private static final float CURSOR_SCALE_CHANGE = 0.25f;
+	/** The time it takes for the cursor to scale in milliseconds */
+	private static final float CURSOR_SCALE_TIME = 125;
 
 	/** Stores all previous cursor locations to display a trail. */
 	private LinkedList<Integer> cursorX, cursorY;
@@ -126,9 +137,20 @@ public class Cursor {
 			cursorMiddle = GameImage.CURSOR_MIDDLE.getImage();
 
 		// scale cursor
-		float cursorScale = Options.getCursorScale();
-		if (mousePressed && skin.isCursorExpanded())
-			cursorScale *= 1.25f;  // increase the cursor size if pressed
+		float cursorSizeAnimated = 1f;
+
+		if (skin.isCursorExpanded()) {
+			if (lastCursorPressState != mousePressed) {
+				lastCursorPressState = mousePressed;
+				lastCursorPressTime = System.currentTimeMillis();
+			}
+
+			cursorSizeAnimated = (mousePressed ? 1f : 1.25f) +
+					((mousePressed ? CURSOR_SCALE_CHANGE : -CURSOR_SCALE_CHANGE) * AnimationEquation.IN_OUT_CUBIC.calc(
+					Utils.clamp(System.currentTimeMillis() - lastCursorPressTime, 0, CURSOR_SCALE_TIME) / CURSOR_SCALE_TIME));
+		}
+
+		float cursorScale = Options.getCursorScale() * cursorSizeAnimated;
 		if (cursorScale != 1f) {
 			cursor = cursor.getScaledCopy(cursorScale);
 			cursorTrail = cursorTrail.getScaledCopy(cursorScale);
