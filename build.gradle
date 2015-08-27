@@ -92,6 +92,8 @@ jar {
 
 	from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
 	exclude '**/Thumbs.db'
+
+    dependsOn 'unpackNatives'
 }
 
 run {
