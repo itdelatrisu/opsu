@@ -38,19 +38,20 @@ other game options can be accessed by clicking the "Other Options" button in
 the song menu.
 
 ## Building
-opsu! is distributed as both a Maven and Gradle project.
+opsu! is distributed as both a [Maven](https://maven.apache.org/) and
+[Gradle](https://gradle.org/) project.
 
 ### Maven
 Maven builds are built to the `target` directory.
 * To run the project, execute the Maven goal `compile`.
-* To create a single executable JAR file, execute the Maven goal `package -Djar`.
+* To create a single executable jar, execute the Maven goal `package -Djar`.
   This will compile a jar to `target/opsu-${version}.jar` with the libraries,
   resources and natives packed inside the jar.
 
 ### Gradle
 Gradle builds are built to the `build` directory.
 * To run the project, execute the Gradle task `run`.
-* To create a single executable JAR file, execute the Gradle task `build`.
+* To create a single executable jar, execute the Gradle task `jar`.
   This will compile a jar to `build/libs/opsu-${version}.jar` with the libraries,
   resources and natives packed inside the jar.
 
