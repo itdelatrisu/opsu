@@ -22,26 +22,8 @@ import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.db.DBController;
 import itdelatrisu.opsu.downloads.DownloadList;
 import itdelatrisu.opsu.downloads.Updater;
-import itdelatrisu.opsu.states.ButtonMenu;
-import itdelatrisu.opsu.states.DownloadsMenu;
-import itdelatrisu.opsu.states.Game;
-import itdelatrisu.opsu.states.GamePauseMenu;
-import itdelatrisu.opsu.states.GameRanking;
-import itdelatrisu.opsu.states.MainMenu;
-import itdelatrisu.opsu.states.OptionsMenu;
-import itdelatrisu.opsu.states.SongMenu;
-import itdelatrisu.opsu.states.Splash;
+import itdelatrisu.opsu.states.*;
 import itdelatrisu.opsu.ui.UI;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.PrintStream;
-import java.net.InetAddress;
-import java.net.ServerSocket;
-import java.net.UnknownHostException;
-
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.SlickException;
@@ -52,6 +34,12 @@ import org.newdawn.slick.util.DefaultLogSystem;
 import org.newdawn.slick.util.FileSystemLocation;
 import org.newdawn.slick.util.Log;
 import org.newdawn.slick.util.ResourceLoader;
+
+import java.io.*;
+import java.lang.reflect.Field;
+import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.UnknownHostException;
 
 /**
  * Main class.
@@ -131,10 +119,30 @@ public class Opsu extends StateBasedGame {
 			System.exit(1);
 		}
 
-		// set path for lwjgl natives - NOT NEEDED if using JarSplice
-		File nativeDir = new File("./target/natives/");
-		if (nativeDir.isDirectory())
-			System.setProperty("org.lwjgl.librarypath", nativeDir.getAbsolutePath());
+		File nativeDir;
+		if ((nativeDir = new File("./target/natives/")).isDirectory() ||
+				(nativeDir = new File("./build/natives/")).isDirectory())
+			;
+		else {
+			nativeDir = NativeLoader.NATIVE_DIR;
+			try {
+				new NativeLoader().loadNatives();
+			} catch (IOException e) {
+				Log.error("Error loading natives.", e);
+			}
+		}
+		System.setProperty("org.lwjgl.librarypath", nativeDir.getAbsolutePath());
+		System.setProperty("java.library.path", nativeDir.getAbsolutePath());
+		try {
+			// Workaround for "java.library.path" property being read-only.
+			// http://stackoverflow.com/a/24988095
+			Field fieldSysPath = ClassLoader.class.getDeclaredField("sys_paths");
+			fieldSysPath.setAccessible(true);
+			fieldSysPath.set(null, null);
+		} catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
+			Log.warn("Failed to set 'sys_paths' field.", e);
+		}
+
 
 		// set the resource paths
 		ResourceLoader.addResourceLocation(new FileSystemLocation(new File("./res/")));
@@ -219,10 +227,10 @@ public class Opsu extends StateBasedGame {
 
 		// show confirmation dialog if any downloads are active
 		if (DownloadList.get().hasActiveDownloads() &&
-		    UI.showExitConfirmation(DownloadList.EXIT_CONFIRMATION))
+			UI.showExitConfirmation(DownloadList.EXIT_CONFIRMATION))
 			return false;
 		if (Updater.get().getStatus() == Updater.Status.UPDATE_DOWNLOADING &&
-		    UI.showExitConfirmation(Updater.EXIT_CONFIRMATION))
+			UI.showExitConfirmation(Updater.EXIT_CONFIRMATION))
 			return false;
 
 		return true;
@@ -257,7 +265,7 @@ public class Opsu extends StateBasedGame {
 		// JARs will not run properly inside directories containing '!'
 		// http://bugs.java.com/view_bug.do?bug_id=4523159
 		if (Utils.isJarRunning() && Utils.getRunningDirectory() != null &&
-		    Utils.getRunningDirectory().getAbsolutePath().indexOf('!') != -1)
+			Utils.getRunningDirectory().getAbsolutePath().indexOf('!') != -1)
 			ErrorHandler.error("JARs cannot be run from some paths containing '!'. Please move or rename the file and try again.", null, false);
 		else
 			ErrorHandler.error(message, e, true);

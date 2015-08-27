@@ -38,8 +38,17 @@ other game options can be accessed by clicking the "Other Options" button in
 the song menu.
 
 ## Building
-opsu! is distributed as a Maven project.
+opsu! is distributed as both a Maven and Gradle project.
 
+### Gradle
+Gradle builds are built to the `build` directory.
+* To run the project, execute the Gradle task `run`.
+* To create a single executable JAR file, execute the Gradle task
+  `build`. This will compile a jar to `build/libs/opsu-${version}.jar` with
+  the libraries, resources and natives packed inside the jar.
+  
+### Maven
+Maven builds are built to the `target` directory.
 * To run the project, execute the Maven goal `compile exec:exec`.
 * To create a single executable JAR file, execute the Maven goal
   `install -Djar`.  This will link the LWJGL native libraries using a

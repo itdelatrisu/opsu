@@ -1,12 +1,14 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>itdelatrisu</groupId>
 	<artifactId>opsu</artifactId>
 	<version>0.10.1</version>
 	<properties>
+		<version>${project.version}</version>
 		<timestamp>${maven.build.timestamp}</timestamp>
 		<maven.build.timestamp.format>yyyy-MM-dd HH:mm</maven.build.timestamp.format>
+		<mainClassName>itdelatrisu.opsu.Opsu</mainClassName>
 	</properties>
 	<build>
 		<sourceDirectory>src</sourceDirectory>
@@ -67,30 +69,9 @@
 							<skip>${jar}</skip>
 							<executable>java</executable>
 							<arguments>
-								<argument>-Djava.library.path=${project.build.directory}/natives</argument>
 								<argument>-cp</argument>
 								<classpath />
-								<argument>itdelatrisu.opsu.Opsu</argument>
-							</arguments>
-						</configuration>
-					</execution>
-					<execution>
-						<id>jarsplice</id>
-						<phase>install</phase>
-						<goals>
-							<goal>exec</goal>
-						</goals>
-						<configuration>
-							<executable>java</executable>
-							<workingDirectory>${basedir}/target</workingDirectory>
-							<arguments>
-								<argument>-jar</argument>
-								<argument>-Dinput=opsu-${project.version}.jar</argument>
-								<argument>-Dmain=itdelatrisu.opsu.Opsu</argument>
-								<argument>-Doutput=opsu-${project.version}-runnable.jar</argument>
-								<!-- uncomment the line below to use XDG base directories in Unix -->
-								<!--<argument>-Dparams=-DXDG=true</argument>-->
-								<argument>${basedir}/tools/JarSplicePlus.jar</argument>
+								<argument>${mainClassName}</argument>
 							</arguments>
 						</configuration>
 					</execution>
@@ -98,7 +79,7 @@
 			</plugin>
 			<plugin>
 				<artifactId>maven-shade-plugin</artifactId>
-				<version>2.3</version>
+				<version>2.4.1</version>
 				<configuration>
 					<!--
 					<artifactSet>
@@ -124,6 +105,11 @@
 							</excludes>
 						</filter>
 					</filters>
+					<transformers>
+						<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+							<mainClass>${mainClassName}</mainClass>
+						</transformer>
+					</transformers>
 					<createDependencyReducedPom>false</createDependencyReducedPom>
 				</configuration>
 				<executions>
