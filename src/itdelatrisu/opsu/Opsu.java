@@ -30,6 +30,7 @@ import java.net.UnknownHostException;
 
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
+import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.state.transition.FadeInTransition;
@@ -133,8 +134,9 @@ public class Opsu extends StateBasedGame {
 		}
 
 		File nativeDir;
-		if ((nativeDir = new File("./target/natives/")).isDirectory() ||
-				(nativeDir = new File("./build/natives/")).isDirectory())
+		if (!Utils.isJarRunning() && (
+		    (nativeDir = new File("./target/natives/")).isDirectory() ||
+		    (nativeDir = new File("./build/natives/")).isDirectory()))
 			;
 		else {
 			nativeDir = NativeLoader.NATIVE_DIR;
@@ -183,6 +185,9 @@ public class Opsu extends StateBasedGame {
 				}
 			}.start();
 		}
+
+		// disable jinput
+		Input.disableControllers();
 
 		// start the game
 		try {

@@ -126,11 +126,23 @@
 			<groupId>org.lwjgl.lwjgl</groupId>
 			<artifactId>lwjgl</artifactId>
 			<version>2.9.3</version>
+			<exclusions>
+				<exclusion>
+					<groupId>net.java.jinput</groupId>
+					<artifactId>jinput</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.slick2d</groupId>
 			<artifactId>slick2d-core</artifactId>
 			<version>1.0.1</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.lwjgl.lwjgl</groupId>
+					<artifactId>lwjgl</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.jcraft</groupId>
