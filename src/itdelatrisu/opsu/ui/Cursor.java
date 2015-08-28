@@ -51,14 +51,16 @@ public class Cursor {
 	/** Cursor rotation angle. */
 	private float cursorAngle = 0f;
 
-	/** The milliseconds when the cursor was last pressed, used for scale animation */
+	/** The time in milliseconds when the cursor was last pressed, used for the scaling animation. */
 	private long lastCursorPressTime = 0L;
-	/** Whether or not the cursor was pressed in the last frame, used for scale animation */
+
+	/** Whether or not the cursor was pressed in the last frame, used for the scaling animation. */
 	private boolean lastCursorPressState = false;
 
-	/** The amount the cursor scale increases, if enabled, when pressed */
+	/** The amount the cursor scale increases, if enabled, when pressed. */
 	private static final float CURSOR_SCALE_CHANGE = 0.25f;
-	/** The time it takes for the cursor to scale in milliseconds */
+
+	/** The time it takes for the cursor to scale, in milliseconds. */
 	private static final float CURSOR_SCALE_TIME = 125;
 
 	/** Stores all previous cursor locations to display a trail. */
@@ -137,20 +139,18 @@ public class Cursor {
 			cursorMiddle = GameImage.CURSOR_MIDDLE.getImage();
 
 		// scale cursor
-		float cursorSizeAnimated = 1f;
-
+		float cursorScaleAnimated = 1f;
 		if (skin.isCursorExpanded()) {
 			if (lastCursorPressState != mousePressed) {
 				lastCursorPressState = mousePressed;
 				lastCursorPressTime = System.currentTimeMillis();
 			}
 
-			cursorSizeAnimated = (mousePressed ? 1f : 1.25f) +
-					((mousePressed ? CURSOR_SCALE_CHANGE : -CURSOR_SCALE_CHANGE) * AnimationEquation.IN_OUT_CUBIC.calc(
-					Utils.clamp(System.currentTimeMillis() - lastCursorPressTime, 0, CURSOR_SCALE_TIME) / CURSOR_SCALE_TIME));
+			float cursorScaleChange = CURSOR_SCALE_CHANGE * AnimationEquation.IN_OUT_CUBIC.calc(
+					Utils.clamp(System.currentTimeMillis() - lastCursorPressTime, 0, CURSOR_SCALE_TIME) / CURSOR_SCALE_TIME);
+			cursorScaleAnimated = 1f + ((mousePressed) ? cursorScaleChange : CURSOR_SCALE_CHANGE - cursorScaleChange);
 		}
-
-		float cursorScale = Options.getCursorScale() * cursorSizeAnimated;
+		float cursorScale = cursorScaleAnimated * Options.getCursorScale();
 		if (cursorScale != 1f) {
 			cursor = cursor.getScaledCopy(cursorScale);
 			cursorTrail = cursorTrail.getScaledCopy(cursorScale);
