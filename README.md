@@ -30,7 +30,7 @@ generated `Songs` folder or set the "BeatmapDirectory" value in the generated
 configuration file to the path of the root beatmap directory.
 
 Note that beatmaps are typically delivered as OSZ files.  These can be extracted
-with any ZIP tool, and opsu! will automatically extract them into the songs
+with any ZIP tool, and opsu! will automatically extract them into the beatmap
 folder if placed in the `SongPacks` directory.
 
 ### First Run
@@ -45,6 +45,8 @@ The following files and folders will be created by opsu! as needed:
   be changed through the options menu.
 * `.opsu.db`: The beatmap cache database.
 * `.opsu_scores.db`: The scores database.
+* `.opsu.log`: The error log.  All critical errors displayed in-game are also
+  logged to this file, and other warnings not shown are logged as well.
 * `Songs/`: The beatmap directory (not used if an osu! installation is detected).
   The parser searches all of its subdirectories for .osu files to load.
 * `SongPacks/`: The beatmap pack directory.  The unpacker extracts all .osz
