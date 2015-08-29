@@ -18,6 +18,13 @@
 
 package itdelatrisu.opsu;
 
+import itdelatrisu.opsu.audio.MusicController;
+import itdelatrisu.opsu.beatmap.Beatmap;
+import itdelatrisu.opsu.skins.Skin;
+import itdelatrisu.opsu.skins.SkinLoader;
+import itdelatrisu.opsu.ui.Fonts;
+import itdelatrisu.opsu.ui.UI;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -43,13 +50,6 @@ import org.newdawn.slick.util.ClasspathLocation;
 import org.newdawn.slick.util.FileSystemLocation;
 import org.newdawn.slick.util.Log;
 import org.newdawn.slick.util.ResourceLoader;
-
-import itdelatrisu.opsu.audio.MusicController;
-import itdelatrisu.opsu.beatmap.Beatmap;
-import itdelatrisu.opsu.skins.Skin;
-import itdelatrisu.opsu.skins.SkinLoader;
-import itdelatrisu.opsu.ui.Fonts;
-import itdelatrisu.opsu.ui.UI;
 
 /**
  * Handles all user options.

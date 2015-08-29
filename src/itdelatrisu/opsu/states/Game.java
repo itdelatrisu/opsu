@@ -18,25 +18,6 @@
 
 package itdelatrisu.opsu.states;
 
-import java.io.File;
-import java.util.LinkedList;
-import java.util.Stack;
-
-import org.lwjgl.input.Keyboard;
-import org.lwjgl.opengl.Display;
-import org.newdawn.slick.Animation;
-import org.newdawn.slick.Color;
-import org.newdawn.slick.GameContainer;
-import org.newdawn.slick.Graphics;
-import org.newdawn.slick.Image;
-import org.newdawn.slick.Input;
-import org.newdawn.slick.SlickException;
-import org.newdawn.slick.state.BasicGameState;
-import org.newdawn.slick.state.StateBasedGame;
-import org.newdawn.slick.state.transition.EmptyTransition;
-import org.newdawn.slick.state.transition.FadeInTransition;
-import org.newdawn.slick.state.transition.FadeOutTransition;
-
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.GameData;
 import itdelatrisu.opsu.GameImage;
@@ -70,6 +51,25 @@ import itdelatrisu.opsu.ui.Fonts;
 import itdelatrisu.opsu.ui.MenuButton;
 import itdelatrisu.opsu.ui.UI;
 import itdelatrisu.opsu.ui.animations.AnimationEquation;
+
+import java.io.File;
+import java.util.LinkedList;
+import java.util.Stack;
+
+import org.lwjgl.input.Keyboard;
+import org.lwjgl.opengl.Display;
+import org.newdawn.slick.Animation;
+import org.newdawn.slick.Color;
+import org.newdawn.slick.GameContainer;
+import org.newdawn.slick.Graphics;
+import org.newdawn.slick.Image;
+import org.newdawn.slick.Input;
+import org.newdawn.slick.SlickException;
+import org.newdawn.slick.state.BasicGameState;
+import org.newdawn.slick.state.StateBasedGame;
+import org.newdawn.slick.state.transition.EmptyTransition;
+import org.newdawn.slick.state.transition.FadeInTransition;
+import org.newdawn.slick.state.transition.FadeOutTransition;
 
 /**
  * "Game" state.
@@ -1485,18 +1485,18 @@ public class Game extends BasicGameState {
 		int diameter = (int) (104 - (circleSize * 8));
 		HitObject.setStackOffset(diameter * STACK_OFFSET_MODIFIER);
 
-		// approachRate (hit object approach time)
-		if (approachRate < 5)
-			approachTime = (int) (1800 - (approachRate * 120));
-		else
-			approachTime = (int) (1200 - ((approachRate - 5) * 150));
-
 		// initialize objects
 		Circle.init(container, circleSize);
 		Slider.init(container, circleSize, beatmap);
 		Spinner.init(container, overallDifficulty);
 		Curve.init(container.getWidth(), container.getHeight(), circleSize, (Options.isBeatmapSkinIgnored()) ?
 				Options.getSkin().getSliderBorderColor() : beatmap.getSliderBorderColor());
+
+		// approachRate (hit object approach time)
+		if (approachRate < 5)
+			approachTime = (int) (1800 - (approachRate * 120));
+		else
+			approachTime = (int) (1200 - ((approachRate - 5) * 150));
 
 		// overallDifficulty (hit result time offsets)
 		hitResultOffset = new int[GameData.HIT_MAX];

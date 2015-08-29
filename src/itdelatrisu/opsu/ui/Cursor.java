@@ -24,12 +24,12 @@ import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.skins.Skin;
+import itdelatrisu.opsu.ui.animations.AnimationEquation;
 
 import java.nio.IntBuffer;
 import java.util.Iterator;
 import java.util.LinkedList;
 
-import itdelatrisu.opsu.ui.animations.AnimationEquation;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.LWJGLException;
 import org.newdawn.slick.GameContainer;

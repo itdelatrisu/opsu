@@ -18,6 +18,15 @@
 
 package itdelatrisu.opsu;
 
+import itdelatrisu.opsu.audio.SoundController;
+import itdelatrisu.opsu.audio.SoundEffect;
+import itdelatrisu.opsu.beatmap.HitObject;
+import itdelatrisu.opsu.downloads.Download;
+import itdelatrisu.opsu.downloads.DownloadNode;
+import itdelatrisu.opsu.replay.PlaybackSpeed;
+import itdelatrisu.opsu.ui.Fonts;
+import itdelatrisu.opsu.ui.UI;
+
 import java.awt.image.BufferedImage;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
@@ -57,15 +66,6 @@ import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.util.Log;
 
 import com.sun.jna.platform.FileUtils;
-
-import itdelatrisu.opsu.audio.SoundController;
-import itdelatrisu.opsu.audio.SoundEffect;
-import itdelatrisu.opsu.beatmap.HitObject;
-import itdelatrisu.opsu.downloads.Download;
-import itdelatrisu.opsu.downloads.DownloadNode;
-import itdelatrisu.opsu.replay.PlaybackSpeed;
-import itdelatrisu.opsu.ui.Fonts;
-import itdelatrisu.opsu.ui.UI;
 
 /**
  * Contains miscellaneous utilities.
