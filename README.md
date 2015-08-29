@@ -62,6 +62,7 @@ The following files and folders will be created by opsu! as needed:
 * `ReplayImport/`: The replay import directory.  The importer moves all .osr
   files within this directory to the replay directory and saves the scores in
   the scores database.  Replays can be imported from osu! as well as opsu!.
+* `Natives/`: The native libraries directory.
 
 ## Building
 opsu! is distributed as both a [Maven](https://maven.apache.org/) and
@@ -72,14 +73,18 @@ Maven builds are built to the `target` directory.
 * To run the project, execute the Maven goal `compile`.
 * To create a single executable jar, execute the Maven goal `package -Djar`.
   This will compile a jar to `target/opsu-${version}.jar` with the libraries,
-  resources and natives packed inside the jar.
+  resources and natives packed inside the jar.  Setting the "XDG" property
+  (`-DXDG=true`) will make the application use XDG folders under Unix-like
+  operating systems.
 
 ### Gradle
 Gradle builds are built to the `build` directory.
 * To run the project, execute the Gradle task `run`.
 * To create a single executable jar, execute the Gradle task `jar`.
   This will compile a jar to `build/libs/opsu-${version}.jar` with the libraries,
-  resources and natives packed inside the jar.
+  resources and natives packed inside the jar.  Setting the "XDG" property
+  (`-PXDG=true`) will make the application use XDG folders under Unix-like
+  operating systems.
 
 ## Credits
 This software was created by Jeffrey Han 

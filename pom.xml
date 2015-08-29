@@ -9,7 +9,7 @@
 		<timestamp>${maven.build.timestamp}</timestamp>
 		<maven.build.timestamp.format>yyyy-MM-dd HH:mm</maven.build.timestamp.format>
 		<mainClassName>itdelatrisu.opsu.Opsu</mainClassName>
-		<useXDG>false</useXDG>
+		<XDG>false</XDG>
 	</properties>
 	<build>
 		<sourceDirectory>src</sourceDirectory>
@@ -103,7 +103,7 @@
 						<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
 							<manifestEntries>
 								<Main-Class>${mainClassName}</Main-Class>
-								<Use-XDG>${useXDG}</Use-XDG>
+								<Use-XDG>${XDG}</Use-XDG>
 							</manifestEntries>
 						</transformer>
 					</transformers>
