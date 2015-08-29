@@ -928,6 +928,13 @@ public class Game extends BasicGameState {
 				}
 			}
 			break;
+		case Input.KEY_F:
+			// change playback speed
+			if (isReplay || GameMod.AUTO.isActive()) {
+				playbackSpeed = playbackSpeed.next();
+				MusicController.setPitch(GameMod.getSpeedMultiplier() * playbackSpeed.getModifier());
+			}
+			break;
 		case Input.KEY_UP:
 			UI.changeVolume(1);
 			break;
