@@ -13,6 +13,9 @@ mainClassName = 'itdelatrisu.opsu.Opsu'
 buildDir = new File(rootProject.projectDir, "build/")
 
 def useXDG = 'false'
+if(hasProperty('XDG')) {
+	useXDG = XDG
+}
 
 sourceCompatibility = 1.7
 targetCompatibility = 1.7
