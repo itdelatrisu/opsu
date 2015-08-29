@@ -18,6 +18,25 @@
 
 package itdelatrisu.opsu.states;
 
+import java.io.File;
+import java.util.LinkedList;
+import java.util.Stack;
+
+import org.lwjgl.input.Keyboard;
+import org.lwjgl.opengl.Display;
+import org.newdawn.slick.Animation;
+import org.newdawn.slick.Color;
+import org.newdawn.slick.GameContainer;
+import org.newdawn.slick.Graphics;
+import org.newdawn.slick.Image;
+import org.newdawn.slick.Input;
+import org.newdawn.slick.SlickException;
+import org.newdawn.slick.state.BasicGameState;
+import org.newdawn.slick.state.StateBasedGame;
+import org.newdawn.slick.state.transition.EmptyTransition;
+import org.newdawn.slick.state.transition.FadeInTransition;
+import org.newdawn.slick.state.transition.FadeOutTransition;
+
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.GameData;
 import itdelatrisu.opsu.GameImage;
@@ -51,25 +70,6 @@ import itdelatrisu.opsu.ui.Fonts;
 import itdelatrisu.opsu.ui.MenuButton;
 import itdelatrisu.opsu.ui.UI;
 import itdelatrisu.opsu.ui.animations.AnimationEquation;
-
-import java.io.File;
-import java.util.LinkedList;
-import java.util.Stack;
-
-import org.lwjgl.input.Keyboard;
-import org.lwjgl.opengl.Display;
-import org.newdawn.slick.Animation;
-import org.newdawn.slick.Color;
-import org.newdawn.slick.GameContainer;
-import org.newdawn.slick.Graphics;
-import org.newdawn.slick.Image;
-import org.newdawn.slick.Input;
-import org.newdawn.slick.SlickException;
-import org.newdawn.slick.state.BasicGameState;
-import org.newdawn.slick.state.StateBasedGame;
-import org.newdawn.slick.state.transition.EmptyTransition;
-import org.newdawn.slick.state.transition.FadeInTransition;
-import org.newdawn.slick.state.transition.FadeOutTransition;
 
 /**
  * "Game" state.
@@ -119,9 +119,14 @@ public class Game extends BasicGameState {
 	/** Hit object approach time, in milliseconds. */
 	private int approachTime;
 
-	/** Decay time for elements in "Hidden" mod, in milliseconds. */
-	//TODO: figure out actual formula for decay time
-	private int decayTime = 800;
+	/** The amount of time for hit objects to fade in, in milliseconds. */
+	private int fadeInTime;
+
+	/** Decay time for hit objects in the "Hidden" mod, in milliseconds. */
+	private int hiddenDecayTime;
+
+	/** Time before the hit object time by which the objects have completely faded in the "Hidden" mod, in milliseconds. */
+	private int hiddenTimeDiff;
 
 	/** Time offsets for obtaining each hit result (indexed by HIT_* constants). */
 	private int[] hitResultOffset;
@@ -1480,18 +1485,18 @@ public class Game extends BasicGameState {
 		int diameter = (int) (104 - (circleSize * 8));
 		HitObject.setStackOffset(diameter * STACK_OFFSET_MODIFIER);
 
+		// approachRate (hit object approach time)
+		if (approachRate < 5)
+			approachTime = (int) (1800 - (approachRate * 120));
+		else
+			approachTime = (int) (1200 - ((approachRate - 5) * 150));
+
 		// initialize objects
 		Circle.init(container, circleSize);
 		Slider.init(container, circleSize, beatmap);
 		Spinner.init(container, overallDifficulty);
 		Curve.init(container.getWidth(), container.getHeight(), circleSize, (Options.isBeatmapSkinIgnored()) ?
 				Options.getSkin().getSliderBorderColor() : beatmap.getSliderBorderColor());
-
-		// approachRate (hit object approach time)
-		if (approachRate < 5)
-			approachTime = (int) (1800 - (approachRate * 120));
-		else
-			approachTime = (int) (1200 - ((approachRate - 5) * 150));
 
 		// overallDifficulty (hit result time offsets)
 		hitResultOffset = new int[GameData.HIT_MAX];
@@ -1511,6 +1516,14 @@ public class Game extends BasicGameState {
 
 		// difficulty multiplier (scoring)
 		data.calculateDifficultyMultiplier(beatmap.HPDrainRate, beatmap.circleSize, beatmap.overallDifficulty);
+
+		// hit object fade-in time (TODO: formula)
+		fadeInTime = Math.min(375, (int) (approachTime / 2.5f));
+
+		// fade times ("Hidden" mod)
+		// TODO: find the actual formulas for this
+		hiddenDecayTime = (int) (approachTime / 3.6f);
+		hiddenTimeDiff = (int) (approachTime / 3.3f);
 	}
 
 	/**
@@ -1535,9 +1548,20 @@ public class Game extends BasicGameState {
 	public int getApproachTime() { return approachTime; }
 
 	/**
+	 * Returns the amount of time for hit objects to fade in, in milliseconds.
+	 */
+	public int getFadeInTime() { return fadeInTime; }
+
+	/**
 	 * Returns the object decay time in the "Hidden" mod, in milliseconds.
 	 */
-	public int getDecayTime() { return decayTime; }
+	public int getHiddenDecayTime() { return hiddenDecayTime; }
+
+	/**
+	 * Returns the time before the hit object time by which the objects have
+	 * completely faded in the "Hidden" mod, in milliseconds.
+	 */
+	public int getHiddenTimeDiff() { return hiddenTimeDiff; }
 
 	/**
 	 * Returns an array of hit result offset times, in milliseconds (indexed by GameData.HIT_* constants).

@@ -57,9 +57,6 @@ public class Slider implements GameObject {
 	/** The diameter of hit circles. */
 	private static float diameter;
 
-	/** The amount of time, in milliseconds, to fade in the slider. */
-	private static final int FADE_IN_TIME = 375;
-
 	/** The associated HitObject. */
 	private HitObject hitObject;
 
@@ -179,9 +176,11 @@ public class Slider implements GameObject {
 	@Override
 	public void draw(Graphics g, int trackPosition) {
 		int timeDiff = hitObject.getTime() - trackPosition;
-		float scale = timeDiff / (float) game.getApproachTime();
-		float fadeinScale = (timeDiff - game.getApproachTime() + FADE_IN_TIME) / (float) FADE_IN_TIME;
+		final int approachTime = game.getApproachTime();
+		final int fadeInTime = game.getFadeInTime();
+		float scale = timeDiff / (float) approachTime;
 		float approachScale = 1 + scale * 3;
+		float fadeinScale = (timeDiff - approachTime + fadeInTime) / (float) fadeInTime;
 		float alpha = Utils.clamp(1 - fadeinScale, 0, 1);
 		boolean overlayAboveNumber = Options.getSkin().isHitCircleOverlayAboveNumber();
 
@@ -212,9 +211,12 @@ public class Slider implements GameObject {
 			}
 		}
 		if (GameMod.HIDDEN.isActive()) {
-			float fadeOutScale = -(float) (timeDiff - game.getApproachTime()) / game.getDecayTime();
-			float fadeOutAlpha = Utils.clamp(1 - fadeOutScale, 0, 1);
-			alpha = Math.min(alpha, fadeOutAlpha);
+			final int hiddenDecayTime = game.getHiddenDecayTime();
+			final int hiddenTimeDiff = game.getHiddenTimeDiff();
+			if (fadeinScale <= 0f && timeDiff < hiddenTimeDiff + hiddenDecayTime) {
+				float hiddenAlpha = (timeDiff < hiddenTimeDiff) ? 0f : (timeDiff - hiddenTimeDiff) / (float) hiddenDecayTime;
+				alpha = Math.min(alpha, hiddenAlpha);
+			}
 		}
 		if (sliderClickedInitial)
 			;  // don't draw current combo number if already clicked
