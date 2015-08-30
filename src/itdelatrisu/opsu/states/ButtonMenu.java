@@ -220,7 +220,7 @@ public class ButtonMenu extends BasicGameState {
 				}
 
 				// tooltips
-				if (hoverMod != null && hoverMod.isImplemented())
+				if (hoverMod != null)
 					UI.updateTooltip(delta, hoverMod.getDescription(), true);
 			}
 

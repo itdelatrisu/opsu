@@ -95,10 +95,10 @@ public class NativeLoader {
 		} else if (osName.startsWith("Linux")) {
 			if (name.endsWith(".so"))
 				return true;
-		} else if (((osName.startsWith("Mac")) || (osName.startsWith("Darwin"))) && ((name.endsWith(".jnilib")) || (name.endsWith(".dylib")))) {
-			return true;
+		} else if (osName.startsWith("Mac") || osName.startsWith("Darwin")) {
+			if (name.endsWith(".dylib") || name.endsWith(".jnilib"))
+				return true;
 		}
-
 		return false;
 	}
 }

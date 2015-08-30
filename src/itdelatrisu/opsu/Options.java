@@ -640,7 +640,7 @@ public class Options {
 		 */
 		public void drag(GameContainer container, int d) {
 			if (type == OptionType.NUMERIC)
-				val = Utils.getBoundedValue(val, d, min, max);
+				val = Utils.clamp(val + d, min, max);
 		}
 
 		/**

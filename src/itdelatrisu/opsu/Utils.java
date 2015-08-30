@@ -157,40 +157,6 @@ public class Utils {
 	}
 
 	/**
-	 * Returns a bounded value for a base value and displacement.
-	 * @param base the initial value
-	 * @param diff the value change
-	 * @param min the minimum value
-	 * @param max the maximum value
-	 * @return the bounded value
-	 */
-	public static int getBoundedValue(int base, int diff, int min, int max) {
-		int val = base + diff;
-		if (val < min)
-			val = min;
-		else if (val > max)
-			val = max;
-		return val;
-	}
-
-	/**
-	 * Returns a bounded value for a base value and displacement.
-	 * @param base the initial value
-	 * @param diff the value change
-	 * @param min the minimum value
-	 * @param max the maximum value
-	 * @return the bounded value
-	 */
-	public static float getBoundedValue(float base, float diff, float min, float max) {
-		float val = base + diff;
-		if (val < min)
-			val = min;
-		else if (val > max)
-			val = max;
-		return val;
-	}
-
-	/**
 	 * Clamps a value between a lower and upper bound.
 	 * @param val the value to clamp
 	 * @param low the lower bound
@@ -234,6 +200,13 @@ public class Utils {
 		float v1 = Math.abs(x1 - x2);
 		float v2 = Math.abs(y1 - y2);
 		return (float) Math.sqrt((v1 * v1) + (v2 * v2));
+	}
+
+	/**
+	 * Linear interpolation of a and b at t.
+	 */
+	public static float lerp(float a, float b, float t) {
+		return a * (1 - t) + b * t;
 	}
 
 	/**
@@ -602,12 +575,5 @@ public class Utils {
 	 */
 	public static boolean parseBoolean(String s) {
 		return (Integer.parseInt(s) == 1);
-	}
-
-	/**
-	 * Linear interpolation of a and b at t.
-	 */
-	public static float lerp(float a, float b, float t) {
-		return a * (1 - t) + b * t;
 	}
 }

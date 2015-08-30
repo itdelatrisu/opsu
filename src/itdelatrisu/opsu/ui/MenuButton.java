@@ -460,7 +460,7 @@ public class MenuButton {
 			return;
 
 		int d = delta * (autoAnimationForward ? 1 : -1);
-		if (Utils.getBoundedValue(time, d, 0, animationDuration) == time) {
+		if (Utils.clamp(time + d, 0, animationDuration) == time) {
 			if (reverseAtEnd)
 				autoAnimationForward = !autoAnimationForward;
 			else {

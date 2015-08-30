@@ -263,7 +263,7 @@ public class UI {
 	 */
 	public static void changeVolume(int units) {
 		final float UNIT_OFFSET = 0.05f;
-		Options.setMasterVolume(container, Utils.getBoundedValue(Options.getMasterVolume(), UNIT_OFFSET * units, 0f, 1f));
+		Options.setMasterVolume(container, Utils.clamp(Options.getMasterVolume() + (UNIT_OFFSET * units), 0f, 1f));
 		if (volumeDisplay == -1)
 			volumeDisplay = 0;
 		else if (volumeDisplay >= VOLUME_DISPLAY_TIME / 10)

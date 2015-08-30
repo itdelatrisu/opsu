@@ -149,9 +149,6 @@ public enum GameMod {
 	/** The score multiplier. */
 	private final float multiplier;
 
-	/** Whether or not the mod is implemented. */
-	private final boolean implemented;
-
 	/** The name of the mod. */
 	private final String name;
 
@@ -313,24 +310,6 @@ public enum GameMod {
 	 */
 	GameMod(Category category, int categoryIndex, GameImage image, String abbrev,
 			int bit, int key, float multiplier, String name, String description) {
-		this(category, categoryIndex, image, abbrev, bit, key, multiplier, true, name, description);
-	}
-
-	/**
-	 * Constructor.
-	 * @param category the category for the mod
-	 * @param categoryIndex the index in the category
-	 * @param image the GameImage
-	 * @param abbrev the two-letter abbreviation
-	 * @param bit the bit
-	 * @param key the shortcut key
-	 * @param multiplier the score multiplier
-	 * @param implemented whether the mod is implemented
-	 * @param name the name
-	 * @param description the description
-	 */
-	GameMod(Category category, int categoryIndex, GameImage image, String abbrev,
-			int bit, int key, float multiplier, boolean implemented, String name, String description) {
 		this.category = category;
 		this.categoryIndex = categoryIndex;
 		this.image = image;
@@ -338,7 +317,6 @@ public enum GameMod {
 		this.bit = bit;
 		this.key = key;
 		this.multiplier = multiplier;
-		this.implemented = implemented;
 		this.name = name;
 		this.description = description;
 	}
@@ -381,19 +359,10 @@ public enum GameMod {
 	public String getDescription() { return description; }
 
 	/**
-	 * Returns whether or not the mod is implemented.
-	 * @return true if implemented
-	 */
-	public boolean isImplemented() { return implemented; }
-
-	/**
 	 * Toggles the active status of the mod.
 	 * @param checkInverse if true, perform checks for mutual exclusivity
 	 */
 	public void toggle(boolean checkInverse) {
-		if (!implemented)
-			return;
-
 		active = !active;
 		scoreMultiplier = speedMultiplier = difficultyMultiplier = -1f;
 
@@ -450,14 +419,7 @@ public enum GameMod {
 	/**
 	 * Draws the game mod.
 	 */
-	public void draw() {
-		if (!implemented) {
-			button.getImage().setAlpha(0.2f);
-			button.draw();
-			button.getImage().setAlpha(1f);
-		} else
-			button.draw();
-	}
+	public void draw() { button.draw(); }
 
 	/**
 	 * Checks if the coordinates are within the image bounds.
