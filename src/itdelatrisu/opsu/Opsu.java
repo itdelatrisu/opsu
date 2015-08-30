@@ -139,9 +139,9 @@ public class Opsu extends StateBasedGame {
 		    (nativeDir = new File("./build/natives/")).isDirectory()))
 			;
 		else {
-			nativeDir = NativeLoader.NATIVE_DIR;
+			nativeDir = Options.NATIVE_DIR;
 			try {
-				new NativeLoader().loadNatives();
+				new NativeLoader(nativeDir).loadNatives();
 			} catch (IOException e) {
 				Log.error("Error loading natives.", e);
 			}

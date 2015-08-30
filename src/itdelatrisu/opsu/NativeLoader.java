@@ -33,16 +33,24 @@ import java.util.jar.JarFile;
  * @author http://ninjacave.com
  */
 public class NativeLoader {
-	/** Directory where natives are unpacked. */
-	public static final File NATIVE_DIR = new File("Natives/");
+	/** The directory to unpack natives to. */
+	private final File nativeDir;
+
+	/**
+	 * Constructor.
+	 * @param dir the directory to unpack natives to
+	 */
+	public NativeLoader(File dir) {
+		nativeDir = dir;
+	}
 
 	/**
 	 * Unpacks natives for the current operating system to the natives directory.
 	 * @throws IOException
 	 */
 	public void loadNatives() throws IOException {
-		if (!NATIVE_DIR.exists())
-			NATIVE_DIR.mkdir();
+		if (!nativeDir.exists())
+			nativeDir.mkdir();
 
 		JarFile jarFile = Utils.getJarFile();
 		if (jarFile == null)
@@ -54,7 +62,7 @@ public class NativeLoader {
 			if (e == null)
 				break;
 
-			File f = new File(NATIVE_DIR, e.getName());
+			File f = new File(nativeDir, e.getName());
 			if (isNativeFile(e.getName()) && !e.isDirectory() && e.getName().indexOf('/') == -1 && !f.exists()) {
 				InputStream in = jarFile.getInputStream(jarFile.getEntry(e.getName()));
 				OutputStream out = new FileOutputStream(f);

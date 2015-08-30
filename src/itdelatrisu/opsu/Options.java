@@ -64,6 +64,9 @@ public class Options {
 	/** The data directory. */
 	private static final File DATA_DIR = getXDGBaseDir("XDG_DATA_HOME", ".local/share");
 
+	/** The cache directory. */
+	private static final File CACHE_DIR = getXDGBaseDir("XDG_CACHE_HOME", ".cache");
+
 	/** File for logging errors. */
 	public static final File LOG_FILE = new File(CONFIG_DIR, ".opsu.log");
 
@@ -89,6 +92,9 @@ public class Options {
 
 	/** Score database name. */
 	public static final File SCORE_DB = new File(DATA_DIR, ".opsu_scores.db");
+
+	/** Directory where natives are unpacked. */
+	public static final File NATIVE_DIR = new File(CACHE_DIR, "Natives/");
 
 	/** Font file name. */
 	public static final String FONT_NAME = "DroidSansFallback.ttf";
