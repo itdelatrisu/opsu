@@ -162,6 +162,9 @@ public class BeatmapWatchService {
 	/** The Executor. */
 	private ExecutorService service;
 
+	/** Whether the watch service is paused (i.e. does not fire events). */
+	private boolean paused = false;
+
 	/**
 	 * Creates the WatchService.
 	 * @throws IOException if an I/O error occurs
@@ -242,6 +245,7 @@ public class BeatmapWatchService {
 			if (dir == null)
 				continue;
 
+			boolean isPaused = paused;
 			for (WatchEvent<?> event : key.pollEvents()) {
 				WatchEvent.Kind<?> kind = event.kind();
 				if (kind == StandardWatchEventKinds.OVERFLOW)
@@ -254,8 +258,10 @@ public class BeatmapWatchService {
 				//System.out.printf("%s: %s\n", kind.name(), child);
 
 				// fire listeners
-				for (BeatmapWatchServiceListener listener : listeners)
-					listener.eventReceived(kind, child);
+				if (!isPaused) {
+					for (BeatmapWatchServiceListener listener : listeners)
+						listener.eventReceived(kind, child);
+				}
 
 				// if directory is created, then register it and its sub-directories
 				if (kind == StandardWatchEventKinds.ENTRY_CREATE) {
@@ -272,4 +278,14 @@ public class BeatmapWatchService {
 			}
 		}
 	}
+
+	/**
+	 * Stops listener events from being fired.
+	 */
+	public void pause() { paused = true; }
+
+	/**
+	 * Resumes firing listener events.
+	 */
+	public void resume() { paused = false; }
 }
