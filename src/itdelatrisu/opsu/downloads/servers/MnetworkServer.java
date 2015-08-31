@@ -83,7 +83,7 @@ public class MnetworkServer extends DownloadServer {
 			//   BPM: {{bpm}} <b>|</b> Total Time: {{m}}:{{s}}<br/>
 			//   Genre: {{genre}} <b>|</b> Updated: {{MMM}} {{d}}, {{yyyy}}<br />
 			List<DownloadNode> nodeList = new ArrayList<DownloadNode>();
-			final String START_TAG = "<div class=\"tr_title\">", HREF_TAG = "<a href=", UPDATED = "Updated: ";
+			final String START_TAG = "<div class=\"tr_title\">", HREF_TAG = "<a href=", HREF_TAG_END = "</a>", UPDATED = "Updated: ";
 			int index = -1;
 			int nextIndex = html.indexOf(START_TAG, index + 1);
 			while ((index = nextIndex) != -1) {
@@ -96,7 +96,7 @@ public class MnetworkServer extends DownloadServer {
 				if (i == -1 || i > n) continue;
 				i = html.indexOf('>', i + HREF_TAG.length());
 				if (i == -1 || i >= n) continue;
-				j = html.indexOf('<', i + 1);
+				j = html.indexOf(HREF_TAG_END, i + 1);
 				if (j == -1 || j > n) continue;
 				String beatmap = html.substring(i + 1, j).trim();
 
