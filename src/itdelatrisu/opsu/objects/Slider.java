@@ -111,15 +111,14 @@ public class Slider implements GameObject {
 	/**
 	 * Initializes the Slider data type with images and dimensions.
 	 * @param container the game container
-	 * @param circleSize the map's circleSize value
+	 * @param circleDiameter the circle diameter
 	 * @param beatmap the associated beatmap
 	 */
-	public static void init(GameContainer container, float circleSize, Beatmap beatmap) {
+	public static void init(GameContainer container, float circleDiameter, Beatmap beatmap) {
 		containerWidth = container.getWidth();
 		containerHeight = container.getHeight();
 
-		diameter = (104 - (circleSize * 8));
-		diameter = (diameter * HitObject.getXMultiplier());  // convert from Osupixels (640x480)
+		diameter = circleDiameter * HitObject.getXMultiplier();  // convert from Osupixels (640x480)
 		int diameterInt = (int) diameter;
 
 		followRadius = diameter / 2 * 3f;

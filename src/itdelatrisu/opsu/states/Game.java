@@ -1482,14 +1482,15 @@ public class Game extends BasicGameState {
 
 		// Stack modifier scales with hit object size
 		// StackOffset = HitObjectRadius / 10
-		int diameter = (int) (104 - (circleSize * 8));
+		//int diameter = (int) (104 - (circleSize * 8));
+		float diameter = 108.848f - (circleSize * 8.9646f);
 		HitObject.setStackOffset(diameter * STACK_OFFSET_MODIFIER);
 
 		// initialize objects
-		Circle.init(container, circleSize);
-		Slider.init(container, circleSize, beatmap);
+		Circle.init(container, diameter);
+		Slider.init(container, diameter, beatmap);
 		Spinner.init(container, overallDifficulty);
-		Curve.init(container.getWidth(), container.getHeight(), circleSize, (Options.isBeatmapSkinIgnored()) ?
+		Curve.init(container.getWidth(), container.getHeight(), diameter, (Options.isBeatmapSkinIgnored()) ?
 				Options.getSkin().getSliderBorderColor() : beatmap.getSliderBorderColor());
 
 		// approachRate (hit object approach time)
@@ -1500,9 +1501,9 @@ public class Game extends BasicGameState {
 
 		// overallDifficulty (hit result time offsets)
 		hitResultOffset = new int[GameData.HIT_MAX];
-		hitResultOffset[GameData.HIT_300]  = (int) (78 - (overallDifficulty * 6));
-		hitResultOffset[GameData.HIT_100]  = (int) (138 - (overallDifficulty * 8));
-		hitResultOffset[GameData.HIT_50]   = (int) (198 - (overallDifficulty * 10));
+		hitResultOffset[GameData.HIT_300]  = (int) (79.5f - (overallDifficulty * 6));
+		hitResultOffset[GameData.HIT_100]  = (int) (139.5f - (overallDifficulty * 8));
+		hitResultOffset[GameData.HIT_50]   = (int) (199.5f - (overallDifficulty * 10));
 		hitResultOffset[GameData.HIT_MISS] = (int) (500 - (overallDifficulty * 10));
 		//final float mult = 0.608f;
 		//hitResultOffset[GameData.HIT_300]  = (int) ((128 - (overallDifficulty * 9.6)) * mult);

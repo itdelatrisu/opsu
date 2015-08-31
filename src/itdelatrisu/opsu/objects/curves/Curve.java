@@ -80,16 +80,16 @@ public abstract class Curve {
 	 * Should be called before any curves are drawn.
 	 * @param width the container width
 	 * @param height the container height
-	 * @param circleSize the circle size
+	 * @param circleDiameter the circle diameter
 	 * @param borderColor the curve border color
 	 */
-	public static void init(int width, int height, float circleSize, Color borderColor) {
+	public static void init(int width, int height, float circleDiameter, Color borderColor) {
 		Curve.borderColor = borderColor;
 
 		ContextCapabilities capabilities = GLContext.getCapabilities();
 		mmsliderSupported = capabilities.GL_EXT_framebuffer_object;
 		if (mmsliderSupported)
-			CurveRenderState.init(width, height, circleSize);
+			CurveRenderState.init(width, height, circleDiameter);
 		else {
 			if (Options.getSkin().getSliderStyle() != Skin.STYLE_PEPPYSLIDER)
 				Log.warn("New slider style requires FBO support.");

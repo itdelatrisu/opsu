@@ -64,15 +64,14 @@ public class CurveRenderState {
 	 * Should be called before any curves are drawn.
 	 * @param width the container width
 	 * @param height the container height
-	 * @param circleSize the circle size
+	 * @param circleDiameter the circle diameter
 	 */
-	public static void init(int width, int height, float circleSize) {
+	public static void init(int width, int height, float circleDiameter) {
 		containerWidth = width;
 		containerHeight = height;
 
 		// equivalent to what happens in Slider.init()
-		scale = (int) (104 - (circleSize * 8));
-		scale = (int) (scale * HitObject.getXMultiplier());  // convert from Osupixels (640x480)
+		scale = (int) (circleDiameter * HitObject.getXMultiplier());  // convert from Osupixels (640x480)
 		//scale = scale * 118 / 128; //for curves exactly as big as the sliderball
 		FrameBufferCache.init(width, height);
 	}
