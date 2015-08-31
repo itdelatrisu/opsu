@@ -245,9 +245,18 @@ public class Download {
 					fos = fileOutputStream;
 					status = Status.DOWNLOADING;
 					updateReadSoFar();
-					fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+					long bytesRead = fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
 					if (status == Status.DOWNLOADING) {  // not interrupted
-						// TODO: if connection is lost before a download finishes, it's still marked as "complete"
+						// check if the entire file was received
+						if (bytesRead < contentLength) {
+							status = Status.ERROR;
+							Log.warn(String.format("Download '%s' failed: %d bytes expected, %d bytes received.", url.toString(), contentLength, bytesRead));
+							if (listener != null)
+								listener.error();
+							return;
+						}
+
+						// mark download as complete
 						status = Status.COMPLETE;
 						rbc.close();
 						fos.close();
@@ -320,7 +329,7 @@ public class Download {
 	public long readSoFar() {
 		switch (status) {
 		case COMPLETE:
-			return contentLength;
+			return (rbc != null) ? rbc.getReadSoFar() : contentLength;
 		case DOWNLOADING:
 			if (rbc != null)
 				return rbc.getReadSoFar();

@@ -174,9 +174,7 @@ public class MengSkyServer extends DownloadServer {
 					continue;
 				}
 
-				DownloadNode node = new DownloadNode(id, date, title, titleUnicode, artist, artistUnicode, creator);
-				System.out.println(node);
-				nodeList.add(node);
+				nodeList.add(new DownloadNode(id, date, title, titleUnicode, artist, artistUnicode, creator));
 			}
 
 			nodes = nodeList.toArray(new DownloadNode[nodeList.size()]);
