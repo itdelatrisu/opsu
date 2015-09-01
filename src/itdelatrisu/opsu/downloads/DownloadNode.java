@@ -44,19 +44,19 @@ public class DownloadNode {
 	private Download download;
 
 	/** Beatmap set ID. */
-	private int beatmapSetID;
+	private final int beatmapSetID;
 
 	/** Last updated date string. */
-	private String date;
+	private final String date;
 
 	/** Song title. */
-	private String title, titleUnicode;
+	private final String title, titleUnicode;
 
 	/** Song artist. */
-	private String artist, artistUnicode;
+	private final String artist, artistUnicode;
 
 	/** Beatmap creator. */
-	private String creator;
+	private final String creator;
 
 	/** Button drawing values. */
 	private static float buttonBaseX, buttonBaseY, buttonWidth, buttonHeight, buttonOffset;
