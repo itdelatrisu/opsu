@@ -16,9 +16,10 @@
  * along with opsu!.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package itdelatrisu.opsu;
+package itdelatrisu.opsu.beatmap;
 
-import itdelatrisu.opsu.beatmap.BeatmapWatchService;
+import itdelatrisu.opsu.ErrorHandler;
+import itdelatrisu.opsu.Options;
 
 import java.io.File;
 import java.io.FilenameFilter;
