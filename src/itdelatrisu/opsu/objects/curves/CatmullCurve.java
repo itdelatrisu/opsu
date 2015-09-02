@@ -18,12 +18,9 @@
 
 package itdelatrisu.opsu.objects.curves;
 
-import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.beatmap.HitObject;
 
 import java.util.LinkedList;
-
-import org.newdawn.slick.SlickException;
 
 /**
  * Representation of Catmull Curve with equidistant points.
@@ -36,7 +33,16 @@ public class CatmullCurve extends EqualDistanceMultiCurve {
 	 * @param hitObject the associated HitObject
 	 */
 	public CatmullCurve(HitObject hitObject) {
-		super(hitObject);
+		this(hitObject, true);
+	}
+
+	/**
+	 * Constructor.
+	 * @param hitObject the associated HitObject
+	 * @param scaled whether to use scaled coordinates
+	 */
+	public CatmullCurve(HitObject hitObject, boolean scaled) {
+		super(hitObject, scaled);
 		LinkedList<CurveType> catmulls = new LinkedList<CurveType>();
 		int ncontrolPoints = hitObject.getSliderX().length + 1;
 		LinkedList<Vec2f> points = new LinkedList<Vec2f>();  // temporary list of points to separate different curves
@@ -51,24 +57,15 @@ public class CatmullCurve extends EqualDistanceMultiCurve {
 		for (int i = 0; i < ncontrolPoints; i++) {
 			points.addLast(new Vec2f(getX(i), getY(i)));
 			if (points.size() >= 4) {
-				try {
-					catmulls.add(new CentripetalCatmullRom(points.toArray(new Vec2f[0])));
-				} catch (SlickException e) {
-					ErrorHandler.error(null, e, true);
-				}
+				catmulls.add(new CentripetalCatmullRom(points.toArray(new Vec2f[0])));
 				points.removeFirst();
 			}
 		}
 		if (getX(ncontrolPoints - 1) != getX(ncontrolPoints - 2) ||
 		    getY(ncontrolPoints - 1) != getY(ncontrolPoints - 2))
 			points.addLast(new Vec2f(getX(ncontrolPoints - 1), getY(ncontrolPoints - 1)));
-		if (points.size() >= 4) {
-			try {
-				catmulls.add(new CentripetalCatmullRom(points.toArray(new Vec2f[0])));
-			} catch (SlickException e) {
-				ErrorHandler.error(null, e, true);
-			}
-		}
+		if (points.size() >= 4)
+			catmulls.add(new CentripetalCatmullRom(points.toArray(new Vec2f[0])));
 
 		init(catmulls);
 	}

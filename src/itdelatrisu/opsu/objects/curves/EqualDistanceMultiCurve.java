@@ -42,7 +42,16 @@ public abstract class EqualDistanceMultiCurve extends Curve {
 	 * @param hitObject the associated HitObject
 	 */
 	public EqualDistanceMultiCurve(HitObject hitObject) {
-		super(hitObject);
+		this(hitObject, true);
+	}
+
+	/**
+	 * Constructor.
+	 * @param hitObject the associated HitObject
+	 * @param scaled whether to use scaled coordinates
+	 */
+	public EqualDistanceMultiCurve(HitObject hitObject, boolean scaled) {
+		super(hitObject, scaled);
 	}
 
 	/**

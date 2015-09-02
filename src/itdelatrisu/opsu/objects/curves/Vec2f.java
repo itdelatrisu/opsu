@@ -94,6 +94,17 @@ public class Vec2f {
 	}
 
 	/**
+	 * Turns this vector into a unit vector.
+	 * @return itself (for chaining)
+	 */
+	public Vec2f normalize() {
+		float len = len();
+		x /= len;
+		y /= len;
+		return this;
+	}
+
+	/**
 	 * Returns a copy of this vector.
 	 */
 	public Vec2f cpy() { return new Vec2f(x, y); }

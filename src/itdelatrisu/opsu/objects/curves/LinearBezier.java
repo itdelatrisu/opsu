@@ -35,7 +35,17 @@ public class LinearBezier extends EqualDistanceMultiCurve {
 	 * @param line whether a new curve should be generated for each sequential pair
 	 */
 	public LinearBezier(HitObject hitObject, boolean line) {
-		super(hitObject);
+		this(hitObject, line, true);
+	}
+
+	/**
+	 * Constructor.
+	 * @param hitObject the associated HitObject
+	 * @param line whether a new curve should be generated for each sequential pair
+	 * @param scaled whether to use scaled coordinates
+	 */
+	public LinearBezier(HitObject hitObject, boolean line, boolean scaled) {
+		super(hitObject, scaled);
 
 		LinkedList<CurveType> beziers = new LinkedList<CurveType>();
 

@@ -64,13 +64,21 @@ public abstract class Curve {
 	/**
 	 * Constructor.
 	 * @param hitObject the associated HitObject
+	 * @param scaled whether to use scaled coordinates
 	 */
-	protected Curve(HitObject hitObject) {
+	protected Curve(HitObject hitObject, boolean scaled) {
 		this.hitObject = hitObject;
-		this.x = hitObject.getScaledX();
-		this.y = hitObject.getScaledY();
-		this.sliderX = hitObject.getScaledSliderX();
-		this.sliderY = hitObject.getScaledSliderY();
+		if (scaled) {
+			this.x = hitObject.getScaledX();
+			this.y = hitObject.getScaledY();
+			this.sliderX = hitObject.getScaledSliderX();
+			this.sliderY = hitObject.getScaledSliderY();
+		} else {
+			this.x = hitObject.getX();
+			this.y = hitObject.getY();
+			this.sliderX = hitObject.getSliderX();
+			this.sliderY = hitObject.getSliderY();
+		}
 		this.renderState = null;
 	}
 
