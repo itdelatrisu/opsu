@@ -23,7 +23,6 @@ import itdelatrisu.opsu.beatmap.HitObject;
 
 import java.util.LinkedList;
 
-import org.newdawn.slick.Color;
 import org.newdawn.slick.SlickException;
 
 /**
@@ -35,10 +34,9 @@ public class CatmullCurve extends EqualDistanceMultiCurve {
 	/**
 	 * Constructor.
 	 * @param hitObject the associated HitObject
-	 * @param color the color of this curve
 	 */
-	public CatmullCurve(HitObject hitObject, Color color) {
-		super(hitObject, color);
+	public CatmullCurve(HitObject hitObject) {
+		super(hitObject);
 		LinkedList<CurveType> catmulls = new LinkedList<CurveType>();
 		int ncontrolPoints = hitObject.getSliderX().length + 1;
 		LinkedList<Vec2f> points = new LinkedList<Vec2f>();  // temporary list of points to separate different curves

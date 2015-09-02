@@ -22,8 +22,6 @@ import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.beatmap.HitObject;
 
-import org.newdawn.slick.Color;
-
 /**
  * Representation of a curve along a Circumscribed Circle of three points.
  * http://en.wikipedia.org/wiki/Circumscribed_circle
@@ -54,10 +52,9 @@ public class CircumscribedCircle extends Curve {
 	/**
 	 * Constructor.
 	 * @param hitObject the associated HitObject
-	 * @param color the color of this curve
 	 */
-	public CircumscribedCircle(HitObject hitObject, Color color) {
-		super(hitObject, color);
+	public CircumscribedCircle(HitObject hitObject) {
+		super(hitObject);
 
 		// construct the three points
 		this.start = new Vec2f(getX(0), getY(0));

@@ -24,8 +24,6 @@ import itdelatrisu.opsu.beatmap.HitObject;
 import java.util.Iterator;
 import java.util.LinkedList;
 
-import org.newdawn.slick.Color;
-
 /**
  * Representation of multiple curve with equidistant points.
  * http://pomax.github.io/bezierinfo/#tracing
@@ -42,10 +40,9 @@ public abstract class EqualDistanceMultiCurve extends Curve {
 	/**
 	 * Constructor.
 	 * @param hitObject the associated HitObject
-	 * @param color the color of this curve
 	 */
-	public EqualDistanceMultiCurve(HitObject hitObject, Color color) {
-		super(hitObject, color);
+	public EqualDistanceMultiCurve(HitObject hitObject) {
+		super(hitObject);
 	}
 
 	/**

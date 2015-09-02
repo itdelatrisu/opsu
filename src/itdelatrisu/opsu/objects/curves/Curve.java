@@ -64,9 +64,8 @@ public abstract class Curve {
 	/**
 	 * Constructor.
 	 * @param hitObject the associated HitObject
-	 * @param color the color of this curve
 	 */
-	protected Curve(HitObject hitObject, Color color) {
+	protected Curve(HitObject hitObject) {
 		this.hitObject = hitObject;
 		this.x = hitObject.getScaledX();
 		this.y = hitObject.getScaledY();

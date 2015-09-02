@@ -527,11 +527,11 @@ public class Slider implements GameObject {
 		this.y = hitObject.getScaledY();
 
 		if (hitObject.getSliderType() == HitObject.SLIDER_PASSTHROUGH && hitObject.getSliderX().length == 2)
-			this.curve = new CircumscribedCircle(hitObject, color);
+			this.curve = new CircumscribedCircle(hitObject);
 		else if (hitObject.getSliderType() == HitObject.SLIDER_CATMULL)
-			this.curve = new CatmullCurve(hitObject, color);
+			this.curve = new CatmullCurve(hitObject);
 		else
-			this.curve = new LinearBezier(hitObject, color, hitObject.getSliderType() == HitObject.SLIDER_LINEAR);
+			this.curve = new LinearBezier(hitObject, hitObject.getSliderType() == HitObject.SLIDER_LINEAR);
 	}
 
 	@Override

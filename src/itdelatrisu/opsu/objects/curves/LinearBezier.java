@@ -22,8 +22,6 @@ import itdelatrisu.opsu.beatmap.HitObject;
 
 import java.util.LinkedList;
 
-import org.newdawn.slick.Color;
-
 /**
  * Representation of Bezier curve with equidistant points.
  * http://pomax.github.io/bezierinfo/#tracing
@@ -34,11 +32,10 @@ public class LinearBezier extends EqualDistanceMultiCurve {
 	/**
 	 * Constructor.
 	 * @param hitObject the associated HitObject
-	 * @param color the color of this curve
 	 * @param line whether a new curve should be generated for each sequential pair
 	 */
-	public LinearBezier(HitObject hitObject, Color color, boolean line) {
-		super(hitObject, color);
+	public LinearBezier(HitObject hitObject, boolean line) {
+		super(hitObject);
 
 		LinkedList<CurveType> beziers = new LinkedList<CurveType>();
 
