@@ -19,6 +19,11 @@
 package itdelatrisu.opsu.beatmap;
 
 import itdelatrisu.opsu.GameMod;
+import itdelatrisu.opsu.objects.curves.CatmullCurve;
+import itdelatrisu.opsu.objects.curves.CircumscribedCircle;
+import itdelatrisu.opsu.objects.curves.Curve;
+import itdelatrisu.opsu.objects.curves.LinearBezier;
+import itdelatrisu.opsu.objects.curves.Vec2f;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -402,6 +407,35 @@ public class HitObject {
 	 * @return the pixel length
 	 */
 	public float getPixelLength() { return pixelLength; }
+
+	/**
+	 * Returns the time duration of the slider (excluding repeats), in milliseconds.
+	 * @param sliderMultiplier the beatmap's slider movement speed multiplier
+	 * @param beatLength the beat length
+	 * @return the slider segment length
+	 */
+	public float getSliderTime(float sliderMultiplier, float beatLength) {
+		return beatLength * (pixelLength / sliderMultiplier) / 100f;
+	}
+
+	/**
+	 * Returns the slider curve.
+	 * @param scaled whether to use scaled coordinates
+	 * @return a new Curve instance
+	 */
+	public Curve getSliderCurve(boolean scaled) {
+		if (sliderType == SLIDER_PASSTHROUGH && sliderX.length == 2) {
+			Vec2f nora = new Vec2f(sliderX[0] - x, sliderY[0] - y).nor();
+			Vec2f norb = new Vec2f(sliderX[0] - sliderX[1], sliderY[0] - sliderY[1]).nor();
+			if (Math.abs(norb.x * nora.y - norb.y * nora.x) < 0.00001f)
+				return new LinearBezier(this, false, scaled);  // vectors parallel, use linear bezier instead
+			else
+				return new CircumscribedCircle(this, scaled);
+		} else if (sliderType == SLIDER_CATMULL)
+			return new CatmullCurve(this, scaled);
+		else
+			return new LinearBezier(this, sliderType == SLIDER_LINEAR, scaled);
+	}
 
 	/**
 	 * Returns the spinner end time.

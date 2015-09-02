@@ -26,10 +26,7 @@ import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.beatmap.Beatmap;
 import itdelatrisu.opsu.beatmap.HitObject;
-import itdelatrisu.opsu.objects.curves.CatmullCurve;
-import itdelatrisu.opsu.objects.curves.CircumscribedCircle;
 import itdelatrisu.opsu.objects.curves.Curve;
-import itdelatrisu.opsu.objects.curves.LinearBezier;
 import itdelatrisu.opsu.states.Game;
 import itdelatrisu.opsu.ui.Colors;
 
@@ -157,7 +154,7 @@ public class Slider implements GameObject {
 		updatePosition();
 
 		// slider time calculations
-		this.sliderTime = game.getBeatLength() * (hitObject.getPixelLength() / sliderMultiplier) / 100f;
+		this.sliderTime = hitObject.getSliderTime(sliderMultiplier, game.getBeatLength());
 		this.sliderTimeTotal = sliderTime * hitObject.getRepeatCount();
 
 		// ticks
@@ -525,13 +522,7 @@ public class Slider implements GameObject {
 	public void updatePosition() {
 		this.x = hitObject.getScaledX();
 		this.y = hitObject.getScaledY();
-
-		if (hitObject.getSliderType() == HitObject.SLIDER_PASSTHROUGH && hitObject.getSliderX().length == 2)
-			this.curve = new CircumscribedCircle(hitObject);
-		else if (hitObject.getSliderType() == HitObject.SLIDER_CATMULL)
-			this.curve = new CatmullCurve(hitObject);
-		else
-			this.curve = new LinearBezier(hitObject, hitObject.getSliderType() == HitObject.SLIDER_LINEAR);
+		this.curve = hitObject.getSliderCurve(true);
 	}
 
 	@Override
