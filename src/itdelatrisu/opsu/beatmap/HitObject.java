@@ -101,8 +101,17 @@ public class HitObject {
 	/** Hit sound type (SOUND_* bitmask). */
 	private byte hitSound;
 
-	/** Hit sound addition (sampleSet, AdditionSampleSet, ?, ...). */
+	/** Hit sound addition (sampleSet, AdditionSampleSet). */
 	private byte[] addition;
+
+	/** Addition custom sample index. */
+	private byte additionCustomSampleIndex;
+
+	/** Addition hit sound volume. */
+	private int additionHitSoundVolume;
+
+	/** Addition hit sound file. */
+	private String additionHitSound;
 
 	/** Slider curve type (SLIDER_* constant). */
 	private char sliderType;
@@ -250,9 +259,17 @@ public class HitObject {
 		// addition
 		if (tokens.length > additionIndex) {
 			String[] additionTokens = tokens[additionIndex].split(":");
-			this.addition = new byte[additionTokens.length];
-			for (int j = 0; j < additionTokens.length; j++)
-				this.addition[j] = Byte.parseByte(additionTokens[j]);
+			if (additionTokens.length > 1) {
+				this.addition = new byte[2];
+				addition[0] = Byte.parseByte(additionTokens[0]);
+				addition[1] = Byte.parseByte(additionTokens[1]);
+			}
+			if (additionTokens.length > 2)
+				this.additionCustomSampleIndex = Byte.parseByte(additionTokens[2]);
+			if (additionTokens.length > 3)
+				this.additionHitSoundVolume = Integer.parseInt(additionTokens[3]);
+			if (additionTokens.length > 4)
+				this.additionHitSound = additionTokens[4];
 		}
 	}
 
@@ -472,6 +489,21 @@ public class HitObject {
 	}
 
 	/**
+	 * Returns the custom sample index (addition).
+	 */
+	public byte getCustomSampleIndex() { return additionCustomSampleIndex; }
+
+	/**
+	 * Returns the hit sound volume (addition).
+	 */
+	public int getHitSoundVolume() { return additionHitSoundVolume; }
+
+	/**
+	 * Returns the hit sound file (addition).
+	 */
+	public String getHitSoundFile() { return additionHitSound; }
+
+	/**
 	 * Sets the hit object index in the current stack.
 	 * @param stack index in the stack
 	 */
@@ -529,9 +561,12 @@ public class HitObject {
 		// addition
 		if (addition != null) {
 			for (int i = 0; i < addition.length; i++) {
-				sb.append(addition[i]);
-				sb.append(':');
+				sb.append(addition[i]); sb.append(':');
 			}
+			sb.append(additionCustomSampleIndex); sb.append(':');
+			sb.append(additionHitSoundVolume); sb.append(':');
+			if (additionHitSound != null)
+				sb.append(additionHitSound);
 		} else
 			sb.setLength(sb.length() - 1);
 

@@ -142,17 +142,19 @@ public class BeatmapParser {
 
 				// check if beatmap is cached
 				String path = String.format("%s/%s", dir.getName(), file.getName());
-				Long lastModified = map.get(path);
-				if (map != null && lastModified != null) {
-					// check last modified times
-					if (lastModified == file.lastModified()) {
-						// add to cached beatmap list
-						Beatmap beatmap = new Beatmap(file);
-						beatmaps.add(beatmap);
-						cachedBeatmaps.add(beatmap);
-						continue;
-					} else
-						BeatmapDB.delete(dir.getName(), file.getName());
+				if (map != null) {
+					Long lastModified = map.get(path);
+					if (lastModified != null) {
+						// check last modified times
+						if (lastModified == file.lastModified()) {
+							// add to cached beatmap list
+							Beatmap beatmap = new Beatmap(file);
+							beatmaps.add(beatmap);
+							cachedBeatmaps.add(beatmap);
+							continue;
+						} else
+							BeatmapDB.delete(dir.getName(), file.getName());
+					}
 				}
 
 				// Parse hit objects only when needed to save time/memory.
@@ -686,10 +688,15 @@ public class BeatmapParser {
 
 					beatmap.objects[objectIndex++] = hitObject;
 				} catch (Exception e) {
-					Log.warn(String.format("Failed to read hit object '%s' for Beatmap '%s'.",
+					Log.warn(String.format("Failed to read hit object '%s' for beatmap '%s'.",
 							line, beatmap.toString()), e);
 				}
 			}
+
+			// check that all objects were parsed
+			if (objectIndex != beatmap.objects.length)
+				ErrorHandler.error(String.format("Parsed %d objects for beatmap '%s', %d objects expected.",
+						objectIndex, beatmap.toString(), beatmap.objects.length), null, true);
 		} catch (IOException e) {
 			ErrorHandler.error(String.format("Failed to read file '%s'.", beatmap.getFile().getAbsolutePath()), e, false);
 		}
