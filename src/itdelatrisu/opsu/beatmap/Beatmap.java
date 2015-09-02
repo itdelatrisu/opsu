@@ -286,6 +286,8 @@ public class Beatmap implements Comparable<Beatmap> {
 		try {
 			Image bgImage = bgImageCache.get(this);
 			if (bgImage == null) {
+				if (!bg.isFile())
+					return false;
 				bgImage = new Image(bg.getAbsolutePath());
 				bgImageCache.put(bg, bgImage);
 			}
