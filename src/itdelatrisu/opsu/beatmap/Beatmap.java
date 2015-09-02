@@ -64,6 +64,9 @@ public class Beatmap implements Comparable<Beatmap> {
 	/** The OSU File object associated with this beatmap. */
 	private File file;
 
+	/** MD5 hash of this file. */
+	public String md5Hash;
+
 	/**
 	 * [General]
 	 */
@@ -202,9 +205,6 @@ public class Beatmap implements Comparable<Beatmap> {
 
 	/** Slider border color. If null, the skin value is used. */
 	public Color sliderBorder;
-
-	/** MD5 hash of this file. */
-	public String md5Hash;
 
 	/**
 	 * [HitObjects]

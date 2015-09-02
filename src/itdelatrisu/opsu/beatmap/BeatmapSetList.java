@@ -164,12 +164,18 @@ public class BeatmapSetList {
 		}
 
 		// remove all node references
-		Beatmap beatmap = node.getBeatmapSet().get(0);
+		BeatmapSet beatmapSet = node.getBeatmapSet();
+		Beatmap beatmap = beatmapSet.get(0);
 		nodes.remove(index);
 		parsedNodes.remove(eCur);
-		mapCount -= node.getBeatmapSet().size();
+		mapCount -= beatmapSet.size();
 		if (beatmap.beatmapSetID > 0)
 			MSIDdb.remove(beatmap.beatmapSetID);
+		for (int i = 0, n = beatmapSet.size(); i < n; i++) {
+			Beatmap bm = beatmapSet.get(i);
+			if (bm.md5Hash != null)
+				this.beatmapHashDB.remove(bm.md5Hash);
+		}
 
 		// reset indices
 		for (int i = index, size = size(); i < size; i++)
@@ -241,6 +247,8 @@ public class BeatmapSetList {
 		// remove song reference
 		Beatmap beatmap = node.getBeatmapSet().remove(node.beatmapIndex);
 		mapCount--;
+		if (beatmap.md5Hash != null)
+			beatmapHashDB.remove(beatmap.md5Hash);
 
 		// re-link nodes
 		if (node.prev != null)
