@@ -20,6 +20,7 @@ package itdelatrisu.opsu.objects.curves;
 
 import fluddokt.opsu.fake.*;
 
+import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.beatmap.HitObject;
 
 import java.util.Iterator;
@@ -98,7 +99,7 @@ public abstract class EqualDistanceMultiCurve extends Curve {
 			// interpolate the point between the two closest distances
 			if (distanceAt - lastDistanceAt > 1) {
 				float t = (prefDistance - lastDistanceAt) / (distanceAt - lastDistanceAt);
-				curve[i] = new Vec2f(lerp(lastCurve.x, thisCurve.x, t), lerp(lastCurve.y, thisCurve.y, t));
+				curve[i] = new Vec2f(Utils.lerp(lastCurve.x, thisCurve.x, t), Utils.lerp(lastCurve.y, thisCurve.y, t));
 			} else
 				curve[i] = thisCurve;
 		}
@@ -132,8 +133,8 @@ public abstract class EqualDistanceMultiCurve extends Curve {
 			Vec2f poi2 = curve[index + 1];
 			float t2 = indexF - index;
 			return new float[] {
-				lerp(poi.x, poi2.x, t2),
-				lerp(poi.y, poi2.y, t2)
+				Utils.lerp(poi.x, poi2.x, t2),
+				Utils.lerp(poi.y, poi2.y, t2)
 			};
 		}
 	}

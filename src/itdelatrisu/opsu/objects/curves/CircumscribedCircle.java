@@ -21,6 +21,7 @@ package itdelatrisu.opsu.objects.curves;
 import fluddokt.opsu.fake.*;
 
 import itdelatrisu.opsu.ErrorHandler;
+import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.beatmap.HitObject;
 
 /*
@@ -166,7 +167,7 @@ public class CircumscribedCircle extends Curve {
 
 	@Override
 	public float[] pointAt(float t) {
-		float ang = lerp(startAng, endAng, t);
+		float ang = Utils.lerp(startAng, endAng, t);
 		return new float[] {
 			(float) (Math.cos(ang) * radius + circleCenter.x),
 			(float) (Math.sin(ang) * radius + circleCenter.y)

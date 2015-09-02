@@ -32,6 +32,8 @@ import itdelatrisu.opsu.beatmap.BeatmapSetList;
 import itdelatrisu.opsu.beatmap.BeatmapSetNode;
 import itdelatrisu.opsu.downloads.Updater;
 import itdelatrisu.opsu.states.ButtonMenu.MenuState;
+import itdelatrisu.opsu.ui.Colors;
+import itdelatrisu.opsu.ui.Fonts;
 import itdelatrisu.opsu.ui.MenuButton;
 import itdelatrisu.opsu.ui.MenuButton.Expand;
 import itdelatrisu.opsu.ui.UI;
@@ -120,16 +122,11 @@ public class MainMenu extends BasicGameState {
 	/** Music position bar coordinates and dimensions. */
 	private float musicBarX, musicBarY, musicBarWidth, musicBarHeight;
 
-	/** Music position bar background colors. */
-	private static final Color
-		BG_NORMAL = new Color(0, 0, 0, 0.25f),
-		BG_HOVER  = new Color(0, 0, 0, 0.5f);
-
 	// game-related variables
 	private GameContainer container;
 	private StateBasedGame game;
 	private Input input;
-	private int state;
+	private final int state;
 
 	public MainMenu(int state) {
 		this.state = state;
@@ -227,7 +224,7 @@ public class MainMenu extends BasicGameState {
 		float centerOffsetX = width / 5f;
 		logoOpen = new AnimatedValue(400, 0, centerOffsetX, AnimationEquation.OUT_QUAD);
 		logoClose = new AnimatedValue(2200, centerOffsetX, 0, AnimationEquation.OUT_QUAD);
-		logoButtonAlpha = new AnimatedValue(300, 0f, 1f, AnimationEquation.LINEAR);
+		logoButtonAlpha = new AnimatedValue(200, 0f, 1f, AnimationEquation.LINEAR);
 
 		reset();
 	}
@@ -250,12 +247,12 @@ public class MainMenu extends BasicGameState {
 		}
 
 		// top/bottom horizontal bars
-		float oldAlpha = Utils.COLOR_BLACK_ALPHA.a;
-		Utils.COLOR_BLACK_ALPHA.a = 0.2f;
-		g.setColor(Utils.COLOR_BLACK_ALPHA);
+		float oldAlpha = Colors.BLACK_ALPHA.a;
+		Colors.BLACK_ALPHA.a = 0.2f;
+		g.setColor(Colors.BLACK_ALPHA);
 		g.fillRect(0, 0, width, height / 9f);
 		g.fillRect(0, height * 8 / 9f, width, height / 9f);
-		Utils.COLOR_BLACK_ALPHA.a = oldAlpha;
+		Colors.BLACK_ALPHA.a = oldAlpha;
 
 		// draw downloads button
 		downloadsButton.draw();
@@ -277,7 +274,7 @@ public class MainMenu extends BasicGameState {
 
 		// draw music position bar
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
-		g.setColor((musicPositionBarContains(mouseX, mouseY)) ? BG_HOVER : BG_NORMAL);
+		g.setColor((musicPositionBarContains(mouseX, mouseY)) ? Colors.BLACK_BG_HOVER : Colors.BLACK_BG_NORMAL);
 		g.fillRoundRect(musicBarX, musicBarY, musicBarWidth, musicBarHeight, 4);
 		g.setColor(Color.white);
 		if (!MusicController.isTrackLoading() && beatmap != null) {
@@ -300,15 +297,17 @@ public class MainMenu extends BasicGameState {
 
 		// draw text
 		float marginX = width * 0.015f, topMarginY = height * 0.01f, bottomMarginY = height * 0.015f;
-		g.setFont(Utils.FONT_MEDIUM);
-		float lineHeight = Utils.FONT_MEDIUM.getLineHeight() * 0.925f;
+		g.setFont(Fonts.MEDIUM);
+		float lineHeight = Fonts.MEDIUM.getLineHeight() * 0.925f;
 		g.drawString(String.format("Loaded %d songs and %d beatmaps.",
 				BeatmapSetList.get().getMapSetCount(), BeatmapSetList.get().getMapCount()), marginX, topMarginY);
 		if (MusicController.isTrackLoading())
 			g.drawString("Track loading...", marginX, topMarginY + lineHeight);
 		else if (MusicController.trackExists()) {
-			if (Options.useUnicodeMetadata())  // load glyphs
-				Utils.loadGlyphs(Utils.FONT_MEDIUM, beatmap.titleUnicode, beatmap.artistUnicode);
+			if (Options.useUnicodeMetadata()) {  // load glyphs
+				Fonts.loadGlyphs(Fonts.MEDIUM, beatmap.titleUnicode);
+				Fonts.loadGlyphs(Fonts.MEDIUM, beatmap.artistUnicode);
+			}
 			g.drawString((MusicController.isPlaying()) ? "Now Playing:" : "Paused:", marginX, topMarginY + lineHeight);
 			g.drawString(String.format("%s: %s", beatmap.getArtist(), beatmap.getTitle()), marginX + 25, topMarginY + (lineHeight * 2));
 		}

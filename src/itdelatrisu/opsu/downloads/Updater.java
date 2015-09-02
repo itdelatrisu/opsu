@@ -81,7 +81,7 @@ public class Updater {
 		UPDATE_FINAL ("Update queued.");
 
 		/** The status description. */
-		private String description;
+		private final String description;
 
 		/**
 		 * Constructor.

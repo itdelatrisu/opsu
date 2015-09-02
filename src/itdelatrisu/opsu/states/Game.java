@@ -48,6 +48,8 @@ import itdelatrisu.opsu.render.FrameBufferCache;
 import itdelatrisu.opsu.replay.PlaybackSpeed;
 import itdelatrisu.opsu.replay.Replay;
 import itdelatrisu.opsu.replay.ReplayFrame;
+import itdelatrisu.opsu.ui.Colors;
+import itdelatrisu.opsu.ui.Fonts;
 import itdelatrisu.opsu.ui.MenuButton;
 import itdelatrisu.opsu.ui.UI;
 import itdelatrisu.opsu.ui.animations.AnimationEquation;
@@ -120,9 +122,14 @@ public class Game extends BasicGameState {
 	/** Hit object approach time, in milliseconds. */
 	private int approachTime;
 
-	/** Decay time for elements in "Hidden" mod, in milliseconds. */
-	//TODO: figure out actual formula for decay time
-	private int decayTime = 800;
+	/** The amount of time for hit objects to fade in, in milliseconds. */
+	private int fadeInTime;
+
+	/** Decay time for hit objects in the "Hidden" mod, in milliseconds. */
+	private int hiddenDecayTime;
+
+	/** Time before the hit object time by which the objects have completely faded in the "Hidden" mod, in milliseconds. */
+	private int hiddenTimeDiff;
 
 	/** Time offsets for obtaining each hit result (indexed by HIT_* constants). */
 	private int[] hitResultOffset;
@@ -247,7 +254,7 @@ public class Game extends BasicGameState {
 	private GameContainer container;
 	private StateBasedGame game;
 	private Input input;
-	private int state;
+	private final int state;
 
 	public Game(int state) {
 		this.state = state;
@@ -523,15 +530,15 @@ public class Game extends BasicGameState {
 						GameImage.SCOREBAR_BG.getImage().getHeight(),
 						GameImage.SCOREBAR_KI.getImage().getHeight()
 				);
-				float oldAlpha = Utils.COLOR_WHITE_FADE.a;
+				float oldAlpha = Colors.WHITE_FADE.a;
 				if (timeDiff < -500)
-					Utils.COLOR_WHITE_FADE.a = (1000 + timeDiff) / 500f;
-				Utils.FONT_MEDIUM.drawString(
+					Colors.WHITE_FADE.a = (1000 + timeDiff) / 500f;
+				Fonts.MEDIUM.drawString(
 						2 + (width / 100), retryHeight,
 						String.format("%d retries and counting...", retries),
-						Utils.COLOR_WHITE_FADE
+						Colors.WHITE_FADE
 				);
-				Utils.COLOR_WHITE_FADE.a = oldAlpha;
+				Colors.WHITE_FADE.a = oldAlpha;
 			}
 
 			/*
@@ -616,7 +623,7 @@ public class Game extends BasicGameState {
 		// returning from pause screen
 		if (pauseTime > -1 && pausedMouseX > -1 && pausedMouseY > -1) {
 			// darken the screen
-			g.setColor(Utils.COLOR_BLACK_ALPHA);
+			g.setColor(Colors.BLACK_ALPHA);
 			g.fillRect(0, 0, width, height);
 
 			// draw glowing hit select circle and pulse effect
@@ -629,8 +636,6 @@ public class Game extends BasicGameState {
 			cursorCirclePulse.drawCentered(pausedMouseX, pausedMouseY);
 		}
 
-		Utils.FONT_DEFAULT.drawString(10,10, MusicController.getPosition()+"");
-		
 		if (isReplay)
 			UI.draw(g, replayX, replayY, replayKeyPressed);
 		else if (GameMod.AUTO.isActive())
@@ -796,6 +801,7 @@ public class Game extends BasicGameState {
 						r.save();
 				}
 				ScoreData score = data.getScoreData(beatmap);
+				data.setGameplay(!isReplay);
 
 				// add score to database
 				if (!unranked && !isReplay)
@@ -981,6 +987,13 @@ public class Game extends BasicGameState {
 				}
 			}
 			break;
+		case Input.KEY_F:
+			// change playback speed
+			if (isReplay || GameMod.AUTO.isActive()) {
+				playbackSpeed = playbackSpeed.next();
+				MusicController.setPitch(GameMod.getSpeedMultiplier() * playbackSpeed.getModifier());
+			}
+			break;
 		case Input.KEY_UP:
 			UI.changeVolume(1);
 			break;
@@ -1155,7 +1168,7 @@ public class Game extends BasicGameState {
 	 * @param trackPosition the track position
 	 */
 	private void gameKeyReleased(int keys, int x, int y, int trackPosition) {
-		if (!isReplay && keys != ReplayFrame.KEY_NONE && !isLeadIn() && pauseTime == -1) {
+		if (!isReplay && keys != ReplayFrame.KEY_NONE) {
 			lastKeysPressed &= ~keys;  // clear keys bits
 			addReplayFrameAndRun(x, y, lastKeysPressed, trackPosition);
 		}
@@ -1192,6 +1205,8 @@ public class Game extends BasicGameState {
 				previousMods = GameMod.getModState();
 				GameMod.loadModState(replay.mods);
 			}
+
+			data.setGameplay(true);
 
 			// check restart state
 			if (restart == Restart.NEW) {
@@ -1505,9 +1520,9 @@ public class Game extends BasicGameState {
 		// set images
 		File parent = beatmap.getFile().getParentFile();
 		for (GameImage img : GameImage.values()) {
-			if (img.isSkinnable()) {
+			if (img.isBeatmapSkinnable()) {
 				img.setDefaultImage();
-				img.setSkinImage(parent);
+				img.setBeatmapSkinImage(parent);
 			}
 		}
 
@@ -1554,14 +1569,15 @@ public class Game extends BasicGameState {
 
 		// Stack modifier scales with hit object size
 		// StackOffset = HitObjectRadius / 10
-		int diameter = (int) (104 - (circleSize * 8));
+		//int diameter = (int) (104 - (circleSize * 8));
+		float diameter = 108.848f - (circleSize * 8.9646f);
 		HitObject.setStackOffset(diameter * STACK_OFFSET_MODIFIER);
 
 		// initialize objects
-		Circle.init(container, circleSize);
-		Slider.init(container, circleSize, beatmap);
+		Circle.init(container, diameter);
+		Slider.init(container, diameter, beatmap);
 		Spinner.init(container, overallDifficulty);
-		Curve.init(container.getWidth(), container.getHeight(), circleSize, (Options.isBeatmapSkinIgnored()) ?
+		Curve.init(container.getWidth(), container.getHeight(), diameter, (Options.isBeatmapSkinIgnored()) ?
 				Options.getSkin().getSliderBorderColor() : beatmap.getSliderBorderColor());
 
 		// approachRate (hit object approach time)
@@ -1572,9 +1588,9 @@ public class Game extends BasicGameState {
 
 		// overallDifficulty (hit result time offsets)
 		hitResultOffset = new int[GameData.HIT_MAX];
-		hitResultOffset[GameData.HIT_300]  = (int) (78 - (overallDifficulty * 6));
-		hitResultOffset[GameData.HIT_100]  = (int) (138 - (overallDifficulty * 8));
-		hitResultOffset[GameData.HIT_50]   = (int) (198 - (overallDifficulty * 10));
+		hitResultOffset[GameData.HIT_300]  = (int) (79.5f - (overallDifficulty * 6));
+		hitResultOffset[GameData.HIT_100]  = (int) (139.5f - (overallDifficulty * 8));
+		hitResultOffset[GameData.HIT_50]   = (int) (199.5f - (overallDifficulty * 10));
 		hitResultOffset[GameData.HIT_MISS] = (int) (500 - (overallDifficulty * 10));
 		//final float mult = 0.608f;
 		//hitResultOffset[GameData.HIT_300]  = (int) ((128 - (overallDifficulty * 9.6)) * mult);
@@ -1588,6 +1604,14 @@ public class Game extends BasicGameState {
 
 		// difficulty multiplier (scoring)
 		data.calculateDifficultyMultiplier(beatmap.HPDrainRate, beatmap.circleSize, beatmap.overallDifficulty);
+
+		// hit object fade-in time (TODO: formula)
+		fadeInTime = Math.min(375, (int) (approachTime / 2.5f));
+
+		// fade times ("Hidden" mod)
+		// TODO: find the actual formulas for this
+		hiddenDecayTime = (int) (approachTime / 3.6f);
+		hiddenTimeDiff = (int) (approachTime / 3.3f);
 	}
 
 	/**
@@ -1612,9 +1636,20 @@ public class Game extends BasicGameState {
 	public int getApproachTime() { return approachTime; }
 
 	/**
+	 * Returns the amount of time for hit objects to fade in, in milliseconds.
+	 */
+	public int getFadeInTime() { return fadeInTime; }
+
+	/**
 	 * Returns the object decay time in the "Hidden" mod, in milliseconds.
 	 */
-	public int getDecayTime() { return decayTime; }
+	public int getHiddenDecayTime() { return hiddenDecayTime; }
+
+	/**
+	 * Returns the time before the hit object time by which the objects have
+	 * completely faded in the "Hidden" mod, in milliseconds.
+	 */
+	public int getHiddenTimeDiff() { return hiddenTimeDiff; }
 
 	/**
 	 * Returns an array of hit result offset times, in milliseconds (indexed by GameData.HIT_* constants).

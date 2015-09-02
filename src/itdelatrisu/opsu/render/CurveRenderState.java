@@ -19,10 +19,11 @@ package itdelatrisu.opsu.render;
 
 import fluddokt.opsu.fake.*;
 import fluddokt.opsu.fake.gl.*;
+
 import itdelatrisu.opsu.GameImage;
-import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.beatmap.HitObject;
 import itdelatrisu.opsu.objects.curves.Vec2f;
+import itdelatrisu.opsu.ui.Colors;
 
 import java.nio.FloatBuffer;
 
@@ -40,7 +41,6 @@ import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL14;
 import org.lwjgl.opengl.GL15;
 import org.lwjgl.opengl.GL20;
-import org.lwjgl.opengl.GL30;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.util.Log;
@@ -73,15 +73,14 @@ public class CurveRenderState {
 	 * Should be called before any curves are drawn.
 	 * @param width the container width
 	 * @param height the container height
-	 * @param circleSize the circle size
+	 * @param circleDiameter the circle diameter
 	 */
-	public static void init(int width, int height, float circleSize) {
+	public static void init(int width, int height, float circleDiameter) {
 		containerWidth = width;
 		containerHeight = height;
 
 		// equivalent to what happens in Slider.init()
-		scale = (int) (104 - (circleSize * 8));
-		scale = (int) (scale * HitObject.getXMultiplier());  // convert from Osupixels (640x480)
+		scale = (int) (circleDiameter * HitObject.getXMultiplier());  // convert from Osupixels (640x480)
 		//scale = scale * 118 / 128; //for curves exactly as big as the sliderball
 		FrameBufferCache.init(width, height);
 	}
@@ -141,7 +140,7 @@ public class CurveRenderState {
 			fbo.bind();
 			GL11.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 			GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
-			Utils.COLOR_WHITE_FADE.a = 1.0f;
+			Colors.WHITE_FADE.a = 1.0f;
 			this.draw_curve(color, borderColor, curve);
 			color.a = 1f;
 
@@ -154,7 +153,7 @@ public class CurveRenderState {
 			GL11.glViewport(oldViewport.get(0), oldViewport.get(1), oldViewport.get(2), oldViewport.get(3));
 			*/
 			GL30.glBindFramebuffer(GL30.GL_DRAW_FRAMEBUFFER, old_fb);
-			Utils.COLOR_WHITE_FADE.a = alpha;
+			Colors.WHITE_FADE.a = alpha;
 		}
 
 		/*
@@ -438,7 +437,7 @@ public class CurveRenderState {
 				
 				GL11.glBindTexture(GL11.GL_TEXTURE_1D, gradientTexture);
 				GL11.glTexImage1D(GL11.GL_TEXTURE_1D, 0, GL11.GL_RGBA, slider.getWidth(), 0, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, buff);
-				GL30.glGenerateMipmap(GL11.GL_TEXTURE_1D);
+				EXTFramebufferObject.glGenerateMipmapEXT(GL11.GL_TEXTURE_1D);
 				*/
 				
 				Gdx2DPixmap g2dpix = new Gdx2DPixmap(slider.getWidth(), 1, Gdx2DPixmap.GDX2D_FORMAT_RGBA8888);
@@ -557,7 +556,6 @@ public class CurveRenderState {
 				}
 				GL20.glAttachShader(program, vtxShdr);
 				GL20.glAttachShader(program, frgShdr);
-				GL30.glBindFragDataLocation(program, 0, "out_colour");
 				GL20.glLinkProgram(program);
 				res = GL20.glGetProgrami(program, GL20.GL_LINK_STATUS);
 				if (res != GL11.GL_TRUE) {

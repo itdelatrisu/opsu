@@ -22,6 +22,7 @@ import fluddokt.opsu.fake.*;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.beatmap.Beatmap;
 import itdelatrisu.opsu.beatmap.BeatmapSetList;
+import itdelatrisu.opsu.beatmap.BeatmapWatchService;
 import itdelatrisu.opsu.downloads.DownloadList;
 import itdelatrisu.opsu.downloads.Updater;
 import itdelatrisu.opsu.render.CurveRenderState;
@@ -140,6 +141,11 @@ public class Container extends AppGameContainer {
 
 		// delete OpenGL objects involved in the Curve rendering
 		CurveRenderState.shutdown();
+
+		// destroy watch service
+		if (!Options.isWatchServiceEnabled())
+			BeatmapWatchService.destroy();
+		BeatmapWatchService.removeListeners();
 	}
 
 	@Override

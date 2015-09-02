@@ -18,7 +18,6 @@
 
 package itdelatrisu.opsu.ui.animations;
 
-
 /*
  * These equations are copyright (c) 2001 Robert Penner, all rights reserved,
  * and are open source under the BSD License.

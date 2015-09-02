@@ -30,6 +30,7 @@ import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
 import itdelatrisu.opsu.beatmap.HitObject;
 import itdelatrisu.opsu.states.Game;
+import itdelatrisu.opsu.ui.Colors;
 
 /*
 import org.newdawn.slick.Color;
@@ -54,9 +55,6 @@ public class Spinner implements GameObject {
 	/** The amount of time, in milliseconds, before another velocity is stored. */
 	private static final float DELTA_UPDATE_TIME = 1000 / 60f;
 
-	/** The amount of time, in milliseconds, to fade in the spinner. */
-	private static final int FADE_IN_TIME = 500;
-
 	/** Angle mod multipliers: "auto" (477rpm), "spun out" (287rpm) */
 	private static final float
 		AUTO_MULTIPLIER = 1 / 20f,         // angle = 477/60f * delta/1000f * TWO_PI;
@@ -72,6 +70,9 @@ public class Spinner implements GameObject {
 
 	/** The associated HitObject. */
 	private HitObject hitObject;
+
+	/** The associated Game object. */
+	private Game game;
 
 	/** The associated GameData object. */
 	private GameData data;
@@ -128,6 +129,7 @@ public class Spinner implements GameObject {
 	 */
 	public Spinner(HitObject hitObject, Game game, GameData data) {
 		this.hitObject = hitObject;
+		this.game = game;
 		this.data = data;
 
 /*
@@ -179,20 +181,21 @@ public class Spinner implements GameObject {
 	public void draw(Graphics g, int trackPosition) {
 		// only draw spinners shortly before start time
 		int timeDiff = hitObject.getTime() - trackPosition;
-		if (timeDiff - FADE_IN_TIME > 0)
+		final int fadeInTime = game.getFadeInTime();
+		if (timeDiff - fadeInTime > 0)
 			return;
 
 		boolean spinnerComplete = (rotations >= rotationsNeeded);
-		float alpha = Utils.clamp(1 - (float) timeDiff / FADE_IN_TIME, 0f, 1f);
+		float alpha = Utils.clamp(1 - (float) timeDiff / fadeInTime, 0f, 1f);
 
 		// darken screen
 		if (Options.getSkin().isSpinnerFadePlayfield()) {
-			float oldAlpha = Utils.COLOR_BLACK_ALPHA.a;
+			float oldAlpha = Colors.BLACK_ALPHA.a;
 			if (timeDiff > 0)
-				Utils.COLOR_BLACK_ALPHA.a *= alpha;
-			g.setColor(Utils.COLOR_BLACK_ALPHA);
+				Colors.BLACK_ALPHA.a *= alpha;
+			g.setColor(Colors.BLACK_ALPHA);
 			g.fillRect(0, 0, width, height);
-			Utils.COLOR_BLACK_ALPHA.a = oldAlpha;
+			Colors.BLACK_ALPHA.a = oldAlpha;
 		}
 
 		// rpm

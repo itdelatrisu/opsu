@@ -22,10 +22,10 @@ import fluddokt.opsu.fake.*;
 
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.Options;
-import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.beatmap.HitObject;
 import itdelatrisu.opsu.render.CurveRenderState;
 import itdelatrisu.opsu.skins.Skin;
+import itdelatrisu.opsu.ui.Colors;
 
 /*
 import org.lwjgl.opengl.ContextCapabilities;
@@ -84,21 +84,22 @@ public abstract class Curve {
 	 * Should be called before any curves are drawn.
 	 * @param width the container width
 	 * @param height the container height
-	 * @param circleSize the circle size
+	 * @param circleDiameter the circle diameter
 	 * @param borderColor the curve border color
 	 */
-	public static void init(int width, int height, float circleSize, Color borderColor) {
+	public static void init(int width, int height, float circleDiameter, Color borderColor) {
 		Curve.borderColor = borderColor;
 
-		
-		//ContextCapabilities capabilities = GLContext.getCapabilities();
-		//mmsliderSupported = capabilities.GL_EXT_framebuffer_object && capabilities.OpenGL30;
+		/*
+		ContextCapabilities capabilities = GLContext.getCapabilities();
+		mmsliderSupported = capabilities.GL_EXT_framebuffer_object;
+		*/
 		mmsliderSupported = true;
 		if (mmsliderSupported)
-			CurveRenderState.init(width, height, circleSize);
+			CurveRenderState.init(width, height, circleDiameter);
 		else {
 			if (Options.getSkin().getSliderStyle() != Skin.STYLE_PEPPYSLIDER)
-				Log.warn("New slider style requires FBO support and OpenGL 3.0.");
+				Log.warn("New slider style requires FBO support.");
 		}
 	}
 
@@ -123,7 +124,7 @@ public abstract class Curve {
 			Image hitCircle = GameImage.HITCIRCLE.getImage();
 			Image hitCircleOverlay = GameImage.HITCIRCLE_OVERLAY.getImage();
 			for (int i = 0; i < curve.length; i+=Options.getSliderQuality())
-				hitCircleOverlay.drawCentered(curve[i].x, curve[i].y, Utils.COLOR_WHITE_FADE);
+				hitCircleOverlay.drawCentered(curve[i].x, curve[i].y, Colors.WHITE_FADE);
 			for (int i = 0; i < curve.length; i+=Options.getSliderQuality())
 				hitCircle.drawCentered(curve[i].x, curve[i].y, color);
 		}
@@ -157,13 +158,6 @@ public abstract class Curve {
 	 * @param i the control point index
 	 */
 	public float getY(int i) { return (i == 0) ? y : sliderY[i - 1]; }
-
-	/**
-	 * Linear interpolation of a and b at t.
-	 */
-	protected float lerp(float a, float b, float t) {
-		return a * (1 - t) + b * t;
-	}
 
 	/**
 	 * Discards the slider cache (only used for mmsliders).

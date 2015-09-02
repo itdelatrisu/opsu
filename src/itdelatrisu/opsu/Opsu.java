@@ -41,6 +41,7 @@ import java.io.FileNotFoundException;
 //import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.lang.reflect.Field;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.UnknownHostException;
@@ -48,6 +49,7 @@ import java.net.UnknownHostException;
 /*
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
+import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.state.transition.FadeInTransition;
@@ -115,7 +117,10 @@ public class Opsu extends StateBasedGame {
 		// log all errors to a file
 		Log.setVerbose(false);
 		try {
+			System.out.println("LOG FILE: "+ Options.LOG_FILE);
 			DefaultLogSystem.out = new PrintStream(new FileOutputStream(Options.LOG_FILE, false));
+			DefaultLogSystem.out.println("Run Date: "+ new java.util.Date());
+			DefaultLogSystem.out.flush();
 		} catch (FileNotFoundException e) {
 			Log.error(e);
 		}
@@ -142,10 +147,30 @@ public class Opsu extends StateBasedGame {
 		*/
 
 		/*
-		// set path for lwjgl natives - NOT NEEDED if using JarSplice
-		File nativeDir = new File("./target/natives/");
-		if (nativeDir.isDirectory())
-			System.setProperty("org.lwjgl.librarypath", nativeDir.getAbsolutePath());
+		File nativeDir;
+		if (!Utils.isJarRunning() && (
+		    (nativeDir = new File("./target/natives/")).isDirectory() ||
+		    (nativeDir = new File("./build/natives/")).isDirectory()))
+			;
+		else {
+			nativeDir = Options.NATIVE_DIR;
+			try {
+				new NativeLoader(nativeDir).loadNatives();
+			} catch (IOException e) {
+				Log.error("Error loading natives.", e);
+			}
+		}
+		System.setProperty("org.lwjgl.librarypath", nativeDir.getAbsolutePath());
+		System.setProperty("java.library.path", nativeDir.getAbsolutePath());
+		try {
+			// Workaround for "java.library.path" property being read-only.
+			// http://stackoverflow.com/a/24988095
+			Field fieldSysPath = ClassLoader.class.getDeclaredField("sys_paths");
+			fieldSysPath.setAccessible(true);
+			fieldSysPath.set(null, null);
+		} catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
+			Log.warn("Failed to set 'sys_paths' field.", e);
+		}
 		*/
 
 		// set the resource paths
@@ -154,8 +179,10 @@ public class Opsu extends StateBasedGame {
 		ResourceLoader.addResourceLocation(new FileSystemLocation(new File("res/"),true));
 		ResourceLoader.addResourceLocation(new ClasspathLocation());
 		ResourceLoader.addResourceLocation(new FileSystemLocation(new File(".")));
-		//ResourceLoader.addResourceLocation(new FileSystemLocation(new File("./res/")));
-
+		/*
+		ResourceLoader.addResourceLocation(new FileSystemLocation(new File("./res/")));
+		*/
+		
 		// initialize databases
 		try {
 			DBController.init();
@@ -170,19 +197,24 @@ public class Opsu extends StateBasedGame {
 
 		// check for updates
 		if (!Options.isUpdaterDisabled()) {
-		new Thread() {
-			@Override
-			public void run() {
-				try {
-					Updater.get().checkForUpdates();
-				} catch (IOException e) {
-					Log.warn("Check for updates failed.", e);
+			new Thread() {
+				@Override
+				public void run() {
+					try {
+						Updater.get().checkForUpdates();
+					} catch (IOException e) {
+						Log.warn("Check for updates failed.", e);
+					}
 				}
-			}
-		}.start();
+			}.start();
+		}
 		*/
 		
-		//*
+		// disable jinput
+		/*
+		Input.disableControllers();
+		*/
+		
 		// start the game
 		try {
 		
@@ -223,20 +255,18 @@ public class Opsu extends StateBasedGame {
 			SongMenu songMenu = (SongMenu) this.getState(Opsu.STATE_SONGMENU);
 			if (id == STATE_GAMERANKING) {
 				GameData data = ((GameRanking) this.getState(Opsu.STATE_GAMERANKING)).getGameData();
-				if (data != null && data.isGameplay()) {
-					songMenu.resetGameDataOnLoad();
+				if (data != null && data.isGameplay())
 					songMenu.resetTrackOnLoad();
-				}
 			} else {
-				songMenu.resetGameDataOnLoad();
 				if (id == STATE_GAME) {
 					MusicController.pause();
 					MusicController.resume();
 				} else
 					songMenu.resetTrackOnLoad();
 			}
-			if (UI.getCursor().isSkinned())
+			if (UI.getCursor().isBeatmapSkinned())
 				UI.getCursor().reset();
+			songMenu.resetGameDataOnLoad();
 			this.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 			return false;
 		}

@@ -28,7 +28,7 @@ import java.nio.channels.ReadableByteChannel;
  */
 public class ReadableByteChannelWrapper implements ReadableByteChannel {
 	/** The wrapped ReadableByteChannel. */
-	private ReadableByteChannel rbc;
+	private final ReadableByteChannel rbc;
 
 	/** The number of bytes read. */
 	private long bytesRead;

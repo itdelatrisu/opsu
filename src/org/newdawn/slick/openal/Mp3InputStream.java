@@ -76,14 +76,19 @@ public class Mp3InputStream extends InputStream implements AudioInputStream {
 	/**
 	 * Create a new stream to decode MP3 data.
 	 * @param input the input stream from which to read the MP3 file
+	 * @throws IOException failure to read the header from the input stream
 	 */
-	public Mp3InputStream(InputStream input) {
+	public Mp3InputStream(InputStream input) throws IOException {
 		decoder = new Decoder();
 		bitstream = new Bitstream(input);
 		try {
 			header = bitstream.readFrame();
 		} catch (BitstreamException e) {
 			Log.error(e);
+		}
+		if (header == null) {
+			close();
+			throw new IOException("Failed to read header from MP3 input stream.");
 		}
 
 		channels = (header.mode() == Header.SINGLE_CHANNEL) ? 1 : 2;

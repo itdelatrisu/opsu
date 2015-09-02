@@ -21,6 +21,7 @@ package itdelatrisu.opsu.beatmap;
 import fluddokt.opsu.fake.*;
 
 import itdelatrisu.opsu.ErrorHandler;
+import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.db.BeatmapDB;
 import itdelatrisu.opsu.io.MD5InputStreamWrapper;
@@ -89,6 +90,10 @@ public class BeatmapParser {
 		// create a new BeatmapSetList
 		BeatmapSetList.create();
 
+		// create a new watch service
+		if (Options.isWatchServiceEnabled())
+			BeatmapWatchService.create();
+
 		// parse all directories
 		parseDirectories(root.listFiles());
 	}
@@ -116,6 +121,9 @@ public class BeatmapParser {
 		List<Beatmap> cachedBeatmaps = new LinkedList<Beatmap>();  // loaded from database
 		List<Beatmap> parsedBeatmaps = new LinkedList<Beatmap>();  // loaded from parser
 
+		// watch service
+		BeatmapWatchService ws = (Options.isWatchServiceEnabled()) ? BeatmapWatchService.get() : null;
+
 		// parse directories
 		BeatmapSetNode lastNode = null;
 		for (File dir : dirs) {
@@ -140,9 +148,9 @@ public class BeatmapParser {
 
 				// check if beatmap is cached
 				String path = String.format("%s/%s", dir.getName(), file.getName());
-				if (map.containsKey(path)) {
+				Long lastModified = map.get(path);
+				if (map != null && lastModified != null) {
 					// check last modified times
-					long lastModified = map.get(path);
 					if (lastModified == file.lastModified()) {
 						// add to cached beatmap list
 						Beatmap beatmap = new Beatmap(file);
@@ -168,6 +176,10 @@ public class BeatmapParser {
 			if (!beatmaps.isEmpty()) {
 				beatmaps.trimToSize();
 				allBeatmaps.add(beatmaps);
+				/*
+				if (ws != null)
+					ws.registerAll(dir.toPath());
+				*/
 			}
 
 			// stop parsing files (interrupted)

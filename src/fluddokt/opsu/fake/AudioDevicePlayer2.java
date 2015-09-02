@@ -28,7 +28,6 @@ public class AudioDevicePlayer2 extends AudioDevicePlayer {
 	
 	private boolean toLoop;
 
-	private float position;// in ms
 	private int samplePos;
 	
 	private float pitch = 1f;
@@ -82,10 +81,13 @@ public class AudioDevicePlayer2 extends AudioDevicePlayer {
 				while (!toStop) {
 						
 					if (setNextPosition) {
-						System.out.println("PlayThread Next Positioning: " + position + " " + nextPosition);
 						int nextSamplePos = (int) (nextPosition * sampleRate) * channels;
+						System.out.println("PlayThread Next Positioning: " + samplePos + " " + nextSamplePos);
 						if(samplePos > nextSamplePos){
 							resetStream();
+						}
+						if (samplePos < 0){
+							samplePos = 0;
 						}
 						if(nextSamplePos >= 0) {
 							int skipby = nextSamplePos - samplePos;
@@ -104,7 +106,6 @@ public class AudioDevicePlayer2 extends AudioDevicePlayer {
 						len = Math.min(rbuf.length, -samplePos);
 						for (int i=0; i<len; i++)
 							rbuf[i] = 0;
-						System.out.println("Len :" + len);
 					} else
 						len = currentStream.read(rbuf);
 					if (!initedAD) {
@@ -263,7 +264,6 @@ public class AudioDevicePlayer2 extends AudioDevicePlayer {
 			sampleRate = currentStream.getRate();
 			channels = currentStream.getChannels();
 			
-			position = 0;
 			samplePos = 0;
 		}
 		stop = false;

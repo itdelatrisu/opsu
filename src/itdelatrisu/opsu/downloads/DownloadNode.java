@@ -28,6 +28,8 @@ import itdelatrisu.opsu.beatmap.BeatmapSetList;
 import itdelatrisu.opsu.downloads.Download.DownloadListener;
 import itdelatrisu.opsu.downloads.Download.Status;
 import itdelatrisu.opsu.downloads.servers.DownloadServer;
+import itdelatrisu.opsu.ui.Colors;
+import itdelatrisu.opsu.ui.Fonts;
 import itdelatrisu.opsu.ui.UI;
 
 /*
@@ -45,19 +47,19 @@ public class DownloadNode {
 	private Download download;
 
 	/** Beatmap set ID. */
-	private int beatmapSetID;
+	private final int beatmapSetID;
 
 	/** Last updated date string. */
-	private String date;
+	private final String date;
 
 	/** Song title. */
-	private String title, titleUnicode;
+	private final String title, titleUnicode;
 
 	/** Song artist. */
-	private String artist, artistUnicode;
+	private final String artist, artistUnicode;
 
 	/** Beatmap creator. */
-	private String creator;
+	private final String creator;
 
 	/** Button drawing values. */
 	private static float buttonBaseX, buttonBaseY, buttonWidth, buttonHeight, buttonOffset;
@@ -71,12 +73,6 @@ public class DownloadNode {
 	/** Container width. */
 	private static int containerWidth;
 
-	/** Button background colors. */
-	public static final Color
-		BG_NORMAL = new Color(0, 0, 0, 0.25f),
-		BG_HOVER  = new Color(0, 0, 0, 0.5f),
-		BG_FOCUS  = new Color(0, 0, 0, 0.75f);
-
 	/**
 	 * Initializes the base coordinates for drawing.
 	 * @param width the container width
@@ -85,24 +81,30 @@ public class DownloadNode {
 	public static void init(int width, int height) {
 		containerWidth = width;
 
-		float searchY = (height * 0.04f) + Utils.FONT_LARGE.getLineHeight();
+		float searchY = (height * 0.04f) + Fonts.LARGE.getLineHeight();
 		
 		// download result buttons
 		buttonBaseX = width * 0.024f;
 		buttonWidth = width * 0.7f;
-		buttonHeight = Utils.FONT_MEDIUM.getLineHeight() * 2.1f;
+		buttonHeight = Fonts.MEDIUM.getLineHeight() * 2.1f;
 		buttonBaseY = searchY 
-				+ Utils.FONT_MEDIUM.getLineHeight() 
-				+ Utils.FONT_BOLD.getLineHeight()
-				+ Utils.FONT_BOLD.getLineHeight();//height * 0.2f;
+				+ Fonts.MEDIUM.getLineHeight() 
+				+ Fonts.BOLD.getLineHeight()
+				+ Fonts.BOLD.getLineHeight();//height * 0.2f;
 		buttonOffset = buttonHeight * 1.1f;
 
 		// download info
 		infoBaseX = width * 0.75f;
-		infoBaseY = searchY;//height * 0.07f + Utils.FONT_LARGE.getLineHeight() * 2f;
+		/*
+		infoBaseY = height * 0.07f + Fonts.LARGE.getLineHeight() * 2f;
+		*/
+		infoBaseY = searchY;
 		infoWidth = width * 0.25f;
-		infoHeight = Utils.FONT_DEFAULT.getLineHeight() * 2.4f;
+		infoHeight = Fonts.DEFAULT.getLineHeight() * 2.4f;
 
+		/*
+		float searchY = (height * 0.05f) + Fonts.LARGE.getLineHeight();
+		*/
 		float buttonHeight = height * 0.038f;
 		maxResultsShown = (int) ((height - buttonBaseY - searchY) / buttonOffset);
 		maxDownloadsShown = (int) ((height - infoBaseY - searchY - buttonHeight) / infoHeight);
@@ -213,7 +215,7 @@ public class DownloadNode {
 	 */
 	public static void drawResultScrollbar(Graphics g, int index, int total) {
 		UI.drawScrollbar(g, index, total, maxResultsShown, buttonBaseX, buttonBaseY,
-				buttonWidth * 1.01f, buttonHeight, buttonOffset, BG_NORMAL, Color.white, true);
+				buttonWidth * 1.01f, buttonHeight, buttonOffset, Colors.BLACK_BG_NORMAL, Color.white, true);
 	}
 
 	/**
@@ -224,7 +226,7 @@ public class DownloadNode {
 	 */
 	public static void drawDownloadScrollbar(Graphics g, int index, int total) {
 		UI.drawScrollbar(g, index, total, maxDownloadsShown, infoBaseX, infoBaseY,
-				infoWidth, infoHeight, infoHeight, BG_NORMAL, Color.white, true);
+				infoWidth, infoHeight, infoHeight, Colors.BLACK_BG_NORMAL, Color.white, true);
 	}
 
 	/**
@@ -272,7 +274,7 @@ public class DownloadNode {
 		});
 		this.download = download;
 		if (Options.useUnicodeMetadata())  // load glyphs
-			Utils.loadGlyphs(Utils.FONT_LARGE, getTitle(), null);
+			Fonts.loadGlyphs(Fonts.LARGE, getTitle());
 	}
 
 	/**
@@ -334,12 +336,12 @@ public class DownloadNode {
 		Download dl = DownloadList.get().getDownload(beatmapSetID);
 
 		// rectangle outline
-		g.setColor((focus) ? BG_FOCUS : (hover) ? BG_HOVER : BG_NORMAL);
+		g.setColor((focus) ? Colors.BLACK_BG_FOCUS : (hover) ? Colors.BLACK_BG_HOVER : Colors.BLACK_BG_NORMAL);
 		g.fillRect(buttonBaseX, y, buttonWidth, buttonHeight);
 
 		// map is already loaded
 		if (BeatmapSetList.get().containsBeatmapSetID(beatmapSetID)) {
-			g.setColor(Utils.COLOR_BLUE_BUTTON);
+			g.setColor(Colors.BLUE_BUTTON);
 			g.fillRect(buttonBaseX, y, buttonWidth, buttonHeight);
 		}
 
@@ -347,7 +349,7 @@ public class DownloadNode {
 		if (dl != null) {
 			float progress = dl.getProgress();
 			if (progress > 0f) {
-				g.setColor(Utils.COLOR_GREEN);
+				g.setColor(Colors.GREEN);
 				g.fillRect(buttonBaseX, y, buttonWidth * progress / 100f, buttonHeight);
 			}
 		}
@@ -359,19 +361,21 @@ public class DownloadNode {
 
 		// text
 		// TODO: if the title/artist line is too long, shorten it (e.g. add "...") instead of just clipping
-		if (Options.useUnicodeMetadata())  // load glyphs
-			Utils.loadGlyphs(Utils.FONT_BOLD, getTitle(), getArtist());
-		g.setClip((int) textX, (int) (y + marginY), (int) (edgeX - textX - Utils.FONT_DEFAULT.getWidth(creator)), Utils.FONT_BOLD.getLineHeight());
-		Utils.FONT_BOLD.drawString(
+		if (Options.useUnicodeMetadata()) {  // load glyphs
+			Fonts.loadGlyphs(Fonts.BOLD, getTitle());
+			Fonts.loadGlyphs(Fonts.BOLD, getArtist());
+		}
+		g.setClip((int) textX, (int) (y + marginY), (int) (edgeX - textX - Fonts.DEFAULT.getWidth(creator)), Fonts.BOLD.getLineHeight());
+		Fonts.BOLD.drawString(
 				textX, y + marginY,
 				String.format("%s - %s%s", getArtist(), getTitle(),
 						(dl != null) ? String.format(" [%s]", dl.getStatus().getName()) : ""), Color.white);
 		g.clearClip();
-		Utils.FONT_DEFAULT.drawString(
-				textX, y + marginY + Utils.FONT_BOLD.getLineHeight(),
+		Fonts.DEFAULT.drawString(
+				textX, y + marginY + Fonts.BOLD.getLineHeight(),
 				String.format("Last updated: %s", date), Color.white);
-		Utils.FONT_DEFAULT.drawString(
-				edgeX - Utils.FONT_DEFAULT.getWidth(creator), y + marginY,
+		Fonts.DEFAULT.drawString(
+				edgeX - Fonts.DEFAULT.getWidth(creator), y + marginY,
 				creator, Color.white);
 	}
 
@@ -395,7 +399,7 @@ public class DownloadNode {
 		float marginY = infoHeight * 0.04f;
 
 		// rectangle outline
-		g.setColor((id % 2 == 0) ? BG_HOVER : BG_NORMAL);
+		g.setColor((id % 2 == 0) ? Colors.BLACK_BG_HOVER : Colors.BLACK_BG_NORMAL);
 		g.fillRect(infoBaseX, y, infoWidth, infoHeight);
 
 		// text
@@ -413,8 +417,8 @@ public class DownloadNode {
 				info = String.format("%s: %.1f%% (%s/%s)", status.getName(), progress,
 						Utils.bytesToString(download.readSoFar()), Utils.bytesToString(download.contentLength()));
 		}
-		Utils.FONT_BOLD.drawString(textX, y + marginY, getTitle(), Color.white);
-		Utils.FONT_DEFAULT.drawString(textX, y + marginY + Utils.FONT_BOLD.getLineHeight(), info, Color.white);
+		Fonts.BOLD.drawString(textX, y + marginY, getTitle(), Color.white);
+		Fonts.DEFAULT.drawString(textX, y + marginY + Fonts.BOLD.getLineHeight(), info, Color.white);
 
 		// 'x' button
 		if (hover) {

@@ -23,8 +23,10 @@ import fluddokt.opsu.fake.*;
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.Utils;
 
-import java.io.FileInputStream;
-//import java.io.File;
+
+/*
+import java.io.File;
+*/
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -34,14 +36,11 @@ import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
-
 /*
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-*/
 
-/*
 import org.newdawn.slick.util.Log;
 */
 
@@ -70,7 +69,7 @@ public class Download {
 		ERROR ("Error");
 
 		/** The status name. */
-		private String name;
+		private final String name;
 
 		/**
 		 * Constructor.
@@ -261,23 +260,34 @@ public class Download {
 					FileChannel foschannel = fos.getChannel();
 					status = Status.DOWNLOADING;
 					updateReadSoFar();
-					int total = 0;
+					long bytesRead = 0;
 					
 					try {
-						while(status == Status.DOWNLOADING && total < contentLength){
-							long readed = foschannel.transferFrom(rbc, total, Math.min(8192, contentLength-total));
-							total += readed;
+						while(status == Status.DOWNLOADING && bytesRead < contentLength){
+							long readed = foschannel.transferFrom(rbc, bytesRead, Math.min(8192, contentLength-bytesRead));
+							bytesRead += readed;
 						}
 					}  catch (Exception e) {
 						//e.printStackTrace();
 						if(status != Status.CANCELLED){
 							status = Status.ERROR;
-							ErrorHandler.error("Error while downloading.", e, true);
+							Log.warn("Error while downloading.");
+							if (listener != null)
+								listener.error();
 						}
 					}
 					
 					if (status == Status.DOWNLOADING) {
-						// TODO: if connection is lost before a download finishes, it's still marked as "complete"
+						// check if the entire file was received
+						if (bytesRead < contentLength) {
+							status = Status.ERROR;
+							Log.warn(String.format("Download '%s' failed: %d bytes expected, %d bytes received.", url.toString(), contentLength, bytesRead));
+							if (listener != null)
+								listener.error();
+							return;
+						}
+
+						// mark download as complete
 						status = Status.COMPLETE;
 						rbc.close();
 						fos.close();
@@ -358,7 +368,7 @@ public class Download {
 	public long readSoFar() {
 		switch (status) {
 		case COMPLETE:
-			return contentLength;
+			return (rbc != null) ? rbc.getReadSoFar() : contentLength;
 		case DOWNLOADING:
 			if (rbc != null)
 				return rbc.getReadSoFar();

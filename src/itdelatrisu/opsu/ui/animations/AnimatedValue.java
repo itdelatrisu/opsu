@@ -105,7 +105,7 @@ public class AnimatedValue {
 	 * @return true if an update was applied, false if the animation was not updated
 	 */
 	public boolean update(int delta) {
-		int newTime = Utils.getBoundedValue(time, delta, 0, duration);
+		int newTime = Utils.clamp(time + delta, 0, duration);
 		if (time != newTime) {
 			this.time = newTime;
 			updateValue();

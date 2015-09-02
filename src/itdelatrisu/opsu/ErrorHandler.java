@@ -71,12 +71,16 @@ public class ErrorHandler {
 	}
 */
 	/** Scroll pane holding JTextArea. */
-	//private static final JScrollPane scroll = new JScrollPane(textArea);
+	/*
+	private static final JScrollPane scroll = new JScrollPane(textArea);
+	*/
 
 	/** Error popup objects. */
-	//private static final Object[]
-	//	message = { desc, scroll },
-	//	messageR = { descR, scroll };
+	/*
+	private static final Object[]
+		message  = { desc, scroll },
+		messageReport = { descReport, scroll };
+	*/
 
 	// This class should not be instantiated.
 	private ErrorHandler() {}
@@ -178,6 +182,12 @@ public class ErrorHandler {
 						if (version != null && !version.equals("${pom.version}")) {
 							sb.append("**Version:** ");
 							sb.append(version);
+				String hash = Utils.getGitHash();
+				if (hash != null) {
+					sb.append(" (");
+					sb.append(hash.substring(0, 12));
+					sb.append(')');
+				}
 							sb.append('\n');
 						}
 						String timestamp = props.getProperty("build.date");

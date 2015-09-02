@@ -26,6 +26,7 @@ import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.skins.Skin;
+import itdelatrisu.opsu.ui.animations.AnimationEquation;
 
 import java.nio.IntBuffer;
 import java.util.Iterator;
@@ -53,6 +54,18 @@ public class Cursor {
 
 	/** Cursor rotation angle. */
 	private float cursorAngle = 0f;
+
+	/** The time in milliseconds when the cursor was last pressed, used for the scaling animation. */
+	private long lastCursorPressTime = 0L;
+
+	/** Whether or not the cursor was pressed in the last frame, used for the scaling animation. */
+	private boolean lastCursorPressState = false;
+
+	/** The amount the cursor scale increases, if enabled, when pressed. */
+	private static final float CURSOR_SCALE_CHANGE = 0.25f;
+
+	/** The time it takes for the cursor to scale, in milliseconds. */
+	private static final float CURSOR_SCALE_TIME = 125;
 
 	/** Stores all previous cursor locations to display a trail. */
 	private LinkedList<Integer> cursorX, cursorY;
@@ -115,37 +128,45 @@ public class Cursor {
 			return;
 		// determine correct cursor image
 		Image cursor = null, cursorMiddle = null, cursorTrail = null;
-		boolean skinned = GameImage.CURSOR.hasSkinImage();
+		boolean beatmapSkinned = GameImage.CURSOR.hasBeatmapSkinImage();
 		boolean newStyle, hasMiddle;
-		if (skinned) {
+		Skin skin = Options.getSkin();
+		if (beatmapSkinned) {
 			newStyle = true;  // osu! currently treats all beatmap cursors as new-style cursors
-			hasMiddle = GameImage.CURSOR_MIDDLE.hasSkinImage();
+			hasMiddle = GameImage.CURSOR_MIDDLE.hasBeatmapSkinImage();
 		} else
 			newStyle = hasMiddle = Options.isNewCursorEnabled();
-		if (skinned || newStyle) {
+		if (newStyle || beatmapSkinned) {
 			cursor = GameImage.CURSOR.getImage();
 			cursorTrail = GameImage.CURSOR_TRAIL.getImage();
 		} else {
-			cursor = GameImage.CURSOR_OLD.getImage();
-			cursorTrail = GameImage.CURSOR_TRAIL_OLD.getImage();
+			cursor = GameImage.CURSOR.hasGameSkinImage() ? GameImage.CURSOR.getImage() : GameImage.CURSOR_OLD.getImage();
+			cursorTrail = GameImage.CURSOR_TRAIL.hasGameSkinImage() ? GameImage.CURSOR_TRAIL.getImage() : GameImage.CURSOR_TRAIL_OLD.getImage();
 		}
 		if (hasMiddle)
 			cursorMiddle = GameImage.CURSOR_MIDDLE.getImage();
 
-		int removeCount = 0;
-		float FPSmod = Math.max(container.getFPS(), 1) / 60f;
-		Skin skin = Options.getSkin();
-
 		// scale cursor
-		float cursorScale = Options.getCursorScale();
-		if (mousePressed && skin.isCursorExpanded())
-			cursorScale *= 1.25f;  // increase the cursor size if pressed
+		float cursorScaleAnimated = 1f;
+		if (skin.isCursorExpanded()) {
+			if (lastCursorPressState != mousePressed) {
+				lastCursorPressState = mousePressed;
+				lastCursorPressTime = System.currentTimeMillis();
+			}
+
+			float cursorScaleChange = CURSOR_SCALE_CHANGE * AnimationEquation.IN_OUT_CUBIC.calc(
+					Utils.clamp(System.currentTimeMillis() - lastCursorPressTime, 0, CURSOR_SCALE_TIME) / CURSOR_SCALE_TIME);
+			cursorScaleAnimated = 1f + ((mousePressed) ? cursorScaleChange : CURSOR_SCALE_CHANGE - cursorScaleChange);
+		}
+		float cursorScale = cursorScaleAnimated * Options.getCursorScale();
 		if (cursorScale != 1f) {
 			cursor = cursor.getScaledCopy(cursorScale);
 			cursorTrail = cursorTrail.getScaledCopy(cursorScale);
 		}
 
 		// TODO: use an image buffer
+		int removeCount = 0;
+		float FPSmod = Math.max(container.getFPS(), 1) / 60f;
 		if (newStyle) {
 			// new style: add all points between cursor movements
 			if (lastX < 0) {
@@ -261,13 +282,13 @@ public class Cursor {
 	}
 
 	/**
-	 * Resets all cursor data and skins.
+	 * Resets all cursor data and beatmap skins.
 	 */
 	public void reset() {
 		// destroy skin images
-		GameImage.CURSOR.destroySkinImage();
-		GameImage.CURSOR_MIDDLE.destroySkinImage();
-		GameImage.CURSOR_TRAIL.destroySkinImage();
+		GameImage.CURSOR.destroyBeatmapSkinImage();
+		GameImage.CURSOR_MIDDLE.destroyBeatmapSkinImage();
+		GameImage.CURSOR_TRAIL.destroyBeatmapSkinImage();
 
 		// reset locations
 		resetLocations();
@@ -290,10 +311,10 @@ public class Cursor {
 	/**
 	 * Returns whether or not the cursor is skinned.
 	 */
-	public boolean isSkinned() {
-		return (GameImage.CURSOR.hasSkinImage() ||
-		        GameImage.CURSOR_MIDDLE.hasSkinImage() ||
-		        GameImage.CURSOR_TRAIL.hasSkinImage());
+	public boolean isBeatmapSkinned() {
+		return (GameImage.CURSOR.hasBeatmapSkinImage() ||
+		        GameImage.CURSOR_MIDDLE.hasBeatmapSkinImage() ||
+		        GameImage.CURSOR_TRAIL.hasBeatmapSkinImage());
 	}
 
 	/**

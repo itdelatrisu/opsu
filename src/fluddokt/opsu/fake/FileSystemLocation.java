@@ -26,10 +26,10 @@ public class FileSystemLocation {
 		local = Gdx.files.local(path);
 		localExist = local.exists();
 		
-		System.out.println("New FileSystemLocation"+path);
-		System.out.println("Internal"+internal+" "+internalExist);
-		System.out.println("External"+external+" "+externalExist);
-		System.out.println("Local"+local+" "+localExist);
+		System.out.println("New FileSystemLocation: "+path);
+		System.out.println("Internal: "+internal+" "+internalExist);
+		System.out.println("External: "+external+" "+externalExist);
+		System.out.println("Local: "+local+" "+localExist);
 		
 		
 		

@@ -25,7 +25,7 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 public class GameOpsu extends com.badlogic.gdx.Game {
 
-	final String VERSION = "OpsuAnd0.9.0a";
+	final String VERSION = "OpsuAnd0.11.0a";
 	public StateBasedGame sbg;
 	
 	Stage stage;
@@ -174,7 +174,8 @@ public class GameOpsu extends com.badlogic.gdx.Game {
 				error("No storage is available ... ????", null);
 			}else{
 				error("External Storage is not available. \n"
-						+"Using Local Storage instead." , null);
+						+"Using Local Storage instead.\n"
+						+ Gdx.files.getLocalStoragePath() , null);
 			}
 		}
 		Gdx.graphics.setVSync(false);

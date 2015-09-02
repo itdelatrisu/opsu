@@ -6,6 +6,7 @@ import java.util.LinkedList;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.utils.OrderedSet;
+import com.badlogic.gdx.utils.TimeUtils;
 
 public abstract class StateBasedGame extends Game2 implements InputProcessor {
 
@@ -20,6 +21,7 @@ public abstract class StateBasedGame extends Game2 implements InputProcessor {
 	boolean rightIsPressed;
 	int touchX = 0;
 	int touchY = 0;
+	long touchTime;
 	
 	public StateBasedGame(String name) {
 		this.title = name;
@@ -175,12 +177,16 @@ public abstract class StateBasedGame extends Game2 implements InputProcessor {
 				currentState.mousePressed(Input.MOUSE_RIGHT_BUTTON, oldx, oldy );
 				gc.getInput().setMouseRighButtontDown(true);
 				rightIsPressed = true;
+				touchX = oldx;
+				touchY = oldy;
+				touchTime = TimeUtils.millis();
 			} else {
 				currentState.mousePressed(button, screenX, screenY);
 				oldx = screenX;
 				oldy = screenY;
 				touchX = screenX;
 				touchY = screenY;
+				touchTime = TimeUtils.millis();
 			}
 		} catch (Throwable e) {
 			e.printStackTrace();
@@ -196,17 +202,24 @@ public abstract class StateBasedGame extends Game2 implements InputProcessor {
 		}
 		if (pointer > 0){
 			currentState.mouseReleased(Input.MOUSE_RIGHT_BUTTON, oldx, oldy);
+			int dx = oldx - touchX;
+			int dy = oldy - touchY;
+			if( TimeUtils.timeSinceMillis(touchTime) < 500 && dx*dx + dy*dy < 10 * 10)
+				currentState.mouseClicked(Input.MOUSE_RIGHT_BUTTON, oldx, oldy, 1);
+			
 			gc.getInput().setMouseRighButtontDown(false);
 			rightIsPressed = false;
 		} else {
+			currentState.mouseReleased(button, screenX, screenY);
 			int dx = screenX - touchX;
 			int dy = screenY - touchY;
-			if( dx*dx + dy*dy < 10 * 10)
+			if( TimeUtils.timeSinceMillis(touchTime) < 500 && dx*dx + dy*dy < 10 * 10)
 				currentState.mouseClicked(button, screenX, screenY, 1);
-			currentState.mouseReleased(button, screenX, screenY);
+			
 			oldx = screenX;
 			oldy = screenY;
 		}
+		
 
 		return false;
 	}

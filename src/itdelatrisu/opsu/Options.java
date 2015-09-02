@@ -24,6 +24,7 @@ import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.beatmap.Beatmap;
 import itdelatrisu.opsu.skins.Skin;
 import itdelatrisu.opsu.skins.SkinLoader;
+import itdelatrisu.opsu.ui.Fonts;
 import itdelatrisu.opsu.ui.UI;
 
 import java.io.BufferedReader;
@@ -39,6 +40,9 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
+import java.util.jar.Attributes;
+import java.util.jar.JarFile;
+import java.util.jar.Manifest;
 
 /*
 import org.lwjgl.input.Keyboard;
@@ -54,11 +58,17 @@ import org.newdawn.slick.util.ResourceLoader;
  * Handles all user options.
  */
 public class Options {
+	/** Whether to use XDG directories. */
+	private static final boolean USE_XDG = checkXDGFlag();
+
 	/** The config directory. */
 	private static final File CONFIG_DIR = getXDGBaseDir("XDG_CONFIG_HOME", ".config");
 
 	/** The data directory. */
 	public static final File DATA_DIR = getXDGBaseDir("XDG_DATA_HOME", ".local/share");
+
+	/** The cache directory. */
+	private static final File CACHE_DIR = getXDGBaseDir("XDG_CACHE_HOME", ".cache");
 
 	/** File for logging errors. */
 	public static final File LOG_FILE = new File(CONFIG_DIR, ".opsu.log");
@@ -85,6 +95,9 @@ public class Options {
 
 	/** Score database name. */
 	public static final File SCORE_DB = new File(DATA_DIR, ".opsu_scores.db");
+
+	/** Directory where natives are unpacked. */
+	public static final File NATIVE_DIR = new File(CACHE_DIR, "Natives/");
 
 	/** Font file name. */
 	public static final String FONT_NAME = "DroidSansFallback.ttf";
@@ -123,14 +136,37 @@ public class Options {
 	private static int port = 49250;
 
 	/**
+	 * Returns whether the XDG flag in the manifest (if any) is set to "true".
+	 * @return true if XDG directories are enabled, false otherwise
+	 */
+	private static boolean checkXDGFlag() {
+		return false;
+		/*
+		JarFile jarFile = Utils.getJarFile();
+		if (jarFile == null)
+			return false;
+		try {
+			Manifest manifest = jarFile.getManifest();
+			if (manifest == null)
+				return false;
+			Attributes attributes = manifest.getMainAttributes();
+			String value = attributes.getValue("Use-XDG");
+			return (value != null && value.equalsIgnoreCase("true"));
+		} catch (IOException e) {
+			return false;
+		}
+		*/
+	}
+
+	/**
 	 * Returns the directory based on the XDG base directory specification for
-	 * Unix-like operating systems, only if the system property "XDG" has been defined.
+	 * Unix-like operating systems, only if the "XDG" flag is enabled.
 	 * @param env the environment variable to check (XDG_*_*)
 	 * @param fallback the fallback directory relative to ~home
 	 * @return the XDG base directory, or the working directory if unavailable
 	 */
 	private static File getXDGBaseDir(String env, String fallback) {
-		if (System.getProperty("XDG") == null)
+		if (!USE_XDG)
 			return new File("./opsu");
 
 		String OS = System.getProperty("os.name").toLowerCase();
@@ -291,9 +327,9 @@ public class Options {
 				super.click(container);
 				if (bool) {
 					try {
-						Utils.FONT_LARGE.loadGlyphs();
-						Utils.FONT_MEDIUM.loadGlyphs();
-						Utils.FONT_DEFAULT.loadGlyphs();
+						Fonts.LARGE.loadGlyphs();
+						Fonts.MEDIUM.loadGlyphs();
+						Fonts.DEFAULT.loadGlyphs();
 					} catch (SlickException e) {
 						Log.warn("Failed to load glyphs.", e);
 					}
@@ -462,7 +498,8 @@ public class Options {
 		ENABLE_THEME_SONG ("Enable Theme Song", "MenuMusic", "Whether to play the theme song upon starting opsu!", true),
 		REPLAY_SEEKING ("Replay Seeking", "ReplaySeeking", "Enable a seeking bar on the left side of the screen during replays.", false),
 		DISABLE_UPDATER ("Disable Automatic Updates", "DisableUpdater", "Disable automatic checking for updates upon starting opsu!.", false),
-		
+		ENABLE_WATCH_SERVICE ("Enable Watch Service", "WatchService", "Watch the beatmap directory for changes. Requires a restart.", false),
+	
 		IN_GAME_PAUSE("In game pause button", "InGamePause", "Shows a in game pasue button.", false),
 		MOBILE_UI_SCALING ("Scales certain UI elements.", "MobileUIScale", "Scales certain UI elements. Requires Restart", 
 				(com.badlogic.gdx.Gdx.graphics.getWidth()/com.badlogic.gdx.Gdx.graphics.getPpiX()) <= 6.0f?//screen width less than 6 inches
@@ -484,7 +521,7 @@ public class Options {
 		},
 		NEW_SLIDER("Enable New Slider", "NewSlider", "Use the new Slider style.",true),
 		
-		SLIDER_QUALITY ("Slider Quality", "SliderQuality", "Lower values for better looking sliders (For old sliders).") {//, 1, 1, 7) {
+		SLIDER_QUALITY ("Slider Quality", "SliderQuality", "Lower values for better looking sliders (For old sliders).", 1, 1, 7) {
 			@Override
 			public String getValueString() { 
 				switch(val){
@@ -520,13 +557,13 @@ public class Options {
 		;
 
 		/** Option name. */
-		private String name;
+		private final String name;
 
 		/** Option name, as displayed in the configuration file. */
-		private String displayName;
+		private final String displayName;
 
 		/** Option description. */
-		private String description;
+		private final String description;
 
 		/** The boolean value for the option (if applicable). */
 		protected boolean bool;
@@ -548,7 +585,7 @@ public class Options {
 		 * @param displayName the option name, as displayed in the configuration file
 		 */
 		GameOption(String displayName) {
-			this.displayName = displayName;
+			this(null, displayName, null);
 		}
 
 		/**
@@ -668,7 +705,7 @@ public class Options {
 		 */
 		public void drag(GameContainer container, int d) {
 			if (type == OptionType.NUMERIC)
-				val = Utils.getBoundedValue(val, d, min, max);
+				val = Utils.clamp(val + d, min, max);
 		}
 
 		/**
@@ -1066,6 +1103,12 @@ public class Options {
 	 * @return true if disabled
 	 */
 	public static boolean isUpdaterDisabled() { return GameOption.DISABLE_UPDATER.getBooleanValue(); }
+
+	/**
+	 * Returns whether or not the beatmap watch service is enabled.
+	 * @return true if enabled
+	 */
+	public static boolean isWatchServiceEnabled() { return GameOption.ENABLE_WATCH_SERVICE.getBooleanValue(); }
 
 	/**
 	 * Sets the track checkpoint time, if within bounds.

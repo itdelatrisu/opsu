@@ -8,6 +8,7 @@ public class Log {
 		Gdx.app.error("Error", string);
 		if (DefaultLogSystem.out != null) {
 			DefaultLogSystem.out.println("Error: " + string + " ");
+			DefaultLogSystem.out.flush();
 		}
 		GameOpsu.error(string, null);
 	}
@@ -27,6 +28,7 @@ public class Log {
 			DefaultLogSystem.out.println("Error: " + string + " ");
 			if(e != null)
 				e.printStackTrace(DefaultLogSystem.out);
+			DefaultLogSystem.out.flush();
 		}
 		GameOpsu.error(string, e);
 
@@ -38,10 +40,18 @@ public class Log {
 	}
 
 	public static void warn(String string, Throwable e) {
+		System.out.println("HSDFHGKSDHFKUSDF");
+		if(e != null)
+			Gdx.app.log("warn", string, e);
+		else{
+			Gdx.app.log("warn", string);
+		}
 		Gdx.app.log("warn", string, e);
 		if (DefaultLogSystem.out != null) {
 			DefaultLogSystem.out.println("Warn: " + string + " ");
-			e.printStackTrace(DefaultLogSystem.out);
+			if(e != null)
+				e.printStackTrace(DefaultLogSystem.out);
+			DefaultLogSystem.out.flush();
 		}
 
 	}
@@ -50,6 +60,7 @@ public class Log {
 		Gdx.app.log("warn", string);
 		if (DefaultLogSystem.out != null) {
 			DefaultLogSystem.out.println("Warn: " + string + " ");
+			DefaultLogSystem.out.flush();
 		}
 
 	}
@@ -58,6 +69,7 @@ public class Log {
 		Gdx.app.debug("debug", string);
 		if (DefaultLogSystem.out != null) {
 			DefaultLogSystem.out.println("Debug: " + string + " ");
+			DefaultLogSystem.out.flush();
 		}
 	}
 
