@@ -23,9 +23,11 @@ import itdelatrisu.opsu.Options;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.Map;
 
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Image;
+import org.newdawn.slick.SlickException;
 import org.newdawn.slick.util.Log;
 
 /**
@@ -36,12 +38,28 @@ public class Beatmap implements Comparable<Beatmap> {
 	public static final byte MODE_OSU = 0, MODE_TAIKO = 1, MODE_CTB = 2, MODE_MANIA = 3;
 
 	/** Background image cache. */
-	private static final BeatmapImageCache bgImageCache = new BeatmapImageCache();
+	@SuppressWarnings("serial")
+	private static final LRUCache<File, Image> bgImageCache = new LRUCache<File, Image>(10) {
+		@Override
+		public void eldestRemoved(Map.Entry<File, Image> eldest) {
+			Image img = eldest.getValue();
+			if (img != null && !img.isDestroyed()) {
+				try {
+					img.destroy();  // destroy the removed image
+				} catch (SlickException e) {
+					Log.warn(String.format("Failed to destroy image '%s'.", img.getResourceReference()), e);
+				}
+			}
+		}
+	};
 
 	/**
-	 * Returns the background image cache.
+	 * Clears the background image cache.
+	 * <p>
+	 * NOTE: This does NOT destroy the images in the cache, and will cause
+	 * memory leaks if all images have not been destroyed.
 	 */
-	public static BeatmapImageCache getBackgroundImageCache() { return bgImageCache; }
+	public static void clearBackgroundImageCache() { bgImageCache.clear(); }
 
 	/** The OSU File object associated with this beatmap. */
 	private File file;
@@ -269,7 +287,7 @@ public class Beatmap implements Comparable<Beatmap> {
 			Image bgImage = bgImageCache.get(this);
 			if (bgImage == null) {
 				bgImage = new Image(bg.getAbsolutePath());
-				bgImageCache.put(this, bgImage);
+				bgImageCache.put(bg, bgImage);
 			}
 
 			int swidth = width;

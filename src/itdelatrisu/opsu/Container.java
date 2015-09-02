@@ -126,7 +126,7 @@ public class Container extends AppGameContainer {
 		// reset image references
 		GameImage.clearReferences();
 		GameData.Grade.clearReferences();
-		Beatmap.getBackgroundImageCache().clear();
+		Beatmap.clearBackgroundImageCache();
 
 		// prevent loading tracks from re-initializing OpenAL
 		MusicController.reset();
