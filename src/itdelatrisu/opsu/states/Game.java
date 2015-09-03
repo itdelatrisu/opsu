@@ -642,6 +642,17 @@ public class Game extends BasicGameState {
 			return;
 		}
 
+		// "Easy" mod: multiple "lives"
+		if (GameMod.EASY.isActive() && deathTime > -1) {
+			if (data.getHealth() < 99f) {
+				data.changeHealth(delta / 10f);
+				data.updateDisplays(delta);
+				return;
+			}
+			MusicController.resume();
+			deathTime = -1;
+		}
+
 		// normal game update
 		if (!isReplay)
 			addReplayFrameAndRun(mouseX, mouseY, lastKeysPressed, trackPosition);
@@ -706,16 +717,6 @@ public class Game extends BasicGameState {
 	 * @param keys the keys that are pressed
 	 */
 	private void updateGame(int mouseX, int mouseY, int delta, int trackPosition, int keys) {
-		// "Easy" mod: multiple "lives"
-		if (GameMod.EASY.isActive() && deathTime > -1) {
-			if (data.getHealth() < 99f)
-				data.changeHealth(delta / 10f);
-			else {
-				MusicController.resume();
-				deathTime = -1;
-			}
-		}
-
 		// map complete!
 		if (objectIndex >= gameObjects.length || (MusicController.trackEnded() && objectIndex > 0)) {
 			// track ended before last object was processed: force a hit result

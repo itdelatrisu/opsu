@@ -116,7 +116,7 @@ public class BeatmapSetNode {
 				Image star = GameImage.STAR.getImage();
 				float starOffset = star.getWidth() * 1.7f;
 				float starX = cx + starOffset * 0.04f;
-				float starY = cy + Fonts.MEDIUM.getLineHeight() + Fonts.DEFAULT.getLineHeight() * 2 - 10f * GameImage.getUIscale();
+				float starY = cy + Fonts.MEDIUM.getLineHeight() + Fonts.DEFAULT.getLineHeight() * 2 - 8f * GameImage.getUIscale();
 				float starCenterY = starY + star.getHeight() / 2f;
 				final float baseAlpha = focus ? 1f : 0.8f;
 				final float smallStarScale = 0.4f;
