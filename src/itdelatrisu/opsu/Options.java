@@ -56,7 +56,7 @@ import org.newdawn.slick.util.ResourceLoader;
  */
 public class Options {
 	/** Whether to use XDG directories. */
-	private static final boolean USE_XDG = checkXDGFlag();
+	public static final boolean USE_XDG = checkXDGFlag();
 
 	/** The config directory. */
 	private static final File CONFIG_DIR = getXDGBaseDir("XDG_CONFIG_HOME", ".config");
