@@ -88,11 +88,12 @@ public class BeatmapSet {
 				(beatmap.hitObjectCircle + beatmap.hitObjectSlider + beatmap.hitObjectSpinner));
 		info[3] = String.format("Circles: %d  Sliders: %d  Spinners: %d",
 				beatmap.hitObjectCircle, beatmap.hitObjectSlider, beatmap.hitObjectSpinner);
-		info[4] = String.format("CS:%.1f HP:%.1f AR:%.1f OD:%.1f",
+		info[4] = String.format("CS:%.1f HP:%.1f AR:%.1f OD:%.1f%s",
 				Math.min(beatmap.circleSize * multiplier, 10f),
 				Math.min(beatmap.HPDrainRate * multiplier, 10f),
 				Math.min(beatmap.approachRate * multiplier, 10f),
-				Math.min(beatmap.overallDifficulty * multiplier, 10f));
+				Math.min(beatmap.overallDifficulty * multiplier, 10f),
+				(beatmap.starRating >= 0) ? String.format(" Stars: %.2f", beatmap.starRating) : "");
 		return info;
 	}
 

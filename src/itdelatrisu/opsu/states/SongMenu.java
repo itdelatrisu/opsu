@@ -30,12 +30,15 @@ import itdelatrisu.opsu.audio.MultiClip;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
+import itdelatrisu.opsu.beatmap.BeatmapDifficultyCalculator;
 import itdelatrisu.opsu.beatmap.Beatmap;
 import itdelatrisu.opsu.beatmap.BeatmapParser;
+import itdelatrisu.opsu.beatmap.BeatmapSet;
 import itdelatrisu.opsu.beatmap.BeatmapSetList;
 import itdelatrisu.opsu.beatmap.BeatmapSetNode;
 import itdelatrisu.opsu.beatmap.BeatmapSortOrder;
 import itdelatrisu.opsu.beatmap.BeatmapWatchService;
+import itdelatrisu.opsu.beatmap.LRUCache;
 import itdelatrisu.opsu.beatmap.OszUnpacker;
 import itdelatrisu.opsu.beatmap.BeatmapWatchService.BeatmapWatchServiceListener;
 import itdelatrisu.opsu.db.BeatmapDB;
@@ -212,6 +215,29 @@ public class SongMenu extends BasicGameState {
 
 	/** Whether the song folder changed (notified via the watch service). */
 	private boolean songFolderChanged = false;
+
+	/**
+	 * Beatmaps whose difficulties were recently computed (if flag is non-null).
+	 * Unless the Boolean flag is null, then upon removal, the beatmap's objects will
+	 * be cleared (to be garbage collected). If the flag is true, also clear the
+	 * beatmap's array fields (timing points, etc.).
+	 */
+	@SuppressWarnings("serial")
+	private LRUCache<Beatmap, Boolean> beatmapsCalculated = new LRUCache<Beatmap, Boolean>(12) {
+		@Override
+		public void eldestRemoved(Map.Entry<Beatmap, Boolean> eldest) {
+			Boolean b = eldest.getValue();
+			if (b != null) {
+				Beatmap beatmap = eldest.getKey();
+				beatmap.objects = null;
+				if (b) {
+					beatmap.timingPoints = null;
+					beatmap.breaks = null;
+					beatmap.combo = null;
+				}
+			}
+		}
+	};
 
 	// game-related variables
 	private GameContainer container;
@@ -1178,6 +1204,9 @@ public class SongMenu extends BasicGameState {
 		if (node.index != expandedIndex) {
 			node = BeatmapSetList.get().expand(node.index);
 
+			// calculate difficulties
+			calculateStarRatings(node.getBeatmapSet());
+
 			// if start node was previously expanded, move it
 			if (startNode != null && startNode.index == expandedIndex)
 				startNode = BeatmapSetList.get().getBaseNode(startNode.index);
@@ -1352,6 +1381,34 @@ public class SongMenu extends BasicGameState {
 			}
 		};
 		reloadThread.start();
+	}
+
+	/**
+	 * Calculates all star ratings for a beatmap set.
+	 * @param beatmapSet the set of beatmaps
+	 */
+	private void calculateStarRatings(BeatmapSet beatmapSet) {
+		for (int i = 0, n = beatmapSet.size(); i < n; i++) {
+			Beatmap beatmap = beatmapSet.get(i);
+			if (beatmap.starRating >= 0) {  // already calculated
+				beatmapsCalculated.put(beatmap, beatmapsCalculated.get(beatmap));
+				continue;
+			}
+
+			// if timing points are already loaded before this (for whatever reason),
+			// don't clear the array fields to be safe
+			boolean hasTimingPoints = (beatmap.timingPoints != null);
+
+			BeatmapDifficultyCalculator diffCalc = new BeatmapDifficultyCalculator(beatmap);
+			diffCalc.calculate();
+			if (diffCalc.getStarRating() == -1)
+				continue;  // calculations failed
+
+			// save star rating
+			beatmap.starRating = diffCalc.getStarRating();
+			BeatmapDB.setStars(beatmap);
+			beatmapsCalculated.put(beatmap, !hasTimingPoints);
+		}
 	}
 
 	/**

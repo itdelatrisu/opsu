@@ -67,6 +67,9 @@ public class Beatmap implements Comparable<Beatmap> {
 	/** MD5 hash of this file. */
 	public String md5Hash;
 
+	/** The star rating. */
+	public double starRating = -1;
+
 	/**
 	 * [General]
 	 */

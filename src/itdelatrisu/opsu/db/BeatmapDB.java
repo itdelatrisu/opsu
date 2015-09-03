@@ -43,7 +43,7 @@ public class BeatmapDB {
 	 * Current database version.
 	 * This value should be changed whenever the database format changes.
 	 */
-	private static final String DATABASE_VERSION = "2015-06-11";
+	private static final String DATABASE_VERSION = "2015-09-02";
 
 	/** Minimum batch size ratio ({@code batchSize/cacheSize}) to invoke batch loading. */
 	private static final float LOAD_BATCH_MIN_RATIO = 0.2f;
@@ -58,7 +58,7 @@ public class BeatmapDB {
 	private static Connection connection;
 
 	/** Query statements. */
-	private static PreparedStatement insertStmt, selectStmt, deleteMapStmt, deleteGroupStmt, updateSizeStmt;
+	private static PreparedStatement insertStmt, selectStmt, deleteMapStmt, deleteGroupStmt, setStarsStmt, updateSizeStmt;
 
 	/** Current size of beatmap cache table. */
 	private static int cacheSize = -1;
@@ -95,12 +95,13 @@ public class BeatmapDB {
 		try {
 			insertStmt = connection.prepareStatement(
 				"INSERT INTO beatmaps VALUES (" +
-				"?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, " +
+				"?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?," +
 				"?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 			);
 			selectStmt = connection.prepareStatement("SELECT * FROM beatmaps WHERE dir = ? AND file = ?");
 			deleteMapStmt = connection.prepareStatement("DELETE FROM beatmaps WHERE dir = ? AND file = ?");
 			deleteGroupStmt = connection.prepareStatement("DELETE FROM beatmaps WHERE dir = ?");
+			setStarsStmt = connection.prepareStatement("UPDATE beatmaps SET stars = ? WHERE dir = ? AND file = ?");
 		} catch (SQLException e) {
 			ErrorHandler.error("Failed to prepare beatmap statements.", e, true);
 		}
@@ -123,7 +124,7 @@ public class BeatmapDB {
 					"audioFile TEXT, audioLeadIn INTEGER, previewTime INTEGER, countdown INTEGER, sampleSet TEXT, stackLeniency REAL, " +
 					"mode INTEGER, letterboxInBreaks BOOLEAN, widescreenStoryboard BOOLEAN, epilepsyWarning BOOLEAN, " +
 					"bg TEXT, sliderBorder TEXT, timingPoints TEXT, breaks TEXT, combo TEXT, " +
-					"md5hash TEXT" +
+					"md5hash TEXT, stars REAL" +
 				"); " +
 				"CREATE TABLE IF NOT EXISTS info (" +
 					"key TEXT NOT NULL UNIQUE, value TEXT" +
@@ -342,6 +343,7 @@ public class BeatmapDB {
 			stmt.setString(39, beatmap.breaksToString());
 			stmt.setString(40, beatmap.comboToString());
 			stmt.setString(41, beatmap.md5Hash);
+			stmt.setDouble(42, beatmap.starRating);
 		} catch (SQLException e) {
 			throw e;
 		} catch (Exception e) {
@@ -484,6 +486,7 @@ public class BeatmapDB {
 				beatmap.bg = new File(dir, BeatmapParser.getDBString(bg));
 			beatmap.sliderBorderFromString(rs.getString(37));
 			beatmap.md5Hash = rs.getString(41);
+			beatmap.starRating = rs.getDouble(42);
 		} catch (SQLException e) {
 			throw e;
 		} catch (Exception e) {
@@ -568,6 +571,25 @@ public class BeatmapDB {
 			updateCacheSize();
 		} catch (SQLException e) {
 			ErrorHandler.error("Failed to delete beatmap group entry from database.", e, true);
+		}
+	}
+
+	/**
+	 * Sets the star rating for a beatmap in the database.
+	 * @param beatmap the beatmap
+	 */
+	public static void setStars(Beatmap beatmap) {
+		if (connection == null)
+			return;
+
+		try {
+			setStarsStmt.setDouble(1, beatmap.starRating);
+			setStarsStmt.setString(2, beatmap.getFile().getParentFile().getName());
+			setStarsStmt.setString(3, beatmap.getFile().getName());
+			setStarsStmt.executeUpdate();
+		} catch (SQLException e) {
+			ErrorHandler.error(String.format("Failed to save star rating '%.4f' for beatmap '%s' in database.",
+					beatmap.starRating, beatmap.toString()), e, true);
 		}
 	}
 
