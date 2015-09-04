@@ -234,7 +234,7 @@ public class MainMenu extends BasicGameState {
 		// draw background
 		Beatmap beatmap = MusicController.getBeatmap();
 		if (Options.isDynamicBackgroundEnabled() &&
-			beatmap != null && beatmap.drawBG(width, height, bgAlpha.getValue(), true))
+			beatmap != null && beatmap.drawBackground(width, height, bgAlpha.getValue(), true))
 				;
 		else {
 			Image bg = GameImage.MENU_BG.getImage();
@@ -349,7 +349,9 @@ public class MainMenu extends BasicGameState {
 				MusicController.toggleTrackDimmed(0.33f);
 
 		// fade in background
-		bgAlpha.update(delta);
+		Beatmap beatmap = MusicController.getBeatmap();
+		if (!(Options.isDynamicBackgroundEnabled() && beatmap != null && beatmap.isBackgroundLoading()))
+			bgAlpha.update(delta);
 
 		// buttons
 		int centerX = container.getWidth() / 2;

@@ -27,7 +27,6 @@ import java.util.Map;
 
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Image;
-import org.newdawn.slick.SlickException;
 import org.newdawn.slick.util.Log;
 
 /**
@@ -39,19 +38,18 @@ public class Beatmap implements Comparable<Beatmap> {
 
 	/** Background image cache. */
 	@SuppressWarnings("serial")
-	private static final LRUCache<File, Image> bgImageCache = new LRUCache<File, Image>(10) {
+	private static final LRUCache<File, ImageLoader> bgImageCache = new LRUCache<File, ImageLoader>(10) {
 		@Override
-		public void eldestRemoved(Map.Entry<File, Image> eldest) {
-			Image img = eldest.getValue();
-			if (img != null && !img.isDestroyed()) {
-				try {
-					img.destroy();  // destroy the removed image
-				} catch (SlickException e) {
-					Log.warn(String.format("Failed to destroy image '%s'.", img.getResourceReference()), e);
-				}
-			}
+		public void eldestRemoved(Map.Entry<File, ImageLoader> eldest) {
+			if (eldest.getKey() == lastBG)
+				lastBG = null;
+			ImageLoader imageLoader = eldest.getValue();
+			imageLoader.destroy();
 		}
 	};
+
+	/** The last background image loaded. */
+	private static File lastBG;
 
 	/**
 	 * Clears the background image cache.
@@ -276,49 +274,74 @@ public class Beatmap implements Comparable<Beatmap> {
 	}
 
 	/**
-	 * Draws the beatmap background.
+	 * Loads the beatmap background image.
+	 */
+	public void loadBackground() {
+		if (bg == null || bgImageCache.containsKey(bg) || !bg.isFile())
+			return;
+
+		if (lastBG != null) {
+			ImageLoader lastImageLoader = bgImageCache.get(lastBG);
+			if (lastImageLoader != null && lastImageLoader.isLoading()) {
+				lastImageLoader.interrupt();  // only allow loading one image at a time
+				bgImageCache.remove(lastBG);
+			}
+		}
+		ImageLoader imageLoader = new ImageLoader(bg);
+		bgImageCache.put(bg, imageLoader);
+		imageLoader.load(true);
+		lastBG = bg;
+	}
+
+	/**
+	 * Returns whether the beatmap background image is currently loading.
+	 * @return true if loading
+	 */
+	public boolean isBackgroundLoading() {
+		if (bg == null)
+			return false;
+		ImageLoader imageLoader = bgImageCache.get(bg);
+		return (imageLoader != null && imageLoader.isLoading());
+	}
+
+	/**
+	 * Draws the beatmap background image.
 	 * @param width the container width
 	 * @param height the container height
 	 * @param alpha the alpha value
 	 * @param stretch if true, stretch to screen dimensions; otherwise, maintain aspect ratio
 	 * @return true if successful, false if any errors were produced
 	 */
-	public boolean drawBG(int width, int height, float alpha, boolean stretch) {
+	public boolean drawBackground(int width, int height, float alpha, boolean stretch) {
 		if (bg == null)
 			return false;
-		try {
-			Image bgImage = bgImageCache.get(this);
-			if (bgImage == null) {
-				if (!bg.isFile())
-					return false;
-				bgImage = new Image(bg.getAbsolutePath());
-				bgImageCache.put(bg, bgImage);
-			}
 
-			int swidth = width;
-			int sheight = height;
-			if (!stretch) {
-				// fit image to screen
-				if (bgImage.getWidth() / (float) bgImage.getHeight() > width / (float) height)  // x > y
-					sheight = (int) (width * bgImage.getHeight() / (float) bgImage.getWidth());
-				else
-					swidth = (int) (height * bgImage.getWidth() / (float) bgImage.getHeight());
-			} else {
-				// fill screen while maintaining aspect ratio
-				if (bgImage.getWidth() / (float) bgImage.getHeight() > width / (float) height)  // x > y
-					swidth = (int) (height * bgImage.getWidth() / (float) bgImage.getHeight());
-				else
-					sheight = (int) (width * bgImage.getHeight() / (float) bgImage.getWidth());
-			}
-			bgImage = bgImage.getScaledCopy(swidth, sheight);
-
-			bgImage.setAlpha(alpha);
-			bgImage.drawCentered(width / 2, height / 2);
-		} catch (Exception e) {
-			Log.warn(String.format("Failed to get background image '%s'.", bg), e);
-			bg = null;  // don't try to load the file again until a restart
+		ImageLoader imageLoader = bgImageCache.get(bg);
+		if (imageLoader == null)
 			return false;
+
+		Image bgImage = imageLoader.getImage();
+		if (bgImage == null)
+			return true;
+
+		int swidth = width;
+		int sheight = height;
+		if (!stretch) {
+			// fit image to screen
+			if (bgImage.getWidth() / (float) bgImage.getHeight() > width / (float) height)  // x > y
+				sheight = (int) (width * bgImage.getHeight() / (float) bgImage.getWidth());
+			else
+				swidth = (int) (height * bgImage.getWidth() / (float) bgImage.getHeight());
+		} else {
+			// fill screen while maintaining aspect ratio
+			if (bgImage.getWidth() / (float) bgImage.getHeight() > width / (float) height)  // x > y
+				swidth = (int) (height * bgImage.getWidth() / (float) bgImage.getHeight());
+			else
+				sheight = (int) (width * bgImage.getHeight() / (float) bgImage.getWidth());
 		}
+		bgImage = bgImage.getScaledCopy(swidth, sheight);
+		bgImage.setAlpha(alpha);
+		bgImage.drawCentered(width / 2, height / 2);
 		return true;
 	}
 

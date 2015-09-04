@@ -78,6 +78,11 @@ public class AnimatedValue {
 	}
 
 	/**
+	 * Returns the total animation duration, in milliseconds.
+	 */
+	public int getDuration() { return duration; }
+
+	/**
 	 * Sets the animation duration.
 	 * @param duration the new duration, in milliseconds
 	 */

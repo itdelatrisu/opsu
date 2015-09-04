@@ -216,6 +216,12 @@ public class SongMenu extends BasicGameState {
 	/** Whether the song folder changed (notified via the watch service). */
 	private boolean songFolderChanged = false;
 
+	/** The last background image. */
+	private File lastBackgroundImage;
+
+	/** Background alpha level (for fade-in effect). */
+	private AnimatedValue bgAlpha = new AnimatedValue(800, 0f, 1f, AnimationEquation.OUT_QUAD);
+
 	/**
 	 * Beatmaps whose difficulties were recently computed (if flag is non-null).
 	 * Unless the Boolean flag is null, then upon removal, the beatmap's objects will
@@ -344,7 +350,7 @@ public class SongMenu extends BasicGameState {
 		// background
 		if (focusNode != null) {
 			Beatmap focusNodeBeatmap = focusNode.getBeatmapSet().get(focusNode.beatmapIndex);
-			if (!focusNodeBeatmap.drawBG(width, height, 1.0f, true))
+			if (!focusNodeBeatmap.drawBackground(width, height, bgAlpha.getValue(), true))
 				GameImage.PLAYFIELD.getImage().draw();
 		}
 
@@ -543,6 +549,13 @@ public class SongMenu extends BasicGameState {
 				}
 				return;
 			}
+		}
+
+		// fade in background
+		if (focusNode != null) {
+			Beatmap focusNodeBeatmap = focusNode.getBeatmapSet().get(focusNode.beatmapIndex);
+			if (!focusNodeBeatmap.isBackgroundLoading())
+				bgAlpha.update(delta);
 		}
 
 		// search
@@ -996,6 +1009,7 @@ public class SongMenu extends BasicGameState {
 		beatmapMenuTimer = -1;
 		searchTransitionTimer = SEARCH_TRANSITION_TIME;
 		songInfo = null;
+		bgAlpha.setTime(bgAlpha.getDuration());
 
 		// reset song stack
 		randomStack = new Stack<SongNode>();
@@ -1253,6 +1267,14 @@ public class SongMenu extends BasicGameState {
 		if (startNode.index == focusNode.index && startNode.beatmapIndex == -1)
 			changeIndex(1);
 
+		// load background image
+		beatmap.loadBackground();
+		boolean isBgNull = lastBackgroundImage == null || beatmap.bg == null;
+		if ((isBgNull && lastBackgroundImage != beatmap.bg) || (!isBgNull && !beatmap.bg.equals(lastBackgroundImage))) {
+			bgAlpha.setTime(0);
+			lastBackgroundImage = beatmap.bg;
+		}
+
 		return oldFocus;
 	}
 
@@ -1352,6 +1374,7 @@ public class SongMenu extends BasicGameState {
 		searchTimer = SEARCH_DELAY;
 		searchTransitionTimer = SEARCH_TRANSITION_TIME;
 		searchResultString = null;
+		lastBackgroundImage = null;
 
 		// reload songs in new thread
 		reloadThread = new Thread() {

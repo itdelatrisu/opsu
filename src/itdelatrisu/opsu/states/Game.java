@@ -305,7 +305,7 @@ public class Game extends BasicGameState {
 			else
 				dimLevel = 1f;
 		}
-		if (Options.isDefaultPlayfieldForced() || !beatmap.drawBG(width, height, dimLevel, false)) {
+		if (Options.isDefaultPlayfieldForced() || !beatmap.drawBackground(width, height, dimLevel, false)) {
 			Image playfield = GameImage.PLAYFIELD.getImage();
 			playfield.setAlpha(dimLevel);
 			playfield.draw();
