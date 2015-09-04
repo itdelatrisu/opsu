@@ -155,6 +155,8 @@ public class BeatmapSet {
 				case "hp": v = beatmap.HPDrainRate; break;
 				case "bpm": v = beatmap.bpmMax; break;
 				case "length": v = beatmap.endTime / 1000; break;
+				case "star":
+				case "stars": v = Math.round(beatmap.starRating * 100) / 100f; break;
 				default: return false;
 			}
 
