@@ -171,8 +171,7 @@ public class BeatmapSetList {
 		mapCount -= beatmapSet.size();
 		if (beatmap.beatmapSetID > 0)
 			MSIDdb.remove(beatmap.beatmapSetID);
-		for (int i = 0, n = beatmapSet.size(); i < n; i++) {
-			Beatmap bm = beatmapSet.get(i);
+		for (Beatmap bm : beatmapSet) {
 			if (bm.md5Hash != null)
 				this.beatmapHashDB.remove(bm.md5Hash);
 		}

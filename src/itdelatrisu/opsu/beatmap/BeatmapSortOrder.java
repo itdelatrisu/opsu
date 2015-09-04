@@ -123,13 +123,11 @@ public enum BeatmapSortOrder {
 		@Override
 		public int compare(BeatmapSetNode v, BeatmapSetNode w) {
 			int vMax = 0, wMax = 0;
-			for (int i = 0, size = v.getBeatmapSet().size(); i < size; i++) {
-				Beatmap beatmap = v.getBeatmapSet().get(i);
+			for (Beatmap beatmap : v.getBeatmapSet()) {
 				if (beatmap.endTime > vMax)
 					vMax = beatmap.endTime;
 			}
-			for (int i = 0, size = w.getBeatmapSet().size(); i < size; i++) {
-				Beatmap beatmap = w.getBeatmapSet().get(i);
+			for (Beatmap beatmap : w.getBeatmapSet()) {
 				if (beatmap.endTime > wMax)
 					wMax = beatmap.endTime;
 			}

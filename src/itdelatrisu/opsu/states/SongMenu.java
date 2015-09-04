@@ -349,7 +349,7 @@ public class SongMenu extends BasicGameState {
 
 		// background
 		if (focusNode != null) {
-			Beatmap focusNodeBeatmap = focusNode.getBeatmapSet().get(focusNode.beatmapIndex);
+			Beatmap focusNodeBeatmap = focusNode.getSelectedBeatmap();
 			if (!focusNodeBeatmap.drawBackground(width, height, bgAlpha.getValue(), true))
 				GameImage.PLAYFIELD.getImage().draw();
 		}
@@ -553,7 +553,7 @@ public class SongMenu extends BasicGameState {
 
 		// fade in background
 		if (focusNode != null) {
-			Beatmap focusNodeBeatmap = focusNode.getBeatmapSet().get(focusNode.beatmapIndex);
+			Beatmap focusNodeBeatmap = focusNode.getSelectedBeatmap();
 			if (!focusNodeBeatmap.isBackgroundLoading())
 				bgAlpha.update(delta);
 		}
@@ -1052,7 +1052,7 @@ public class SongMenu extends BasicGameState {
 
 			// reload scores
 			if (focusNode != null) {
-				scoreMap = ScoreDB.getMapSetScores(focusNode.getBeatmapSet().get(focusNode.beatmapIndex));
+				scoreMap = ScoreDB.getMapSetScores(focusNode.getSelectedBeatmap());
 				focusScores = getScoreDataForNode(focusNode, true);
 			}
 
@@ -1065,7 +1065,7 @@ public class SongMenu extends BasicGameState {
 			case BEATMAP:  // clear all scores
 				if (stateActionNode == null || stateActionNode.beatmapIndex == -1)
 					break;
-				Beatmap beatmap = stateActionNode.getBeatmapSet().get(stateActionNode.beatmapIndex);
+				Beatmap beatmap = stateActionNode.getSelectedBeatmap();
 				ScoreDB.deleteScore(beatmap);
 				if (stateActionNode == focusNode) {
 					focusScores = null;
@@ -1076,7 +1076,7 @@ public class SongMenu extends BasicGameState {
 				if (stateActionScore == null)
 					break;
 				ScoreDB.deleteScore(stateActionScore);
-				scoreMap = ScoreDB.getMapSetScores(focusNode.getBeatmapSet().get(focusNode.beatmapIndex));
+				scoreMap = ScoreDB.getMapSetScores(focusNode.getSelectedBeatmap());
 				focusScores = getScoreDataForNode(focusNode, true);
 				startScore = 0;
 				break;
@@ -1235,7 +1235,7 @@ public class SongMenu extends BasicGameState {
 		if (changeStartNode || (startNode.index == 0 && startNode.beatmapIndex == -1 && startNode.prev == null))
 			startNode = node;
 		focusNode = BeatmapSetList.get().getNode(node, beatmapIndex);
-		Beatmap beatmap = focusNode.getBeatmapSet().get(focusNode.beatmapIndex);
+		Beatmap beatmap = focusNode.getSelectedBeatmap();
 		MusicController.play(beatmap, false, preview);
 
 		// load scores
@@ -1335,7 +1335,7 @@ public class SongMenu extends BasicGameState {
 		if (scoreMap == null || scoreMap.isEmpty() || node.beatmapIndex == -1)  // node not expanded
 			return null;
 
-		Beatmap beatmap = node.getBeatmapSet().get(node.beatmapIndex);
+		Beatmap beatmap = node.getSelectedBeatmap();
 		ScoreData[] scores = scoreMap.get(beatmap.version);
 		if (scores == null || scores.length < 1)  // no scores
 			return null;
@@ -1411,8 +1411,7 @@ public class SongMenu extends BasicGameState {
 	 * @param beatmapSet the set of beatmaps
 	 */
 	private void calculateStarRatings(BeatmapSet beatmapSet) {
-		for (int i = 0, n = beatmapSet.size(); i < n; i++) {
-			Beatmap beatmap = beatmapSet.get(i);
+		for (Beatmap beatmap : beatmapSet) {
 			if (beatmap.starRating >= 0) {  // already calculated
 				beatmapsCalculated.put(beatmap, beatmapsCalculated.get(beatmap));
 				continue;
@@ -1443,7 +1442,7 @@ public class SongMenu extends BasicGameState {
 
 		SoundController.playSound(SoundEffect.MENUHIT);
 		Beatmap beatmap = MusicController.getBeatmap();
-		if (focusNode == null || beatmap != focusNode.getBeatmapSet().get(focusNode.beatmapIndex)) {
+		if (focusNode == null || beatmap != focusNode.getSelectedBeatmap()) {
 			UI.sendBarNotification("Unable to load the beatmap audio.");
 			return;
 		}

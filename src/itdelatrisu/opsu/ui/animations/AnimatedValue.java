@@ -96,6 +96,11 @@ public class AnimatedValue {
 	}
 
 	/**
+	 * Returns the animation equation being used.
+	 */
+	public AnimationEquation getEquation() { return eqn; }
+
+	/**
 	 * Sets the animation equation to use.
 	 * @param eqn the new equation
 	 */

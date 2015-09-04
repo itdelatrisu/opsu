@@ -21,14 +21,15 @@ package itdelatrisu.opsu.beatmap;
 import itdelatrisu.opsu.GameMod;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
 
 /**
  * Data type containing all beatmaps in a beatmap set.
  */
-public class BeatmapSet {
+public class BeatmapSet implements Iterable<Beatmap> {
 	/** List of associated beatmaps. */
-	private ArrayList<Beatmap> beatmaps;
+	private final ArrayList<Beatmap> beatmaps;
 
 	/**
 	 * Constructor.
@@ -57,6 +58,9 @@ public class BeatmapSet {
 	 * @throws IndexOutOfBoundsException
 	 */
 	public Beatmap remove(int index) { return beatmaps.remove(index); }
+
+	@Override
+	public Iterator<Beatmap> iterator() { return beatmaps.iterator(); }
 
 	/**
 	 * Returns an array of strings containing beatmap information.
@@ -139,7 +143,7 @@ public class BeatmapSet {
 
 	/**
 	 * Checks whether the beatmap set matches a given condition.
-	 * @param type the condition type (ar, cs, od, hp, bpm, length)
+	 * @param type the condition type (ar, cs, od, hp, bpm, length, star/stars)
 	 * @param operator the operator {@literal (=/==, >, >=, <, <=)}
 	 * @param value the value
 	 * @return true if the condition is met

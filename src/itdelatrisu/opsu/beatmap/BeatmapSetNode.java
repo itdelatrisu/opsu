@@ -32,7 +32,7 @@ import org.newdawn.slick.Image;
  */
 public class BeatmapSetNode {
 	/** The associated beatmap set. */
-	private BeatmapSet beatmapSet;
+	private final BeatmapSet beatmapSet;
 
 	/** Index of the selected beatmap (-1 if not focused). */
 	public int beatmapIndex = -1;
@@ -56,6 +56,14 @@ public class BeatmapSetNode {
 	 * @return the beatmap set
 	 */
 	public BeatmapSet getBeatmapSet() { return beatmapSet; }
+
+	/**
+	 * Returns the selected beatmap (based on {@link #beatmapIndex}).
+	 * @return the beatmap, or null if the index is invalid
+	 */
+	public Beatmap getSelectedBeatmap() {
+		return (beatmapIndex < 0 || beatmapIndex >= beatmapSet.size()) ? null : beatmapSet.get(beatmapIndex);
+	}
 
 	/**
 	 * Draws the button.
