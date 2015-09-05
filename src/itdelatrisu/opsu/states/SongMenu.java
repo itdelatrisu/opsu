@@ -30,23 +30,24 @@ import itdelatrisu.opsu.audio.MultiClip;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
-import itdelatrisu.opsu.beatmap.BeatmapDifficultyCalculator;
 import itdelatrisu.opsu.beatmap.Beatmap;
+import itdelatrisu.opsu.beatmap.BeatmapDifficultyCalculator;
 import itdelatrisu.opsu.beatmap.BeatmapParser;
 import itdelatrisu.opsu.beatmap.BeatmapSet;
 import itdelatrisu.opsu.beatmap.BeatmapSetList;
 import itdelatrisu.opsu.beatmap.BeatmapSetNode;
 import itdelatrisu.opsu.beatmap.BeatmapSortOrder;
 import itdelatrisu.opsu.beatmap.BeatmapWatchService;
+import itdelatrisu.opsu.beatmap.BeatmapWatchService.BeatmapWatchServiceListener;
 import itdelatrisu.opsu.beatmap.LRUCache;
 import itdelatrisu.opsu.beatmap.OszUnpacker;
-import itdelatrisu.opsu.beatmap.BeatmapWatchService.BeatmapWatchServiceListener;
 import itdelatrisu.opsu.db.BeatmapDB;
 import itdelatrisu.opsu.db.ScoreDB;
 import itdelatrisu.opsu.states.ButtonMenu.MenuState;
 import itdelatrisu.opsu.ui.Colors;
 import itdelatrisu.opsu.ui.Fonts;
 import itdelatrisu.opsu.ui.MenuButton;
+import itdelatrisu.opsu.ui.StarStream;
 import itdelatrisu.opsu.ui.UI;
 import itdelatrisu.opsu.ui.animations.AnimatedValue;
 import itdelatrisu.opsu.ui.animations.AnimationEquation;
@@ -245,6 +246,9 @@ public class SongMenu extends BasicGameState {
 		}
 	};
 
+	/** The star stream. */
+	private StarStream starStream;
+
 	// game-related variables
 	private GameContainer container;
 	private StateBasedGame game;
@@ -336,6 +340,9 @@ public class SongMenu extends BasicGameState {
 				}
 			}
 		});
+
+		// star stream
+		starStream = new StarStream(width, height);
 	}
 
 	@Override
@@ -353,6 +360,9 @@ public class SongMenu extends BasicGameState {
 			if (!focusNodeBeatmap.drawBackground(width, height, bgAlpha.getValue(), true))
 				GameImage.PLAYFIELD.getImage().draw();
 		}
+
+		// star stream
+		starStream.draw();
 
 		// song buttons
 		BeatmapSetNode node = startNode;
@@ -557,6 +567,9 @@ public class SongMenu extends BasicGameState {
 			if (!focusNodeBeatmap.isBackgroundLoading())
 				bgAlpha.update(delta);
 		}
+
+		// star stream
+		starStream.update(delta);
 
 		// search
 		search.setFocus(true);
@@ -1010,6 +1023,7 @@ public class SongMenu extends BasicGameState {
 		searchTransitionTimer = SEARCH_TRANSITION_TIME;
 		songInfo = null;
 		bgAlpha.setTime(bgAlpha.getDuration());
+		starStream.clear();
 
 		// reset song stack
 		randomStack = new Stack<SongNode>();

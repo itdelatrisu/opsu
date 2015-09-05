@@ -298,6 +298,12 @@ public enum GameImage {
 			return img.getScaledCopy((MENU_BUTTON_BG.getImage().getHeight() * 0.16f) / img.getHeight());
 		}
 	},
+	STAR2 ("star2", "png", false, false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy((MENU_BUTTON_BG.getImage().getHeight() * 0.33f) / img.getHeight());
+		}
+	},
 
 	// Music Player Buttons
 	MUSIC_PLAY ("music-play", "png", false, false),
