@@ -226,6 +226,9 @@ public class SongMenu extends BasicGameState {
 	/** Timer for animations when a new song node is selected. */
 	private AnimatedValue songChangeTimer = new AnimatedValue(900, 0f, 1f, AnimationEquation.OUT_QUAD);
 
+	/** Timer for the music icon animation when a new song node is selected. */
+	private AnimatedValue musicIconBounceTimer = new AnimatedValue(350, 0f, 1f, AnimationEquation.LINEAR);
+
 	/**
 	 * Beatmaps whose difficulties were recently computed (if flag is non-null).
 	 * Unless the Boolean flag is null, then upon removal, the beatmap's objects will
@@ -401,8 +404,13 @@ public class SongMenu extends BasicGameState {
 			Image musicNote = GameImage.MENU_MUSICNOTE.getImage();
 			if (MusicController.isTrackLoading())
 				loader.draw(marginX, marginY);
-			else
-				musicNote.draw(marginX, marginY);
+			else {
+				float t = musicIconBounceTimer.getValue() * 2f;
+				if (t > 1)
+					t = 2f - t;
+				float musicNoteScale = 1f + 0.3f * t;
+				musicNote.getScaledCopy(musicNoteScale).drawCentered(marginX + musicNote.getWidth() / 2f, marginY + musicNote.getHeight() / 2f);
+			}
 			int iconWidth = musicNote.getWidth();
 
 			// song info text
@@ -585,8 +593,10 @@ public class SongMenu extends BasicGameState {
 			if (!focusNodeBeatmap.isBackgroundLoading())
 				bgAlpha.update(delta);
 
-			// song change timer
+			// song change timers
 			songChangeTimer.update(delta);
+			if (!MusicController.isTrackLoading())
+				musicIconBounceTimer.update(delta);
 		}
 
 		// star stream
@@ -1045,6 +1055,7 @@ public class SongMenu extends BasicGameState {
 		songInfo = null;
 		bgAlpha.setTime(bgAlpha.getDuration());
 		songChangeTimer.setTime(songChangeTimer.getDuration());
+		musicIconBounceTimer.setTime(musicIconBounceTimer.getDuration());
 		starStream.clear();
 
 		// reset song stack
@@ -1248,6 +1259,7 @@ public class SongMenu extends BasicGameState {
 		hoverIndex = -1;
 		songInfo = null;
 		songChangeTimer.setTime(0);
+		musicIconBounceTimer.setTime(0);
 		BeatmapSetNode oldFocus = focusNode;
 
 		// expand node before focusing it
