@@ -115,10 +115,8 @@ public class CircumscribedCircle extends Curve {
 		// calculate points
 		float step = hitObject.getPixelLength() / CURVE_POINTS_SEPERATION;
 		curve = new Vec2f[(int) step + 1];
-		for (int i = 0; i < curve.length; i++) {
-			float[] xy = pointAt(i / step);
-			curve[i] = new Vec2f(xy[0], xy[1]);
-		}
+		for (int i = 0; i < curve.length; i++)
+			curve[i] = pointAt(i / step);
 	}
 
 	/**
@@ -157,12 +155,12 @@ public class CircumscribedCircle extends Curve {
 	}
 
 	@Override
-	public float[] pointAt(float t) {
+	public Vec2f pointAt(float t) {
 		float ang = Utils.lerp(startAng, endAng, t);
-		return new float[] {
+		return new Vec2f(
 			(float) (Math.cos(ang) * radius + circleCenter.x),
 			(float) (Math.sin(ang) * radius + circleCenter.y)
-		};
+		);
 	}
 
 	@Override

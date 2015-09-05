@@ -539,7 +539,6 @@ class tpSlider {
 		float t = (time - startTime) / sliderTime;
 		float floor = (float) Math.floor(t);
 		t = (floor % 2 == 0) ? t - floor : floor + 1 - t;
-		float[] xy = curve.pointAt(t);
-		return new Vec2f(xy[0], xy[1]);
+		return curve.pointAt(t);
 	}
 }

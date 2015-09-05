@@ -18,6 +18,8 @@
 
 package itdelatrisu.opsu.objects;
 
+import itdelatrisu.opsu.objects.curves.Vec2f;
+
 import org.newdawn.slick.Graphics;
 
 /**
@@ -55,9 +57,9 @@ public interface GameObject {
 	/**
 	 * Returns the coordinates of the hit object at a given track position.
 	 * @param trackPosition the track position
-	 * @return the [x,y] coordinates
+	 * @return the position vector
 	 */
-	public float[] getPointAt(int trackPosition);
+	public Vec2f getPointAt(int trackPosition);
 
 	/**
 	 * Returns the end time of the hit object.

@@ -42,6 +42,7 @@ import itdelatrisu.opsu.objects.GameObject;
 import itdelatrisu.opsu.objects.Slider;
 import itdelatrisu.opsu.objects.Spinner;
 import itdelatrisu.opsu.objects.curves.Curve;
+import itdelatrisu.opsu.objects.curves.Vec2f;
 import itdelatrisu.opsu.render.FrameBufferCache;
 import itdelatrisu.opsu.replay.PlaybackSpeed;
 import itdelatrisu.opsu.replay.Replay;
@@ -158,7 +159,7 @@ public class Game extends BasicGameState {
 		countdown2Sound, countdownGoSound;
 
 	/** Mouse coordinates before game paused. */
-	private int pausedMouseX = -1, pausedMouseY = -1;
+	private Vec2f pausedMousePosition;
 
 	/** Track position when game paused. */
 	private int pauseTime = -1;
@@ -221,7 +222,7 @@ public class Game extends BasicGameState {
 	private int flashlightRadius;
 
 	/** The cursor coordinates using the "auto" or "relax" mods. */
-	private int autoMouseX = 0, autoMouseY = 0;
+	private Vec2f autoMousePosition;
 
 	/** Whether or not the cursor should be pressed using the "auto" mod. */
 	private boolean autoMousePressed;
@@ -317,32 +318,31 @@ public class Game extends BasicGameState {
 
 		// "auto" and "autopilot" mods: move cursor automatically
 		// TODO: this should really be in update(), not render()
-		autoMouseX = width / 2;
-		autoMouseY = height / 2;
+		autoMousePosition.set(width / 2, height / 2);
 		autoMousePressed = false;
 		if (GameMod.AUTO.isActive() || GameMod.AUTOPILOT.isActive()) {
-			float[] autoXY = null;
+			Vec2f autoPoint = null;
 			if (isLeadIn()) {
 				// lead-in
 				float progress = Math.max((float) (leadInTime - beatmap.audioLeadIn) / approachTime, 0f);
-				autoMouseY = (int) (height / (2f - progress));
+				autoMousePosition.y = height / (2f - progress);
 			} else if (objectIndex == 0 && trackPosition < firstObjectTime) {
 				// before first object
 				timeDiff = firstObjectTime - trackPosition;
 				if (timeDiff < approachTime) {
-					float[] xy = gameObjects[0].getPointAt(trackPosition);
-					autoXY = getPointAt(autoMouseX, autoMouseY, xy[0], xy[1], 1f - ((float) timeDiff / approachTime));
+					Vec2f point = gameObjects[0].getPointAt(trackPosition);
+					autoPoint = getPointAt(autoMousePosition.x, autoMousePosition.y, point.x, point.y, 1f - ((float) timeDiff / approachTime));
 				}
 			} else if (objectIndex < beatmap.objects.length) {
 				// normal object
 				int objectTime = beatmap.objects[objectIndex].getTime();
 				if (trackPosition < objectTime) {
-					float[] xyStart = gameObjects[objectIndex - 1].getPointAt(trackPosition);
+					Vec2f startPoint = gameObjects[objectIndex - 1].getPointAt(trackPosition);
 					int startTime = gameObjects[objectIndex - 1].getEndTime();
 					if (beatmap.breaks != null && breakIndex < beatmap.breaks.size()) {
 						// starting a break: keep cursor at previous hit object position
 						if (breakTime > 0 || objectTime > beatmap.breaks.get(breakIndex))
-							autoXY = xyStart;
+							autoPoint = startPoint;
 
 						// after a break ends: move startTime to break end time
 						else if (breakIndex > 1) {
@@ -351,10 +351,10 @@ public class Game extends BasicGameState {
 								startTime = lastBreakEndTime;
 						}
 					}
-					if (autoXY == null) {
-						float[] xyEnd = gameObjects[objectIndex].getPointAt(trackPosition);
+					if (autoPoint == null) {
+						Vec2f endPoint = gameObjects[objectIndex].getPointAt(trackPosition);
 						int totalTime = objectTime - startTime;
-						autoXY = getPointAt(xyStart[0], xyStart[1], xyEnd[0], xyEnd[1], (float) (trackPosition - startTime) / totalTime);
+						autoPoint = getPointAt(startPoint.x, startPoint.y, endPoint.x, endPoint.y, (float) (trackPosition - startTime) / totalTime);
 
 						// hit circles: show a mouse press
 						int offset300 = hitResultOffset[GameData.HIT_300];
@@ -363,19 +363,17 @@ public class Game extends BasicGameState {
 							autoMousePressed = true;
 					}
 				} else {
-					autoXY = gameObjects[objectIndex].getPointAt(trackPosition);
+					autoPoint = gameObjects[objectIndex].getPointAt(trackPosition);
 					autoMousePressed = true;
 				}
 			} else {
 				// last object
-				autoXY = gameObjects[objectIndex - 1].getPointAt(trackPosition);
+				autoPoint = gameObjects[objectIndex - 1].getPointAt(trackPosition);
 			}
 
 			// set mouse coordinates
-			if (autoXY != null) {
-				autoMouseX = (int) autoXY[0];
-				autoMouseY = (int) autoXY[1];
-			}
+			if (autoPoint != null)
+				autoMousePosition.set(autoPoint.x, autoPoint.y);
 		}
 
 		// "flashlight" mod: restricted view of hit objects around cursor
@@ -393,12 +391,12 @@ public class Game extends BasicGameState {
 			g.setDrawMode(Graphics.MODE_ALPHA_MAP);
 			g.clearAlphaMap();
 			int mouseX, mouseY;
-			if (pauseTime > -1 && pausedMouseX > -1 && pausedMouseY > -1) {
-				mouseX = pausedMouseX;
-				mouseY = pausedMouseY;
+			if (pauseTime > -1 && pausedMousePosition != null) {
+				mouseX = (int) pausedMousePosition.x;
+				mouseY = (int) pausedMousePosition.y;
 			} else if (GameMod.AUTO.isActive() || GameMod.AUTOPILOT.isActive()) {
-				mouseX = autoMouseX;
-				mouseY = autoMouseY;
+				mouseX = (int) autoMousePosition.x;
+				mouseY = (int) autoMousePosition.y;
 			} else if (isReplay) {
 				mouseX = replayX;
 				mouseY = replayY;
@@ -565,27 +563,27 @@ public class Game extends BasicGameState {
 		}
 
 		// returning from pause screen
-		if (pauseTime > -1 && pausedMouseX > -1 && pausedMouseY > -1) {
+		if (pauseTime > -1 && pausedMousePosition != null) {
 			// darken the screen
 			g.setColor(Colors.BLACK_ALPHA);
 			g.fillRect(0, 0, width, height);
 
 			// draw glowing hit select circle and pulse effect
-			int circleRadius = GameImage.HITCIRCLE.getImage().getWidth();
-			Image cursorCircle = GameImage.HITCIRCLE_SELECT.getImage().getScaledCopy(circleRadius, circleRadius);
+			int circleDiameter = GameImage.HITCIRCLE.getImage().getWidth();
+			Image cursorCircle = GameImage.HITCIRCLE_SELECT.getImage().getScaledCopy(circleDiameter, circleDiameter);
 			cursorCircle.setAlpha(1.0f);
-			cursorCircle.drawCentered(pausedMouseX, pausedMouseY);
+			cursorCircle.drawCentered(pausedMousePosition.x, pausedMousePosition.y);
 			Image cursorCirclePulse = cursorCircle.getScaledCopy(1f + pausePulse);
 			cursorCirclePulse.setAlpha(1f - pausePulse);
-			cursorCirclePulse.drawCentered(pausedMouseX, pausedMouseY);
+			cursorCirclePulse.drawCentered(pausedMousePosition.x, pausedMousePosition.y);
 		}
 
 		if (isReplay)
 			UI.draw(g, replayX, replayY, replayKeyPressed);
 		else if (GameMod.AUTO.isActive())
-			UI.draw(g, autoMouseX, autoMouseY, autoMousePressed);
+			UI.draw(g, (int) autoMousePosition.x, (int) autoMousePosition.y, autoMousePressed);
 		else if (GameMod.AUTOPILOT.isActive())
-			UI.draw(g, autoMouseX, autoMouseY, Utils.isGameKeyPressed());
+			UI.draw(g, (int) autoMousePosition.x, (int) autoMousePosition.y, Utils.isGameKeyPressed());
 		else
 			UI.draw(g);
 	}
@@ -603,8 +601,7 @@ public class Game extends BasicGameState {
 		// returning from pause screen: must click previous mouse position
 		if (pauseTime > -1) {
 			// paused during lead-in or break, or "relax" or "autopilot": continue immediately
-			if ((pausedMouseX < 0 && pausedMouseY < 0) ||
-			    (GameMod.RELAX.isActive() || GameMod.AUTOPILOT.isActive())) {
+			if (pausedMousePosition == null || (GameMod.RELAX.isActive() || GameMod.AUTOPILOT.isActive())) {
 				pauseTime = -1;
 				if (!isLeadIn())
 					MusicController.resume();
@@ -791,8 +788,7 @@ public class Game extends BasicGameState {
 		// pause game if focus lost
 		if (!container.hasFocus() && !GameMod.AUTO.isActive() && !isReplay) {
 			if (pauseTime < 0) {
-				pausedMouseX = mouseX;
-				pausedMouseY = mouseY;
+				pausedMousePosition = new Vec2f(mouseX, mouseY);
 				pausePulse = 0f;
 			}
 			if (MusicController.isPlaying() || isLeadIn())
@@ -865,8 +861,7 @@ public class Game extends BasicGameState {
 
 			// pause game
 			if (pauseTime < 0 && breakTime <= 0 && trackPosition >= beatmap.objects[0].getTime()) {
-				pausedMouseX = mouseX;
-				pausedMouseY = mouseY;
+				pausedMousePosition = new Vec2f(mouseX, mouseY);
 				pausePulse = 0f;
 			}
 			if (MusicController.isPlaying() || isLeadIn())
@@ -993,8 +988,7 @@ public class Game extends BasicGameState {
 		if (button == Input.MOUSE_MIDDLE_BUTTON && !Options.isMouseWheelDisabled()) {
 			int trackPosition = MusicController.getPosition();
 			if (pauseTime < 0 && breakTime <= 0 && trackPosition >= beatmap.objects[0].getTime()) {
-				pausedMouseX = x;
-				pausedMouseY = y;
+				pausedMousePosition = new Vec2f(x, y);
 				pausePulse = 0f;
 			}
 			if (MusicController.isPlaying() || isLeadIn())
@@ -1023,13 +1017,12 @@ public class Game extends BasicGameState {
 	private void gameKeyPressed(int keys, int x, int y, int trackPosition) {
 		// returning from pause screen
 		if (pauseTime > -1) {
-			double distance = Math.hypot(pausedMouseX - x, pausedMouseY - y);
+			double distance = Math.hypot(pausedMousePosition.x - x, pausedMousePosition.y - y);
 			int circleRadius = GameImage.HITCIRCLE.getImage().getWidth() / 2;
 			if (distance < circleRadius) {
 				// unpause the game
 				pauseTime = -1;
-				pausedMouseX = -1;
-				pausedMouseY = -1;
+				pausedMousePosition = null;
 				if (!isLeadIn())
 					MusicController.resume();
 			}
@@ -1303,10 +1296,10 @@ public class Game extends BasicGameState {
 				final int followPointInterval = container.getHeight() / 14;
 				int lastObjectEndTime = gameObjects[lastObjectIndex].getEndTime() + 1;
 				int objectStartTime = beatmap.objects[index].getTime();
-				float[] startXY = gameObjects[lastObjectIndex].getPointAt(lastObjectEndTime);
-				float[] endXY = gameObjects[index].getPointAt(objectStartTime);
-				float xDiff = endXY[0] - startXY[0];
-				float yDiff = endXY[1] - startXY[1];
+				Vec2f startPoint = gameObjects[lastObjectIndex].getPointAt(lastObjectEndTime);
+				Vec2f endPoint = gameObjects[index].getPointAt(objectStartTime);
+				float xDiff = endPoint.x - startPoint.x;
+				float yDiff = endPoint.y - startPoint.y;
 				float dist = (float) Math.hypot(xDiff, yDiff);
 				int numPoints = (int) ((dist - GameImage.HITCIRCLE.getImage().getWidth()) / followPointInterval);
 				if (numPoints > 0) {
@@ -1327,8 +1320,8 @@ public class Game extends BasicGameState {
 					float step = 1f / (numPoints + 1);
 					float t = step;
 					for (int i = 0; i < numPoints; i++) {
-						float x = startXY[0] + xDiff * t;
-						float y = startXY[1] + yDiff * t;
+						float x = startPoint.x + xDiff * t;
+						float y = startPoint.y + yDiff * t;
 						float nextT = t + step;
 						if (lastObjectIndex < objectIndex) {  // fade the previous trail
 							if (progress < nextT) {
@@ -1382,8 +1375,7 @@ public class Game extends BasicGameState {
 		timingPointIndex = 0;
 		beatLengthBase = beatLength = 1;
 		pauseTime = -1;
-		pausedMouseX = -1;
-		pausedMouseY = -1;
+		pausedMousePosition = null;
 		countdownReadySound = false;
 		countdown3Sound = false;
 		countdown1Sound = false;
@@ -1394,8 +1386,7 @@ public class Game extends BasicGameState {
 		deathTime = -1;
 		replayFrames = null;
 		lastReplayTime = 0;
-		autoMouseX = 0;
-		autoMouseY = 0;
+		autoMousePosition = new Vec2f();
 		autoMousePressed = false;
 		flashlightRadius = container.getHeight() * 2 / 3;
 
@@ -1624,8 +1615,8 @@ public class Game extends BasicGameState {
 	public synchronized void addReplayFrameAndRun(int x, int y, int keys, int time){
 		// "auto" and "autopilot" mods: use automatic cursor coordinates
 		if (GameMod.AUTO.isActive() || GameMod.AUTOPILOT.isActive()) {
-			x = autoMouseX;
-			y = autoMouseY;
+			x = (int) autoMousePosition.x;
+			y = (int) autoMousePosition.y;
 		}
 
 		ReplayFrame frame = addReplayFrame(x, y, keys, time);
@@ -1699,17 +1690,13 @@ public class Game extends BasicGameState {
 	 * @param endX the ending x coordinate
 	 * @param endY the ending y coordinate
 	 * @param t the t value [0, 1]
-	 * @return the [x,y] coordinates
+	 * @return the position vector
 	 */
-	private float[] getPointAt(float startX, float startY, float endX, float endY, float t) {
+	private Vec2f getPointAt(float startX, float startY, float endX, float endY, float t) {
 		// "autopilot" mod: move quicker between objects
 		if (GameMod.AUTOPILOT.isActive())
 			t = Utils.clamp(t * 2f, 0f, 1f);
-
-		float[] xy = new float[2];
-		xy[0] = startX + (endX - startX) * t;
-		xy[1] = startY + (endY - startY) * t;
-		return xy;
+		return new Vec2f(startX + (endX - startX) * t, startY + (endY - startY) * t);
 	}
 
 	/**
@@ -1803,9 +1790,9 @@ public class Game extends BasicGameState {
 				// possible special case: if slider end in the stack,
 				// all next hit objects in stack move right down
 				if (hitObjectN.isSlider()) {
-					float[] p1 = gameObjects[i].getPointAt(hitObjectI.getTime());
-					float[] p2 = gameObjects[n].getPointAt(gameObjects[n].getEndTime());
-					float distance = Utils.distance(p1[0], p1[1], p2[0], p2[1]);
+					Vec2f p1 = gameObjects[i].getPointAt(hitObjectI.getTime());
+					Vec2f p2 = gameObjects[n].getPointAt(gameObjects[n].getEndTime());
+					float distance = Utils.distance(p1.x, p1.y, p2.x, p2.y);
 
 					// check if hit object part of this stack
 					if (distance < STACK_LENIENCE * HitObject.getXMultiplier()) {
@@ -1813,7 +1800,7 @@ public class Game extends BasicGameState {
 						for (int j = n + 1; j <= i; j++) {
 							HitObject hitObjectJ = beatmap.objects[j];
 							p1 = gameObjects[j].getPointAt(hitObjectJ.getTime());
-							distance = Utils.distance(p1[0], p1[1], p2[0], p2[1]);
+							distance = Utils.distance(p1.x, p1.y, p2.x, p2.y);
 
 							// hit object below slider end
 							if (distance < STACK_LENIENCE * HitObject.getXMultiplier())

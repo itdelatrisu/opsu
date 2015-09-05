@@ -106,9 +106,9 @@ public abstract class Curve {
 	/**
 	 * Returns the point on the curve at a value t.
 	 * @param t the t value [0, 1]
-	 * @return the point [x, y]
+	 * @return the position vector
 	 */
-	public abstract float[] pointAt(float t);
+	public abstract Vec2f pointAt(float t);
 
 	/**
 	 * Draws the full curve to the graphics context.

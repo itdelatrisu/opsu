@@ -41,6 +41,16 @@ public class Vec2f {
 	public Vec2f() {}
 
 	/**
+	 * Sets the x and y components of this vector.
+	 * @return itself (for chaining)
+	 */
+	public Vec2f set(float nx, float ny) {
+		x = nx;
+		y = ny;
+		return this;
+	}
+
+	/**
 	 * Finds the midpoint between this vector and another vector.
 	 * @param o the other vector
 	 * @return a midpoint vector

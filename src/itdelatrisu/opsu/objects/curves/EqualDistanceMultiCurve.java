@@ -124,20 +124,19 @@ public abstract class EqualDistanceMultiCurve extends Curve {
 	}
 
 	@Override
-	public float[] pointAt(float t) {
+	public Vec2f pointAt(float t) {
 		float indexF = t * ncurve;
 		int index = (int) indexF;
-		if (index >= ncurve) {
-			Vec2f poi = curve[ncurve];
-			return new float[] { poi.x, poi.y };
-		} else {
+		if (index >= ncurve)
+			return curve[ncurve].cpy();
+		else {
 			Vec2f poi = curve[index];
 			Vec2f poi2 = curve[index + 1];
 			float t2 = indexF - index;
-			return new float[] {
+			return new Vec2f(
 				Utils.lerp(poi.x, poi2.x, t2),
 				Utils.lerp(poi.y, poi2.y, t2)
-			};
+			);
 		}
 	}
 

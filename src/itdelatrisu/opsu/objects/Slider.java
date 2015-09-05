@@ -27,6 +27,7 @@ import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.beatmap.Beatmap;
 import itdelatrisu.opsu.beatmap.HitObject;
 import itdelatrisu.opsu.objects.curves.Curve;
+import itdelatrisu.opsu.objects.curves.Vec2f;
 import itdelatrisu.opsu.states.Game;
 import itdelatrisu.opsu.ui.Colors;
 
@@ -184,14 +185,14 @@ public class Slider implements GameObject {
 		Colors.WHITE_FADE.a = color.a = alpha;
 		Image hitCircleOverlay = GameImage.HITCIRCLE_OVERLAY.getImage();
 		Image hitCircle = GameImage.HITCIRCLE.getImage();
-		float[] endPos = curve.pointAt(1);
+		Vec2f endPos = curve.pointAt(1);
 
 		curve.draw(color);
 		color.a = alpha;
 
 		// end circle
-		hitCircle.drawCentered(endPos[0], endPos[1], color);
-		hitCircleOverlay.drawCentered(endPos[0], endPos[1], Colors.WHITE_FADE);
+		hitCircle.drawCentered(endPos.x, endPos.y, color);
+		hitCircleOverlay.drawCentered(endPos.x, endPos.y, Colors.WHITE_FADE);
 
 		// start circle
 		hitCircle.drawCentered(x, y, color);
@@ -202,8 +203,8 @@ public class Slider implements GameObject {
 		if (ticksT != null) {
 			Image tick = GameImage.SLIDER_TICK.getImage();
 			for (int i = 0; i < ticksT.length; i++) {
-				float[] c = curve.pointAt(ticksT[i]);
-				tick.drawCentered(c[0], c[1], Colors.WHITE_FADE);
+				Vec2f c = curve.pointAt(ticksT[i]);
+				tick.drawCentered(c.x, c.y, Colors.WHITE_FADE);
 			}
 		}
 		if (GameMod.HIDDEN.isActive()) {
@@ -236,7 +237,7 @@ public class Slider implements GameObject {
 				if (tcurRepeat % 2 == 0) {
 					// last circle
 					arrow.setRotation(curve.getEndAngle());
-					arrow.drawCentered(endPos[0], endPos[1]);
+					arrow.drawCentered(endPos.x, endPos.y);
 				} else {
 					// first circle
 					arrow.setRotation(curve.getStartAngle());
@@ -255,20 +256,20 @@ public class Slider implements GameObject {
 			if (sliderTime == 0)
 				return;
 
-			float[] c = curve.pointAt(getT(trackPosition, false));
-			float[] c2 = curve.pointAt(getT(trackPosition, false) + 0.01f);
+			Vec2f c = curve.pointAt(getT(trackPosition, false));
+			Vec2f c2 = curve.pointAt(getT(trackPosition, false) + 0.01f);
 
 			float t = getT(trackPosition, false);
 //			float dis = hitObject.getPixelLength() * HitObject.getXMultiplier() * (t - (int) t);
 //			Image sliderBallFrame = sliderBallImages[(int) (dis / (diameter * Math.PI) * 30) % sliderBallImages.length];
 			Image sliderBallFrame = sliderBallImages[(int) (t * sliderTime * 60 / 1000) % sliderBallImages.length];
-			float angle = (float) (Math.atan2(c2[1] - c[1], c2[0] - c[0]) * 180 / Math.PI);
+			float angle = (float) (Math.atan2(c2.y - c.y, c2.x - c.x) * 180 / Math.PI);
 			sliderBallFrame.setRotation(angle);
-			sliderBallFrame.drawCentered(c[0], c[1]);
+			sliderBallFrame.drawCentered(c.x, c.y);
 
 			// follow circle
 			if (followCircleActive) {
-				GameImage.SLIDER_FOLLOWCIRCLE.getImage().drawCentered(c[0], c[1]);
+				GameImage.SLIDER_FOLLOWCIRCLE.getImage().drawCentered(c.x, c.y);
 
 				// "flashlight" mod: dim the screen
 				if (GameMod.FLASHLIGHT.isActive()) {
@@ -351,9 +352,9 @@ public class Slider implements GameObject {
 		float cx, cy;
 		HitObjectType type;
 		if (currentRepeats % 2 == 0) {  // last circle
-			float[] lastPos = curve.pointAt(1);
-			cx = lastPos[0];
-			cy = lastPos[1];
+			Vec2f lastPos = curve.pointAt(1);
+			cx = lastPos.x;
+			cy = lastPos.y;
 			type = HitObjectType.SLIDER_LAST;
 		} else {  // first circle
 			cx = x;
@@ -434,8 +435,8 @@ public class Slider implements GameObject {
 
 			// check if cursor pressed and within end circle
 			if (keyPressed || GameMod.RELAX.isActive()) {
-				float[] c = curve.pointAt(getT(trackPosition, false));
-				double distance = Math.hypot(c[0] - mouseX, c[1] - mouseY);
+				Vec2f c = curve.pointAt(getT(trackPosition, false));
+				double distance = Math.hypot(c.x - mouseX, c.y - mouseY);
 				if (distance < followRadius)
 					sliderHeldToEnd = true;
 			}
@@ -478,8 +479,8 @@ public class Slider implements GameObject {
 		}
 
 		// holding slider...
-		float[] c = curve.pointAt(getT(trackPosition, false));
-		double distance = Math.hypot(c[0] - mouseX, c[1] - mouseY);
+		Vec2f c = curve.pointAt(getT(trackPosition, false));
+		double distance = Math.hypot(c.x - mouseX, c.y - mouseY);
 		if (((keyPressed || GameMod.RELAX.isActive()) && distance < followRadius) || isAutoMod) {
 			// mouse pressed and within follow circle
 			followCircleActive = true;
@@ -493,14 +494,14 @@ public class Slider implements GameObject {
 							curve.getX(lastIndex), curve.getY(lastIndex), hitObject, currentRepeats);
 				} else  // first circle
 					data.sliderTickResult(trackPosition, GameData.HIT_SLIDER30,
-							c[0], c[1], hitObject, currentRepeats);
+							c.x, c.y, hitObject, currentRepeats);
 			}
 
 			// held during new tick
 			if (isNewTick) {
 				ticksHit++;
 				data.sliderTickResult(trackPosition, GameData.HIT_SLIDER10,
-						c[0], c[1], hitObject, currentRepeats);
+						c.x, c.y, hitObject, currentRepeats);
 			}
 
 			// held near end of slider
@@ -526,12 +527,12 @@ public class Slider implements GameObject {
 	}
 
 	@Override
-	public float[] getPointAt(int trackPosition) {
+	public Vec2f getPointAt(int trackPosition) {
 		if (trackPosition <= hitObject.getTime())
-			return new float[] { x, y };
+			return new Vec2f(x, y);
 		else if (trackPosition >= hitObject.getTime() + sliderTimeTotal) {
 			if (hitObject.getRepeatCount() % 2 == 0)
-				return new float[] { x, y };
+				return new Vec2f(x, y);
 			else
 				return curve.pointAt(1);
 		} else
