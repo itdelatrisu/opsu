@@ -77,9 +77,10 @@ public class StarStream {
 		 */
 		public void draw() {
 			float t = animatedValue.getValue();
-			starImg.setAlpha(Math.min((1 - t) * 5f, 1f));
-			starImg.setRotation(angle);
-			starImg.draw(containerWidth - (distance * t), ((containerHeight - starImg.getHeight()) / 2) + yOffset);
+			starImg.setImageColor(1f, 1f, 1f, Math.min((1 - t) * 5f, 1f));
+			starImg.drawEmbedded(
+					containerWidth - (distance * t), ((containerHeight - starImg.getHeight()) / 2) + yOffset,
+					starImg.getWidth(), starImg.getHeight(), angle);
 		}
 
 		/**
@@ -107,8 +108,13 @@ public class StarStream {
 	 * Draws the star stream.
 	 */
 	public void draw() {
+		if (stars.isEmpty())
+			return;
+
+		starImg.startUse();
 		for (Star star : stars)
 			star.draw();
+		starImg.endUse();
 	}
 
 	/**

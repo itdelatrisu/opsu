@@ -190,19 +190,25 @@ public class Cursor {
 		// draw a fading trail
 		float alpha = 0f;
 		float t = 2f / cursorX.size();
-		if (skin.isCursorTrailRotated())
-			cursorTrail.setRotation(cursorAngle);
+		int cursorTrailWidth = cursorTrail.getWidth(), cursorTrailHeight = cursorTrail.getHeight();
+		float cursorTrailRotation = (skin.isCursorTrailRotated()) ? cursorAngle : 0;
 		Iterator<Integer> iterX = cursorX.iterator();
 		Iterator<Integer> iterY = cursorY.iterator();
+		cursorTrail.startUse();
 		while (iterX.hasNext()) {
 			int cx = iterX.next();
 			int cy = iterY.next();
 			alpha += t;
-			cursorTrail.setAlpha(alpha);
+			cursorTrail.setImageColor(1f, 1f, 1f, alpha);
 //			if (cx != x || cy != y)
-				cursorTrail.drawCentered(cx, cy);
+				cursorTrail.drawEmbedded(
+						cx - (cursorTrailWidth / 2f), cy - (cursorTrailHeight / 2f),
+						cursorTrailWidth, cursorTrailHeight, cursorTrailRotation);
 		}
-		cursorTrail.drawCentered(mouseX, mouseY);
+		cursorTrail.drawEmbedded(
+				mouseX - (cursorTrailWidth / 2f), mouseY - (cursorTrailHeight / 2f),
+				cursorTrailWidth, cursorTrailHeight, cursorTrailRotation);
+		cursorTrail.endUse();
 
 		// draw the other components
 		if (newStyle && skin.isCursorRotated())
