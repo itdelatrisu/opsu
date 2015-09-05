@@ -26,8 +26,8 @@ import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.skins.Skin;
 import itdelatrisu.opsu.ui.animations.AnimationEquation;
 
+import java.awt.Point;
 import java.nio.IntBuffer;
-import java.util.Iterator;
 import java.util.LinkedList;
 
 import org.lwjgl.BufferUtils;
@@ -46,7 +46,7 @@ public class Cursor {
 	private static org.lwjgl.input.Cursor emptyCursor;
 
 	/** Last cursor coordinates. */
-	private int lastX = -1, lastY = -1;
+	private Point lastPosition;
 
 	/** Cursor rotation angle. */
 	private float cursorAngle = 0f;
@@ -64,7 +64,7 @@ public class Cursor {
 	private static final float CURSOR_SCALE_TIME = 125;
 
 	/** Stores all previous cursor locations to display a trail. */
-	private LinkedList<Integer> cursorX, cursorY;
+	private LinkedList<Point> trail = new LinkedList<Point>();
 
 	// game-related variables
 	private static GameContainer container;
@@ -94,10 +94,7 @@ public class Cursor {
 	/**
 	 * Constructor.
 	 */
-	public Cursor() {
-		cursorX = new LinkedList<Integer>();
-		cursorY = new LinkedList<Integer>();
-	}
+	public Cursor() {}
 
 	/**
 	 * Draws the cursor.
@@ -161,49 +158,39 @@ public class Cursor {
 		float FPSmod = Math.max(container.getFPS(), 1) / 60f;
 		if (newStyle) {
 			// new style: add all points between cursor movements
-			if (lastX < 0) {
-				lastX = mouseX;
-				lastY = mouseY;
+			if (lastPosition == null) {
+				lastPosition = new Point(mouseX, mouseY);
 				return;
 			}
-			addCursorPoints(lastX, lastY, mouseX, mouseY);
-			lastX = mouseX;
-			lastY = mouseY;
+			addCursorPoints(lastPosition.x, lastPosition.y, mouseX, mouseY);
+			lastPosition.move(mouseX, mouseY);
 
-			removeCount = (int) (cursorX.size() / (6 * FPSmod)) + 1;
+			removeCount = (int) (trail.size() / (6 * FPSmod)) + 1;
 		} else {
 			// old style: sample one point at a time
-			cursorX.add(mouseX);
-			cursorY.add(mouseY);
+			trail.add(new Point(mouseX, mouseY));
 
 			int max = (int) (10 * FPSmod);
-			if (cursorX.size() > max)
-				removeCount = cursorX.size() - max;
+			if (trail.size() > max)
+				removeCount = trail.size() - max;
 		}
 
 		// remove points from the lists
-		for (int i = 0; i < removeCount && !cursorX.isEmpty(); i++) {
-			cursorX.remove();
-			cursorY.remove();
-		}
+		for (int i = 0; i < removeCount && !trail.isEmpty(); i++)
+			trail.remove();
 
 		// draw a fading trail
 		float alpha = 0f;
-		float t = 2f / cursorX.size();
+		float t = 2f / trail.size();
 		int cursorTrailWidth = cursorTrail.getWidth(), cursorTrailHeight = cursorTrail.getHeight();
 		float cursorTrailRotation = (skin.isCursorTrailRotated()) ? cursorAngle : 0;
-		Iterator<Integer> iterX = cursorX.iterator();
-		Iterator<Integer> iterY = cursorY.iterator();
 		cursorTrail.startUse();
-		while (iterX.hasNext()) {
-			int cx = iterX.next();
-			int cy = iterY.next();
+		for (Point p : trail) {
 			alpha += t;
 			cursorTrail.setImageColor(1f, 1f, 1f, alpha);
-//			if (cx != x || cy != y)
-				cursorTrail.drawEmbedded(
-						cx - (cursorTrailWidth / 2f), cy - (cursorTrailHeight / 2f),
-						cursorTrailWidth, cursorTrailHeight, cursorTrailRotation);
+			cursorTrail.drawEmbedded(
+					p.x - (cursorTrailWidth / 2f), p.y - (cursorTrailHeight / 2f),
+					cursorTrailWidth, cursorTrailHeight, cursorTrailRotation);
 		}
 		cursorTrail.drawEmbedded(
 				mouseX - (cursorTrailWidth / 2f), mouseY - (cursorTrailHeight / 2f),
@@ -237,8 +224,7 @@ public class Cursor {
 		if (dy <= dx) {
 			for (int i = 0; ; i++) {
 				if (i == k) {
-					cursorX.add(x1);
-					cursorY.add(y1);
+					trail.add(new Point(x1, y1));
 					i = 0;
 				}
 				if (x1 == x2)
@@ -253,8 +239,7 @@ public class Cursor {
 		} else {
 			for (int i = 0; ; i++) {
 				if (i == k) {
-					cursorX.add(x1);
-					cursorY.add(y1);
+					trail.add(new Point(x1, y1));
 					i = 0;
 				}
 				if (y1 == y2)
@@ -301,9 +286,8 @@ public class Cursor {
 	 * Resets all cursor location data.
 	 */
 	public void resetLocations() {
-		lastX = lastY = -1;
-		cursorX.clear();
-		cursorY.clear();
+		lastPosition = null;
+		trail.clear();
 	}
 
 	/**
