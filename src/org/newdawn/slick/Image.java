@@ -38,6 +38,7 @@ import org.newdawn.slick.opengl.TextureImpl;
 import org.newdawn.slick.opengl.pbuffer.GraphicsFactory;
 import org.newdawn.slick.opengl.renderer.Renderer;
 import org.newdawn.slick.opengl.renderer.SGL;
+import org.newdawn.slick.util.FastTrig;
 import org.newdawn.slick.util.Log;
 
 /**
@@ -104,7 +105,7 @@ public class Image implements Renderable {
     /** The colours for each of the corners */
     protected Color[] corners;
     /** The OpenGL max filter */
-    private int filter = SGL.GL_LINEAR;
+    private int filter = FILTER_LINEAR;
     
     /** True if the image should be flipped vertically */
     private boolean flipped;
@@ -562,7 +563,7 @@ public class Image implements Renderable {
 	 * @param y The y coordinate to place the image's center at
 	 */
 	public void drawCentered(float x, float y) {
-		draw(x-(getWidth()/2),y-(getHeight()/2));
+		draw(x - (getWidth() / 2f), y - (getHeight() / 2f));
 	}
 
 	/**
@@ -599,6 +600,16 @@ public class Image implements Renderable {
 	public void draw(float x, float y, Color filter) {
 		init();
 		draw(x,y,width,height, filter);
+	}
+
+	/**
+	 * Draw this image as part of a collection of images
+	 * 
+	 * @param x The x location to draw the image at
+	 * @param y The y location to draw the image at
+	 */
+	public void drawEmbedded(float x,float y) {
+		drawEmbedded(x, y, getWidth(), getHeight());
 	}
 
 	/**
@@ -1162,6 +1173,83 @@ public class Image implements Renderable {
 				newTextureOffsetY);
 		GL.glVertex3f((x + mywidth),y, 0.0f);
 	}
+
+	/**
+	 * Unlike the other drawEmbedded methods, this allows for the embedded image
+	 * to be rotated. This is done by applying a rotation transform to each 
+	 * vertex of the image. This ignores getRotation but depends on the 
+	 * center x/y (scaled accordingly to the new width/height).
+	 * 
+	 * @param x the x to render the image at
+	 * @param y the y to render the image at
+	 * @param width the new width to render the image
+	 * @param height the new height to render the image
+	 * @param rotation the rotation to render the image, using getCenterOfRotationX/Y
+	 *
+	 * @author davedes
+	 */
+	public void drawEmbedded(float x, float y, float width, float height, float rotation) {
+		if (rotation==0) {
+			drawEmbedded(x, y, width, height);
+			return;
+		}
+		init();
+		float scaleX = width/this.width;
+		float scaleY = height/this.height;
+
+		float cx = getCenterOfRotationX()*scaleX;
+		float cy = getCenterOfRotationY()*scaleY;
+
+		float p1x = -cx;
+		float p1y = -cy;
+		float p2x = width - cx;
+		float p2y = -cy;
+		float p3x = width - cx;
+		float p3y = height - cy;
+		float p4x = -cx;
+		float p4y = height - cy;
+
+		double rad = Math.toRadians(rotation);
+		final float cos = (float) FastTrig.cos(rad);
+		final float sin = (float) FastTrig.sin(rad);
+
+		float tx = getTextureOffsetX();
+		float ty = getTextureOffsetY();
+		float tw = getTextureWidth();
+		float th = getTextureHeight();
+
+		float x1 = (cos * p1x - sin * p1y) + cx; // TOP LEFT
+		float y1 = (sin * p1x + cos * p1y) + cy;
+		float x2 = (cos * p4x - sin * p4y) + cx; // BOTTOM LEFT
+		float y2 = (sin * p4x + cos * p4y) + cy;
+		float x3 = (cos * p3x - sin * p3y) + cx; // BOTTOM RIGHT
+		float y3 = (sin * p3x + cos * p3y) + cy;
+		float x4 = (cos * p2x - sin * p2y) + cx; // TOP RIGHT
+		float y4 = (sin * p2x + cos * p2y) + cy;
+		if (corners == null) {
+			GL.glTexCoord2f(tx, ty);
+			GL.glVertex3f(x+x1, y+y1, 0);
+			GL.glTexCoord2f(tx, ty + th);
+			GL.glVertex3f(x+x2, y+y2, 0);
+			GL.glTexCoord2f(tx + tw, ty + th);
+			GL.glVertex3f(x+x3, y+y3, 0);
+			GL.glTexCoord2f(tx + tw, ty);
+			GL.glVertex3f(x+x4, y+y4, 0);
+		} else {
+			corners[TOP_LEFT].bind();
+			GL.glTexCoord2f(tx, ty);
+			GL.glVertex3f(x+x1, y+y1, 0);
+			corners[BOTTOM_LEFT].bind();
+			GL.glTexCoord2f(tx, ty + th);
+			GL.glVertex3f(x+x2, y+y2, 0);
+			corners[BOTTOM_RIGHT].bind();
+			GL.glTexCoord2f(tx + tw, ty + th);
+			GL.glVertex3f(x+x3, y+y3, 0);
+			corners[TOP_RIGHT].bind();
+			GL.glTexCoord2f(tx + tw, ty);
+			GL.glVertex3f(x+x4, y+y4, 0);
+		}
+	}
 	
 	/**
 	 * Draw the image in a warper rectangle. The effects this can 
@@ -1460,7 +1548,7 @@ public class Image implements Renderable {
 		if (isDestroyed()) {
 			return;
 		}
-		
+		flushPixelData();
 		destroyed = true;
 		texture.release();
 		GraphicsFactory.releaseGraphicsForImage(this);
