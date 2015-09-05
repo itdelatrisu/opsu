@@ -223,6 +223,9 @@ public class SongMenu extends BasicGameState {
 	/** Background alpha level (for fade-in effect). */
 	private AnimatedValue bgAlpha = new AnimatedValue(800, 0f, 1f, AnimationEquation.OUT_QUAD);
 
+	/** Timer for animations when a new song node is selected. */
+	private AnimatedValue songChangeTimer = new AnimatedValue(900, 0f, 1f, AnimationEquation.OUT_QUAD);
+
 	/**
 	 * Beatmaps whose difficulties were recently computed (if flag is non-null).
 	 * Unless the Boolean flag is null, then upon removal, the beatmap's objects will
@@ -412,22 +415,37 @@ public class SongMenu extends BasicGameState {
 				}
 			}
 			marginX += 5;
+			Color c = Colors.WHITE_FADE;
+			float oldAlpha = c.a;
+			float t = songChangeTimer.getValue();
 			float headerTextY = marginY * 0.2f;
-			Fonts.LARGE.drawString(marginX + iconWidth * 1.05f, headerTextY, songInfo[0], Color.white);
+			c.a = Math.min(t * songInfo.length / 1.5f, 1f);
+			Fonts.LARGE.drawString(marginX + iconWidth * 1.05f, headerTextY, songInfo[0], c);
 			headerTextY += Fonts.LARGE.getLineHeight() - 6;
-			Fonts.DEFAULT.drawString(marginX + iconWidth * 1.05f, headerTextY, songInfo[1], Color.white);
+			c.a = Math.min((t - 1f / (songInfo.length * 1.5f)) * songInfo.length / 1.5f, 1f);
+			Fonts.DEFAULT.drawString(marginX + iconWidth * 1.05f, headerTextY, songInfo[1], c);
 			headerTextY += Fonts.DEFAULT.getLineHeight() - 2;
+			c.a = Math.min((t - 2f / (songInfo.length * 1.5f)) * songInfo.length / 1.5f, 1f);
 			float speedModifier = GameMod.getSpeedMultiplier();
-			Color color2 = (speedModifier == 1f) ? Color.white :
+			Color color2 = (speedModifier == 1f) ? c :
 				(speedModifier > 1f) ? Colors.RED_HIGHLIGHT : Colors.BLUE_HIGHLIGHT;
+			float oldAlpha2 = color2.a;
+			color2.a = c.a;
 			Fonts.BOLD.drawString(marginX, headerTextY, songInfo[2], color2);
+			color2.a = oldAlpha2;
 			headerTextY += Fonts.BOLD.getLineHeight() - 4;
-			Fonts.DEFAULT.drawString(marginX, headerTextY, songInfo[3], Color.white);
+			c.a = Math.min((t - 3f / (songInfo.length * 1.5f)) * songInfo.length / 1.5f, 1f);
+			Fonts.DEFAULT.drawString(marginX, headerTextY, songInfo[3], c);
 			headerTextY += Fonts.DEFAULT.getLineHeight() - 4;
+			c.a = Math.min((t - 4f / (songInfo.length * 1.5f)) * songInfo.length / 1.5f, 1f);
 			float multiplier = GameMod.getDifficultyMultiplier();
-			Color color4 = (multiplier == 1f) ? Color.white :
+			Color color4 = (multiplier == 1f) ? c :
 				(multiplier > 1f) ? Colors.RED_HIGHLIGHT : Colors.BLUE_HIGHLIGHT;
+			float oldAlpha4 = color4.a;
+			color4.a = c.a;
 			Fonts.SMALL.drawString(marginX, headerTextY, songInfo[4], color4);
+			color4.a = oldAlpha4;
+			c.a = oldAlpha;
 		}
 
 		// score buttons
@@ -561,11 +579,14 @@ public class SongMenu extends BasicGameState {
 			}
 		}
 
-		// fade in background
 		if (focusNode != null) {
+			// fade in background
 			Beatmap focusNodeBeatmap = focusNode.getSelectedBeatmap();
 			if (!focusNodeBeatmap.isBackgroundLoading())
 				bgAlpha.update(delta);
+
+			// song change timer
+			songChangeTimer.update(delta);
 		}
 
 		// star stream
@@ -1023,6 +1044,7 @@ public class SongMenu extends BasicGameState {
 		searchTransitionTimer = SEARCH_TRANSITION_TIME;
 		songInfo = null;
 		bgAlpha.setTime(bgAlpha.getDuration());
+		songChangeTimer.setTime(songChangeTimer.getDuration());
 		starStream.clear();
 
 		// reset song stack
@@ -1225,6 +1247,7 @@ public class SongMenu extends BasicGameState {
 		hoverOffset.setTime(0);
 		hoverIndex = -1;
 		songInfo = null;
+		songChangeTimer.setTime(0);
 		BeatmapSetNode oldFocus = focusNode;
 
 		// expand node before focusing it
