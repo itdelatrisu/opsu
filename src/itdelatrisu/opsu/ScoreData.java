@@ -23,6 +23,7 @@ import itdelatrisu.opsu.states.SongMenu;
 import itdelatrisu.opsu.ui.Colors;
 import itdelatrisu.opsu.ui.Fonts;
 import itdelatrisu.opsu.ui.UI;
+import itdelatrisu.opsu.ui.animations.AnimationEquation;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -225,46 +226,52 @@ public class ScoreData implements Comparable<ScoreData> {
 	 * @param rank the score rank
 	 * @param prevScore the previous (lower) score, or -1 if none
 	 * @param focus whether the button is focused
+	 * @param t the animation progress [0,1]
 	 */
-	public void draw(Graphics g, int index, int rank, long prevScore, boolean focus) {
-		Image img = getGrade().getMenuImage();
-		float textX = baseX + buttonWidth * 0.24f;
-		float edgeX = baseX + buttonWidth * 0.98f;
+	public void draw(Graphics g, int index, int rank, long prevScore, boolean focus, float t) {
+		float x = baseX - buttonWidth * (1 - AnimationEquation.OUT_BACK.calc(t)) / 2.5f;
+		float textX = x + buttonWidth * 0.24f;
+		float edgeX = x + buttonWidth * 0.98f;
 		float y = baseY + index * (buttonOffset);
 		float midY = y + buttonHeight / 2f;
 		float marginY = Fonts.DEFAULT.getLineHeight() * 0.01f;
+		Color c = Colors.WHITE_FADE;
+		float alpha = t;
+		float oldAlpha = c.a;
+		c.a = alpha;
 
 		// rectangle outline
-		g.setColor((focus) ? Colors.BLACK_BG_FOCUS : Colors.BLACK_BG_NORMAL);
-		g.fillRect(baseX, y, buttonWidth, buttonHeight);
+		Color rectColor = (focus) ? Colors.BLACK_BG_FOCUS : Colors.BLACK_BG_NORMAL;
+		float oldRectAlpha = rectColor.a;
+		rectColor.a *= AnimationEquation.IN_QUAD.calc(alpha);
+		g.setColor(rectColor);
+		g.fillRect(x, y, buttonWidth, buttonHeight);
+		rectColor.a = oldRectAlpha;
 
 		// rank
 		if (focus) {
 			Fonts.LARGE.drawString(
-					baseX + buttonWidth * 0.04f,
+					x + buttonWidth * 0.04f,
 					y + (buttonHeight - Fonts.LARGE.getLineHeight()) / 2f,
-					Integer.toString(rank + 1), Color.white
+					Integer.toString(rank + 1), c
 			);
 		}
 
 		// grade image
-		img.drawCentered(baseX + buttonWidth * 0.15f, midY);
+		Image img = getGrade().getMenuImage();
+		img.setAlpha(alpha);
+		img.drawCentered(x + buttonWidth * 0.15f, midY);
+		img.setAlpha(1f);
 
 		// score
 		float textOffset = (buttonHeight - Fonts.MEDIUM.getLineHeight() - Fonts.SMALL.getLineHeight()) / 2f;
-		Fonts.MEDIUM.drawString(
-				textX, y + textOffset,
-				String.format("Score: %s (%dx)", NumberFormat.getNumberInstance().format(score), combo),
-				Color.white
-		);
+		Fonts.MEDIUM.drawString(textX, y + textOffset,
+				String.format("Score: %s (%dx)", NumberFormat.getNumberInstance().format(score), combo), c);
 
 		// hit counts (custom: osu! shows user instead, above score)
 		String player = (playerName == null) ? "" : String.format("  (%s)", playerName);
-		Fonts.SMALL.drawString(
-				textX, y + textOffset + Fonts.MEDIUM.getLineHeight(),
-				String.format("300:%d  100:%d  50:%d  Miss:%d%s", hit300, hit100, hit50, miss, player),
-				Color.white
-		);
+		Fonts.SMALL.drawString(textX, y + textOffset + Fonts.MEDIUM.getLineHeight(),
+				String.format("300:%d  100:%d  50:%d  Miss:%d%s", hit300, hit100, hit50, miss, player), c);
 
 		// mods
 		StringBuilder sb = new StringBuilder();
@@ -277,39 +284,30 @@ public class ScoreData implements Comparable<ScoreData> {
 		if (sb.length() > 0) {
 			sb.setLength(sb.length() - 1);
 			String modString = sb.toString();
-			Fonts.DEFAULT.drawString(
-					edgeX - Fonts.DEFAULT.getWidth(modString),
-					y + marginY, modString, Color.white
-			);
+			Fonts.DEFAULT.drawString(edgeX - Fonts.DEFAULT.getWidth(modString), y + marginY, modString, c);
 		}
 
 		// accuracy
 		String accuracy = String.format("%.2f%%", getScorePercent());
-		Fonts.DEFAULT.drawString(
-				edgeX - Fonts.DEFAULT.getWidth(accuracy),
-				y + marginY + Fonts.DEFAULT.getLineHeight(),
-				accuracy, Color.white
-		);
+		Fonts.DEFAULT.drawString(edgeX - Fonts.DEFAULT.getWidth(accuracy), y + marginY + Fonts.DEFAULT.getLineHeight(), accuracy, c);
 
 		// score difference
 		String diff = (prevScore < 0 || score < prevScore) ?
 				"-" : String.format("+%s", NumberFormat.getNumberInstance().format(score - prevScore));
-		Fonts.DEFAULT.drawString(
-				edgeX - Fonts.DEFAULT.getWidth(diff),
-				y + marginY + Fonts.DEFAULT.getLineHeight() * 2,
-				diff, Color.white
-		);
+		Fonts.DEFAULT.drawString(edgeX - Fonts.DEFAULT.getWidth(diff), y + marginY + Fonts.DEFAULT.getLineHeight() * 2, diff, c);
 
 		// time since
 		if (getTimeSince() != null) {
 			Image clock = GameImage.HISTORY.getImage();
-			clock.drawCentered(baseX + buttonWidth * 1.02f + clock.getWidth() / 2f, midY);
+			clock.drawCentered(x + buttonWidth * 1.02f + clock.getWidth() / 2f, midY);
 			Fonts.DEFAULT.drawString(
-					baseX + buttonWidth * 1.03f + clock.getWidth(),
+					x + buttonWidth * 1.03f + clock.getWidth(),
 					midY - Fonts.DEFAULT.getLineHeight() / 2f,
-					getTimeSince(), Color.white
+					getTimeSince(), c
 			);
 		}
+
+		c.a = oldAlpha;
 	}
 
 	/**

@@ -224,7 +224,7 @@ public class SongMenu extends BasicGameState {
 	private AnimatedValue bgAlpha = new AnimatedValue(800, 0f, 1f, AnimationEquation.OUT_QUAD);
 
 	/** Timer for animations when a new song node is selected. */
-	private AnimatedValue songChangeTimer = new AnimatedValue(900, 0f, 1f, AnimationEquation.OUT_QUAD);
+	private AnimatedValue songChangeTimer = new AnimatedValue(900, 0f, 1f, AnimationEquation.LINEAR);
 
 	/** Timer for the music icon animation when a new song node is selected. */
 	private AnimatedValue musicIconBounceTimer = new AnimatedValue(350, 0f, 1f, AnimationEquation.LINEAR);
@@ -425,45 +425,56 @@ public class SongMenu extends BasicGameState {
 			marginX += 5;
 			Color c = Colors.WHITE_FADE;
 			float oldAlpha = c.a;
-			float t = songChangeTimer.getValue();
+			float t = AnimationEquation.OUT_QUAD.calc(songChangeTimer.getValue());
 			float headerTextY = marginY * 0.2f;
 			c.a = Math.min(t * songInfo.length / 1.5f, 1f);
-			Fonts.LARGE.drawString(marginX + iconWidth * 1.05f, headerTextY, songInfo[0], c);
+			if (c.a > 0)
+				Fonts.LARGE.drawString(marginX + iconWidth * 1.05f, headerTextY, songInfo[0], c);
 			headerTextY += Fonts.LARGE.getLineHeight() - 6;
 			c.a = Math.min((t - 1f / (songInfo.length * 1.5f)) * songInfo.length / 1.5f, 1f);
-			Fonts.DEFAULT.drawString(marginX + iconWidth * 1.05f, headerTextY, songInfo[1], c);
+			if (c.a > 0)
+				Fonts.DEFAULT.drawString(marginX + iconWidth * 1.05f, headerTextY, songInfo[1], c);
 			headerTextY += Fonts.DEFAULT.getLineHeight() - 2;
 			c.a = Math.min((t - 2f / (songInfo.length * 1.5f)) * songInfo.length / 1.5f, 1f);
-			float speedModifier = GameMod.getSpeedMultiplier();
-			Color color2 = (speedModifier == 1f) ? c :
-				(speedModifier > 1f) ? Colors.RED_HIGHLIGHT : Colors.BLUE_HIGHLIGHT;
-			float oldAlpha2 = color2.a;
-			color2.a = c.a;
-			Fonts.BOLD.drawString(marginX, headerTextY, songInfo[2], color2);
-			color2.a = oldAlpha2;
+			if (c.a > 0) {
+				float speedModifier = GameMod.getSpeedMultiplier();
+				Color color2 = (speedModifier == 1f) ? c :
+					(speedModifier > 1f) ? Colors.RED_HIGHLIGHT : Colors.BLUE_HIGHLIGHT;
+				float oldAlpha2 = color2.a;
+				color2.a = c.a;
+				Fonts.BOLD.drawString(marginX, headerTextY, songInfo[2], color2);
+				color2.a = oldAlpha2;
+			}
 			headerTextY += Fonts.BOLD.getLineHeight() - 4;
 			c.a = Math.min((t - 3f / (songInfo.length * 1.5f)) * songInfo.length / 1.5f, 1f);
-			Fonts.DEFAULT.drawString(marginX, headerTextY, songInfo[3], c);
+			if (c.a > 0)
+				Fonts.DEFAULT.drawString(marginX, headerTextY, songInfo[3], c);
 			headerTextY += Fonts.DEFAULT.getLineHeight() - 4;
 			c.a = Math.min((t - 4f / (songInfo.length * 1.5f)) * songInfo.length / 1.5f, 1f);
-			float multiplier = GameMod.getDifficultyMultiplier();
-			Color color4 = (multiplier == 1f) ? c :
-				(multiplier > 1f) ? Colors.RED_HIGHLIGHT : Colors.BLUE_HIGHLIGHT;
-			float oldAlpha4 = color4.a;
-			color4.a = c.a;
-			Fonts.SMALL.drawString(marginX, headerTextY, songInfo[4], color4);
-			color4.a = oldAlpha4;
+			if (c.a > 0) {
+				float multiplier = GameMod.getDifficultyMultiplier();
+				Color color4 = (multiplier == 1f) ? c :
+					(multiplier > 1f) ? Colors.RED_HIGHLIGHT : Colors.BLUE_HIGHLIGHT;
+				float oldAlpha4 = color4.a;
+				color4.a = c.a;
+				Fonts.SMALL.drawString(marginX, headerTextY, songInfo[4], color4);
+				color4.a = oldAlpha4;
+			}
 			c.a = oldAlpha;
 		}
 
 		// score buttons
 		if (focusScores != null) {
-			for (int i = 0; i < MAX_SCORE_BUTTONS; i++) {
-				int rank = startScore + i;
-				if (rank >= focusScores.length)
-					break;
+			int scoreButtons = Math.min(focusScores.length - startScore, MAX_SCORE_BUTTONS);
+			float timerScale = 1f - (1 / 3f) * ((MAX_SCORE_BUTTONS - scoreButtons) / (float) (MAX_SCORE_BUTTONS - 1));
+			int duration = (int) (songChangeTimer.getDuration() * timerScale);
+			int segmentDuration = (int) ((2 / 3f) * songChangeTimer.getDuration());
+			int time = songChangeTimer.getTime();
+			for (int i = 0, rank = startScore; i < scoreButtons; i++, rank++) {
 				long prevScore = (rank + 1 < focusScores.length) ? focusScores[rank + 1].score : -1;
-				focusScores[rank].draw(g, i, rank, prevScore, ScoreData.buttonContains(mouseX, mouseY, i));
+				float t = Utils.clamp((time - (i * (duration - segmentDuration) / scoreButtons)) / (float) segmentDuration, 0f, 1f);
+				boolean focus = (t >= 0.9999f && ScoreData.buttonContains(mouseX, mouseY, i));
+				focusScores[rank].draw(g, i, rank, prevScore, focus, t);
 			}
 
 			// scroll bar
@@ -687,11 +698,9 @@ public class SongMenu extends BasicGameState {
 			return;
 
 		// tooltips
-		if (focusScores != null) {
-			for (int i = 0; i < MAX_SCORE_BUTTONS; i++) {
-				int rank = startScore + i;
-				if (rank >= focusScores.length)
-					break;
+		if (focusScores != null && ScoreData.areaContains(mouseX, mouseY)) {
+			int scoreButtons = Math.min(focusScores.length - startScore, MAX_SCORE_BUTTONS);
+			for (int i = 0, rank = startScore; i < scoreButtons; i++, rank++) {
 				if (ScoreData.buttonContains(mouseX, mouseY, i)) {
 					UI.updateTooltip(delta, focusScores[rank].getTooltipString(), true);
 					break;
@@ -804,10 +813,8 @@ public class SongMenu extends BasicGameState {
 
 		// score buttons
 		if (focusScores != null && ScoreData.areaContains(x, y)) {
-			for (int i = 0; i < MAX_SCORE_BUTTONS; i++) {
-				int rank = startScore + i;
-				if (rank >= focusScores.length)
-					break;
+			int scoreButtons = Math.min(focusScores.length - startScore, MAX_SCORE_BUTTONS);
+			for (int i = 0, rank = startScore; i < scoreButtons; i++, rank++) {
 				if (ScoreData.buttonContains(x, y, i)) {
 					SoundController.playSound(SoundEffect.MENUHIT);
 					if (button != Input.MOUSE_RIGHT_BUTTON) {
