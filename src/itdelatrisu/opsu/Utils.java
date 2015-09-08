@@ -44,10 +44,8 @@ import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.List;
 import java.util.Scanner;
 import java.util.jar.JarFile;
 
@@ -363,45 +361,6 @@ public class Utils {
 
 		// delete the directory
 		dir.delete();
-	}
-
-	/**
-	 * Wraps the given string into a list of split lines based on the width.
-	 * @param text the text to split
-	 * @param font the font used to draw the string
-	 * @param width the maximum width of a line
-	 * @return the list of split strings
-	 * @author davedes (http://slick.ninjacave.com/forum/viewtopic.php?t=3778)
-	 */
-	public static List<String> wrap(String text, org.newdawn.slick.Font font, int width) {
-		List<String> list = new ArrayList<String>();
-		String str = text;
-		String line = "";
-		int i = 0;
-		int lastSpace = -1;
-		while (i < str.length()) {
-			char c = str.charAt(i);
-			if (Character.isWhitespace(c))
-				lastSpace = i;
-			String append = line + c;
-			if (font.getWidth(append) > width) {
-				int split = (lastSpace != -1) ? lastSpace : i;
-				int splitTrimmed = split;
-				if (lastSpace != -1 && split < str.length() - 1)
-					splitTrimmed++;
-				list.add(str.substring(0, split));
-				str = str.substring(splitTrimmed);
-				line = "";
-				i = 0;
-				lastSpace = -1;
-			} else {
-				line = append;
-				i++;
-			}
-		}
-		if (str.length() != 0)
-			list.add(str);
-		return list;
 	}
 
 	/**

@@ -39,13 +39,6 @@ public class HitObject {
 		TYPE_NEWCOMBO = 4,  // not an object
 		TYPE_SPINNER  = 8;
 
-	/** Hit object type names. */
-	private static final String
-		CIRCLE = "circle",
-		SLIDER = "slider",
-		SPINNER = "spinner",
-		UNKNOWN = "unknown object";
-
 	/** Hit sound types (bits). */
 	public static final byte
 		SOUND_NORMAL  = 0,
@@ -320,13 +313,13 @@ public class HitObject {
 	 */
 	public String getTypeName() {
 		if (isCircle())
-			return CIRCLE;
+			return "circle";
 		else if (isSlider())
-			return SLIDER;
+			return "slider";
 		else if (isSpinner())
-			return SPINNER;
+			return "spinner";
 		else
-			return UNKNOWN;
+			return "unknown object type";
 	}
 
 	/**

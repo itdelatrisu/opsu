@@ -69,7 +69,7 @@ public class BeatmapSet implements Iterable<Beatmap> {
 	 * <li>1: Mapped by {Creator}
 	 * <li>2: Length: {}  BPM: {}  Objects: {}
 	 * <li>3: Circles: {}  Sliders: {}  Spinners: {}
-	 * <li>4: CS:{} HP:{} AR:{} OD:{}
+	 * <li>4: CS:{} HP:{} AR:{} OD:{} Stars:{}
 	 * </ul>
 	 * @param index the beatmap index
 	 * @throws IndexOutOfBoundsException
@@ -97,7 +97,7 @@ public class BeatmapSet implements Iterable<Beatmap> {
 				Math.min(beatmap.HPDrainRate * multiplier, 10f),
 				Math.min(beatmap.approachRate * multiplier, 10f),
 				Math.min(beatmap.overallDifficulty * multiplier, 10f),
-				(beatmap.starRating >= 0) ? String.format(" Stars: %.2f", beatmap.starRating) : "");
+				(beatmap.starRating >= 0) ? String.format(" Stars:%.2f", beatmap.starRating) : "");
 		return info;
 	}
 
@@ -131,7 +131,7 @@ public class BeatmapSet implements Iterable<Beatmap> {
 			return true;
 
 		// search: version, tags (remaining beatmaps)
-		for (int i = 1; i < beatmaps.size(); i++) {
+		for (int i = 1, n = beatmaps.size(); i < n; i++) {
 			beatmap = beatmaps.get(i);
 			if (beatmap.version.toLowerCase().contains(query) ||
 				beatmap.tags.contains(query))

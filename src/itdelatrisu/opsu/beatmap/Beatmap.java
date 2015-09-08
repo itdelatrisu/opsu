@@ -160,7 +160,7 @@ public class Beatmap implements Comparable<Beatmap> {
 	public float HPDrainRate = 5f;
 
 	/** CS: Size of circles and sliders (0:large ~ 10:small). */
-	public float circleSize = 4f;
+	public float circleSize = 5f;
 
 	/** OD: Affects timing window, spinners, and approach speed (0:easy ~ 10:hard). */
 	public float overallDifficulty = 5f;
@@ -169,7 +169,7 @@ public class Beatmap implements Comparable<Beatmap> {
 	public float approachRate = -1f;
 
 	/** Slider movement speed multiplier. */
-	public float sliderMultiplier = 1f;
+	public float sliderMultiplier = 1.4f;
 
 	/** Rate at which slider ticks are placed (x per beat). */
 	public float sliderTickRate = 1f;

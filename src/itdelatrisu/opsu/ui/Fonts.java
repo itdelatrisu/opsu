@@ -24,8 +24,10 @@ import itdelatrisu.opsu.Options;
 import java.awt.Font;
 import java.awt.FontFormatException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.UnicodeFont;
@@ -109,5 +111,44 @@ public class Fonts {
 		} catch (SlickException e) {
 			Log.warn(String.format("Failed to load glyphs for string '%s'.", s), e);
 		}
+	}
+
+	/**
+	 * Wraps the given string into a list of split lines based on the width.
+	 * @param font the font used to draw the string
+	 * @param text the text to split
+	 * @param width the maximum width of a line
+	 * @return the list of split strings
+	 * @author davedes (http://slick.ninjacave.com/forum/viewtopic.php?t=3778)
+	 */
+	public static List<String> wrap(org.newdawn.slick.Font font, String text, int width) {
+		List<String> list = new ArrayList<String>();
+		String str = text;
+		String line = "";
+		int i = 0;
+		int lastSpace = -1;
+		while (i < str.length()) {
+			char c = str.charAt(i);
+			if (Character.isWhitespace(c))
+				lastSpace = i;
+			String append = line + c;
+			if (font.getWidth(append) > width) {
+				int split = (lastSpace != -1) ? lastSpace : i;
+				int splitTrimmed = split;
+				if (lastSpace != -1 && split < str.length() - 1)
+					splitTrimmed++;
+				list.add(str.substring(0, split));
+				str = str.substring(splitTrimmed);
+				line = "";
+				i = 0;
+				lastSpace = -1;
+			} else {
+				line = append;
+				i++;
+			}
+		}
+		if (str.length() != 0)
+			list.add(str);
+		return list;
 	}
 }
