@@ -75,4 +75,7 @@ public abstract class DownloadServer {
 	public String getPreviewURL(int beatmapSetID) {
 		return String.format(PREVIEW_URL, beatmapSetID);
 	}
+
+	@Override
+	public String toString() { return getName(); }
 }

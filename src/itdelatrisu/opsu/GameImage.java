@@ -310,6 +310,7 @@ public enum GameImage {
 	MUSIC_PAUSE ("music-pause", "png", false, false),
 	MUSIC_NEXT ("music-next", "png", false, false),
 	MUSIC_PREVIOUS ("music-previous", "png", false, false),
+
 	DOWNLOADS ("downloads", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
@@ -361,6 +362,8 @@ public enum GameImage {
 			return img.getScaledCopy(w, h);
 		}
 	},
+	CHEVRON_DOWN ("chevron-down", "png", false, false),
+	CHEVRON_RIGHT ("chevron-right", "png", false, false),
 
 	// TODO: ensure this image hasn't been modified (checksum?)
 	ALPHA_MAP ("alpha", "png", false, false);

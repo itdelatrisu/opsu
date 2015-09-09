@@ -40,7 +40,7 @@ import org.newdawn.slick.util.ResourceLoader;
  * Fonts used for drawing.
  */
 public class Fonts {
-	public static UnicodeFont DEFAULT, BOLD, XLARGE, LARGE, MEDIUM, SMALL;
+	public static UnicodeFont DEFAULT, BOLD, XLARGE, LARGE, MEDIUM, MEDIUMBOLD, SMALL;
 
 	/** Set of all Unicode strings already loaded per font. */
 	private static HashMap<UnicodeFont, HashSet<String>> loadedGlyphs = new HashMap<UnicodeFont, HashSet<String>>();
@@ -59,17 +59,19 @@ public class Fonts {
 		Font javaFont = Font.createFont(Font.TRUETYPE_FONT, ResourceLoader.getResourceAsStream(Options.FONT_NAME));
 		Font font = javaFont.deriveFont(Font.PLAIN, (int) (fontBase * 4 / 3));
 		DEFAULT = new UnicodeFont(font);
-		BOLD    = new UnicodeFont(font.deriveFont(Font.BOLD));
-		XLARGE  = new UnicodeFont(font.deriveFont(fontBase * 3));
-		LARGE   = new UnicodeFont(font.deriveFont(fontBase * 2));
-		MEDIUM  = new UnicodeFont(font.deriveFont(fontBase * 3 / 2));
-		SMALL   = new UnicodeFont(font.deriveFont(fontBase));
+		BOLD = new UnicodeFont(font.deriveFont(Font.BOLD));
+		XLARGE = new UnicodeFont(font.deriveFont(fontBase * 3));
+		LARGE = new UnicodeFont(font.deriveFont(fontBase * 2));
+		MEDIUM = new UnicodeFont(font.deriveFont(fontBase * 3 / 2));
+		MEDIUMBOLD = new UnicodeFont(font.deriveFont(Font.BOLD, fontBase * 3 / 2));
+		SMALL = new UnicodeFont(font.deriveFont(fontBase));
 		ColorEffect colorEffect = new ColorEffect();
 		loadFont(DEFAULT, colorEffect);
 		loadFont(BOLD, colorEffect);
 		loadFont(XLARGE, colorEffect);
 		loadFont(LARGE, colorEffect);
 		loadFont(MEDIUM, colorEffect);
+		loadFont(MEDIUMBOLD, colorEffect);
 		loadFont(SMALL, colorEffect);
 	}
 
