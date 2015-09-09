@@ -174,14 +174,20 @@ public class DropdownMenu<E> {
 	public boolean isOpen() { return expanded; }
 
 	/**
+	 * Opens or closes the dropdown menu.
+	 * @param flag true to open, false to close
+	 */
+	public void open(boolean flag) { this.expanded = flag; }
+
+	/**
 	 * Returns true if the coordinates are within the menu bounds.
 	 * @param cx the x coordinate
 	 * @param cy the y coordinate
 	 */
 	public boolean contains(float cx, float cy) {
 		return (cx > x && cx < x + width && (
-				(cy > y && cy < y + baseHeight) ||
-				(expanded && cy > y + offsetY && cy < y + height)));
+		        (cy > y && cy < y + baseHeight) ||
+		        (expanded && cy > y + offsetY && cy < y + height)));
 	}
 
 	/**
@@ -280,35 +286,25 @@ public class DropdownMenu<E> {
 	 * Registers a click at the given location.
 	 * If the base item is clicked and the menu is unexpanded, it will be expanded;
 	 * in all other cases, the menu will be unexpanded. If an item different from
-	 * the current one is selected, this will select that item and return {@code true}.
-	 * Otherwise, this will return {@code false}.
+	 * the current one is selected, that item will be selected.
 	 * @param cx the x coordinate
 	 * @param cy the y coordinate
+	 * @return the index of the item at the given location, -1 for the base item,
+	 *         and -2 if there is no item at the location
 	 */
-	public boolean click(float cx, float cy) {
+	public int click(float cx, float cy) {
 		int idx = getIndexAt(cx, cy);
-		if (idx == -2) {
-			this.expanded = false;
-			return false;
-		} else if (idx == -1) {
-			this.expanded = !expanded;
-			return false;
-		} else {
-			this.expanded = false;
-			if (itemIndex == idx)
-				return false;
-			else {
-				itemIndex = idx;
-				return true;
-			}
-		}
+		this.expanded = (idx == -1) ? !expanded : false;
+		if (idx >= 0)
+			this.itemIndex = idx;
+		return idx;
 	}
 
 	/**
 	 * Resets the menu state.
 	 */
 	public void reset() {
-		expanded = false;
+		this.expanded = false;
 		expandProgress.setTime(0);
 	}
 

@@ -524,8 +524,12 @@ public class DownloadsMenu extends BasicGameState {
 		}
 
 		// dropdown menu
-		if (serverMenu.click(x, y)) {
+		int oldServerIndex = serverMenu.getSelectedIndex(), serverMenuClickResult = serverMenu.click(x, y);
+		if (serverMenuClickResult > -2) {
 			SoundController.playSound(SoundEffect.MENUCLICK);
+			if (serverMenuClickResult == -1 || serverMenuClickResult == oldServerIndex)
+				return;
+
 			resultList = null;
 			startResult = 0;
 			focusResult = -1;
@@ -541,8 +545,6 @@ public class DownloadsMenu extends BasicGameState {
 			resetSearchTimer();
 			return;
 		}
-		if (serverMenu.contains(x, y))
-			return;
 
 		// search results
 		DownloadNode[] nodes = resultList;
