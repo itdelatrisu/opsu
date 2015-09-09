@@ -26,14 +26,30 @@ import org.newdawn.slick.Color;
 import org.newdawn.slick.Font;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
+import org.newdawn.slick.Input;
+import org.newdawn.slick.SlickException;
 import org.newdawn.slick.UnicodeFont;
+import org.newdawn.slick.gui.AbstractComponent;
+import org.newdawn.slick.gui.GUIContext;
 
 /**
  * Simple dropdown menu.
+ * <p>
+ * Basic usage:
+ * <ul>
+ * <li>Override {@link #menuClicked(int)} to perform actions when the menu is clicked
+ *     (e.g. play a sound effect, block input under certain conditions).
+ * <li>Override {@link #itemSelected(int, Object)} to perform actions when a new item is selected.
+ * <li>Call {@link #activate()}/{@link #deactivate()} whenever the component is needed
+ *     (e.g. in a state's {@code enter} and {@code leave} events.
+ * </ul>
  */
-public class DropdownMenu<E> {
+public class DropdownMenu<E> extends AbstractComponent {
 	/** Padding ratios for drawing. */
 	private static final float PADDING_Y = 0.1f, CHEVRON_X = 0.03f;
+
+	/** Whether this component is active. */
+	private boolean active;
 
 	/** The menu items. */
 	private E[] items;
@@ -49,6 +65,9 @@ public class DropdownMenu<E> {
 
 	/** The expanding animation progress. */
 	private AnimatedValue expandProgress = new AnimatedValue(300, 0f, 1f, AnimationEquation.LINEAR);
+
+	/** The last update time, in milliseconds. */
+	private long lastUpdateTime;
 
 	/** The top-left coordinates. */
 	private float x, y;
@@ -76,39 +95,44 @@ public class DropdownMenu<E> {
 
 	/**
 	 * Creates a new dropdown menu.
+	 * @param container the container rendering this menu
 	 * @param items the list of items (with names given as their {@code toString()} methods)
 	 * @param x the top-left x coordinate
 	 * @param y the top-left y coordinate
 	 */
-	public DropdownMenu(E[] items, float x, float y) {
-		this(items, x, y, 0);
+	public DropdownMenu(GUIContext container, E[] items, float x, float y) {
+		this(container, items, x, y, 0);
 	}
 
 	/**
 	 * Creates a new dropdown menu with the given fonts.
+	 * @param container the container rendering this menu
 	 * @param items the list of items (with names given as their {@code toString()} methods)
 	 * @param x the top-left x coordinate
 	 * @param y the top-left y coordinate
 	 * @param normal the normal font
 	 * @param selected the font for the selected item
 	 */
-	public DropdownMenu(E[] items, float x, float y, UnicodeFont normal, UnicodeFont selected) {
-		this(items, x, y, 0, normal, selected);
+	public DropdownMenu(GUIContext container, E[] items, float x, float y, UnicodeFont normal, UnicodeFont selected) {
+		this(container, items, x, y, 0, normal, selected);
 	}
 
 	/**
 	 * Creates a new dropdown menu with the given width.
+	 * @param container the container rendering this menu
 	 * @param items the list of items (with names given as their {@code toString()} methods)
 	 * @param x the top-left x coordinate
 	 * @param y the top-left y coordinate
 	 * @param width the menu width
 	 */
-	public DropdownMenu(E[] items, float x, float y, int width) {
+	public DropdownMenu(GUIContext container, E[] items, float x, float y, int width) {
+		super(container);
 		init(items, x, y, width);
 	}
 
 	/**
 	 * Creates a new dropdown menu with the given width and fonts.
+	 * @param container the container rendering this menu
 	 * @param items the list of items (with names given as their {@code toString()} methods)
 	 * @param x the top-left x coordinate
 	 * @param y the top-left y coordinate
@@ -116,7 +140,8 @@ public class DropdownMenu<E> {
 	 * @param normal the normal font
 	 * @param selected the font for the selected item
 	 */
-	public DropdownMenu(E[] items, float x, float y, int width, UnicodeFont normal, UnicodeFont selected) {
+	public DropdownMenu(GUIContext container, E[] items, float x, float y, int width, UnicodeFont normal, UnicodeFont selected) {
+		super(container);
 		this.fontNormal = normal;
 		this.fontSelected = selected;
 		init(items, x, y, width);
@@ -157,15 +182,29 @@ public class DropdownMenu<E> {
 		this.width = Math.max(width, minWidth);
 	}
 
-	/**
-	 * Returns the width of the menu.
-	 */
+	@Override
+	public void setLocation(int x, int y) {
+		this.x = x;
+		this.y = y;
+	}
+
+	@Override
+	public int getX() { return (int) x; }
+
+	@Override
+	public int getY() { return (int) y; }
+
+	@Override
 	public int getWidth() { return width; }
 
-	/**
-	 * Returns the height of the base item.
-	 */
-	public int getHeight() { return baseHeight; }
+	@Override
+	public int getHeight() { return (expanded) ? height : baseHeight; }
+
+	/** Activates the component. */
+	public void activate() { this.active = true; }
+
+	/** Deactivates the component. */
+	public void deactivate() { this.active = false; }
 
 	/**
 	 * Returns whether the dropdown menu is currently open.
@@ -199,14 +238,19 @@ public class DropdownMenu<E> {
 		return (cx > x && cx < x + width && cy > y && cy < y + baseHeight);
 	}
 
-	/**
-	 * Draws the dropdown menu.
-	 * @param g the graphics context
-	 * @param cx the mouse x coordinate
-	 * @param cy the mouse y coordinate
-	 */
-	public void draw(Graphics g, float cx, float cy) {
-		int idx = getIndexAt(cx, cy);
+	@Override
+	public void render(GUIContext container, Graphics g) throws SlickException {
+		// update animation
+		long time = container.getTime();
+		if (lastUpdateTime > 0) {
+			int delta = (int) (time - lastUpdateTime);
+			expandProgress.update((expanded) ? delta : -delta * 2);
+		}
+		this.lastUpdateTime = time;
+
+		// get parameters
+		Input input = container.getInput();
+		int idx = getIndexAt(input.getMouseX(), input.getMouseY());
 		float t = expandProgress.getValue();
 		if (expanded)
 			t = AnimationEquation.OUT_CUBIC.calc(t);
@@ -275,38 +319,56 @@ public class DropdownMenu<E> {
 	}
 
 	/**
-	 * Updates the animations by a delta interval.
-	 * @param delta the delta interval since the last call
-	 */
-	public void update(int delta) {
-		expandProgress.update((expanded) ? delta : -delta * 2);
-	}
-
-	/**
-	 * Registers a click at the given location.
-	 * If the base item is clicked and the menu is unexpanded, it will be expanded;
-	 * in all other cases, the menu will be unexpanded. If an item different from
-	 * the current one is selected, that item will be selected.
-	 * @param cx the x coordinate
-	 * @param cy the y coordinate
-	 * @return the index of the item at the given location, -1 for the base item,
-	 *         and -2 if there is no item at the location
-	 */
-	public int click(float cx, float cy) {
-		int idx = getIndexAt(cx, cy);
-		this.expanded = (idx == -1) ? !expanded : false;
-		if (idx >= 0)
-			this.itemIndex = idx;
-		return idx;
-	}
-
-	/**
 	 * Resets the menu state.
 	 */
 	public void reset() {
 		this.expanded = false;
+		this.lastUpdateTime = 0;
 		expandProgress.setTime(0);
 	}
+
+	@Override
+	public void mousePressed(int button, int x, int y) {
+		if (!active)
+			return;
+
+		if (button == Input.MOUSE_MIDDLE_BUTTON)
+			return;
+
+		int idx = getIndexAt(x, y);
+		if (idx == -2) {
+			this.expanded = false;
+			return;
+		}
+		if (!menuClicked(idx))
+			return;
+		this.expanded = (idx == -1) ? !expanded : false;
+		if (idx >= 0 && itemIndex != idx) {
+			this.itemIndex = idx;
+			itemSelected(idx, items[idx]);
+		}
+		consumeEvent();
+	}
+
+	/**
+	 * Notification that a new item was selected (via override).
+	 * @param index the index of the item selected
+	 * @param item the item selected
+	 */
+	public void itemSelected(int index, E item) {}
+
+	/**
+	 * Notification that the menu was clicked (via override).
+	 * @param index the index of the item clicked, or -1 for the base item
+	 * @return true to process the click, or false to block/intercept it
+	 */
+	public boolean menuClicked(int index) { return true; }
+
+	@Override
+	public void setFocus(boolean focus) { /* does not currently use the "focus" concept */ }
+
+	@Override
+	public void mouseReleased(int button, int x, int y) { /* does not currently use the "focus" concept */ }
 
 	/**
 	 * Selects the item at the given index.

@@ -331,8 +331,35 @@ public class DownloadsMenu extends BasicGameState {
 
 		// dropdown menu
 		int serverWidth = (int) (width * 0.12f);
-		serverMenu = new DropdownMenu<DownloadServer>(SERVERS,
-				baseX + searchWidth + buttonMarginX * 3f + resetButtonWidth + rankedButtonWidth, searchY, serverWidth);
+		serverMenu = new DropdownMenu<DownloadServer>(container, SERVERS,
+				baseX + searchWidth + buttonMarginX * 3f + resetButtonWidth + rankedButtonWidth, searchY, serverWidth) {
+			@Override
+			public void itemSelected(int index, DownloadServer item) {
+				resultList = null;
+				startResult = 0;
+				focusResult = -1;
+				totalResults = 0;
+				page = 0;
+				pageResultTotal = 1;
+				pageDir = Page.RESET;
+				searchResultString = "Loading data from server...";
+				lastQuery = null;
+				pageDir = Page.RESET;
+				if (searchQuery != null)
+					searchQuery.interrupt();
+				resetSearchTimer();
+			}
+
+			@Override
+			public boolean menuClicked(int index) {
+				// block input during beatmap importing
+				if (importThread != null)
+					return false;
+
+				SoundController.playSound(SoundEffect.MENUCLICK);
+				return true;
+			}
+		};
 		serverMenu.setBackgroundColor(Colors.BLACK_BG_HOVER);
 		serverMenu.setBorderColor(Color.black);
 		serverMenu.setChevronRightColor(Color.white);
@@ -428,7 +455,7 @@ public class DownloadsMenu extends BasicGameState {
 		rankedButton.draw(Color.magenta);
 
 		// dropdown menu
-		serverMenu.draw(g, mouseX, mouseY);
+		serverMenu.render(container, g);
 
 		// importing beatmaps
 		if (importThread != null) {
@@ -460,7 +487,6 @@ public class DownloadsMenu extends BasicGameState {
 		importButton.hoverUpdate(delta, mouseX, mouseY);
 		resetButton.hoverUpdate(delta, mouseX, mouseY);
 		rankedButton.hoverUpdate(delta, mouseX, mouseY);
-		serverMenu.update(delta);
 
 		// focus timer
 		if (focusResult != -1 && focusTimer < FOCUS_DELAY)
@@ -520,29 +546,6 @@ public class DownloadsMenu extends BasicGameState {
 			SoundController.playSound(SoundEffect.MENUBACK);
 			((MainMenu) game.getState(Opsu.STATE_MAINMENU)).reset();
 			game.enterState(Opsu.STATE_MAINMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
-			return;
-		}
-
-		// dropdown menu
-		int oldServerIndex = serverMenu.getSelectedIndex(), serverMenuClickResult = serverMenu.click(x, y);
-		if (serverMenuClickResult > -2) {
-			SoundController.playSound(SoundEffect.MENUCLICK);
-			if (serverMenuClickResult == -1 || serverMenuClickResult == oldServerIndex)
-				return;
-
-			resultList = null;
-			startResult = 0;
-			focusResult = -1;
-			totalResults = 0;
-			page = 0;
-			pageResultTotal = 1;
-			pageDir = Page.RESET;
-			searchResultString = "Loading data from server...";
-			lastQuery = null;
-			pageDir = Page.RESET;
-			if (searchQuery != null)
-				searchQuery.interrupt();
-			resetSearchTimer();
 			return;
 		}
 
@@ -865,6 +868,7 @@ public class DownloadsMenu extends BasicGameState {
 		importButton.resetHover();
 		resetButton.resetHover();
 		rankedButton.resetHover();
+		serverMenu.activate();
 		serverMenu.reset();
 		focusResult = -1;
 		startResult = 0;
@@ -881,6 +885,7 @@ public class DownloadsMenu extends BasicGameState {
 	public void leave(GameContainer container, StateBasedGame game)
 			throws SlickException {
 		search.setFocus(false);
+		serverMenu.deactivate();
 		SoundController.stopTrack();
 		MusicController.resume();
 	}
