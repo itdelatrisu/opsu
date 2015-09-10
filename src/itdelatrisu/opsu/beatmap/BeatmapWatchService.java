@@ -129,7 +129,11 @@ public class BeatmapWatchService {
 
 	/** Watch service listener interface. */
 	public interface BeatmapWatchServiceListener {
-		/** Indication that an event was received. */
+		/**
+		 * Indication that an event was received.
+		 * @param kind the event kind
+		 * @param child the child directory
+		 */
 		public void eventReceived(WatchEvent.Kind<?> kind, Path child);
 	}
 

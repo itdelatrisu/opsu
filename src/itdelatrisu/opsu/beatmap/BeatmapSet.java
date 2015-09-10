@@ -47,7 +47,7 @@ public class BeatmapSet implements Iterable<Beatmap> {
 	/**
 	 * Returns the beatmap at the given index.
 	 * @param index the beatmap index
-	 * @throws IndexOutOfBoundsException
+	 * @throws IndexOutOfBoundsException if the index is out of range
 	 */
 	public Beatmap get(int index) { return beatmaps.get(index); }
 
@@ -55,7 +55,7 @@ public class BeatmapSet implements Iterable<Beatmap> {
 	 * Removes the beatmap at the given index.
 	 * @param index the beatmap index
 	 * @return the removed beatmap
-	 * @throws IndexOutOfBoundsException
+	 * @throws IndexOutOfBoundsException if the index is out of range
 	 */
 	public Beatmap remove(int index) { return beatmaps.remove(index); }
 
@@ -72,7 +72,7 @@ public class BeatmapSet implements Iterable<Beatmap> {
 	 * <li>4: CS:{} HP:{} AR:{} OD:{} Stars:{}
 	 * </ul>
 	 * @param index the beatmap index
-	 * @throws IndexOutOfBoundsException
+	 * @throws IndexOutOfBoundsException if the index is out of range
 	 */
 	public String[] getInfo(int index) {
 		Beatmap beatmap = beatmaps.get(index);

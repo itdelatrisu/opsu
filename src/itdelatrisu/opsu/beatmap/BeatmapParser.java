@@ -728,6 +728,7 @@ public class BeatmapParser {
 
 	/**
 	 * Returns the file extension of a file.
+	 * @param file the file name
 	 */
 	public static String getExtension(String file) {
 		int i = file.lastIndexOf('.');

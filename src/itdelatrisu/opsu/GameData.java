@@ -269,6 +269,7 @@ public class GameData {
 		 * @param x the center x coordinate
 		 * @param y the center y coordinate
 		 * @param color the color of the hit object
+		 * @param hitResultType the hit object type
 		 * @param curve the slider curve (or null if not applicable)
 		 * @param expand whether or not the hit result animation should expand (if applicable)
 		 * @param hideResult whether or not to hide the hit result (but still show the other animations)
@@ -483,6 +484,7 @@ public class GameData {
 
 	/**
 	 * Sets the array of hit result offsets.
+	 * @param hitResultOffset the time offset array (of size {@link #HIT_MAX})
 	 */
 	public void setHitResultOffset(int[] hitResultOffset) { this.hitResultOffset = hitResultOffset; }
 

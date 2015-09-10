@@ -218,6 +218,13 @@ public class DownloadNode {
 
 	/**
 	 * Constructor.
+	 * @param beatmapSetID the beatmap set ID
+	 * @param date the last modified date string
+	 * @param title the song title
+	 * @param titleUnicode the Unicode song title (or {@code null} if none)
+	 * @param artist the song artist
+	 * @param artistUnicode the Unicode song artist (or {@code null} if none)
+	 * @param creator the beatmap creator
 	 */
 	public DownloadNode(int beatmapSetID, String date, String title,
 			String titleUnicode, String artist, String artistUnicode, String creator) {

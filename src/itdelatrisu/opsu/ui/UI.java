@@ -38,7 +38,6 @@ import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.Input;
-import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.StateBasedGame;
 
 /**
@@ -86,10 +85,8 @@ public class UI {
 	 * Initializes UI data.
 	 * @param container the game container
 	 * @param game the game object
-	 * @throws SlickException
 	 */
-	public static void init(GameContainer container, StateBasedGame game)
-			throws SlickException {
+	public static void init(GameContainer container, StateBasedGame game) {
 		UI.container = container;
 		UI.input = container.getInput();
 
@@ -271,8 +268,9 @@ public class UI {
 	}
 
 	/**
-	 * Draws loading progress (OSZ unpacking, beatmap parsing, sound loading)
+	 * Draws loading progress (OSZ unpacking, beatmap parsing, replay importing, sound loading)
 	 * at the bottom of the screen.
+	 * @param g the graphics context
 	 */
 	public static void drawLoadingProgress(Graphics g) {
 		String text, file;

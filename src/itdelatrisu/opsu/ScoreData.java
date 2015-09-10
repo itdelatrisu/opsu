@@ -137,14 +137,14 @@ public class ScoreData implements Comparable<ScoreData> {
 	}
 
 	/**
-	 * Empty constructor.
+	 * Creates an empty score data object.
 	 */
 	public ScoreData() {}
 
 	/**
-	 * Constructor.
-	 * @param rs the ResultSet to read from (at the current cursor position)
-	 * @throws SQLException
+	 * Builds a score data object from a database result set.
+	 * @param rs the {@link ResultSet} to read from (at the current cursor position)
+	 * @throws SQLException if a database access error occurs or the result set is closed
 	 */
 	public ScoreData(ResultSet rs) throws SQLException {
 		this.timestamp = rs.getLong(1);

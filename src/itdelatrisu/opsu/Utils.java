@@ -60,7 +60,6 @@ import org.lwjgl.opengl.GL11;
 import org.newdawn.slick.Animation;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Input;
-import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.util.Log;
 
@@ -93,10 +92,8 @@ public class Utils {
 	 * Initializes game settings and class data.
 	 * @param container the game container
 	 * @param game the game object
-	 * @throws SlickException
 	 */
-	public static void init(GameContainer container, StateBasedGame game)
-			throws SlickException {
+	public static void init(GameContainer container, StateBasedGame game) {
 		input = container.getInput();
 		int width = container.getWidth();
 		int height = container.getHeight();
@@ -368,6 +365,7 @@ public class Utils {
 	 * @param url the remote URL
 	 * @return the contents as a string, or null if any error occurred
 	 * @author Roland Illig (http://stackoverflow.com/a/4308662)
+	 * @throws IOException if an I/O exception occurs
 	 */
 	public static String readDataFromUrl(URL url) throws IOException {
 		// open connection
@@ -403,6 +401,7 @@ public class Utils {
 	 * Returns a JSON object from a URL.
 	 * @param url the remote URL
 	 * @return the JSON object, or null if an error occurred
+	 * @throws IOException if an I/O exception occurs
 	 */
 	public static JSONObject readJsonObjectFromUrl(URL url) throws IOException {
 		String s = Utils.readDataFromUrl(url);
@@ -421,6 +420,7 @@ public class Utils {
 	 * Returns a JSON array from a URL.
 	 * @param url the remote URL
 	 * @return the JSON array, or null if an error occurred
+	 * @throws IOException if an I/O exception occurs
 	 */
 	public static JSONArray readJsonArrayFromUrl(URL url) throws IOException {
 		String s = Utils.readDataFromUrl(url);

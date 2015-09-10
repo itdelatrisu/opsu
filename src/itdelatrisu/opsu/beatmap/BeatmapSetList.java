@@ -330,6 +330,7 @@ public class BeatmapSetList {
 	/**
 	 * Expands the node at an index by inserting a new node for each Beatmap
 	 * in that node and hiding the group node.
+	 * @param index the node index
 	 * @return the first of the newly-inserted nodes
 	 */
 	public BeatmapSetNode expand(int index) {

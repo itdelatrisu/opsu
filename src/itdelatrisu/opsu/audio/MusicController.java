@@ -230,6 +230,7 @@ public class MusicController {
 
 	/**
 	 * Fades out the track.
+	 * @param duration the fade time (in ms)
 	 */
 	public static void fadeOut(int duration) {
 		if (isPlaying())

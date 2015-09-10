@@ -43,6 +43,8 @@ import org.newdawn.slick.gui.GUIContext;
  * <li>Call {@link #activate()}/{@link #deactivate()} whenever the component is needed
  *     (e.g. in a state's {@code enter} and {@code leave} events.
  * </ul>
+ *
+ * @param <E> the type of the elements in the menu
  */
 public class DropdownMenu<E> extends AbstractComponent {
 	/** Padding ratios for drawing. */

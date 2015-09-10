@@ -61,6 +61,7 @@ public class OsuReader {
 
 	/**
 	 * Closes the input stream.
+	 * @throws IOException if an I/O error occurs
 	 */
 	public void close() throws IOException { reader.close(); }
 
