@@ -119,7 +119,7 @@ public class UI {
 	}
 
 	/**
-	 * Draws the global UI components: cursor, FPS, volume bar, bar notifications.
+	 * Draws the global UI components: cursor, FPS, volume bar, tooltips, bar notifications.
 	 * @param g the graphics context
 	 */
 	public static void draw(Graphics g) {
@@ -131,7 +131,7 @@ public class UI {
 	}
 
 	/**
-	 * Draws the global UI components: cursor, FPS, volume bar, bar notifications.
+	 * Draws the global UI components: cursor, FPS, volume bar, tooltips, bar notifications.
 	 * @param g the graphics context
 	 * @param mouseX the mouse x coordinate
 	 * @param mouseY the mouse y coordinate

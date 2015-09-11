@@ -88,7 +88,8 @@ public class OptionsMenu extends BasicGameState {
 			GameOption.DISABLE_MOUSE_WHEEL,
 			GameOption.DISABLE_MOUSE_BUTTONS,
 			GameOption.CURSOR_SIZE,
-			GameOption.NEW_CURSOR
+			GameOption.NEW_CURSOR,
+			GameOption.DISABLE_CURSOR
 		}),
 		CUSTOM ("Custom", new GameOption[] {
 			GameOption.FIXED_CS,

@@ -375,7 +375,7 @@ public class DropdownMenu<E> extends AbstractComponent {
 	/**
 	 * Selects the item at the given index.
 	 * @param index the list item index
-	 * @throws IllegalArgumentException if index < -1 or index is greater than or equal to size
+	 * @throws IllegalArgumentException if {@code index} is negative or greater than or equal to size
 	 */
 	public void setSelectedIndex(int index) {
 		if (index < 0 || index >= items.length)

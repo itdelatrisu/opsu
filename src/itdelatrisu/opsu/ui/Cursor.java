@@ -115,6 +115,9 @@ public class Cursor {
 	 * @param mousePressed whether or not the mouse button is pressed
 	 */
 	public void draw(int mouseX, int mouseY, boolean mousePressed) {
+		if (Options.isCursorDisabled())
+			return;
+
 		// determine correct cursor image
 		Image cursor = null, cursorMiddle = null, cursorTrail = null;
 		boolean beatmapSkinned = GameImage.CURSOR.hasBeatmapSkinImage();
