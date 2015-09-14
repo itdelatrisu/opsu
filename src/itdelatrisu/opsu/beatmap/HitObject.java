@@ -19,6 +19,11 @@
 package itdelatrisu.opsu.beatmap;
 
 import itdelatrisu.opsu.GameMod;
+import itdelatrisu.opsu.objects.curves.CatmullCurve;
+import itdelatrisu.opsu.objects.curves.CircumscribedCircle;
+import itdelatrisu.opsu.objects.curves.Curve;
+import itdelatrisu.opsu.objects.curves.LinearBezier;
+import itdelatrisu.opsu.objects.curves.Vec2f;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -33,13 +38,6 @@ public class HitObject {
 		TYPE_SLIDER   = 2,
 		TYPE_NEWCOMBO = 4,  // not an object
 		TYPE_SPINNER  = 8;
-
-	/** Hit object type names. */
-	private static final String
-		CIRCLE = "circle",
-		SLIDER = "slider",
-		SPINNER = "spinner",
-		UNKNOWN = "unknown object";
 
 	/** Hit sound types (bits). */
 	public static final byte
@@ -101,8 +99,17 @@ public class HitObject {
 	/** Hit sound type (SOUND_* bitmask). */
 	private byte hitSound;
 
-	/** Hit sound addition (sampleSet, AdditionSampleSet, ?, ...). */
+	/** Hit sound addition (sampleSet, AdditionSampleSet). */
 	private byte[] addition;
+
+	/** Addition custom sample index. */
+	private byte additionCustomSampleIndex;
+
+	/** Addition hit sound volume. */
+	private int additionHitSoundVolume;
+
+	/** Addition hit sound file. */
+	private String additionHitSound;
 
 	/** Slider curve type (SLIDER_* constant). */
 	private char sliderType;
@@ -250,9 +257,17 @@ public class HitObject {
 		// addition
 		if (tokens.length > additionIndex) {
 			String[] additionTokens = tokens[additionIndex].split(":");
-			this.addition = new byte[additionTokens.length];
-			for (int j = 0; j < additionTokens.length; j++)
-				this.addition[j] = Byte.parseByte(additionTokens[j]);
+			if (additionTokens.length > 1) {
+				this.addition = new byte[2];
+				addition[0] = Byte.parseByte(additionTokens[0]);
+				addition[1] = Byte.parseByte(additionTokens[1]);
+			}
+			if (additionTokens.length > 2)
+				this.additionCustomSampleIndex = Byte.parseByte(additionTokens[2]);
+			if (additionTokens.length > 3)
+				this.additionHitSoundVolume = Integer.parseInt(additionTokens[3]);
+			if (additionTokens.length > 4)
+				this.additionHitSound = additionTokens[4];
 		}
 	}
 
@@ -298,13 +313,13 @@ public class HitObject {
 	 */
 	public String getTypeName() {
 		if (isCircle())
-			return CIRCLE;
+			return "circle";
 		else if (isSlider())
-			return SLIDER;
+			return "slider";
 		else if (isSpinner())
-			return SPINNER;
+			return "spinner";
 		else
-			return UNKNOWN;
+			return "unknown object type";
 	}
 
 	/**
@@ -385,6 +400,35 @@ public class HitObject {
 	 * @return the pixel length
 	 */
 	public float getPixelLength() { return pixelLength; }
+
+	/**
+	 * Returns the time duration of the slider (excluding repeats), in milliseconds.
+	 * @param sliderMultiplier the beatmap's slider movement speed multiplier
+	 * @param beatLength the beat length
+	 * @return the slider segment length
+	 */
+	public float getSliderTime(float sliderMultiplier, float beatLength) {
+		return beatLength * (pixelLength / sliderMultiplier) / 100f;
+	}
+
+	/**
+	 * Returns the slider curve.
+	 * @param scaled whether to use scaled coordinates
+	 * @return a new Curve instance
+	 */
+	public Curve getSliderCurve(boolean scaled) {
+		if (sliderType == SLIDER_PASSTHROUGH && sliderX.length == 2) {
+			Vec2f nora = new Vec2f(sliderX[0] - x, sliderY[0] - y).nor();
+			Vec2f norb = new Vec2f(sliderX[0] - sliderX[1], sliderY[0] - sliderY[1]).nor();
+			if (Math.abs(norb.x * nora.y - norb.y * nora.x) < 0.00001f)
+				return new LinearBezier(this, false, scaled);  // vectors parallel, use linear bezier instead
+			else
+				return new CircumscribedCircle(this, scaled);
+		} else if (sliderType == SLIDER_CATMULL)
+			return new CatmullCurve(this, scaled);
+		else
+			return new LinearBezier(this, sliderType == SLIDER_LINEAR, scaled);
+	}
 
 	/**
 	 * Returns the spinner end time.
@@ -472,6 +516,21 @@ public class HitObject {
 	}
 
 	/**
+	 * Returns the custom sample index (addition).
+	 */
+	public byte getCustomSampleIndex() { return additionCustomSampleIndex; }
+
+	/**
+	 * Returns the hit sound volume (addition).
+	 */
+	public int getHitSoundVolume() { return additionHitSoundVolume; }
+
+	/**
+	 * Returns the hit sound file (addition).
+	 */
+	public String getHitSoundFile() { return additionHitSound; }
+
+	/**
 	 * Sets the hit object index in the current stack.
 	 * @param stack index in the stack
 	 */
@@ -529,9 +588,12 @@ public class HitObject {
 		// addition
 		if (addition != null) {
 			for (int i = 0; i < addition.length; i++) {
-				sb.append(addition[i]);
-				sb.append(':');
+				sb.append(addition[i]); sb.append(':');
 			}
+			sb.append(additionCustomSampleIndex); sb.append(':');
+			sb.append(additionHitSoundVolume); sb.append(':');
+			if (additionHitSound != null)
+				sb.append(additionHitSound);
 		} else
 			sb.setLength(sb.length() - 1);
 

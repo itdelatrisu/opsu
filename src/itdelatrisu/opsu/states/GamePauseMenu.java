@@ -27,6 +27,7 @@ import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
 import itdelatrisu.opsu.ui.MenuButton;
 import itdelatrisu.opsu.ui.UI;
+import itdelatrisu.opsu.ui.animations.AnimationEquation;
 
 import org.lwjgl.input.Keyboard;
 import org.newdawn.slick.Color;
@@ -61,7 +62,7 @@ public class GamePauseMenu extends BasicGameState {
 	private GameContainer container;
 	private StateBasedGame game;
 	private Input input;
-	private int state;
+	private final int state;
 	private Game gameState;
 
 	public GamePauseMenu(int state) {
@@ -86,10 +87,10 @@ public class GamePauseMenu extends BasicGameState {
 
 		// don't draw default background if button skinned and background unskinned
 		boolean buttonsSkinned =
-			GameImage.PAUSE_CONTINUE.hasSkinImage() ||
-			GameImage.PAUSE_RETRY.hasSkinImage() ||
-			GameImage.PAUSE_BACK.hasSkinImage();
-		if (!buttonsSkinned || bg.hasSkinImage())
+			GameImage.PAUSE_CONTINUE.hasBeatmapSkinImage() ||
+			GameImage.PAUSE_RETRY.hasBeatmapSkinImage() ||
+			GameImage.PAUSE_BACK.hasBeatmapSkinImage();
+		if (!buttonsSkinned || bg.hasBeatmapSkinImage())
 			bg.getImage().draw();
 		else
 			g.setBackground(Color.black);
@@ -133,7 +134,7 @@ public class GamePauseMenu extends BasicGameState {
 				SoundController.playSound(SoundEffect.MENUBACK);
 				((SongMenu) game.getState(Opsu.STATE_SONGMENU)).resetGameDataOnLoad();
 				MusicController.playAt(MusicController.getBeatmap().previewTime, true);
-				if (UI.getCursor().isSkinned())
+				if (UI.getCursor().isBeatmapSkinned())
 					UI.getCursor().reset();
 				game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 			} else {
@@ -187,7 +188,7 @@ public class GamePauseMenu extends BasicGameState {
 				MusicController.playAt(MusicController.getBeatmap().previewTime, true);
 			else
 				MusicController.resume();
-			if (UI.getCursor().isSkinned())
+			if (UI.getCursor().isBeatmapSkinned())
 				UI.getCursor().reset();
 			game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 		}
@@ -227,6 +228,14 @@ public class GamePauseMenu extends BasicGameState {
 		continueButton = new MenuButton(GameImage.PAUSE_CONTINUE.getImage(), width / 2f, height * 0.25f);
 		retryButton = new MenuButton(GameImage.PAUSE_RETRY.getImage(), width / 2f, height * 0.5f);
 		backButton = new MenuButton(GameImage.PAUSE_BACK.getImage(), width / 2f, height * 0.75f);
+		final int buttonAnimationDuration = 300;
+		continueButton.setHoverAnimationDuration(buttonAnimationDuration);
+		retryButton.setHoverAnimationDuration(buttonAnimationDuration);
+		backButton.setHoverAnimationDuration(buttonAnimationDuration);
+		final AnimationEquation buttonAnimationEquation = AnimationEquation.IN_OUT_BACK;
+		continueButton.setHoverAnimationEquation(buttonAnimationEquation);
+		retryButton.setHoverAnimationEquation(buttonAnimationEquation);
+		backButton.setHoverAnimationEquation(buttonAnimationEquation);
 		continueButton.setHoverExpand();
 		retryButton.setHoverExpand();
 		backButton.setHoverExpand();

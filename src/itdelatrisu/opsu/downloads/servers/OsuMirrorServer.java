@@ -39,6 +39,8 @@ import org.json.JSONObject;
 
 /**
  * Download server: http://loli.al/
+ * <p>
+ * <i>This server went offline in August 2015.</i>
  */
 public class OsuMirrorServer extends DownloadServer {
 	/** Server name. */

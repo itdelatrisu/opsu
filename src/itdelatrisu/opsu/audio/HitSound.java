@@ -40,10 +40,10 @@ public enum HitSound implements SoundController.SoundComponent {
 //		TAIKO ("taiko", 4);
 
 		/** The sample set name. */
-		private String name;
+		private final String name;
 
 		/** The sample set index. */
-		private int index;
+		private final int index;
 
 		/** Total number of sample sets. */
 		public static final int SIZE = values().length;
@@ -77,7 +77,7 @@ public enum HitSound implements SoundController.SoundComponent {
 	private static SampleSet currentDefaultSampleSet = SampleSet.NORMAL;
 
 	/** The file name. */
-	private String filename;
+	private final String filename;
 
 	/** The Clip associated with the hit sound. */
 	private HashMap<SampleSet, MultiClip> clips;

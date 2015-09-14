@@ -26,11 +26,10 @@ import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.beatmap.Beatmap;
 import itdelatrisu.opsu.beatmap.HitObject;
-import itdelatrisu.opsu.objects.curves.CatmullCurve;
-import itdelatrisu.opsu.objects.curves.CircumscribedCircle;
 import itdelatrisu.opsu.objects.curves.Curve;
-import itdelatrisu.opsu.objects.curves.LinearBezier;
+import itdelatrisu.opsu.objects.curves.Vec2f;
 import itdelatrisu.opsu.states.Game;
+import itdelatrisu.opsu.ui.Colors;
 
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
@@ -55,9 +54,6 @@ public class Slider implements GameObject {
 
 	/** The diameter of hit circles. */
 	private static float diameter;
-
-	/** The amount of time, in milliseconds, to fade in the slider. */
-	private static final int FADE_IN_TIME = 375;
 
 	/** The associated HitObject. */
 	private HitObject hitObject;
@@ -113,22 +109,21 @@ public class Slider implements GameObject {
 	/**
 	 * Initializes the Slider data type with images and dimensions.
 	 * @param container the game container
-	 * @param circleSize the map's circleSize value
+	 * @param circleDiameter the circle diameter
 	 * @param beatmap the associated beatmap
 	 */
-	public static void init(GameContainer container, float circleSize, Beatmap beatmap) {
+	public static void init(GameContainer container, float circleDiameter, Beatmap beatmap) {
 		containerWidth = container.getWidth();
 		containerHeight = container.getHeight();
 
-		diameter = (104 - (circleSize * 8));
-		diameter = (diameter * HitObject.getXMultiplier());  // convert from Osupixels (640x480)
+		diameter = circleDiameter * HitObject.getXMultiplier();  // convert from Osupixels (640x480)
 		int diameterInt = (int) diameter;
 
 		followRadius = diameter / 2 * 3f;
 
 		// slider ball
-		if (GameImage.SLIDER_BALL.hasSkinImages() ||
-		    (!GameImage.SLIDER_BALL.hasSkinImage() && GameImage.SLIDER_BALL.getImages() != null))
+		if (GameImage.SLIDER_BALL.hasBeatmapSkinImages() ||
+		    (!GameImage.SLIDER_BALL.hasBeatmapSkinImage() && GameImage.SLIDER_BALL.getImages() != null))
 			sliderBallImages = GameImage.SLIDER_BALL.getImages();
 		else
 			sliderBallImages = new Image[]{ GameImage.SLIDER_BALL.getImage() };
@@ -160,7 +155,7 @@ public class Slider implements GameObject {
 		updatePosition();
 
 		// slider time calculations
-		this.sliderTime = game.getBeatLength() * (hitObject.getPixelLength() / sliderMultiplier) / 100f;
+		this.sliderTime = hitObject.getSliderTime(sliderMultiplier, game.getBeatLength());
 		this.sliderTimeTotal = sliderTime * hitObject.getRepeatCount();
 
 		// ticks
@@ -178,36 +173,46 @@ public class Slider implements GameObject {
 	@Override
 	public void draw(Graphics g, int trackPosition) {
 		int timeDiff = hitObject.getTime() - trackPosition;
-		float scale = timeDiff / (float) game.getApproachTime();
-		float fadeinScale = (timeDiff - game.getApproachTime() + FADE_IN_TIME) / (float) FADE_IN_TIME;
+		final int approachTime = game.getApproachTime();
+		final int fadeInTime = game.getFadeInTime();
+		float scale = timeDiff / (float) approachTime;
 		float approachScale = 1 + scale * 3;
+		float fadeinScale = (timeDiff - approachTime + fadeInTime) / (float) fadeInTime;
 		float alpha = Utils.clamp(1 - fadeinScale, 0, 1);
 		boolean overlayAboveNumber = Options.getSkin().isHitCircleOverlayAboveNumber();
 
-		float oldAlpha = Utils.COLOR_WHITE_FADE.a;
-		Utils.COLOR_WHITE_FADE.a = color.a = alpha;
+		float oldAlpha = Colors.WHITE_FADE.a;
+		Colors.WHITE_FADE.a = color.a = alpha;
 		Image hitCircleOverlay = GameImage.HITCIRCLE_OVERLAY.getImage();
 		Image hitCircle = GameImage.HITCIRCLE.getImage();
-		float[] endPos = curve.pointAt(1);
+		Vec2f endPos = curve.pointAt(1);
 
 		curve.draw(color);
 		color.a = alpha;
 
 		// end circle
-		hitCircle.drawCentered(endPos[0], endPos[1], color);
-		hitCircleOverlay.drawCentered(endPos[0], endPos[1], Utils.COLOR_WHITE_FADE);
+		hitCircle.drawCentered(endPos.x, endPos.y, color);
+		hitCircleOverlay.drawCentered(endPos.x, endPos.y, Colors.WHITE_FADE);
 
 		// start circle
 		hitCircle.drawCentered(x, y, color);
 		if (!overlayAboveNumber)
-			hitCircleOverlay.drawCentered(x, y, Utils.COLOR_WHITE_FADE);
+			hitCircleOverlay.drawCentered(x, y, Colors.WHITE_FADE);
 
 		// ticks
 		if (ticksT != null) {
 			Image tick = GameImage.SLIDER_TICK.getImage();
 			for (int i = 0; i < ticksT.length; i++) {
-				float[] c = curve.pointAt(ticksT[i]);
-				tick.drawCentered(c[0], c[1], Utils.COLOR_WHITE_FADE);
+				Vec2f c = curve.pointAt(ticksT[i]);
+				tick.drawCentered(c.x, c.y, Colors.WHITE_FADE);
+			}
+		}
+		if (GameMod.HIDDEN.isActive()) {
+			final int hiddenDecayTime = game.getHiddenDecayTime();
+			final int hiddenTimeDiff = game.getHiddenTimeDiff();
+			if (fadeinScale <= 0f && timeDiff < hiddenTimeDiff + hiddenDecayTime) {
+				float hiddenAlpha = (timeDiff < hiddenTimeDiff) ? 0f : (timeDiff - hiddenTimeDiff) / (float) hiddenDecayTime;
+				alpha = Math.min(alpha, hiddenAlpha);
 			}
 		}
 		if (sliderClickedInitial)
@@ -216,7 +221,7 @@ public class Slider implements GameObject {
 			data.drawSymbolNumber(hitObject.getComboNumber(), x, y,
 			        hitCircle.getWidth() * 0.40f / data.getDefaultSymbolImage(0).getHeight(), alpha);
 		if (overlayAboveNumber)
-			hitCircleOverlay.drawCentered(x, y, Utils.COLOR_WHITE_FADE);
+			hitCircleOverlay.drawCentered(x, y, Colors.WHITE_FADE);
 
 		// repeats
 		for (int tcurRepeat = currentRepeats; tcurRepeat <= currentRepeats + 1; tcurRepeat++) {
@@ -232,7 +237,7 @@ public class Slider implements GameObject {
 				if (tcurRepeat % 2 == 0) {
 					// last circle
 					arrow.setRotation(curve.getEndAngle());
-					arrow.drawCentered(endPos[0], endPos[1]);
+					arrow.drawCentered(endPos.x, endPos.y);
 				} else {
 					// first circle
 					arrow.setRotation(curve.getStartAngle());
@@ -243,40 +248,41 @@ public class Slider implements GameObject {
 
 		if (timeDiff >= 0) {
 			// approach circle
-			GameImage.APPROACHCIRCLE.getImage().getScaledCopy(approachScale).drawCentered(x, y, color);
+			if (!GameMod.HIDDEN.isActive())
+				GameImage.APPROACHCIRCLE.getImage().getScaledCopy(approachScale).drawCentered(x, y, color);
 		} else {
 			// Since update() might not have run before drawing during a replay, the
 			// slider time may not have been calculated, which causes NAN numbers and flicker.
 			if (sliderTime == 0)
 				return;
 
-			float[] c = curve.pointAt(getT(trackPosition, false));
-			float[] c2 = curve.pointAt(getT(trackPosition, false) + 0.01f);
+			Vec2f c = curve.pointAt(getT(trackPosition, false));
+			Vec2f c2 = curve.pointAt(getT(trackPosition, false) + 0.01f);
 
 			float t = getT(trackPosition, false);
 //			float dis = hitObject.getPixelLength() * HitObject.getXMultiplier() * (t - (int) t);
 //			Image sliderBallFrame = sliderBallImages[(int) (dis / (diameter * Math.PI) * 30) % sliderBallImages.length];
 			Image sliderBallFrame = sliderBallImages[(int) (t * sliderTime * 60 / 1000) % sliderBallImages.length];
-			float angle = (float) (Math.atan2(c2[1] - c[1], c2[0] - c[0]) * 180 / Math.PI);
+			float angle = (float) (Math.atan2(c2.y - c.y, c2.x - c.x) * 180 / Math.PI);
 			sliderBallFrame.setRotation(angle);
-			sliderBallFrame.drawCentered(c[0], c[1]);
+			sliderBallFrame.drawCentered(c.x, c.y);
 
 			// follow circle
 			if (followCircleActive) {
-				GameImage.SLIDER_FOLLOWCIRCLE.getImage().drawCentered(c[0], c[1]);
+				GameImage.SLIDER_FOLLOWCIRCLE.getImage().drawCentered(c.x, c.y);
 
 				// "flashlight" mod: dim the screen
 				if (GameMod.FLASHLIGHT.isActive()) {
-					float oldAlphaBlack = Utils.COLOR_BLACK_ALPHA.a;
-					Utils.COLOR_BLACK_ALPHA.a = 0.75f;
-					g.setColor(Utils.COLOR_BLACK_ALPHA);
+					float oldAlphaBlack = Colors.BLACK_ALPHA.a;
+					Colors.BLACK_ALPHA.a = 0.75f;
+					g.setColor(Colors.BLACK_ALPHA);
 					g.fillRect(0, 0, containerWidth, containerHeight);
-					Utils.COLOR_BLACK_ALPHA.a = oldAlphaBlack;
+					Colors.BLACK_ALPHA.a = oldAlphaBlack;
 				}
 			}
 		}
 
-		Utils.COLOR_WHITE_FADE.a = oldAlpha;
+		Colors.WHITE_FADE.a = oldAlpha;
 	}
 
 	/**
@@ -346,9 +352,9 @@ public class Slider implements GameObject {
 		float cx, cy;
 		HitObjectType type;
 		if (currentRepeats % 2 == 0) {  // last circle
-			float[] lastPos = curve.pointAt(1);
-			cx = lastPos[0];
-			cy = lastPos[1];
+			Vec2f lastPos = curve.pointAt(1);
+			cx = lastPos.x;
+			cy = lastPos.y;
 			type = HitObjectType.SLIDER_LAST;
 		} else {  // first circle
 			cx = x;
@@ -429,8 +435,8 @@ public class Slider implements GameObject {
 
 			// check if cursor pressed and within end circle
 			if (keyPressed || GameMod.RELAX.isActive()) {
-				float[] c = curve.pointAt(getT(trackPosition, false));
-				double distance = Math.hypot(c[0] - mouseX, c[1] - mouseY);
+				Vec2f c = curve.pointAt(getT(trackPosition, false));
+				double distance = Math.hypot(c.x - mouseX, c.y - mouseY);
 				if (distance < followRadius)
 					sliderHeldToEnd = true;
 			}
@@ -473,12 +479,11 @@ public class Slider implements GameObject {
 		}
 
 		// holding slider...
-		float[] c = curve.pointAt(getT(trackPosition, false));
-		double distance = Math.hypot(c[0] - mouseX, c[1] - mouseY);
+		Vec2f c = curve.pointAt(getT(trackPosition, false));
+		double distance = Math.hypot(c.x - mouseX, c.y - mouseY);
 		if (((keyPressed || GameMod.RELAX.isActive()) && distance < followRadius) || isAutoMod) {
 			// mouse pressed and within follow circle
 			followCircleActive = true;
-			data.changeHealth(delta * GameData.HP_DRAIN_MULTIPLIER);
 
 			// held during new repeat
 			if (isNewRepeat) {
@@ -489,14 +494,14 @@ public class Slider implements GameObject {
 							curve.getX(lastIndex), curve.getY(lastIndex), hitObject, currentRepeats);
 				} else  // first circle
 					data.sliderTickResult(trackPosition, GameData.HIT_SLIDER30,
-							c[0], c[1], hitObject, currentRepeats);
+							c.x, c.y, hitObject, currentRepeats);
 			}
 
 			// held during new tick
 			if (isNewTick) {
 				ticksHit++;
 				data.sliderTickResult(trackPosition, GameData.HIT_SLIDER10,
-						c[0], c[1], hitObject, currentRepeats);
+						c.x, c.y, hitObject, currentRepeats);
 			}
 
 			// held near end of slider
@@ -518,22 +523,16 @@ public class Slider implements GameObject {
 	public void updatePosition() {
 		this.x = hitObject.getScaledX();
 		this.y = hitObject.getScaledY();
-
-		if (hitObject.getSliderType() == HitObject.SLIDER_PASSTHROUGH && hitObject.getSliderX().length == 2)
-			this.curve = new CircumscribedCircle(hitObject, color);
-		else if (hitObject.getSliderType() == HitObject.SLIDER_CATMULL)
-			this.curve = new CatmullCurve(hitObject, color);
-		else
-			this.curve = new LinearBezier(hitObject, color, hitObject.getSliderType() == HitObject.SLIDER_LINEAR);
+		this.curve = hitObject.getSliderCurve(true);
 	}
 
 	@Override
-	public float[] getPointAt(int trackPosition) {
+	public Vec2f getPointAt(int trackPosition) {
 		if (trackPosition <= hitObject.getTime())
-			return new float[] { x, y };
+			return new Vec2f(x, y);
 		else if (trackPosition >= hitObject.getTime() + sliderTimeTotal) {
 			if (hitObject.getRepeatCount() % 2 == 0)
-				return new float[] { x, y };
+				return new Vec2f(x, y);
 			else
 				return curve.pointAt(1);
 		} else

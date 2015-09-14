@@ -18,12 +18,11 @@
 
 package itdelatrisu.opsu.objects.curves;
 
+import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.beatmap.HitObject;
 
 import java.util.Iterator;
 import java.util.LinkedList;
-
-import org.newdawn.slick.Color;
 
 /**
  * Representation of multiple curve with equidistant points.
@@ -41,10 +40,18 @@ public abstract class EqualDistanceMultiCurve extends Curve {
 	/**
 	 * Constructor.
 	 * @param hitObject the associated HitObject
-	 * @param color the color of this curve
 	 */
-	public EqualDistanceMultiCurve(HitObject hitObject, Color color) {
-		super(hitObject, color);
+	public EqualDistanceMultiCurve(HitObject hitObject) {
+		this(hitObject, true);
+	}
+
+	/**
+	 * Constructor.
+	 * @param hitObject the associated HitObject
+	 * @param scaled whether to use scaled coordinates
+	 */
+	public EqualDistanceMultiCurve(HitObject hitObject, boolean scaled) {
+		super(hitObject, scaled);
 	}
 
 	/**
@@ -94,7 +101,7 @@ public abstract class EqualDistanceMultiCurve extends Curve {
 			// interpolate the point between the two closest distances
 			if (distanceAt - lastDistanceAt > 1) {
 				float t = (prefDistance - lastDistanceAt) / (distanceAt - lastDistanceAt);
-				curve[i] = new Vec2f(lerp(lastCurve.x, thisCurve.x, t), lerp(lastCurve.y, thisCurve.y, t));
+				curve[i] = new Vec2f(Utils.lerp(lastCurve.x, thisCurve.x, t), Utils.lerp(lastCurve.y, thisCurve.y, t));
 			} else
 				curve[i] = thisCurve;
 		}
@@ -117,20 +124,19 @@ public abstract class EqualDistanceMultiCurve extends Curve {
 	}
 
 	@Override
-	public float[] pointAt(float t) {
+	public Vec2f pointAt(float t) {
 		float indexF = t * ncurve;
 		int index = (int) indexF;
-		if (index >= ncurve) {
-			Vec2f poi = curve[ncurve];
-			return new float[] { poi.x, poi.y };
-		} else {
+		if (index >= ncurve)
+			return curve[ncurve].cpy();
+		else {
 			Vec2f poi = curve[index];
 			Vec2f poi2 = curve[index + 1];
 			float t2 = indexF - index;
-			return new float[] {
-				lerp(poi.x, poi2.x, t2),
-				lerp(poi.y, poi2.y, t2)
-			};
+			return new Vec2f(
+				Utils.lerp(poi.x, poi2.x, t2),
+				Utils.lerp(poi.y, poi2.y, t2)
+			);
 		}
 	}
 

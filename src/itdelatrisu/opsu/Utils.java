@@ -24,14 +24,15 @@ import itdelatrisu.opsu.beatmap.HitObject;
 import itdelatrisu.opsu.downloads.Download;
 import itdelatrisu.opsu.downloads.DownloadNode;
 import itdelatrisu.opsu.replay.PlaybackSpeed;
+import itdelatrisu.opsu.ui.Fonts;
 import itdelatrisu.opsu.ui.UI;
 
-import java.awt.Font;
 import java.awt.image.BufferedImage;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -43,13 +44,10 @@ import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Scanner;
+import java.util.jar.JarFile;
 
 import javax.imageio.ImageIO;
 
@@ -60,16 +58,10 @@ import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 import org.newdawn.slick.Animation;
-import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Input;
-import org.newdawn.slick.SlickException;
-import org.newdawn.slick.UnicodeFont;
-import org.newdawn.slick.font.effects.ColorEffect;
-import org.newdawn.slick.font.effects.Effect;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.util.Log;
-import org.newdawn.slick.util.ResourceLoader;
 
 import com.sun.jna.platform.FileUtils;
 
@@ -77,34 +69,6 @@ import com.sun.jna.platform.FileUtils;
  * Contains miscellaneous utilities.
  */
 public class Utils {
-	/** Game colors. */
-	public static final Color
-		COLOR_BLACK_ALPHA     = new Color(0, 0, 0, 0.5f),
-		COLOR_WHITE_ALPHA     = new Color(255, 255, 255, 0.5f),
-		COLOR_BLUE_DIVIDER    = new Color(49, 94, 237),
-		COLOR_BLUE_BACKGROUND = new Color(74, 130, 255),
-		COLOR_BLUE_BUTTON     = new Color(40, 129, 237),
-		COLOR_ORANGE_BUTTON   = new Color(200, 90, 3),
-		COLOR_YELLOW_ALPHA    = new Color(255, 255, 0, 0.4f),
-		COLOR_WHITE_FADE      = new Color(255, 255, 255, 1f),
-		COLOR_RED_HOVER       = new Color(255, 112, 112),
-		COLOR_GREEN           = new Color(137, 201, 79),
-		COLOR_LIGHT_ORANGE    = new Color(255,192,128),
-		COLOR_LIGHT_GREEN     = new Color(128,255,128),
-		COLOR_LIGHT_BLUE      = new Color(128,128,255),
-		COLOR_GREEN_SEARCH    = new Color(173, 255, 47),
-		COLOR_DARK_GRAY       = new Color(0.3f, 0.3f, 0.3f, 1f),
-		COLOR_RED_HIGHLIGHT   = new Color(246, 154, 161),
-		COLOR_BLUE_HIGHLIGHT  = new Color(173, 216, 230);
-
-	/** Game fonts. */
-	public static UnicodeFont
-		FONT_DEFAULT, FONT_BOLD,
-		FONT_XLARGE, FONT_LARGE, FONT_MEDIUM, FONT_SMALL;
-
-	/** Set of all Unicode strings already loaded per font. */
-	private static HashMap<UnicodeFont, HashSet<String>> loadedGlyphs = new HashMap<UnicodeFont, HashSet<String>>();
-
 	/**
 	 * List of illegal filename characters.
 	 * @see #cleanFileName(String, char)
@@ -115,7 +79,7 @@ public class Utils {
 		24, 25, 26, 27, 28, 29, 30, 31, 58, 42, 63, 92, 47
 	};
 	static {
-	    Arrays.sort(illegalChars);
+		Arrays.sort(illegalChars);
 	}
 
 	// game-related variables
@@ -128,10 +92,8 @@ public class Utils {
 	 * Initializes game settings and class data.
 	 * @param container the game container
 	 * @param game the game object
-	 * @throws SlickException
 	 */
-	public static void init(GameContainer container, StateBasedGame game)
-			throws SlickException {
+	public static void init(GameContainer container, StateBasedGame game) {
 		input = container.getInput();
 		int width = container.getWidth();
 		int height = container.getHeight();
@@ -149,23 +111,8 @@ public class Utils {
 		GameImage.init(width, height);
 
 		// create fonts
-		float fontBase = 12f * GameImage.getUIscale();
 		try {
-			Font javaFont = Font.createFont(Font.TRUETYPE_FONT, ResourceLoader.getResourceAsStream(Options.FONT_NAME));
-			Font font    = javaFont.deriveFont(Font.PLAIN, (int) (fontBase * 4 / 3));
-			FONT_DEFAULT = new UnicodeFont(font);
-			FONT_BOLD    = new UnicodeFont(font.deriveFont(Font.BOLD));
-			FONT_XLARGE  = new UnicodeFont(font.deriveFont(fontBase * 3));
-			FONT_LARGE   = new UnicodeFont(font.deriveFont(fontBase * 2));
-			FONT_MEDIUM  = new UnicodeFont(font.deriveFont(fontBase * 3 / 2));
-			FONT_SMALL   = new UnicodeFont(font.deriveFont(fontBase));
-			ColorEffect colorEffect = new ColorEffect();
-			loadFont(FONT_DEFAULT, colorEffect);
-			loadFont(FONT_BOLD, colorEffect);
-			loadFont(FONT_XLARGE, colorEffect);
-			loadFont(FONT_LARGE, colorEffect);
-			loadFont(FONT_MEDIUM, colorEffect);
-			loadFont(FONT_SMALL, colorEffect);
+			Fonts.init();
 		} catch (Exception e) {
 			ErrorHandler.error("Failed to load fonts.", e, true);
 		}
@@ -206,36 +153,18 @@ public class Utils {
 	}
 
 	/**
-	 * Returns a bounded value for a base value and displacement.
-	 * @param base the initial value
-	 * @param diff the value change
-	 * @param min the minimum value
-	 * @param max the maximum value
-	 * @return the bounded value
+	 * Clamps a value between a lower and upper bound.
+	 * @param val the value to clamp
+	 * @param low the lower bound
+	 * @param high the upper bound
+	 * @return the clamped value
+	 * @author fluddokt
 	 */
-	public static int getBoundedValue(int base, int diff, int min, int max) {
-		int val = base + diff;
-		if (val < min)
-			val = min;
-		else if (val > max)
-			val = max;
-		return val;
-	}
-
-	/**
-	 * Returns a bounded value for a base value and displacement.
-	 * @param base the initial value
-	 * @param diff the value change
-	 * @param min the minimum value
-	 * @param max the maximum value
-	 * @return the bounded value
-	 */
-	public static float getBoundedValue(float base, float diff, float min, float max) {
-		float val = base + diff;
-		if (val < min)
-			val = min;
-		else if (val > max)
-			val = max;
+	public static int clamp(int val, int low, int high) {
+		if (val < low)
+			return low;
+		if (val > high)
+			return high;
 		return val;
 	}
 
@@ -270,6 +199,13 @@ public class Utils {
 	}
 
 	/**
+	 * Linear interpolation of a and b at t.
+	 */
+	public static float lerp(float a, float b, float t) {
+		return a * (1 - t) + b * t;
+	}
+
+	/**
 	 * Returns true if a game input key is pressed (mouse/keyboard left/right).
 	 * @return true if pressed
 	 */
@@ -289,11 +225,9 @@ public class Utils {
 	public static void takeScreenShot() {
 		// create the screenshot directory
 		File dir = Options.getScreenshotDir();
-		if (!dir.isDirectory()) {
-			if (!dir.mkdir()) {
-				ErrorHandler.error("Failed to create screenshot directory.", null, false);
-				return;
-			}
+		if (!dir.isDirectory() && !dir.mkdir()) {
+			ErrorHandler.error(String.format("Failed to create screenshot directory at '%s'.", dir.getAbsolutePath()), null, false);
+			return;
 		}
 
 		// create file name
@@ -334,54 +268,6 @@ public class Utils {
 	}
 
 	/**
-	 * Loads a Unicode font.
-	 * @param font the font to load
-	 * @param effect the font effect
-	 * @throws SlickException
-	 */
-	@SuppressWarnings("unchecked")
-	private static void loadFont(UnicodeFont font, Effect effect) throws SlickException {
-		font.addAsciiGlyphs();
-		font.getEffects().add(effect);
-		font.loadGlyphs();
-	}
-
-	/**
-	 * Adds and loads glyphs for a beatmap's Unicode title and artist strings.
-	 * @param font the font to add the glyphs to
-	 * @param title the title string
-	 * @param artist the artist string
-	 */
-	public static void loadGlyphs(UnicodeFont font, String title, String artist) {
-		// get set of added strings
-		HashSet<String> set = loadedGlyphs.get(font);
-		if (set == null) {
-			set = new HashSet<String>();
-			loadedGlyphs.put(font, set);
-		}
-
-		// add glyphs if not in set
-		boolean glyphsAdded = false;
-		if (title != null && !title.isEmpty() && !set.contains(title)) {
-			font.addGlyphs(title);
-			set.add(title);
-			glyphsAdded = true;
-		}
-		if (artist != null && !artist.isEmpty() && !set.contains(artist)) {
-			font.addGlyphs(artist);
-			set.add(artist);
-			glyphsAdded = true;
-		}
-		if (glyphsAdded) {
-			try {
-				font.loadGlyphs();
-			} catch (SlickException e) {
-				Log.warn("Failed to load glyphs.", e);
-			}
-		}
-	}
-
-	/**
 	 * Returns a human-readable representation of a given number of bytes.
 	 * @param bytes the number of bytes
 	 * @return the string representation
@@ -407,15 +293,15 @@ public class Utils {
 			return null;
 
 		boolean doReplace = (replace > 0 && Arrays.binarySearch(illegalChars, replace) < 0);
-	    StringBuilder cleanName = new StringBuilder();
-	    for (int i = 0, n = badFileName.length(); i < n; i++) {
-	        int c = badFileName.charAt(i);
-	        if (Arrays.binarySearch(illegalChars, c) < 0)
-	            cleanName.append((char) c);
-	        else if (doReplace)
-	        	cleanName.append(replace);
-	    }
-	    return cleanName.toString();
+		StringBuilder cleanName = new StringBuilder();
+		for (int i = 0, n = badFileName.length(); i < n; i++) {
+			int c = badFileName.charAt(i);
+			if (Arrays.binarySearch(illegalChars, c) < 0)
+				cleanName.append((char) c);
+			else if (doReplace)
+				cleanName.append(replace);
+		}
+		return cleanName.toString();
 	}
 
 	/**
@@ -475,49 +361,11 @@ public class Utils {
 	}
 
 	/**
-	 * Wraps the given string into a list of split lines based on the width.
-	 * @param text the text to split
-	 * @param font the font used to draw the string
-	 * @param width the maximum width of a line
-	 * @return the list of split strings
-	 * @author davedes (http://slick.ninjacave.com/forum/viewtopic.php?t=3778)
-	 */
-	public static List<String> wrap(String text, org.newdawn.slick.Font font, int width) {
-		List<String> list = new ArrayList<String>();
-		String str = text;
-		String line = "";
-		int i = 0;
-		int lastSpace = -1;
-		while (i < str.length()) {
-			char c = str.charAt(i);
-			if (Character.isWhitespace(c))
-				lastSpace = i;
-			String append = line + c;
-			if (font.getWidth(append) > width) {
-				int split = (lastSpace != -1) ? lastSpace : i;
-				int splitTrimmed = split;
-				if (lastSpace != -1 && split < str.length() - 1)
-					splitTrimmed++;
-				list.add(str.substring(0, split));
-				str = str.substring(splitTrimmed);
-				line = "";
-				i = 0;
-				lastSpace = -1;
-			} else {
-				line = append;
-				i++;
-			}
-		}
-		if (str.length() != 0)
-			list.add(str);
-		return list;
-    }
-
-	/**
 	 * Returns a the contents of a URL as a string.
 	 * @param url the remote URL
 	 * @return the contents as a string, or null if any error occurred
 	 * @author Roland Illig (http://stackoverflow.com/a/4308662)
+	 * @throws IOException if an I/O exception occurs
 	 */
 	public static String readDataFromUrl(URL url) throws IOException {
 		// open connection
@@ -553,6 +401,7 @@ public class Utils {
 	 * Returns a JSON object from a URL.
 	 * @param url the remote URL
 	 * @return the JSON object, or null if an error occurred
+	 * @throws IOException if an I/O exception occurs
 	 */
 	public static JSONObject readJsonObjectFromUrl(URL url) throws IOException {
 		String s = Utils.readDataFromUrl(url);
@@ -571,6 +420,7 @@ public class Utils {
 	 * Returns a JSON array from a URL.
 	 * @param url the remote URL
 	 * @return the JSON array, or null if an error occurred
+	 * @throws IOException if an I/O exception occurs
 	 */
 	public static JSONArray readJsonArrayFromUrl(URL url) throws IOException {
 		String s = Utils.readDataFromUrl(url);
@@ -641,32 +491,6 @@ public class Utils {
 	}
 
 	/**
-	 * Cubic ease out function.
-	 * @param t the current time
-	 * @param a the starting position
-	 * @param b the finishing position
-	 * @param d the duration
-	 * @return the eased float
-	 */
-	public static float easeOut(float t, float a, float b, float d) {
-		return b * ((t = t / d - 1f) * t * t + 1f) + a;
-	}
-
-	/**
-	 * Fake bounce ease function.
-	 * @param t the current time
-	 * @param a the starting position
-	 * @param b the finishing position
-	 * @param d the duration
-	 * @return the eased float
-	 */
-	public static float easeBounce(float t, float a, float b, float d) {
-		if (t < d / 2)
-			return easeOut(t, a, b, d);
-		return easeOut(d - t, a, b, d);
-	}
-
-	/**
 	 * Returns whether or not the application is running within a JAR.
 	 * @return true if JAR, false if file
 	 */
@@ -675,7 +499,24 @@ public class Utils {
 	}
 
 	/**
+	 * Returns the JarFile for the application.
+	 * @return the JAR file, or null if it could not be determined
+	 */
+	public static JarFile getJarFile() {
+		if (!isJarRunning())
+			return null;
+
+		try {
+			return new JarFile(new File(Opsu.class.getProtectionDomain().getCodeSource().getLocation().toURI()), false);
+		} catch (URISyntaxException | IOException e) {
+			Log.error("Could not determine the JAR file.", e);
+			return null;
+		}
+	}
+
+	/**
 	 * Returns the directory where the application is being run.
+	 * @return the directory, or null if it could not be determined
 	 */
 	public static File getRunningDirectory() {
 		try {
@@ -694,5 +535,30 @@ public class Utils {
 	 */
 	public static boolean parseBoolean(String s) {
 		return (Integer.parseInt(s) == 1);
+	}
+
+	/**
+	 * Returns the git hash of the remote-tracking branch 'origin/master' from the
+	 * most recent update to the working directory (e.g. fetch or successful push).
+	 * @return the 40-character SHA-1 hash, or null if it could not be determined
+	 */
+	public static String getGitHash() {
+		if (isJarRunning())
+			return null;
+		File f = new File(".git/refs/remotes/origin/master");
+		if (!f.isFile())
+			return null;
+		try (BufferedReader in = new BufferedReader(new FileReader(f))) {
+			char[] sha = new char[40];
+			if (in.read(sha, 0, sha.length) < sha.length)
+				return null;
+			for (int i = 0; i < sha.length; i++) {
+				if (Character.digit(sha[i], 16) == -1)
+					return null;
+			}
+			return String.valueOf(sha);
+		} catch (IOException e) {
+			return null;
+		}
 	}
 }

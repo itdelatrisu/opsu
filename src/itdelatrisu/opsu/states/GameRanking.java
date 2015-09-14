@@ -20,6 +20,7 @@ package itdelatrisu.opsu.states;
 
 import itdelatrisu.opsu.GameData;
 import itdelatrisu.opsu.GameImage;
+import itdelatrisu.opsu.GameMod;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.Utils;
@@ -68,7 +69,7 @@ public class GameRanking extends BasicGameState {
 	// game-related variables
 	private GameContainer container;
 	private StateBasedGame game;
-	private int state;
+	private final int state;
 	private Input input;
 
 	public GameRanking(int state) {
@@ -105,7 +106,7 @@ public class GameRanking extends BasicGameState {
 		Beatmap beatmap = MusicController.getBeatmap();
 
 		// background
-		if (!beatmap.drawBG(width, height, 0.7f, true))
+		if (!beatmap.drawBackground(width, height, 0.7f, true))
 			GameImage.PLAYFIELD.getImage().draw(0,0);
 
 		// ranking screen elements
@@ -113,7 +114,7 @@ public class GameRanking extends BasicGameState {
 
 		// buttons
 		replayButton.draw();
-		if (data.isGameplay())
+		if (data.isGameplay() && !GameMod.AUTO.isActive())
 			retryButton.draw();
 		UI.getBackButton().draw();
 
@@ -175,7 +176,8 @@ public class GameRanking extends BasicGameState {
 		// replay
 		Game gameState = (Game) game.getState(Opsu.STATE_GAME);
 		boolean returnToGame = false;
-		if (replayButton.contains(x, y)) {
+		boolean replayButtonPressed = replayButton.contains(x, y);
+		if (replayButtonPressed && !(data.isGameplay() && GameMod.AUTO.isActive())) {
 			Replay r = data.getReplay(null, null);
 			if (r != null) {
 				try {
@@ -194,7 +196,9 @@ public class GameRanking extends BasicGameState {
 		}
 
 		// retry
-		else if (data.isGameplay() && retryButton.contains(x, y)) {
+		else if (data.isGameplay() &&
+		         (!GameMod.AUTO.isActive() && retryButton.contains(x, y)) ||
+		         (GameMod.AUTO.isActive() && replayButtonPressed)) {
 			gameState.setReplay(null);
 			gameState.setRestart(Game.Restart.MANUAL);
 			returnToGame = true;
@@ -221,7 +225,7 @@ public class GameRanking extends BasicGameState {
 		} else {
 			SoundController.playSound(SoundEffect.APPLAUSE);
 			retryButton.resetHover();
-			replayButton.setY(replayY);
+			replayButton.setY(!GameMod.AUTO.isActive() ? replayY : retryY);
 		}
 		replayButton.resetHover();
 	}
@@ -239,12 +243,11 @@ public class GameRanking extends BasicGameState {
 	 */
 	private void returnToSongMenu() {
 		SoundController.playSound(SoundEffect.MENUBACK);
-		if (data.isGameplay()) {
-			SongMenu songMenu = (SongMenu) game.getState(Opsu.STATE_SONGMENU);
-			songMenu.resetGameDataOnLoad();
+		SongMenu songMenu = (SongMenu) game.getState(Opsu.STATE_SONGMENU);
+		if (data.isGameplay())
 			songMenu.resetTrackOnLoad();
-		}
-		if (UI.getCursor().isSkinned())
+		songMenu.resetGameDataOnLoad();
+		if (UI.getCursor().isBeatmapSkinned())
 			UI.getCursor().reset();
 		game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 	}

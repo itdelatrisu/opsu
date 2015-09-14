@@ -119,7 +119,9 @@ public class ScoreDB {
 				"timestamp = ? AND MID = ? AND MSID = ? AND title = ? AND artist = ? AND " +
 				"creator = ? AND version = ? AND hit300 = ? AND hit100 = ? AND hit50 = ? AND " +
 				"geki = ? AND katu = ? AND miss = ? AND score = ? AND combo = ? AND perfect = ? AND mods = ? AND " +
-				"replay = ? AND playerName = ?"
+				"(replay = ? OR (replay IS NULL AND ? IS NULL)) AND " +
+				"(playerName = ? OR (playerName IS NULL AND ? IS NULL))"
+				// TODO: extra playerName checks not needed if name is guaranteed not null
 			);
 		} catch (SQLException e) {
 			ErrorHandler.error("Failed to prepare score statements.", e, true);
@@ -222,6 +224,7 @@ public class ScoreDB {
 		try {
 			setStatementFields(insertStmt, data);
 			insertStmt.setString(18, data.replayString);
+			insertStmt.setString(19, data.playerName);
 			insertStmt.executeUpdate();
 		} catch (SQLException e) {
 			ErrorHandler.error("Failed to save score to database.", e, true);
@@ -238,6 +241,10 @@ public class ScoreDB {
 
 		try {
 			setStatementFields(deleteScoreStmt, data);
+			deleteScoreStmt.setString(18, data.replayString);
+			deleteScoreStmt.setString(19, data.replayString);
+			deleteScoreStmt.setString(20, data.playerName);
+			deleteScoreStmt.setString(21, data.playerName);
 			deleteScoreStmt.executeUpdate();
 		} catch (SQLException e) {
 			ErrorHandler.error("Failed to delete score from database.", e, true);
@@ -289,8 +296,6 @@ public class ScoreDB {
 		stmt.setInt(15, data.combo);
 		stmt.setBoolean(16, data.perfect);
 		stmt.setInt(17, data.mods);
-		stmt.setString(18, data.replayString);
-		stmt.setString(19, data.playerName);
 	}
 
 	/**

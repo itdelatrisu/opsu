@@ -75,7 +75,7 @@ public class DownloadList {
 	}
 
 	/**
-	 * Returns the size of the doownloads list.
+	 * Returns the size of the downloads list.
 	 */
 	public int size() { return nodes.size(); }
 

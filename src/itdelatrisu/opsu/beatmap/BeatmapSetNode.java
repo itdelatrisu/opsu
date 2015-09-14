@@ -21,7 +21,8 @@ package itdelatrisu.opsu.beatmap;
 import itdelatrisu.opsu.GameData.Grade;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.Options;
-import itdelatrisu.opsu.Utils;
+import itdelatrisu.opsu.ui.Colors;
+import itdelatrisu.opsu.ui.Fonts;
 
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Image;
@@ -31,7 +32,7 @@ import org.newdawn.slick.Image;
  */
 public class BeatmapSetNode {
 	/** The associated beatmap set. */
-	private BeatmapSet beatmapSet;
+	private final BeatmapSet beatmapSet;
 
 	/** Index of the selected beatmap (-1 if not focused). */
 	public int beatmapIndex = -1;
@@ -57,6 +58,14 @@ public class BeatmapSetNode {
 	public BeatmapSet getBeatmapSet() { return beatmapSet; }
 
 	/**
+	 * Returns the selected beatmap (based on {@link #beatmapIndex}).
+	 * @return the beatmap, or null if the index is invalid
+	 */
+	public Beatmap getSelectedBeatmap() {
+		return (beatmapIndex < 0 || beatmapIndex >= beatmapSet.size()) ? null : beatmapSet.get(beatmapIndex);
+	}
+
+	/**
 	 * Draws the button.
 	 * @param x the x coordinate
 	 * @param y the y coordinate
@@ -78,16 +87,16 @@ public class BeatmapSetNode {
 				bgColor = Color.white;
 				textColor = Options.getSkin().getSongSelectActiveTextColor();
 			} else
-				bgColor = Utils.COLOR_BLUE_BUTTON;
+				bgColor = Colors.BLUE_BUTTON;
 			beatmap = beatmapSet.get(beatmapIndex);
 		} else {
-			bgColor = Utils.COLOR_ORANGE_BUTTON;
+			bgColor = Colors.ORANGE_BUTTON;
 			beatmap = beatmapSet.get(0);
 		}
 		bg.draw(x, y, bgColor);
 
 		float cx = x + (bg.getWidth() * 0.043f);
-		float cy = y + (bg.getHeight() * 0.2f) - 3;
+		float cy = y + (bg.getHeight() * 0.18f) - 3;
 
 		// draw grade
 		if (grade != Grade.NULL) {
@@ -98,15 +107,58 @@ public class BeatmapSetNode {
 
 		// draw text
 		if (Options.useUnicodeMetadata()) {  // load glyphs
-			Utils.loadGlyphs(Utils.FONT_MEDIUM, beatmap.titleUnicode, null);
-			Utils.loadGlyphs(Utils.FONT_DEFAULT, null, beatmap.artistUnicode);
+			Fonts.loadGlyphs(Fonts.MEDIUM, beatmap.titleUnicode);
+			Fonts.loadGlyphs(Fonts.DEFAULT, beatmap.artistUnicode);
 		}
-		Utils.FONT_MEDIUM.drawString(cx, cy, beatmap.getTitle(), textColor);
-		Utils.FONT_DEFAULT.drawString(cx, cy + Utils.FONT_MEDIUM.getLineHeight() - 2,
+		Fonts.MEDIUM.drawString(cx, cy, beatmap.getTitle(), textColor);
+		Fonts.DEFAULT.drawString(cx, cy + Fonts.MEDIUM.getLineHeight() - 3,
 				String.format("%s // %s", beatmap.getArtist(), beatmap.creator), textColor);
 		if (expanded || beatmapSet.size() == 1)
-			Utils.FONT_BOLD.drawString(cx, cy + Utils.FONT_MEDIUM.getLineHeight() + Utils.FONT_DEFAULT.getLineHeight() - 4,
+			Fonts.BOLD.drawString(cx, cy + Fonts.MEDIUM.getLineHeight() + Fonts.DEFAULT.getLineHeight() - 6,
 					beatmap.version, textColor);
+
+		// draw stars
+		// (note: in osu!, stars are also drawn for beatmap sets of size 1)
+		if (expanded) {
+			if (beatmap.starRating >= 0) {
+				Image star = GameImage.STAR.getImage();
+				float starOffset = star.getWidth() * 1.7f;
+				float starX = cx + starOffset * 0.04f;
+				float starY = cy + Fonts.MEDIUM.getLineHeight() + Fonts.DEFAULT.getLineHeight() * 2 - 8f * GameImage.getUIscale();
+				float starCenterY = starY + star.getHeight() / 2f;
+				final float baseAlpha = focus ? 1f : 0.8f;
+				final float smallStarScale = 0.4f;
+				star.setAlpha(baseAlpha);
+				int i = 1;
+				for (; i < beatmap.starRating && i <= 5; i++) {
+					if (focus)
+						star.drawFlash(starX + (i - 1) * starOffset, starY, star.getWidth(), star.getHeight(), textColor);
+					else
+						star.draw(starX + (i - 1) * starOffset, starY);
+				}
+				if (i <= 5) {
+					float partialStarScale = smallStarScale + (float) (beatmap.starRating - i + 1) * (1f - smallStarScale);
+					Image partialStar = star.getScaledCopy(partialStarScale);
+					partialStar.setAlpha(baseAlpha);
+					float partialStarY = starCenterY - partialStar.getHeight() / 2f;
+					if (focus)
+						partialStar.drawFlash(starX + (i - 1) * starOffset, partialStarY, partialStar.getWidth(), partialStar.getHeight(), textColor);
+					else
+						partialStar.draw(starX + (i - 1) * starOffset, partialStarY);
+				}
+				if (++i <= 5) {
+					Image smallStar = star.getScaledCopy(smallStarScale);
+					smallStar.setAlpha(0.5f);
+					float smallStarY = starCenterY - smallStar.getHeight() / 2f;
+					for (; i <= 5; i++) {
+						if (focus)
+							smallStar.drawFlash(starX + (i - 1) * starOffset, smallStarY, smallStar.getWidth(), smallStar.getHeight(), textColor);
+						else
+							smallStar.draw(starX + (i - 1) * starOffset, smallStarY);
+					}
+				}
+			}
+		}
 	}
 
 	/**

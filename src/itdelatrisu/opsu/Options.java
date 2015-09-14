@@ -22,6 +22,7 @@ import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.beatmap.Beatmap;
 import itdelatrisu.opsu.skins.Skin;
 import itdelatrisu.opsu.skins.SkinLoader;
+import itdelatrisu.opsu.ui.Fonts;
 import itdelatrisu.opsu.ui.UI;
 
 import java.io.BufferedReader;
@@ -37,6 +38,9 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
+import java.util.jar.Attributes;
+import java.util.jar.JarFile;
+import java.util.jar.Manifest;
 
 import org.lwjgl.input.Keyboard;
 import org.newdawn.slick.GameContainer;
@@ -51,11 +55,17 @@ import org.newdawn.slick.util.ResourceLoader;
  * Handles all user options.
  */
 public class Options {
+	/** Whether to use XDG directories. */
+	public static final boolean USE_XDG = checkXDGFlag();
+
 	/** The config directory. */
 	private static final File CONFIG_DIR = getXDGBaseDir("XDG_CONFIG_HOME", ".config");
 
 	/** The data directory. */
 	private static final File DATA_DIR = getXDGBaseDir("XDG_DATA_HOME", ".local/share");
+
+	/** The cache directory. */
+	private static final File CACHE_DIR = getXDGBaseDir("XDG_CACHE_HOME", ".cache");
 
 	/** File for logging errors. */
 	public static final File LOG_FILE = new File(CONFIG_DIR, ".opsu.log");
@@ -82,6 +92,9 @@ public class Options {
 
 	/** Score database name. */
 	public static final File SCORE_DB = new File(DATA_DIR, ".opsu_scores.db");
+
+	/** Directory where natives are unpacked. */
+	public static final File NATIVE_DIR = new File(CACHE_DIR, "Natives/");
 
 	/** Font file name. */
 	public static final String FONT_NAME = "DroidSansFallback.ttf";
@@ -120,14 +133,34 @@ public class Options {
 	private static int port = 49250;
 
 	/**
+	 * Returns whether the XDG flag in the manifest (if any) is set to "true".
+	 * @return true if XDG directories are enabled, false otherwise
+	 */
+	private static boolean checkXDGFlag() {
+		JarFile jarFile = Utils.getJarFile();
+		if (jarFile == null)
+			return false;
+		try {
+			Manifest manifest = jarFile.getManifest();
+			if (manifest == null)
+				return false;
+			Attributes attributes = manifest.getMainAttributes();
+			String value = attributes.getValue("Use-XDG");
+			return (value != null && value.equalsIgnoreCase("true"));
+		} catch (IOException e) {
+			return false;
+		}
+	}
+
+	/**
 	 * Returns the directory based on the XDG base directory specification for
-	 * Unix-like operating systems, only if the system property "XDG" has been defined.
+	 * Unix-like operating systems, only if the "XDG" flag is enabled.
 	 * @param env the environment variable to check (XDG_*_*)
 	 * @param fallback the fallback directory relative to ~home
 	 * @return the XDG base directory, or the working directory if unavailable
 	 */
 	private static File getXDGBaseDir(String env, String fallback) {
-		if (System.getProperty("XDG") == null)
+		if (!USE_XDG)
 			return new File("./");
 
 		String OS = System.getProperty("os.name").toLowerCase();
@@ -140,8 +173,8 @@ public class Options {
 				rootPath = String.format("%s/%s", home, fallback);
 			}
 			File dir = new File(rootPath, "opsu");
-			if (!dir.isDirectory())
-				dir.mkdir();
+			if (!dir.isDirectory() && !dir.mkdir())
+				ErrorHandler.error(String.format("Failed to create configuration folder at '%s/opsu'.", rootPath), null, false);
 			return dir;
 		} else
 			return new File("./");
@@ -212,7 +245,7 @@ public class Options {
 			@Override
 			public void read(String s) {
 				int i = Integer.parseInt(s);
-				if (i > 0 && i < 65535)
+				if (i > 0 && i <= 65535)
 					port = i;
 			}
 		},
@@ -287,9 +320,9 @@ public class Options {
 				super.click(container);
 				if (bool) {
 					try {
-						Utils.FONT_LARGE.loadGlyphs();
-						Utils.FONT_MEDIUM.loadGlyphs();
-						Utils.FONT_DEFAULT.loadGlyphs();
+						Fonts.LARGE.loadGlyphs();
+						Fonts.MEDIUM.loadGlyphs();
+						Fonts.DEFAULT.loadGlyphs();
 					} catch (SlickException e) {
 						Log.warn("Failed to load glyphs.", e);
 					}
@@ -357,7 +390,7 @@ public class Options {
 			public String getValueString() { return String.format("%dms", val); }
 		},
 		DISABLE_SOUNDS ("Disable All Sound Effects", "DisableSound", "May resolve Linux sound driver issues.  Requires a restart.",
-				(System.getProperty("os.name").toLowerCase().indexOf("linux") > -1)),
+				(System.getProperty("os.name").toLowerCase().contains("linux"))),
 		KEY_LEFT ("Left Game Key", "keyOsuLeft", "Select this option to input a key.") {
 			@Override
 			public String getValueString() { return Keyboard.getKeyName(getGameKeyLeft()); }
@@ -380,6 +413,7 @@ public class Options {
 		},
 		DISABLE_MOUSE_WHEEL ("Disable mouse wheel in play mode", "MouseDisableWheel", "During play, you can use the mouse wheel to adjust the volume and pause the game.\nThis will disable that functionality.", false),
 		DISABLE_MOUSE_BUTTONS ("Disable mouse buttons in play mode", "MouseDisableButtons", "This option will disable all mouse buttons.\nSpecifically for people who use their keyboard to click.", false),
+		DISABLE_CURSOR ("Disable Cursor", "DisableCursor", "Hide the cursor sprite.", false),
 		BACKGROUND_DIM ("Background Dim", "DimLevel", "Percentage to dim the background image during gameplay.", 50, 0, 100),
 		FORCE_DEFAULT_PLAYFIELD ("Force Default Playfield", "ForceDefaultPlayfield", "Override the song background with the default playfield background.", false),
 		IGNORE_BEATMAP_SKINS ("Ignore All Beatmap Skins", "IgnoreBeatmapSkins", "Never use skin element overrides provided by beatmaps.", false),
@@ -453,16 +487,19 @@ public class Options {
 						val - TimeUnit.MINUTES.toSeconds(TimeUnit.SECONDS.toMinutes(val)));
 			}
 		},
-		ENABLE_THEME_SONG ("Enable Theme Song", "MenuMusic", "Whether to play the theme song upon starting opsu!", true);
+		ENABLE_THEME_SONG ("Enable Theme Song", "MenuMusic", "Whether to play the theme song upon starting opsu!", true),
+		REPLAY_SEEKING ("Replay Seeking", "ReplaySeeking", "Enable a seeking bar on the left side of the screen during replays.", false),
+		DISABLE_UPDATER ("Disable Automatic Updates", "DisableUpdater", "Disable automatic checking for updates upon starting opsu!.", false),
+		ENABLE_WATCH_SERVICE ("Enable Watch Service", "WatchService", "Watch the beatmap directory for changes. Requires a restart.", false);
 
 		/** Option name. */
-		private String name;
+		private final String name;
 
 		/** Option name, as displayed in the configuration file. */
-		private String displayName;
+		private final String displayName;
 
 		/** Option description. */
-		private String description;
+		private final String description;
 
 		/** The boolean value for the option (if applicable). */
 		protected boolean bool;
@@ -484,7 +521,7 @@ public class Options {
 		 * @param displayName the option name, as displayed in the configuration file
 		 */
 		GameOption(String displayName) {
-			this.displayName = displayName;
+			this(null, displayName, null);
 		}
 
 		/**
@@ -604,7 +641,7 @@ public class Options {
 		 */
 		public void drag(GameContainer container, int d) {
 			if (type == OptionType.NUMERIC)
-				val = Utils.getBoundedValue(val, d, min, max);
+				val = Utils.clamp(val + d, min, max);
 		}
 
 		/**
@@ -959,6 +996,24 @@ public class Options {
 	public static boolean isThemeSongEnabled() { return GameOption.ENABLE_THEME_SONG.getBooleanValue(); }
 
 	/**
+	 * Returns whether or not replay seeking is enabled.
+	 * @return true if enabled
+	 */
+	public static boolean isReplaySeekingEnabled() { return GameOption.REPLAY_SEEKING.getBooleanValue(); }
+
+	/**
+	 * Returns whether or not automatic checking for updates is disabled.
+	 * @return true if disabled
+	 */
+	public static boolean isUpdaterDisabled() { return GameOption.DISABLE_UPDATER.getBooleanValue(); }
+
+	/**
+	 * Returns whether or not the beatmap watch service is enabled.
+	 * @return true if enabled
+	 */
+	public static boolean isWatchServiceEnabled() { return GameOption.ENABLE_WATCH_SERVICE.getBooleanValue(); }
+
+	/**
 	 * Sets the track checkpoint time, if within bounds.
 	 * @param time the track position (in ms)
 	 * @return true if within bounds
@@ -1004,6 +1059,12 @@ public class Options {
 		UI.sendBarNotification((GameOption.DISABLE_MOUSE_BUTTONS.getBooleanValue()) ?
 			"Mouse buttons are disabled." : "Mouse buttons are enabled.");
 	}
+
+	/**
+	 * Returns whether or not the cursor sprite should be hidden.
+	 * @return true if disabled
+	 */
+	public static boolean isCursorDisabled() { return GameOption.DISABLE_CURSOR.getBooleanValue(); }
 
 	/**
 	 * Returns the left game key.
@@ -1080,7 +1141,10 @@ public class Options {
 			if (beatmapDir.isDirectory())
 				return beatmapDir;
 		}
-		beatmapDir.mkdir();  // none found, create new directory
+
+		// none found, create new directory
+		if (!beatmapDir.mkdir())
+			ErrorHandler.error(String.format("Failed to create beatmap directory at '%s'.", beatmapDir.getAbsolutePath()), null, false);
 		return beatmapDir;
 	}
 
@@ -1094,7 +1158,8 @@ public class Options {
 			return oszDir;
 
 		oszDir = new File(DATA_DIR, "SongPacks/");
-		oszDir.mkdir();
+		if (!oszDir.isDirectory() && !oszDir.mkdir())
+			ErrorHandler.error(String.format("Failed to create song packs directory at '%s'.", oszDir.getAbsolutePath()), null, false);
 		return oszDir;
 	}
 
@@ -1108,7 +1173,8 @@ public class Options {
 			return replayImportDir;
 
 		replayImportDir = new File(DATA_DIR, "ReplayImport/");
-		replayImportDir.mkdir();
+		if (!replayImportDir.isDirectory() && !replayImportDir.mkdir())
+			ErrorHandler.error(String.format("Failed to create replay import directory at '%s'.", replayImportDir.getAbsolutePath()), null, false);
 		return replayImportDir;
 	}
 
@@ -1153,7 +1219,10 @@ public class Options {
 			if (skinRootDir.isDirectory())
 				return skinRootDir;
 		}
-		skinRootDir.mkdir();  // none found, create new directory
+
+		// none found, create new directory
+		if (!skinRootDir.mkdir())
+			ErrorHandler.error(String.format("Failed to create skins directory at '%s'.", skinRootDir.getAbsolutePath()), null, false);
 		return skinRootDir;
 	}
 

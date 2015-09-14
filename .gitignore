@@ -15,11 +15,17 @@
 .metadata
 .classpath
 .project
+.externalToolBuilders/
 
 # IntelliJ
 .idea/
 *.iml
 *.iws
+*.ipr
+
+# Gradle
+.gradle
+build/
 
 Thumbs.db
 /target

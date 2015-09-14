@@ -38,13 +38,13 @@ public class ReplayFrame {
 	private int timeDiff;
 
 	/** Time, in milliseconds. */
-	private int time;
+	private final int time;
 
 	/** Cursor coordinates (in OsuPixels). */
-	private float x, y;
+	private final float x, y;
 
 	/** Keys pressed (bitmask). */
-	private int keys;
+	private final int keys;
 
 	/**
 	 * Returns the start frame.
@@ -81,7 +81,8 @@ public class ReplayFrame {
 	public int getTimeDiff() { return timeDiff; }
 
 	/**
-	 * Sets the time since the previous action, in milliseconds.
+	 * Sets the time since the previous action.
+	 * @param diff the time difference, in milliseconds
 	 */
 	public void setTimeDiff(int diff) { this.timeDiff = diff; }
 

@@ -18,10 +18,8 @@
 
 package itdelatrisu.opsu.objects.curves;
 
-import itdelatrisu.opsu.ErrorHandler;
+import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.beatmap.HitObject;
-
-import org.newdawn.slick.Color;
 
 /**
  * Representation of a curve along a Circumscribed Circle of three points.
@@ -53,10 +51,18 @@ public class CircumscribedCircle extends Curve {
 	/**
 	 * Constructor.
 	 * @param hitObject the associated HitObject
-	 * @param color the color of this curve
 	 */
-	public CircumscribedCircle(HitObject hitObject, Color color) {
-		super(hitObject, color);
+	public CircumscribedCircle(HitObject hitObject) {
+		this(hitObject, true);
+	}
+
+	/**
+	 * Constructor.
+	 * @param hitObject the associated HitObject
+	 * @param scaled whether to use scaled coordinates
+	 */
+	public CircumscribedCircle(HitObject hitObject, boolean scaled) {
+		super(hitObject, scaled);
 
 		// construct the three points
 		this.start = new Vec2f(getX(0), getY(0));
@@ -70,8 +76,6 @@ public class CircumscribedCircle extends Curve {
 		Vec2f norb = mid.cpy().sub(end).nor();
 
 		this.circleCenter = intersect(mida, nora, midb, norb);
-		if (circleCenter == null)
-			return;
 
 		// find the angles relative to the circle center
 		Vec2f startAngPoint = start.cpy().sub(circleCenter);
@@ -92,13 +96,8 @@ public class CircumscribedCircle extends Curve {
 				startAng -= TWO_PI;
 			else if (Math.abs(startAng - (endAng - TWO_PI)) < TWO_PI && isIn(startAng, midAng, endAng - (TWO_PI)))
 				endAng -= TWO_PI;
-			else {
-				ErrorHandler.error(
-					String.format("Cannot find angles between midAng (%.3f %.3f %.3f).",
-							startAng, midAng, endAng), null, true
-				);
-				return;
-			}
+			else
+				throw new RuntimeException(String.format("Cannot find angles between midAng (%.3f %.3f %.3f).", startAng, midAng, endAng));
 		}
 
 		// find an angle with an arc length of pixelLength along this circle
@@ -116,10 +115,8 @@ public class CircumscribedCircle extends Curve {
 		// calculate points
 		float step = hitObject.getPixelLength() / CURVE_POINTS_SEPERATION;
 		curve = new Vec2f[(int) step + 1];
-		for (int i = 0; i < curve.length; i++) {
-			float[] xy = pointAt(i / step);
-			curve[i] = new Vec2f(xy[0], xy[1]);
-		}
+		for (int i = 0; i < curve.length; i++)
+			curve[i] = pointAt(i / step);
 	}
 
 	/**
@@ -151,21 +148,19 @@ public class CircumscribedCircle extends Curve {
 		//u = ((b.y-a.y)ta.x +(a.x-b.x)ta.y) / (tb.x*ta.y - tb.y*ta.x);
 
 		float des = tb.x * ta.y - tb.y * ta.x;
-		if (Math.abs(des) < 0.00001f) {
-			ErrorHandler.error("Vectors are parallel.", null, true);
-			return null;
-		}
+		if (Math.abs(des) < 0.00001f)
+			throw new RuntimeException("Vectors are parallel.");
 		float u = ((b.y - a.y) * ta.x + (a.x - b.x) * ta.y) / des;
 		return b.cpy().add(tb.x * u, tb.y * u);
 	}
 
 	@Override
-	public float[] pointAt(float t) {
-		float ang = lerp(startAng, endAng, t);
-		return new float[] {
+	public Vec2f pointAt(float t) {
+		float ang = Utils.lerp(startAng, endAng, t);
+		return new Vec2f(
 			(float) (Math.cos(ang) * radius + circleCenter.x),
 			(float) (Math.sin(ang) * radius + circleCenter.y)
-		};
+		);
 	}
 
 	@Override

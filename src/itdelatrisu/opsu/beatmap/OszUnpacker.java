@@ -16,7 +16,10 @@
  * along with opsu!.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package itdelatrisu.opsu;
+package itdelatrisu.opsu.beatmap;
+
+import itdelatrisu.opsu.ErrorHandler;
+import itdelatrisu.opsu.Options;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -62,6 +65,9 @@ public class OszUnpacker {
 		}
 
 		// unpack OSZs
+		BeatmapWatchService ws = (Options.isWatchServiceEnabled()) ? BeatmapWatchService.get() : null;
+		if (ws != null)
+			ws.pause();
 		for (File file : files) {
 			fileIndex++;
 			String dirName = file.getName().substring(0, file.getName().lastIndexOf('.'));
@@ -73,6 +79,8 @@ public class OszUnpacker {
 				dirs.add(songDir);
 			}
 		}
+		if (ws != null)
+			ws.resume();
 
 		fileIndex = -1;
 		files = null;

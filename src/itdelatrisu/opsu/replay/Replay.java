@@ -41,10 +41,10 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import lzma.streams.LzmaOutputStream;
-
 import org.apache.commons.compress.compressors.lzma.LZMACompressorInputStream;
 import org.newdawn.slick.util.Log;
+
+import lzma.streams.LzmaOutputStream;
 
 /**
  * Captures osu! replay data.

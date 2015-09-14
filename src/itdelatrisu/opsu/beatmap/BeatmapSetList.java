@@ -19,6 +19,7 @@
 package itdelatrisu.opsu.beatmap;
 
 import itdelatrisu.opsu.ErrorHandler;
+import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.db.BeatmapDB;
@@ -44,7 +45,7 @@ public class BeatmapSetList {
 
 	/** Search pattern for conditional expressions. */
 	private static final Pattern SEARCH_CONDITION_PATTERN = Pattern.compile(
-		"(ar|cs|od|hp|bpm|length)(=|==|>|>=|<|<=)((\\d*\\.)?\\d+)"
+		"(ar|cs|od|hp|bpm|length|stars?)(==?|>=?|<=?)((\\d*\\.)?\\d+)"
 	);
 
 	/** List containing all parsed nodes. */
@@ -163,12 +164,17 @@ public class BeatmapSetList {
 		}
 
 		// remove all node references
-		Beatmap beatmap = node.getBeatmapSet().get(0);
+		BeatmapSet beatmapSet = node.getBeatmapSet();
+		Beatmap beatmap = beatmapSet.get(0);
 		nodes.remove(index);
 		parsedNodes.remove(eCur);
-		mapCount -= node.getBeatmapSet().size();
+		mapCount -= beatmapSet.size();
 		if (beatmap.beatmapSetID > 0)
 			MSIDdb.remove(beatmap.beatmapSetID);
+		for (Beatmap bm : beatmapSet) {
+			if (bm.md5Hash != null)
+				this.beatmapHashDB.remove(bm.md5Hash);
+		}
 
 		// reset indices
 		for (int i = index, size = size(); i < size; i++)
@@ -199,11 +205,16 @@ public class BeatmapSetList {
 		BeatmapDB.delete(dir.getName());
 
 		// delete the associated directory
+		BeatmapWatchService ws = (Options.isWatchServiceEnabled()) ? BeatmapWatchService.get() : null;
+		if (ws != null)
+			ws.pause();
 		try {
 			Utils.deleteToTrash(dir);
 		} catch (IOException e) {
 			ErrorHandler.error("Could not delete song group.", e, true);
 		}
+		if (ws != null)
+			ws.resume();
 
 		return true;
 	}
@@ -235,6 +246,8 @@ public class BeatmapSetList {
 		// remove song reference
 		Beatmap beatmap = node.getBeatmapSet().remove(node.beatmapIndex);
 		mapCount--;
+		if (beatmap.md5Hash != null)
+			beatmapHashDB.remove(beatmap.md5Hash);
 
 		// re-link nodes
 		if (node.prev != null)
@@ -247,11 +260,16 @@ public class BeatmapSetList {
 		BeatmapDB.delete(file.getParentFile().getName(), file.getName());
 
 		// delete the associated file
+		BeatmapWatchService ws = (Options.isWatchServiceEnabled()) ? BeatmapWatchService.get() : null;
+		if (ws != null)
+			ws.pause();
 		try {
 			Utils.deleteToTrash(file);
 		} catch (IOException e) {
 			ErrorHandler.error("Could not delete song.", e, true);
 		}
+		if (ws != null)
+			ws.resume();
 
 		return true;
 	}
@@ -312,6 +330,7 @@ public class BeatmapSetList {
 	/**
 	 * Expands the node at an index by inserting a new node for each Beatmap
 	 * in that node and hiding the group node.
+	 * @param index the node index
 	 * @return the first of the newly-inserted nodes
 	 */
 	public BeatmapSetNode expand(int index) {

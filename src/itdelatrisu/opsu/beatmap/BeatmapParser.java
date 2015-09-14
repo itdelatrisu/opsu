@@ -19,6 +19,7 @@
 package itdelatrisu.opsu.beatmap;
 
 import itdelatrisu.opsu.ErrorHandler;
+import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.db.BeatmapDB;
 import itdelatrisu.opsu.io.MD5InputStreamWrapper;
@@ -83,6 +84,10 @@ public class BeatmapParser {
 		// create a new BeatmapSetList
 		BeatmapSetList.create();
 
+		// create a new watch service
+		if (Options.isWatchServiceEnabled())
+			BeatmapWatchService.create();
+
 		// parse all directories
 		parseDirectories(root.listFiles());
 	}
@@ -110,6 +115,9 @@ public class BeatmapParser {
 		List<Beatmap> cachedBeatmaps = new LinkedList<Beatmap>();  // loaded from database
 		List<Beatmap> parsedBeatmaps = new LinkedList<Beatmap>();  // loaded from parser
 
+		// watch service
+		BeatmapWatchService ws = (Options.isWatchServiceEnabled()) ? BeatmapWatchService.get() : null;
+
 		// parse directories
 		BeatmapSetNode lastNode = null;
 		for (File dir : dirs) {
@@ -134,17 +142,19 @@ public class BeatmapParser {
 
 				// check if beatmap is cached
 				String path = String.format("%s/%s", dir.getName(), file.getName());
-				if (map.containsKey(path)) {
-					// check last modified times
-					long lastModified = map.get(path);
-					if (lastModified == file.lastModified()) {
-						// add to cached beatmap list
-						Beatmap beatmap = new Beatmap(file);
-						beatmaps.add(beatmap);
-						cachedBeatmaps.add(beatmap);
-						continue;
-					} else
-						BeatmapDB.delete(dir.getName(), file.getName());
+				if (map != null) {
+					Long lastModified = map.get(path);
+					if (lastModified != null) {
+						// check last modified times
+						if (lastModified == file.lastModified()) {
+							// add to cached beatmap list
+							Beatmap beatmap = new Beatmap(file);
+							beatmaps.add(beatmap);
+							cachedBeatmaps.add(beatmap);
+							continue;
+						} else
+							BeatmapDB.delete(dir.getName(), file.getName());
+					}
 				}
 
 				// Parse hit objects only when needed to save time/memory.
@@ -162,6 +172,8 @@ public class BeatmapParser {
 			if (!beatmaps.isEmpty()) {
 				beatmaps.trimToSize();
 				allBeatmaps.add(beatmaps);
+				if (ws != null)
+					ws.registerAll(dir.toPath());
 			}
 
 			// stop parsing files (interrupted)
@@ -676,10 +688,15 @@ public class BeatmapParser {
 
 					beatmap.objects[objectIndex++] = hitObject;
 				} catch (Exception e) {
-					Log.warn(String.format("Failed to read hit object '%s' for Beatmap '%s'.",
+					Log.warn(String.format("Failed to read hit object '%s' for beatmap '%s'.",
 							line, beatmap.toString()), e);
 				}
 			}
+
+			// check that all objects were parsed
+			if (objectIndex != beatmap.objects.length)
+				ErrorHandler.error(String.format("Parsed %d objects for beatmap '%s', %d objects expected.",
+						objectIndex, beatmap.toString(), beatmap.objects.length), null, true);
 		} catch (IOException e) {
 			ErrorHandler.error(String.format("Failed to read file '%s'.", beatmap.getFile().getAbsolutePath()), e, false);
 		}
@@ -711,6 +728,7 @@ public class BeatmapParser {
 
 	/**
 	 * Returns the file extension of a file.
+	 * @param file the file name
 	 */
 	public static String getExtension(String file) {
 		int i = file.lastIndexOf('.');

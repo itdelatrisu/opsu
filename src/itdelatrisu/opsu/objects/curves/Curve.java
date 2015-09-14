@@ -20,10 +20,10 @@ package itdelatrisu.opsu.objects.curves;
 
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.Options;
-import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.beatmap.HitObject;
 import itdelatrisu.opsu.render.CurveRenderState;
 import itdelatrisu.opsu.skins.Skin;
+import itdelatrisu.opsu.ui.Colors;
 
 import org.lwjgl.opengl.ContextCapabilities;
 import org.lwjgl.opengl.GLContext;
@@ -64,14 +64,21 @@ public abstract class Curve {
 	/**
 	 * Constructor.
 	 * @param hitObject the associated HitObject
-	 * @param color the color of this curve
+	 * @param scaled whether to use scaled coordinates
 	 */
-	protected Curve(HitObject hitObject, Color color) {
+	protected Curve(HitObject hitObject, boolean scaled) {
 		this.hitObject = hitObject;
-		this.x = hitObject.getScaledX();
-		this.y = hitObject.getScaledY();
-		this.sliderX = hitObject.getScaledSliderX();
-		this.sliderY = hitObject.getScaledSliderY();
+		if (scaled) {
+			this.x = hitObject.getScaledX();
+			this.y = hitObject.getScaledY();
+			this.sliderX = hitObject.getScaledSliderX();
+			this.sliderY = hitObject.getScaledSliderY();
+		} else {
+			this.x = hitObject.getX();
+			this.y = hitObject.getY();
+			this.sliderX = hitObject.getSliderX();
+			this.sliderY = hitObject.getSliderY();
+		}
 		this.renderState = null;
 	}
 
@@ -80,28 +87,28 @@ public abstract class Curve {
 	 * Should be called before any curves are drawn.
 	 * @param width the container width
 	 * @param height the container height
-	 * @param circleSize the circle size
+	 * @param circleDiameter the circle diameter
 	 * @param borderColor the curve border color
 	 */
-	public static void init(int width, int height, float circleSize, Color borderColor) {
+	public static void init(int width, int height, float circleDiameter, Color borderColor) {
 		Curve.borderColor = borderColor;
 
 		ContextCapabilities capabilities = GLContext.getCapabilities();
-		mmsliderSupported = capabilities.GL_EXT_framebuffer_object && capabilities.OpenGL32;
+		mmsliderSupported = capabilities.GL_EXT_framebuffer_object;
 		if (mmsliderSupported)
-			CurveRenderState.init(width, height, circleSize);
+			CurveRenderState.init(width, height, circleDiameter);
 		else {
 			if (Options.getSkin().getSliderStyle() != Skin.STYLE_PEPPYSLIDER)
-				Log.warn("New slider style requires FBO support and OpenGL 3.2.");
+				Log.warn("New slider style requires FBO support.");
 		}
 	}
 
 	/**
 	 * Returns the point on the curve at a value t.
 	 * @param t the t value [0, 1]
-	 * @return the point [x, y]
+	 * @return the position vector
 	 */
-	public abstract float[] pointAt(float t);
+	public abstract Vec2f pointAt(float t);
 
 	/**
 	 * Draws the full curve to the graphics context.
@@ -116,7 +123,7 @@ public abstract class Curve {
 			Image hitCircle = GameImage.HITCIRCLE.getImage();
 			Image hitCircleOverlay = GameImage.HITCIRCLE_OVERLAY.getImage();
 			for (int i = 0; i < curve.length; i++)
-				hitCircleOverlay.drawCentered(curve[i].x, curve[i].y, Utils.COLOR_WHITE_FADE);
+				hitCircleOverlay.drawCentered(curve[i].x, curve[i].y, Colors.WHITE_FADE);
 			for (int i = 0; i < curve.length; i++)
 				hitCircle.drawCentered(curve[i].x, curve[i].y, color);
 		}
@@ -150,13 +157,6 @@ public abstract class Curve {
 	 * @param i the control point index
 	 */
 	public float getY(int i) { return (i == 0) ? y : sliderY[i - 1]; }
-
-	/**
-	 * Linear interpolation of a and b at t.
-	 */
-	protected float lerp(float a, float b, float t) {
-		return a * (1 - t) + b * t;
-	}
 
 	/**
 	 * Discards the slider cache (only used for mmsliders).

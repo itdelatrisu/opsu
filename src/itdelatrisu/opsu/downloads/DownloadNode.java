@@ -26,6 +26,8 @@ import itdelatrisu.opsu.beatmap.BeatmapSetList;
 import itdelatrisu.opsu.downloads.Download.DownloadListener;
 import itdelatrisu.opsu.downloads.Download.Status;
 import itdelatrisu.opsu.downloads.servers.DownloadServer;
+import itdelatrisu.opsu.ui.Colors;
+import itdelatrisu.opsu.ui.Fonts;
 import itdelatrisu.opsu.ui.UI;
 
 import java.io.File;
@@ -42,19 +44,19 @@ public class DownloadNode {
 	private Download download;
 
 	/** Beatmap set ID. */
-	private int beatmapSetID;
+	private final int beatmapSetID;
 
 	/** Last updated date string. */
-	private String date;
+	private final String date;
 
 	/** Song title. */
-	private String title, titleUnicode;
+	private final String title, titleUnicode;
 
 	/** Song artist. */
-	private String artist, artistUnicode;
+	private final String artist, artistUnicode;
 
 	/** Beatmap creator. */
-	private String creator;
+	private final String creator;
 
 	/** Button drawing values. */
 	private static float buttonBaseX, buttonBaseY, buttonWidth, buttonHeight, buttonOffset;
@@ -68,12 +70,6 @@ public class DownloadNode {
 	/** Container width. */
 	private static int containerWidth;
 
-	/** Button background colors. */
-	public static final Color
-		BG_NORMAL = new Color(0, 0, 0, 0.25f),
-		BG_HOVER  = new Color(0, 0, 0, 0.5f),
-		BG_FOCUS  = new Color(0, 0, 0, 0.75f);
-
 	/**
 	 * Initializes the base coordinates for drawing.
 	 * @param width the container width
@@ -86,16 +82,16 @@ public class DownloadNode {
 		buttonBaseX = width * 0.024f;
 		buttonBaseY = height * 0.2f;
 		buttonWidth = width * 0.7f;
-		buttonHeight = Utils.FONT_MEDIUM.getLineHeight() * 2.1f;
+		buttonHeight = Fonts.MEDIUM.getLineHeight() * 2.1f;
 		buttonOffset = buttonHeight * 1.1f;
 
 		// download info
 		infoBaseX = width * 0.75f;
-		infoBaseY = height * 0.07f + Utils.FONT_LARGE.getLineHeight() * 2f;
+		infoBaseY = height * 0.07f + Fonts.LARGE.getLineHeight() * 2f;
 		infoWidth = width * 0.25f;
-		infoHeight = Utils.FONT_DEFAULT.getLineHeight() * 2.4f;
+		infoHeight = Fonts.DEFAULT.getLineHeight() * 2.4f;
 
-		float searchY = (height * 0.05f) + Utils.FONT_LARGE.getLineHeight();
+		float searchY = (height * 0.05f) + Fonts.LARGE.getLineHeight();
 		float buttonHeight = height * 0.038f;
 		maxResultsShown = (int) ((height - buttonBaseY - searchY) / buttonOffset);
 		maxDownloadsShown = (int) ((height - infoBaseY - searchY - buttonHeight) / infoHeight);
@@ -228,10 +224,9 @@ public class DownloadNode {
 	 * @param total the total number of buttons
 	 */
 	public static void drawResultScrollbar(Graphics g, float position, float total) {
-		UI.drawScrollbar(g, position, total, maxResultsShown * buttonOffset, 
-				buttonBaseX, buttonBaseY, 
+		UI.drawScrollbar(g, position, total, maxResultsShown * buttonOffset, buttonBaseX, buttonBaseY, 
 				buttonWidth * 1.01f, (maxResultsShown-1) * buttonOffset + buttonHeight, 
-				BG_NORMAL, Color.white, true);
+				Colors.BLACK_BG_NORMAL, Color.white, true);
 	}
 
 	/**
@@ -242,11 +237,18 @@ public class DownloadNode {
 	 */
 	public static void drawDownloadScrollbar(Graphics g, float index, float total) {
 		UI.drawScrollbar(g, index, total, maxDownloadsShown * infoHeight, infoBaseX, infoBaseY,
-				infoWidth, maxDownloadsShown * infoHeight, BG_NORMAL, Color.white, true);
+				infoWidth, maxDownloadsShown * infoHeight, Colors.BLACK_BG_NORMAL, Color.white, true);
 	}
 
 	/**
 	 * Constructor.
+	 * @param beatmapSetID the beatmap set ID
+	 * @param date the last modified date string
+	 * @param title the song title
+	 * @param titleUnicode the Unicode song title (or {@code null} if none)
+	 * @param artist the song artist
+	 * @param artistUnicode the Unicode song artist (or {@code null} if none)
+	 * @param creator the beatmap creator
 	 */
 	public DownloadNode(int beatmapSetID, String date, String title,
 			String titleUnicode, String artist, String artistUnicode, String creator) {
@@ -273,7 +275,7 @@ public class DownloadNode {
 			return;
 		String path = String.format("%s%c%d", Options.getOSZDir(), File.separatorChar, beatmapSetID);
 		String rename = String.format("%d %s - %s.osz", beatmapSetID, artist, title);
-		this.download = new Download(url, path, rename);
+		Download download = new Download(url, path, rename);
 		download.setListener(new DownloadListener() {
 			@Override
 			public void completed() {
@@ -285,8 +287,9 @@ public class DownloadNode {
 				UI.sendBarNotification("Download failed due to a connection error.");
 			}
 		});
+		this.download = download;
 		if (Options.useUnicodeMetadata())  // load glyphs
-			Utils.loadGlyphs(Utils.FONT_LARGE, getTitle(), null);
+			Fonts.loadGlyphs(Fonts.LARGE, getTitle());
 	}
 
 	/**
@@ -348,12 +351,12 @@ public class DownloadNode {
 		Download dl = DownloadList.get().getDownload(beatmapSetID);
 
 		// rectangle outline
-		g.setColor((focus) ? BG_FOCUS : (hover) ? BG_HOVER : BG_NORMAL);
+		g.setColor((focus) ? Colors.BLACK_BG_FOCUS : (hover) ? Colors.BLACK_BG_HOVER : Colors.BLACK_BG_NORMAL);
 		g.fillRect(buttonBaseX, y, buttonWidth, buttonHeight);
 
 		// map is already loaded
 		if (BeatmapSetList.get().containsBeatmapSetID(beatmapSetID)) {
-			g.setColor(Utils.COLOR_BLUE_BUTTON);
+			g.setColor(Colors.BLUE_BUTTON);
 			g.fillRect(buttonBaseX, y, buttonWidth, buttonHeight);
 		}
 
@@ -361,7 +364,7 @@ public class DownloadNode {
 		if (dl != null) {
 			float progress = dl.getProgress();
 			if (progress > 0f) {
-				g.setColor(Utils.COLOR_GREEN);
+				g.setColor(Colors.GREEN);
 				g.fillRect(buttonBaseX, y, buttonWidth * progress / 100f, buttonHeight);
 			}
 		}
@@ -373,21 +376,22 @@ public class DownloadNode {
 
 		// text
 		// TODO: if the title/artist line is too long, shorten it (e.g. add "...") instead of just clipping
-		if (Options.useUnicodeMetadata())  // load glyphs
-			Utils.loadGlyphs(Utils.FONT_BOLD, getTitle(), getArtist());
-		
+		if (Options.useUnicodeMetadata()) {  // load glyphs
+			Fonts.loadGlyphs(Fonts.BOLD, getTitle());
+			Fonts.loadGlyphs(Fonts.BOLD, getArtist());
+		}
 		// TODO can't set clip again or else old clip will be cleared
-		//g.setClip((int) textX, (int) (y + marginY), (int) (edgeX - textX - Utils.FONT_DEFAULT.getWidth(creator)), Utils.FONT_BOLD.getLineHeight());
-		Utils.FONT_BOLD.drawString(
+		//g.setClip((int) textX, (int) (y + marginY), (int) (edgeX - textX - Fonts.DEFAULT.getWidth(creator)), Fonts.BOLD.getLineHeight());
+		Fonts.BOLD.drawString(
 				textX, y + marginY,
 				String.format("%s - %s%s", getArtist(), getTitle(),
 						(dl != null) ? String.format(" [%s]", dl.getStatus().getName()) : ""), Color.white);
 		//g.clearClip();
-		Utils.FONT_DEFAULT.drawString(
-				textX, y + marginY + Utils.FONT_BOLD.getLineHeight(),
+		Fonts.DEFAULT.drawString(
+				textX, y + marginY + Fonts.BOLD.getLineHeight(),
 				String.format("Last updated: %s", date), Color.white);
-		Utils.FONT_DEFAULT.drawString(
-				edgeX - Utils.FONT_DEFAULT.getWidth(creator), y + marginY,
+		Fonts.DEFAULT.drawString(
+				edgeX - Fonts.DEFAULT.getWidth(creator), y + marginY,
 				creator, Color.white);
 	}
 
@@ -399,6 +403,7 @@ public class DownloadNode {
 	 * @param hover true if the mouse is hovering over this button
 	 */
 	public void drawDownload(Graphics g, float position, int id, boolean hover) {
+		Download download = this.download;  // in case clearDownload() is called asynchronously
 		if (download == null) {
 			ErrorHandler.error("Trying to draw download information for button without Download object.", null, false);
 			return;
@@ -410,7 +415,7 @@ public class DownloadNode {
 		float marginY = infoHeight * 0.04f;
 
 		// rectangle outline
-		g.setColor((id % 2 == 0) ? BG_HOVER : BG_NORMAL);
+		g.setColor((id % 2 == 0) ? Colors.BLACK_BG_HOVER : Colors.BLACK_BG_NORMAL);
 		g.fillRect(infoBaseX, y, infoWidth, infoHeight);
 
 		// text
@@ -428,8 +433,8 @@ public class DownloadNode {
 				info = String.format("%s: %.1f%% (%s/%s)", status.getName(), progress,
 						Utils.bytesToString(download.readSoFar()), Utils.bytesToString(download.contentLength()));
 		}
-		Utils.FONT_BOLD.drawString(textX, y + marginY, getTitle(), Color.white);
-		Utils.FONT_DEFAULT.drawString(textX, y + marginY + Utils.FONT_BOLD.getLineHeight(), info, Color.white);
+		Fonts.BOLD.drawString(textX, y + marginY, getTitle(), Color.white);
+		Fonts.DEFAULT.drawString(textX, y + marginY + Fonts.BOLD.getLineHeight(), info, Color.white);
 
 		// 'x' button
 		if (hover) {

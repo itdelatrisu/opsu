@@ -19,6 +19,7 @@
 package itdelatrisu.opsu.objects;
 
 import itdelatrisu.opsu.beatmap.HitObject;
+import itdelatrisu.opsu.objects.curves.Vec2f;
 
 import org.newdawn.slick.Graphics;
 
@@ -53,7 +54,7 @@ public class DummyObject implements GameObject {
 	public boolean mousePressed(int x, int y, int trackPosition) { return false; }
 
 	@Override
-	public float[] getPointAt(int trackPosition) { return new float[] { x, y }; }
+	public Vec2f getPointAt(int trackPosition) { return new Vec2f(x, y); }
 
 	@Override
 	public int getEndTime() { return hitObject.getTime(); }

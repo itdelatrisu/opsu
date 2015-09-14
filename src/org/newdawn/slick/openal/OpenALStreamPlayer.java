@@ -152,16 +152,30 @@ public class OpenALStreamPlayer {
 		if (url != null) {
 			audio = new OggInputStream(url.openStream());
 		} else {
-			if (ref.toLowerCase().endsWith(".mp3"))
-				audio = new Mp3InputStream(ResourceLoader.getResourceAsStream(ref));
-			else
-				audio = new OggInputStream(ResourceLoader.getResourceAsStream(ref));
-
-			if (audio.getRate() == 0 && audio.getChannels() == 0) {
-				if (ref.toLowerCase().endsWith(".mp3"))
-					audio = new OggInputStream(ResourceLoader.getResourceAsStream(ref));
-				else
+			if (ref.toLowerCase().endsWith(".mp3")) {
+				try {
 					audio = new Mp3InputStream(ResourceLoader.getResourceAsStream(ref));
+				} catch (IOException e) {
+					// invalid MP3: check if file is actually OGG
+					try {
+						audio = new OggInputStream(ResourceLoader.getResourceAsStream(ref));
+					} catch (IOException e1) {
+						throw e;  // invalid OGG: re-throw original MP3 exception
+					}
+					if (audio.getRate() == 0 && audio.getChannels() == 0)
+						throw e;  // likely not OGG: re-throw original MP3 exception
+				}
+			} else {
+				audio = new OggInputStream(ResourceLoader.getResourceAsStream(ref));
+				if (audio.getRate() == 0 && audio.getChannels() == 0) {
+					// invalid OGG: check if file is actually MP3
+					AudioInputStream audioOGG = audio;
+					try {
+						audio = new Mp3InputStream(ResourceLoader.getResourceAsStream(ref));
+					} catch (IOException e) {
+						audio = audioOGG;  // invalid MP3: keep OGG stream
+					}
+				}
 			}
 		}
 		

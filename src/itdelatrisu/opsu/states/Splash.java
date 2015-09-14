@@ -21,21 +21,23 @@ package itdelatrisu.opsu.states;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.Options;
-import itdelatrisu.opsu.OszUnpacker;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.beatmap.BeatmapParser;
 import itdelatrisu.opsu.beatmap.BeatmapSetList;
+import itdelatrisu.opsu.beatmap.BeatmapWatchService;
+import itdelatrisu.opsu.beatmap.OszUnpacker;
 import itdelatrisu.opsu.replay.ReplayImporter;
 import itdelatrisu.opsu.ui.UI;
+import itdelatrisu.opsu.ui.animations.AnimatedValue;
+import itdelatrisu.opsu.ui.animations.AnimationEquation;
 
 import java.io.File;
 
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
-import org.newdawn.slick.Image;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.BasicGameState;
@@ -47,6 +49,9 @@ import org.newdawn.slick.state.StateBasedGame;
  * Loads game resources and enters "Main Menu" state.
  */
 public class Splash extends BasicGameState {
+	/** Minimum time, in milliseconds, to display the splash screen (and fade in the logo). */
+	private static final int MIN_SPLASH_TIME = 400;
+
 	/** Whether or not loading has completed. */
 	private boolean finished = false;
 
@@ -59,8 +64,14 @@ public class Splash extends BasicGameState {
 	/** Whether the skin being loaded is a new skin (for program restarts). */
 	private boolean newSkin = false;
 
+	/** Whether the watch service is newly enabled (for program restarts). */
+	private boolean watchServiceChange = false;
+
+	/** Logo alpha level. */
+	private AnimatedValue logoAlpha;
+
 	// game-related variables
-	private int state;
+	private final int state;
 	private GameContainer container;
 	private boolean init = false;
 
@@ -77,9 +88,14 @@ public class Splash extends BasicGameState {
 		if (Options.getSkin() != null)
 			this.newSkin = (Options.getSkin().getDirectory() != Options.getSkinDir());
 
+		// check if watch service newly enabled
+		this.watchServiceChange = Options.isWatchServiceEnabled() && BeatmapWatchService.get() == null;
+
 		// load Utils class first (needed in other 'init' methods)
 		Utils.init(container, game);
 
+		// fade in logo
+		this.logoAlpha = new AnimatedValue(MIN_SPLASH_TIME, 0f, 1f, AnimationEquation.LINEAR);
 		GameImage.MENU_LOGO.getImage().setAlpha(0f);
 	}
 
@@ -99,13 +115,18 @@ public class Splash extends BasicGameState {
 
 			// resources already loaded (from application restart)
 			if (BeatmapSetList.get() != null) {
-				// reload sounds if skin changed
-				if (newSkin) {
+				if (newSkin || watchServiceChange) {  // need to reload resources
 					thread = new Thread() {
 						@Override
 						public void run() {
+							// reload beatmaps if watch service newly enabled
+							if (watchServiceChange)
+								BeatmapParser.parseAllFiles(Options.getBeatmapDir());
+
+							// reload sounds if skin changed
 							// TODO: only reload each sound if actually needed?
-							SoundController.init();
+							if (newSkin)
+								SoundController.init();
 
 							finished = true;
 							thread = null;
@@ -144,13 +165,11 @@ public class Splash extends BasicGameState {
 		}
 
 		// fade in logo
-		Image logo = GameImage.MENU_LOGO.getImage();
-		float alpha = logo.getAlpha();
-		if (alpha < 1f)
-			logo.setAlpha(alpha + (delta / 500f));
+		if (logoAlpha.update(delta))
+			GameImage.MENU_LOGO.getImage().setAlpha(logoAlpha.getValue());
 
 		// change states when loading complete
-		if (finished && alpha >= 1f) {
+		if (finished && logoAlpha.getValue() >= 1f) {
 			// initialize song list
 			if (BeatmapSetList.get().size() > 0) {
 				BeatmapSetList.get().init();

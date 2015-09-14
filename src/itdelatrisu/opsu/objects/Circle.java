@@ -25,7 +25,9 @@ import itdelatrisu.opsu.GameMod;
 import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.beatmap.HitObject;
+import itdelatrisu.opsu.objects.curves.Vec2f;
 import itdelatrisu.opsu.states.Game;
+import itdelatrisu.opsu.ui.Colors;
 
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
@@ -35,9 +37,6 @@ import org.newdawn.slick.Graphics;
  * Data type representing a circle object.
  */
 public class Circle implements GameObject {
-	/** The amount of time, in milliseconds, to fade in the circle. */
-	private static final int FADE_IN_TIME = 375;
-
 	/** The diameter of hit circles. */
 	private static float diameter;
 
@@ -62,11 +61,10 @@ public class Circle implements GameObject {
 	/**
 	 * Initializes the Circle data type with map modifiers, images, and dimensions.
 	 * @param container the game container
-	 * @param circleSize the map's circleSize value
+	 * @param circleDiameter the circle diameter
 	 */
-	public static void init(GameContainer container, float circleSize) {
-		diameter = (104 - (circleSize * 8));
-		diameter = (diameter * HitObject.getXMultiplier());  // convert from Osupixels (640x480)
+	public static void init(GameContainer container, float circleDiameter) {
+		diameter = circleDiameter * HitObject.getXMultiplier();  // convert from Osupixels (640x480)
 		int diameterInt = (int) diameter;
 		GameImage.HITCIRCLE.setImage(GameImage.HITCIRCLE.getImage().getScaledCopy(diameterInt, diameterInt));
 		GameImage.HITCIRCLE_OVERLAY.setImage(GameImage.HITCIRCLE_OVERLAY.getImage().getScaledCopy(diameterInt, diameterInt));
@@ -93,26 +91,37 @@ public class Circle implements GameObject {
 	@Override
 	public void draw(Graphics g, int trackPosition) {
 		int timeDiff = hitObject.getTime() - trackPosition;
-		float scale = timeDiff / (float) game.getApproachTime();
-		float fadeinScale = (timeDiff - game.getApproachTime() + FADE_IN_TIME) / (float) FADE_IN_TIME;
+		final int approachTime = game.getApproachTime();
+		final int fadeInTime = game.getFadeInTime();
+		float scale = timeDiff / (float) approachTime;
 		float approachScale = 1 + scale * 3;
+		float fadeinScale = (timeDiff - approachTime + fadeInTime) / (float) fadeInTime;
 		float alpha = Utils.clamp(1 - fadeinScale, 0, 1);
 
-		float oldAlpha = Utils.COLOR_WHITE_FADE.a;
-		Utils.COLOR_WHITE_FADE.a = color.a = alpha;
+		if (GameMod.HIDDEN.isActive()) {
+			final int hiddenDecayTime = game.getHiddenDecayTime();
+			final int hiddenTimeDiff = game.getHiddenTimeDiff();
+			if (fadeinScale <= 0f && timeDiff < hiddenTimeDiff + hiddenDecayTime) {
+				float hiddenAlpha = (timeDiff < hiddenTimeDiff) ? 0f : (timeDiff - hiddenTimeDiff) / (float) hiddenDecayTime;
+				alpha = Math.min(alpha, hiddenAlpha);
+			}
+		}
 
-		if (timeDiff >= 0)
+		float oldAlpha = Colors.WHITE_FADE.a;
+		Colors.WHITE_FADE.a = color.a = alpha;
+
+		if (timeDiff >= 0 && !GameMod.HIDDEN.isActive())
 			GameImage.APPROACHCIRCLE.getImage().getScaledCopy(approachScale).drawCentered(x, y, color);
 		GameImage.HITCIRCLE.getImage().drawCentered(x, y, color);
 		boolean overlayAboveNumber = Options.getSkin().isHitCircleOverlayAboveNumber();
 		if (!overlayAboveNumber)
-			GameImage.HITCIRCLE_OVERLAY.getImage().drawCentered(x, y, Utils.COLOR_WHITE_FADE);
+			GameImage.HITCIRCLE_OVERLAY.getImage().drawCentered(x, y, Colors.WHITE_FADE);
 		data.drawSymbolNumber(hitObject.getComboNumber(), x, y,
 				GameImage.HITCIRCLE.getImage().getWidth() * 0.40f / data.getDefaultSymbolImage(0).getHeight(), alpha);
 		if (overlayAboveNumber)
-			GameImage.HITCIRCLE_OVERLAY.getImage().drawCentered(x, y, Utils.COLOR_WHITE_FADE);
+			GameImage.HITCIRCLE_OVERLAY.getImage().drawCentered(x, y, Colors.WHITE_FADE);
 
-		Utils.COLOR_WHITE_FADE.a = oldAlpha;
+		Colors.WHITE_FADE.a = oldAlpha;
 	}
 
 	/**
@@ -186,7 +195,7 @@ public class Circle implements GameObject {
 	}
 
 	@Override
-	public float[] getPointAt(int trackPosition) { return new float[] { x, y }; }
+	public Vec2f getPointAt(int trackPosition) { return new Vec2f(x, y); }
 
 	@Override
 	public int getEndTime() { return hitObject.getTime(); }

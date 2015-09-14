@@ -18,8 +18,6 @@
 
 package itdelatrisu.opsu.objects.curves;
 
-import org.newdawn.slick.SlickException;
-
 /**
  * Representation of a Centripetal Catmull–Rom spline.
  * (Currently not technically Centripetal Catmull–Rom.)
@@ -37,11 +35,10 @@ public class CentripetalCatmullRom extends CurveType {
 	/**
 	 * Constructor.
 	 * @param points the control points of the curve
-	 * @throws SlickException
 	 */
-	protected CentripetalCatmullRom(Vec2f[] points) throws SlickException {
+	protected CentripetalCatmullRom(Vec2f[] points) {
 		if (points.length != 4)
-			throw new SlickException(String.format("Need exactly 4 points to initialize CentripetalCatmullRom, %d provided.", points.length));
+			throw new RuntimeException(String.format("Need exactly 4 points to initialize CentripetalCatmullRom, %d provided.", points.length));
 
 		this.points = points;
 		time = new float[4];

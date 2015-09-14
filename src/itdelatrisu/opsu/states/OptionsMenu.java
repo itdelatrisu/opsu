@@ -26,6 +26,8 @@ import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
+import itdelatrisu.opsu.ui.Colors;
+import itdelatrisu.opsu.ui.Fonts;
 import itdelatrisu.opsu.ui.MenuButton;
 import itdelatrisu.opsu.ui.UI;
 
@@ -86,14 +88,18 @@ public class OptionsMenu extends BasicGameState {
 			GameOption.DISABLE_MOUSE_WHEEL,
 			GameOption.DISABLE_MOUSE_BUTTONS,
 			GameOption.CURSOR_SIZE,
-			GameOption.NEW_CURSOR
+			GameOption.NEW_CURSOR,
+			GameOption.DISABLE_CURSOR
 		}),
 		CUSTOM ("Custom", new GameOption[] {
 			GameOption.FIXED_CS,
 			GameOption.FIXED_HP,
 			GameOption.FIXED_AR,
 			GameOption.FIXED_OD,
-			GameOption.CHECKPOINT
+			GameOption.CHECKPOINT,
+			GameOption.REPLAY_SEEKING,
+			GameOption.DISABLE_UPDATER,
+			GameOption.ENABLE_WATCH_SERVICE
 		});
 
 		/** Total number of tabs. */
@@ -110,10 +116,10 @@ public class OptionsMenu extends BasicGameState {
 		private static OptionTab[] values = values();
 
 		/** Tab name. */
-		private String name;
+		private final String name;
 
 		/** Options array. */
-		public GameOption[] options;
+		public final GameOption[] options;
 
 		/** Associated tab button. */
 		public MenuButton button;
@@ -163,7 +169,7 @@ public class OptionsMenu extends BasicGameState {
 	private StateBasedGame game;
 	private Input input;
 	private Graphics g;
-	private int state;
+	private final int state;
 
 	public OptionsMenu(int state) {
 		this.state = state;
@@ -182,8 +188,8 @@ public class OptionsMenu extends BasicGameState {
 
 		// option tabs
 		Image tabImage = GameImage.MENU_TAB.getImage();
-		float tabX = width * 0.032f + Utils.FONT_DEFAULT.getWidth("Change the way opsu! behaves") + (tabImage.getWidth() / 2);
-		float tabY = Utils.FONT_XLARGE.getLineHeight() + Utils.FONT_DEFAULT.getLineHeight() +
+		float tabX = width * 0.032f + Fonts.DEFAULT.getWidth("Change the way opsu! behaves") + (tabImage.getWidth() / 2);
+		float tabY = Fonts.XLARGE.getLineHeight() + Fonts.DEFAULT.getLineHeight() +
 				height * 0.015f - (tabImage.getHeight() / 2f);
 		int tabOffset = Math.min(tabImage.getWidth(), width / OptionTab.SIZE);
 		for (OptionTab tab : OptionTab.values())
@@ -198,21 +204,18 @@ public class OptionsMenu extends BasicGameState {
 	@Override
 	public void render(GameContainer container, StateBasedGame game, Graphics g)
 			throws SlickException {
-		g.setBackground(Utils.COLOR_BLACK_ALPHA);
-
 		int width = container.getWidth();
 		int height = container.getHeight();
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
-		float lineY = OptionTab.DISPLAY.button.getY() + (GameImage.MENU_TAB.getImage().getHeight() / 2f);
+
+		// background
+		GameImage.OPTIONS_BG.getImage().draw();
 
 		// title
 		float marginX = width * 0.015f, marginY = height * 0.01f;
-		Utils.FONT_XLARGE.drawString(marginX, marginY, "Options", Color.white);
-		Utils.FONT_DEFAULT.drawString(marginX, marginY + Utils.FONT_XLARGE.getLineHeight() * 0.92f,
+		Fonts.XLARGE.drawString(marginX, marginY, "Options", Color.white);
+		Fonts.DEFAULT.drawString(marginX, marginY + Fonts.XLARGE.getLineHeight() * 0.92f,
 				"Change the way opsu! behaves", Color.white);
-
-		// background
-		GameImage.OPTIONS_BG.getImage().draw(0, lineY);
 
 		// game options
 		g.setLineWidth(1f);
@@ -241,6 +244,7 @@ public class OptionsMenu extends BasicGameState {
 				currentTab.getName(), true, false);
 		g.setColor(Color.white);
 		g.setLineWidth(2f);
+		float lineY = OptionTab.DISPLAY.button.getY() + (GameImage.MENU_TAB.getImage().getHeight() / 2f);
 		g.drawLine(0, lineY, width, lineY);
 		g.resetLineWidth();
 
@@ -248,15 +252,15 @@ public class OptionsMenu extends BasicGameState {
 
 		// key entry state
 		if (keyEntryLeft || keyEntryRight) {
-			g.setColor(Utils.COLOR_BLACK_ALPHA);
+			g.setColor(Colors.BLACK_ALPHA);
 			g.fillRect(0, 0, width, height);
 			g.setColor(Color.white);
 			String prompt = (keyEntryLeft) ?
 					"Please press the new left-click key." :
 					"Please press the new right-click key.";
-			Utils.FONT_LARGE.drawString(
-					(width / 2) - (Utils.FONT_LARGE.getWidth(prompt) / 2),
-					(height / 2) - Utils.FONT_LARGE.getLineHeight(), prompt
+			Fonts.LARGE.drawString(
+					(width / 2) - (Fonts.LARGE.getWidth(prompt) / 2),
+					(height / 2) - Fonts.LARGE.getLineHeight(), prompt
 			);
 		}
 
@@ -413,14 +417,14 @@ public class OptionsMenu extends BasicGameState {
 	 */
 	private void drawOption(GameOption option, int pos, boolean focus) {
 		int width = container.getWidth();
-		int textHeight = Utils.FONT_LARGE.getLineHeight();
+		int textHeight = Fonts.LARGE.getLineHeight();
 		float y = textY + (pos * offsetY);
 		Color color = (focus) ? Color.cyan : Color.white;
 
-		Utils.FONT_LARGE.drawString(width / 30, y, option.getName(), color);
-		Utils.FONT_LARGE.drawString(width / 2, y, option.getValueString(), color);
-		Utils.FONT_SMALL.drawString(width / 30, y + textHeight, option.getDescription(), color);
-		g.setColor(Utils.COLOR_WHITE_ALPHA);
+		Fonts.LARGE.drawString(width / 30, y, option.getName(), color);
+		Fonts.LARGE.drawString(width / 2, y, option.getValueString(), color);
+		Fonts.SMALL.drawString(width / 30, y + textHeight, option.getDescription(), color);
+		g.setColor(Colors.WHITE_ALPHA);
 		g.drawLine(0, y + textHeight, width, y + textHeight);
 	}
 
@@ -433,7 +437,7 @@ public class OptionsMenu extends BasicGameState {
 		if (y < textY || y > textY + (offsetY * maxOptionsScreen))
 			return null;
 
-		int index = (y - textY + Utils.FONT_LARGE.getLineHeight()) / offsetY;
+		int index = (y - textY + Fonts.LARGE.getLineHeight()) / offsetY;
 		if (index >= currentTab.options.length)
 			return null;
 

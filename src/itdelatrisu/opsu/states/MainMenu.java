@@ -31,9 +31,13 @@ import itdelatrisu.opsu.beatmap.BeatmapSetList;
 import itdelatrisu.opsu.beatmap.BeatmapSetNode;
 import itdelatrisu.opsu.downloads.Updater;
 import itdelatrisu.opsu.states.ButtonMenu.MenuState;
+import itdelatrisu.opsu.ui.Colors;
+import itdelatrisu.opsu.ui.Fonts;
 import itdelatrisu.opsu.ui.MenuButton;
 import itdelatrisu.opsu.ui.MenuButton.Expand;
 import itdelatrisu.opsu.ui.UI;
+import itdelatrisu.opsu.ui.animations.AnimatedValue;
+import itdelatrisu.opsu.ui.animations.AnimationEquation;
 
 import java.awt.Desktop;
 import java.io.IOException;
@@ -61,7 +65,7 @@ import org.newdawn.slick.state.transition.FadeOutTransition;
  */
 public class MainMenu extends BasicGameState {
 	/** Idle time, in milliseconds, before returning the logo to its original position. */
-	private static final short MOVE_DELAY = 5000;
+	private static final short LOGO_IDLE_DELAY = 10000;
 
 	/** Max alpha level of the menu background. */
 	private static final float BG_MAX_ALPHA = 0.9f;
@@ -69,11 +73,20 @@ public class MainMenu extends BasicGameState {
 	/** Logo button that reveals other buttons on click. */
 	private MenuButton logo;
 
-	/** Whether or not the logo has been clicked. */
-	private boolean logoClicked = false;
+	/** Logo states. */
+	private enum LogoState { DEFAULT, OPENING, OPEN, CLOSING }
+
+	/** Current logo state. */
+	private LogoState logoState = LogoState.DEFAULT;
 
 	/** Delay timer, in milliseconds, before starting to move the logo back to the center. */
 	private int logoTimer = 0;
+
+	/** Logo horizontal offset for opening and closing actions. */
+	private AnimatedValue logoOpen, logoClose;
+
+	/** Logo button alpha levels. */
+	private AnimatedValue logoButtonAlpha;
 
 	/** Main "Play" and "Exit" buttons. */
 	private MenuButton playButton, exitButton;
@@ -87,8 +100,8 @@ public class MainMenu extends BasicGameState {
 	/** Button linking to repository. */
 	private MenuButton repoButton;
 
-	/** Button for installing updates. */
-	private MenuButton updateButton;
+	/** Buttons for installing updates. */
+	private MenuButton updateButton, restartButton;
 
 	/** Application start time, for drawing the total running time. */
 	private long programStartTime;
@@ -97,7 +110,7 @@ public class MainMenu extends BasicGameState {
 	private Stack<Integer> previous;
 
 	/** Background alpha level (for fade-in effect). */
-	private float bgAlpha = 0f;
+	private AnimatedValue bgAlpha = new AnimatedValue(1100, 0f, BG_MAX_ALPHA, AnimationEquation.LINEAR);
 
 	/** Whether or not a notification was already sent upon entering. */
 	private boolean enterNotification = false;
@@ -105,16 +118,11 @@ public class MainMenu extends BasicGameState {
 	/** Music position bar coordinates and dimensions. */
 	private float musicBarX, musicBarY, musicBarWidth, musicBarHeight;
 
-	/** Music position bar background colors. */
-	private static final Color
-		BG_NORMAL = new Color(0, 0, 0, 0.25f),
-		BG_HOVER  = new Color(0, 0, 0, 0.5f);
-
 	// game-related variables
 	private GameContainer container;
 	private StateBasedGame game;
 	private Input input;
-	private int state;
+	private final int state;
 
 	public MainMenu(int state) {
 		this.state = state;
@@ -145,9 +153,18 @@ public class MainMenu extends BasicGameState {
 		exitButton = new MenuButton(exitImg,
 				width * 0.75f - exitOffset, (height / 2) + (exitImg.getHeight() / 2f)
 		);
-		logo.setHoverExpand(1.05f);
-		playButton.setHoverExpand(1.05f);
-		exitButton.setHoverExpand(1.05f);
+		final int logoAnimationDuration = 350;
+		logo.setHoverAnimationDuration(logoAnimationDuration);
+		playButton.setHoverAnimationDuration(logoAnimationDuration);
+		exitButton.setHoverAnimationDuration(logoAnimationDuration);
+		final AnimationEquation logoAnimationEquation = AnimationEquation.IN_OUT_BACK;
+		logo.setHoverAnimationEquation(logoAnimationEquation);
+		playButton.setHoverAnimationEquation(logoAnimationEquation);
+		exitButton.setHoverAnimationEquation(logoAnimationEquation);
+		final float logoHoverScale = 1.08f;
+		logo.setHoverExpand(logoHoverScale);
+		playButton.setHoverExpand(logoHoverScale);
+		exitButton.setHoverExpand(logoHoverScale);
 
 		// initialize music buttons
 		int musicWidth  = GameImage.MUSIC_PLAY.getImage().getWidth();
@@ -170,24 +187,40 @@ public class MainMenu extends BasicGameState {
 		// initialize downloads button
 		Image dlImg = GameImage.DOWNLOADS.getImage();
 		downloadsButton = new MenuButton(dlImg, width - dlImg.getWidth() / 2f, height / 2f);
+		downloadsButton.setHoverAnimationDuration(350);
+		downloadsButton.setHoverAnimationEquation(AnimationEquation.IN_OUT_BACK);
 		downloadsButton.setHoverExpand(1.03f, Expand.LEFT);
 
 		// initialize repository button
 		float startX = width * 0.997f, startY = height * 0.997f;
-		if (Desktop.isDesktopSupported()) {  // only if a webpage can be opened
+		if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {  // only if a webpage can be opened
 			Image repoImg = GameImage.REPOSITORY.getImage();
 			repoButton = new MenuButton(repoImg,
 					startX - repoImg.getWidth(), startY - repoImg.getHeight()
 			);
+			repoButton.setHoverAnimationDuration(350);
+			repoButton.setHoverAnimationEquation(AnimationEquation.IN_OUT_BACK);
 			repoButton.setHoverExpand();
-			startX -= repoImg.getWidth() * 1.75f;
-		} else
-			startX -= width * 0.005f;
+		}
 
-		// initialize update button
-		Image bangImg = GameImage.BANG.getImage();
-		updateButton = new MenuButton(bangImg, startX - bangImg.getWidth(), startY - bangImg.getHeight());
-		updateButton.setHoverExpand(1.15f);
+		// initialize update buttons
+		float updateX = width / 2f, updateY = height * 17 / 18f;
+		Image downloadImg = GameImage.DOWNLOAD.getImage();
+		updateButton = new MenuButton(downloadImg, updateX, updateY);
+		updateButton.setHoverAnimationDuration(400);
+		updateButton.setHoverAnimationEquation(AnimationEquation.IN_OUT_QUAD);
+		updateButton.setHoverExpand(1.1f);
+		Image updateImg = GameImage.UPDATE.getImage();
+		restartButton = new MenuButton(updateImg, updateX, updateY);
+		restartButton.setHoverAnimationDuration(2000);
+		restartButton.setHoverAnimationEquation(AnimationEquation.LINEAR);
+		restartButton.setHoverRotate(360);
+
+		// logo animations
+		float centerOffsetX = width / 5f;
+		logoOpen = new AnimatedValue(400, 0, centerOffsetX, AnimationEquation.OUT_QUAD);
+		logoClose = new AnimatedValue(2200, centerOffsetX, 0, AnimationEquation.OUT_QUAD);
+		logoButtonAlpha = new AnimatedValue(200, 0f, 1f, AnimationEquation.LINEAR);
 
 		reset();
 	}
@@ -201,27 +234,27 @@ public class MainMenu extends BasicGameState {
 		// draw background
 		Beatmap beatmap = MusicController.getBeatmap();
 		if (Options.isDynamicBackgroundEnabled() &&
-			beatmap != null && beatmap.drawBG(width, height, bgAlpha, true))
+			beatmap != null && beatmap.drawBackground(width, height, bgAlpha.getValue(), true))
 				;
 		else {
 			Image bg = GameImage.MENU_BG.getImage();
-			bg.setAlpha(bgAlpha);
+			bg.setAlpha(bgAlpha.getValue());
 			bg.draw();
 		}
 
 		// top/bottom horizontal bars
-		float oldAlpha = Utils.COLOR_BLACK_ALPHA.a;
-		Utils.COLOR_BLACK_ALPHA.a = 0.2f;
-		g.setColor(Utils.COLOR_BLACK_ALPHA);
+		float oldAlpha = Colors.BLACK_ALPHA.a;
+		Colors.BLACK_ALPHA.a = 0.2f;
+		g.setColor(Colors.BLACK_ALPHA);
 		g.fillRect(0, 0, width, height / 9f);
 		g.fillRect(0, height * 8 / 9f, width, height / 9f);
-		Utils.COLOR_BLACK_ALPHA.a = oldAlpha;
+		Colors.BLACK_ALPHA.a = oldAlpha;
 
 		// draw downloads button
 		downloadsButton.draw();
 
 		// draw buttons
-		if (logoTimer > 0) {
+		if (logoState == LogoState.OPEN || logoState == LogoState.CLOSING) {
 			playButton.draw();
 			exitButton.draw();
 		}
@@ -237,7 +270,7 @@ public class MainMenu extends BasicGameState {
 
 		// draw music position bar
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
-		g.setColor((musicPositionBarContains(mouseX, mouseY)) ? BG_HOVER : BG_NORMAL);
+		g.setColor((musicPositionBarContains(mouseX, mouseY)) ? Colors.BLACK_BG_HOVER : Colors.BLACK_BG_NORMAL);
 		g.fillRoundRect(musicBarX, musicBarY, musicBarWidth, musicBarHeight, 4);
 		g.setColor(Color.white);
 		if (!MusicController.isTrackLoading() && beatmap != null) {
@@ -251,35 +284,26 @@ public class MainMenu extends BasicGameState {
 
 		// draw update button
 		if (Updater.get().showButton()) {
-			Color updateColor = null;
-			switch (Updater.get().getStatus()) {
-			case UPDATE_AVAILABLE:
-				updateColor = Color.red;
-				break;
-			case UPDATE_DOWNLOADED:
-				updateColor = Color.green;
-				break;
-			case UPDATE_DOWNLOADING:
-				updateColor = Color.yellow;
-				break;
-			default:
-				updateColor = Color.white;
-				break;
-			}
-			updateButton.draw(updateColor);
+			Updater.Status status = Updater.get().getStatus();
+			if (status == Updater.Status.UPDATE_AVAILABLE || status == Updater.Status.UPDATE_DOWNLOADING)
+				updateButton.draw();
+			else if (status == Updater.Status.UPDATE_DOWNLOADED)
+				restartButton.draw();
 		}
 
 		// draw text
 		float marginX = width * 0.015f, topMarginY = height * 0.01f, bottomMarginY = height * 0.015f;
-		g.setFont(Utils.FONT_MEDIUM);
-		float lineHeight = Utils.FONT_MEDIUM.getLineHeight() * 0.925f;
+		g.setFont(Fonts.MEDIUM);
+		float lineHeight = Fonts.MEDIUM.getLineHeight() * 0.925f;
 		g.drawString(String.format("Loaded %d songs and %d beatmaps.",
 				BeatmapSetList.get().getMapSetCount(), BeatmapSetList.get().getMapCount()), marginX, topMarginY);
 		if (MusicController.isTrackLoading())
 			g.drawString("Track loading...", marginX, topMarginY + lineHeight);
 		else if (MusicController.trackExists()) {
-			if (Options.useUnicodeMetadata())  // load glyphs
-				Utils.loadGlyphs(Utils.FONT_MEDIUM, beatmap.titleUnicode, beatmap.artistUnicode);
+			if (Options.useUnicodeMetadata()) {  // load glyphs
+				Fonts.loadGlyphs(Fonts.MEDIUM, beatmap.titleUnicode);
+				Fonts.loadGlyphs(Fonts.MEDIUM, beatmap.artistUnicode);
+			}
 			g.drawString((MusicController.isPlaying()) ? "Now Playing:" : "Paused:", marginX, topMarginY + lineHeight);
 			g.drawString(String.format("%s: %s", beatmap.getArtist(), beatmap.getTitle()), marginX + 25, topMarginY + (lineHeight * 2));
 		}
@@ -305,7 +329,10 @@ public class MainMenu extends BasicGameState {
 		exitButton.hoverUpdate(delta, mouseX, mouseY, 0.25f);
 		if (repoButton != null)
 			repoButton.hoverUpdate(delta, mouseX, mouseY);
-		updateButton.hoverUpdate(delta, mouseX, mouseY);
+		if (Updater.get().showButton()) {
+			updateButton.autoHoverUpdate(delta, true);
+			restartButton.autoHoverUpdate(delta, false);
+		}
 		downloadsButton.hoverUpdate(delta, mouseX, mouseY);
 		// ensure only one button is in hover state at once
 		boolean noHoverUpdate = musicPositionBarContains(mouseX, mouseY);
@@ -322,46 +349,46 @@ public class MainMenu extends BasicGameState {
 				MusicController.toggleTrackDimmed(0.33f);
 
 		// fade in background
-		if (bgAlpha < BG_MAX_ALPHA) {
-			bgAlpha += delta / 1000f;
-			if (bgAlpha > BG_MAX_ALPHA)
-				bgAlpha = BG_MAX_ALPHA;
-		}
+		Beatmap beatmap = MusicController.getBeatmap();
+		if (!(Options.isDynamicBackgroundEnabled() && beatmap != null && beatmap.isBackgroundLoading()))
+			bgAlpha.update(delta);
 
 		// buttons
-		if (logoClicked) {
-			if (logoTimer == 0) {  // shifting to left
-				if (logo.getX() > container.getWidth() / 3.3f)
-					logo.setX(logo.getX() - delta);
-				else
-					logoTimer = 1;
-			} else if (logoTimer >= MOVE_DELAY)  // timer over: shift back to center
-				logoClicked = false;
-			else {  // increment timer
+		int centerX = container.getWidth() / 2;
+		float currentLogoButtonAlpha;
+		switch (logoState) {
+		case DEFAULT:
+			break;
+		case OPENING:
+			if (logoOpen.update(delta))  // shifting to left
+				logo.setX(centerX - logoOpen.getValue());
+			else {
+				logoState = LogoState.OPEN;
+				logoTimer = 0;
+				logoButtonAlpha.setTime(0);
+			}
+			break;
+		case OPEN:
+			if (logoButtonAlpha.update(delta)) {  // fade in buttons
+				currentLogoButtonAlpha = logoButtonAlpha.getValue();
+				playButton.getImage().setAlpha(currentLogoButtonAlpha);
+				exitButton.getImage().setAlpha(currentLogoButtonAlpha);
+			} else if (logoTimer >= LOGO_IDLE_DELAY) {  // timer over: shift back to center
+				logoState = LogoState.CLOSING;
+				logoClose.setTime(0);
+				logoTimer = 0;
+			} else  // increment timer
 				logoTimer += delta;
-				if (logoTimer <= 500) {
-					// fade in buttons
-					playButton.getImage().setAlpha(logoTimer / 400f);
-					exitButton.getImage().setAlpha(logoTimer / 400f);
-				}
+			break;
+		case CLOSING:
+			if (logoButtonAlpha.update(-delta)) {  // fade out buttons
+				currentLogoButtonAlpha = logoButtonAlpha.getValue();
+				playButton.getImage().setAlpha(currentLogoButtonAlpha);
+				exitButton.getImage().setAlpha(currentLogoButtonAlpha);
 			}
-		} else {
-			// fade out buttons
-			if (logoTimer > 0) {
-				float alpha = playButton.getImage().getAlpha();
-				if (alpha > 0f) {
-					playButton.getImage().setAlpha(alpha - (delta / 200f));
-					exitButton.getImage().setAlpha(alpha - (delta / 200f));
-				} else
-					logoTimer = 0;
-			}
-
-			// move back to original location
-			if (logo.getX() < container.getWidth() / 2) {
-				logo.setX(logo.getX() + (delta / 3f));
-				if (logo.getX() > container.getWidth() / 2)
-					logo.setX(container.getWidth() / 2);
-			}
+			if (logoClose.update(delta))  // shifting to right
+				logo.setX(centerX - logoClose.getValue());
+			break;
 		}
 
 		// tooltips
@@ -373,8 +400,12 @@ public class MainMenu extends BasicGameState {
 			UI.updateTooltip(delta, "Next track", false);
 		else if (musicPrevious.contains(mouseX, mouseY))
 			UI.updateTooltip(delta, "Previous track", false);
-		else if (Updater.get().showButton() && updateButton.contains(mouseX, mouseY))
-			UI.updateTooltip(delta, Updater.get().getStatus().getDescription(), true);
+		else if (Updater.get().showButton()) {
+			Updater.Status status = Updater.get().getStatus();
+			if (((status == Updater.Status.UPDATE_AVAILABLE || status == Updater.Status.UPDATE_DOWNLOADING) && updateButton.contains(mouseX, mouseY)) ||
+			    (status == Updater.Status.UPDATE_DOWNLOADED && restartButton.contains(mouseX, mouseY)))
+				UI.updateTooltip(delta, status.getDescription(), true);
+		}
 	}
 
 	@Override
@@ -412,8 +443,8 @@ public class MainMenu extends BasicGameState {
 			musicPrevious.resetHover();
 		if (repoButton != null && !repoButton.contains(mouseX, mouseY))
 			repoButton.resetHover();
-		if (!updateButton.contains(mouseX, mouseY))
-			updateButton.resetHover();
+		updateButton.resetHover();
+		restartButton.resetHover();
 		if (!downloadsButton.contains(mouseX, mouseY))
 			downloadsButton.resetHover();
 	}
@@ -449,71 +480,85 @@ public class MainMenu extends BasicGameState {
 				MusicController.resume();
 				UI.sendBarNotification("Play");
 			}
+			return;
 		} else if (musicNext.contains(x, y)) {
 			nextTrack();
 			UI.sendBarNotification(">> Next");
+			return;
 		} else if (musicPrevious.contains(x, y)) {
 			if (!previous.isEmpty()) {
 				SongMenu menu = (SongMenu) game.getState(Opsu.STATE_SONGMENU);
 				menu.setFocus(BeatmapSetList.get().getBaseNode(previous.pop()), -1, true, false);
 				if (Options.isDynamicBackgroundEnabled())
-					bgAlpha = 0f;
+					bgAlpha.setTime(0);
 			} else
 				MusicController.setPosition(0);
 			UI.sendBarNotification("<< Previous");
+			return;
 		}
 
 		// downloads button actions
-		else if (downloadsButton.contains(x, y)) {
+		if (downloadsButton.contains(x, y)) {
 			SoundController.playSound(SoundEffect.MENUHIT);
 			game.enterState(Opsu.STATE_DOWNLOADSMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
+			return;
 		}
 
 		// repository button actions
-		else if (repoButton != null && repoButton.contains(x, y)) {
+		if (repoButton != null && repoButton.contains(x, y)) {
 			try {
 				Desktop.getDesktop().browse(Options.REPOSITORY_URI);
+			} catch (UnsupportedOperationException e) {
+				UI.sendBarNotification("The repository web page could not be opened.");
 			} catch (IOException e) {
 				ErrorHandler.error("Could not browse to repository URI.", e, false);
 			}
+			return;
 		}
 
 		// update button actions
-		else if (Updater.get().showButton() && updateButton.contains(x, y)) {
-			switch (Updater.get().getStatus()) {
-			case UPDATE_AVAILABLE:
+		if (Updater.get().showButton()) {
+			Updater.Status status = Updater.get().getStatus();
+			if (updateButton.contains(x, y) && status == Updater.Status.UPDATE_AVAILABLE) {
 				SoundController.playSound(SoundEffect.MENUHIT);
 				Updater.get().startDownload();
-				break;
-			case UPDATE_DOWNLOADED:
+				updateButton.removeHoverEffects();
+				updateButton.setHoverAnimationDuration(800);
+				updateButton.setHoverAnimationEquation(AnimationEquation.IN_OUT_QUAD);
+				updateButton.setHoverFade(0.6f);
+				return;
+			} else if (restartButton.contains(x, y) && status == Updater.Status.UPDATE_DOWNLOADED) {
 				SoundController.playSound(SoundEffect.MENUHIT);
 				Updater.get().prepareUpdate();
 				container.setForceExit(false);
 				container.exit();
-				break;
-			default:
-				break;
+				return;
 			}
 		}
 
 		// start moving logo (if clicked)
-		else if (!logoClicked) {
+		if (logoState == LogoState.DEFAULT || logoState == LogoState.CLOSING) {
 			if (logo.contains(x, y, 0.25f)) {
-				logoClicked = true;
+				logoState = LogoState.OPENING;
+				logoOpen.setTime(0);
 				logoTimer = 0;
 				playButton.getImage().setAlpha(0f);
 				exitButton.getImage().setAlpha(0f);
 				SoundController.playSound(SoundEffect.MENUHIT);
+				return;
 			}
 		}
 
 		// other button actions (if visible)
-		else if (logoClicked) {
+		else if (logoState == LogoState.OPEN || logoState == LogoState.OPENING) {
 			if (logo.contains(x, y, 0.25f) || playButton.contains(x, y, 0.25f)) {
 				SoundController.playSound(SoundEffect.MENUHIT);
 				enterSongMenu();
-			} else if (exitButton.contains(x, y, 0.25f))
+				return;
+			} else if (exitButton.contains(x, y, 0.25f)) {
 				container.exit();
+				return;
+			}
 		}
 	}
 
@@ -532,8 +577,9 @@ public class MainMenu extends BasicGameState {
 			break;
 		case Input.KEY_P:
 			SoundController.playSound(SoundEffect.MENUHIT);
-			if (!logoClicked) {
-				logoClicked = true;
+			if (logoState == LogoState.DEFAULT || logoState == LogoState.CLOSING) {
+				logoState = LogoState.OPENING;
+				logoOpen.setTime(0);
 				logoTimer = 0;
 				playButton.getImage().setAlpha(0f);
 				exitButton.getImage().setAlpha(0f);
@@ -581,8 +627,11 @@ public class MainMenu extends BasicGameState {
 	public void reset() {
 		// reset logo
 		logo.setX(container.getWidth() / 2);
-		logoClicked = false;
+		logoOpen.setTime(0);
+		logoClose.setTime(0);
+		logoButtonAlpha.setTime(0);
 		logoTimer = 0;
+		logoState = LogoState.DEFAULT;
 
 		logo.resetHover();
 		playButton.resetHover();
@@ -594,6 +643,7 @@ public class MainMenu extends BasicGameState {
 		if (repoButton != null)
 			repoButton.resetHover();
 		updateButton.resetHover();
+		restartButton.resetHover();
 		downloadsButton.resetHover();
 	}
 
@@ -611,7 +661,7 @@ public class MainMenu extends BasicGameState {
 				previous.add(node.index);
 		}
 		if (Options.isDynamicBackgroundEnabled() && !sameAudio && !MusicController.isThemePlaying())
-			bgAlpha = 0f;
+			bgAlpha.setTime(0);
 	}
 
 	/**

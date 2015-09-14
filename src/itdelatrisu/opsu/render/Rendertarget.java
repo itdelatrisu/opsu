@@ -19,10 +19,8 @@ package itdelatrisu.opsu.render;
 
 import java.nio.ByteBuffer;
 
+import org.lwjgl.opengl.EXTFramebufferObject;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL20;
-import org.lwjgl.opengl.GL30;
-import org.lwjgl.opengl.GL32;
 
 /**
  * Represents a rendertarget. For now this maps to an OpenGL FBO via LWJGL.
@@ -50,16 +48,16 @@ public class Rendertarget {
 	private Rendertarget(int width, int height) {
 		this.width = width;
 		this.height = height;
-		fboID = GL30.glGenFramebuffers();
+		fboID = EXTFramebufferObject.glGenFramebuffersEXT();
 		textureID = GL11.glGenTextures();
-		depthBufferID = GL30.glGenRenderbuffers();
+		depthBufferID = EXTFramebufferObject.glGenRenderbuffersEXT();
 	}
 
 	/**
 	 * Bind this rendertarget as the primary framebuffer.
 	 */
 	public void bind() {
-		GL30.glBindFramebuffer(GL30.GL_DRAW_FRAMEBUFFER, fboID);
+		EXTFramebufferObject.glBindFramebufferEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT, fboID);
 	}
 
 	/**
@@ -83,7 +81,7 @@ public class Rendertarget {
 	 * Bind the default framebuffer.
 	 */
 	public static void unbind() {
-		GL30.glBindFramebuffer(GL30.GL_DRAW_FRAMEBUFFER, 0);
+		EXTFramebufferObject.glBindFramebufferEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT, 0);
 	}
 
 	/**
@@ -93,7 +91,7 @@ public class Rendertarget {
 	 * @param height the height
 	*/
 	public static Rendertarget createRTTFramebuffer(int width, int height) {
-		int old_framebuffer = GL11.glGetInteger(GL30.GL_READ_FRAMEBUFFER_BINDING);
+		int old_framebuffer = GL11.glGetInteger(EXTFramebufferObject.GL_FRAMEBUFFER_BINDING_EXT);
 		int old_texture = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D);
 		Rendertarget buffer = new Rendertarget(width,height);
 		buffer.bind();
@@ -104,15 +102,14 @@ public class Rendertarget {
 		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST);
 		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST);
 
-		GL30.glBindRenderbuffer(GL30.GL_RENDERBUFFER, buffer.depthBufferID);
-		GL30.glRenderbufferStorage(GL30.GL_RENDERBUFFER, GL11.GL_DEPTH_COMPONENT, width, height);
-		GL30.glFramebufferRenderbuffer(GL30.GL_FRAMEBUFFER, GL30.GL_DEPTH_ATTACHMENT, GL30.GL_RENDERBUFFER, buffer.depthBufferID);
+		EXTFramebufferObject.glBindRenderbufferEXT(EXTFramebufferObject.GL_RENDERBUFFER_EXT, buffer.depthBufferID);
+		EXTFramebufferObject.glRenderbufferStorageEXT(EXTFramebufferObject.GL_RENDERBUFFER_EXT, GL11.GL_DEPTH_COMPONENT, width, height);
+		EXTFramebufferObject.glFramebufferRenderbufferEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT, EXTFramebufferObject.GL_DEPTH_ATTACHMENT_EXT, EXTFramebufferObject.GL_RENDERBUFFER_EXT, buffer.depthBufferID);
 
-		GL32.glFramebufferTexture(GL30.GL_FRAMEBUFFER, GL30.GL_COLOR_ATTACHMENT0, fboTexture, 0);
-		GL20.glDrawBuffers(GL30.GL_COLOR_ATTACHMENT0);
+		EXTFramebufferObject.glFramebufferTexture2DEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT, EXTFramebufferObject.GL_COLOR_ATTACHMENT0_EXT, GL11.GL_TEXTURE_2D, fboTexture, 0);
 
 		GL11.glBindTexture(GL11.GL_TEXTURE_2D, old_texture);
-		GL30.glBindFramebuffer(GL30.GL_DRAW_FRAMEBUFFER, old_framebuffer);
+		EXTFramebufferObject.glBindFramebufferEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT, old_framebuffer);
 
 		return buffer;
 	}
@@ -122,8 +119,8 @@ public class Rendertarget {
 	 * to use this rendertarget with OpenGL after calling this method.
 	 */
 	public void destroyRTT() {
-		GL30.glDeleteFramebuffers(fboID);
-		GL30.glDeleteRenderbuffers(depthBufferID);
+		EXTFramebufferObject.glDeleteFramebuffersEXT(fboID);
+		EXTFramebufferObject.glDeleteRenderbuffersEXT(depthBufferID);
 		GL11.glDeleteTextures(textureID);
 	}
 }

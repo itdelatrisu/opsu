@@ -21,11 +21,13 @@ package itdelatrisu.opsu.ui;
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.Options;
-import itdelatrisu.opsu.OszUnpacker;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.beatmap.BeatmapParser;
+import itdelatrisu.opsu.beatmap.OszUnpacker;
 import itdelatrisu.opsu.replay.ReplayImporter;
+import itdelatrisu.opsu.ui.animations.AnimatedValue;
+import itdelatrisu.opsu.ui.animations.AnimationEquation;
 
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
@@ -36,7 +38,6 @@ import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.Input;
-import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.StateBasedGame;
 
 /**
@@ -62,7 +63,7 @@ public class UI {
 	private static int barNotifTimer = -1;
 
 	/** Duration, in milliseconds, to display bar notifications. */
-	private static final int BAR_NOTIFICATION_TIME = 1250;
+	private static final int BAR_NOTIFICATION_TIME = 1500;
 
 	/** The current tooltip. */
 	private static String tooltip;
@@ -70,11 +71,8 @@ public class UI {
 	/** Whether or not to check the current tooltip for line breaks. */
 	private static boolean tooltipNewlines;
 
-	/** The current tooltip timer. */
-	private static int tooltipTimer = -1;
-
-	/** Duration, in milliseconds, to fade tooltips. */
-	private static final int TOOLTIP_FADE_TIME = 200;
+	/** The alpha level of the current tooltip (if any). */
+	private static AnimatedValue tooltipAlpha = new AnimatedValue(200, 0f, 1f, AnimationEquation.LINEAR);
 
 	// game-related variables
 	private static GameContainer container;
@@ -87,10 +85,8 @@ public class UI {
 	 * Initializes UI data.
 	 * @param container the game container
 	 * @param game the game object
-	 * @throws SlickException
 	 */
-	public static void init(GameContainer container, StateBasedGame game)
-			throws SlickException {
+	public static void init(GameContainer container, StateBasedGame game) {
 		UI.container = container;
 		UI.input = container.getInput();
 
@@ -106,6 +102,8 @@ public class UI {
 			Image back = GameImage.MENU_BACK.getImage();
 			backButton = new MenuButton(back, back.getWidth() / 2f, container.getHeight() - (back.getHeight() / 2f));
 		}
+		backButton.setHoverAnimationDuration(350);
+		backButton.setHoverAnimationEquation(AnimationEquation.IN_OUT_BACK);
 		backButton.setHoverExpand(MenuButton.Expand.UP_RIGHT);
 	}
 
@@ -117,12 +115,11 @@ public class UI {
 		cursor.update(delta);
 		updateVolumeDisplay(delta);
 		updateBarNotification(delta);
-		if (tooltipTimer > 0)
-			tooltipTimer -= delta;
+		tooltipAlpha.update(-delta);
 	}
 
 	/**
-	 * Draws the global UI components: cursor, FPS, volume bar, bar notifications.
+	 * Draws the global UI components: cursor, FPS, volume bar, tooltips, bar notifications.
 	 * @param g the graphics context
 	 */
 	public static void draw(Graphics g) {
@@ -134,7 +131,7 @@ public class UI {
 	}
 
 	/**
-	 * Draws the global UI components: cursor, FPS, volume bar, bar notifications.
+	 * Draws the global UI components: cursor, FPS, volume bar, tooltips, bar notifications.
 	 * @param g the graphics context
 	 * @param mouseX the mouse x coordinate
 	 * @param mouseY the mouse y coordinate
@@ -178,18 +175,18 @@ public class UI {
 	 */
 	public static void drawTab(float x, float y, String text, boolean selected, boolean isHover) {
 		Image tabImage = GameImage.MENU_TAB.getImage();
-		float tabTextX = x - (Utils.FONT_MEDIUM.getWidth(text) / 2);
+		float tabTextX = x - (Fonts.MEDIUM.getWidth(text) / 2);
 		float tabTextY = y - (tabImage.getHeight() / 2);
 		Color filter, textColor;
 		if (selected) {
 			filter = Color.white;
 			textColor = Color.black;
 		} else {
-			filter = (isHover) ? Utils.COLOR_RED_HOVER : Color.red;
+			filter = (isHover) ? Colors.RED_HOVER : Color.red;
 			textColor = Color.white;
 		}
 		tabImage.drawCentered(x, y, filter);
-		Utils.FONT_MEDIUM.drawString(tabTextX, tabTextY, text, textColor);
+		Fonts.MEDIUM.drawString(tabTextX, tabTextY, text, textColor);
 	}
 
 	/**
@@ -201,14 +198,14 @@ public class UI {
 			return;
 
 		String fps = String.format("%dFPS", container.getFPS());
-		Utils.FONT_BOLD.drawString(
-				container.getWidth() * 0.997f - Utils.FONT_BOLD.getWidth(fps),
-				container.getHeight() * 0.997f - Utils.FONT_BOLD.getHeight(fps),
+		Fonts.BOLD.drawString(
+				container.getWidth() * 0.997f - Fonts.BOLD.getWidth(fps),
+				container.getHeight() * 0.997f - Fonts.BOLD.getHeight(fps),
 				Integer.toString(container.getFPS()), Color.white
 		);
-		Utils.FONT_DEFAULT.drawString(
-				container.getWidth() * 0.997f - Utils.FONT_BOLD.getWidth("FPS"),
-				container.getHeight() * 0.997f - Utils.FONT_BOLD.getHeight("FPS"),
+		Fonts.DEFAULT.drawString(
+				container.getWidth() * 0.997f - Fonts.BOLD.getWidth("FPS"),
+				container.getHeight() * 0.997f - Fonts.BOLD.getHeight("FPS"),
 				"FPS", Color.white
 		);
 	}
@@ -263,7 +260,7 @@ public class UI {
 	 */
 	public static void changeVolume(int units) {
 		final float UNIT_OFFSET = 0.05f;
-		Options.setMasterVolume(container, Utils.getBoundedValue(Options.getMasterVolume(), UNIT_OFFSET * units, 0f, 1f));
+		Options.setMasterVolume(container, Utils.clamp(Options.getMasterVolume() + (UNIT_OFFSET * units), 0f, 1f));
 		if (volumeDisplay == -1)
 			volumeDisplay = 0;
 		else if (volumeDisplay >= VOLUME_DISPLAY_TIME / 10)
@@ -271,8 +268,9 @@ public class UI {
 	}
 
 	/**
-	 * Draws loading progress (OSZ unpacking, beatmap parsing, sound loading)
+	 * Draws loading progress (OSZ unpacking, beatmap parsing, replay importing, sound loading)
 	 * at the bottom of the screen.
+	 * @param g the graphics context
 	 */
 	public static void drawLoadingProgress(Graphics g) {
 		String text, file;
@@ -298,16 +296,16 @@ public class UI {
 		// draw loading info
 		float marginX = container.getWidth() * 0.02f, marginY = container.getHeight() * 0.02f;
 		float lineY = container.getHeight() - marginY;
-		int lineOffsetY = Utils.FONT_MEDIUM.getLineHeight();
+		int lineOffsetY = Fonts.MEDIUM.getLineHeight();
 		if (Options.isLoadVerbose()) {
 			// verbose: display percentages and file names
-			Utils.FONT_MEDIUM.drawString(
+			Fonts.MEDIUM.drawString(
 					marginX, lineY - (lineOffsetY * 2),
 					String.format("%s (%d%%)", text, progress), Color.white);
-			Utils.FONT_MEDIUM.drawString(marginX, lineY - lineOffsetY, file, Color.white);
+			Fonts.MEDIUM.drawString(marginX, lineY - lineOffsetY, file, Color.white);
 		} else {
 			// draw loading bar
-			Utils.FONT_MEDIUM.drawString(marginX, lineY - (lineOffsetY * 2), text, Color.white);
+			Fonts.MEDIUM.drawString(marginX, lineY - (lineOffsetY * 2), text, Color.white);
 			g.setColor(Color.white);
 			g.fillRoundRect(marginX, lineY - (lineOffsetY / 2f),
 					(container.getWidth() - (marginX * 2f)) * progress / 100f, lineOffsetY / 4f, 4
@@ -357,12 +355,7 @@ public class UI {
 		if (s != null) {
 			tooltip = s;
 			tooltipNewlines = newlines;
-			if (tooltipTimer <= 0)
-				tooltipTimer = delta;
-			else
-				tooltipTimer += delta * 2;
-			if (tooltipTimer > TOOLTIP_FADE_TIME)
-				tooltipTimer = TOOLTIP_FADE_TIME;
+			tooltipAlpha.update(delta * 2);
 		}
 	}
 
@@ -372,26 +365,26 @@ public class UI {
 	 * @param g the graphics context
 	 */
 	public static void drawTooltip(Graphics g) {
-		if (tooltipTimer <= 0 || tooltip == null)
+		if (tooltipAlpha.getTime() == 0 || tooltip == null)
 			return;
 
 		int containerWidth = container.getWidth(), containerHeight = container.getHeight();
 		int margin = containerWidth / 100, textMarginX = 2;
 		int offset = GameImage.CURSOR_MIDDLE.getImage().getWidth() / 2;
-		int lineHeight = Utils.FONT_SMALL.getLineHeight();
+		int lineHeight = Fonts.SMALL.getLineHeight();
 		int textWidth = textMarginX * 2, textHeight = lineHeight;
 		if (tooltipNewlines) {
 			String[] lines = tooltip.split("\\n");
-			int maxWidth = Utils.FONT_SMALL.getWidth(lines[0]);
+			int maxWidth = Fonts.SMALL.getWidth(lines[0]);
 			for (int i = 1; i < lines.length; i++) {
-				int w = Utils.FONT_SMALL.getWidth(lines[i]);
+				int w = Fonts.SMALL.getWidth(lines[i]);
 				if (w > maxWidth)
 					maxWidth = w;
 			}
 			textWidth += maxWidth;
 			textHeight += lineHeight * (lines.length - 1);
 		} else
-			textWidth += Utils.FONT_SMALL.getWidth(tooltip);
+			textWidth += Fonts.SMALL.getWidth(tooltip);
 
 		// get drawing coordinates
 		int x = input.getMouseX() + offset, y = input.getMouseY() + offset;
@@ -405,29 +398,29 @@ public class UI {
 			y = margin;
 
 		// draw tooltip text inside a filled rectangle
-		float alpha = (float) tooltipTimer / TOOLTIP_FADE_TIME;
-		float oldAlpha = Utils.COLOR_BLACK_ALPHA.a;
-		Utils.COLOR_BLACK_ALPHA.a = alpha;
-		g.setColor(Utils.COLOR_BLACK_ALPHA);
-		Utils.COLOR_BLACK_ALPHA.a = oldAlpha;
+		float alpha = tooltipAlpha.getValue();
+		float oldAlpha = Colors.BLACK_ALPHA.a;
+		Colors.BLACK_ALPHA.a = alpha;
+		g.setColor(Colors.BLACK_ALPHA);
+		Colors.BLACK_ALPHA.a = oldAlpha;
 		g.fillRect(x, y, textWidth, textHeight);
-		oldAlpha = Utils.COLOR_DARK_GRAY.a;
-		Utils.COLOR_DARK_GRAY.a = alpha;
-		g.setColor(Utils.COLOR_DARK_GRAY);
+		oldAlpha = Colors.DARK_GRAY.a;
+		Colors.DARK_GRAY.a = alpha;
+		g.setColor(Colors.DARK_GRAY);
 		g.setLineWidth(1);
 		g.drawRect(x, y, textWidth, textHeight);
-		Utils.COLOR_DARK_GRAY.a = oldAlpha;
-		oldAlpha = Utils.COLOR_WHITE_ALPHA.a;
-		Utils.COLOR_WHITE_ALPHA.a = alpha;
-		Utils.FONT_SMALL.drawString(x + textMarginX, y, tooltip, Utils.COLOR_WHITE_ALPHA);
-		Utils.COLOR_WHITE_ALPHA.a = oldAlpha;
+		Colors.DARK_GRAY.a = oldAlpha;
+		oldAlpha = Colors.WHITE_ALPHA.a;
+		Colors.WHITE_ALPHA.a = alpha;
+		Fonts.SMALL.drawString(x + textMarginX, y, tooltip, Colors.WHITE_ALPHA);
+		Colors.WHITE_ALPHA.a = oldAlpha;
 	}
 
 	/**
 	 * Resets the tooltip.
 	 */
 	public static void resetTooltip() {
-		tooltipTimer = -1;
+		tooltipAlpha.setTime(0);
 		tooltip = null;
 	}
 
@@ -475,18 +468,18 @@ public class UI {
 		if (barNotifTimer >= BAR_NOTIFICATION_TIME * 0.9f)
 			alpha -= 1 - ((BAR_NOTIFICATION_TIME - barNotifTimer) / (BAR_NOTIFICATION_TIME * 0.1f));
 		int midX = container.getWidth() / 2, midY = container.getHeight() / 2;
-		float barHeight = Utils.FONT_LARGE.getLineHeight() * (1f + 0.6f * Math.min(barNotifTimer * 15f / BAR_NOTIFICATION_TIME, 1f));
-		float oldAlphaB = Utils.COLOR_BLACK_ALPHA.a, oldAlphaW = Utils.COLOR_WHITE_ALPHA.a;
-		Utils.COLOR_BLACK_ALPHA.a *= alpha;
-		Utils.COLOR_WHITE_ALPHA.a = alpha;
-		g.setColor(Utils.COLOR_BLACK_ALPHA);
+		float barHeight = Fonts.LARGE.getLineHeight() * (1f + 0.6f * Math.min(barNotifTimer * 15f / BAR_NOTIFICATION_TIME, 1f));
+		float oldAlphaB = Colors.BLACK_ALPHA.a, oldAlphaW = Colors.WHITE_ALPHA.a;
+		Colors.BLACK_ALPHA.a *= alpha;
+		Colors.WHITE_ALPHA.a = alpha;
+		g.setColor(Colors.BLACK_ALPHA);
 		g.fillRect(0, midY - barHeight / 2f, container.getWidth(), barHeight);
-		Utils.FONT_LARGE.drawString(
-				midX - Utils.FONT_LARGE.getWidth(barNotif) / 2f,
-				midY - Utils.FONT_LARGE.getLineHeight() / 2.2f,
-				barNotif, Utils.COLOR_WHITE_ALPHA);
-		Utils.COLOR_BLACK_ALPHA.a = oldAlphaB;
-		Utils.COLOR_WHITE_ALPHA.a = oldAlphaW;
+		Fonts.LARGE.drawString(
+				midX - Fonts.LARGE.getWidth(barNotif) / 2f,
+				midY - Fonts.LARGE.getLineHeight() / 2.2f,
+				barNotif, Colors.WHITE_ALPHA);
+		Colors.BLACK_ALPHA.a = oldAlphaB;
+		Colors.WHITE_ALPHA.a = oldAlphaW;
 	}
 
 	/**

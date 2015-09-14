@@ -21,14 +21,15 @@ package itdelatrisu.opsu.beatmap;
 import itdelatrisu.opsu.GameMod;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
 
 /**
  * Data type containing all beatmaps in a beatmap set.
  */
-public class BeatmapSet {
+public class BeatmapSet implements Iterable<Beatmap> {
 	/** List of associated beatmaps. */
-	private ArrayList<Beatmap> beatmaps;
+	private final ArrayList<Beatmap> beatmaps;
 
 	/**
 	 * Constructor.
@@ -46,7 +47,7 @@ public class BeatmapSet {
 	/**
 	 * Returns the beatmap at the given index.
 	 * @param index the beatmap index
-	 * @throws IndexOutOfBoundsException
+	 * @throws IndexOutOfBoundsException if the index is out of range
 	 */
 	public Beatmap get(int index) { return beatmaps.get(index); }
 
@@ -54,9 +55,12 @@ public class BeatmapSet {
 	 * Removes the beatmap at the given index.
 	 * @param index the beatmap index
 	 * @return the removed beatmap
-	 * @throws IndexOutOfBoundsException
+	 * @throws IndexOutOfBoundsException if the index is out of range
 	 */
 	public Beatmap remove(int index) { return beatmaps.remove(index); }
+
+	@Override
+	public Iterator<Beatmap> iterator() { return beatmaps.iterator(); }
 
 	/**
 	 * Returns an array of strings containing beatmap information.
@@ -65,10 +69,10 @@ public class BeatmapSet {
 	 * <li>1: Mapped by {Creator}
 	 * <li>2: Length: {}  BPM: {}  Objects: {}
 	 * <li>3: Circles: {}  Sliders: {}  Spinners: {}
-	 * <li>4: CS:{} HP:{} AR:{} OD:{}
+	 * <li>4: CS:{} HP:{} AR:{} OD:{} Stars:{}
 	 * </ul>
 	 * @param index the beatmap index
-	 * @throws IndexOutOfBoundsException
+	 * @throws IndexOutOfBoundsException if the index is out of range
 	 */
 	public String[] getInfo(int index) {
 		Beatmap beatmap = beatmaps.get(index);
@@ -88,11 +92,12 @@ public class BeatmapSet {
 				(beatmap.hitObjectCircle + beatmap.hitObjectSlider + beatmap.hitObjectSpinner));
 		info[3] = String.format("Circles: %d  Sliders: %d  Spinners: %d",
 				beatmap.hitObjectCircle, beatmap.hitObjectSlider, beatmap.hitObjectSpinner);
-		info[4] = String.format("CS:%.1f HP:%.1f AR:%.1f OD:%.1f",
+		info[4] = String.format("CS:%.1f HP:%.1f AR:%.1f OD:%.1f%s",
 				Math.min(beatmap.circleSize * multiplier, 10f),
 				Math.min(beatmap.HPDrainRate * multiplier, 10f),
 				Math.min(beatmap.approachRate * multiplier, 10f),
-				Math.min(beatmap.overallDifficulty * multiplier, 10f));
+				Math.min(beatmap.overallDifficulty * multiplier, 10f),
+				(beatmap.starRating >= 0) ? String.format(" Stars:%.2f", beatmap.starRating) : "");
 		return info;
 	}
 
@@ -126,7 +131,7 @@ public class BeatmapSet {
 			return true;
 
 		// search: version, tags (remaining beatmaps)
-		for (int i = 1; i < beatmaps.size(); i++) {
+		for (int i = 1, n = beatmaps.size(); i < n; i++) {
 			beatmap = beatmaps.get(i);
 			if (beatmap.version.toLowerCase().contains(query) ||
 				beatmap.tags.contains(query))
@@ -138,7 +143,7 @@ public class BeatmapSet {
 
 	/**
 	 * Checks whether the beatmap set matches a given condition.
-	 * @param type the condition type (ar, cs, od, hp, bpm, length)
+	 * @param type the condition type (ar, cs, od, hp, bpm, length, star/stars)
 	 * @param operator the operator {@literal (=/==, >, >=, <, <=)}
 	 * @param value the value
 	 * @return true if the condition is met
@@ -154,6 +159,8 @@ public class BeatmapSet {
 				case "hp": v = beatmap.HPDrainRate; break;
 				case "bpm": v = beatmap.bpmMax; break;
 				case "length": v = beatmap.endTime / 1000; break;
+				case "star":
+				case "stars": v = Math.round(beatmap.starRating * 100) / 100f; break;
 				default: return false;
 			}
 

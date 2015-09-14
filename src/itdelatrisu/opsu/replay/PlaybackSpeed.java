@@ -35,13 +35,13 @@ public enum PlaybackSpeed {
 	HALF (GameImage.REPLAY_PLAYBACK_HALF, 0.5f);
 
 	/** The button image. */
-	private GameImage gameImage;
+	private final GameImage gameImage;
+
+	/** The playback speed modifier. */
+	private final float modifier;
 
 	/** The button. */
 	private MenuButton button;
-
-	/** The playback speed modifier. */
-	private float modifier;
 
 	/** Enum values. */
 	private static PlaybackSpeed[] values = PlaybackSpeed.values();

@@ -23,6 +23,7 @@ import itdelatrisu.opsu.Options;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.Map;
 
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Image;
@@ -36,15 +37,36 @@ public class Beatmap implements Comparable<Beatmap> {
 	public static final byte MODE_OSU = 0, MODE_TAIKO = 1, MODE_CTB = 2, MODE_MANIA = 3;
 
 	/** Background image cache. */
-	private static final BeatmapImageCache bgImageCache = new BeatmapImageCache();
+	@SuppressWarnings("serial")
+	private static final LRUCache<File, ImageLoader> bgImageCache = new LRUCache<File, ImageLoader>(10) {
+		@Override
+		public void eldestRemoved(Map.Entry<File, ImageLoader> eldest) {
+			if (eldest.getKey() == lastBG)
+				lastBG = null;
+			ImageLoader imageLoader = eldest.getValue();
+			imageLoader.destroy();
+		}
+	};
+
+	/** The last background image loaded. */
+	private static File lastBG;
 
 	/**
-	 * Returns the background image cache.
+	 * Clears the background image cache.
+	 * <p>
+	 * NOTE: This does NOT destroy the images in the cache, and will cause
+	 * memory leaks if all images have not been destroyed.
 	 */
-	public static BeatmapImageCache getBackgroundImageCache() { return bgImageCache; }
+	public static void clearBackgroundImageCache() { bgImageCache.clear(); }
 
 	/** The OSU File object associated with this beatmap. */
 	private File file;
+
+	/** MD5 hash of this file. */
+	public String md5Hash;
+
+	/** The star rating. */
+	public double starRating = -1;
 
 	/**
 	 * [General]
@@ -138,7 +160,7 @@ public class Beatmap implements Comparable<Beatmap> {
 	public float HPDrainRate = 5f;
 
 	/** CS: Size of circles and sliders (0:large ~ 10:small). */
-	public float circleSize = 4f;
+	public float circleSize = 5f;
 
 	/** OD: Affects timing window, spinners, and approach speed (0:easy ~ 10:hard). */
 	public float overallDifficulty = 5f;
@@ -147,7 +169,7 @@ public class Beatmap implements Comparable<Beatmap> {
 	public float approachRate = -1f;
 
 	/** Slider movement speed multiplier. */
-	public float sliderMultiplier = 1f;
+	public float sliderMultiplier = 1.4f;
 
 	/** Rate at which slider ticks are placed (x per beat). */
 	public float sliderTickRate = 1f;
@@ -184,9 +206,6 @@ public class Beatmap implements Comparable<Beatmap> {
 
 	/** Slider border color. If null, the skin value is used. */
 	public Color sliderBorder;
-
-	/** MD5 hash of this file. */
-	public String md5Hash;
 
 	/**
 	 * [HitObjects]
@@ -255,47 +274,74 @@ public class Beatmap implements Comparable<Beatmap> {
 	}
 
 	/**
-	 * Draws the beatmap background.
+	 * Loads the beatmap background image.
+	 */
+	public void loadBackground() {
+		if (bg == null || bgImageCache.containsKey(bg) || !bg.isFile())
+			return;
+
+		if (lastBG != null) {
+			ImageLoader lastImageLoader = bgImageCache.get(lastBG);
+			if (lastImageLoader != null && lastImageLoader.isLoading()) {
+				lastImageLoader.interrupt();  // only allow loading one image at a time
+				bgImageCache.remove(lastBG);
+			}
+		}
+		ImageLoader imageLoader = new ImageLoader(bg);
+		bgImageCache.put(bg, imageLoader);
+		imageLoader.load(true);
+		lastBG = bg;
+	}
+
+	/**
+	 * Returns whether the beatmap background image is currently loading.
+	 * @return true if loading
+	 */
+	public boolean isBackgroundLoading() {
+		if (bg == null)
+			return false;
+		ImageLoader imageLoader = bgImageCache.get(bg);
+		return (imageLoader != null && imageLoader.isLoading());
+	}
+
+	/**
+	 * Draws the beatmap background image.
 	 * @param width the container width
 	 * @param height the container height
 	 * @param alpha the alpha value
 	 * @param stretch if true, stretch to screen dimensions; otherwise, maintain aspect ratio
 	 * @return true if successful, false if any errors were produced
 	 */
-	public boolean drawBG(int width, int height, float alpha, boolean stretch) {
+	public boolean drawBackground(int width, int height, float alpha, boolean stretch) {
 		if (bg == null)
 			return false;
-		try {
-			Image bgImage = bgImageCache.get(this);
-			if (bgImage == null) {
-				bgImage = new Image(bg.getAbsolutePath());
-				bgImageCache.put(this, bgImage);
-			}
 
-			int swidth = width;
-			int sheight = height;
-			if (!stretch) {
-				// fit image to screen
-				if (bgImage.getWidth() / (float) bgImage.getHeight() > width / (float) height)  // x > y
-					sheight = (int) (width * bgImage.getHeight() / (float) bgImage.getWidth());
-				else
-					swidth = (int) (height * bgImage.getWidth() / (float) bgImage.getHeight());
-			} else {
-				// fill screen while maintaining aspect ratio
-				if (bgImage.getWidth() / (float) bgImage.getHeight() > width / (float) height)  // x > y
-					swidth = (int) (height * bgImage.getWidth() / (float) bgImage.getHeight());
-				else
-					sheight = (int) (width * bgImage.getHeight() / (float) bgImage.getWidth());
-			}
-			bgImage = bgImage.getScaledCopy(swidth, sheight);
-
-			bgImage.setAlpha(alpha);
-			bgImage.drawCentered(width / 2, height / 2);
-		} catch (Exception e) {
-			Log.warn(String.format("Failed to get background image '%s'.", bg), e);
-			bg = null;  // don't try to load the file again until a restart
+		ImageLoader imageLoader = bgImageCache.get(bg);
+		if (imageLoader == null)
 			return false;
+
+		Image bgImage = imageLoader.getImage();
+		if (bgImage == null)
+			return true;
+
+		int swidth = width;
+		int sheight = height;
+		if (!stretch) {
+			// fit image to screen
+			if (bgImage.getWidth() / (float) bgImage.getHeight() > width / (float) height)  // x > y
+				sheight = (int) (width * bgImage.getHeight() / (float) bgImage.getWidth());
+			else
+				swidth = (int) (height * bgImage.getWidth() / (float) bgImage.getHeight());
+		} else {
+			// fill screen while maintaining aspect ratio
+			if (bgImage.getWidth() / (float) bgImage.getHeight() > width / (float) height)  // x > y
+				swidth = (int) (height * bgImage.getWidth() / (float) bgImage.getHeight());
+			else
+				sheight = (int) (width * bgImage.getHeight() / (float) bgImage.getWidth());
 		}
+		bgImage = bgImage.getScaledCopy(swidth, sheight);
+		bgImage.setAlpha(alpha);
+		bgImage.drawCentered(width / 2, height / 2);
 		return true;
 	}
 

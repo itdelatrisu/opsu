@@ -1078,10 +1078,10 @@ public class Input {
 				throw new SlickException("Unable to create controller - no jinput found - add jinput.jar to your classpath");
 			}
 			throw new SlickException("Unable to create controllers");
-		} catch (NoClassDefFoundError e) {
+		} catch (NoClassDefFoundError | UnsatisfiedLinkError e) {
 			// forget it, no jinput availble
 		}
-	}
+    }
 	
 	/**
 	 * Notification from an event handle that an event has been consumed
@@ -1233,7 +1233,7 @@ public class Input {
 		}
 		
 		while (Mouse.next()) {
-			if (Mouse.getEventButton() >= 0) {
+			if (Mouse.getEventButton() >= 0 && Mouse.getEventButton() < mousePressed.length) {
 				if (Mouse.getEventButtonState()) {
 					consumed = false;
 					mousePressed[Mouse.getEventButton()] = true;

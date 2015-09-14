@@ -18,7 +18,9 @@
 
 package itdelatrisu.opsu;
 
+import itdelatrisu.opsu.ui.Fonts;
 import itdelatrisu.opsu.ui.MenuButton;
+import itdelatrisu.opsu.ui.animations.AnimationEquation;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -47,7 +49,7 @@ public enum GameMod {
 	              "DoubleTime", "Zoooooooooom."),
 //	NIGHTCORE     (Category.HARD, 2, GameImage.MOD_NIGHTCORE, "NT", 64, Input.KEY_D, 1.12f,
 //	              "Nightcore", "uguuuuuuuu"),
-	HIDDEN        (Category.HARD, 3, GameImage.MOD_HIDDEN, "HD", 8, Input.KEY_F, 1.06f, false,
+	HIDDEN        (Category.HARD, 3, GameImage.MOD_HIDDEN, "HD", 8, Input.KEY_F, 1.06f,
 	              "Hidden", "Play with no approach circles and fading notes for a slight score advantage."),
 	FLASHLIGHT    (Category.HARD, 4, GameImage.MOD_FLASHLIGHT, "FL", 1024, Input.KEY_G, 1.12f,
 	              "Flashlight", "Restricted view area."),
@@ -55,9 +57,9 @@ public enum GameMod {
 	              "Relax", "You don't need to click.\nGive your clicking/tapping finger a break from the heat of things.\n**UNRANKED**"),
 	AUTOPILOT     (Category.SPECIAL, 1, GameImage.MOD_AUTOPILOT, "AP", 8192, Input.KEY_X, 0f,
 	              "Relax2", "Automatic cursor movement - just follow the rhythm.\n**UNRANKED**"),
-	SPUN_OUT      (Category.SPECIAL, 2, GameImage.MOD_SPUN_OUT, "SO", 4096, Input.KEY_V, 0.9f,
+	SPUN_OUT      (Category.SPECIAL, 2, GameImage.MOD_SPUN_OUT, "SO", 4096, Input.KEY_C, 0.9f,
 	              "SpunOut", "Spinners will be automatically completed."),
-	AUTO          (Category.SPECIAL, 3, GameImage.MOD_AUTO, "", 2048, Input.KEY_B, 1f,
+	AUTO          (Category.SPECIAL, 3, GameImage.MOD_AUTO, "", 2048, Input.KEY_V, 1f,
 	              "Autoplay", "Watch a perfect automated play through the song.");
 
 	/** Mod categories. */
@@ -67,13 +69,13 @@ public enum GameMod {
 		SPECIAL (2, "Special", Color.white);
 
 		/** Drawing index. */
-		private int index;
+		private final int index;
 
 		/** Category name. */
-		private String name;
+		private final String name;
 
 		/** Text color. */
-		private Color color;
+		private final Color color;
 
 		/** The coordinates of the category. */
 		private float x, y;
@@ -96,10 +98,10 @@ public enum GameMod {
 		 * @param height the container height
 		 */
 		public void init(int width, int height) {
-			float multY = Utils.FONT_LARGE.getLineHeight() * 2 + height * 0.06f;
+			float multY = Fonts.LARGE.getLineHeight() * 2 + height * 0.06f;
 			float offsetY = GameImage.MOD_EASY.getImage().getHeight() * 1.5f;
 			this.x = width / 30f;
-			this.y = multY + Utils.FONT_LARGE.getLineHeight() * 3f + offsetY * index;
+			this.y = multY + Fonts.LARGE.getLineHeight() * 3f + offsetY * index;
 		}
 
 		/**
@@ -124,37 +126,34 @@ public enum GameMod {
 	}
 
 	/** The category for the mod. */
-	private Category category;
+	private final Category category;
 
 	/** The index in the category (for positioning). */
-	private int categoryIndex;
+	private final int categoryIndex;
 
 	/** The file name of the mod image. */
-	private GameImage image;
+	private final GameImage image;
 
 	/** The abbreviation for the mod. */
-	private String abbrev;
+	private final String abbrev;
 
 	/**
 	 * Bit value associated with the mod.
 	 * See the osu! API: https://github.com/peppy/osu-api/wiki#mods
 	 */
-	private int bit;
+	private final int bit;
 
 	/** The shortcut key associated with the mod. */
-	private int key;
+	private final int key;
 
 	/** The score multiplier. */
-	private float multiplier;
-
-	/** Whether or not the mod is implemented. */
-	private boolean implemented;
+	private final float multiplier;
 
 	/** The name of the mod. */
-	private String name;
+	private final String name;
 
 	/** The description of the mod. */
-	private String description;
+	private final String description;
 
 	/** Whether or not this mod is active. */
 	private boolean active = false;
@@ -192,13 +191,15 @@ public enum GameMod {
 			c.init(width, height);
 
 		// create buttons
-		float baseX = Category.EASY.getX() + Utils.FONT_LARGE.getWidth(Category.EASY.getName()) * 1.25f;
+		float baseX = Category.EASY.getX() + Fonts.LARGE.getWidth(Category.EASY.getName()) * 1.25f;
 		float offsetX = GameImage.MOD_EASY.getImage().getWidth() * 2.1f;
 		for (GameMod mod : GameMod.values()) {
 			Image img = mod.image.getImage();
 			mod.button = new MenuButton(img,
 					baseX + (offsetX * mod.categoryIndex) + img.getWidth() / 2f,
 					mod.category.getY());
+			mod.button.setHoverAnimationDuration(300);
+			mod.button.setHoverAnimationEquation(AnimationEquation.IN_OUT_BACK);
 			mod.button.setHoverExpand(1.2f);
 			mod.button.setHoverRotate(10f);
 
@@ -309,24 +310,6 @@ public enum GameMod {
 	 */
 	GameMod(Category category, int categoryIndex, GameImage image, String abbrev,
 			int bit, int key, float multiplier, String name, String description) {
-		this(category, categoryIndex, image, abbrev, bit, key, multiplier, true, name, description);
-	}
-
-	/**
-	 * Constructor.
-	 * @param category the category for the mod
-	 * @param categoryIndex the index in the category
-	 * @param image the GameImage
-	 * @param abbrev the two-letter abbreviation
-	 * @param bit the bit
-	 * @param key the shortcut key
-	 * @param multiplier the score multiplier
-	 * @param implemented whether the mod is implemented
-	 * @param name the name
-	 * @param description the description
-	 */
-	GameMod(Category category, int categoryIndex, GameImage image, String abbrev,
-			int bit, int key, float multiplier, boolean implemented, String name, String description) {
 		this.category = category;
 		this.categoryIndex = categoryIndex;
 		this.image = image;
@@ -334,7 +317,6 @@ public enum GameMod {
 		this.bit = bit;
 		this.key = key;
 		this.multiplier = multiplier;
-		this.implemented = implemented;
 		this.name = name;
 		this.description = description;
 	}
@@ -377,19 +359,10 @@ public enum GameMod {
 	public String getDescription() { return description; }
 
 	/**
-	 * Returns whether or not the mod is implemented.
-	 * @return true if implemented
-	 */
-	public boolean isImplemented() { return implemented; }
-
-	/**
 	 * Toggles the active status of the mod.
 	 * @param checkInverse if true, perform checks for mutual exclusivity
 	 */
 	public void toggle(boolean checkInverse) {
-		if (!implemented)
-			return;
-
 		active = !active;
 		scoreMultiplier = speedMultiplier = difficultyMultiplier = -1f;
 
@@ -446,14 +419,7 @@ public enum GameMod {
 	/**
 	 * Draws the game mod.
 	 */
-	public void draw() {
-		if (!implemented) {
-			button.getImage().setAlpha(0.2f);
-			button.draw();
-			button.getImage().setAlpha(1f);
-		} else
-			button.draw();
-	}
+	public void draw() { button.draw(); }
 
 	/**
 	 * Checks if the coordinates are within the image bounds.

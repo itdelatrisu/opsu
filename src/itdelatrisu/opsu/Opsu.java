@@ -38,10 +38,14 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.lang.reflect.Field;
+import java.net.InetAddress;
 import java.net.ServerSocket;
+import java.net.UnknownHostException;
 
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
+import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.state.transition.FadeInTransition;
@@ -116,16 +120,43 @@ public class Opsu extends StateBasedGame {
 
 		// only allow a single instance
 		try {
-			SERVER_SOCKET = new ServerSocket(Options.getPort());
+			SERVER_SOCKET = new ServerSocket(Options.getPort(), 1, InetAddress.getLocalHost());
+		} catch (UnknownHostException e) {
+			// shouldn't happen
 		} catch (IOException e) {
-			ErrorHandler.error(String.format("Another program is already running on port %d.", Options.getPort()), e, false);
+			ErrorHandler.error(String.format(
+					"opsu! could not be launched for one of these reasons:\n" +
+					"- An instance of opsu! is already running.\n" +
+					"- Another program is bound to port %d. " +
+					"You can change the port opsu! uses by editing the \"Port\" field in the configuration file.",
+					Options.getPort()), null, false);
 			System.exit(1);
 		}
 
-		// set path for lwjgl natives - NOT NEEDED if using JarSplice
-		File nativeDir = new File("./target/natives/");
-		if (nativeDir.isDirectory())
-			System.setProperty("org.lwjgl.librarypath", nativeDir.getAbsolutePath());
+		File nativeDir;
+		if (!Utils.isJarRunning() && (
+		    (nativeDir = new File("./target/natives/")).isDirectory() ||
+		    (nativeDir = new File("./build/natives/")).isDirectory()))
+			;
+		else {
+			nativeDir = Options.NATIVE_DIR;
+			try {
+				new NativeLoader(nativeDir).loadNatives();
+			} catch (IOException e) {
+				Log.error("Error loading natives.", e);
+			}
+		}
+		System.setProperty("org.lwjgl.librarypath", nativeDir.getAbsolutePath());
+		System.setProperty("java.library.path", nativeDir.getAbsolutePath());
+		try {
+			// Workaround for "java.library.path" property being read-only.
+			// http://stackoverflow.com/a/24988095
+			Field fieldSysPath = ClassLoader.class.getDeclaredField("sys_paths");
+			fieldSysPath.setAccessible(true);
+			fieldSysPath.set(null, null);
+		} catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
+			Log.warn("Failed to set 'sys_paths' field.", e);
+		}
 
 		// set the resource paths
 		ResourceLoader.addResourceLocation(new FileSystemLocation(new File("./res/")));
@@ -142,16 +173,21 @@ public class Opsu extends StateBasedGame {
 			Updater.get().setUpdateInfo(args[0], args[1]);
 
 		// check for updates
-		new Thread() {
-			@Override
-			public void run() {
-				try {
-					Updater.get().checkForUpdates();
-				} catch (IOException e) {
-					Log.warn("Check for updates failed.", e);
+		if (!Options.isUpdaterDisabled()) {
+			new Thread() {
+				@Override
+				public void run() {
+					try {
+						Updater.get().checkForUpdates();
+					} catch (IOException e) {
+						Log.warn("Check for updates failed.", e);
+					}
 				}
-			}
-		}.start();
+			}.start();
+		}
+
+		// disable jinput
+		Input.disableControllers();
 
 		// start the game
 		try {
@@ -190,30 +226,28 @@ public class Opsu extends StateBasedGame {
 			SongMenu songMenu = (SongMenu) this.getState(Opsu.STATE_SONGMENU);
 			if (id == STATE_GAMERANKING) {
 				GameData data = ((GameRanking) this.getState(Opsu.STATE_GAMERANKING)).getGameData();
-				if (data != null && data.isGameplay()) {
-					songMenu.resetGameDataOnLoad();
+				if (data != null && data.isGameplay())
 					songMenu.resetTrackOnLoad();
-				}
 			} else {
-				songMenu.resetGameDataOnLoad();
 				if (id == STATE_GAME) {
 					MusicController.pause();
 					MusicController.resume();
 				} else
 					songMenu.resetTrackOnLoad();
 			}
-			if (UI.getCursor().isSkinned())
+			if (UI.getCursor().isBeatmapSkinned())
 				UI.getCursor().reset();
+			songMenu.resetGameDataOnLoad();
 			this.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
 			return false;
 		}
 
 		// show confirmation dialog if any downloads are active
 		if (DownloadList.get().hasActiveDownloads() &&
-		    UI.showExitConfirmation(DownloadList.EXIT_CONFIRMATION))
+			UI.showExitConfirmation(DownloadList.EXIT_CONFIRMATION))
 			return false;
 		if (Updater.get().getStatus() == Updater.Status.UPDATE_DOWNLOADING &&
-		    UI.showExitConfirmation(Updater.EXIT_CONFIRMATION))
+			UI.showExitConfirmation(Updater.EXIT_CONFIRMATION))
 			return false;
 
 		return true;
@@ -248,7 +282,7 @@ public class Opsu extends StateBasedGame {
 		// JARs will not run properly inside directories containing '!'
 		// http://bugs.java.com/view_bug.do?bug_id=4523159
 		if (Utils.isJarRunning() && Utils.getRunningDirectory() != null &&
-		    Utils.getRunningDirectory().getAbsolutePath().indexOf('!') != -1)
+			Utils.getRunningDirectory().getAbsolutePath().indexOf('!') != -1)
 			ErrorHandler.error("JARs cannot be run from some paths containing '!'. Please move or rename the file and try again.", null, false);
 		else
 			ErrorHandler.error(message, e, true);
