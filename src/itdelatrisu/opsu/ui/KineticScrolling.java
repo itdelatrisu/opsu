@@ -6,7 +6,7 @@ package itdelatrisu.opsu.ui;
  * 
  * @author fluddokt (https://github.com/fluddokt)
  */
-public class KinecticScrolling {
+public class KineticScrolling {
 
 	/** The moving averaging constant */
 	final static private float AVG_CONST = 0.2f;

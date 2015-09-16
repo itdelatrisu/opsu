@@ -41,7 +41,7 @@ import itdelatrisu.opsu.downloads.servers.YaSOnlineServer;
 import itdelatrisu.opsu.ui.Colors;
 import itdelatrisu.opsu.ui.DropdownMenu;
 import itdelatrisu.opsu.ui.Fonts;
-import itdelatrisu.opsu.ui.KinecticScrolling;
+import itdelatrisu.opsu.ui.KineticScrolling;
 import itdelatrisu.opsu.ui.MenuButton;
 import itdelatrisu.opsu.ui.UI;
 
@@ -95,7 +95,7 @@ public class DownloadsMenu extends BasicGameState {
 	private int focusTimer = 0;
 
 	/** Current start result button (topmost entry). */
-	KinecticScrolling startResultPos = new KinecticScrolling();
+	KineticScrolling startResultPos = new KineticScrolling();
 
 	/** Total number of results for current query. */
 	private int totalResults = 0;
@@ -116,7 +116,7 @@ public class DownloadsMenu extends BasicGameState {
 	private boolean rankedOnly = true;
 
 	/** Current start download index. */
-	KinecticScrolling startDownloadIndexPos = new KinecticScrolling();
+	KineticScrolling startDownloadIndexPos = new KineticScrolling();
 
 	/** Query thread. */
 	private Thread queryThread;

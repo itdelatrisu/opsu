@@ -44,7 +44,7 @@ import itdelatrisu.opsu.beatmap.OszUnpacker;
 import itdelatrisu.opsu.db.BeatmapDB;
 import itdelatrisu.opsu.db.ScoreDB;
 import itdelatrisu.opsu.states.ButtonMenu.MenuState;
-import itdelatrisu.opsu.ui.KinecticScrolling;
+import itdelatrisu.opsu.ui.KineticScrolling;
 import itdelatrisu.opsu.ui.Colors;
 import itdelatrisu.opsu.ui.Fonts;
 import itdelatrisu.opsu.ui.MenuButton;
@@ -138,7 +138,7 @@ public class SongMenu extends BasicGameState {
 	private BeatmapSetNode startNode;
 
 	/** The first node is about this high above the header. */
-	KinecticScrolling songScrolling = new KinecticScrolling();
+	KineticScrolling songScrolling = new KineticScrolling();
 
 	/** The number of Nodes to offset from the top to the startNode. */
 	private int startNodeOffset;
@@ -210,7 +210,7 @@ public class SongMenu extends BasicGameState {
 	private ScoreData[] focusScores;
 
 	/** Current start score (topmost score entry). */
-	KinecticScrolling startScorePos = new KinecticScrolling();
+	KineticScrolling startScorePos = new KineticScrolling();
 
 	
 	/** Header and footer end and start y coordinates, respectively. */
@@ -380,13 +380,13 @@ public class SongMenu extends BasicGameState {
 
 		// song buttons
 		BeatmapSetNode node = startNode;
-		int starｔNodeOffsetoffset = 0;
-		if (node.prev != null) {
-			starｔNodeOffsetoffset = -1;
+		int songButtonIndex = 0;
+		if (node != null && node.prev != null) {
 			node = node.prev;
+			songButtonIndex = -1;
 		}
 		g.setClip(0, (int) (headerY + DIVIDER_LINE_WIDTH / 2), width, (int) (footerY - headerY));
-		for (int i = startNodeOffset + starｔNodeOffsetoffset; i < MAX_SONG_BUTTONS + 1 && node != null; i++, node = node.next) {
+		for (int i = startNodeOffset + songButtonIndex; i < MAX_SONG_BUTTONS + 1 && node != null; i++, node = node.next) {
 			// draw the node
 			float offset = (node == hoverIndex) ? hoverOffset.getValue() : 0f;
 			float ypos = buttonY + (i*buttonOffset) ;
@@ -576,9 +576,6 @@ public class SongMenu extends BasicGameState {
 			Fonts.DEFAULT.drawString(searchTextX, searchY + Fonts.BOLD.getLineHeight(),
 					(searchResultString == null) ? "Searching..." : searchResultString, Color.white);
 		}
-
-
-		
 
 		// reloading beatmaps
 		if (reloadThread != null) {
@@ -1265,7 +1262,7 @@ public class SongMenu extends BasicGameState {
 		buttonY = -songNodePosDrawn + buttonOffset * startNodeIndex + headerY - DIVIDER_LINE_WIDTH;
 
 		float max = (BeatmapSetList.get().size() + (focusNode != null ? focusNode.getBeatmapSet().size() : 0));
-		songScrolling.setMinMax(0 - buttonOffset * 3, (max - MAX_SONG_BUTTONS- 1 + 3) * buttonOffset);
+		songScrolling.setMinMax(0 - buttonOffset * 2, (max - MAX_SONG_BUTTONS- 1 + 2) * buttonOffset);
 
 		//negative startNodeIndex means the first Node is below the header so offset it.
 		if (startNodeIndex <= 0) {
@@ -1315,7 +1312,6 @@ public class SongMenu extends BasicGameState {
 		int expandedIndex = BeatmapSetList.get().getExpandedIndex();
 		if (node.index != expandedIndex) {
 			node = BeatmapSetList.get().expand(node.index);
-
 
 			// calculate difficulties
 			calculateStarRatings(node.getBeatmapSet());

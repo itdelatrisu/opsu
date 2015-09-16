@@ -1240,6 +1240,8 @@ public class Input {
 
 					pressedX = (int) (xoffset + (Mouse.getEventX() * scaleX));
 					pressedY =  (int) (yoffset + ((height-Mouse.getEventY()) * scaleY));
+					lastMouseX = pressedX;
+					lastMouseY = pressedY;
 
 					for (int i=0;i<mouseListeners.size();i++) {
 						MouseListener listener = (MouseListener) mouseListeners.get(i);
