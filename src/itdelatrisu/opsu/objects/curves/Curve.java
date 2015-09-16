@@ -20,6 +20,7 @@ package itdelatrisu.opsu.objects.curves;
 
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.Options;
+import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.beatmap.HitObject;
 import itdelatrisu.opsu.render.CurveRenderState;
 import itdelatrisu.opsu.skins.Skin;
@@ -111,28 +112,31 @@ public abstract class Curve {
 	public abstract Vec2f pointAt(float t);
 
 	/**
-	 * Draws the full curve to the graphics context.
+	 * Draws the curve in the range [0, t] (where the full range is [0, 1]) to the graphics context.
 	 * @param color the color filter
+	 * @param t set the curve interval to [0, t]
 	 */
-	public void draw(Color color) {
+	public void draw(Color color, float t) {
 		if (curve == null)
 			return;
 
+		t = Utils.clamp(t, 0.0f, 1.0f);
 		// peppysliders
 		if (Options.getSkin().getSliderStyle() == Skin.STYLE_PEPPYSLIDER || !mmsliderSupported) {
+			int drawUpTo = (int)(curve.length*t);
 			Image hitCircle = GameImage.HITCIRCLE.getImage();
 			Image hitCircleOverlay = GameImage.HITCIRCLE_OVERLAY.getImage();
-			for (int i = 0; i < curve.length; i++)
+			for (int i = 0; i < drawUpTo; i++)
 				hitCircleOverlay.drawCentered(curve[i].x, curve[i].y, Colors.WHITE_FADE);
-			for (int i = 0; i < curve.length; i++)
+			for (int i = 0; i < drawUpTo; i++)
 				hitCircle.drawCentered(curve[i].x, curve[i].y, color);
 		}
 
 		// mmsliders
 		else {
 			if (renderState == null)
-				renderState = new CurveRenderState(hitObject);
-			renderState.draw(color, borderColor, curve);
+				renderState = new CurveRenderState(hitObject,curve);
+			renderState.draw(color, borderColor, t);
 		}
 	}
 

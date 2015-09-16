@@ -30,6 +30,7 @@ import itdelatrisu.opsu.objects.curves.Curve;
 import itdelatrisu.opsu.objects.curves.Vec2f;
 import itdelatrisu.opsu.states.Game;
 import itdelatrisu.opsu.ui.Colors;
+import itdelatrisu.opsu.ui.animations.AnimationEquation;
 
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
@@ -179,20 +180,27 @@ public class Slider implements GameObject {
 		float approachScale = 1 + scale * 3;
 		float fadeinScale = (timeDiff - approachTime + fadeInTime) / (float) fadeInTime;
 		float alpha = Utils.clamp(1 - fadeinScale, 0, 1);
+		float decorationsAlpha = Utils.clamp(-2.0f * fadeinScale, 0, 1);
 		boolean overlayAboveNumber = Options.getSkin().isHitCircleOverlayAboveNumber();
-
 		float oldAlpha = Colors.WHITE_FADE.a;
 		Colors.WHITE_FADE.a = color.a = alpha;
 		Image hitCircleOverlay = GameImage.HITCIRCLE_OVERLAY.getImage();
 		Image hitCircle = GameImage.HITCIRCLE.getImage();
 		Vec2f endPos = curve.pointAt(1);
 
-		curve.draw(color);
+		float curveInterval;
+		if(Options.isSliderSnaking()){
+			curveInterval = alpha;
+		} else {
+			curveInterval = 1.0f;
+		}
+		curve.draw(color,curveInterval);
 		color.a = alpha;
 
 		// end circle
-		hitCircle.drawCentered(endPos.x, endPos.y, color);
-		hitCircleOverlay.drawCentered(endPos.x, endPos.y, Colors.WHITE_FADE);
+		Vec2f endCircPos = curve.pointAt(curveInterval);
+		hitCircle.drawCentered(endCircPos.x, endCircPos.y, color);
+		hitCircleOverlay.drawCentered(endCircPos.x, endCircPos.y, Colors.WHITE_FADE);
 
 		// start circle
 		hitCircle.drawCentered(x, y, color);
@@ -201,10 +209,13 @@ public class Slider implements GameObject {
 
 		// ticks
 		if (ticksT != null) {
-			Image tick = GameImage.SLIDER_TICK.getImage();
+			float tickScale = 0.5f + 0.5f*AnimationEquation.OUT_BACK.calc(decorationsAlpha);
+			Image tick = GameImage.SLIDER_TICK.getImage().getScaledCopy(tickScale);
 			for (int i = 0; i < ticksT.length; i++) {
 				Vec2f c = curve.pointAt(ticksT[i]);
-				tick.drawCentered(c.x, c.y, Colors.WHITE_FADE);
+				Colors.WHITE_FADE.a = decorationsAlpha;
+				tick.drawCentered(c.x , c.y , Colors.WHITE_FADE);
+				Colors.WHITE_FADE.a = alpha;
 			}
 		}
 		if (GameMod.HIDDEN.isActive()) {
@@ -224,24 +235,32 @@ public class Slider implements GameObject {
 			hitCircleOverlay.drawCentered(x, y, Colors.WHITE_FADE);
 
 		// repeats
-		for (int tcurRepeat = currentRepeats; tcurRepeat <= currentRepeats + 1; tcurRepeat++) {
-			if (hitObject.getRepeatCount() - 1 > tcurRepeat) {
-				Image arrow = GameImage.REVERSEARROW.getImage();
-				if (tcurRepeat != currentRepeats) {
-					if (sliderTime == 0)
-						continue;
-					float t = Math.max(getT(trackPosition, true), 0);
-					arrow.setAlpha((float) (t - Math.floor(t)));
-				} else
-					arrow.setAlpha(1f);
-				if (tcurRepeat % 2 == 0) {
-					// last circle
-					arrow.setRotation(curve.getEndAngle());
-					arrow.drawCentered(endPos.x, endPos.y);
-				} else {
-					// first circle
-					arrow.setRotation(curve.getStartAngle());
-					arrow.drawCentered(x, y);
+		if (curveInterval == 1.0f) {
+			for (int tcurRepeat = currentRepeats; tcurRepeat <= currentRepeats + 1; tcurRepeat++) {
+				if (hitObject.getRepeatCount() - 1 > tcurRepeat) {
+					Image arrow = GameImage.REVERSEARROW.getImage();
+					if (tcurRepeat != currentRepeats) {
+						if (sliderTime == 0) {
+							continue;
+						}
+						float t = Math.max(getT(trackPosition, true), 0);
+						arrow.setAlpha((float) (t - Math.floor(t)));
+					} else {
+						if(Options.isSliderSnaking()){
+							arrow.setAlpha(decorationsAlpha);
+						} else {
+							arrow.setAlpha(1f);
+						}
+					}
+					if (tcurRepeat % 2 == 0) {
+						// last circle
+						arrow.setRotation(curve.getEndAngle());
+						arrow.drawCentered(endPos.x, endPos.y);
+					} else {
+						// first circle
+						arrow.setRotation(curve.getStartAngle());
+						arrow.drawCentered(x, y);
+					}
 				}
 			}
 		}
