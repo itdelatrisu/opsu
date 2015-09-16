@@ -153,7 +153,7 @@ public class DownloadNode {
 	public static void clipToResultArea(Graphics g) {
 		g.setClip((int) buttonBaseX, (int) buttonBaseY, (int) buttonWidth, (int) (buttonOffset * maxResultsShown));
 	}
-	
+
 	/**
 	 * Sets a clip to the download area.
 	 * @param g the graphics context
@@ -192,20 +192,17 @@ public class DownloadNode {
 	}
 
 	/**
-	 * Returns the button(Results) offset.
-	 * @return the button offset
+	 * Returns the download results button offset.
+	 * @return the offset
 	 */
-	public static float getButtonOffset(){
-		return buttonOffset;
-	}
-	
+	public static float getButtonOffset() { return buttonOffset; }
+
 	/**
-	 * Returns the info(Download) height.
-	 * @return the infoHeight
+	 * Returns the download info height.
+	 * @return the height
 	 */
-	public static float getInfoHeight(){
-		return infoHeight;
-	}
+	public static float getInfoHeight() { return infoHeight; }
+
 	/**
 	 * Returns true if the coordinates are within the bounds of the
 	 * download information button area.
@@ -224,8 +221,8 @@ public class DownloadNode {
 	 * @param total the total number of buttons
 	 */
 	public static void drawResultScrollbar(Graphics g, float position, float total) {
-		UI.drawScrollbar(g, position, total, maxResultsShown * buttonOffset, buttonBaseX, buttonBaseY, 
-				buttonWidth * 1.01f, (maxResultsShown-1) * buttonOffset + buttonHeight, 
+		UI.drawScrollbar(g, position, total, maxResultsShown * buttonOffset, buttonBaseX, buttonBaseY,
+				buttonWidth * 1.01f, (maxResultsShown-1) * buttonOffset + buttonHeight,
 				Colors.BLACK_BG_NORMAL, Color.white, true);
 	}
 

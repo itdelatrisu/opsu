@@ -1,56 +1,69 @@
+/*
+ * opsu! - an open-source osu! client
+ * Copyright (C) 2014, 2015 Jeffrey Han
+ *
+ * opsu! is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * opsu! is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with opsu!.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package itdelatrisu.opsu.ui;
 
 /**
  * Drag to scroll based on:
  * http://ariya.ofilabs.com/2013/11/javascript-kinetic-scrolling-part-2.html
- * 
+ *
  * @author fluddokt (https://github.com/fluddokt)
  */
 public class KineticScrolling {
-
-	/** The moving averaging constant */
-	final static private float AVG_CONST = 0.2f;
-	final static private float ONE_MINUS_AVG_CONST = 1 - AVG_CONST;
+	/** The moving averaging constant. */
+	private static final float AVG_CONST = 0.2f, ONE_MINUS_AVG_CONST = 1 - AVG_CONST;
 
 	/** The constant used to determine how fast the target position will be reach. */
-	final static private int TIME_CONST = 200;
-	
+	private static final int TIME_CONST = 200;
+
 	/** The constant used to determine how much of the velocity will be used to launch to the target. */
-	final static private float AMPLITUDE_CONST = 0.25f;
-	
+	private static final float AMPLITUDE_CONST = 0.25f;
+
 	/** The current position. */
-	float position;
+	private float position;
 
 	/** The offset to scroll to the target position. */
-	float amplitude;
-	
+	private float amplitude;
+
 	/** The current target to scroll to. */
-	float target;
-	
+	private float target;
+
 	/** The total amount of time since the mouse button was released. */
-	float totalDelta;
+	private float totalDelta;
 
 	/** The maximum and minimum value the position can reach. */
-	float max = Float.MAX_VALUE;
-	float min = -Float.MAX_VALUE;
+	private float max = Float.MAX_VALUE, min = -Float.MAX_VALUE;
 
-	/** Whether the mouse is currently pressed or not */
-	boolean pressed = false;
+	/** Whether the mouse is currently pressed or not. */
+	private boolean pressed = false;
 
-	/** The change in position since the last update */
-	float deltaPosition;
-	
+	/** The change in position since the last update. */
+	private float deltaPosition;
+
 	/** The moving average of the velocity. */
-	float avgVelocity;
-	
+	private float avgVelocity;
+
 	/**
 	 * Returns the current Position.
-	 * @return the position.
+	 * @return the position
 	 */
-	public float getPosition() {
-		return position;
-	}
-	
+	public float getPosition() { return position; }
+
 	/**
 	 * Updates the scrolling.
 	 * @param delta the elapsed time since the last update
@@ -61,9 +74,9 @@ public class KineticScrolling {
 			position = target + (float) (-amplitude * Math.exp(-totalDelta / TIME_CONST));
 		} else {
 			avgVelocity = (ONE_MINUS_AVG_CONST * avgVelocity + AVG_CONST * (deltaPosition * 1000f / delta));
-			
+
 			position += deltaPosition;
-			target = position ;
+			target = position;
 			deltaPosition = 0;
 		}
 		if (position > max) {
@@ -78,7 +91,7 @@ public class KineticScrolling {
 
 	/**
 	 * Scrolls to the position.
-	 * @param newPosition the position to scroll to.
+	 * @param newPosition the position to scroll to
 	 */
 	public void scrollToPosition(float newPosition) {
 		amplitude = newPosition - position;
@@ -88,7 +101,7 @@ public class KineticScrolling {
 
 	/**
 	 * Scrolls to an offset from target.
-	 * @param offset the offset from the target to scroll to.
+	 * @param offset the offset from the target to scroll to
 	 */
 	public void scrollOffset(float offset) {
 		scrollToPosition(target + offset);
@@ -107,7 +120,7 @@ public class KineticScrolling {
 
 	/**
 	 * Set the position relative to an offset.
-	 * @param offset the offset from the position.
+	 * @param offset the offset from the position
 	 */
 	public void addOffset(float offset) {
 		setPosition(position + offset);

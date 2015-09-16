@@ -95,7 +95,7 @@ public class DownloadsMenu extends BasicGameState {
 	private int focusTimer = 0;
 
 	/** Current start result button (topmost entry). */
-	KineticScrolling startResultPos = new KineticScrolling();
+	private KineticScrolling startResultPos = new KineticScrolling();
 
 	/** Total number of results for current query. */
 	private int totalResults = 0;
@@ -116,7 +116,7 @@ public class DownloadsMenu extends BasicGameState {
 	private boolean rankedOnly = true;
 
 	/** Current start download index. */
-	KineticScrolling startDownloadIndexPos = new KineticScrolling();
+	private KineticScrolling startDownloadIndexPos = new KineticScrolling();
 
 	/** Query thread. */
 	private Thread queryThread;
@@ -396,15 +396,15 @@ public class DownloadsMenu extends BasicGameState {
 			int maxResultsShown = DownloadNode.maxResultsShown();
 			int startResult = (int) (startResultPos.getPosition() / DownloadNode.getButtonOffset());
 			int offset = (int) (-startResultPos.getPosition() + startResult * DownloadNode.getButtonOffset());
-			
+
 			for (int i = 0; i < maxResultsShown + 1; i++) {
 				int index = startResult + i;
-				if(index < 0)
+				if (index < 0)
 					continue;
 				if (index >= nodes.length)
 					break;
 				nodes[index].drawResult(g, offset + i * DownloadNode.getButtonOffset(),
-						DownloadNode.resultContains(mouseX, mouseY - offset, i)  && !inDropdownMenu,
+						DownloadNode.resultContains(mouseX, mouseY - offset, i) && !inDropdownMenu,
 						(index == focusResult), (previewID == nodes[index].getID()));
 			}
 			g.clearClip();
@@ -441,20 +441,19 @@ public class DownloadsMenu extends BasicGameState {
 			int maxDownloadsShown = DownloadNode.maxDownloadsShown();
 			int startDownloadIndex = (int) (startDownloadIndexPos.getPosition() / DownloadNode.getInfoHeight());
 			int offset = (int) (-startDownloadIndexPos.getPosition() + startDownloadIndex * DownloadNode.getInfoHeight());
-			
-			DownloadNode.clipToDownloadArea(g);
-				for (int i = 0; i < maxDownloadsShown + 1; i++) {
-					int index = startDownloadIndex + i;
-					if (index >= downloadsSize)
-						break;
-					DownloadNode node = DownloadList.get().getNode(index);
-					if (node == null)
-						break;
-					node.drawDownload(g, i * DownloadNode.getInfoHeight() + offset, index,
-							DownloadNode.downloadContains(mouseX, mouseY - offset, i));
-				}
-			g.clearClip();
 
+			DownloadNode.clipToDownloadArea(g);
+			for (int i = 0; i < maxDownloadsShown + 1; i++) {
+				int index = startDownloadIndex + i;
+				if (index >= downloadsSize)
+					break;
+				DownloadNode node = DownloadList.get().getNode(index);
+				if (node == null)
+					break;
+				node.drawDownload(g, i * DownloadNode.getInfoHeight() + offset, index,
+						DownloadNode.downloadContains(mouseX, mouseY - offset, i));
+			}
+			g.clearClip();
 
 			// scroll bar
 			if (downloadsSize > maxDownloadsShown)
@@ -508,7 +507,7 @@ public class DownloadsMenu extends BasicGameState {
 		if (resultList != null)
 			startResultPos.setMinMax(0, DownloadNode.getButtonOffset() * (resultList.length - DownloadNode.maxResultsShown()));
 		startResultPos.update(delta);
-		
+
 		// focus timer
 		if (focusResult != -1 && focusTimer < FOCUS_DELAY)
 			focusTimer += delta;
@@ -579,7 +578,7 @@ public class DownloadsMenu extends BasicGameState {
 				for (int i = 0; i < maxResultsShown + 1; i++) {
 					int startResult = (int) (startResultPos.getPosition() / DownloadNode.getButtonOffset());
 					int offset = (int) (-startResultPos.getPosition() + startResult * DownloadNode.getButtonOffset());
-					
+
 					int index = startResult + i;
 					if (index >= nodes.length)
 						break;
@@ -946,14 +945,12 @@ public class DownloadsMenu extends BasicGameState {
 	 */
 	private void scrollLists(int cx, int cy, int shift) {
 		// search results
-		if (DownloadNode.resultAreaContains(cx, cy)) {
+		if (DownloadNode.resultAreaContains(cx, cy))
 			startResultPos.scrollOffset(shift * DownloadNode.getButtonOffset());
-		}
 
 		// downloads
-		else if (DownloadNode.downloadAreaContains(cx, cy)) {
+		else if (DownloadNode.downloadAreaContains(cx, cy))
 			startDownloadIndexPos.scrollOffset(shift * DownloadNode.getInfoHeight());
-		}
 	}
 
 	/**

@@ -105,10 +105,8 @@ public class ScoreData implements Comparable<ScoreData> {
 	/**
 	 * Returns the Buttons Offset
 	 */
-	public static float getButtonOffset() {
-		return buttonOffset;
-	}
-	
+	public static float getButtonOffset() { return buttonOffset; }
+
 	/**
 	 * Returns true if the coordinates are within the bounds of the
 	 * button at the given index.
@@ -136,14 +134,14 @@ public class ScoreData implements Comparable<ScoreData> {
 	/**
 	 * Draws the scroll bar for the score buttons.
 	 * @param g the graphics context
-	 * @param index the start button index
+	 * @param pos the start button index
 	 * @param total the total number of buttons
 	 */
 	public static void drawScrollbar(Graphics g, float pos, float total) {
 		UI.drawScrollbar(g, pos, total, SongMenu.MAX_SCORE_BUTTONS * buttonOffset, 0, baseY,
 				0, buttonAreaHeight, null, Color.white, false);
 	}
-	
+
 	/**
 	 * Sets a clip to the area.
 	 * @param g the graphics context
@@ -238,7 +236,7 @@ public class ScoreData implements Comparable<ScoreData> {
 	/**
 	 * Draws the score data as a rectangular button.
 	 * @param g the graphics context
-	 * @param index the index (to offset the button from the topmost button)
+	 * @param position the index (to offset the button from the topmost button)
 	 * @param rank the score rank
 	 * @param prevScore the previous (lower) score, or -1 if none
 	 * @param focus whether the button is focused
