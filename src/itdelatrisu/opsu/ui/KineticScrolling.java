@@ -113,7 +113,7 @@ public class KineticScrolling {
 	 */
 	public void setPosition(float newPosition) {
 		pressed();
-		release();
+		released();
 		target = newPosition;
 		position = target;
 	}
@@ -139,7 +139,7 @@ public class KineticScrolling {
 	/**
 	 * Call this when the mouse button has been released.
 	 */
-	public void release() {
+	public void released() {
 		if (!pressed)
 			return;
 		pressed = false;

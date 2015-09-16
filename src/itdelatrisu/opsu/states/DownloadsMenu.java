@@ -796,8 +796,8 @@ public class DownloadsMenu extends BasicGameState {
 
 	@Override
 	public void mouseReleased(int button, int x, int y) {
-		startDownloadIndexPos.release();
-		startResultPos.release();
+		startDownloadIndexPos.released();
+		startResultPos.released();
 	}
 
 	@Override

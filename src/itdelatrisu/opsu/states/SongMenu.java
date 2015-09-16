@@ -739,8 +739,8 @@ public class SongMenu extends BasicGameState {
 
 	@Override
 	public void mouseReleased(int button, int x, int y) {
-		songScrolling.release();
-		startScorePos.release();
+		songScrolling.released();
+		startScorePos.released();
 	}
 
 	@Override
@@ -1082,6 +1082,7 @@ public class SongMenu extends BasicGameState {
 		selectOptionsButton.resetHover();
 		hoverOffset.setTime(0);
 		hoverIndex = null;
+		songScrolling.released();
 		startScorePos.setPosition(0);
 		beatmapMenuTimer = -1;
 		searchTransitionTimer = SEARCH_TRANSITION_TIME;
