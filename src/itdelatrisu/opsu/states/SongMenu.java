@@ -417,7 +417,7 @@ public class SongMenu extends BasicGameState {
 
 		// score buttons
 		if (focusScores != null) {
-			ScoreData.clipToDownloadArea(g);
+			ScoreData.clipToArea(g);
 			int startScore = (int) (startScorePos.getPosition() / ScoreData.getButtonOffset());
 			int offset = (int) (-startScorePos.getPosition() + startScore * ScoreData.getButtonOffset());
 

@@ -87,12 +87,16 @@ public class ScoreData implements Comparable<ScoreData> {
 	/** Drawing values. */
 	private static float baseX, baseY, buttonWidth, buttonHeight, buttonOffset, buttonAreaHeight;
 
+	/** The container width. */
+	private static int containerWidth;
+
 	/**
 	 * Initializes the base coordinates for drawing.
 	 * @param containerWidth the container width
 	 * @param topY the top y coordinate
 	 */
 	public static void init(int containerWidth, float topY) {
+		ScoreData.containerWidth = containerWidth;
 		baseX = containerWidth * 0.01f;
 		baseY = topY;
 		buttonWidth = containerWidth * 0.4f;
@@ -143,11 +147,11 @@ public class ScoreData implements Comparable<ScoreData> {
 	}
 
 	/**
-	 * Sets a clip to the area.
+	 * Sets a vertical clip to the area.
 	 * @param g the graphics context
 	 */
-	public static void clipToDownloadArea(Graphics g) {
-		g.setClip((int) baseX, (int) baseY, (int) buttonWidth, (int) (buttonAreaHeight));
+	public static void clipToArea(Graphics g) {
+		g.setClip(0, (int) baseY, containerWidth, (int) buttonAreaHeight);
 	}
 
 	/**
