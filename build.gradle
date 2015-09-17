@@ -44,7 +44,7 @@ dependencies {
 	compile 'com.googlecode.soundlibs:jlayer:1.0.1-1'
 	compile 'com.googlecode.soundlibs:mp3spi:1.9.5-1'
 	compile 'com.googlecode.soundlibs:tritonus-share:0.3.7-2'
-	compile 'org.xerial:sqlite-jdbc:3.8.6'
+	compile 'org.xerial:sqlite-jdbc:3.8.10.2'
 	compile 'org.json:json:20140107'
 	compile 'net.java.dev.jna:jna:4.1.0'
 	compile 'net.java.dev.jna:jna-platform:4.1.0'
