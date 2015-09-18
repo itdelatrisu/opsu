@@ -28,7 +28,7 @@ public class KineticScrolling {
 	/** The moving averaging constant. */
 	private static final float AVG_CONST = 0.2f, ONE_MINUS_AVG_CONST = 1 - AVG_CONST;
 
-	/** The constant used to determine how fast the target position will be reach. */
+	/** The constant used to determine how fast the target position will be reached. */
 	private static final int TIME_CONST = 200;
 
 	/** The constant used to determine how much of the velocity will be used to launch to the target. */
@@ -58,11 +58,20 @@ public class KineticScrolling {
 	/** The moving average of the velocity. */
 	private float avgVelocity;
 
+	/** The speed multiplier (divides {@link #TIME_CONST}). */
+	private float speedMultiplier = 1f;
+
 	/**
-	 * Returns the current Position.
+	 * Returns the current position.
 	 * @return the position
 	 */
 	public float getPosition() { return position; }
+
+	/**
+	 * Returns the target position.
+	 * @return the target position
+	 */
+	public float getTargetPosition() { return target; }
 
 	/**
 	 * Updates the scrolling.
@@ -71,7 +80,7 @@ public class KineticScrolling {
 	public void update(float delta) {
 		if (!pressed) {
 			totalDelta += delta;
-			position = target + (float) (-amplitude * Math.exp(-totalDelta / TIME_CONST));
+			position = target + (float) (-amplitude * Math.exp(-totalDelta / (TIME_CONST / speedMultiplier)));
 		} else {
 			avgVelocity = (ONE_MINUS_AVG_CONST * avgVelocity + AVG_CONST * (deltaPosition * 1000f / delta));
 
@@ -164,5 +173,16 @@ public class KineticScrolling {
 	public void setMinMax(float min, float max) {
 		this.min = min;
 		this.max = max;
+	}
+
+	/**
+	 * Sets the multiplier for how fast the target position will be reached.
+	 * @param multiplier the speed multiplier (e.g. 1f = normal speed, 2f = reaches in half the time)
+	 * @throws IllegalArgumentException if the multiplier is negative or zero
+	 */
+	public void setSpeedMultiplier(float multiplier) {
+		if (multiplier <= 0f)
+			throw new IllegalArgumentException("Speed multiplier must be above zero.");
+		this.speedMultiplier = multiplier;
 	}
 }

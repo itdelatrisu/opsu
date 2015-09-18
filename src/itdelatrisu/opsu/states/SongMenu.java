@@ -262,6 +262,9 @@ public class SongMenu extends BasicGameState {
 	/** The star stream. */
 	private StarStream starStream;
 
+	/** Whether the menu is currently scrolling to the focus node (blocks other actions). */
+	private boolean isScrollingToFocus = false;
+
 	// game-related variables
 	private GameContainer container;
 	private StateBasedGame game;
@@ -679,15 +682,25 @@ public class SongMenu extends BasicGameState {
 				searchTransitionTimer = SEARCH_TRANSITION_TIME;
 		}
 
-		// Scores
+		// scores
 		if (focusScores != null) {
 			startScorePos.setMinMax(0, (focusScores.length - MAX_SCORE_BUTTONS) * ScoreData.getButtonOffset());
 			startScorePos.update(delta);
 		}
 
-		// mouse hover
+		// scrolling
 		songScrolling.update(delta);
+		if (isScrollingToFocus) {
+			float distanceDiff = Math.abs(songScrolling.getPosition() - songScrolling.getTargetPosition());
+			if (distanceDiff <= buttonOffset / 8f) {  // close enough, stop blocking input
+				songScrolling.scrollToPosition(songScrolling.getTargetPosition());
+				songScrolling.setSpeedMultiplier(1f);
+				isScrollingToFocus = false;
+			}
+		}
 		updateDrawnSongPosition();
+
+		// mouse hover
 		boolean isHover = false;
 		if (mouseY > headerY && mouseY < footerY) {
 			BeatmapSetNode node = startNode;
@@ -733,12 +746,18 @@ public class SongMenu extends BasicGameState {
 
 	@Override
 	public void mousePressed(int button, int x, int y) {
+		if (isScrollingToFocus)
+			return;
+
 		songScrolling.pressed();
 		startScorePos.pressed();
 	}
 
 	@Override
 	public void mouseReleased(int button, int x, int y) {
+		if (isScrollingToFocus)
+			return;
+
 		songScrolling.released();
 		startScorePos.released();
 	}
@@ -750,7 +769,7 @@ public class SongMenu extends BasicGameState {
 			return;
 
 		// block input
-		if (reloadThread != null || beatmapMenuTimer > -1)
+		if (isInputBlocked())
 			return;
 
 		// back
@@ -869,7 +888,7 @@ public class SongMenu extends BasicGameState {
 	@Override
 	public void keyPressed(int key, char c) {
 		// block input
-		if ((reloadThread != null && !(key == Input.KEY_ESCAPE || key == Input.KEY_F12)) || beatmapMenuTimer > -1)
+		if ((reloadThread != null && !(key == Input.KEY_ESCAPE || key == Input.KEY_F12)) || beatmapMenuTimer > -1 || isScrollingToFocus)
 			return;
 
 		switch (key) {
@@ -1022,7 +1041,7 @@ public class SongMenu extends BasicGameState {
 	@Override
 	public void mouseDragged(int oldx, int oldy, int newx, int newy) {
 		// block input
-		if (reloadThread != null || beatmapMenuTimer > -1)
+		if (isInputBlocked())
 			return;
 
 		int diff = newy - oldy;
@@ -1056,7 +1075,7 @@ public class SongMenu extends BasicGameState {
 		}
 
 		// block input
-		if (reloadThread != null || beatmapMenuTimer > -1)
+		if (isInputBlocked())
 			return;
 
 		int shift = (newValue < 0) ? 1 : -1;
@@ -1082,7 +1101,9 @@ public class SongMenu extends BasicGameState {
 		selectOptionsButton.resetHover();
 		hoverOffset.setTime(0);
 		hoverIndex = null;
+		isScrollingToFocus = false;
 		songScrolling.released();
+		songScrolling.setSpeedMultiplier(1f);
 		startScorePos.setPosition(0);
 		beatmapMenuTimer = -1;
 		searchTransitionTimer = SEARCH_TRANSITION_TIME;
@@ -1333,10 +1354,9 @@ public class SongMenu extends BasicGameState {
 		startScorePos.setPosition(0);
 
 		if (oldFocus != null && oldFocus.getBeatmapSet() != node.getBeatmapSet()) {
-			// Close previous node
+			// close previous node
 			if (node.index > oldFocus.index) {
 				float offset = (oldFocus.getBeatmapSet().size() - 1) * buttonOffset;
-				//updateSongPos(-offset);
 				songScrolling.addOffset(-offset);
 			}
 
@@ -1354,8 +1374,15 @@ public class SongMenu extends BasicGameState {
 		}
 
 		// change the focus node
-		if (changeStartNode || (startNode.index == 0 && startNode.beatmapIndex == -1 && startNode.prev == null))
-			songScrolling.setPosition((node.index - 1) * buttonOffset);
+		if (changeStartNode || (startNode.index == 0 && startNode.beatmapIndex == -1 && startNode.prev == null)) {
+			if (startNode == null || game.getCurrentStateID() != Opsu.STATE_SONGMENU)
+				songScrolling.setPosition((node.index - 1) * buttonOffset);
+			else {
+				isScrollingToFocus = true;
+				songScrolling.setSpeedMultiplier(2f);
+				songScrolling.released();
+			}
+		}
 
 		updateDrawnSongPosition();
 
@@ -1517,6 +1544,14 @@ public class SongMenu extends BasicGameState {
 			}
 		};
 		reloadThread.start();
+	}
+
+	/**
+	 * Returns whether a delayed/animated event is currently blocking user input.
+	 * @return true if blocking input
+	 */
+	private boolean isInputBlocked() {
+		return (reloadThread != null || beatmapMenuTimer > -1 || isScrollingToFocus);
 	}
 
 	/**
