@@ -76,6 +76,7 @@ public class OptionsMenu extends BasicGameState {
 			GameOption.BACKGROUND_DIM,
 			GameOption.FORCE_DEFAULT_PLAYFIELD,
 			GameOption.IGNORE_BEATMAP_SKINS,
+			GameOption.SNAKING_SLIDERS,
 			GameOption.SHOW_HIT_LIGHTING,
 			GameOption.SHOW_COMBO_BURSTS,
 			GameOption.SHOW_PERFECT_HIT,

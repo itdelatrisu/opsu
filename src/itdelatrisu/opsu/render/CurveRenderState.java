@@ -18,9 +18,9 @@
 package itdelatrisu.opsu.render;
 
 import itdelatrisu.opsu.GameImage;
+import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.beatmap.HitObject;
 import itdelatrisu.opsu.objects.curves.Vec2f;
-import itdelatrisu.opsu.ui.Colors;
 
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
@@ -59,6 +59,12 @@ public class CurveRenderState {
 	/** The HitObject associated with the curve to be drawn. */
 	protected HitObject hitObject;
 
+	/** the points along the curve to be drawn */
+	protected Vec2f[] curve;
+	
+	/** The point to which the curve has last been rendered into the texture (as an index into {@code curve}) */
+	private int lastPointDrawn;
+
 	/**
 	 * Set the width and height of the container that Curves get drawn into.
 	 * Should be called before any curves are drawn.
@@ -74,11 +80,12 @@ public class CurveRenderState {
 		scale = (int) (circleDiameter * HitObject.getXMultiplier());  // convert from Osupixels (640x480)
 		//scale = scale * 118 / 128; //for curves exactly as big as the sliderball
 		FrameBufferCache.init(width, height);
+		NewCurveStyleState.initUnitCone();
 	}
 
 	/**
 	 * Undo the static state. Static state setup caused by calls to
-	 * {@link #draw(org.newdawn.slick.Color, org.newdawn.slick.Color, itdelatrisu.opsu.objects.curves.Vec2f[])}
+	 * {@link #draw(org.newdawn.slick.Color, org.newdawn.slick.Color, float)}
 	 * are undone.
 	 */
 	public static void shutdown() {
@@ -89,10 +96,12 @@ public class CurveRenderState {
 	/**
 	 * Creates an object to hold the render state that's necessary to draw a curve.
 	 * @param hitObject the HitObject that represents this curve, just used as a unique ID
+	 * @param curve the points along the curve to be drawn
 	 */
-	public CurveRenderState(HitObject hitObject) {
+	public CurveRenderState(HitObject hitObject, Vec2f[] curve) {
 		fbo = null;
 		this.hitObject = hitObject;
+		this.curve = curve;
 	}
 
 	/**
@@ -101,9 +110,10 @@ public class CurveRenderState {
 	 * runs it just draws the cached copy to the screen.
 	 * @param color tint of the curve
 	 * @param borderColor the curve border color
-	 * @param curve the points along the curve to be drawn
+	 * @param t the point up to which the curve should be drawn (in the interval [0, 1])
 	 */
-	public void draw(Color color, Color borderColor, Vec2f[] curve) {
+	public void draw(Color color, Color borderColor, float t) {
+		t = Utils.clamp(t, 0.0f, 1.0f);
 		float alpha = color.a;
 
 		// if this curve hasn't been drawn, draw it and cache the result
@@ -113,26 +123,40 @@ public class CurveRenderState {
 			if (mapping == null)
 				mapping = cache.insert(hitObject);
 			fbo = mapping;
+			createVertexBuffer(fbo.getVbo());
+			//write impossible value to make sure the fbo is cleared
+			lastPointDrawn = -1;
+		}
+		
+		int drawUpTo = (int) (t * curve.length);
+		
+		if (lastPointDrawn != drawUpTo) {
+			
+			if (drawUpTo == lastPointDrawn) {
+				return;
+			}
 
 			int oldFb = GL11.glGetInteger(EXTFramebufferObject.GL_FRAMEBUFFER_BINDING_EXT);
 			int oldTex = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D);
-
 			//glGetInteger requires a buffer of size 16, even though just 4
 			//values are returned in this specific case
 			IntBuffer oldViewport = BufferUtils.createIntBuffer(16);
 			GL11.glGetInteger(GL11.GL_VIEWPORT, oldViewport);
 			EXTFramebufferObject.glBindFramebufferEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT, fbo.getID());
 			GL11.glViewport(0, 0, fbo.width, fbo.height);
-			GL11.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-			GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
-			Colors.WHITE_FADE.a = 1.0f;
-			this.draw_curve(color, borderColor, curve);
+			if (lastPointDrawn <= 0 || lastPointDrawn > drawUpTo) {
+				lastPointDrawn = 0;
+				GL11.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+				GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
+			}
+
+			this.renderCurve(color, borderColor, lastPointDrawn, drawUpTo);
+			lastPointDrawn = drawUpTo;
 			color.a = 1f;
 
 			GL11.glBindTexture(GL11.GL_TEXTURE_2D, oldTex);
 			EXTFramebufferObject.glBindFramebufferEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT, oldFb);
 			GL11.glViewport(oldViewport.get(0), oldViewport.get(1), oldViewport.get(2), oldViewport.get(3));
-			Colors.WHITE_FADE.a = alpha;
 		}
 
 		// draw a fullscreen quad with the texture that contains the curve
@@ -180,7 +204,7 @@ public class CurveRenderState {
 	 * Backup the current state of the relevant OpenGL state and change it to
 	 * what's needed to draw the curve.
 	 */
-	private RenderState startRender() {
+	private RenderState saveRenderState() {
 		RenderState state = new RenderState();
 		state.smoothedPoly = GL11.glGetBoolean(GL11.GL_POLYGON_SMOOTH);
 		state.blendEnabled = GL11.glGetBoolean(GL11.GL_BLEND);
@@ -219,7 +243,7 @@ public class CurveRenderState {
 	 * Restore the old OpenGL state that's backed up in {@code state}.
 	 * @param state the old state to restore
 	 */
-	private void endRender(RenderState state) {
+	private void restoreRenderState(RenderState state) {
 		GL11.glMatrixMode(GL11.GL_PROJECTION);
 		GL11.glPopMatrix();
 		GL11.glMatrixMode(GL11.GL_MODELVIEW);
@@ -241,24 +265,18 @@ public class CurveRenderState {
 	}
 
 	/**
-	 * Do the actual drawing of the curve into the currently bound framebuffer.
-	 * @param color the color of the curve
-	 * @param borderColor the curve border color
-	 * @param curve the points along the curve
+	 * Write the vertices and (with position and texture coordinates) for the full
+	 * curve into the OpenGL buffer with the ID specified by {@code bufferID}
+	 * @param bufferID the buffer ID for the OpenGL buffer the vertices should be written into
 	 */
-	private void draw_curve(Color color, Color borderColor, Vec2f[] curve) {
-		staticState.initGradient();
-		RenderState state = startRender();
-		int vtx_buf;
-		// the size is: floatsize * (position + texture coordinates) * (number of cones) * (vertices in a cone)
+	private void createVertexBuffer(int bufferID)
+	{
+		int arrayBufferBinding = GL11.glGetInteger(GL15.GL_ARRAY_BUFFER_BINDING);
 		FloatBuffer buff = BufferUtils.createByteBuffer(4 * (4 + 2) * (2 * curve.length - 1) * (NewCurveStyleState.DIVIDES + 2)).asFloatBuffer();
-		staticState.initShaderProgram();
-		vtx_buf = GL15.glGenBuffers();
 		for (int i = 0; i < curve.length; ++i) {
 			float x = curve[i].x;
 			float y = curve[i].y;
-			//if (i == 0 || i == curve.length - 1){
-			fillCone(buff, x, y, NewCurveStyleState.DIVIDES);
+			fillCone(buff, x, y);
 			if (i != 0) {
 				float last_x = curve[i - 1].x;
 				float last_y = curve[i - 1].y;
@@ -266,12 +284,25 @@ public class CurveRenderState {
 				double diff_y = y - last_y;
 				x = (float) (x - diff_x / 2);
 				y = (float) (y - diff_y / 2);
-				fillCone(buff, x, y, NewCurveStyleState.DIVIDES);
+				fillCone(buff, x, y);
 			}
 		}
 		buff.flip();
-		GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, vtx_buf);
+		GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, bufferID);
 		GL15.glBufferData(GL15.GL_ARRAY_BUFFER, buff, GL15.GL_STATIC_DRAW);
+		GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, arrayBufferBinding);
+	}
+	
+	/**
+	 * Do the actual drawing of the curve into the currently bound framebuffer.
+	 * @param color the color of the curve
+	 * @param borderColor the curve border color
+	 */
+	private void renderCurve(Color color, Color borderColor, int from, int to) {
+		staticState.initGradient();
+		RenderState state = saveRenderState();
+		staticState.initShaderProgram();
+		GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, fbo.getVbo());
 		GL20.glUseProgram(staticState.program);
 		GL20.glEnableVertexAttribArray(staticState.attribLoc);
 		GL20.glEnableVertexAttribArray(staticState.texCoordLoc);
@@ -282,63 +313,37 @@ public class CurveRenderState {
 		//2*4 is for skipping the first 2 floats (u,v)
 		GL20.glVertexAttribPointer(staticState.attribLoc, 4, GL11.GL_FLOAT, false, 6 * 4, 2 * 4);
 		GL20.glVertexAttribPointer(staticState.texCoordLoc, 2, GL11.GL_FLOAT, false, 6 * 4, 0);
-		for (int i = 0; i < curve.length * 2 - 1; ++i)
+		for (int i = from*2; i < to * 2 - 1; ++i)
 			GL11.glDrawArrays(GL11.GL_TRIANGLE_FAN, i * (NewCurveStyleState.DIVIDES + 2), NewCurveStyleState.DIVIDES + 2);
+		GL11.glFlush();
 		GL20.glDisableVertexAttribArray(staticState.texCoordLoc);
 		GL20.glDisableVertexAttribArray(staticState.attribLoc);
-		GL15.glDeleteBuffers(vtx_buf);
-		endRender(state);
+		restoreRenderState(state);
 	}
 
 	/**
 	 * Fill {@code buff} with the texture coordinates and positions for a cone
-	 * with {@code DIVIDES} ground corners that has its center at the coordinates
-	 * {@code (x1,y1)}.
+	 * that has its center at the coordinates {@code (x1,y1)}.
 	 * @param buff the buffer to be filled
 	 * @param x1 x-coordinate of the cone
 	 * @param y1 y-coordinate of the cone
-	 * @param DIVIDES the base of the cone is a regular polygon with this many sides
 	 */
-	protected void fillCone(FloatBuffer buff, float x1, float y1, final int DIVIDES) {
+	protected void fillCone(FloatBuffer buff, float x1, float y1) {
 		float divx = containerWidth / 2.0f;
 		float divy = containerHeight / 2.0f;
 		float offx = -1.0f;
 		float offy = 1.0f;
-		float x, y;
 		float radius = scale / 2;
-		buff.put(1.0f);
-		buff.put(0.5f);
-		//GL11.glTexCoord2d(1.0, 0.5);
-		x = offx + x1 / divx;
-		y = offy - y1 / divy;
-		buff.put(x);
-		buff.put(y);
-		buff.put(0f);
-		buff.put(1f);
-		//GL11.glVertex4f(x, y, 0.0f, 1.0f);
-		for (int j = 0; j < DIVIDES; ++j) {
-			double phase = j * (float) Math.PI * 2 / DIVIDES;
-			buff.put(0.0f);
-			buff.put(0.5f);
-			//GL11.glTexCoord2d(0.0, 0.5);
-			x = (x1 + radius * (float) Math.sin(phase)) / divx;
-			y = (y1 + radius * (float) Math.cos(phase)) / divy;
-			buff.put((offx + x));
-			buff.put((offy - y));
-			buff.put(1f);
-			buff.put(1f);
-			//GL11.glVertex4f(x + 90 * (float) Math.sin(phase), y + 90 * (float) Math.cos(phase), 1.0f, 1.0f);
+		
+		for(int i = 0; i<NewCurveStyleState.unitCone.length/6; ++i)
+		{
+			buff.put(NewCurveStyleState.unitCone[i*6+0]);
+			buff.put(NewCurveStyleState.unitCone[i*6+1]);
+			buff.put(offx + (x1 + radius * NewCurveStyleState.unitCone[i*6+2])/divx);
+			buff.put(offy - (y1 + radius * NewCurveStyleState.unitCone[i*6+3])/divy);
+			buff.put(NewCurveStyleState.unitCone[i*6+4]);
+			buff.put(NewCurveStyleState.unitCone[i*6+5]);
 		}
-		buff.put(0.0f);
-		buff.put(0.5f);
-		//GL11.glTexCoord2d(0.0, 0.5);
-		x = (x1 + radius * (float) Math.sin(0.0)) / divx;
-		y = (y1 + radius * (float) Math.cos(0.0)) / divy;
-		buff.put((offx + x));
-		buff.put((offy - y));
-		buff.put(1f);
-		buff.put(1f);
-		//GL11.glVertex4f(x + 90 * (float) Math.sin(0.0), y + 90 * (float) Math.cos(0.0), 1.0f, 1.0f);
 	}
 
 	/**
@@ -354,6 +359,13 @@ public class CurveRenderState {
 		 */
 		protected static final int DIVIDES = 30;
 
+		/**
+		 * Array to hold the dummy vertex data (texture coordinates and position)
+		 * of a cone with DIVIDES vertices at its base, that is centered around
+		 * (0,0) and has a radius of 1 (so that it can be translated and scaled easily).
+		 */
+		protected static float[] unitCone = new float[(DIVIDES+2)*6];
+		
 		/** OpenGL shader program ID used to draw and recolor the curve. */
 		protected int program = 0;
 
@@ -396,6 +408,47 @@ public class CurveRenderState {
 				GL11.glTexImage1D(GL11.GL_TEXTURE_1D, 0, GL11.GL_RGBA, slider.getWidth(), 0, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, buff);
 				EXTFramebufferObject.glGenerateMipmapEXT(GL11.GL_TEXTURE_1D);
 			}
+		}
+
+		/**
+		 * Write the data into {@code unitCone} if it hasn't already been initialized. 
+		 */
+		public static void initUnitCone() {
+			int index = 0;
+			//check if initialization has already happened
+			if (unitCone[0] == 0.0f) {
+
+			//tip of the cone
+				//vec2 texture coordinates
+				unitCone[index++] = 1.0f;
+				unitCone[index++] = 0.5f;
+
+				//vec4 position
+				unitCone[index++] = 0.0f;
+				unitCone[index++] = 0.0f;
+				unitCone[index++] = 0.0f;
+				unitCone[index++] = 1.0f;
+				for (int j = 0; j < NewCurveStyleState.DIVIDES; ++j) {
+					double phase = j * (float) Math.PI * 2 / NewCurveStyleState.DIVIDES;
+					//vec2 texture coordinates
+					unitCone[index++] = 0.0f;
+					unitCone[index++] = 0.5f;
+					//vec4 positon
+					unitCone[index++] = (float) Math.sin(phase);
+					unitCone[index++] = (float) Math.cos(phase);
+					unitCone[index++] = 1.0f;
+					unitCone[index++] = 1.0f;
+				}
+				//vec2 texture coordinates
+				unitCone[index++] = 0.0f;
+				unitCone[index++] = 0.5f;
+				//vec4 positon
+				unitCone[index++] = (float) Math.sin(0.0f);
+				unitCone[index++] = (float) Math.cos(0.0f);
+				unitCone[index++] = 1.0f;
+				unitCone[index++] = 1.0f;
+			}
+
 		}
 
 		/**

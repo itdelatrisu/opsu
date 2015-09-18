@@ -907,7 +907,7 @@ public class GameData {
 						float oldColorAlpha = hitResult.color.a;
 						Colors.WHITE_FADE.a = alpha;
 						hitResult.color.a = alpha;
-						hitResult.curve.draw(hitResult.color);
+						hitResult.curve.draw(hitResult.color,1.0f);
 						Colors.WHITE_FADE.a = oldWhiteAlpha;
 						hitResult.color.a = oldColorAlpha;
 					}
