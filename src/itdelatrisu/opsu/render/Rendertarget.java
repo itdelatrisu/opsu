@@ -32,7 +32,7 @@ public class Rendertarget {
 	/** The dimensions. */
 	public final int width, height;
 
-	/** ID of the vertex buffer associated with this rendertarget*/
+	/** The ID of the vertex buffer associated with this rendertarget. */
 	private final int vboID;
 	
 	/** The FBO ID. */

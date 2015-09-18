@@ -59,10 +59,10 @@ public class CurveRenderState {
 	/** The HitObject associated with the curve to be drawn. */
 	protected HitObject hitObject;
 
-	/** the points along the curve to be drawn */
+	/** The points along the curve to be drawn. */
 	protected Vec2f[] curve;
 	
-	/** The point to which the curve has last been rendered into the texture (as an index into {@code curve}) */
+	/** The point to which the curve has last been rendered into the texture (as an index into {@code curve}). */
 	private int lastPointDrawn;
 
 	/**
@@ -131,10 +131,8 @@ public class CurveRenderState {
 		int drawUpTo = (int) (t * curve.length);
 		
 		if (lastPointDrawn != drawUpTo) {
-			
-			if (drawUpTo == lastPointDrawn) {
+			if (drawUpTo == lastPointDrawn)
 				return;
-			}
 
 			int oldFb = GL11.glGetInteger(EXTFramebufferObject.GL_FRAMEBUFFER_BINDING_EXT);
 			int oldTex = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D);
@@ -269,8 +267,7 @@ public class CurveRenderState {
 	 * curve into the OpenGL buffer with the ID specified by {@code bufferID}
 	 * @param bufferID the buffer ID for the OpenGL buffer the vertices should be written into
 	 */
-	private void createVertexBuffer(int bufferID)
-	{
+	private void createVertexBuffer(int bufferID) {
 		int arrayBufferBinding = GL11.glGetInteger(GL15.GL_ARRAY_BUFFER_BINDING);
 		FloatBuffer buff = BufferUtils.createByteBuffer(4 * (4 + 2) * (2 * curve.length - 1) * (NewCurveStyleState.DIVIDES + 2)).asFloatBuffer();
 		for (int i = 0; i < curve.length; ++i) {
@@ -313,7 +310,7 @@ public class CurveRenderState {
 		//2*4 is for skipping the first 2 floats (u,v)
 		GL20.glVertexAttribPointer(staticState.attribLoc, 4, GL11.GL_FLOAT, false, 6 * 4, 2 * 4);
 		GL20.glVertexAttribPointer(staticState.texCoordLoc, 2, GL11.GL_FLOAT, false, 6 * 4, 0);
-		for (int i = from*2; i < to * 2 - 1; ++i)
+		for (int i = from * 2; i < to * 2 - 1; ++i)
 			GL11.glDrawArrays(GL11.GL_TRIANGLE_FAN, i * (NewCurveStyleState.DIVIDES + 2), NewCurveStyleState.DIVIDES + 2);
 		GL11.glFlush();
 		GL20.glDisableVertexAttribArray(staticState.texCoordLoc);
@@ -334,15 +331,14 @@ public class CurveRenderState {
 		float offx = -1.0f;
 		float offy = 1.0f;
 		float radius = scale / 2;
-		
-		for(int i = 0; i<NewCurveStyleState.unitCone.length/6; ++i)
-		{
-			buff.put(NewCurveStyleState.unitCone[i*6+0]);
-			buff.put(NewCurveStyleState.unitCone[i*6+1]);
-			buff.put(offx + (x1 + radius * NewCurveStyleState.unitCone[i*6+2])/divx);
-			buff.put(offy - (y1 + radius * NewCurveStyleState.unitCone[i*6+3])/divy);
-			buff.put(NewCurveStyleState.unitCone[i*6+4]);
-			buff.put(NewCurveStyleState.unitCone[i*6+5]);
+
+		for (int i = 0; i < NewCurveStyleState.unitCone.length / 6; ++i) {
+			buff.put(NewCurveStyleState.unitCone[i * 6 + 0]);
+			buff.put(NewCurveStyleState.unitCone[i * 6 + 1]);
+			buff.put(offx + (x1 + radius * NewCurveStyleState.unitCone[i * 6 + 2]) / divx);
+			buff.put(offy - (y1 + radius * NewCurveStyleState.unitCone[i * 6 + 3]) / divy);
+			buff.put(NewCurveStyleState.unitCone[i * 6 + 4]);
+			buff.put(NewCurveStyleState.unitCone[i * 6 + 5]);
 		}
 	}
 
@@ -364,7 +360,7 @@ public class CurveRenderState {
 		 * of a cone with DIVIDES vertices at its base, that is centered around
 		 * (0,0) and has a radius of 1 (so that it can be translated and scaled easily).
 		 */
-		protected static float[] unitCone = new float[(DIVIDES+2)*6];
+		protected static float[] unitCone = new float[(DIVIDES + 2) * 6];
 		
 		/** OpenGL shader program ID used to draw and recolor the curve. */
 		protected int program = 0;
@@ -417,8 +413,7 @@ public class CurveRenderState {
 			int index = 0;
 			//check if initialization has already happened
 			if (unitCone[0] == 0.0f) {
-
-			//tip of the cone
+				//tip of the cone
 				//vec2 texture coordinates
 				unitCone[index++] = 1.0f;
 				unitCone[index++] = 0.5f;
@@ -448,7 +443,6 @@ public class CurveRenderState {
 				unitCone[index++] = 1.0f;
 				unitCone[index++] = 1.0f;
 			}
-
 		}
 
 		/**

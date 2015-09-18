@@ -112,6 +112,12 @@ public abstract class Curve {
 	public abstract Vec2f pointAt(float t);
 
 	/**
+	 * Draws the full curve to the graphics context.
+	 * @param color the color filter
+	 */
+	public void draw(Color color) { draw(color, 1f); }
+
+	/**
 	 * Draws the curve in the range [0, t] (where the full range is [0, 1]) to the graphics context.
 	 * @param color the color filter
 	 * @param t set the curve interval to [0, t]
@@ -120,10 +126,11 @@ public abstract class Curve {
 		if (curve == null)
 			return;
 
-		t = Utils.clamp(t, 0.0f, 1.0f);
+		t = Utils.clamp(t, 0f, 1f);
+
 		// peppysliders
 		if (Options.getSkin().getSliderStyle() == Skin.STYLE_PEPPYSLIDER || !mmsliderSupported) {
-			int drawUpTo = (int)(curve.length*t);
+			int drawUpTo = (int) (curve.length * t);
 			Image hitCircle = GameImage.HITCIRCLE.getImage();
 			Image hitCircleOverlay = GameImage.HITCIRCLE_OVERLAY.getImage();
 			for (int i = 0; i < drawUpTo; i++)
@@ -135,7 +142,7 @@ public abstract class Curve {
 		// mmsliders
 		else {
 			if (renderState == null)
-				renderState = new CurveRenderState(hitObject,curve);
+				renderState = new CurveRenderState(hitObject, curve);
 			renderState.draw(color, borderColor, t);
 		}
 	}

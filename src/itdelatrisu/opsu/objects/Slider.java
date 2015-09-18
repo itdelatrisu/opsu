@@ -188,12 +188,7 @@ public class Slider implements GameObject {
 		Image hitCircle = GameImage.HITCIRCLE.getImage();
 		Vec2f endPos = curve.pointAt(1);
 
-		float curveInterval;
-		if(Options.isSliderSnaking()){
-			curveInterval = alpha;
-		} else {
-			curveInterval = 1.0f;
-		}
+		float curveInterval = Options.isSliderSnaking() ? alpha : 1f;
 		curve.draw(color,curveInterval);
 		color.a = alpha;
 
@@ -209,12 +204,12 @@ public class Slider implements GameObject {
 
 		// ticks
 		if (ticksT != null) {
-			float tickScale = 0.5f + 0.5f*AnimationEquation.OUT_BACK.calc(decorationsAlpha);
+			float tickScale = 0.5f + 0.5f * AnimationEquation.OUT_BACK.calc(decorationsAlpha);
 			Image tick = GameImage.SLIDER_TICK.getImage().getScaledCopy(tickScale);
 			for (int i = 0; i < ticksT.length; i++) {
 				Vec2f c = curve.pointAt(ticksT[i]);
 				Colors.WHITE_FADE.a = decorationsAlpha;
-				tick.drawCentered(c.x , c.y , Colors.WHITE_FADE);
+				tick.drawCentered(c.x, c.y, Colors.WHITE_FADE);
 				Colors.WHITE_FADE.a = alpha;
 			}
 		}
@@ -240,18 +235,12 @@ public class Slider implements GameObject {
 				if (hitObject.getRepeatCount() - 1 > tcurRepeat) {
 					Image arrow = GameImage.REVERSEARROW.getImage();
 					if (tcurRepeat != currentRepeats) {
-						if (sliderTime == 0) {
+						if (sliderTime == 0)
 							continue;
-						}
 						float t = Math.max(getT(trackPosition, true), 0);
 						arrow.setAlpha((float) (t - Math.floor(t)));
-					} else {
-						if(Options.isSliderSnaking()){
-							arrow.setAlpha(decorationsAlpha);
-						} else {
-							arrow.setAlpha(1f);
-						}
-					}
+					} else
+						arrow.setAlpha(Options.isSliderSnaking() ? decorationsAlpha : 1f);
 					if (tcurRepeat % 2 == 0) {
 						// last circle
 						arrow.setRotation(curve.getEndAngle());
