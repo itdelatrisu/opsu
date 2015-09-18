@@ -68,6 +68,9 @@ import org.newdawn.slick.util.Log;
 
 /**
  * Downloads menu.
+ * <p>
+ * Players are able to download beatmaps off of various servers and import them
+ * from this state.
  */
 public class DownloadsMenu extends BasicGameState {
 	/** Delay time, in milliseconds, between each search. */

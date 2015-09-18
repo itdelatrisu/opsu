@@ -58,10 +58,8 @@ import org.newdawn.slick.state.transition.FadeOutTransition;
 
 /**
  * "Main Menu" state.
- * <ul>
- * <li>[Play]    - move to song selection menu
- * <li>[Exit]    - move to confirm exit menu
- * </ul>
+ * <p>
+ * Players are able to enter the song menu or downloads menu from this state.
  */
 public class MainMenu extends BasicGameState {
 	/** Idle time, in milliseconds, before returning the logo to its original position. */

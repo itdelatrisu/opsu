@@ -42,11 +42,9 @@ import org.newdawn.slick.state.transition.FadeOutTransition;
 
 /**
  * "Game Pause/Fail" state.
- * <ul>
- * <li>[Continue] - unpause game (return to game state)
- * <li>[Retry]    - restart game (return to game state)
- * <li>[Back]     - return to song menu state
- * </ul>
+ * <p>
+ * Players are able to continue the game (if applicable), retry the beatmap,
+ * or return to the song menu from this state.
  */
 public class GamePauseMenu extends BasicGameState {
 	/** Music fade-out time, in milliseconds. */

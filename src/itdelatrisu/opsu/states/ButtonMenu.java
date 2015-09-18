@@ -51,10 +51,13 @@ import org.newdawn.slick.state.transition.FadeInTransition;
 
 /**
  * Generic button menu state.
+ * <p>
+ * Displays a header and a set of defined options to the player.
  */
 public class ButtonMenu extends BasicGameState {
 	/** Menu states. */
 	public enum MenuState {
+		/** The exit confirmation screen. */
 		EXIT (new Button[] { Button.YES, Button.NO }) {
 			@Override
 			public String[] getTitle(GameContainer container, StateBasedGame game) {
@@ -66,6 +69,7 @@ public class ButtonMenu extends BasicGameState {
 				Button.NO.click(container, game);
 			}
 		},
+		/** The initial beatmap management screen. */
 		BEATMAP (new Button[] { Button.CLEAR_SCORES, Button.DELETE, Button.CANCEL }) {
 			@Override
 			public String[] getTitle(GameContainer container, StateBasedGame game) {
@@ -86,6 +90,7 @@ public class ButtonMenu extends BasicGameState {
 					super.scroll(container, game, newValue);
 			}
 		},
+		/** The beatmap deletion screen for a beatmap set with multiple beatmaps. */
 		BEATMAP_DELETE_SELECT (new Button[] { Button.DELETE_GROUP, Button.DELETE_SONG, Button.CANCEL_DELETE }) {
 			@Override
 			public String[] getTitle(GameContainer container, StateBasedGame game) {
@@ -104,6 +109,7 @@ public class ButtonMenu extends BasicGameState {
 				MenuState.BEATMAP.scroll(container, game, newValue);
 			}
 		},
+		/** The beatmap deletion screen for a single beatmap. */
 		BEATMAP_DELETE_CONFIRM (new Button[] { Button.DELETE_CONFIRM, Button.CANCEL_DELETE }) {
 			@Override
 			public String[] getTitle(GameContainer container, StateBasedGame game) {
@@ -120,6 +126,7 @@ public class ButtonMenu extends BasicGameState {
 				MenuState.BEATMAP.scroll(container, game, newValue);
 			}
 		},
+		/** The beatmap reloading confirmation screen. */
 		RELOAD (new Button[] { Button.RELOAD_CONFIRM, Button.RELOAD_CANCEL }) {
 			@Override
 			public String[] getTitle(GameContainer container, StateBasedGame game) {
@@ -140,6 +147,7 @@ public class ButtonMenu extends BasicGameState {
 				MenuState.BEATMAP.scroll(container, game, newValue);
 			}
 		},
+		/** The score management screen. */
 		SCORE (new Button[] { Button.DELETE_SCORE, Button.CLOSE }) {
 			@Override
 			public String[] getTitle(GameContainer container, StateBasedGame game) {
@@ -156,6 +164,7 @@ public class ButtonMenu extends BasicGameState {
 				MenuState.BEATMAP.scroll(container, game, newValue);
 			}
 		},
+		/** The game mod selection screen. */
 		MODS (new Button[] { Button.RESET_MODS, Button.CLOSE }) {
 			@Override
 			public String[] getTitle(GameContainer container, StateBasedGame game) {

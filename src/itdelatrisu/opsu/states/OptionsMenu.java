@@ -47,6 +47,8 @@ import org.newdawn.slick.state.transition.FadeInTransition;
 
 /**
  * "Game Options" state.
+ * <p>
+ * Players are able to view and change various game settings in this state.
  */
 public class OptionsMenu extends BasicGameState {
 	/** Option tabs. */

@@ -78,10 +78,9 @@ import org.newdawn.slick.state.transition.FadeOutTransition;
 
 /**
  * "Song Selection" state.
- * <ul>
- * <li>[Song] - start game (move to game state)
- * <li>[Back] - return to main menu
- * </ul>
+ * <p>
+ * Players are able to select a beatmap to play, view previous scores, choose game mods,
+ * manage beatmaps, or change game options from this state.
  */
 public class SongMenu extends BasicGameState {
 	/** The max number of song buttons to be shown on each screen. */
@@ -263,7 +262,7 @@ public class SongMenu extends BasicGameState {
 	private StarStream starStream;
 
 	/** Whether the menu is currently scrolling to the focus node (blocks other actions). */
-	private boolean isScrollingToFocus = false;
+	private boolean isScrollingToFocusNode = false;
 
 	// game-related variables
 	private GameContainer container;
@@ -690,12 +689,12 @@ public class SongMenu extends BasicGameState {
 
 		// scrolling
 		songScrolling.update(delta);
-		if (isScrollingToFocus) {
+		if (isScrollingToFocusNode) {
 			float distanceDiff = Math.abs(songScrolling.getPosition() - songScrolling.getTargetPosition());
 			if (distanceDiff <= buttonOffset / 8f) {  // close enough, stop blocking input
 				songScrolling.scrollToPosition(songScrolling.getTargetPosition());
 				songScrolling.setSpeedMultiplier(1f);
-				isScrollingToFocus = false;
+				isScrollingToFocusNode = false;
 			}
 		}
 		updateDrawnSongPosition();
@@ -746,7 +745,7 @@ public class SongMenu extends BasicGameState {
 
 	@Override
 	public void mousePressed(int button, int x, int y) {
-		if (isScrollingToFocus)
+		if (isScrollingToFocusNode)
 			return;
 
 		songScrolling.pressed();
@@ -755,7 +754,7 @@ public class SongMenu extends BasicGameState {
 
 	@Override
 	public void mouseReleased(int button, int x, int y) {
-		if (isScrollingToFocus)
+		if (isScrollingToFocusNode)
 			return;
 
 		songScrolling.released();
@@ -888,7 +887,7 @@ public class SongMenu extends BasicGameState {
 	@Override
 	public void keyPressed(int key, char c) {
 		// block input
-		if ((reloadThread != null && !(key == Input.KEY_ESCAPE || key == Input.KEY_F12)) || beatmapMenuTimer > -1 || isScrollingToFocus)
+		if ((reloadThread != null && !(key == Input.KEY_ESCAPE || key == Input.KEY_F12)) || beatmapMenuTimer > -1 || isScrollingToFocusNode)
 			return;
 
 		switch (key) {
@@ -1101,7 +1100,7 @@ public class SongMenu extends BasicGameState {
 		selectOptionsButton.resetHover();
 		hoverOffset.setTime(0);
 		hoverIndex = null;
-		isScrollingToFocus = false;
+		isScrollingToFocusNode = false;
 		songScrolling.released();
 		songScrolling.setSpeedMultiplier(1f);
 		startScorePos.setPosition(0);
@@ -1378,7 +1377,7 @@ public class SongMenu extends BasicGameState {
 			if (startNode == null || game.getCurrentStateID() != Opsu.STATE_SONGMENU)
 				songScrolling.setPosition((node.index - 1) * buttonOffset);
 			else {
-				isScrollingToFocus = true;
+				isScrollingToFocusNode = true;
 				songScrolling.setSpeedMultiplier(2f);
 				songScrolling.released();
 			}
@@ -1551,7 +1550,7 @@ public class SongMenu extends BasicGameState {
 	 * @return true if blocking input
 	 */
 	private boolean isInputBlocked() {
-		return (reloadThread != null || beatmapMenuTimer > -1 || isScrollingToFocus);
+		return (reloadThread != null || beatmapMenuTimer > -1 || isScrollingToFocusNode);
 	}
 
 	/**
