@@ -20,6 +20,8 @@ package itdelatrisu.opsu.beatmap;
 
 import itdelatrisu.opsu.GameMod;
 
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
@@ -81,6 +83,7 @@ public class BeatmapSet implements Iterable<Beatmap> {
 		int bpmMin = (int) (beatmap.bpmMin * speedModifier);
 		int bpmMax = (int) (beatmap.bpmMax * speedModifier);
 		float multiplier = GameMod.getDifficultyMultiplier();
+		NumberFormat nf = new DecimalFormat("##.#");
 		String[] info = new String[5];
 		info[0] = beatmap.toString();
 		info[1] = String.format("Mapped by %s", beatmap.creator);
@@ -92,11 +95,11 @@ public class BeatmapSet implements Iterable<Beatmap> {
 				(beatmap.hitObjectCircle + beatmap.hitObjectSlider + beatmap.hitObjectSpinner));
 		info[3] = String.format("Circles: %d  Sliders: %d  Spinners: %d",
 				beatmap.hitObjectCircle, beatmap.hitObjectSlider, beatmap.hitObjectSpinner);
-		info[4] = String.format("CS:%.1f HP:%.1f AR:%.1f OD:%.1f%s",
-				Math.min(beatmap.circleSize * multiplier, 10f),
-				Math.min(beatmap.HPDrainRate * multiplier, 10f),
-				Math.min(beatmap.approachRate * multiplier, 10f),
-				Math.min(beatmap.overallDifficulty * multiplier, 10f),
+		info[4] = String.format("CS:%s HP:%s AR:%s OD:%s%s",
+				nf.format(Math.min(beatmap.circleSize * multiplier, 10f)),
+				nf.format(Math.min(beatmap.HPDrainRate * multiplier, 10f)),
+				nf.format(Math.min(beatmap.approachRate * multiplier, 10f)),
+				nf.format(Math.min(beatmap.overallDifficulty * multiplier, 10f)),
 				(beatmap.starRating >= 0) ? String.format(" Stars:%.2f", beatmap.starRating) : "");
 		return info;
 	}
