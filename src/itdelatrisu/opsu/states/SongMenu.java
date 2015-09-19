@@ -672,7 +672,7 @@ public class SongMenu extends BasicGameState {
 					}
 					oldFocusNode = null;
 				} else if (!search.getText().isEmpty())
-					searchResultString = "No matches found. Hit 'esc' to reset.";
+					searchResultString = "No matches found. Hit ESC to reset.";
 			}
 		}
 		if (searchTransitionTimer < SEARCH_TRANSITION_TIME) {
@@ -700,29 +700,19 @@ public class SongMenu extends BasicGameState {
 		updateDrawnSongPosition();
 
 		// mouse hover
-		boolean isHover = false;
-		if (mouseY > headerY && mouseY < footerY) {
-			BeatmapSetNode node = startNode;
-			for (int i = 0; i < MAX_SONG_BUTTONS + 1 && node != null; i++, node = node.next) {
-				float cx = (node.index == BeatmapSetList.get().getExpandedIndex()) ? buttonX * 0.9f : buttonX;
-				if ((mouseX > cx && mouseX < cx + buttonWidth) &&
-					(mouseY > buttonY + (i * buttonOffset) && mouseY < buttonY + (i * buttonOffset) + buttonHeight)) {
-					if (node == hoverIndex) {
-						hoverOffset.update(delta);
-					} else {
-						hoverIndex = node;
-						hoverOffset.setTime(0);
-					}
-					isHover = true;
-					break;
-				}
+		BeatmapSetNode node = getNodeAtPosition(mouseX, mouseY);
+		if (node != null) {
+			if (node == hoverIndex)
+				hoverOffset.update(delta);
+			else {
+				hoverIndex = node;
+				hoverOffset.setTime(0);
 			}
-		}
-		if (!isHover) {
+			return;
+		} else {  // not hovered
 			hoverOffset.setTime(0);
 			hoverIndex = null;
-		} else
-			return;
+		}
 
 		// tooltips
 		if (focusScores != null && ScoreData.areaContains(mouseX, mouseY)) {
@@ -815,49 +805,42 @@ public class SongMenu extends BasicGameState {
 		}
 
 		// song buttons
-		if (y > headerY && y < footerY) {
+		BeatmapSetNode node = getNodeAtPosition(x, y);
+		if (node != null) {
 			int expandedIndex = BeatmapSetList.get().getExpandedIndex();
-			BeatmapSetNode node = startNode;
-			for (int i = startNodeOffset; i < MAX_SONG_BUTTONS + 1 && node != null; i++, node = node.next) {
-				// is button at this index clicked?
-				float cx = (node.index == expandedIndex) ? buttonX * 0.9f : buttonX;
-				if ((x > cx && x < cx + buttonWidth) &&
-					(y > buttonY + (i * buttonOffset) && y < buttonY + (i * buttonOffset) + buttonHeight)) {
-					int oldHoverOffsetTime = hoverOffset.getTime();
-					BeatmapSetNode oldHoverIndex = hoverIndex;
+			int oldHoverOffsetTime = hoverOffset.getTime();
+			BeatmapSetNode oldHoverIndex = hoverIndex;
 
-					// clicked node is already expanded
-					if (node.index == expandedIndex) {
-						if (node.beatmapIndex == focusNode.beatmapIndex) {
-							// if already focused, load the beatmap
-							if (button != Input.MOUSE_RIGHT_BUTTON)
-								startGame();
-							else
-								SoundController.playSound(SoundEffect.MENUCLICK);
-						} else {
-							// focus the node
-							SoundController.playSound(SoundEffect.MENUCLICK);
-							setFocus(node, 0, false, true);
-						}
-					}
-
-					// clicked node is a new group
-					else {
+			// clicked node is already expanded
+			if (node.index == expandedIndex) {
+				if (node.beatmapIndex == focusNode.beatmapIndex) {
+					// if already focused, load the beatmap
+					if (button != Input.MOUSE_RIGHT_BUTTON)
+						startGame();
+					else
 						SoundController.playSound(SoundEffect.MENUCLICK);
-						setFocus(node, -1, false, true);
-					}
-
-					// restore hover data
-					hoverOffset.setTime(oldHoverOffsetTime);
-					hoverIndex = oldHoverIndex;
-
-					// open beatmap menu
-					if (button == Input.MOUSE_RIGHT_BUTTON)
-						beatmapMenuTimer = (node.index == expandedIndex) ? BEATMAP_MENU_DELAY * 4 / 5 : 0;
-
-					return;
+				} else {
+					// focus the node
+					SoundController.playSound(SoundEffect.MENUCLICK);
+					setFocus(node, 0, false, true);
 				}
 			}
+
+			// clicked node is a new group
+			else {
+				SoundController.playSound(SoundEffect.MENUCLICK);
+				setFocus(node, -1, false, true);
+			}
+
+			// restore hover data
+			hoverOffset.setTime(oldHoverOffsetTime);
+			hoverIndex = oldHoverIndex;
+
+			// open beatmap menu
+			if (button == Input.MOUSE_RIGHT_BUTTON)
+				beatmapMenuTimer = (node.index == expandedIndex) ? BEATMAP_MENU_DELAY * 4 / 5 : 0;
+
+			return;
 		}
 
 		// score buttons
@@ -1385,12 +1368,11 @@ public class SongMenu extends BasicGameState {
 
 		updateDrawnSongPosition();
 
-		
 		// make sure focusNode is on the screen
 		int val = focusNode.index + focusNode.beatmapIndex;
 		if (val * buttonOffset <= songScrolling.getPosition())
 			songScrolling.scrollToPosition(val * buttonOffset);
-		else if (val* buttonOffset - (footerY - headerY - buttonOffset) >= songScrolling.getPosition())
+		else if (val * buttonOffset - (footerY - headerY - buttonOffset) >= songScrolling.getPosition())
 			songScrolling.scrollToPosition(val * buttonOffset - (footerY - headerY - buttonOffset));
 
 		/*
@@ -1552,6 +1534,27 @@ public class SongMenu extends BasicGameState {
 	 */
 	private boolean isInputBlocked() {
 		return (reloadThread != null || beatmapMenuTimer > -1 || isScrollingToFocusNode);
+	}
+
+	/**
+	 * Returns the beatmap node at the given location.
+	 * @param x the x coordinate
+	 * @param y the y coordinate
+	 * @return the node, or {@code null} if none
+	 */
+	private BeatmapSetNode getNodeAtPosition(int x, int y) {
+		if (y <= headerY || y >= footerY)
+			return null;
+
+		int expandedIndex = BeatmapSetList.get().getExpandedIndex();
+		BeatmapSetNode node = startNode;
+		for (int i = startNodeOffset; i < MAX_SONG_BUTTONS + 1 && node != null; i++, node = node.next) {
+			float cx = (node.index == expandedIndex) ? buttonX * 0.9f : buttonX;
+			if ((x > cx && x < cx + buttonWidth) &&
+				(y > buttonY + (i * buttonOffset) && y < buttonY + (i * buttonOffset) + buttonHeight))
+				return node;
+		}
+		return null;
 	}
 
 	/**
