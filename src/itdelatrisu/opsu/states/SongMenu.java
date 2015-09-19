@@ -1385,12 +1385,13 @@ public class SongMenu extends BasicGameState {
 
 		updateDrawnSongPosition();
 
+		
 		// make sure focusNode is on the screen
 		int val = focusNode.index + focusNode.beatmapIndex;
-		if (val <= startNode.index)
+		if (val * buttonOffset <= songScrolling.getPosition())
 			songScrolling.scrollToPosition(val * buttonOffset);
-		else if (val > startNode.index + MAX_SONG_BUTTONS - 1)
-			songScrolling.scrollToPosition((val - MAX_SONG_BUTTONS + 1) * buttonOffset);
+		else if (val* buttonOffset - (footerY - headerY - buttonOffset) >= songScrolling.getPosition())
+			songScrolling.scrollToPosition(val * buttonOffset - (footerY - headerY - buttonOffset));
 
 		/*
 		// Centers selected node

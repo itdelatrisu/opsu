@@ -103,6 +103,8 @@ public class KineticScrolling {
 	 * @param newPosition the position to scroll to
 	 */
 	public void scrollToPosition(float newPosition) {
+		pressed();
+		released();
 		amplitude = newPosition - position;
 		target = newPosition;
 		totalDelta = 0;
