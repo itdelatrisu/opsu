@@ -331,6 +331,13 @@ public class GameData {
 	/** Container dimensions. */
 	private int width, height;
 
+	/** Statistics for Hit Error Difference */
+	int totalDiff;
+	int totalAbsDiff; //Absolute
+	int totalPosDiff; //Positive only
+	int totalNegDiff; //Negative only
+	int totalDiffCnt, totalNegCnt, totalPosCnt; //Count 
+	
 	/**
 	 * Constructor for gameplay.
 	 * @param width container width
@@ -401,6 +408,15 @@ public class GameData {
 		comboEnd = 0;
 		comboBurstIndex = -1;
 		scoreData = null;
+		
+		totalDiff = 0;
+		totalAbsDiff = 0;
+		totalDiffCnt = 0;
+		
+		totalPosDiff = 0;
+		totalNegDiff = 0;
+		totalPosCnt = 0;
+		totalNegCnt = 0;
 	}
 
 	/**
@@ -697,6 +713,19 @@ public class GameData {
 				g.fillRect((hitErrorX + info.timeDiff - 1) * uiScale, tickY, tickWidth, tickHeight);
 			}
 		}
+		
+		//hit Diff data
+		Fonts.drawBorderedString(Fonts.MEDIUM,
+			width * 0.80f,  height * 0.850f - Fonts.MEDIUM.getLineHeight() ,
+			String.format("Avg Diff %.3f.", 
+				(totalDiff/(float)totalDiffCnt)
+			), Color.white, Color.black);
+		Fonts.drawBorderedString(Fonts.MEDIUM,
+			width * 0.80f,  height * 0.850f  ,
+			String.format("Avg AbsDiff %.3f.", 
+				(totalAbsDiff/(float)totalDiffCnt)
+			), Color.white, Color.black);
+				
 
 		if (!breakPeriod && !relaxAutoPilot) {
 			// scorebar
@@ -826,6 +855,22 @@ public class GameData {
 		GameImage.RANKING_MAXCOMBO.getImage().draw(10 * uiScale, textY * uiScale);
 		GameImage.RANKING_ACCURACY.getImage().draw(accuracyX * uiScale, textY * uiScale);
 
+		//hit Diff data
+		Fonts.MEDIUM.drawString(
+				width * 0.20f,  height * 0.850f - Fonts.MEDIUM.getLineHeight() ,
+				String.format("Avg Diff %.3f.", 
+						(totalDiff/(float)totalDiffCnt)
+						), Color.white);
+		Fonts.MEDIUM.drawString(
+				width * 0.20f,  height * 0.850f ,
+				String.format("Avg Abs Diff %.3f. [%d %.3f %d %.3f ]", 
+						(totalAbsDiff/(float)totalDiffCnt),
+						totalPosCnt,
+						(totalPosDiff/(float)totalPosCnt),
+						totalNegCnt,
+						(totalNegDiff/(float)totalNegCnt)
+						), Color.white);
+		
 		// full combo
 		if (comboMax == fullObjectCount) {
 			GameImage.RANKING_PERFECT.getImage().draw(
@@ -1487,6 +1532,31 @@ public class GameData {
 	 * @param timeDiff the difference between the correct and actual hit times
 	 */
 	public void addHitError(int time, int x, int y, int timeDiff) {
+		if (Math.abs(timeDiff) <= hitResultOffset[GameData.HIT_50]){
+			totalDiff += timeDiff;
+			totalAbsDiff += Math.abs(timeDiff);
+			if(timeDiff>0){
+				totalPosDiff+=timeDiff;
+				totalPosCnt++;
+			}else if(timeDiff<0){
+				totalNegDiff+=timeDiff;
+				totalNegCnt++;
+			}
+			totalDiffCnt += 1;
+		}
 		hitErrorList.addFirst(new HitErrorInfo(time, x, y, timeDiff));
+	}
+	public String dataInfo(){
+		String t = "";
+		Beatmap osu= MusicController.getBeatmap();
+		t+=osu.audioFilename+"" +osu.audioLeadIn+" "+osu.file.getAbsolutePath()+"\n";
+		t+="GameData: avg offset :"+ (totalDiff/(float)totalDiffCnt)
+				+" abs:"+ (totalAbsDiff/(float)totalDiffCnt)
+				+" total:"+totalDiffCnt
+				+" pos:"+ (totalPosDiff/(float)totalPosCnt)+" "+totalPosCnt
+				+" neg:"+ (totalNegDiff/(float)totalNegCnt)+" "+totalNegCnt
+				+" musOff:"+Options.getMusicOffset()
+				+"\n";
+		return t;
 	}
 }

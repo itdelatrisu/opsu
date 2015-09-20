@@ -225,8 +225,11 @@ public class GameRanking extends BasicGameState {
 			SoundController.playSound(SoundEffect.APPLAUSE);
 			retryButton.resetHover();
 			replayButton.setY(!GameMod.AUTO.isActive() ? replayY : retryY);
+			Log.warn(data.dataInfo());
+			//System.out.println(data.dataInfo());
 		}
 		replayButton.resetHover();
+		
 	}
 
 	@Override

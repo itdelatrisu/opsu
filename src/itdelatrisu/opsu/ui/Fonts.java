@@ -29,6 +29,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
+import org.newdawn.slick.Color;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.UnicodeFont;
 import org.newdawn.slick.font.effects.ColorEffect;
@@ -152,5 +153,24 @@ public class Fonts {
 		if (str.length() != 0)
 			list.add(str);
 		return list;
+	}
+
+	/**
+	 * Draws the string with a pixel border
+	 * @param font the Font
+	 * @param x x Location
+	 * @param y y Location
+	 * @param str string to display
+	 * @param fg foreground Color
+	 * @param bg background Color
+	 */
+	public static void drawBorderedString(org.newdawn.slick.Font font, float x, float y, String str, Color fg, Color bg) {
+		font.drawString(x+1,  y+1 ,str, bg);
+		font.drawString(x+1,  y-1 ,str, bg);
+		font.drawString(x-1,  y+1 ,str, bg);
+		font.drawString(x-1,  y-1 ,str, bg);
+
+		font.drawString(x,  y ,str, fg);
+		font.drawString(x,  y ,str, fg);
 	}
 }
