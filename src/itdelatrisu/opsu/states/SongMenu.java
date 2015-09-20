@@ -735,6 +735,10 @@ public class SongMenu extends BasicGameState {
 
 	@Override
 	public void mousePressed(int button, int x, int y) {
+		// check mouse button
+		if (button == Input.MOUSE_MIDDLE_BUTTON)
+			return;
+
 		if (isScrollingToFocusNode)
 			return;
 
@@ -744,6 +748,10 @@ public class SongMenu extends BasicGameState {
 
 	@Override
 	public void mouseReleased(int button, int x, int y) {
+		// check mouse button
+		if (button == Input.MOUSE_MIDDLE_BUTTON)
+			return;
+
 		if (isScrollingToFocusNode)
 			return;
 
