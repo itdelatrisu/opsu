@@ -7,7 +7,7 @@ apply plugin: 'application'
 import org.apache.tools.ant.filters.*
 
 group = 'itdelatrisu'
-version = '0.11.0'
+version = '0.12.0'
 
 mainClassName = 'itdelatrisu.opsu.Opsu'
 buildDir = new File(rootProject.projectDir, "build/")
