@@ -27,6 +27,7 @@ import itdelatrisu.opsu.GameMod;
 import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.beatmap.HitObject;
+import itdelatrisu.opsu.objects.curves.Vec2f;
 import itdelatrisu.opsu.states.Game;
 import itdelatrisu.opsu.ui.Colors;
 
@@ -197,7 +198,7 @@ public class Circle implements GameObject {
 	}
 	
 	@Override
-	public float[] getPointAt(int trackPosition) { return new float[] { x, y }; }
+	public Vec2f getPointAt(int trackPosition) { return new Vec2f(x, y); }
 
 	@Override
 	public int getEndTime() { return hitObject.getTime(); }

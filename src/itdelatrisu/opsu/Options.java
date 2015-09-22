@@ -59,7 +59,7 @@ import org.newdawn.slick.util.ResourceLoader;
  */
 public class Options {
 	/** Whether to use XDG directories. */
-	private static final boolean USE_XDG = checkXDGFlag();
+	public static final boolean USE_XDG = checkXDGFlag();
 
 	/** The config directory. */
 	private static final File CONFIG_DIR = getXDGBaseDir("XDG_CONFIG_HOME", ".config");
@@ -422,9 +422,11 @@ public class Options {
 		},
 		DISABLE_MOUSE_WHEEL ("Disable mouse wheel in play mode", "MouseDisableWheel", "During play, you can use the mouse wheel to adjust the volume and pause the game.\nThis will disable that functionality.", false),
 		DISABLE_MOUSE_BUTTONS ("Disable mouse buttons in play mode", "MouseDisableButtons", "This option will disable all mouse buttons.\nSpecifically for people who use their keyboard to click.", false),
+		DISABLE_CURSOR ("Disable Cursor", "DisableCursor", "Hide the cursor sprite.", false),
 		BACKGROUND_DIM ("Background Dim", "DimLevel", "Percentage to dim the background image during gameplay.", 50, 0, 100),
 		FORCE_DEFAULT_PLAYFIELD ("Force Default Playfield", "ForceDefaultPlayfield", "Override the song background with the default playfield background.", false),
 		IGNORE_BEATMAP_SKINS ("Ignore All Beatmap Skins", "IgnoreBeatmapSkins", "Never use skin element overrides provided by beatmaps.", false),
+		SNAKING_SLIDERS ("Snaking sliders", "SnakingSliders", "Sliders gradually snake out from their starting point.", true),
 		SHOW_HIT_LIGHTING ("Show Hit Lighting", "HitLighting", "Adds an effect behind hit explosions.", true),
 		SHOW_COMBO_BURSTS ("Show Combo Bursts", "ComboBurst", "A character image is displayed at combo milestones.", true),
 		SHOW_PERFECT_HIT ("Show Perfect Hits", "PerfectHit", "Whether to show perfect hit result bursts (300s, slider ticks).", true),
@@ -1022,6 +1024,12 @@ public class Options {
 	public static boolean isBeatmapSkinIgnored() { return GameOption.IGNORE_BEATMAP_SKINS.getBooleanValue(); }
 
 	/**
+	 * Returns whether or not sliders should snake in or just appear fully at once.
+	 * @return true if sliders should snake in
+	 */
+	public static boolean isSliderSnaking() { return GameOption.SNAKING_SLIDERS.getBooleanValue(); }
+
+	/**
 	 * Returns the fixed circle size override, if any.
 	 * @return the CS value (0, 10], 0f if disabled
 	 */
@@ -1156,6 +1164,12 @@ public class Options {
 		UI.sendBarNotification((GameOption.DISABLE_MOUSE_BUTTONS.getBooleanValue()) ?
 			"Mouse buttons are disabled." : "Mouse buttons are enabled.");
 	}
+
+	/**
+	 * Returns whether or not the cursor sprite should be hidden.
+	 * @return true if disabled
+	 */
+	public static boolean isCursorDisabled() { return GameOption.DISABLE_CURSOR.getBooleanValue(); }
 
 	/**
 	 * Returns the left game key.

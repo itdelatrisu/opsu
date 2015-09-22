@@ -46,7 +46,7 @@ public class NativeLoader {
 
 	/**
 	 * Unpacks natives for the current operating system to the natives directory.
-	 * @throws IOException
+	 * @throws IOException if an I/O exception occurs
 	 */
 	public void loadNatives() throws IOException {
 		if (!nativeDir.exists())

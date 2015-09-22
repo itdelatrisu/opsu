@@ -202,10 +202,11 @@ public class Updater {
 
 	/**
 	 * Checks the program version against the version file on the update server.
+	 * @throws IOException if an I/O exception occurs
 	 */
 	/*
 	public void checkForUpdates() throws IOException {
-		if (status != Status.INITIAL || System.getProperty("XDG") != null)
+		if (status != Status.INITIAL || Options.USE_XDG)
 			return;
 
 		status = Status.CHECKING;

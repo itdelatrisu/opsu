@@ -22,6 +22,7 @@ import fluddokt.opsu.fake.*;
 
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.Options;
+import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.beatmap.HitObject;
 import itdelatrisu.opsu.render.CurveRenderState;
 import itdelatrisu.opsu.skins.Skin;
@@ -68,14 +69,21 @@ public abstract class Curve {
 	/**
 	 * Constructor.
 	 * @param hitObject the associated HitObject
-	 * @param color the color of this curve
+	 * @param scaled whether to use scaled coordinates
 	 */
-	protected Curve(HitObject hitObject, Color color) {
+	protected Curve(HitObject hitObject, boolean scaled) {
 		this.hitObject = hitObject;
-		this.x = hitObject.getScaledX();
-		this.y = hitObject.getScaledY();
-		this.sliderX = hitObject.getScaledSliderX();
-		this.sliderY = hitObject.getScaledSliderY();
+		if (scaled) {
+			this.x = hitObject.getScaledX();
+			this.y = hitObject.getScaledY();
+			this.sliderX = hitObject.getScaledSliderX();
+			this.sliderY = hitObject.getScaledSliderY();
+		} else {
+			this.x = hitObject.getX();
+			this.y = hitObject.getY();
+			this.sliderX = hitObject.getSliderX();
+			this.sliderY = hitObject.getSliderY();
+		}
 		this.renderState = null;
 	}
 
@@ -106,34 +114,44 @@ public abstract class Curve {
 	/**
 	 * Returns the point on the curve at a value t.
 	 * @param t the t value [0, 1]
-	 * @return the point [x, y]
+	 * @return the position vector
 	 */
-	public abstract float[] pointAt(float t);
+	public abstract Vec2f pointAt(float t);
 
 	/**
 	 * Draws the full curve to the graphics context.
 	 * @param color the color filter
 	 */
-	public void draw(Color color) {
+	public void draw(Color color) { draw(color, 1f); }
+
+	/**
+	 * Draws the curve in the range [0, t] (where the full range is [0, 1]) to the graphics context.
+	 * @param color the color filter
+	 * @param t set the curve interval to [0, t]
+	 */
+	public void draw(Color color, float t) {
 		if (curve == null)
 			return;
+
+		t = Utils.clamp(t, 0f, 1f);
 
 		// peppysliders
 		if (Options.getSkin().getSliderStyle() == Skin.STYLE_PEPPYSLIDER || !mmsliderSupported
 				|| !Options.GameOption.NEW_SLIDER.getBooleanValue() ) {
+			int drawUpTo = (int) (curve.length * t);
 			Image hitCircle = GameImage.HITCIRCLE.getImage();
 			Image hitCircleOverlay = GameImage.HITCIRCLE_OVERLAY.getImage();
-			for (int i = 0; i < curve.length; i+=Options.getSliderQuality())
+			for (int i = 0; i < drawUpTo; i+=Options.getSliderQuality())
 				hitCircleOverlay.drawCentered(curve[i].x, curve[i].y, Colors.WHITE_FADE);
-			for (int i = 0; i < curve.length; i+=Options.getSliderQuality())
+			for (int i = 0; i < drawUpTo; i+=Options.getSliderQuality())
 				hitCircle.drawCentered(curve[i].x, curve[i].y, color);
 		}
 
 		// mmsliders
 		else {
 			if (renderState == null)
-				renderState = new CurveRenderState(hitObject);
-			renderState.draw(color, borderColor, curve);
+				renderState = new CurveRenderState(hitObject, curve);
+			renderState.draw(color, borderColor, t);
 		}
 	}
 

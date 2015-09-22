@@ -51,10 +51,8 @@ import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.List;
 import java.util.Scanner;
 import java.util.jar.JarFile;
 
@@ -72,7 +70,6 @@ import org.lwjgl.opengl.GL11;
 import org.newdawn.slick.Animation;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Input;
-import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.util.Log;
 
@@ -93,7 +90,7 @@ public class Utils {
 		24, 25, 26, 27, 28, 29, 30, 31, 58, 42, 63, 92, 47
 	};
 	static {
-	    Arrays.sort(illegalChars);
+		Arrays.sort(illegalChars);
 	}
 
 	// game-related variables
@@ -106,10 +103,8 @@ public class Utils {
 	 * Initializes game settings and class data.
 	 * @param container the game container
 	 * @param game the game object
-	 * @throws SlickException
 	 */
-	public static void init(GameContainer container, StateBasedGame game)
-			throws SlickException {
+	public static void init(GameContainer container, StateBasedGame game) {
 		input = container.getInput();
 		int width = container.getWidth();
 		int height = container.getHeight();
@@ -311,15 +306,15 @@ public class Utils {
 			return null;
 
 		boolean doReplace = (replace > 0 && Arrays.binarySearch(illegalChars, replace) < 0);
-	    StringBuilder cleanName = new StringBuilder();
-	    for (int i = 0, n = badFileName.length(); i < n; i++) {
-	        int c = badFileName.charAt(i);
-	        if (Arrays.binarySearch(illegalChars, c) < 0)
-	            cleanName.append((char) c);
-	        else if (doReplace)
-	        	cleanName.append(replace);
-	    }
-	    return cleanName.toString();
+		StringBuilder cleanName = new StringBuilder();
+		for (int i = 0, n = badFileName.length(); i < n; i++) {
+			int c = badFileName.charAt(i);
+			if (Arrays.binarySearch(illegalChars, c) < 0)
+				cleanName.append((char) c);
+			else if (doReplace)
+				cleanName.append(replace);
+		}
+		return cleanName.toString();
 	}
 
 	/**
@@ -381,49 +376,11 @@ public class Utils {
 	}
 
 	/**
-	 * Wraps the given string into a list of split lines based on the width.
-	 * @param text the text to split
-	 * @param font the font used to draw the string
-	 * @param width the maximum width of a line
-	 * @return the list of split strings
-	 * @author davedes (http://slick.ninjacave.com/forum/viewtopic.php?t=3778)
-	 */
-	public static List<String> wrap(String text, Font font, int width) {
-		List<String> list = new ArrayList<String>();
-		String str = text;
-		String line = "";
-		int i = 0;
-		int lastSpace = -1;
-		while (i < str.length()) {
-			char c = str.charAt(i);
-			if (Character.isWhitespace(c))
-				lastSpace = i;
-			String append = line + c;
-			if (font.getWidth(append) > width) {
-				int split = (lastSpace != -1) ? lastSpace : i;
-				int splitTrimmed = split;
-				if (lastSpace != -1 && split < str.length() - 1)
-					splitTrimmed++;
-				list.add(str.substring(0, split));
-				str = str.substring(splitTrimmed);
-				line = "";
-				i = 0;
-				lastSpace = -1;
-			} else {
-				line = append;
-				i++;
-			}
-		}
-		if (str.length() != 0)
-			list.add(str);
-		return list;
-    }
-
-	/**
 	 * Returns a the contents of a URL as a string.
 	 * @param url the remote URL
 	 * @return the contents as a string, or null if any error occurred
 	 * @author Roland Illig (http://stackoverflow.com/a/4308662)
+	 * @throws IOException if an I/O exception occurs
 	 */
 	public static String readDataFromUrl(URL url) throws IOException {
 		// open connection
@@ -459,6 +416,7 @@ public class Utils {
 	 * Returns a JSON object from a URL.
 	 * @param url the remote URL
 	 * @return the JSON object, or null if an error occurred
+	 * @throws IOException if an I/O exception occurs
 	 */
 	public static JSONObject readJsonObjectFromUrl(URL url) throws IOException {
 		String s = Utils.readDataFromUrl(url);
@@ -477,6 +435,7 @@ public class Utils {
 	 * Returns a JSON array from a URL.
 	 * @param url the remote URL
 	 * @return the JSON array, or null if an error occurred
+	 * @throws IOException if an I/O exception occurs
 	 */
 	public static JSONArray readJsonArrayFromUrl(URL url) throws IOException {
 		String s = Utils.readDataFromUrl(url);
@@ -595,7 +554,7 @@ public class Utils {
 	public static boolean parseBoolean(String s) {
 		return (Integer.parseInt(s) == 1);
 	}
-	
+
 	/**
 	 * Returns the git hash of the remote-tracking branch 'origin/master' from the
 	 * most recent update to the working directory (e.g. fetch or successful push).

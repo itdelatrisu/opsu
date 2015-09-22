@@ -62,7 +62,7 @@ public class OsuWriter {
 
 	/**
 	 * Closes the output stream.
-	 * @throws IOException
+	 * @throws IOException if an I/O error occurs
 	 */
 	public void close() throws IOException { writer.close(); }
 

@@ -21,11 +21,13 @@ import com.badlogic.gdx.graphics.Pixmap.Format;
 import com.badlogic.gdx.graphics.glutils.FrameBuffer;
 
 import fluddokt.opsu.fake.Graphics;
-
 /*
-import org.lwjgl.opengl.GL11;
-*/
 
+import org.lwjgl.opengl.EXTFramebufferObject;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL15;
+
+*/
 /**
  * Represents a rendertarget. For now this maps to an OpenGL FBO via LWJGL.
  *
@@ -37,6 +39,10 @@ public class Rendertarget {
 
 	static FrameBuffer currentFBO = null;
 	FrameBuffer fbo;
+	
+	/** The ID of the vertex buffer associated with this rendertarget. */
+	private final int vboID;
+	
 	/** The FBO ID. */
 	//private final int fboID;
 
@@ -57,6 +63,7 @@ public class Rendertarget {
 		this.height = height;
 		/*
 		fboID = EXTFramebufferObject.glGenFramebuffersEXT();
+		vboID = GL15.glGenBuffers();
 		textureID = GL11.glGenTextures();
 		depthBufferID = EXTFramebufferObject.glGenRenderbuffersEXT();
 		*/
@@ -83,11 +90,21 @@ public class Rendertarget {
 			);
 	}
 
+	
 	/**
-	 * Returns the FBO ID.
+	 * Get the ID of the VBO associated with this Rendertarget.
+	 * @return OpenGL buffer ID for the VBO
 	 */
-	// NOTE: use judiciously, try to avoid if possible and consider adding a
-	// method to this class if you find yourself calling this repeatedly.
+	/*
+	public int getVbo() {
+		return vboID;
+	}
+	*/
+	
+	/**
+	 * Get the FBO ID.
+	 * @return the OpenGL FBO ID
+	 */
 	/*
 	public int getID() {
 		return fboID;
@@ -95,9 +112,9 @@ public class Rendertarget {
 	*/
 
 	/**
-	 * Returns the texture ID.
+	 * Get the texture ID of the texture this rendertarget renders into.
+	 * @return the OpenGL texture ID
 	 */
-	// NOTE: try not to use, could be moved into separate class.
 	/*
 	public int getTextureID() {
 		return textureID;
@@ -120,6 +137,7 @@ public class Rendertarget {
 	 * and a renderbuffer that it renders the depth to.
 	 * @param width the width
 	 * @param height the height
+	 * @return the newly created Rendertarget instance
 	*/
 	public static Rendertarget createRTTFramebuffer(int width, int height) {
 		/*
@@ -144,7 +162,7 @@ public class Rendertarget {
 
 		GL11.glBindTexture(GL11.GL_TEXTURE_2D, old_texture);
 		EXTFramebufferObject.glBindFramebufferEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT, old_framebuffer);
-*/
+		*/
 	
 		return buffer;
 	}
@@ -158,6 +176,8 @@ public class Rendertarget {
 		EXTFramebufferObject.glDeleteFramebuffersEXT(fboID);
 		EXTFramebufferObject.glDeleteRenderbuffersEXT(depthBufferID);
 		GL11.glDeleteTextures(textureID);
+		GL15.glDeleteBuffers(vboID);
+		
 		*/
 		fbo.dispose();
 	}

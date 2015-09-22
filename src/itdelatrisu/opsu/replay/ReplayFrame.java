@@ -81,7 +81,8 @@ public class ReplayFrame {
 	public int getTimeDiff() { return timeDiff; }
 
 	/**
-	 * Sets the time since the previous action, in milliseconds.
+	 * Sets the time since the previous action.
+	 * @param diff the time difference, in milliseconds
 	 */
 	public void setTimeDiff(int diff) { this.timeDiff = diff; }
 

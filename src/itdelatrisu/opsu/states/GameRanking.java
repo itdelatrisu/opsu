@@ -55,10 +55,9 @@ import org.newdawn.slick.util.Log;
 
 /**
  * "Game Ranking" (score card) state.
- * <ul>
- * <li>[Retry]    - restart game (return to game state)
- * <li>[Replay]   - watch replay (return to game state)
- * <li>[Back]     - return to song menu state
+ * <p>
+ * Players are able to view their score statistics, retry the beatmap (if applicable),
+ * or watch a replay of the game from this state.
  * </ul>
  */
 public class GameRanking extends BasicGameState {
@@ -111,7 +110,7 @@ public class GameRanking extends BasicGameState {
 		Beatmap beatmap = MusicController.getBeatmap();
 
 		// background
-		if (!beatmap.drawBG(width, height, 0.7f, true))
+		if (!beatmap.drawBackground(width, height, 0.7f, true))
 			GameImage.PLAYFIELD.getImage().draw(0,0);
 
 		// ranking screen elements

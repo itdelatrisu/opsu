@@ -149,11 +149,13 @@ public class MenuButton {
 
 	/**
 	 * Sets a new center x coordinate.
+	 * @param x the x coordinate
 	 */
 	public void setX(float x) { this.x = x; }
 
 	/**
 	 * Sets a new center y coordinate.
+	 * @param y the y coordinate
 	 */
 	public void setY(float y) { this.y = y; }
 

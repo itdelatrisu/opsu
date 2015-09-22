@@ -55,6 +55,9 @@ public class MultiClip {
 	 * Constructor.
 	 * @param name the clip name
 	 * @param audioIn the associated AudioInputStream
+	 * @throws IOException if an input or output error occurs
+	 * @throws LineUnavailableException if a clip object is not available or
+	 *         if the line cannot be opened due to resource restrictions
 	 */
 	public MultiClip(String name, AudioInputStream audioIn) throws IOException, LineUnavailableException {
 		this.name = name;
@@ -105,6 +108,8 @@ public class MultiClip {
 	 * Plays the clip with the specified volume.
 	 * @param volume the volume the play at
 	 * @param listener the line listener
+	 * @throws LineUnavailableException if a clip object is not available or
+	 *         if the line cannot be opened due to resource restrictions
 	 */
 	public void start(float volume, LineListener listener) throws LineUnavailableException {
 		Clip clip = getClip();
@@ -130,6 +135,8 @@ public class MultiClip {
 	 * If no clip is available, then a new one is created if under MAX_CLIPS.
 	 * Otherwise, an existing clip will be returned.
 	 * @return the Clip to play
+	 * @throws LineUnavailableException if a clip object is not available or
+	 *         if the line cannot be opened due to resource restrictions
 	 */
 	private Clip getClip() throws LineUnavailableException {
 		// TODO:

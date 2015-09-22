@@ -47,7 +47,7 @@ public class BeatmapSetList {
 
 	/** Search pattern for conditional expressions. */
 	private static final Pattern SEARCH_CONDITION_PATTERN = Pattern.compile(
-		"(ar|cs|od|hp|bpm|length)(=|==|>|>=|<|<=)((\\d*\\.)?\\d+)"
+		"(ar|cs|od|hp|bpm|length|stars?)(==?|>=?|<=?)((\\d*\\.)?\\d+)"
 	);
 
 	/** List containing all parsed nodes. */
@@ -166,12 +166,17 @@ public class BeatmapSetList {
 		}
 
 		// remove all node references
-		Beatmap beatmap = node.getBeatmapSet().get(0);
+		BeatmapSet beatmapSet = node.getBeatmapSet();
+		Beatmap beatmap = beatmapSet.get(0);
 		nodes.remove(index);
 		parsedNodes.remove(eCur);
-		mapCount -= node.getBeatmapSet().size();
+		mapCount -= beatmapSet.size();
 		if (beatmap.beatmapSetID > 0)
 			MSIDdb.remove(beatmap.beatmapSetID);
+		for (Beatmap bm : beatmapSet) {
+			if (bm.md5Hash != null)
+				this.beatmapHashDB.remove(bm.md5Hash);
+		}
 
 		// reset indices
 		for (int i = index, size = size(); i < size; i++)
@@ -243,6 +248,8 @@ public class BeatmapSetList {
 		// remove song reference
 		Beatmap beatmap = node.getBeatmapSet().remove(node.beatmapIndex);
 		mapCount--;
+		if (beatmap.md5Hash != null)
+			beatmapHashDB.remove(beatmap.md5Hash);
 
 		// re-link nodes
 		if (node.prev != null)
@@ -325,6 +332,7 @@ public class BeatmapSetList {
 	/**
 	 * Expands the node at an index by inserting a new node for each Beatmap
 	 * in that node and hiding the group node.
+	 * @param index the node index
 	 * @return the first of the newly-inserted nodes
 	 */
 	public BeatmapSetNode expand(int index) {

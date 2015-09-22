@@ -340,6 +340,18 @@ public enum GameImage {
 	MENU_BUTTON_MID ("button-middle", "png", false, false),
 	MENU_BUTTON_LEFT ("button-left", "png", false, false),
 	MENU_BUTTON_RIGHT ("button-right", "png", false, false),
+	STAR ("star", "png", false, false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy((MENU_BUTTON_BG.getImage().getHeight() * 0.16f) / img.getHeight());
+		}
+	},
+	STAR2 ("star2", "png", false, false) {
+		@Override
+		protected Image process_sub(Image img, int w, int h) {
+			return img.getScaledCopy((MENU_BUTTON_BG.getImage().getHeight() * 0.33f) / img.getHeight());
+		}
+	},
 
 	// Music Player Buttons
 	MUSIC_PLAY ("music-play", "png", false, false){
@@ -366,6 +378,7 @@ public enum GameImage {
 			return img.getScaledCopy(Options.getMobileUIScaleHigh());
 		}
 	},
+
 	DOWNLOADS ("downloads", "png", false, false) {
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
@@ -390,7 +403,6 @@ public enum GameImage {
 		protected Image process_sub(Image img, int w, int h) {
 			return img.getScaledCopy(Options.getMobileUIScale(0.5f));
 		}
-		
 	},
 	HISTORY ("history", "png", false, false) {
 		@Override
@@ -423,6 +435,8 @@ public enum GameImage {
 			return img.getScaledCopy(w, h);
 		}
 	},
+	CHEVRON_DOWN ("chevron-down", "png", false, false),
+	CHEVRON_RIGHT ("chevron-right", "png", false, false),
 
 	// TODO: ensure this image hasn't been modified (checksum?)
 	ALPHA_MAP ("alphaInvert", "png", false, false);

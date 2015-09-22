@@ -41,7 +41,6 @@ import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.Input;
-import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.StateBasedGame;
 */
 
@@ -90,10 +89,8 @@ public class UI {
 	 * Initializes UI data.
 	 * @param container the game container
 	 * @param game the game object
-	 * @throws SlickException
 	 */
-	public static void init(GameContainer container, StateBasedGame game)
-			throws SlickException {
+	public static void init(GameContainer container, StateBasedGame game) {
 		UI.container = container;
 		UI.input = container.getInput();
 
@@ -126,7 +123,7 @@ public class UI {
 	}
 
 	/**
-	 * Draws the global UI components: cursor, FPS, volume bar, bar notifications.
+	 * Draws the global UI components: cursor, FPS, volume bar, tooltips, bar notifications.
 	 * @param g the graphics context
 	 */
 	public static void draw(Graphics g) {
@@ -138,7 +135,7 @@ public class UI {
 	}
 
 	/**
-	 * Draws the global UI components: cursor, FPS, volume bar, bar notifications.
+	 * Draws the global UI components: cursor, FPS, volume bar, tooltips, bar notifications.
 	 * @param g the graphics context
 	 * @param mouseX the mouse x coordinate
 	 * @param mouseY the mouse y coordinate
@@ -275,8 +272,9 @@ public class UI {
 	}
 
 	/**
-	 * Draws loading progress (OSZ unpacking, beatmap parsing, sound loading)
+	 * Draws loading progress (OSZ unpacking, beatmap parsing, replay importing, sound loading)
 	 * at the bottom of the screen.
+	 * @param g the graphics context
 	 */
 	public static void drawLoadingProgress(Graphics g) {
 		String text, file;
@@ -322,28 +320,25 @@ public class UI {
 	/**
 	 * Draws a scroll bar.
 	 * @param g the graphics context
-	 * @param unitIndex the unit index
-	 * @param totalUnits the total number of units
-	 * @param maxShown the maximum number of units shown at one time
-	 * @param unitBaseX the base x coordinate of the units
-	 * @param unitBaseY the base y coordinate of the units
+	 * @param position the position in the virtual area
+	 * @param totalLength the total length of the virtual area
+	 * @param lengthShown the length of the virtual area shown
+	 * @param unitBaseX the base x coordinate
+	 * @param unitBaseY the base y coordinate
 	 * @param unitWidth the width of a unit
-	 * @param unitHeight the height of a unit
-	 * @param unitOffsetY the y offset between units
+	 * @param scrollAreaHeight the height of the scroll area
 	 * @param bgColor the scroll bar area background color (null if none)
 	 * @param scrollbarColor the scroll bar color
 	 * @param right whether or not to place the scroll bar on the right side of the unit
 	 */
 	public static void drawScrollbar(
-			Graphics g, int unitIndex, int totalUnits, int maxShown,
-			float unitBaseX, float unitBaseY, float unitWidth, float unitHeight, float unitOffsetY,
+			Graphics g, float position, float totalLength, float lengthShown,
+			float unitBaseX, float unitBaseY, float unitWidth, float scrollAreaHeight,
 			Color bgColor, Color scrollbarColor, boolean right
 	) {
 		float scrollbarWidth = container.getWidth() * 0.00347f;
-		float heightRatio = (float) (2.6701f * Math.exp(-0.81 * Math.log(totalUnits)));
-		float scrollbarHeight = container.getHeight() * heightRatio;
-		float scrollAreaHeight = unitHeight + unitOffsetY * (maxShown - 1);
-		float offsetY = (scrollAreaHeight - scrollbarHeight) * ((float) unitIndex / (totalUnits - maxShown));
+		float scrollbarHeight = scrollAreaHeight * lengthShown / totalLength;
+		float offsetY = (scrollAreaHeight - scrollbarHeight) * (position / (totalLength - lengthShown));
 		float scrollbarX = unitBaseX + unitWidth - ((right) ? scrollbarWidth : 0);
 		if (bgColor != null) {
 			g.setColor(bgColor);

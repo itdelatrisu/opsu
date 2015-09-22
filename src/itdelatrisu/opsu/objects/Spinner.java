@@ -29,6 +29,7 @@ import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
 import itdelatrisu.opsu.beatmap.HitObject;
+import itdelatrisu.opsu.objects.curves.Vec2f;
 import itdelatrisu.opsu.states.Game;
 import itdelatrisu.opsu.ui.Colors;
 
@@ -351,7 +352,7 @@ public class Spinner implements GameObject {
 	public void updatePosition() {}
 
 	@Override
-	public float[] getPointAt(int trackPosition) {
+	public Vec2f getPointAt(int trackPosition) {
 		// get spinner time
 		int timeDiff;
 		float x = hitObject.getScaledX(), y = hitObject.getScaledY();
@@ -366,10 +367,7 @@ public class Spinner implements GameObject {
 		float multiplier = (GameMod.AUTO.isActive()) ? AUTO_MULTIPLIER : SPUN_OUT_MULTIPLIER;
 		float angle = (timeDiff * multiplier) - HALF_PI;
 		final float r = height / 10f;
-		return new float[] {
-			(float) (x + r * Math.cos(angle)),
-			(float) (y + r * Math.sin(angle))
-		};
+		return new Vec2f((float) (x + r * Math.cos(angle)), (float) (y + r * Math.sin(angle)));
 	}
 
 	@Override

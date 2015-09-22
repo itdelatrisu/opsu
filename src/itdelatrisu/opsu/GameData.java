@@ -28,6 +28,7 @@ import itdelatrisu.opsu.beatmap.Beatmap;
 import itdelatrisu.opsu.beatmap.HitObject;
 import itdelatrisu.opsu.downloads.Updater;
 import itdelatrisu.opsu.objects.curves.Curve;
+import itdelatrisu.opsu.objects.curves.Vec2f;
 import itdelatrisu.opsu.replay.Replay;
 import itdelatrisu.opsu.replay.ReplayFrame;
 import itdelatrisu.opsu.ui.Colors;
@@ -272,6 +273,7 @@ public class GameData {
 		 * @param x the center x coordinate
 		 * @param y the center y coordinate
 		 * @param color the color of the hit object
+		 * @param hitResultType the hit object type
 		 * @param curve the slider curve (or null if not applicable)
 		 * @param expand whether or not the hit result animation should expand (if applicable)
 		 * @param hideResult whether or not to hide the hit result (but still show the other animations)
@@ -486,6 +488,7 @@ public class GameData {
 
 	/**
 	 * Sets the array of hit result offsets.
+	 * @param hitResultOffset the time offset array (of size {@link #HIT_MAX})
 	 */
 	public void setHitResultOffset(int[] hitResultOffset) { this.hitResultOffset = hitResultOffset; }
 
@@ -1385,9 +1388,9 @@ public class GameData {
 		// sliders: add the other curve endpoint for the hit animation
 		if (curve != null) {
 			boolean isFirst = (hitResultType == HitObjectType.SLIDER_FIRST);
-			float[] p = curve.pointAt((isFirst) ? 1f : 0f);
+			Vec2f p = curve.pointAt((isFirst) ? 1f : 0f);
 			HitObjectType type = (isFirst) ? HitObjectType.SLIDER_LAST : HitObjectType.SLIDER_FIRST;
-			hitResultList.add(new HitObjectResult(time, hitResult, p[0], p[1], color, type, null, expand, hideResult));
+			hitResultList.add(new HitObjectResult(time, hitResult, p.x, p.y, color, type, null, expand, hideResult));
 		}
 	}
 
