@@ -3,13 +3,14 @@ package fluddokt.opsu.fake;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Application.ApplicationType;
 
-public class GameContainer {
+import fluddokt.opsu.fake.gui.GUIContext;
+
+public class GameContainer extends GUIContext{
 	public static StateBasedGame sbg;
 	
 	public int width = 800;
 	public int height = 600;
 	public boolean hasFocus = true;
-	Input input = new Input();
 	
 	protected boolean running;
 	protected boolean forceExit;
@@ -48,9 +49,7 @@ public class GameContainer {
 		// TODO Auto-generated method stub
 		
 	}
-	public Input getInput() {
-		return input;
-	}
+	
 
 	public boolean hasFocus() {
 		return hasFocus;

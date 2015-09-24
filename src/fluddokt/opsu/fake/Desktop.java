@@ -5,8 +5,6 @@ import java.net.URI;
 
 import com.badlogic.gdx.Gdx;
 
-import fluddokt.opsu.fake.Desktop.Action;
-
 public class Desktop {
 
 	public enum Action {

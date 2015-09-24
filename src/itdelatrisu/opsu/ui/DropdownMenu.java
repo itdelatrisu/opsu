@@ -18,10 +18,14 @@
 
 package itdelatrisu.opsu.ui;
 
+import fluddokt.opsu.fake.*;
+import fluddokt.opsu.fake.gui.AbstractComponent;
+import fluddokt.opsu.fake.gui.GUIContext;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.ui.animations.AnimatedValue;
 import itdelatrisu.opsu.ui.animations.AnimationEquation;
 
+/*
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Font;
 import org.newdawn.slick.Graphics;
@@ -31,6 +35,7 @@ import org.newdawn.slick.SlickException;
 import org.newdawn.slick.UnicodeFont;
 import org.newdawn.slick.gui.AbstractComponent;
 import org.newdawn.slick.gui.GUIContext;
+*/
 
 /**
  * Simple dropdown menu.

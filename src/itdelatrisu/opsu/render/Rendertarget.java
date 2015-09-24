@@ -21,6 +21,8 @@ import com.badlogic.gdx.graphics.Pixmap.Format;
 import com.badlogic.gdx.graphics.glutils.FrameBuffer;
 
 import fluddokt.opsu.fake.Graphics;
+import fluddokt.opsu.fake.gl.*;
+
 /*
 
 import org.lwjgl.opengl.EXTFramebufferObject;
@@ -61,6 +63,8 @@ public class Rendertarget {
 		
 		this.width = width;
 		this.height = height;
+		vboID = GL15.glGenBuffers();
+		
 		/*
 		fboID = EXTFramebufferObject.glGenFramebuffersEXT();
 		vboID = GL15.glGenBuffers();
@@ -95,11 +99,9 @@ public class Rendertarget {
 	 * Get the ID of the VBO associated with this Rendertarget.
 	 * @return OpenGL buffer ID for the VBO
 	 */
-	/*
 	public int getVbo() {
 		return vboID;
 	}
-	*/
 	
 	/**
 	 * Get the FBO ID.

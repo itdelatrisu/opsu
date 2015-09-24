@@ -145,7 +145,9 @@ public class YaSOnlineServer extends DownloadServer {
 
 			// parse result list
 			List<DownloadNode> nodeList = new ArrayList<DownloadNode>();
-			for (Object obj : results.keySet()) {
+			//using android's org.json? doesn't have keySet.
+			Iterator<?> ita = results.keys();
+			for (Object obj = ita.next(); ita.hasNext(); obj = ita.next()) {
 				String key = (String) obj;
 				JSONObject item = results.getJSONObject(key);
 

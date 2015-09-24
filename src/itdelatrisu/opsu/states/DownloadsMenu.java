@@ -355,7 +355,7 @@ public class DownloadsMenu extends BasicGameState {
 		rankedButton.setHoverFade();
 
 		// dropdown menu
-		float serverWidth = Fonts.MEDIUM.getWidth("@@@@@@")+10;//width * 0.12f;
+		int serverWidth = (int) (Fonts.MEDIUM.getWidth("@@@@@@")+10); //width * 0.12f;
 		//int serverWidth = (int) (width * 0.12f);
 		serverMenu = new DropdownMenu<DownloadServer>(container, SERVERS,
 				baseX + searchWidth + buttonMarginX * 3f + resetButtonWidth + rankedButtonWidth, searchY, serverWidth) {

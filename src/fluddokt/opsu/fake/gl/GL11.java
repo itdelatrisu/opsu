@@ -118,47 +118,6 @@ public class GL11 {
 		Gdx.gl20.glDeleteTextures(1, UtilBuff.prepare(texId));
 	}
 	
-/*
-	public static void glMatrixMode(int glProjection) {
-		// TODO Auto-generated method stub
-		//Gdx.gl20.glMatrixMode
-	}
-
-	public static void glPushMatrix() {
-		// TODO Auto-generated method stub
-		//Gdx.gl20.glPushMatrix
-	}
-
-	public static void glLoadIdentity() {
-		// TODO Auto-generated method stub
-		//Gdx.gl20.glLoadIdentity
-	}
-
-	public static void glPopMatrix() {
-		// TODO Auto-generated method stub
-		//Gdx.gl20.glPopMatrix
-	}
-
-	public static void glColor4f(float f, float g, float h, float alpha) {
-		// TODO Auto-generated method stub
-		// Gdx.gl20.glColor4f
-	}
-
-	public static void glBegin(int glQuads) {
-		// TODO Auto-generated method stub
-		//Gdx.gl20.glBegin
-	}
-
-	public static void glTexCoord2f(float f, float g) {
-		// TODO Auto-generated method stub
-		//Gdx.gl20.glTexCoord2f
-	}
-
-	public static void glVertex2i(int width, int i) {
-		// TODO Auto-generated method stub
-		//Gdx.gl20.glVertex2i
-	}
-*/
 	public static void glEnd() {
 		GL20.glDisableVertexAttribArray(texCoordLoc);
 		GL20.glDisableVertexAttribArray(vertLoc);
@@ -306,6 +265,10 @@ public class GL11 {
 	public static void glTexImage2D(int target, int level, int internalformat, int width,
 			int height, int border, int format, int type, ByteBuffer pixels) {
 		Gdx.gl20.glTexImage2D(target, level, internalformat, width, height, border, format, type, pixels);
+	}
+
+	public static void glFlush() {
+		Gdx.gl20.glFlush();
 	}
 
 }

@@ -18,6 +18,8 @@
 
 package itdelatrisu.opsu.ui;
 
+import fluddokt.opsu.fake.*;
+
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.ui.animations.AnimatedValue;
@@ -28,7 +30,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 
+/*
 import org.newdawn.slick.Image;
+*/
 
 /**
  * Horizontal star stream.

@@ -19,16 +19,18 @@
 package itdelatrisu.opsu.ui;
 
 import fluddokt.opsu.fake.*;
-
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.Utils;
+import itdelatrisu.opsu.objects.curves.Vec2f;
 import itdelatrisu.opsu.skins.Skin;
 import itdelatrisu.opsu.ui.animations.AnimationEquation;
 
+/*
 import java.awt.Point;
+*/
 import java.nio.IntBuffer;
 import java.util.LinkedList;
 
@@ -50,7 +52,7 @@ public class Cursor {
 	//private static org.lwjgl.input.Cursor emptyCursor;
 
 	/** Last cursor coordinates. */
-	private Point lastPosition;
+	private Vec2f lastPosition;
 
 	/** Cursor rotation angle. */
 	private float cursorAngle = 0f;
@@ -68,7 +70,7 @@ public class Cursor {
 	private static final float CURSOR_SCALE_TIME = 125;
 
 	/** Stores all previous cursor locations to display a trail. */
-	private LinkedList<Point> trail = new LinkedList<Point>();
+	private LinkedList<Vec2f> trail = new LinkedList<Vec2f>();
 
 	// game-related variables
 	private static GameContainer container;
@@ -168,16 +170,16 @@ public class Cursor {
 		if (newStyle) {
 			// new style: add all points between cursor movements
 			if (lastPosition == null) {
-				lastPosition = new Point(mouseX, mouseY);
+				lastPosition = new Vec2f(mouseX, mouseY);
 				return;
 			}
-			addCursorPoints(lastPosition.x, lastPosition.y, mouseX, mouseY);
-			lastPosition.move(mouseX, mouseY);
+			addCursorPoints((int)lastPosition.x, (int)lastPosition.y, mouseX, mouseY);
+			lastPosition.set(mouseX, mouseY);
 
 			removeCount = (int) (trail.size() / (6 * FPSmod)) + 1;
 		} else {
 			// old style: sample one point at a time
-			trail.add(new Point(mouseX, mouseY));
+			trail.add(new Vec2f(mouseX, mouseY));
 
 			int max = (int) (10 * FPSmod);
 			if (trail.size() > max)
@@ -194,7 +196,7 @@ public class Cursor {
 		int cursorTrailWidth = cursorTrail.getWidth(), cursorTrailHeight = cursorTrail.getHeight();
 		float cursorTrailRotation = (skin.isCursorTrailRotated()) ? cursorAngle : 0;
 		cursorTrail.startUse();
-		for (Point p : trail) {
+		for (Vec2f p : trail) {
 			alpha += t;
 			cursorTrail.setImageColor(1f, 1f, 1f, alpha);
 			cursorTrail.drawEmbedded(
@@ -233,7 +235,7 @@ public class Cursor {
 		if (dy <= dx) {
 			for (int i = 0; ; i++) {
 				if (i == k) {
-					trail.add(new Point(x1, y1));
+					trail.add(new Vec2f(x1, y1));
 					i = 0;
 				}
 				if (x1 == x2)
@@ -248,7 +250,7 @@ public class Cursor {
 		} else {
 			for (int i = 0; ; i++) {
 				if (i == k) {
-					trail.add(new Point(x1, y1));
+					trail.add(new Vec2f(x1, y1));
 					i = 0;
 				}
 				if (y1 == y2)

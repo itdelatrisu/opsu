@@ -18,8 +18,6 @@
 
 package itdelatrisu.opsu.objects.curves;
 
-import fluddokt.opsu.fake.*;
-
 /**
  * Representation of a Centripetal Catmull–Rom spline.
  * (Currently not technically Centripetal Catmull–Rom.)

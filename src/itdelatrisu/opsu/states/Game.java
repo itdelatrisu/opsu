@@ -407,6 +407,7 @@ public class Game extends BasicGameState {
 			g.setDrawMode(Graphics.MODE_ALPHA_MAP);
 			g.clearAlphaMap();
 		*/
+	{
 			int mouseX, mouseY;
 			if (pauseTime > -1 && pausedMousePosition != null) {
 				mouseX = (int) pausedMousePosition.x;
@@ -440,6 +441,7 @@ public class Game extends BasicGameState {
 			g.setClip(alphaX+2, alphaY+2, alphaRadius-4, alphaRadius-4);
 			
 		}
+	
 		
 		// background
 		float dimLevel = Options.getBackgroundDim();
@@ -449,7 +451,7 @@ public class Game extends BasicGameState {
 			else
 				dimLevel = 1f;
 		}
-		if (Options.isDefaultPlayfieldForced() || !beatmap.drawBG(width, height, dimLevel, false)) {
+		if (Options.isDefaultPlayfieldForced() || !beatmap.drawBackground(width, height, dimLevel, false)) {
 			Image playfield = GameImage.PLAYFIELD.getImage();
 			playfield.setAlpha(dimLevel);
 			playfield.draw();
@@ -463,7 +465,7 @@ public class Game extends BasicGameState {
 			
 			
 		}
-
+	}
 		// break periods
 		if (beatmap.breaks != null && breakIndex < beatmap.breaks.size() && breakTime > 0) {
 			int endTime = beatmap.breaks.get(breakIndex);

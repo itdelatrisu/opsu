@@ -40,7 +40,6 @@ public class Log {
 	}
 
 	public static void warn(String string, Throwable e) {
-		System.out.println("HSDFHGKSDHFKUSDF");
 		if(e != null)
 			Gdx.app.log("warn", string, e);
 		else{

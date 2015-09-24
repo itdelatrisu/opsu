@@ -134,9 +134,9 @@ public class BeatmapSetNode {
 				star.setAlpha(baseAlpha);
 				int i = 1;
 				for (; i < beatmap.starRating && i <= 5; i++) {
-					if (focus)
-						star.drawFlash(starX + (i - 1) * starOffset, starY, star.getWidth(), star.getHeight(), textColor);
-					else
+					//if (focus)
+					//	star.drawFlash(starX + (i - 1) * starOffset, starY, star.getWidth(), star.getHeight(), textColor);
+					//else
 						star.draw(starX + (i - 1) * starOffset, starY);
 				}
 				if (i <= 5) {
@@ -144,9 +144,9 @@ public class BeatmapSetNode {
 					Image partialStar = star.getScaledCopy(partialStarScale);
 					partialStar.setAlpha(baseAlpha);
 					float partialStarY = starCenterY - partialStar.getHeight() / 2f;
-					if (focus)
-						partialStar.drawFlash(starX + (i - 1) * starOffset, partialStarY, partialStar.getWidth(), partialStar.getHeight(), textColor);
-					else
+					//if (focus)
+					//	partialStar.drawFlash(starX + (i - 1) * starOffset, partialStarY, partialStar.getWidth(), partialStar.getHeight(), textColor);
+					//else
 						partialStar.draw(starX + (i - 1) * starOffset, partialStarY);
 				}
 				if (++i <= 5) {
@@ -154,9 +154,9 @@ public class BeatmapSetNode {
 					smallStar.setAlpha(0.5f);
 					float smallStarY = starCenterY - smallStar.getHeight() / 2f;
 					for (; i <= 5; i++) {
-						if (focus)
-							smallStar.drawFlash(starX + (i - 1) * starOffset, smallStarY, smallStar.getWidth(), smallStar.getHeight(), textColor);
-						else
+						//if (focus)
+						//	smallStar.drawFlash(starX + (i - 1) * starOffset, smallStarY, smallStar.getWidth(), smallStar.getHeight(), textColor);
+						//else
 							smallStar.draw(starX + (i - 1) * starOffset, smallStarY);
 					}
 				}

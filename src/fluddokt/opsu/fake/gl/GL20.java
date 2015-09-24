@@ -99,12 +99,6 @@ public class GL20 {
 		 Gdx.gl20.glDeleteProgram(program);
 	}
 
-	/*public static void glDrawBuffers(int glColorAttachment0) {
-		// TODO Auto-generated method stub
-		//Gdx.gl20.glDrawBuffers
-		Gdx.gl20.glDrawBuffers
-	}*/
-
 	public static void glCompileShader(int shader) {
 		 Gdx.gl20.glCompileShader(shader);
 		

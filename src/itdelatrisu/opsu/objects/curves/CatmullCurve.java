@@ -18,8 +18,6 @@
 
 package itdelatrisu.opsu.objects.curves;
 
-import fluddokt.opsu.fake.*;
-
 import itdelatrisu.opsu.beatmap.HitObject;
 
 import java.util.LinkedList;

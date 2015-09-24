@@ -157,13 +157,15 @@ public class CurveRenderState {
 			GL11.glViewport(0, 0, fbo.width, fbo.height);
 			*/
 			fbo.bind();
+			boolean clear = false;
 			if (lastPointDrawn <= 0 || lastPointDrawn > drawUpTo) {
 				lastPointDrawn = 0;
-				GL11.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-				GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
+			//	GL11.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+			//	GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
+				clear = true;
 			}
 
-			this.renderCurve(color, borderColor, lastPointDrawn, drawUpTo);
+			this.renderCurve(color, borderColor, lastPointDrawn, drawUpTo, clear);
 			lastPointDrawn = drawUpTo;
 			color.a = 1f;
 
@@ -327,7 +329,7 @@ public class CurveRenderState {
 	 * @param color the color of the curve
 	 * @param borderColor the curve border color
 	 */
-	private void renderCurve(Color color, Color borderColor, int from, int to) {
+	private void renderCurve(Color color, Color borderColor, int from, int to, boolean clear) {
 		staticState.initGradient();
 		RenderState state = saveRenderState();
 		staticState.initShaderProgram();
@@ -344,17 +346,17 @@ public class CurveRenderState {
 		GL20.glVertexAttribPointer(staticState.attribLoc, 4, GL11.GL_FLOAT, false, 6 * 4, 2 * 4);
 		GL20.glVertexAttribPointer(staticState.texCoordLoc, 2, GL11.GL_FLOAT, false, 6 * 4, 0);
 
-		GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
+		if (clear) {
+			GL11.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+			GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
+		}
 
 		for (int i = from * 2; i < to * 2 - 1; ++i)
 			GL11.glDrawArrays(GL11.GL_TRIANGLE_FAN, i * (NewCurveStyleState.DIVIDES + 2), NewCurveStyleState.DIVIDES + 2);
 		GL11.glFlush();
 		GL20.glDisableVertexAttribArray(staticState.texCoordLoc);
 		GL20.glDisableVertexAttribArray(staticState.attribLoc);
-		
-		GL15.glDeleteBuffers(vtx_buf);
 		staticState.program.end();
-		
 		restoreRenderState(state);
 	}
 

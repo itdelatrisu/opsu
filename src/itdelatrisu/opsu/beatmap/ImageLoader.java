@@ -18,18 +18,24 @@
 
 package itdelatrisu.opsu.beatmap;
 
+import fluddokt.opsu.fake.*;
+
 import java.io.BufferedInputStream;
+/*
 import java.io.File;
+*/
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+/*
 import org.newdawn.slick.Image;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.opengl.ImageData;
 import org.newdawn.slick.opengl.ImageDataFactory;
 import org.newdawn.slick.opengl.LoadableImageData;
 import org.newdawn.slick.util.Log;
+*/
 
 /**
  * Simple threaded image loader for a single image file.
@@ -42,36 +48,37 @@ public class ImageLoader {
 	private Image image;
 
 	/** The image data. */
-	private LoadedImageData data;
+//	private LoadedImageData data;
 
 	/** The image loader thread. */
 	private Thread loaderThread;
 
 	/** ImageData wrapper, needed because {@code ImageIOImageData} doesn't implement {@code getImageBufferData()}. */
-	private class LoadedImageData implements ImageData {
-		/** The image data implementation. */
-		private final ImageData imageData;
-
-		/** The stored image. */
-		private final ByteBuffer buffer;
-
-		/**
-		 * Constructor.
-		 * @param imageData the class holding the image properties
-		 * @param buffer the stored image
-		 */
-		public LoadedImageData(ImageData imageData, ByteBuffer buffer) {
-			this.imageData = imageData;
-			this.buffer = buffer;
-		}
-
-		@Override public int getDepth() { return imageData.getDepth(); }
-		@Override public int getWidth() { return imageData.getWidth(); }
-		@Override public int getHeight() { return imageData.getHeight();}
-		@Override public int getTexWidth() { return imageData.getTexWidth(); }
-		@Override public int getTexHeight() { return imageData.getTexHeight(); }
-		@Override public ByteBuffer getImageBufferData() { return buffer; }
-	}
+//	
+//	private class LoadedImageData implements ImageData {
+//		/** The image data implementation. */
+//		private final ImageData imageData;
+//
+//		/** The stored image. */
+//		private final ByteBuffer buffer;
+//
+//		/**
+//		 * Constructor.
+//		 * @param imageData the class holding the image properties
+//		 * @param buffer the stored image
+//		 */
+//		public LoadedImageData(ImageData imageData, ByteBuffer buffer) {
+//			this.imageData = imageData;
+//			this.buffer = buffer;
+//		}
+//
+//		@Override public int getDepth() { return imageData.getDepth(); }
+//		@Override public int getWidth() { return imageData.getWidth(); }
+//		@Override public int getHeight() { return imageData.getHeight();}
+//		@Override public int getTexWidth() { return imageData.getTexWidth(); }
+//		@Override public int getTexHeight() { return imageData.getTexHeight(); }
+//		@Override public ByteBuffer getImageBufferData() { return buffer; }
+//	}
 
 	/** Image loading thread. */
 	private class ImageLoaderThread extends Thread {
@@ -90,17 +97,17 @@ public class ImageLoader {
 
 		@Override
 		public void run() {
-			// load image data into a ByteBuffer to use constructor Image(ImageData)
-			LoadableImageData imageData = ImageDataFactory.getImageDataFor(file.getAbsolutePath());
-			try (BufferedInputStream in = this.in = new BufferedInputStream(new FileInputStream(file))) {
-				ByteBuffer textureBuffer = imageData.loadImage(in, false, null);
-				if (!isInterrupted())
-					data = new LoadedImageData(imageData, textureBuffer);
-			} catch (IOException e) {
-				if (!isInterrupted())
-					Log.warn(String.format("Failed to load background image '%s'.", file), e);
-			}
-			this.in = null;
+//			// load image data into a ByteBuffer to use constructor Image(ImageData)
+//			LoadableImageData imageData = ImageDataFactory.getImageDataFor(file.getAbsolutePath());
+//			try (BufferedInputStream in = this.in = new BufferedInputStream(new FileInputStream(file))) {
+//				ByteBuffer textureBuffer = imageData.loadImage(in, false, null);
+//				if (!isInterrupted())
+//					data = new LoadedImageData(imageData, textureBuffer);
+//			} catch (IOException e) {
+//				if (!isInterrupted())
+//					Log.warn(String.format("Failed to load background image '%s'.", file), e);
+//			}
+//			this.in = null;
 		}
 	}
 
@@ -120,18 +127,18 @@ public class ImageLoader {
 		if (!file.isFile())
 			return;
 
-		if (threaded) {
-			if (loaderThread != null && loaderThread.isAlive())
-				loaderThread.interrupt();
-			loaderThread = new ImageLoaderThread();
-			loaderThread.start();
-		} else {
+//		if (threaded) {
+//			if (loaderThread != null && loaderThread.isAlive())
+//				loaderThread.interrupt();
+//			loaderThread = new ImageLoaderThread();
+//			loaderThread.start();
+//		} else {
 			try {
 				image = new Image(file.getAbsolutePath());
 			} catch (SlickException e) {
 				Log.warn(String.format("Failed to load background image '%s'.", file), e);
 			}
-		}
+//		}
 	}
 
 	/**
@@ -139,10 +146,10 @@ public class ImageLoader {
 	 * @return the loaded image, or null if not loaded
 	 */
 	public Image getImage() {
-		if (image == null && data != null) {
-			image = new Image(data);
-			data = null;
-		}
+//		if (image == null && data != null) {
+//			image = new Image(data);
+//			data = null;
+//		}
 		return image;
 	}
 
@@ -174,6 +181,6 @@ public class ImageLoader {
 			}
 			image = null;
 		}
-		data = null;
+//		data = null;
 	}
 }

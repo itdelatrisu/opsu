@@ -247,7 +247,18 @@ public class Image {
 	private int nextmultipleof4(int n) {
 		return ((n + 3) / 4) * 4;
 	}
+	
+	public Image(Image copy) {
+		//texinfo = copy.texinfo;
+		//texinfo.add(this);
+		parentImage = copy;
 
+		tex = copy.tex;
+		width = copy.width;
+		height = copy.height;
+		filename = copy.filename;
+		name = copy.name+"[c]";
+	}
 	public Image(Image copy, float wid, float hei) {
 		//texinfo = copy.texinfo;
 		//texinfo.add(this);
@@ -414,4 +425,31 @@ public class Image {
 			pixmap = new Pixmap(ResourceLoader.getFileHandle(filename));
 		return new Color(pixmap.getPixel((int)(x *pixmap.getWidth() / width), (int) (y * pixmap.getHeight() / height)));
 	}
+
+	public Image copy() {
+		return new Image(this);
+	}
+
+	public void startUse() {
+		// TODO Auto-generated method stub
+		
+	}
+	public void endUse() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	Color imageColor = new Color(0xffffffff);
+	public void setImageColor(float r, float g, float b, float a) {
+		imageColor.init(r, g, b, a);
+	}
+
+	public void drawEmbedded(float x, float y, int w, int h, float r) {
+		Graphics.getGraphics().setColor(imageColor);
+		Graphics.getGraphics().drawTexture(getTextureRegion(), x, y,
+				w, h, r);
+		
+	}
+
+	
 }

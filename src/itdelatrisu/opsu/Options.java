@@ -555,7 +555,6 @@ public class Options {
 					val = 1;
 			}
 		},
-		DISABLE_CURSOR ("Disable Cursor", "DisableCursor", "", false),
 		;
 
 		/** Option name. */

@@ -109,5 +109,13 @@ public class Font {
 	public void setPaddingTop(int padding) {
 		padtop = padding;
 	}
+	
+	public int getPaddingTop() {
+		return padtop;
+	}
+
+	public int getPaddingBottom() {
+		return padbottom;
+	}
 
 }

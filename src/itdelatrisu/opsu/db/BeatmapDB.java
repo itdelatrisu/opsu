@@ -97,11 +97,12 @@ public class BeatmapDB {
 
 		// prepare sql statements (not used here)
 		try {
-			insertStmt = connection.prepareStatement(
+			insertQueryString = (
 				"INSERT INTO beatmaps VALUES (" +
 				"?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?," +
 				"?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 			);
+			insertStmt = connection.prepareStatement(insertQueryString);
 			selectStmt = connection.prepareStatement("SELECT * FROM beatmaps WHERE dir = ? AND file = ?");
 			deleteMapStmt = connection.prepareStatement("DELETE FROM beatmaps WHERE dir = ? AND file = ?");
 			deleteGroupStmt = connection.prepareStatement("DELETE FROM beatmaps WHERE dir = ?");
@@ -368,7 +369,7 @@ public class BeatmapDB {
 	 * @param flag whether to load all fields (LOAD_ALL), non-array
 	 *        fields (LOAD_NONARRAY), or array fields (LOAD_ARRAY)
 	 */
-	public static void load(Beatmap beatmap, int flag) {
+	public static synchronized void load(Beatmap beatmap, int flag) {
 		if (connection == null)
 			return;
 
@@ -589,7 +590,7 @@ public class BeatmapDB {
 	 * Sets the star rating for a beatmap in the database.
 	 * @param beatmap the beatmap
 	 */
-	public static void setStars(Beatmap beatmap) {
+	public static synchronized void setStars(Beatmap beatmap) {
 		if (connection == null)
 			return;
 

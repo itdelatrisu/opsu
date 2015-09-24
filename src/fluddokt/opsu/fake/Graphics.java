@@ -140,15 +140,17 @@ public class Graphics {
 
 	}
 
-	public void copyArea(Image screen, int i, int j) {
-		// TODO Auto-generated method stub
-
-	}
-
 	public void fillRoundRect(float x, float y, float w, float h, float m) {
 		// TODO Auto-generated method stub
 		checkMode(SHAPEFILLED);
 		shapeRender.rect(x, y, w, h);
+	}
+
+	public void drawRoundRect(float x, float y, int w, int h, int m) {
+		// TODO Auto-generated method stub
+		checkMode(SHAPELINE);
+		shapeRender.rect(x, y, w, h);
+		
 	}
 
 	public void drawLine(float x1, float y1, float x2, float y2) {
@@ -306,6 +308,14 @@ public class Graphics {
 		//batch.setBlendFunction(GL20.GL_ONE, GL20.GL_ZERO);
 		//batch.setBlendFunction(GL20.GL_ZERO, GL20.GL_ZERO);
 		//Gdx.gl.glBlendFunc(GL20.GL_ZERO, GL20.GL_ONE);
+	}
+
+	public Color getColor() {
+		return fgcolor;
+	}
+
+	public float getLineWidth() {
+		return 1;
 	}
 	
 	

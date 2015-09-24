@@ -18,6 +18,8 @@
 
 package itdelatrisu.opsu.beatmap;
 
+import fluddokt.opsu.fake.*;
+
 import itdelatrisu.opsu.db.BeatmapDB;
 import itdelatrisu.opsu.objects.curves.Curve;
 import itdelatrisu.opsu.objects.curves.Vec2f;
@@ -26,7 +28,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+/*
 import org.newdawn.slick.util.Log;
+*/
 
 /**
  * osu!tp's beatmap difficulty algorithm.

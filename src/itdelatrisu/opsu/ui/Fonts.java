@@ -130,7 +130,7 @@ public class Fonts {
 	 * @return the list of split strings
 	 * @author davedes (http://slick.ninjacave.com/forum/viewtopic.php?t=3778)
 	 */
-	public static List<String> wrap(org.newdawn.slick.Font font, String text, int width) {
+	public static List<String> wrap(Font font, String text, int width) {
 		List<String> list = new ArrayList<String>();
 		String str = text;
 		String line = "";
