@@ -117,7 +117,6 @@ public class OptionsMenu extends BasicGameState {
 			GameOption.IN_GAME_PAUSE,
 			GameOption.NEW_SLIDER,
 			GameOption.SLIDER_QUALITY,
-			GameOption.DISABLE_CURSOR,
 		});
 
 		/** Total number of tabs. */

@@ -127,18 +127,20 @@ public class ImageLoader {
 		if (!file.isFile())
 			return;
 
-//		if (threaded) {
-//			if (loaderThread != null && loaderThread.isAlive())
-//				loaderThread.interrupt();
-//			loaderThread = new ImageLoaderThread();
-//			loaderThread.start();
-//		} else {
+		if (threaded) {
+			/*
+			if (loaderThread != null && loaderThread.isAlive())
+				loaderThread.interrupt();
+			loaderThread = new ImageLoaderThread();
+			loaderThread.start();
+			*/
+		} else {
 			try {
 				image = new Image(file.getAbsolutePath());
 			} catch (SlickException e) {
 				Log.warn(String.format("Failed to load background image '%s'.", file), e);
 			}
-//		}
+		}
 	}
 
 	/**
@@ -146,10 +148,19 @@ public class ImageLoader {
 	 * @return the loaded image, or null if not loaded
 	 */
 	public Image getImage() {
-//		if (image == null && data != null) {
-//			image = new Image(data);
-//			data = null;
-//		}
+		/*
+		if (image == null && data != null) {
+			image = new Image(data);
+			data = null;
+		}
+		*/
+		if (image == null) {
+			try {
+				image = new Image(file.getAbsolutePath());
+			} catch (SlickException e) {
+				Log.warn(String.format("Failed to load background image '%s'.", file), e);
+			}
+		}
 		return image;
 	}
 
