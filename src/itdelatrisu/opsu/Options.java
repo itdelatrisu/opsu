@@ -41,6 +41,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.lwjgl.input.Keyboard;
 import org.newdawn.slick.GameContainer;
@@ -50,6 +52,10 @@ import org.newdawn.slick.util.ClasspathLocation;
 import org.newdawn.slick.util.FileSystemLocation;
 import org.newdawn.slick.util.Log;
 import org.newdawn.slick.util.ResourceLoader;
+
+import com.sun.jna.platform.win32.Advapi32Util;
+import com.sun.jna.platform.win32.Win32Exception;
+import com.sun.jna.platform.win32.WinReg;
 
 /**
  * Handles all user options.
@@ -73,19 +79,11 @@ public class Options {
 	/** File for storing user options. */
 	private static final File OPTIONS_FILE = new File(CONFIG_DIR, ".opsu.cfg");
 
-	/** Beatmap directories (where to search for files). */
-	private static final String[] BEATMAP_DIRS = {
-		"C:/Program Files (x86)/osu!/Songs/",
-		"C:/Program Files/osu!/Songs/",
-		new File(DATA_DIR, "Songs/").getPath()
-	};
+	/** The default beatmap directory (unless an osu! installation is detected). */
+	private static final File BEATMAP_DIR = new File(DATA_DIR, "Songs/");
 
-	/** Skin directories (where to search for skins). */
-	private static final String[] SKIN_ROOT_DIRS = {
-		"C:/Program Files (x86)/osu!/Skins/",
-		"C:/Program Files/osu!/Skins/",
-		new File(DATA_DIR, "Skins/").getPath()
-	};
+	/** The default skin directory (unless an osu! installation is detected). */
+	private static final File SKIN_ROOT_DIR = new File(DATA_DIR, "Skins/");
 
 	/** Cached beatmap database name. */
 	public static final File BEATMAP_DB = new File(DATA_DIR, ".opsu.db");
@@ -178,6 +176,34 @@ public class Options {
 			return dir;
 		} else
 			return new File("./");
+	}
+
+	/**
+	 * Returns the osu! installation directory.
+	 * @return the directory, or null if not found
+	 */
+	private static File getOsuInstallationDirectory() {
+		if (!System.getProperty("os.name").startsWith("Win"))
+			return null;  // only works on Windows
+
+		// registry location
+		final WinReg.HKEY rootKey = WinReg.HKEY_CLASSES_ROOT;
+		final String regKey = "osu\\DefaultIcon";
+		final String regValue = null; // default value
+		final String regPathPattern = "\"(.+)\\\\[^\\/]+\\.exe\"";
+
+		String value;
+		try {
+			value = Advapi32Util.registryGetStringValue(rootKey, regKey, regValue);
+		} catch (Win32Exception e) {
+			return null;  // key/value not found
+		}
+		Pattern pattern = Pattern.compile(regPathPattern);
+		Matcher m = pattern.matcher(value);
+		if (!m.find())
+			return null;
+		File dir = new File(m.group(1));
+		return (dir.isDirectory()) ? dir : null;
 	}
 
 	/**
@@ -1142,15 +1168,17 @@ public class Options {
 		if (beatmapDir != null && beatmapDir.isDirectory())
 			return beatmapDir;
 
-		// search for directory
-		for (int i = 0; i < BEATMAP_DIRS.length; i++) {
-			beatmapDir = new File(BEATMAP_DIRS[i]);
+		// use osu! installation directory, if found
+		File osuDir = getOsuInstallationDirectory();
+		if (osuDir != null) {
+			beatmapDir = new File(osuDir, BEATMAP_DIR.getName());
 			if (beatmapDir.isDirectory())
 				return beatmapDir;
 		}
 
-		// none found, create new directory
-		if (!beatmapDir.mkdir())
+		// use default directory
+		beatmapDir = BEATMAP_DIR;
+		if (!beatmapDir.isDirectory() && !beatmapDir.mkdir())
 			ErrorHandler.error(String.format("Failed to create beatmap directory at '%s'.", beatmapDir.getAbsolutePath()), null, false);
 		return beatmapDir;
 	}
@@ -1220,15 +1248,17 @@ public class Options {
 		if (skinRootDir != null && skinRootDir.isDirectory())
 			return skinRootDir;
 
-		// search for directory
-		for (int i = 0; i < SKIN_ROOT_DIRS.length; i++) {
-			skinRootDir = new File(SKIN_ROOT_DIRS[i]);
+		// use osu! installation directory, if found
+		File osuDir = getOsuInstallationDirectory();
+		if (osuDir != null) {
+			skinRootDir = new File(osuDir, SKIN_ROOT_DIR.getName());
 			if (skinRootDir.isDirectory())
 				return skinRootDir;
 		}
 
-		// none found, create new directory
-		if (!skinRootDir.mkdir())
+		// use default directory
+		skinRootDir = SKIN_ROOT_DIR;
+		if (!skinRootDir.isDirectory() && !skinRootDir.mkdir())
 			ErrorHandler.error(String.format("Failed to create skins directory at '%s'.", skinRootDir.getAbsolutePath()), null, false);
 		return skinRootDir;
 	}
