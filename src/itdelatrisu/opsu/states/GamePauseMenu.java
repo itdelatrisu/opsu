@@ -48,7 +48,7 @@ import org.newdawn.slick.state.transition.FadeOutTransition;
  */
 public class GamePauseMenu extends BasicGameState {
 	/** Music fade-out time, in milliseconds. */
-	private static final int FADEOUT_TIME = 1000;
+	private static final int FADEOUT_TIME = 2000;
 
 	/** Track position when the pause menu was loaded (for FADEOUT_TIME). */
 	private long pauseStartTime;
@@ -207,6 +207,7 @@ public class GamePauseMenu extends BasicGameState {
 		pauseStartTime = System.currentTimeMillis();
 		if (gameState.getRestart() == Game.Restart.LOSE) {
 			MusicController.fadeOut(FADEOUT_TIME);
+			MusicController.pitchFadeOut(FADEOUT_TIME);
 			SoundController.playSound(SoundEffect.FAIL);
 		} else
 			MusicController.pause();
