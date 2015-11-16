@@ -238,6 +238,15 @@ public class MusicController {
 	}
 
 	/**
+	 * Fades out the pitch (and speed) of the track.
+	 * @param duration the pitch fade time (in ms)
+	 */
+	public static void pitchFadeOut(int duration) {
+		if (isPlaying())
+			player.pitchFade(duration, 0f);
+	}
+
+	/**
 	 * Returns the position in the current track, in milliseconds.
 	 * If no track is loaded, 0 will be returned.
 	 */
@@ -316,7 +325,7 @@ public class MusicController {
 	 * @param pitch the new pitch
 	 */
 	public static void setPitch(float pitch) {
-		SoundStore.get().setMusicPitch(pitch);
+		player.setPitch(pitch);
 	}
 
 	/**

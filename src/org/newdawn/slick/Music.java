@@ -98,7 +98,19 @@ public class Music {
 	private boolean positioning; 
 	/** The position that was requested */
 	private float requiredPosition = -1;
-	
+
+	/** The pitch of this music */
+	private float pitch = 1.0f;
+	/** Start pitch for fading pitch */
+	private float pitchStart;
+	/** End pitch for fading pitch */
+	private float pitchEnd;
+	/** Countdown for fading pitch */
+	private int pitchTime;
+	/** Duration for fading pitch */
+	private int pitchDuration;
+
+
 	/**
 	 * Create and load a piece of music (either OGG or MOD/XM)
 	 * 
@@ -313,6 +325,7 @@ public class Music {
 			currentMusic = this;
 			sound.playAsMusic(pitch, volume, loop);
 			setVolume(volume);
+			setPitch(pitch);
 			if (requiredPosition != -1) {
 				setPosition(requiredPosition);
 			}
@@ -373,6 +386,17 @@ public class Music {
 			SoundStore.get().setCurrentMusicVolume(volume);
 		}
 	}
+	/**
+	 * Set the pitch of the music as a factor of it's normal pitch
+	 *
+	 * @param pitch The pitch to play music at.
+	 */
+	public void setPitch(float pitch) {
+		this.pitch = pitch;
+		if (currentMusic == this) {
+			SoundStore.get().setMusicPitch(pitch);
+		}
+	}
 
 	/**
 	 * Get the individual volume of the music
@@ -398,6 +422,19 @@ public class Music {
 	}
 
 	/**
+	 * Fade the pitch and speed of this music to the pitch specified
+	 *
+	 * @param duration Pitch fade time in milliseconds
+	 * @param endPitch The target pitch (and speed)
+	 */
+	public void pitchFade (int duration, float endPitch) {
+		pitchStart = pitch;
+		pitchEnd = endPitch;
+		pitchDuration = duration;
+		pitchTime = duration;
+	}
+
+	/**
 	 * Update the current music applying any effects that need to updated per 
 	 * tick.
 	 * 
@@ -408,6 +445,14 @@ public class Music {
 			return;
 		}
        
+		if (pitchTime > 0) {
+			pitchTime -= delta;
+			if (pitchTime < 0) {
+				pitchTime = 0;
+			}
+			float offset = (pitchEnd - pitchStart) * (1 - (pitchTime / (float)pitchDuration));
+			setPitch(pitchStart + offset);
+		}
 		if (fadeTime > 0) {
 			fadeTime -= delta;
 			if (fadeTime < 0) {

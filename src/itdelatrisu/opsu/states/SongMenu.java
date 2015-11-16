@@ -1118,6 +1118,7 @@ public class SongMenu extends BasicGameState {
 		else if (resetTrack) {
 			MusicController.pause();
 			MusicController.playAt(MusicController.getBeatmap().previewTime, true);
+			MusicController.setPitch(1.0f);
 			resetTrack = false;
 		}
 
