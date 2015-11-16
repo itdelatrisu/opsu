@@ -216,6 +216,13 @@ public class GamePauseMenu extends BasicGameState {
 		backButton.resetHover();
 	}
 
+	@Override
+	public void leave(GameContainer container, StateBasedGame game)
+			throws SlickException {
+		// reset pitch fade out
+		MusicController.pitchFadeOut(0);
+	}
+
 	/**
 	 * Loads all game pause/fail menu images.
 	 */

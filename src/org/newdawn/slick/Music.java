@@ -325,6 +325,7 @@ public class Music {
 			currentMusic = this;
 			sound.playAsMusic(pitch, volume, loop);
 			setVolume(volume);
+			setPitch(pitch);
 			if (requiredPosition != -1) {
 				setPosition(requiredPosition);
 			}
@@ -444,6 +445,14 @@ public class Music {
 			return;
 		}
        
+		if (pitchTime > 0) {
+			pitchTime -= delta;
+			if (pitchTime < 0) {
+				pitchTime = 0;
+			}
+			float offset = (pitchEnd - pitchStart) * (1 - (pitchTime / (float)pitchDuration));
+			setPitch(pitchStart + offset);
+		}
 		if (fadeTime > 0) {
 			fadeTime -= delta;
 			if (fadeTime < 0) {
@@ -456,15 +465,6 @@ public class Music {
 			
 			float offset = (fadeEndGain - fadeStartGain) * (1 - (fadeTime / (float)fadeDuration));
 			setVolume(fadeStartGain + offset);
-		}
-
-		if (pitchTime > 0) {
-			pitchTime -= delta;
-			if (pitchTime < 0) {
-				pitchTime = 0;
-			}
-			float offset = (pitchEnd - pitchStart) * (1 - (pitchTime / (float)pitchDuration));
-			setPitch(pitchStart + offset);
 		}
 	}
 

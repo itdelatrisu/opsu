@@ -1262,9 +1262,6 @@ public class Game extends BasicGameState {
 		// replays
 		if (isReplay)
 			GameMod.loadModState(previousMods);
-
-		// reset playback speed
-		MusicController.setPitch(1f);
 	}
 
 	/**
