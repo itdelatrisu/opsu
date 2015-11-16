@@ -50,6 +50,10 @@ public class GamePauseMenu extends BasicGameState {
 	/** Music fade-out time, in milliseconds. */
 	private static final int FADEOUT_TIME = 2000;
 
+	/** Additional delay time to block state changes during music fade-out, in milliseconds.
+	    This prevents music playback issues when the track hasn't completely finished fading out. */
+	private static final int FADEOUT_EXTRA_DELAY = 100;
+
 	/** Track position when the pause menu was loaded (for FADEOUT_TIME). */
 	private long pauseStartTime;
 
@@ -125,10 +129,16 @@ public class GamePauseMenu extends BasicGameState {
 				mousePressed(Input.MOUSE_RIGHT_BUTTON, input.getMouseX(), input.getMouseY());
 		}
 
+		// if music faded out (i.e. health is zero), don't process any state changes before FADEOUT_TIME
+		boolean loseState = (gameState.getRestart() == Game.Restart.LOSE);
+		boolean loseBlockDelay = (loseState && System.currentTimeMillis() - pauseStartTime < FADEOUT_TIME + FADEOUT_EXTRA_DELAY);
+
 		switch (key) {
 		case Input.KEY_ESCAPE:
+			if (loseBlockDelay)
+				break;
 			// 'esc' will normally unpause, but will return to song menu if health is zero
-			if (gameState.getRestart() == Game.Restart.LOSE) {
+			if (loseState) {
 				SoundController.playSound(SoundEffect.MENUBACK);
 				((SongMenu) game.getState(Opsu.STATE_SONGMENU)).resetGameDataOnLoad();
 				MusicController.playAt(MusicController.getBeatmap().previewTime, true);
@@ -142,6 +152,8 @@ public class GamePauseMenu extends BasicGameState {
 			}
 			break;
 		case Input.KEY_R:
+			if (loseBlockDelay)
+				break;
 			// restart
 			if (input.isKeyDown(Input.KEY_RCONTROL) || input.isKeyDown(Input.KEY_LCONTROL)) {
 				gameState.setRestart(Game.Restart.MANUAL);
@@ -168,7 +180,7 @@ public class GamePauseMenu extends BasicGameState {
 		boolean loseState = (gameState.getRestart() == Game.Restart.LOSE);
 
 		// if music faded out (i.e. health is zero), don't process any actions before FADEOUT_TIME
-		if (loseState && System.currentTimeMillis() - pauseStartTime < FADEOUT_TIME)
+		if (loseState && System.currentTimeMillis() - pauseStartTime < FADEOUT_TIME + FADEOUT_EXTRA_DELAY)
 			return;
 
 		if (continueButton.contains(x, y) && !loseState) {
