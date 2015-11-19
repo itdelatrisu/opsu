@@ -264,6 +264,10 @@ public class Slider implements GameObject {
 			if (sliderTime == 0)
 				return;
 
+			// Don't draw follow ball if already done
+			if (trackPosition > hitObject.getTime() + sliderTimeTotal)
+				return;
+
 			Vec2f c = curve.pointAt(getT(trackPosition, false));
 			Vec2f c2 = curve.pointAt(getT(trackPosition, false) + 0.01f);
 
