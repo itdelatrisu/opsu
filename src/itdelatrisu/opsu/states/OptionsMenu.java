@@ -42,8 +42,8 @@ import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
-import org.newdawn.slick.state.transition.EmptyTransition;
 import org.newdawn.slick.state.transition.FadeInTransition;
+import org.newdawn.slick.state.transition.EmptyTransition;
 
 /**
  * "Game Options" state.
@@ -297,7 +297,7 @@ public class OptionsMenu extends BasicGameState {
 		// back
 		if (UI.getBackButton().contains(x, y)) {
 			SoundController.playSound(SoundEffect.MENUBACK);
-			game.enterState(Opsu.STATE_SONGMENU, new EmptyTransition(), new FadeInTransition(Color.black));
+			game.enterState(Opsu.STATE_SONGMENU, new EmptyTransition(), new FadeInTransition());
 			return;
 		}
 
@@ -375,7 +375,7 @@ public class OptionsMenu extends BasicGameState {
 		switch (key) {
 		case Input.KEY_ESCAPE:
 			SoundController.playSound(SoundEffect.MENUBACK);
-			game.enterState(Opsu.STATE_SONGMENU, new EmptyTransition(), new FadeInTransition(Color.black));
+			game.enterState(Opsu.STATE_SONGMENU, new EmptyTransition(), new FadeInTransition());
 			break;
 		case Input.KEY_F5:
 			// restart application

@@ -54,7 +54,7 @@ import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.state.transition.FadeInTransition;
-import org.newdawn.slick.state.transition.FadeOutTransition;
+import org.newdawn.slick.state.transition.EasedFadeOutTransition;
 
 /**
  * "Main Menu" state.
@@ -498,7 +498,7 @@ public class MainMenu extends BasicGameState {
 		// downloads button actions
 		if (downloadsButton.contains(x, y)) {
 			SoundController.playSound(SoundEffect.MENUHIT);
-			game.enterState(Opsu.STATE_DOWNLOADSMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
+			game.enterState(Opsu.STATE_DOWNLOADSMENU, new EasedFadeOutTransition(), new FadeInTransition());
 			return;
 		}
 
@@ -586,7 +586,7 @@ public class MainMenu extends BasicGameState {
 			break;
 		case Input.KEY_D:
 			SoundController.playSound(SoundEffect.MENUHIT);
-			game.enterState(Opsu.STATE_DOWNLOADSMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
+			game.enterState(Opsu.STATE_DOWNLOADSMENU, new EasedFadeOutTransition(), new FadeInTransition());
 			break;
 		case Input.KEY_R:
 			nextTrack();
@@ -671,6 +671,6 @@ public class MainMenu extends BasicGameState {
 			((DownloadsMenu) game.getState(Opsu.STATE_DOWNLOADSMENU)).notifyOnLoad("Download some beatmaps to get started!");
 			state = Opsu.STATE_DOWNLOADSMENU;
 		}
-		game.enterState(state, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
+		game.enterState(state, new EasedFadeOutTransition(), new FadeInTransition());
 	}
 }

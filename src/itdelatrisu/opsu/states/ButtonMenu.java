@@ -46,8 +46,8 @@ import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
-import org.newdawn.slick.state.transition.EmptyTransition;
 import org.newdawn.slick.state.transition.FadeInTransition;
+import org.newdawn.slick.state.transition.EmptyTransition;
 
 /**
  * Generic button menu state.
@@ -456,7 +456,7 @@ public class ButtonMenu extends BasicGameState {
 			@Override
 			public void click(GameContainer container, StateBasedGame game) {
 				SoundController.playSound(SoundEffect.MENUBACK);
-				game.enterState(Opsu.STATE_MAINMENU, new EmptyTransition(), new FadeInTransition(Color.black));
+				game.enterState(Opsu.STATE_MAINMENU, new EmptyTransition(), new FadeInTransition());
 			}
 		},
 		CLEAR_SCORES ("Clear local scores", Color.magenta) {
@@ -465,7 +465,7 @@ public class ButtonMenu extends BasicGameState {
 				SoundController.playSound(SoundEffect.MENUHIT);
 				BeatmapSetNode node = ((ButtonMenu) game.getState(Opsu.STATE_BUTTONMENU)).getNode();
 				((SongMenu) game.getState(Opsu.STATE_SONGMENU)).doStateActionOnLoad(MenuState.BEATMAP, node);
-				game.enterState(Opsu.STATE_SONGMENU, new EmptyTransition(), new FadeInTransition(Color.black));
+				game.enterState(Opsu.STATE_SONGMENU, new EmptyTransition(), new FadeInTransition());
 			}
 		},
 		DELETE ("Delete...", Color.red) {
@@ -483,7 +483,7 @@ public class ButtonMenu extends BasicGameState {
 			@Override
 			public void click(GameContainer container, StateBasedGame game) {
 				SoundController.playSound(SoundEffect.MENUBACK);
-				game.enterState(Opsu.STATE_SONGMENU, new EmptyTransition(), new FadeInTransition(Color.black));
+				game.enterState(Opsu.STATE_SONGMENU, new EmptyTransition(), new FadeInTransition());
 			}
 		},
 		DELETE_CONFIRM ("Yes, delete this beatmap!", Color.red) {
@@ -492,7 +492,7 @@ public class ButtonMenu extends BasicGameState {
 				SoundController.playSound(SoundEffect.MENUHIT);
 				BeatmapSetNode node = ((ButtonMenu) game.getState(Opsu.STATE_BUTTONMENU)).getNode();
 				((SongMenu) game.getState(Opsu.STATE_SONGMENU)).doStateActionOnLoad(MenuState.BEATMAP_DELETE_CONFIRM, node);
-				game.enterState(Opsu.STATE_SONGMENU, new EmptyTransition(), new FadeInTransition(Color.black));
+				game.enterState(Opsu.STATE_SONGMENU, new EmptyTransition(), new FadeInTransition());
 			}
 		},
 		DELETE_GROUP ("Yes, delete all difficulties!", Color.red) {
@@ -507,7 +507,7 @@ public class ButtonMenu extends BasicGameState {
 				SoundController.playSound(SoundEffect.MENUHIT);
 				BeatmapSetNode node = ((ButtonMenu) game.getState(Opsu.STATE_BUTTONMENU)).getNode();
 				((SongMenu) game.getState(Opsu.STATE_SONGMENU)).doStateActionOnLoad(MenuState.BEATMAP_DELETE_SELECT, node);
-				game.enterState(Opsu.STATE_SONGMENU, new EmptyTransition(), new FadeInTransition(Color.black));
+				game.enterState(Opsu.STATE_SONGMENU, new EmptyTransition(), new FadeInTransition());
 			}
 		},
 		CANCEL_DELETE ("Nooooo! I didn't mean to!", Color.gray) {
@@ -521,7 +521,7 @@ public class ButtonMenu extends BasicGameState {
 			public void click(GameContainer container, StateBasedGame game) {
 				SoundController.playSound(SoundEffect.MENUHIT);
 				((SongMenu) game.getState(Opsu.STATE_SONGMENU)).doStateActionOnLoad(MenuState.RELOAD);
-				game.enterState(Opsu.STATE_SONGMENU, new EmptyTransition(), new FadeInTransition(Color.black));
+				game.enterState(Opsu.STATE_SONGMENU, new EmptyTransition(), new FadeInTransition());
 			}
 		},
 		RELOAD_CANCEL ("Cancel", Color.red) {
@@ -536,7 +536,7 @@ public class ButtonMenu extends BasicGameState {
 				SoundController.playSound(SoundEffect.MENUHIT);
 				ScoreData scoreData = ((ButtonMenu) game.getState(Opsu.STATE_BUTTONMENU)).getScoreData();
 				((SongMenu) game.getState(Opsu.STATE_SONGMENU)).doStateActionOnLoad(MenuState.SCORE, scoreData);
-				game.enterState(Opsu.STATE_SONGMENU, new EmptyTransition(), new FadeInTransition(Color.black));
+				game.enterState(Opsu.STATE_SONGMENU, new EmptyTransition(), new FadeInTransition());
 			}
 		},
 		CLOSE ("Close", Color.gray) {

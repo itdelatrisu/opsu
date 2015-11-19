@@ -72,9 +72,9 @@ import org.newdawn.slick.SpriteSheet;
 import org.newdawn.slick.gui.TextField;
 import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
-import org.newdawn.slick.state.transition.EmptyTransition;
 import org.newdawn.slick.state.transition.FadeInTransition;
-import org.newdawn.slick.state.transition.FadeOutTransition;
+import org.newdawn.slick.state.transition.EasedFadeOutTransition;
+import org.newdawn.slick.state.transition.EmptyTransition;
 
 /**
  * "Song Selection" state.
@@ -773,7 +773,7 @@ public class SongMenu extends BasicGameState {
 		if (UI.getBackButton().contains(x, y)) {
 			SoundController.playSound(SoundEffect.MENUBACK);
 			((MainMenu) game.getState(Opsu.STATE_MAINMENU)).reset();
-			game.enterState(Opsu.STATE_MAINMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
+			game.enterState(Opsu.STATE_MAINMENU, new EasedFadeOutTransition(), new FadeInTransition());
 			return;
 		}
 
@@ -789,7 +789,7 @@ public class SongMenu extends BasicGameState {
 			return;
 		} else if (selectOptionsButton.contains(x, y)) {
 			SoundController.playSound(SoundEffect.MENUHIT);
-			game.enterState(Opsu.STATE_OPTIONSMENU, new EmptyTransition(), new FadeInTransition(Color.black));
+			game.enterState(Opsu.STATE_OPTIONSMENU, new EmptyTransition(), new FadeInTransition());
 			return;
 		}
 
@@ -863,7 +863,7 @@ public class SongMenu extends BasicGameState {
 						// view score
 						GameData data = new GameData(focusScores[rank], container.getWidth(), container.getHeight());
 						((GameRanking) game.getState(Opsu.STATE_GAMERANKING)).setGameData(data);
-						game.enterState(Opsu.STATE_GAMERANKING, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
+						game.enterState(Opsu.STATE_GAMERANKING, new EasedFadeOutTransition(), new FadeInTransition());
 					} else {
 						// score management
 						((ButtonMenu) game.getState(Opsu.STATE_BUTTONMENU)).setMenuState(MenuState.SCORE, focusScores[rank]);
@@ -895,7 +895,7 @@ public class SongMenu extends BasicGameState {
 				// return to main menu
 				SoundController.playSound(SoundEffect.MENUBACK);
 				((MainMenu) game.getState(Opsu.STATE_MAINMENU)).reset();
-				game.enterState(Opsu.STATE_MAINMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
+				game.enterState(Opsu.STATE_MAINMENU, new EasedFadeOutTransition(), new FadeInTransition());
 			}
 			break;
 		case Input.KEY_F1:
@@ -1611,6 +1611,6 @@ public class SongMenu extends BasicGameState {
 		gameState.loadBeatmap(beatmap);
 		gameState.setRestart(Game.Restart.NEW);
 		gameState.setReplay(null);
-		game.enterState(Opsu.STATE_GAME, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
+		game.enterState(Opsu.STATE_GAME, new EasedFadeOutTransition(), new FadeInTransition());
 	}
 }

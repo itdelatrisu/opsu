@@ -38,7 +38,7 @@ import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.state.transition.FadeInTransition;
-import org.newdawn.slick.state.transition.FadeOutTransition;
+import org.newdawn.slick.state.transition.EasedFadeOutTransition;
 
 /**
  * "Game Pause/Fail" state.
@@ -128,7 +128,7 @@ public class GamePauseMenu extends BasicGameState {
 				MusicController.playAt(MusicController.getBeatmap().previewTime, true);
 				if (UI.getCursor().isBeatmapSkinned())
 					UI.getCursor().reset();
-				game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
+				game.enterState(Opsu.STATE_SONGMENU, new EasedFadeOutTransition(), new FadeInTransition());
 			} else {
 				SoundController.playSound(SoundEffect.MENUBACK);
 				gameState.setRestart(Game.Restart.FALSE);
@@ -178,7 +178,7 @@ public class GamePauseMenu extends BasicGameState {
 			if (UI.getCursor().isBeatmapSkinned())
 				UI.getCursor().reset();
 			MusicController.setPitch(1.0f);
-			game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
+			game.enterState(Opsu.STATE_SONGMENU, new EasedFadeOutTransition(), new FadeInTransition());
 		}
 	}
 
