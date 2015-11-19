@@ -54,9 +54,9 @@ import itdelatrisu.opsu.ui.UI;
 import itdelatrisu.opsu.ui.animations.AnimationEquation;
 
 import java.io.File;
+import java.util.IdentityHashMap;
 import java.util.LinkedList;
 import java.util.Stack;
-import java.util.IdentityHashMap;
 
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.Display;
@@ -69,6 +69,7 @@ import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
+import org.newdawn.slick.state.transition.DelayedFadeOutTransition;
 import org.newdawn.slick.state.transition.EmptyTransition;
 import org.newdawn.slick.state.transition.FadeInTransition;
 import org.newdawn.slick.state.transition.FadeOutTransition;
@@ -92,10 +93,13 @@ public class Game extends BasicGameState {
 	}
 
 	/** Music fade-out time, in milliseconds. */
-	private static final int FADEOUT_TIME = 2000;
+	private static final int MUSIC_FADEOUT_TIME = 2000;
 
-	/** Maximal rotation over fade out, in degrees */
-	private static final float MAX_ROTATION = 90.0f;
+	/** Screen fade-out time, in milliseconds, when health hits zero. */
+	private static final int LOSE_FADEOUT_TIME = 500;
+
+	/** Maximum rotation, in degrees, over fade out upon death. */
+	private static final float MAX_ROTATION = 90f;
 
 	/** Minimum time before start of song, in milliseconds, to process skip-related actions. */
 	private static final int SKIP_OFFSET = 2000;
@@ -185,8 +189,11 @@ public class Game extends BasicGameState {
 
 	/** System time position at death. */
 	private long failTime;
+
+	/** Track time position at death. */
 	private int failTrackTime;
 
+	/** Rotations for game objects at death. */
 	private IdentityHashMap<GameObject, Float> rotations;
 
 	/** Number of retries. */
@@ -663,7 +670,6 @@ public class Game extends BasicGameState {
 			deathTime = -1;
 		}
 
-
 		// normal game update
 		if (!isReplay)
 			addReplayFrameAndRun(mouseX, mouseY, lastKeysPressed, trackPosition);
@@ -823,24 +829,26 @@ public class Game extends BasicGameState {
 				}
 			}
 
-
 			// game over, force a restart
 			if (!isReplay) {
 				if (restart != Restart.LOSE) {
 					restart = Restart.LOSE;
 					failTime = System.currentTimeMillis();
 					failTrackTime = MusicController.getPosition();
-					MusicController.fadeOut(FADEOUT_TIME);
-					MusicController.pitchFadeOut(FADEOUT_TIME);
+					MusicController.fadeOut(MUSIC_FADEOUT_TIME);
+					MusicController.pitchFadeOut(MUSIC_FADEOUT_TIME);
 					rotations = new IdentityHashMap<GameObject, Float>();
 					SoundController.playSound(SoundEffect.FAIL);
-					//fade to pause menu
-					game.enterState(Opsu.STATE_GAMEPAUSEMENU, new FadeOutTransition(Color.black, FADEOUT_TIME), new FadeInTransition(Color.black));
+
+					// fade to pause menu
+					game.enterState(Opsu.STATE_GAMEPAUSEMENU,
+							new DelayedFadeOutTransition(Color.black, MUSIC_FADEOUT_TIME, MUSIC_FADEOUT_TIME - LOSE_FADEOUT_TIME),
+							new FadeInTransition(Color.black));
 				}
 			}
 		}
 
-		//don't process hit results when already lost
+		// don't process hit results when already lost
 		if (restart != Restart.LOSE) {
 			// update objects (loop in unlikely event of any skipped indexes)
 			boolean keyPressed = keys != ReplayFrame.KEY_NONE;
@@ -1303,17 +1311,17 @@ public class Game extends BasicGameState {
 		    trackPosition < beatmap.objects[objectIndex].getTime() && !beatmap.objects[objectIndex - 1].isSpinner())
 			lastObjectIndex = objectIndex - 1;
 
-		if (restart == Restart.LOSE) {
-			trackPosition = failTrackTime + (int)(System.currentTimeMillis() - failTime);
-		}
+		boolean loseState = (restart == Restart.LOSE);
+		if (loseState)
+			trackPosition = failTrackTime + (int) (System.currentTimeMillis() - failTime);
 
-		// draw hit objects in reverse order, or else overlapping objects are unreadable
+		// get hit objects in reverse order, or else overlapping objects are unreadable
 		Stack<Integer> stack = new Stack<Integer>();
 		for (int index = objectIndex; index < gameObjects.length && beatmap.objects[index].getTime() < trackPosition + approachTime; index++) {
 			stack.add(index);
 
 			// draw follow points
-			if (!Options.isFollowPointEnabled())
+			if (!Options.isFollowPointEnabled() || loseState)
 				continue;
 			if (beatmap.objects[index].isSpinner()) {
 				lastObjectIndex = -1;
@@ -1371,40 +1379,47 @@ public class Game extends BasicGameState {
 			lastObjectIndex = index;
 		}
 
+		// draw hit objects
 		while (!stack.isEmpty()){
-			if (restart == Restart.LOSE){
-				int ix = stack.pop();
-				GameObject obj = gameObjects[ix];
-				// the time the object began falling
-				int objTime = Math.max( beatmap.objects[ix].getTime() - approachTime, failTrackTime );
-				float dt = (trackPosition - objTime)/(float)(FADEOUT_TIME);
+			int idx = stack.pop();
+			GameObject gameObj = gameObjects[idx];
+
+			// normal case
+			if (!loseState)
+				gameObj.draw(g, trackPosition);
+
+			// death: make objects "fall" off the screen
+			else {
+				// time the object began falling
+				int objTime = Math.max(beatmap.objects[idx].getTime() - approachTime, failTrackTime);
+				float dt = (trackPosition - objTime) / (float) (MUSIC_FADEOUT_TIME);
 
 				// would the object already be visible?
-				if (dt > 0) {
-					float rotSpeed;
-					//generate rotation speeds for each objects
-					if (rotations.containsKey(obj)){
-						rotSpeed = rotations.get(obj);
-					} else {
-						rotSpeed = (float)(2.0f*(Math.random()-0.5f)*MAX_ROTATION);
-						rotations.put(obj, rotSpeed);
-					}
+				if (dt <= 0)
+					continue;
 
-					g.pushTransform();
-
-					g.translate(0, dt*dt * container.getHeight());
-					Vec2f rotationCenter = obj.getPointAt(beatmap.objects[ix].getTime());
-					g.rotate(rotationCenter.x, rotationCenter.y, rotSpeed * dt);
-					gameObjects[ix].draw(g, trackPosition);
-
-					g.popTransform();
+				// generate rotation speeds for each objects
+				final float rotSpeed;
+				if (rotations.containsKey(gameObj)) {
+					rotSpeed = rotations.get(gameObj);
+				} else {
+					rotSpeed = (float) (2.0f * (Math.random() - 0.5f) * MAX_ROTATION);
+					rotations.put(gameObj, rotSpeed);
 				}
-			} else {
-				gameObjects[stack.pop()].draw(g, trackPosition);
+
+				g.pushTransform();
+
+				// translate and rotate the object
+				g.translate(0, dt * dt * container.getHeight());
+				Vec2f rotationCenter = gameObj.getPointAt(beatmap.objects[idx].getTime());
+				g.rotate(rotationCenter.x, rotationCenter.y, rotSpeed * dt);
+				gameObj.draw(g, trackPosition);
+
+				g.popTransform();
 			}
 		}
 
-		// draw OsuHitObjectResult objects
+		// draw result objects
 		data.drawHitResults(trackPosition);
 	}
 

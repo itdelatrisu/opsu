@@ -119,13 +119,10 @@ public class GamePauseMenu extends BasicGameState {
 				mousePressed(Input.MOUSE_RIGHT_BUTTON, input.getMouseX(), input.getMouseY());
 		}
 
-		// if music faded out (i.e. health is zero), don't process any state changes before FADEOUT_TIME
-		boolean loseState = (gameState.getRestart() == Game.Restart.LOSE);
-
 		switch (key) {
 		case Input.KEY_ESCAPE:
 			// 'esc' will normally unpause, but will return to song menu if health is zero
-			if (loseState) {
+			if (gameState.getRestart() == Game.Restart.LOSE) {
 				SoundController.playSound(SoundEffect.MENUBACK);
 				((SongMenu) game.getState(Opsu.STATE_SONGMENU)).resetGameDataOnLoad();
 				MusicController.playAt(MusicController.getBeatmap().previewTime, true);
@@ -163,8 +160,6 @@ public class GamePauseMenu extends BasicGameState {
 			return;
 
 		boolean loseState = (gameState.getRestart() == Game.Restart.LOSE);
-
-
 		if (continueButton.contains(x, y) && !loseState) {
 			SoundController.playSound(SoundEffect.MENUBACK);
 			gameState.setRestart(Game.Restart.FALSE);
@@ -204,7 +199,6 @@ public class GamePauseMenu extends BasicGameState {
 		retryButton.resetHover();
 		backButton.resetHover();
 	}
-
 
 	/**
 	 * Loads all game pause/fail menu images.
