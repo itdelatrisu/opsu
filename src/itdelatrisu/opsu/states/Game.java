@@ -101,6 +101,12 @@ public class Game extends BasicGameState {
 	/** Maximum rotation, in degrees, over fade out upon death. */
 	private static final float MAX_ROTATION = 90f;
 
+	/** The duration of the score changing animation */
+	private static final float SCOREBOARD_ANIMATION_TIME = 500f;
+
+	/** The time the scoreboard takes to fade in */
+	private static final float SCOREBOARD_FADE_IN_TIME = 500f;
+
 	/** Minimum time before start of song, in milliseconds, to process skip-related actions. */
 	private static final int SKIP_OFFSET = 2000;
 
@@ -255,6 +261,18 @@ public class Game extends BasicGameState {
 
 	/** Music position bar coordinates and dimensions (for replay seeking). */
 	private float musicBarX, musicBarY, musicBarWidth, musicBarHeight;
+
+	/** The previous scores. */
+	private ScoreData[] previousScores;
+
+	/** The current rank in the scores. */
+	private int currentRank;
+
+	/** The time the rank was last updated. */
+	private int lastRankUpdateTime;
+
+	/** Is the scoreboard visible? */
+	private boolean scoreboardVisible;
 
 	/** Music position bar background colors. */
 	private static final Color
@@ -482,6 +500,7 @@ public class Game extends BasicGameState {
 					arrow.draw(width * 0.75f, height * 0.75f);
 				}
 			}
+
 		}
 
 		// non-break
@@ -561,6 +580,38 @@ public class Game extends BasicGameState {
 			// draw hit objects
 			if (!GameMod.FLASHLIGHT.isActive())
 				drawHitObjects(g, trackPosition);
+		}
+
+		if (previousScores != null && trackPosition >= firstObjectTime && !GameMod.RELAX.isActive() && !GameMod.AUTOPILOT.isActive() && scoreboardVisible) {
+			ScoreData currentScore = data.getScoreData(beatmap);
+			while (currentRank > 0 && previousScores[currentRank-1].score < currentScore.score) {
+				currentRank--;
+				lastRankUpdateTime = trackPosition;
+			}
+
+			float animation = AnimationEquation.IN_OUT_QUAD.calc(Utils.clamp((trackPosition - lastRankUpdateTime) / SCOREBOARD_ANIMATION_TIME, 0f, 1f));
+			float fadeIn = Utils.clamp((trackPosition - firstObjectTime) / SCOREBOARD_FADE_IN_TIME, 0f, 1f);
+			int scoreboardPosition = 2 * container.getHeight() / 3;
+
+			if (currentRank < 4) {
+				//draw the (new) top 5 ranks
+				for (int i = 0; i < 4; i++) {
+					int ii = i + (i>=currentRank ? 1 : 0);
+					if (i < previousScores.length)
+						previousScores[i].drawSmall(g, scoreboardPosition, ii + 1, ii + (i==currentRank ? animation-3f : -2f), data, fadeIn, false);
+				}
+				currentScore.drawSmall(g, scoreboardPosition, currentRank + 1, currentRank - 1f - animation, data, fadeIn, true);
+			} else {
+				//draw the top 2 and next 2 ranks
+				previousScores[0].drawSmall(g, scoreboardPosition, 1, -2f, data, fadeIn, false);
+				previousScores[1].drawSmall(g, scoreboardPosition, 2, -1f, data, fadeIn, false);
+				previousScores[currentRank-2].drawSmall(g, scoreboardPosition, currentRank - 1, animation - 1f, data, fadeIn*animation, false);
+				previousScores[currentRank-1].drawSmall(g, scoreboardPosition, currentRank, animation, data, fadeIn, false);
+				currentScore.drawSmall(g, scoreboardPosition, currentRank + 1, 2f, data, fadeIn, true);
+				if (animation < 1.0f && currentRank < previousScores.length) {
+					previousScores[currentRank].drawSmall(g, scoreboardPosition, currentRank + 2, 1f + 5 * animation, data, fadeIn*(1f - animation), false);
+				}
+			}
 		}
 
 		if (GameMod.AUTO.isActive())
@@ -986,6 +1037,9 @@ public class Game extends BasicGameState {
 		case Input.KEY_F12:
 			Utils.takeScreenShot();
 			break;
+		case Input.KEY_TAB:
+			scoreboardVisible = ! scoreboardVisible;
+			break;
 		}
 	}
 
@@ -1138,6 +1192,12 @@ public class Game extends BasicGameState {
 
 		if (beatmap == null || beatmap.objects == null)
 			throw new RuntimeException("Running game with no beatmap loaded.");
+		// fetch previous results
+		previousScores = ScoreDB.getMapScores(beatmap);
+		lastRankUpdateTime = -1000;
+		if (previousScores != null)
+			currentRank = previousScores.length;
+		scoreboardVisible = true;
 
 		// free all previously cached hitobject to framebuffer mappings if some still exist
 		FrameBufferCache.getInstance().freeMap();

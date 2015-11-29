@@ -1396,10 +1396,9 @@ public class GameData {
 	 * @return the ScoreData object
 	 */
 	public ScoreData getScoreData(Beatmap beatmap) {
-		if (scoreData != null)
-			return scoreData;
+		if (scoreData == null)
+			scoreData = new ScoreData();
 
-		scoreData = new ScoreData();
 		scoreData.timestamp = System.currentTimeMillis() / 1000L;
 		scoreData.MID = beatmap.beatmapID;
 		scoreData.MSID = beatmap.beatmapSetID;
@@ -1419,6 +1418,7 @@ public class GameData {
 		scoreData.mods = GameMod.getModState();
 		scoreData.replayString = (replay == null) ? null : replay.getReplayFilename();
 		scoreData.playerName = null;  // TODO
+
 		return scoreData;
 	}
 
