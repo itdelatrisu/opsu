@@ -1367,10 +1367,10 @@ public class Game extends BasicGameState {
 									followPoint.setAlpha(1f - ((progress - (t - step)) / (step * 2f)));
 								else
 									followPoint.setAlpha(1f);
-								followPoint.draw(x, y);
+								followPoint.drawCentered(x, y);
 							}
 						} else
-							followPoint.draw(x, y);
+							followPoint.drawCentered(x, y);
 						t = nextT;
 					}
 					followPoint.setAlpha(1f);
