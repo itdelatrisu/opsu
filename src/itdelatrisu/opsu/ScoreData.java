@@ -30,6 +30,7 @@ import java.sql.SQLException;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
@@ -343,7 +344,8 @@ public class ScoreData implements Comparable<ScoreData> {
 		int rectHeight = data.getScoreSymbolImage('0').getHeight();
 		int vertDistance = rectHeight + 10;
 		int yPos = (int)(vPos + position * vertDistance - rectHeight/2);
-		String scoreString = String.format("%d (%dx)", score, combo);
+		String scoreString = String.format(Locale.US, "%,d", score);
+		String comboString = String.format("%dx", combo);
 		String rankString = String.format("%d", rank);
 		int rectWidth = (int) (170 * GameImage.getUIscale());
 
@@ -352,13 +354,14 @@ public class ScoreData implements Comparable<ScoreData> {
 		
 		g.setColor(rectColor);
 		g.fillRect(0, yPos, rectWidth, rectHeight);
-		data.drawSymbolString(rankString, rectWidth, yPos, 1.0f, 0.5f*alpha, true);
+		data.drawSymbolString(rankString, rectWidth, yPos, 1.0f, 0.25f*alpha, true);
 		if (playerName != null) {
 			Colors.WHITE_ALPHA.a = 0.5f * alpha;
 			Fonts.MEDIUM.drawString(0, yPos, playerName, Colors.WHITE_ALPHA);
 		}
 		Colors.WHITE_ALPHA.a = alpha;
-		Fonts.MEDIUMBOLD.drawString(0, yPos + rectHeight - Fonts.MEDIUM.getLineHeight(), scoreString, Colors.WHITE_ALPHA);
+		Fonts.MEDIUMBOLD.drawString(0, yPos + rectHeight - Fonts.MEDIUMBOLD.getLineHeight(), scoreString, Colors.WHITE_ALPHA);
+		Fonts.MEDIUMBOLD.drawString(rectWidth - Fonts.MEDIUMBOLD.getWidth(comboString), yPos + rectHeight - Fonts.MEDIUMBOLD.getLineHeight(), comboString, Colors.WHITE_ALPHA);
 
 	}
 

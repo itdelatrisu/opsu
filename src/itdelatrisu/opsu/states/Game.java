@@ -274,6 +274,9 @@ public class Game extends BasicGameState {
 	/** Is the scoreboard visible? */
 	private boolean scoreboardVisible;
 
+	/** The current aplha of the scoreboard. */
+	private float currentScoreboardAlpha;
+
 	/** Music position bar background colors. */
 	private static final Color
 		MUSICBAR_NORMAL = new Color(12, 9, 10, 0.25f),
@@ -582,7 +585,7 @@ public class Game extends BasicGameState {
 				drawHitObjects(g, trackPosition);
 		}
 
-		if (previousScores != null && trackPosition >= firstObjectTime && !GameMod.RELAX.isActive() && !GameMod.AUTOPILOT.isActive() && scoreboardVisible) {
+		if (previousScores != null && trackPosition >= firstObjectTime && !GameMod.RELAX.isActive() && !GameMod.AUTOPILOT.isActive()) {
 			ScoreData currentScore = data.getScoreData(beatmap);
 			while (currentRank > 0 && previousScores[currentRank-1].score < currentScore.score) {
 				currentRank--;
@@ -590,7 +593,6 @@ public class Game extends BasicGameState {
 			}
 
 			float animation = AnimationEquation.IN_OUT_QUAD.calc(Utils.clamp((trackPosition - lastRankUpdateTime) / SCOREBOARD_ANIMATION_TIME, 0f, 1f));
-			float fadeIn = Utils.clamp((trackPosition - firstObjectTime) / SCOREBOARD_FADE_IN_TIME, 0f, 1f);
 			int scoreboardPosition = 2 * container.getHeight() / 3;
 
 			if (currentRank < 4) {
@@ -598,18 +600,18 @@ public class Game extends BasicGameState {
 				for (int i = 0; i < 4; i++) {
 					int ii = i + (i>=currentRank ? 1 : 0);
 					if (i < previousScores.length)
-						previousScores[i].drawSmall(g, scoreboardPosition, ii + 1, ii + (i==currentRank ? animation-3f : -2f), data, fadeIn, false);
+						previousScores[i].drawSmall(g, scoreboardPosition, ii + 1, ii + (i==currentRank ? animation-3f : -2f), data, currentScoreboardAlpha, false);
 				}
-				currentScore.drawSmall(g, scoreboardPosition, currentRank + 1, currentRank - 1f - animation, data, fadeIn, true);
+				currentScore.drawSmall(g, scoreboardPosition, currentRank + 1, currentRank - 1f - animation, data, currentScoreboardAlpha, true);
 			} else {
 				//draw the top 2 and next 2 ranks
-				previousScores[0].drawSmall(g, scoreboardPosition, 1, -2f, data, fadeIn, false);
-				previousScores[1].drawSmall(g, scoreboardPosition, 2, -1f, data, fadeIn, false);
-				previousScores[currentRank-2].drawSmall(g, scoreboardPosition, currentRank - 1, animation - 1f, data, fadeIn*animation, false);
-				previousScores[currentRank-1].drawSmall(g, scoreboardPosition, currentRank, animation, data, fadeIn, false);
-				currentScore.drawSmall(g, scoreboardPosition, currentRank + 1, 2f, data, fadeIn, true);
+				previousScores[0].drawSmall(g, scoreboardPosition, 1, -2f, data, currentScoreboardAlpha, false);
+				previousScores[1].drawSmall(g, scoreboardPosition, 2, -1f, data, currentScoreboardAlpha, false);
+				previousScores[currentRank-2].drawSmall(g, scoreboardPosition, currentRank - 1, animation - 1f, data, currentScoreboardAlpha*animation, false);
+				previousScores[currentRank-1].drawSmall(g, scoreboardPosition, currentRank, animation, data, currentScoreboardAlpha, false);
+				currentScore.drawSmall(g, scoreboardPosition, currentRank + 1, 2f, data, currentScoreboardAlpha, true);
 				if (animation < 1.0f && currentRank < previousScores.length) {
-					previousScores[currentRank].drawSmall(g, scoreboardPosition, currentRank + 2, 1f + 5 * animation, data, fadeIn*(1f - animation), false);
+					previousScores[currentRank].drawSmall(g, scoreboardPosition, currentRank + 2, 1f + 5 * animation, data, currentScoreboardAlpha*(1f - animation), false);
 				}
 			}
 		}
@@ -668,6 +670,21 @@ public class Game extends BasicGameState {
 		if (isReplay || GameMod.AUTO.isActive())
 			playbackSpeed.getButton().hoverUpdate(delta, mouseX, mouseY);
 		int trackPosition = MusicController.getPosition();
+		int firstObjectTime = beatmap.objects[0].getTime();
+
+
+		if (previousScores != null && trackPosition > firstObjectTime) {
+			// show scoreboard when in break
+			if (scoreboardVisible || breakTime > 0) {
+				currentScoreboardAlpha += 1f/SCOREBOARD_FADE_IN_TIME * delta;
+				if (currentScoreboardAlpha > 1f)
+					currentScoreboardAlpha = 1f;
+			} else {
+				currentScoreboardAlpha -= 1f/SCOREBOARD_FADE_IN_TIME * delta;
+				if (currentScoreboardAlpha < 0f)
+					currentScoreboardAlpha = 0f;
+			}
+		}
 
 		// returning from pause screen: must click previous mouse position
 		if (pauseTime > -1) {
@@ -1198,6 +1215,7 @@ public class Game extends BasicGameState {
 		if (previousScores != null)
 			currentRank = previousScores.length;
 		scoreboardVisible = true;
+		currentScoreboardAlpha = 0f;
 
 		// free all previously cached hitobject to framebuffer mappings if some still exist
 		FrameBufferCache.getInstance().freeMap();
