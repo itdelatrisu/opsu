@@ -72,9 +72,9 @@ import org.newdawn.slick.SpriteSheet;
 import org.newdawn.slick.gui.TextField;
 import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
-import org.newdawn.slick.state.transition.FadeInTransition;
 import org.newdawn.slick.state.transition.EasedFadeOutTransition;
 import org.newdawn.slick.state.transition.EmptyTransition;
+import org.newdawn.slick.state.transition.FadeInTransition;
 
 /**
  * "Song Selection" state.
@@ -200,7 +200,52 @@ public class SongMenu extends BasicGameState {
 	private int beatmapMenuTimer = -1;
 
 	/** Beatmap reloading thread. */
-	private Thread reloadThread;
+	private BeatmapReloadThread reloadThread;
+
+	/** Thread for reloading beatmaps. */
+	private class BeatmapReloadThread extends Thread {
+		/** If true, also clear the beatmap cache and invoke the unpacker. */
+		private final boolean fullReload;
+
+		/** Whether this thread has completed execution. */
+		private boolean finished = false;
+
+		/** Returns true only if this thread has completed execution. */
+		public boolean isFinished() { return finished; }
+
+		/**
+		 * Constructor.
+		 * @param fullReload if true, also clear the beatmap cache and invoke the unpacker
+		 */
+		public BeatmapReloadThread(boolean fullReload) {
+			this.fullReload = fullReload;
+		}
+
+		@Override
+		public void run() {
+			try {
+				reloadBeatmaps();
+			} finally {
+				finished = true;
+			}
+		};
+
+		/** Reloads all beatmaps. */
+		private void reloadBeatmaps() {
+			File beatmapDir = Options.getBeatmapDir();
+
+			if (fullReload) {
+				// clear the beatmap cache
+				BeatmapDB.clearDatabase();
+
+				// invoke unpacker
+				OszUnpacker.unpackAllFiles(Options.getOSZDir(), beatmapDir);
+			}
+
+			// invoke parser
+			BeatmapParser.parseAllFiles(beatmapDir);
+		}
+	}
 
 	/** Current map of scores (Version, ScoreData[]). */
 	private Map<String, ScoreData[]> scoreMap;
@@ -599,6 +644,15 @@ public class SongMenu extends BasicGameState {
 		UI.update(delta);
 		if (reloadThread == null)
 			MusicController.loopTrackIfEnded(true);
+		else if (reloadThread.isFinished()) {
+			if (BeatmapSetList.get().size() > 0) {
+				// initialize song list
+				BeatmapSetList.get().init();
+				setFocus(BeatmapSetList.get().getRandomNode(), -1, true, true);
+			} else
+				MusicController.playThemeSong();
+			reloadThread = null;
+		}
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
 		UI.getBackButton().hoverUpdate(delta, mouseX, mouseY);
 		selectModsButton.hoverUpdate(delta, mouseX, mouseY);
@@ -1508,32 +1562,7 @@ public class SongMenu extends BasicGameState {
 		lastBackgroundImage = null;
 
 		// reload songs in new thread
-		reloadThread = new Thread() {
-			@Override
-			public void run() {
-				File beatmapDir = Options.getBeatmapDir();
-
-				if (fullReload) {
-					// clear the beatmap cache
-					BeatmapDB.clearDatabase();
-
-					// invoke unpacker
-					OszUnpacker.unpackAllFiles(Options.getOSZDir(), beatmapDir);
-				}
-
-				// invoke parser
-				BeatmapParser.parseAllFiles(beatmapDir);
-
-				// initialize song list
-				if (BeatmapSetList.get().size() > 0) {
-					BeatmapSetList.get().init();
-					setFocus(BeatmapSetList.get().getRandomNode(), -1, true, true);
-				} else
-					MusicController.playThemeSong();
-
-				reloadThread = null;
-			}
-		};
+		reloadThread = new BeatmapReloadThread(fullReload);
 		reloadThread.start();
 	}
 
