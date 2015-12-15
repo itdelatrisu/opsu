@@ -132,7 +132,7 @@ public class BeatmapParser {
 					return name.toLowerCase().endsWith(".osu");
 				}
 			});
-			if (files.length < 1)
+			if (files == null || files.length < 1)
 				continue;
 
 			// create a new group entry
