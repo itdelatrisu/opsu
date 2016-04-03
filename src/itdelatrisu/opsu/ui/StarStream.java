@@ -143,7 +143,7 @@ public class StarStream {
 			int angle = (int) getGaussian(0, 22.5);
 			AnimationEquation eqn = random.nextBoolean() ? AnimationEquation.IN_OUT_QUAD : AnimationEquation.OUT_QUAD;
 
-			stars.add(new Star(duration, distance, angle, yOffset, eqn));
+			stars.add(new Star(duration, distance, yOffset, angle, eqn));
 		}
 	}
 
