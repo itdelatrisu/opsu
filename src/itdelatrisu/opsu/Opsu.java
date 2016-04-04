@@ -230,6 +230,7 @@ public class Opsu extends StateBasedGame {
 			} else {
 				if (id == STATE_GAME) {
 					MusicController.pause();
+					MusicController.setPitch(1.0f);
 					MusicController.resume();
 				} else
 					songMenu.resetTrackOnLoad();

@@ -1210,7 +1210,7 @@ public class Game extends BasicGameState {
 		if (beatmap == null || beatmap.objects == null)
 			throw new RuntimeException("Running game with no beatmap loaded.");
 		// fetch previous results
-		previousScores = ScoreDB.getMapScores(beatmap);
+		previousScores = ScoreDB.getMapScores(beatmap, replay == null ? null : replay.getReplayFilename());
 		lastRankUpdateTime = -1000;
 		if (previousScores != null)
 			currentRank = previousScores.length;
