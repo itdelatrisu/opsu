@@ -108,7 +108,7 @@ public class Game extends BasicGameState {
 	private static final float STACK_LENIENCE = 3f;
 
 	/** Stack time window of the previous object, in ms. */
-	private static final int STACK_TIMEOUT = 1000;
+	private static int StackTimeout = 1000;
 
 	/** Stack position offset modifier. */
 	private static final float STACK_OFFSET_MODIFIER = 0.05f;
@@ -1839,8 +1839,19 @@ public class Game extends BasicGameState {
 	 * positions if necessary.
 	 * @author peppy (https://gist.github.com/peppy/1167470)
 	 */
+
+	private float mapDifficultyRange(float difficulty, float min, float mid, float max)
+	{
+		if (difficulty > 5.0f)
+			return mid + (max - mid)(difficulty - 5.0f) / 5.0f;
+		if (difficulty < 5.0f)
+			return mid - (mid - min)(5.0f - difficulty) / 5.0f;
+		return mid;
+	}
 	private void calculateStacks() {
 		// reverse pass for stack calculation
+
+		StackTimeout = mapDifficultyRange(beatmap.overallDifficulty, 1800.0f, 1200.0f, 450.0f);
 		for (int i = gameObjects.length - 1; i > 0; i--) {
 			HitObject hitObjectI = beatmap.objects[i];
 
@@ -1855,7 +1866,7 @@ public class Game extends BasicGameState {
 					continue;
 
 				// check if in range stack calculation
-				float timeI = hitObjectI.getTime() - (STACK_TIMEOUT * beatmap.stackLeniency);
+				float timeI = hitObjectI.getTime() - (StackTimeout * beatmap.stackLeniency);
 				float timeN = hitObjectN.isSlider() ? gameObjects[n].getEndTime() : hitObjectN.getTime();
 				if (timeI > timeN)
 					break;
