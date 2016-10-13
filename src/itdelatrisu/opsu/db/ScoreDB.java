@@ -304,16 +304,16 @@ public class ScoreDB {
 	 * @return all scores for the beatmap, or null if any error occurred
 	 */
 	public static ScoreData[] getMapScores(Beatmap beatmap) {
-		return getMapScores(beatmap, null);
+		return getMapScoresExcluding(beatmap, null);
 	}
 
 	/**
 	 * Retrieves the game scores for a beatmap while excluding a score.
 	 * @param beatmap the beatmap
-	 * @param exclude the filename of the score to exclude
+	 * @param exclude the filename (replay string) of the score to exclude
 	 * @return all scores for the beatmap except for exclude, or null if any error occurred
 	 */
-	public static ScoreData[] getMapScores(Beatmap beatmap, String exclude) {
+	public static ScoreData[] getMapScoresExcluding(Beatmap beatmap, String exclude) {
 		if (connection == null)
 			return null;
 
@@ -328,7 +328,7 @@ public class ScoreDB {
 			while (rs.next()) {
 				ScoreData s = new ScoreData(rs);
 				if (s.replayString != null && s.replayString.equals(exclude)) {
-					// dont return this score
+					// don't return this score
 				} else {
 					list.add(s);
 				}
@@ -340,6 +340,7 @@ public class ScoreDB {
 		}
 		return getSortedArray(list);
 	}
+
 	/**
 	 * Retrieves the game scores for a beatmap set.
 	 * @param beatmap the beatmap

@@ -330,39 +330,66 @@ public class ScoreData implements Comparable<ScoreData> {
 	}
 
 	/**
-	 * Draws the score ingame (smaller and with less information).
+	 * Draws the score in-game (smaller and with less information).
 	 * @param g the current graphics context
 	 * @param vPos the base y position of the scoreboard
 	 * @param rank the current rank of this score
 	 * @param position the animated position offset
 	 * @param data an instance of GameData to draw rank number
-	 * @param alpha the transparancy of the score
+	 * @param alpha the transparency of the score
 	 * @param isActive if this score is the one currently played
 	 */
 	public void drawSmall(Graphics g, int vPos, int rank, float position, GameData data, float alpha, boolean isActive) {
-
+		int rectWidth = (int) (145 * GameImage.getUIscale());  //135
 		int rectHeight = data.getScoreSymbolImage('0').getHeight();
 		int vertDistance = rectHeight + 10;
-		int yPos = (int)(vPos + position * vertDistance - rectHeight/2);
+		int yPos = (int) (vPos + position * vertDistance - rectHeight / 2);
+		int xPaddingLeft = Math.max(4, (int) (rectWidth * 0.04f));
+		int xPaddingRight = Math.max(2, (int) (rectWidth * 0.02f));
+		int yPadding = Math.max(2, (int) (rectHeight * 0.02f));
 		String scoreString = String.format(Locale.US, "%,d", score);
 		String comboString = String.format("%dx", combo);
 		String rankString = String.format("%d", rank);
-		int rectWidth = (int) (170 * GameImage.getUIscale());
 
-		Color rectColor = isActive ? Colors.YELLOW_ALPHA : Colors.BLACK_ALPHA;
-		rectColor.a = 0.5f * alpha;
-		
+		Color white = Colors.WHITE_ALPHA, blue = Colors.BLUE_SCOREBOARD, black = Colors.BLACK_ALPHA;
+		float oldAlphaWhite = white.a, oldAlphaBlue = blue.a, oldAlphaBlack = black.a;
+
+		// rectangle background
+		Color rectColor = isActive ? white : blue;
+		rectColor.a = alpha * 0.2f;
 		g.setColor(rectColor);
 		g.fillRect(0, yPos, rectWidth, rectHeight);
-		data.drawSymbolString(rankString, rectWidth, yPos, 1.0f, 0.25f*alpha, true);
-		if (playerName != null) {
-			Colors.WHITE_ALPHA.a = 0.5f * alpha;
-			Fonts.MEDIUM.drawString(0, yPos, playerName, Colors.WHITE_ALPHA);
-		}
-		Colors.WHITE_ALPHA.a = alpha;
-		Fonts.MEDIUMBOLD.drawString(0, yPos + rectHeight - Fonts.MEDIUMBOLD.getLineHeight(), scoreString, Colors.WHITE_ALPHA);
-		Fonts.MEDIUMBOLD.drawString(rectWidth - Fonts.MEDIUMBOLD.getWidth(comboString), yPos + rectHeight - Fonts.MEDIUMBOLD.getLineHeight(), comboString, Colors.WHITE_ALPHA);
+		black.a = alpha * 0.2f;
+		g.setColor(black);
+		float oldLineWidth = g.getLineWidth();
+		g.setLineWidth(1f);
+		g.drawRect(0, yPos, rectWidth, rectHeight);
+		g.setLineWidth(oldLineWidth);
 
+		// rank
+		data.drawSymbolString(rankString, rectWidth, yPos, 1.0f, alpha * 0.2f, true);
+
+		white.a = blue.a = alpha * 0.75f;
+
+		// player name
+		if (playerName != null)
+			Fonts.MEDIUMBOLD.drawString(xPaddingLeft, yPos + yPadding, playerName, white);
+
+		// score
+		Fonts.DEFAULT.drawString(
+			xPaddingLeft, yPos + rectHeight - Fonts.DEFAULT.getLineHeight() - yPadding, scoreString, white
+		);
+
+		// combo
+		Fonts.DEFAULT.drawString(
+			rectWidth - Fonts.DEFAULT.getWidth(comboString) - xPaddingRight,
+			yPos + rectHeight - Fonts.DEFAULT.getLineHeight() - yPadding,
+			comboString, blue
+		);
+
+		white.a = oldAlphaWhite;
+		blue.a = oldAlphaBlue;
+		black.a = oldAlphaBlack;
 	}
 
 	/**

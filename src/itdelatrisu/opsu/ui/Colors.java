@@ -42,6 +42,7 @@ public class Colors {
 		DARK_GRAY       = new Color(0.3f, 0.3f, 0.3f, 1f),
 		RED_HIGHLIGHT   = new Color(246, 154, 161),
 		BLUE_HIGHLIGHT  = new Color(173, 216, 230),
+		BLUE_SCOREBOARD = new Color(133, 208, 212),
 		BLACK_BG_NORMAL = new Color(0, 0, 0, 0.25f),
 		BLACK_BG_HOVER  = new Color(0, 0, 0, 0.5f),
 		BLACK_BG_FOCUS  = new Color(0, 0, 0, 0.75f);

@@ -101,11 +101,11 @@ public class Game extends BasicGameState {
 	/** Maximum rotation, in degrees, over fade out upon death. */
 	private static final float MAX_ROTATION = 90f;
 
-	/** The duration of the score changing animation */
+	/** The duration of the score changing animation. */
 	private static final float SCOREBOARD_ANIMATION_TIME = 500f;
 
-	/** The time the scoreboard takes to fade in */
-	private static final float SCOREBOARD_FADE_IN_TIME = 500f;
+	/** The time the scoreboard takes to fade in. */
+	private static final float SCOREBOARD_FADE_IN_TIME = 300f;
 
 	/** Minimum time before start of song, in milliseconds, to process skip-related actions. */
 	private static final int SKIP_OFFSET = 2000;
@@ -271,10 +271,10 @@ public class Game extends BasicGameState {
 	/** The time the rank was last updated. */
 	private int lastRankUpdateTime;
 
-	/** Is the scoreboard visible? */
+	/** Whether the scoreboard is visible. */
 	private boolean scoreboardVisible;
 
-	/** The current aplha of the scoreboard. */
+	/** The current alpha of the scoreboard. */
 	private float currentScoreboardAlpha;
 
 	/** Music position bar background colors. */
@@ -503,7 +503,6 @@ public class Game extends BasicGameState {
 					arrow.draw(width * 0.75f, height * 0.75f);
 				}
 			}
-
 		}
 
 		// non-break
@@ -585,33 +584,42 @@ public class Game extends BasicGameState {
 				drawHitObjects(g, trackPosition);
 		}
 
+		// in-game scoreboard
 		if (previousScores != null && trackPosition >= firstObjectTime && !GameMod.RELAX.isActive() && !GameMod.AUTOPILOT.isActive()) {
-			ScoreData currentScore = data.getScoreData(beatmap);
-			while (currentRank > 0 && previousScores[currentRank-1].score < currentScore.score) {
+			ScoreData currentScore = data.getCurrentScoreData(beatmap, true);
+			while (currentRank > 0 && previousScores[currentRank - 1].score < currentScore.score) {
 				currentRank--;
 				lastRankUpdateTime = trackPosition;
 			}
 
-			float animation = AnimationEquation.IN_OUT_QUAD.calc(Utils.clamp((trackPosition - lastRankUpdateTime) / SCOREBOARD_ANIMATION_TIME, 0f, 1f));
+			float animation = AnimationEquation.IN_OUT_QUAD.calc(
+				Utils.clamp((trackPosition - lastRankUpdateTime) / SCOREBOARD_ANIMATION_TIME, 0f, 1f)
+			);
 			int scoreboardPosition = 2 * container.getHeight() / 3;
 
 			if (currentRank < 4) {
-				//draw the (new) top 5 ranks
+				// draw the (new) top 5 ranks
 				for (int i = 0; i < 4; i++) {
-					int ii = i + (i>=currentRank ? 1 : 0);
-					if (i < previousScores.length)
-						previousScores[i].drawSmall(g, scoreboardPosition, ii + 1, ii + (i==currentRank ? animation-3f : -2f), data, currentScoreboardAlpha, false);
+					int index = i + (i >= currentRank ? 1 : 0);
+					if (i < previousScores.length) {
+						float position = index + (i == currentRank ? animation - 3f : -2f);
+						previousScores[i].drawSmall(g, scoreboardPosition, index + 1, position, data, currentScoreboardAlpha, false);
+					}
 				}
 				currentScore.drawSmall(g, scoreboardPosition, currentRank + 1, currentRank - 1f - animation, data, currentScoreboardAlpha, true);
 			} else {
-				//draw the top 2 and next 2 ranks
+				// draw the top 2 and next 2 ranks
 				previousScores[0].drawSmall(g, scoreboardPosition, 1, -2f, data, currentScoreboardAlpha, false);
 				previousScores[1].drawSmall(g, scoreboardPosition, 2, -1f, data, currentScoreboardAlpha, false);
-				previousScores[currentRank-2].drawSmall(g, scoreboardPosition, currentRank - 1, animation - 1f, data, currentScoreboardAlpha*animation, false);
-				previousScores[currentRank-1].drawSmall(g, scoreboardPosition, currentRank, animation, data, currentScoreboardAlpha, false);
+				previousScores[currentRank - 2].drawSmall(
+					g, scoreboardPosition, currentRank - 1, animation - 1f, data, currentScoreboardAlpha * animation, false
+				);
+				previousScores[currentRank - 1].drawSmall(g, scoreboardPosition, currentRank, animation, data, currentScoreboardAlpha, false);
 				currentScore.drawSmall(g, scoreboardPosition, currentRank + 1, 2f, data, currentScoreboardAlpha, true);
 				if (animation < 1.0f && currentRank < previousScores.length) {
-					previousScores[currentRank].drawSmall(g, scoreboardPosition, currentRank + 2, 1f + 5 * animation, data, currentScoreboardAlpha*(1f - animation), false);
+					previousScores[currentRank].drawSmall(
+						g, scoreboardPosition, currentRank + 2, 1f + 5 * animation, data, currentScoreboardAlpha * (1f - animation), false
+					);
 				}
 			}
 		}
@@ -671,20 +679,6 @@ public class Game extends BasicGameState {
 			playbackSpeed.getButton().hoverUpdate(delta, mouseX, mouseY);
 		int trackPosition = MusicController.getPosition();
 		int firstObjectTime = beatmap.objects[0].getTime();
-
-
-		if (previousScores != null && trackPosition > firstObjectTime) {
-			// show scoreboard when in break
-			if (scoreboardVisible || breakTime > 0) {
-				currentScoreboardAlpha += 1f/SCOREBOARD_FADE_IN_TIME * delta;
-				if (currentScoreboardAlpha > 1f)
-					currentScoreboardAlpha = 1f;
-			} else {
-				currentScoreboardAlpha -= 1f/SCOREBOARD_FADE_IN_TIME * delta;
-				if (currentScoreboardAlpha < 0f)
-					currentScoreboardAlpha = 0f;
-			}
-		}
 
 		// returning from pause screen: must click previous mouse position
 		if (pauseTime > -1) {
@@ -787,6 +781,20 @@ public class Game extends BasicGameState {
 			if (isSeeking) {
 				isSeeking = false;
 				SoundController.mute(false);
+			}
+		}
+
+		// update in-game scoreboard
+		if (previousScores != null && trackPosition > firstObjectTime) {
+			// show scoreboard if selected, and always in break
+			if (scoreboardVisible || breakTime > 0) {
+				currentScoreboardAlpha += 1f / SCOREBOARD_FADE_IN_TIME * delta;
+				if (currentScoreboardAlpha > 1f)
+					currentScoreboardAlpha = 1f;
+			} else {
+				currentScoreboardAlpha -= 1f / SCOREBOARD_FADE_IN_TIME * delta;
+				if (currentScoreboardAlpha < 0f)
+					currentScoreboardAlpha = 0f;
 			}
 		}
 
@@ -1055,7 +1063,7 @@ public class Game extends BasicGameState {
 			Utils.takeScreenShot();
 			break;
 		case Input.KEY_TAB:
-			scoreboardVisible = ! scoreboardVisible;
+			scoreboardVisible = !scoreboardVisible;
 			break;
 		}
 	}
@@ -1209,13 +1217,6 @@ public class Game extends BasicGameState {
 
 		if (beatmap == null || beatmap.objects == null)
 			throw new RuntimeException("Running game with no beatmap loaded.");
-		// fetch previous results
-		previousScores = ScoreDB.getMapScores(beatmap, replay == null ? null : replay.getReplayFilename());
-		lastRankUpdateTime = -1000;
-		if (previousScores != null)
-			currentRank = previousScores.length;
-		scoreboardVisible = true;
-		currentScoreboardAlpha = 0f;
 
 		// free all previously cached hitobject to framebuffer mappings if some still exist
 		FrameBufferCache.getInstance().freeMap();
@@ -1347,6 +1348,14 @@ public class Game extends BasicGameState {
 
 			leadInTime = beatmap.audioLeadIn + approachTime;
 			restart = Restart.FALSE;
+
+			// fetch previous scores
+			previousScores = ScoreDB.getMapScoresExcluding(beatmap, replay == null ? null : replay.getReplayFilename());
+			lastRankUpdateTime = -1000;
+			if (previousScores != null)
+				currentRank = previousScores.length;
+			scoreboardVisible = true;
+			currentScoreboardAlpha = 0f;
 
 			// needs to play before setting position to resume without lag later
 			MusicController.play(false);
