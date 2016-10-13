@@ -27,15 +27,11 @@ import itdelatrisu.opsu.downloads.Updater;
 import itdelatrisu.opsu.render.CurveRenderState;
 import itdelatrisu.opsu.ui.UI;
 
-import java.io.IOException;
-
-import org.codehaus.plexus.util.FileUtils;
 import org.lwjgl.opengl.Display;
 import org.newdawn.slick.AppGameContainer;
 import org.newdawn.slick.Game;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.opengl.InternalTextureLoader;
-import org.newdawn.slick.util.Log;
 
 /**
  * AppGameContainer extension that sends critical errors to ErrorHandler.
@@ -148,13 +144,8 @@ public class Container extends AppGameContainer {
 		BeatmapWatchService.removeListeners();
 
 		// delete temporary directory
-		if (Options.TEMP_DIR.isDirectory()) {
-			try {
-				FileUtils.deleteDirectory(Options.TEMP_DIR);
-			} catch (IOException e) {
-				Log.warn(String.format("Failed to delete temp dir: %s", Options.TEMP_DIR.getAbsolutePath()), e);
-			}
-		}
+		if (Options.TEMP_DIR.isDirectory())
+			Utils.deleteDirectory(Options.TEMP_DIR);
 	}
 
 	@Override

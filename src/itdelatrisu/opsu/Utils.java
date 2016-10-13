@@ -346,7 +346,7 @@ public class Utils {
 	 * deletes the directory itself.
 	 * @param dir the directory to delete
 	 */
-	private static void deleteDirectory(File dir) {
+	public static void deleteDirectory(File dir) {
 		if (dir == null || !dir.isDirectory())
 			return;
 
