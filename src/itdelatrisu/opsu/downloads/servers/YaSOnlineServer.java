@@ -93,6 +93,8 @@ public class YaSOnlineServer extends DownloadServer {
 	 */
 	private String getDownloadURLFromMapData(int beatmapSetID) throws IOException {
 		try {
+			Utils.setSSLCertValidation(false);
+
 			// read JSON
 			String search = String.format(DOWNLOAD_URL, beatmapSetID);
 			JSONObject json = Utils.readJsonObjectFromUrl(new URL(search));
@@ -114,6 +116,8 @@ public class YaSOnlineServer extends DownloadServer {
 		} catch (MalformedURLException | UnsupportedEncodingException e) {
 			ErrorHandler.error(String.format("Problem retrieving download URL for beatmap '%d'.", beatmapSetID), e, true);
 			return null;
+		} finally {
+			Utils.setSSLCertValidation(true);
 		}
 	}
 
@@ -121,6 +125,8 @@ public class YaSOnlineServer extends DownloadServer {
 	public DownloadNode[] resultList(String query, int page, boolean rankedOnly) throws IOException {
 		DownloadNode[] nodes = null;
 		try {
+			Utils.setSSLCertValidation(false);
+
 			// read JSON
 			String search;
 			boolean isSearch;
@@ -181,6 +187,8 @@ public class YaSOnlineServer extends DownloadServer {
 				this.totalResults = maxServerID;
 		} catch (MalformedURLException | UnsupportedEncodingException e) {
 			ErrorHandler.error(String.format("Problem loading result list for query '%s'.", query), e, true);
+		} finally {
+			Utils.setSSLCertValidation(true);
 		}
 		return nodes;
 	}
