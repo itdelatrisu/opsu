@@ -22,6 +22,9 @@ import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.audio.HitSound.SampleSet;
 import itdelatrisu.opsu.beatmap.HitObject;
+import itdelatrisu.opsu.downloads.Download;
+import itdelatrisu.opsu.downloads.Download.DownloadListener;
+import itdelatrisu.opsu.ui.UI;
 
 import java.io.File;
 import java.io.IOException;
@@ -345,24 +348,58 @@ public class SoundController {
 	}
 
 	/**
-	 * Plays a track from a URL.
+	 * Plays a track from a remote URL.
 	 * If a track is currently playing, it will be stopped.
-	 * @param url the resource URL
+	 * @param url the remote URL
+	 * @param name the track file name
 	 * @param isMP3 true if MP3, false if WAV
 	 * @param listener the line listener
-	 * @return the MultiClip being played
+	 * @return true if playing, false otherwise
 	 * @throws SlickException if any error occurred
 	 */
-	public static synchronized MultiClip playTrack(URL url, boolean isMP3, LineListener listener) throws SlickException {
+	public static synchronized boolean playTrack(String url, String name, boolean isMP3, LineListener listener)
+		throws SlickException {
+		// stop previous track
 		stopTrack();
-		try {
-			AudioInputStream audioIn = AudioSystem.getAudioInputStream(url);
-			currentTrack = loadClip(url.getFile(), audioIn, isMP3);
-			playClip(currentTrack, Options.getMusicVolume() * Options.getMasterVolume(), listener);
-			return currentTrack;
-		} catch (Exception e) {
-			throw new SlickException(String.format("Failed to load clip '%s'.", url.getFile(), e));
+
+		// download new track
+		File dir = Options.TEMP_DIR;
+		if (!dir.isDirectory())
+			dir.mkdir();
+		String filename = String.format("%s.%s", name, isMP3 ? "mp3" : "wav");
+		final File downloadFile = new File(dir, filename);
+		boolean complete;
+		if (downloadFile.isFile()) {
+			complete = true;  // file already downloaded
+		} else {
+			Download download = new Download(url, downloadFile.getAbsolutePath());
+			download.setListener(new DownloadListener() {
+				@Override
+				public void completed() {}
+
+				@Override
+				public void error() {
+					UI.sendBarNotification("Failed to download track preview.");
+				}
+			});
+			try {
+				download.start().join();
+			} catch (InterruptedException e) {}
+			complete = (download.getStatus() == Download.Status.COMPLETE);
 		}
+
+		// play the track
+		if (complete) {
+			try {
+				AudioInputStream audioIn = AudioSystem.getAudioInputStream(downloadFile);
+				currentTrack = loadClip(filename, audioIn, isMP3);
+				playClip(currentTrack, Options.getMusicVolume() * Options.getMasterVolume(), listener);
+				return true;
+			} catch (Exception e) {
+				throw new SlickException(String.format("Failed to load clip '%s'.", url));
+			}
+		}
+		return false;
 	}
 
 	/**

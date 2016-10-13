@@ -47,8 +47,6 @@ import itdelatrisu.opsu.ui.UI;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
 
 import javax.sound.sampled.LineEvent;
 import javax.sound.sampled.LineListener;
@@ -663,15 +661,18 @@ public class DownloadsMenu extends BasicGameState {
 								SoundController.stopTrack();
 							} else {
 								// play preview
-								try {
-									final URL url = new URL(serverMenu.getSelectedItem().getPreviewURL(node.getID()));
-									MusicController.pause();
-									new Thread() {
-										@Override
-										public void run() {
-											try {
-												previewID = -1;
-												SoundController.playTrack(url, true, new LineListener() {
+								final String url = serverMenu.getSelectedItem().getPreviewURL(node.getID());
+								MusicController.pause();
+								new Thread() {
+									@Override
+									public void run() {
+										try {
+											previewID = -1;
+											boolean playing = SoundController.playTrack(
+												url,
+												Integer.toString(node.getID()),
+												true,
+													new LineListener() {
 													@Override
 													public void update(LineEvent event) {
 														if (event.getType() == LineEvent.Type.STOP) {
@@ -681,18 +682,16 @@ public class DownloadsMenu extends BasicGameState {
 															}
 														}
 													}
-												});
+												}
+											);
+											if (playing)
 												previewID = node.getID();
-											} catch (SlickException e) {
-												UI.sendBarNotification("Failed to load track preview. See log for details.");
-												Log.error(e);
-											}
+										} catch (SlickException e) {
+											UI.sendBarNotification("Failed to load track preview. See log for details.");
+											Log.error(e);
 										}
-									}.start();
-								} catch (MalformedURLException e) {
-									UI.sendBarNotification("Could not load track preview (bad URL).");
-									Log.error(e);
-								}
+									}
+								}.start();
 							}
 							return;
 						}

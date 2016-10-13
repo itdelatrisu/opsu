@@ -167,12 +167,13 @@ public class Download {
 
 	/**
 	 * Starts the download from the "waiting" status.
+	 * @return the started download thread, or {@code null} if none started
 	 */
-	public void start() {
+	public Thread start() {
 		if (status != Status.WAITING)
-			return;
+			return null;
 
-		new Thread() {
+		Thread t = new Thread() {
 			@Override
 			public void run() {
 				// open connection
@@ -274,7 +275,9 @@ public class Download {
 						listener.error();
 				}
 			}
-		}.start();
+		};
+		t.start();
+		return t;
 	}
 
 	/**

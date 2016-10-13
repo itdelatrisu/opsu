@@ -63,6 +63,7 @@ The following files and folders will be created by opsu! as needed:
   files within this directory to the replay directory and saves the scores in
   the scores database.  Replays can be imported from osu! as well as opsu!.
 * `Natives/`: The native libraries directory.
+* `Temp/`: The temporary files directory.  Deleted when opsu! exits.
 
 ## Building
 opsu! is distributed as both a [Maven](https://maven.apache.org/) and

@@ -94,6 +94,9 @@ public class Options {
 	/** Directory where natives are unpacked. */
 	public static final File NATIVE_DIR = new File(CACHE_DIR, "Natives/");
 
+	/** Directory where temporary files are stored (deleted on exit). */
+	public static final File TEMP_DIR = new File(CACHE_DIR, "Temp/");
+
 	/** Font file name. */
 	public static final String FONT_NAME = "DroidSansFallback.ttf";
 
