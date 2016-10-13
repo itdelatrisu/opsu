@@ -19,6 +19,7 @@
 package itdelatrisu.opsu;
 
 import itdelatrisu.opsu.audio.MusicController;
+import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.beatmap.Beatmap;
 import itdelatrisu.opsu.beatmap.BeatmapSetList;
 import itdelatrisu.opsu.beatmap.BeatmapWatchService;
@@ -131,6 +132,9 @@ public class Container extends AppGameContainer {
 		// prevent loading tracks from re-initializing OpenAL
 		MusicController.reset();
 
+		// stop any playing track
+		SoundController.stopTrack();
+
 		// reset BeatmapSetList data
 		if (BeatmapSetList.get() != null)
 			BeatmapSetList.get().reset();
@@ -144,8 +148,7 @@ public class Container extends AppGameContainer {
 		BeatmapWatchService.removeListeners();
 
 		// delete temporary directory
-		if (Options.TEMP_DIR.isDirectory())
-			Utils.deleteDirectory(Options.TEMP_DIR);
+		Utils.deleteDirectory(Options.TEMP_DIR);
 	}
 
 	@Override
