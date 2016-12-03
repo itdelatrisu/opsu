@@ -585,7 +585,7 @@ public class CurveRenderState {
 						+ "varying vec2 tex_coord;\n"
 						+ "void main()\n"
 						+ "{\n"
-						+ "    gl_Position = vec4(vec2(-1.f,1.f)+inv_screensize*in_position.xy,in_position.zw);\n"
+						+ "    gl_Position = vec4(vec2(-1.0,1.0)+inv_screensize*in_position.xy,in_position.zw);\n"
 						+ "    tex_coord = in_tex_coord;\n"
 						+ "}");
 				GL20.glCompileShader(vtxShdr);
