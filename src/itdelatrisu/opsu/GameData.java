@@ -389,7 +389,7 @@ public class GameData {
 		if (hitResultList != null) {
 			for (HitObjectResult hitResult : hitResultList) {
 				if (hitResult.curve != null)
-					hitResult.curve.discardCache();
+					hitResult.curve.discardGeometry();
 			}
 		}
 		hitResultList = new LinkedBlockingDeque<HitObjectResult>();
@@ -943,7 +943,7 @@ public class GameData {
 				hitResult.alpha = 1 - ((float) (trackPosition - hitResult.time) / HITRESULT_FADE_TIME);
 			} else {
 				if (hitResult.curve != null)
-					hitResult.curve.discardCache();
+					hitResult.curve.discardGeometry();
 				iter.remove();
 			}
 		}

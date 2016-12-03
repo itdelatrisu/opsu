@@ -28,11 +28,15 @@ import java.nio.IntBuffer;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.EXTFramebufferObject;
+import org.lwjgl.opengl.GLContext;
+import org.lwjgl.opengl.ContextCapabilities;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL12;
 import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL14;
 import org.lwjgl.opengl.GL15;
 import org.lwjgl.opengl.GL20;
+import org.lwjgl.opengl.GL30;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.util.Log;
@@ -53,17 +57,17 @@ public class CurveRenderState {
 	/** Static state that's needed to draw the new style curves. */
 	private static final NewCurveStyleState staticState = new NewCurveStyleState();
 
-	/** Cached drawn slider, only used if new style sliders are activated. */
-	public Rendertarget fbo;
+	/** The vertex buffer used for the curve's vertices. */
+	private int vboID;
 
 	/** The HitObject associated with the curve to be drawn. */
 	protected HitObject hitObject;
 
 	/** The points along the curve to be drawn. */
 	protected Vec2f[] curve;
-	
-	/** The point to which the curve has last been rendered into the texture (as an index into {@code curve}). */
-	private int lastPointDrawn;
+
+	/** The indices of the points. */
+	protected int[] pointIndices;
 
 	/**
 	 * Set the width and height of the container that Curves get drawn into.
@@ -79,8 +83,6 @@ public class CurveRenderState {
 		// equivalent to what happens in Slider.init()
 		scale = (int) (circleDiameter * HitObject.getXMultiplier());  // convert from Osupixels (640x480)
 		//scale = scale * 118 / 128; //for curves exactly as big as the sliderball
-		FrameBufferCache.init(width, height);
-		NewCurveStyleState.initUnitCone();
 	}
 
 	/**
@@ -90,7 +92,6 @@ public class CurveRenderState {
 	 */
 	public static void shutdown() {
 		staticState.shutdown();
-		FrameBufferCache.shutdown();
 	}
 
 	/**
@@ -99,9 +100,11 @@ public class CurveRenderState {
 	 * @param curve the points along the curve to be drawn
 	 */
 	public CurveRenderState(HitObject hitObject, Vec2f[] curve) {
-		fbo = null;
 		this.hitObject = hitObject;
 		this.curve = curve;
+		this.pointIndices = new int[curve.length];
+		this.vboID = -1;
+
 	}
 
 	/**
@@ -116,70 +119,25 @@ public class CurveRenderState {
 		t = Utils.clamp(t, 0.0f, 1.0f);
 		float alpha = color.a;
 
-		// if this curve hasn't been drawn, draw it and cache the result
-		if (fbo == null) {
-			FrameBufferCache cache = FrameBufferCache.getInstance();
-			Rendertarget mapping = cache.get(hitObject);
-			if (mapping == null)
-				mapping = cache.insert(hitObject);
-			fbo = mapping;
-			createVertexBuffer(fbo.getVbo());
-			//write impossible value to make sure the fbo is cleared
-			lastPointDrawn = -1;
+		// create curve geometry and store it on the GPU
+		if (vboID == -1) {
+			vboID = GL15.glGenBuffers();
+			createVertexBuffer(vboID);
 		}
 		
-		int drawUpTo = (int) (t * curve.length);
+		int drawUpTo = (int) (t * (curve.length - 1));
 		
-		if (lastPointDrawn != drawUpTo) {
-			if (drawUpTo == lastPointDrawn)
-				return;
 
-			int oldFb = GL11.glGetInteger(EXTFramebufferObject.GL_FRAMEBUFFER_BINDING_EXT);
-			int oldTex = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D);
-			//glGetInteger requires a buffer of size 16, even though just 4
-			//values are returned in this specific case
-			IntBuffer oldViewport = BufferUtils.createIntBuffer(16);
-			GL11.glGetInteger(GL11.GL_VIEWPORT, oldViewport);
-			EXTFramebufferObject.glBindFramebufferEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT, fbo.getID());
-			GL11.glViewport(0, 0, fbo.width, fbo.height);
-			if (lastPointDrawn <= 0 || lastPointDrawn > drawUpTo) {
-				lastPointDrawn = 0;
-				GL11.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-				GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
-			}
-
-			this.renderCurve(color, borderColor, lastPointDrawn, drawUpTo);
-			lastPointDrawn = drawUpTo;
-			color.a = 1f;
-
-			GL11.glBindTexture(GL11.GL_TEXTURE_2D, oldTex);
-			EXTFramebufferObject.glBindFramebufferEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT, oldFb);
-			GL11.glViewport(oldViewport.get(0), oldViewport.get(1), oldViewport.get(2), oldViewport.get(3));
-		}
-
-		// draw a fullscreen quad with the texture that contains the curve
-		GL11.glEnable(GL11.GL_TEXTURE_2D);
-		GL11.glDisable(GL11.GL_TEXTURE_1D);
-		GL11.glBindTexture(GL11.GL_TEXTURE_2D, fbo.getTextureID());
-		GL11.glBegin(GL11.GL_QUADS);
-		GL11.glColor4f(1.0f, 1.0f, 1.0f, alpha);
-		GL11.glTexCoord2f(1.0f, 1.0f);
-		GL11.glVertex2i(fbo.width, 0);
-		GL11.glTexCoord2f(0.0f, 1.0f);
-		GL11.glVertex2i(0, 0);
-		GL11.glTexCoord2f(0.0f, 0.0f);
-		GL11.glVertex2i(0, fbo.height);
-		GL11.glTexCoord2f(1.0f, 0.0f);
-		GL11.glVertex2i(fbo.width, fbo.height);
-		GL11.glEnd();
+		this.renderCurve(color, borderColor, drawUpTo);
+		//color.a = 1f;
 	}
 
 	/**
-	 * Discard the cache mapping for this curve object.
+	 * Discard the geometry for this curve object.
 	 */
-	public void discardCache() {
-		fbo = null;
-		FrameBufferCache.getInstance().freeMappingFor(hitObject);
+	public void discardGeometry() {
+		GL15.glDeleteBuffers(vboID);
+		vboID = -1;
 	}
 
 	/**
@@ -193,7 +151,6 @@ public class CurveRenderState {
 		boolean depthEnabled;
 		boolean depthWriteEnabled;
 		boolean texEnabled;
-		int texUnit;
 		int oldProgram;
 		int oldArrayBuffer;
 	}
@@ -209,7 +166,6 @@ public class CurveRenderState {
 		state.depthEnabled = GL11.glGetBoolean(GL11.GL_DEPTH_TEST);
 		state.depthWriteEnabled = GL11.glGetBoolean(GL11.GL_DEPTH_WRITEMASK);
 		state.texEnabled = GL11.glGetBoolean(GL11.GL_TEXTURE_2D);
-		state.texUnit = GL11.glGetInteger(GL13.GL_ACTIVE_TEXTURE);
 		state.oldProgram = GL11.glGetInteger(GL20.GL_CURRENT_PROGRAM);
 		state.oldArrayBuffer = GL11.glGetInteger(GL15.GL_ARRAY_BUFFER_BINDING);
 		GL11.glDisable(GL11.GL_POLYGON_SMOOTH);
@@ -223,16 +179,11 @@ public class CurveRenderState {
 		GL11.glBindTexture(GL11.GL_TEXTURE_1D, staticState.gradientTexture);
 		GL11.glTexParameteri(GL11.GL_TEXTURE_1D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR_MIPMAP_LINEAR);
 		GL11.glTexParameteri(GL11.GL_TEXTURE_1D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR);
-		GL11.glTexParameteri(GL11.GL_TEXTURE_1D, GL11.GL_TEXTURE_WRAP_S, GL11.GL_CLAMP);
+		GL11.glTexParameteri(GL11.GL_TEXTURE_1D, GL11.GL_TEXTURE_WRAP_S, GL12.GL_CLAMP_TO_EDGE);
 
 		GL20.glUseProgram(0);
 
-		GL11.glMatrixMode(GL11.GL_PROJECTION);
-		GL11.glPushMatrix();
-		GL11.glLoadIdentity();
-		GL11.glMatrixMode(GL11.GL_MODELVIEW);
-		GL11.glPushMatrix();
-		GL11.glLoadIdentity();
+		GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT);
 
 		return state;
 	}
@@ -242,13 +193,9 @@ public class CurveRenderState {
 	 * @param state the old state to restore
 	 */
 	private void restoreRenderState(RenderState state) {
-		GL11.glMatrixMode(GL11.GL_PROJECTION);
-		GL11.glPopMatrix();
-		GL11.glMatrixMode(GL11.GL_MODELVIEW);
-		GL11.glPopMatrix();
 		GL11.glEnable(GL11.GL_BLEND);
 		GL20.glUseProgram(state.oldProgram);
-		GL13.glActiveTexture(state.texUnit);
+		GL11.glDisable(GL11.GL_TEXTURE_1D);
 		GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, state.oldArrayBuffer);
 		if (!state.depthWriteEnabled)
 			GL11.glDepthMask(false);
@@ -268,21 +215,246 @@ public class CurveRenderState {
 	 * @param bufferID the buffer ID for the OpenGL buffer the vertices should be written into
 	 */
 	private void createVertexBuffer(int bufferID) {
+		float radius = scale / 2;
+		float mul_x = 2.f / containerWidth;
+		float mul_y = 2.f / containerHeight;
+
+		int triangle_count = staticState.DIVIDES; // for curve caps
+		float last_dx=0, last_dy=0;
+		float last_alpha = 0;
+		for (int i = 0; i < curve.length; ++i) { // compute number of triangles
+			float x = curve[i].x;
+			float y = curve[i].y;
+			if (i > 0) {
+				float last_x = curve[i - 1].x;
+				float last_y = curve[i - 1].y;
+				float diff_x = x - last_x;
+				float diff_y = y - last_y;
+
+				float alpha = (float)Math.atan2(diff_y, diff_x);
+
+				if (i > 1) {
+					float theta = alpha - last_alpha;
+					if (theta > Math.PI) theta -= 2*Math.PI;
+					if (theta < -Math.PI) theta += 2*Math.PI;
+
+					if (Math.abs(theta) < 2*Math.PI / staticState.DIVIDES) {
+						triangle_count++;
+					}else{
+						int divs = (int)(Math.ceil(staticState.DIVIDES * Math.abs(theta) / (2*Math.PI)));
+						triangle_count += divs;
+					}
+				}
+				triangle_count += 4;
+
+				last_dx = diff_x;
+				last_dy = diff_y;
+				last_alpha = alpha;
+			}
+		}
+
 		int arrayBufferBinding = GL11.glGetInteger(GL15.GL_ARRAY_BUFFER_BINDING);
-		FloatBuffer buff = BufferUtils.createByteBuffer(4 * (4 + 2) * (2 * curve.length - 1) * (NewCurveStyleState.DIVIDES + 2)).asFloatBuffer();
+		FloatBuffer buff = BufferUtils.createByteBuffer(4 * (4 + 2) * 3 * (triangle_count)).asFloatBuffer();
+
+
+		last_dx=0; last_dy=0;
+		float last_length=0;
+		float last_ox=0, last_oy=0;
 		for (int i = 0; i < curve.length; ++i) {
 			float x = curve[i].x;
 			float y = curve[i].y;
-			fillCone(buff, x, y);
-			if (i != 0) {
+			if (i > 0) {
+				/*
+
+				Render this shape:
+				 ___ ___
+				|A /|C /|
+				| /B| /D|
+				|/__|/__|
+				
+				
+				
+				 */
 				float last_x = curve[i - 1].x;
 				float last_y = curve[i - 1].y;
-				double diff_x = x - last_x;
-				double diff_y = y - last_y;
-				x = (float) (x - diff_x / 2);
-				y = (float) (y - diff_y / 2);
-				fillCone(buff, x, y);
+				float diff_x = x - last_x;
+				float diff_y = y - last_y;
+				float length = (float)Math.hypot(diff_x, diff_y);
+				float offs_x = radius * diff_y / length;
+				float offs_y = radius * -diff_x / length;
+
+				float alpha = (float)Math.atan2(diff_y, diff_x);
+
+
+				if (i > 1) {
+					float cross = last_dx * diff_y - last_dy * diff_x;
+					float theta = alpha - last_alpha;
+					if (theta > Math.PI) theta -= 2*Math.PI;
+					if (theta < -Math.PI) theta += 2*Math.PI;
+
+
+					if (Math.abs(theta) < 2*Math.PI / staticState.DIVIDES) { // small angle, just render single triangle
+						if (cross > 0) { // going counterclockwise
+							buff.put(1.0f);            buff.put(0.5f);
+							buff.put(last_x);          buff.put(last_y);
+							buff.put(0.0f);            buff.put(1.0f);
+							buff.put(0.0f);            buff.put(0.5f);
+							buff.put(last_x + last_ox);buff.put(last_y + last_oy);
+							buff.put(1.0f);            buff.put(1.0f);
+							buff.put(0.0f);            buff.put(0.5f);
+							buff.put(last_x + offs_x); buff.put(last_y + offs_y);
+							buff.put(1.0f);            buff.put(1.0f);
+						} else if (cross < 0) {
+							buff.put(1.0f);            buff.put(0.5f);
+							buff.put(last_x);          buff.put(last_y);
+							buff.put(0.0f);            buff.put(1.0f);
+							buff.put(0.0f);            buff.put(0.5f);
+							buff.put(last_x - offs_x); buff.put(last_y - offs_y);
+							buff.put(1.0f);            buff.put(1.0f);
+							buff.put(0.0f);            buff.put(0.5f);
+							buff.put(last_x - last_ox);buff.put(last_y - last_oy);
+							buff.put(1.0f);            buff.put(1.0f);
+						} else {
+							//straight line, very unlikely
+						}
+					} else {
+						int divs = (int)(Math.ceil(staticState.DIVIDES * Math.abs(theta) / (2*Math.PI)));
+						float phi = Math.abs(theta) / divs;
+						float sinphi = (float)Math.sin(phi);
+						float cosphi = (float)Math.cos(phi);
+
+						float prev_ox = last_ox;
+						float prev_oy = last_oy;
+						if (cross < 0) {
+							prev_ox = -offs_x;
+							prev_oy = -offs_y;
+						}
+						for (int j = 0; j < divs; j++) {
+							/*
+							 * Ratation matrix:
+							 * [ cos -sin ]
+							 * [ sin  cos ]
+							 */
+							float ox = cosphi*prev_ox - sinphi*prev_oy;
+							float oy = sinphi*prev_ox + cosphi*prev_oy;
+
+							buff.put(1.0f);            buff.put(0.5f);
+							buff.put(last_x);          buff.put(last_y);
+							buff.put(0.0f);            buff.put(1.0f);
+							buff.put(0.0f);            buff.put(0.5f);
+							buff.put(last_x + prev_ox);buff.put(last_y + prev_oy);
+							buff.put(1.0f);            buff.put(1.0f);
+							buff.put(0.0f);            buff.put(0.5f);
+							buff.put(last_x + ox);     buff.put(last_y + oy);
+							buff.put(1.0f);            buff.put(1.0f);
+
+							prev_ox = ox; prev_oy = oy;
+						}
+					}
+				} else {
+					int divs = staticState.DIVIDES/2;
+
+					float phi = (float)(Math.PI / divs);
+					float sinphi = (float)Math.sin(phi);
+					float cosphi = (float)Math.cos(phi);
+					float prev_ox = -offs_x;
+					float prev_oy = -offs_y;
+
+					for (int j = 0; j < divs; j++) {
+						float ox = cosphi*prev_ox - sinphi*prev_oy;
+						float oy = sinphi*prev_ox + cosphi*prev_oy;
+
+						buff.put(1.0f);            buff.put(0.5f);
+						buff.put(last_x);          buff.put(last_y);
+						buff.put(0.0f);            buff.put(1.0f);
+						buff.put(0.0f);            buff.put(0.5f);
+						buff.put(last_x + prev_ox);buff.put(last_y + prev_oy);
+						buff.put(1.0f);            buff.put(1.0f);
+						buff.put(0.0f);            buff.put(0.5f);
+						buff.put(last_x + ox);     buff.put(last_y + oy);
+						buff.put(1.0f);            buff.put(1.0f);
+
+						prev_ox = ox; prev_oy = oy;
+					}
+				}
+
+				buff.put(0.0f);            buff.put(0.5f);
+				buff.put(last_x - offs_x); buff.put(last_y - offs_y);
+				buff.put(1.0f);            buff.put(1.0f);
+				buff.put(1.0f);            buff.put(0.5f);
+				buff.put(x);               buff.put(y);
+				buff.put(0.0f);            buff.put(1.0f);
+				buff.put(0.0f);            buff.put(0.5f);
+				buff.put(x - offs_x);      buff.put(y - offs_y);
+				buff.put(1.0f);            buff.put(1.0f);
+
+				buff.put(0.0f);            buff.put(0.5f);
+				buff.put(last_x - offs_x); buff.put(last_y - offs_y);
+				buff.put(1.0f);            buff.put(1.0f);
+				buff.put(1.0f);            buff.put(0.5f);
+				buff.put(last_x);          buff.put(last_y);
+				buff.put(0.0f);            buff.put(1.0f);
+				buff.put(1.0f);            buff.put(0.5f);
+				buff.put(x);               buff.put(y);
+				buff.put(0.0f);            buff.put(1.0f);
+
+				buff.put(1.0f);            buff.put(0.5f);
+				buff.put(last_x);          buff.put(last_y);
+				buff.put(0.0f);            buff.put(1.0f);
+				buff.put(0.0f);            buff.put(0.5f);
+				buff.put(x + offs_x);      buff.put(y + offs_y);
+				buff.put(1.0f);            buff.put(1.0f);
+				buff.put(1.0f);            buff.put(0.5f);
+				buff.put(x);               buff.put(y);
+				buff.put(0.0f);            buff.put(1.0f);
+
+				buff.put(1.0f);            buff.put(0.5f);
+				buff.put(last_x);          buff.put(last_y);
+				buff.put(0.0f);            buff.put(1.0f);
+				buff.put(0.0f);            buff.put(0.5f);
+				buff.put(last_x + offs_x); buff.put(last_y + offs_y);
+				buff.put(1.0f);            buff.put(1.0f);
+				buff.put(0.0f);            buff.put(0.5f);
+				buff.put(x + offs_x);      buff.put(y + offs_y);
+				buff.put(1.0f);            buff.put(1.0f);
+
+				if (i == curve.length-1) {
+					int divs = staticState.DIVIDES/2;
+
+					float phi = (float)(Math.PI / divs);
+					float sinphi = (float)Math.sin(phi);
+					float cosphi = (float)Math.cos(phi);
+					float prev_ox = offs_x;
+					float prev_oy = offs_y;
+
+					for (int j = 0; j < divs; j++) {
+						float ox = cosphi*prev_ox - sinphi*prev_oy;
+						float oy = sinphi*prev_ox + cosphi*prev_oy;
+
+						buff.put(1.0f);       buff.put(0.5f);
+						buff.put(x);          buff.put(y);
+						buff.put(0.0f);       buff.put(1.0f);
+						buff.put(0.0f);       buff.put(0.5f);
+						buff.put(x + prev_ox);buff.put(y + prev_oy);
+						buff.put(1.0f);       buff.put(1.0f);
+						buff.put(0.0f);       buff.put(0.5f);
+						buff.put(x + ox);     buff.put(y + oy);
+						buff.put(1.0f);       buff.put(1.0f);
+
+						prev_ox = ox; prev_oy = oy;
+					}
+				}
+
+				last_dx = diff_x;
+				last_dy = diff_y;
+				last_length = length;
+				last_ox = offs_x;
+				last_oy = offs_y;
+				last_alpha = alpha;
 			}
+
+			pointIndices[i] = buff.position() / 6; // 6 elements per vertex
+			
 		}
 		buff.flip();
 		GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, bufferID);
@@ -295,52 +467,38 @@ public class CurveRenderState {
 	 * @param color the color of the curve
 	 * @param borderColor the curve border color
 	 */
-	private void renderCurve(Color color, Color borderColor, int from, int to) {
+	private void renderCurve(Color color, Color borderColor, int to) {
 		staticState.initGradient();
 		RenderState state = saveRenderState();
 		staticState.initShaderProgram();
-		GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, fbo.getVbo());
+		GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, vboID);
 		GL20.glUseProgram(staticState.program);
 		GL20.glEnableVertexAttribArray(staticState.attribLoc);
 		GL20.glEnableVertexAttribArray(staticState.texCoordLoc);
+		GL20.glUniform2f(staticState.invSSLoc, 2.f/containerWidth, -2.f/containerHeight);
 		GL20.glUniform1i(staticState.texLoc, 0);
-		GL20.glUniform3f(staticState.colLoc, color.r, color.g, color.b);
+		GL20.glUniform4f(staticState.colLoc, color.r, color.g, color.b, color.a);
 		GL20.glUniform4f(staticState.colBorderLoc, borderColor.r, borderColor.g, borderColor.b, borderColor.a);
 		//stride is 6*4 for the floats (4 bytes) (u,v)(x,y,z,w)
 		//2*4 is for skipping the first 2 floats (u,v)
 		GL20.glVertexAttribPointer(staticState.attribLoc, 4, GL11.GL_FLOAT, false, 6 * 4, 2 * 4);
 		GL20.glVertexAttribPointer(staticState.texCoordLoc, 2, GL11.GL_FLOAT, false, 6 * 4, 0);
-		for (int i = from * 2; i < to * 2 - 1; ++i)
-			GL11.glDrawArrays(GL11.GL_TRIANGLE_FAN, i * (NewCurveStyleState.DIVIDES + 2), NewCurveStyleState.DIVIDES + 2);
+
+		
+		GL11.glColorMask(false,false,false,false);
+		GL11.glDrawArrays(GL11.GL_TRIANGLES, 0, pointIndices[to]);
+		GL11.glColorMask(true,true,true,true);
+		GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+		GL11.glDepthFunc(GL11.GL_EQUAL);
+		GL11.glDrawArrays(GL11.GL_TRIANGLES, 0, pointIndices[to]);
+		GL11.glDepthFunc(GL11.GL_LESS);
+
 		GL11.glFlush();
 		GL20.glDisableVertexAttribArray(staticState.texCoordLoc);
 		GL20.glDisableVertexAttribArray(staticState.attribLoc);
 		restoreRenderState(state);
 	}
 
-	/**
-	 * Fill {@code buff} with the texture coordinates and positions for a cone
-	 * that has its center at the coordinates {@code (x1,y1)}.
-	 * @param buff the buffer to be filled
-	 * @param x1 x-coordinate of the cone
-	 * @param y1 y-coordinate of the cone
-	 */
-	protected void fillCone(FloatBuffer buff, float x1, float y1) {
-		float divx = containerWidth / 2.0f;
-		float divy = containerHeight / 2.0f;
-		float offx = -1.0f;
-		float offy = 1.0f;
-		float radius = scale / 2;
-
-		for (int i = 0; i < NewCurveStyleState.unitCone.length / 6; ++i) {
-			buff.put(NewCurveStyleState.unitCone[i * 6 + 0]);
-			buff.put(NewCurveStyleState.unitCone[i * 6 + 1]);
-			buff.put(offx + (x1 + radius * NewCurveStyleState.unitCone[i * 6 + 2]) / divx);
-			buff.put(offy - (y1 + radius * NewCurveStyleState.unitCone[i * 6 + 3]) / divy);
-			buff.put(NewCurveStyleState.unitCone[i * 6 + 4]);
-			buff.put(NewCurveStyleState.unitCone[i * 6 + 5]);
-		}
-	}
 
 	/**
 	 * Contains all the necessary state that needs to be tracked to draw curves
@@ -350,18 +508,11 @@ public class CurveRenderState {
 	 */
 	private static class NewCurveStyleState {
 		/**
-		 * Used for new style Slider rendering, defines how many vertices the
-		 * base of the cone has that is used to draw the curve.
+		 * Used for new style Slider rendering, defines how many vertices there
+		 * are in a circle.
 		 */
 		protected static final int DIVIDES = 30;
 
-		/**
-		 * Array to hold the dummy vertex data (texture coordinates and position)
-		 * of a cone with DIVIDES vertices at its base, that is centered around
-		 * (0,0) and has a radius of 1 (so that it can be translated and scaled easily).
-		 */
-		protected static float[] unitCone = new float[(DIVIDES + 2) * 6];
-		
 		/** OpenGL shader program ID used to draw and recolor the curve. */
 		protected int program = 0;
 
@@ -370,6 +521,9 @@ public class CurveRenderState {
 
 		/** OpenGL shader attribute location of the texture coordinate attribute. */
 		protected int texCoordLoc = 0;
+
+		/** OpenGL shader uniform location of the inverse screen size attribute. */
+		protected int invSSLoc = 0;
 
 		/** OpenGL shader uniform location of the color attribute. */
 		protected int colLoc = 0;
@@ -402,46 +556,14 @@ public class CurveRenderState {
 				buff.flip();
 				GL11.glBindTexture(GL11.GL_TEXTURE_1D, gradientTexture);
 				GL11.glTexImage1D(GL11.GL_TEXTURE_1D, 0, GL11.GL_RGBA, slider.getWidth(), 0, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, buff);
-				EXTFramebufferObject.glGenerateMipmapEXT(GL11.GL_TEXTURE_1D);
-			}
-		}
-
-		/**
-		 * Write the data into {@code unitCone} if it hasn't already been initialized. 
-		 */
-		public static void initUnitCone() {
-			int index = 0;
-			//check if initialization has already happened
-			if (unitCone[0] == 0.0f) {
-				//tip of the cone
-				//vec2 texture coordinates
-				unitCone[index++] = 1.0f;
-				unitCone[index++] = 0.5f;
-
-				//vec4 position
-				unitCone[index++] = 0.0f;
-				unitCone[index++] = 0.0f;
-				unitCone[index++] = 0.0f;
-				unitCone[index++] = 1.0f;
-				for (int j = 0; j < NewCurveStyleState.DIVIDES; ++j) {
-					double phase = j * (float) Math.PI * 2 / NewCurveStyleState.DIVIDES;
-					//vec2 texture coordinates
-					unitCone[index++] = 0.0f;
-					unitCone[index++] = 0.5f;
-					//vec4 positon
-					unitCone[index++] = (float) Math.sin(phase);
-					unitCone[index++] = (float) Math.cos(phase);
-					unitCone[index++] = 1.0f;
-					unitCone[index++] = 1.0f;
+				ContextCapabilities capabilities = GLContext.getCapabilities();
+				if (capabilities.OpenGL30) {
+					GL30.glGenerateMipmap(GL11.GL_TEXTURE_1D);
+				} else if (capabilities.GL_EXT_framebuffer_object) {
+					EXTFramebufferObject.glGenerateMipmapEXT(GL11.GL_TEXTURE_1D);
+				} else {
+					GL11.glTexParameteri(GL11.GL_TEXTURE_1D, GL14.GL_GENERATE_MIPMAP, GL11.GL_TRUE);
 				}
-				//vec2 texture coordinates
-				unitCone[index++] = 0.0f;
-				unitCone[index++] = 0.5f;
-				//vec4 positon
-				unitCone[index++] = (float) Math.sin(0.0f);
-				unitCone[index++] = (float) Math.cos(0.0f);
-				unitCone[index++] = 1.0f;
-				unitCone[index++] = 1.0f;
 			}
 		}
 
@@ -455,6 +577,7 @@ public class CurveRenderState {
 				int vtxShdr = GL20.glCreateShader(GL20.GL_VERTEX_SHADER);
 				int frgShdr = GL20.glCreateShader(GL20.GL_FRAGMENT_SHADER);
 				GL20.glShaderSource(vtxShdr, "#version 110\n"
+						+ "uniform vec2 inv_screensize;\n"
 						+ "\n"
 						+ "attribute vec4 in_position;\n"
 						+ "attribute vec2 in_tex_coord;\n"
@@ -462,7 +585,7 @@ public class CurveRenderState {
 						+ "varying vec2 tex_coord;\n"
 						+ "void main()\n"
 						+ "{\n"
-						+ "    gl_Position = in_position;\n"
+						+ "    gl_Position = vec4(vec2(-1.f,1.f)+inv_screensize*in_position.xy,in_position.zw);\n"
 						+ "    tex_coord = in_tex_coord;\n"
 						+ "}");
 				GL20.glCompileShader(vtxShdr);
@@ -475,7 +598,7 @@ public class CurveRenderState {
 						+ "\n"
 						+ "uniform sampler1D tex;\n"
 						+ "uniform vec2 tex_size;\n"
-						+ "uniform vec3 col_tint;\n"
+						+ "uniform vec4 col_tint;\n"
 						+ "uniform vec4 col_border;\n"
 						+ "\n"
 						+ "varying vec2 tex_coord;\n"
@@ -484,7 +607,7 @@ public class CurveRenderState {
 						+ "{\n"
 						+ "    vec4 in_color = texture1D(tex, tex_coord.x);\n"
 						+ "    float blend_factor = in_color.r-in_color.b;\n"
-						+ "    vec4 new_color = vec4(mix(in_color.xyz*col_border.xyz,col_tint,blend_factor),in_color.w);\n"
+						+ "    vec4 new_color = vec4(mix(in_color.xyz*col_border.xyz,col_tint.xyz,blend_factor),in_color.w*col_tint.w);\n"
 						+ "    gl_FragColor = new_color;\n"
 						+ "}");
 				GL20.glCompileShader(frgShdr);
@@ -505,6 +628,7 @@ public class CurveRenderState {
 				GL20.glDeleteShader(frgShdr);
 				attribLoc = GL20.glGetAttribLocation(program, "in_position");
 				texCoordLoc = GL20.glGetAttribLocation(program, "in_tex_coord");
+				invSSLoc = GL20.glGetUniformLocation(program, "inv_screensize");
 				texLoc = GL20.glGetUniformLocation(program, "tex");
 				colLoc = GL20.glGetUniformLocation(program, "col_tint");
 				colBorderLoc = GL20.glGetUniformLocation(program, "col_border");
@@ -525,6 +649,7 @@ public class CurveRenderState {
 				program = 0;
 				attribLoc = 0;
 				texCoordLoc = 0;
+				invSSLoc = 0;
 				colLoc = 0;
 				colBorderLoc = 0;
 				texLoc = 0;
