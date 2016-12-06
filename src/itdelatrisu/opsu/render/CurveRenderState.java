@@ -24,19 +24,17 @@ import itdelatrisu.opsu.objects.curves.Vec2f;
 
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
 
 import org.lwjgl.BufferUtils;
-import org.lwjgl.opengl.EXTFramebufferObject;
-import org.lwjgl.opengl.GLContext;
 import org.lwjgl.opengl.ContextCapabilities;
+import org.lwjgl.opengl.EXTFramebufferObject;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
-import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL14;
 import org.lwjgl.opengl.GL15;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
+import org.lwjgl.opengl.GLContext;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.util.Log;
@@ -104,7 +102,6 @@ public class CurveRenderState {
 		this.curve = curve;
 		this.pointIndices = new int[curve.length];
 		this.vboID = -1;
-
 	}
 
 	/**
@@ -117,19 +114,15 @@ public class CurveRenderState {
 	 */
 	public void draw(Color color, Color borderColor, float t) {
 		t = Utils.clamp(t, 0.0f, 1.0f);
-		float alpha = color.a;
 
 		// create curve geometry and store it on the GPU
 		if (vboID == -1) {
 			vboID = GL15.glGenBuffers();
 			createVertexBuffer(vboID);
 		}
-		
-		int drawUpTo = (int) (t * (curve.length - 1));
-		
 
+		int drawUpTo = (int) (t * (curve.length - 1));
 		this.renderCurve(color, borderColor, drawUpTo);
-		//color.a = 1f;
 	}
 
 	/**
@@ -216,10 +209,7 @@ public class CurveRenderState {
 	 */
 	private void createVertexBuffer(int bufferID) {
 		float radius = scale / 2;
-		float mul_x = 2.f / containerWidth;
-		float mul_y = 2.f / containerHeight;
-
-		int triangle_count = staticState.DIVIDES; // for curve caps
+		int triangle_count = NewCurveStyleState.DIVIDES; // for curve caps
 		float last_dx=0, last_dy=0;
 		float last_alpha = 0;
 		for (int i = 0; i < curve.length; ++i) { // compute number of triangles
@@ -238,10 +228,10 @@ public class CurveRenderState {
 					if (theta > Math.PI) theta -= 2*Math.PI;
 					if (theta < -Math.PI) theta += 2*Math.PI;
 
-					if (Math.abs(theta) < 2*Math.PI / staticState.DIVIDES) {
+					if (Math.abs(theta) < 2*Math.PI / NewCurveStyleState.DIVIDES) {
 						triangle_count++;
-					}else{
-						int divs = (int)(Math.ceil(staticState.DIVIDES * Math.abs(theta) / (2*Math.PI)));
+					} else {
+						int divs = (int)(Math.ceil(NewCurveStyleState.DIVIDES * Math.abs(theta) / (2*Math.PI)));
 						triangle_count += divs;
 					}
 				}
@@ -256,24 +246,19 @@ public class CurveRenderState {
 		int arrayBufferBinding = GL11.glGetInteger(GL15.GL_ARRAY_BUFFER_BINDING);
 		FloatBuffer buff = BufferUtils.createByteBuffer(4 * (4 + 2) * 3 * (triangle_count)).asFloatBuffer();
 
-
 		last_dx=0; last_dy=0;
-		float last_length=0;
 		float last_ox=0, last_oy=0;
 		for (int i = 0; i < curve.length; ++i) {
 			float x = curve[i].x;
 			float y = curve[i].y;
 			if (i > 0) {
 				/*
-
 				Render this shape:
 				 ___ ___
 				|A /|C /|
 				| /B| /D|
 				|/__|/__|
-				
-				
-				
+
 				 */
 				float last_x = curve[i - 1].x;
 				float last_y = curve[i - 1].y;
@@ -285,15 +270,13 @@ public class CurveRenderState {
 
 				float alpha = (float)Math.atan2(diff_y, diff_x);
 
-
 				if (i > 1) {
 					float cross = last_dx * diff_y - last_dy * diff_x;
 					float theta = alpha - last_alpha;
 					if (theta > Math.PI) theta -= 2*Math.PI;
 					if (theta < -Math.PI) theta += 2*Math.PI;
 
-
-					if (Math.abs(theta) < 2*Math.PI / staticState.DIVIDES) { // small angle, just render single triangle
+					if (Math.abs(theta) < 2*Math.PI / NewCurveStyleState.DIVIDES) { // small angle, just render single triangle
 						if (cross > 0) { // going counterclockwise
 							buff.put(1.0f);            buff.put(0.5f);
 							buff.put(last_x);          buff.put(last_y);
@@ -315,10 +298,10 @@ public class CurveRenderState {
 							buff.put(last_x - last_ox);buff.put(last_y - last_oy);
 							buff.put(1.0f);            buff.put(1.0f);
 						} else {
-							//straight line, very unlikely
+							// straight line, very unlikely
 						}
 					} else {
-						int divs = (int)(Math.ceil(staticState.DIVIDES * Math.abs(theta) / (2*Math.PI)));
+						int divs = (int)(Math.ceil(NewCurveStyleState.DIVIDES * Math.abs(theta) / (2*Math.PI)));
 						float phi = Math.abs(theta) / divs;
 						float sinphi = (float)Math.sin(phi);
 						float cosphi = (float)Math.cos(phi);
@@ -352,7 +335,7 @@ public class CurveRenderState {
 						}
 					}
 				} else {
-					int divs = staticState.DIVIDES/2;
+					int divs = NewCurveStyleState.DIVIDES / 2;
 
 					float phi = (float)(Math.PI / divs);
 					float sinphi = (float)Math.sin(phi);
@@ -419,7 +402,7 @@ public class CurveRenderState {
 				buff.put(1.0f);            buff.put(1.0f);
 
 				if (i == curve.length-1) {
-					int divs = staticState.DIVIDES/2;
+					int divs = NewCurveStyleState.DIVIDES / 2;
 
 					float phi = (float)(Math.PI / divs);
 					float sinphi = (float)Math.sin(phi);
@@ -447,21 +430,19 @@ public class CurveRenderState {
 
 				last_dx = diff_x;
 				last_dy = diff_y;
-				last_length = length;
 				last_ox = offs_x;
 				last_oy = offs_y;
 				last_alpha = alpha;
 			}
 
 			pointIndices[i] = buff.position() / 6; // 6 elements per vertex
-			
 		}
 		buff.flip();
 		GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, bufferID);
 		GL15.glBufferData(GL15.GL_ARRAY_BUFFER, buff, GL15.GL_STATIC_DRAW);
 		GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, arrayBufferBinding);
 	}
-	
+
 	/**
 	 * Do the actual drawing of the curve into the currently bound framebuffer.
 	 * @param color the color of the curve
@@ -484,7 +465,6 @@ public class CurveRenderState {
 		GL20.glVertexAttribPointer(staticState.attribLoc, 4, GL11.GL_FLOAT, false, 6 * 4, 2 * 4);
 		GL20.glVertexAttribPointer(staticState.texCoordLoc, 2, GL11.GL_FLOAT, false, 6 * 4, 0);
 
-		
 		GL11.glColorMask(false,false,false,false);
 		GL11.glDrawArrays(GL11.GL_TRIANGLES, 0, pointIndices[to]);
 		GL11.glColorMask(true,true,true,true);
@@ -498,7 +478,6 @@ public class CurveRenderState {
 		GL20.glDisableVertexAttribArray(staticState.attribLoc);
 		restoreRenderState(state);
 	}
-
 
 	/**
 	 * Contains all the necessary state that needs to be tracked to draw curves
