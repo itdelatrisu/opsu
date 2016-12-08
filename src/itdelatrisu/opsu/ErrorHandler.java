@@ -33,6 +33,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.UIManager;
 
+import org.lwjgl.LWJGLException;
+import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 import org.newdawn.slick.util.Log;
 import org.newdawn.slick.util.ResourceLoader;
@@ -198,14 +200,21 @@ public class ErrorHandler {
 		sb.append("**JRE:** ");
 		sb.append(System.getProperty("java.version"));
 		sb.append('\n');
-		sb.append("**OpenGL Version:** ");
-		sb.append(GL11.glGetString(GL11.GL_VERSION));
-		sb.append('\n');
+
+		try {
+			if (Display.isCurrent()) {
+				sb.append("**OpenGL Version:** ");
+				sb.append(GL11.glGetString(GL11.GL_VERSION));
+				sb.append('\n');
+			}
+		} catch (LWJGLException | RuntimeException ignored) {}
+
 		if (error != null) {
 			sb.append("**Error:** `");
 			sb.append(error);
 			sb.append("`\n");
 		}
+
 		if (trace != null) {
 			sb.append("**Stack trace:**");
 			sb.append("\n```\n");
