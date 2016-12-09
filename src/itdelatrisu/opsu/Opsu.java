@@ -107,10 +107,13 @@ public class Opsu extends StateBasedGame {
 		} catch (FileNotFoundException e) {
 			Log.error(e);
 		}
+
+		// set default exception handler
 		Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
 			@Override
 			public void uncaughtException(Thread t, Throwable e) {
 				ErrorHandler.error("** Uncaught Exception! **", e, true);
+				System.exit(1);
 			}
 		});
 
@@ -123,15 +126,19 @@ public class Opsu extends StateBasedGame {
 		} catch (UnknownHostException e) {
 			// shouldn't happen
 		} catch (IOException e) {
-			ErrorHandler.error(String.format(
+			errorAndExit(
+				null,
+				String.format(
 					"opsu! could not be launched for one of these reasons:\n" +
 					"- An instance of opsu! is already running.\n" +
 					"- Another program is bound to port %d. " +
 					"You can change the port opsu! uses by editing the \"Port\" field in the configuration file.",
-					Options.getPort()), null, false);
-			System.exit(1);
+					Options.getPort()
+				)
+			);
 		}
 
+		// load natives
 		File nativeDir;
 		if (!Utils.isJarRunning() && (
 		    (nativeDir = new File("./target/natives/")).isDirectory() ||

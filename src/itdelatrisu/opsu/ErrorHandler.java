@@ -33,6 +33,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.UIManager;
 
+import org.lwjgl.opengl.GL11;
 import org.newdawn.slick.util.Log;
 import org.newdawn.slick.util.ResourceLoader;
 
@@ -73,8 +74,22 @@ public class ErrorHandler {
 		message  = { desc, scroll },
 		messageReport = { descReport, scroll };
 
+	/** OpenGL string (if any). */
+	private static String glString = null;
+
 	// This class should not be instantiated.
 	private ErrorHandler() {}
+
+	/**
+	 * Sets the OpenGL version string.
+	 */
+	public static void setGlString() {
+		try {
+			String glVersion = GL11.glGetString(GL11.GL_VERSION);
+			String glVendor = GL11.glGetString(GL11.GL_VENDOR);
+			glString = String.format("%s (%s)", glVersion, glVendor);
+		} catch (Exception e) {}
+	}
 
 	/**
 	 * Displays an error popup and logs the given error.
@@ -197,6 +212,11 @@ public class ErrorHandler {
 		sb.append("**JRE:** ");
 		sb.append(System.getProperty("java.version"));
 		sb.append('\n');
+		if (glString != null) {
+			sb.append("**OpenGL Version:** ");
+			sb.append(glString);
+			sb.append('\n');
+		}
 		if (error != null) {
 			sb.append("**Error:** `");
 			sb.append(error);
