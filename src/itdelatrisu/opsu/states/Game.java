@@ -865,7 +865,7 @@ public class Game extends BasicGameState {
 		if (beatmap.breaks != null && breakIndex < beatmap.breaks.size()) {
 			int breakValue = beatmap.breaks.get(breakIndex);
 			if (breakTime > 0) {  // in a break period
-				if (trackPosition < breakValue)
+				if (trackPosition < breakValue && trackPosition < beatmap.objects[objectIndex].getTime() - approachTime)
 					return;
 				else {
 					// break is over
