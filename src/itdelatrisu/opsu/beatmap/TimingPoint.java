@@ -98,7 +98,7 @@ public class TimingPoint {
 	/**
 	 * Returns the slider multiplier. [INHERITED]
 	 */
-	public float getSliderMultiplier() { return velocity / -100f; }
+	public float getSliderMultiplier() { return Utils.clamp(-velocity, 10, 1000) / 100f; }
 
 	/**
 	 * Returns the meter.
