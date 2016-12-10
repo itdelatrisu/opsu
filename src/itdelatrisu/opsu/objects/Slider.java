@@ -508,8 +508,8 @@ public class Slider implements GameObject {
 			float t = getT(trackPosition, true);
 			if (Math.floor(t) > currentRepeats) {
 				currentRepeats++;
-				tickIntervals++;
 				isNewRepeat = true;
+				tickIndex = 0;
 			}
 		}
 
