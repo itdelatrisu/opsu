@@ -33,6 +33,8 @@ import org.json.JSONObject;
 
 /**
  * Download server: https://osu.hexide.com/
+ * <p>
+ * <i>This server went offline in 2016.</i>
  */
 public class HexideServer extends DownloadServer {
 	/** Server name. */
