@@ -104,6 +104,12 @@ public class Slider implements GameObject {
 	/** Number of ticks hit and tick intervals so far. */
 	private int ticksHit = 0, tickIntervals = 1;
 
+	/** The current tick expanded time */
+	private int tickExpand = 0;
+
+	/** The duration of the tick expand */
+	private final int TICKEXPANDTIME = 200;
+
 	/** Container dimensions. */
 	private static int containerWidth, containerHeight;
 
@@ -188,9 +194,14 @@ public class Slider implements GameObject {
 		Image hitCircle = GameImage.HITCIRCLE.getImage();
 		Vec2f endPos = curve.pointAt(1);
 
+		float oldWHITE_FADEalpha = Colors.WHITE_FADE.a;
+		float sliderAlpha = 1f;
+		if (GameMod.HIDDEN.isActive() && trackPosition > hitObject.getTime()) {
+			Colors.WHITE_FADE.a = color.a = sliderAlpha = Math.max(0f, 1f - ((float) (trackPosition - hitObject.getTime()) / (getEndTime() - hitObject.getTime())) * 1.05f);
+		}
+
 		float curveInterval = Options.isSliderSnaking() ? alpha : 1f;
 		curve.draw(color,curveInterval);
-		color.a = alpha;
 
 		// end circle
 		Vec2f endCircPos = curve.pointAt(curveInterval);
@@ -202,17 +213,14 @@ public class Slider implements GameObject {
 		if (!overlayAboveNumber)
 			hitCircleOverlay.drawCentered(x, y, Colors.WHITE_FADE);
 
+		color.a = alpha;
+
 		// ticks
 		if (ticksT != null) {
-			float tickScale = 0.5f + 0.5f * AnimationEquation.OUT_BACK.calc(decorationsAlpha);
-			Image tick = GameImage.SLIDER_TICK.getImage().getScaledCopy(tickScale);
-			for (int i = 0; i < ticksT.length; i++) {
-				Vec2f c = curve.pointAt(ticksT[i]);
-				Colors.WHITE_FADE.a = decorationsAlpha;
-				tick.drawCentered(c.x, c.y, Colors.WHITE_FADE);
-				Colors.WHITE_FADE.a = alpha;
-			}
+			drawSliderTicks(g, trackPosition, sliderAlpha, decorationsAlpha);
+			Colors.WHITE_FADE.a = oldWHITE_FADEalpha;
 		}
+
 		if (GameMod.HIDDEN.isActive()) {
 			final int hiddenDecayTime = game.getHiddenDecayTime();
 			final int hiddenTimeDiff = game.getHiddenTimeDiff();
@@ -226,14 +234,20 @@ public class Slider implements GameObject {
 		else
 			data.drawSymbolNumber(hitObject.getComboNumber(), x, y,
 			        hitCircle.getWidth() * 0.40f / data.getDefaultSymbolImage(0).getHeight(), alpha);
-		if (overlayAboveNumber)
+
+		if (overlayAboveNumber) {
+			oldWHITE_FADEalpha = Colors.WHITE_FADE.a;
+			Colors.WHITE_FADE.a = sliderAlpha;
 			hitCircleOverlay.drawCentered(x, y, Colors.WHITE_FADE);
+			Colors.WHITE_FADE.a = oldWHITE_FADEalpha;
+		}
 
 		// repeats
 		if (curveInterval == 1.0f) {
 			for (int tcurRepeat = currentRepeats; tcurRepeat <= currentRepeats + 1; tcurRepeat++) {
 				if (hitObject.getRepeatCount() - 1 > tcurRepeat) {
 					Image arrow = GameImage.REVERSEARROW.getImage();
+					arrow = arrow.getScaledCopy((float) (1 + 0.2d * ((trackPosition + sliderTime * tcurRepeat) % 292) / 292));
 					float colorLuminance = 0.299f*color.r + 0.587f*color.g + 0.114f*color.b;
 					Color arrowColor = colorLuminance < 0.8f ? Color.white : Color.black;
 					if (tcurRepeat != currentRepeats) {
@@ -283,7 +297,7 @@ public class Slider implements GameObject {
 
 			// follow circle
 			if (followCircleActive) {
-				GameImage.SLIDER_FOLLOWCIRCLE.getImage().drawCentered(c.x, c.y);
+				GameImage.SLIDER_FOLLOWCIRCLE.getImage().getScaledCopy(1f + (tickExpand / (float) TICKEXPANDTIME) * 0.1f).drawCentered(c.x, c.y);
 
 				// "flashlight" mod: dim the screen
 				if (GameMod.FLASHLIGHT.isActive()) {
@@ -297,6 +311,33 @@ public class Slider implements GameObject {
 		}
 
 		Colors.WHITE_FADE.a = oldAlpha;
+	}
+
+	private void drawSliderTicks(Graphics g, int trackPosition, float curveAlpha, float decorationsAlpha) {
+		float tickScale = 0.5f + 0.5f * AnimationEquation.OUT_BACK.calc(decorationsAlpha);
+		Image tick = GameImage.SLIDER_TICK.getImage().getScaledCopy(tickScale);
+
+		// calculate which ticks need to be drawn (don't draw if sliderball crossed it)
+		int min = 0;
+		int max = ticksT.length;
+		if (trackPosition > hitObject.getTime()) {
+			for (int i = 0; i < ticksT.length; ) {
+				if (((trackPosition - hitObject.getTime()) % sliderTime) / sliderTime < ticksT[i]) {
+					break;
+				}
+				min = ++i;
+			}
+		}
+		if (currentRepeats % 2 == 1) {
+			max -= min;
+			min = 0;
+		}
+
+		for (int i = min; i < max; i++) {
+			Vec2f c = curve.pointAt(ticksT[i]);
+			Colors.WHITE_FADE.a = Math.min(curveAlpha, decorationsAlpha);
+			tick.drawCentered(c.x, c.y, Colors.WHITE_FADE);
+		}
 	}
 
 	/**
@@ -443,9 +484,17 @@ public class Slider implements GameObject {
 				mousePressed(mouseX, mouseY, trackPosition);
 		}
 
+		if (tickExpand > 0) {
+			tickExpand -= delta;
+			if (tickExpand < 0) {
+				tickExpand = 0;
+			}
+		}
+
 		// end of slider
 		if (trackPosition > hitObject.getTime() + sliderTimeTotal) {
 			tickIntervals++;
+			tickExpand = TICKEXPANDTIME;
 
 			// check if cursor pressed and within end circle
 			if (keyPressed || GameMod.RELAX.isActive()) {
@@ -474,8 +523,9 @@ public class Slider implements GameObject {
 			float t = getT(trackPosition, true);
 			if (Math.floor(t) > currentRepeats) {
 				currentRepeats++;
-				tickIntervals++;
+				tickExpand = TICKEXPANDTIME;
 				isNewRepeat = true;
+				tickIndex = 0;
 			}
 		}
 
@@ -488,6 +538,7 @@ public class Slider implements GameObject {
 			if (t - Math.floor(t) >= ticksT[tickIndex]) {
 				tickIntervals++;
 				tickIndex = (tickIndex + 1) % ticksT.length;
+				tickExpand = TICKEXPANDTIME;
 				isNewTick = true;
 			}
 		}
