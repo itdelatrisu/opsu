@@ -247,6 +247,7 @@ public class Slider implements GameObject {
 			for (int tcurRepeat = currentRepeats; tcurRepeat <= currentRepeats + 1; tcurRepeat++) {
 				if (hitObject.getRepeatCount() - 1 > tcurRepeat) {
 					Image arrow = GameImage.REVERSEARROW.getImage();
+					arrow = arrow.getScaledCopy((float) (1 + 0.2d * ((trackPosition + sliderTime * tcurRepeat) % 292) / 292));
 					float colorLuminance = 0.299f*color.r + 0.587f*color.g + 0.114f*color.b;
 					Color arrowColor = colorLuminance < 0.8f ? Color.white : Color.black;
 					if (tcurRepeat != currentRepeats) {
