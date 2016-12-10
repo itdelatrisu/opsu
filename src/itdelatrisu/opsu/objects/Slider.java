@@ -188,9 +188,14 @@ public class Slider implements GameObject {
 		Image hitCircle = GameImage.HITCIRCLE.getImage();
 		Vec2f endPos = curve.pointAt(1);
 
+		float oldWHITE_FADEalpha = Colors.WHITE_FADE.a;
+		float sliderAlpha = 1f;
+		if (GameMod.HIDDEN.isActive() && trackPosition > hitObject.getTime()) {
+			Colors.WHITE_FADE.a = color.a = sliderAlpha = Math.max(0f, 1f - ((float) (trackPosition - hitObject.getTime()) / (getEndTime() - hitObject.getTime())) * 1.05f);
+		}
+
 		float curveInterval = Options.isSliderSnaking() ? alpha : 1f;
 		curve.draw(color,curveInterval);
-		color.a = alpha;
 
 		// end circle
 		Vec2f endCircPos = curve.pointAt(curveInterval);
@@ -201,6 +206,9 @@ public class Slider implements GameObject {
 		hitCircle.drawCentered(x, y, color);
 		if (!overlayAboveNumber)
 			hitCircleOverlay.drawCentered(x, y, Colors.WHITE_FADE);
+
+		Colors.WHITE_FADE.a = oldWHITE_FADEalpha;
+		color.a = alpha;
 
 		// ticks
 		if (ticksT != null) {
@@ -226,8 +234,13 @@ public class Slider implements GameObject {
 		else
 			data.drawSymbolNumber(hitObject.getComboNumber(), x, y,
 			        hitCircle.getWidth() * 0.40f / data.getDefaultSymbolImage(0).getHeight(), alpha);
-		if (overlayAboveNumber)
+
+		if (overlayAboveNumber) {
+			oldWHITE_FADEalpha = Colors.WHITE_FADE.a;
+			Colors.WHITE_FADE.a = sliderAlpha;
 			hitCircleOverlay.drawCentered(x, y, Colors.WHITE_FADE);
+			Colors.WHITE_FADE.a = oldWHITE_FADEalpha;
+		}
 
 		// repeats
 		if (curveInterval == 1.0f) {
