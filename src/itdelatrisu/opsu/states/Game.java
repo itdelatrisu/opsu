@@ -465,7 +465,15 @@ public class Game extends BasicGameState {
 
 			// letterbox effect (black bars on top/bottom)
 			if (beatmap.letterboxInBreaks && breakLength >= 4000) {
+				// let it fade in/out
+				float a = Color.black.a;
+				if (trackPosition - breakTime > breakLength / 2) {
+					Color.black.a = (Math.min(500f, breakTime + breakLength - trackPosition)) / 500f;
+				} else {
+					Color.black.a = Math.min(500, trackPosition - breakTime) / 500f;
+				}
 				g.setColor(Color.black);
+				Color.black.a = a;
 				g.fillRect(0, 0, width, height * 0.125f);
 				g.fillRect(0, height * 0.875f, width, height * 0.125f);
 			}
@@ -865,7 +873,7 @@ public class Game extends BasicGameState {
 		if (beatmap.breaks != null && breakIndex < beatmap.breaks.size()) {
 			int breakValue = beatmap.breaks.get(breakIndex);
 			if (breakTime > 0) {  // in a break period
-				if (trackPosition < breakValue)
+				if (trackPosition < breakValue && trackPosition < beatmap.objects[objectIndex].getTime() - approachTime)
 					return;
 				else {
 					// break is over

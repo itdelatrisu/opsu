@@ -109,6 +109,11 @@ public abstract class EqualDistanceMultiCurve extends Curve {
 //		if (hitObject.getRepeatCount() > 1) {
 			Vec2f c1 = curve[0];
 			int cnt = 1;
+
+			if (cnt > ncurve) {
+				return;
+			}
+
 			Vec2f c2 = curve[cnt++];
 			while (cnt <= ncurve && c2.cpy().sub(c1).len() < 1)
 				c2 = curve[cnt++];
