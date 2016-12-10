@@ -207,20 +207,14 @@ public class Slider implements GameObject {
 		if (!overlayAboveNumber)
 			hitCircleOverlay.drawCentered(x, y, Colors.WHITE_FADE);
 
-		Colors.WHITE_FADE.a = oldWHITE_FADEalpha;
 		color.a = alpha;
 
 		// ticks
 		if (ticksT != null) {
-			float tickScale = 0.5f + 0.5f * AnimationEquation.OUT_BACK.calc(decorationsAlpha);
-			Image tick = GameImage.SLIDER_TICK.getImage().getScaledCopy(tickScale);
-			for (int i = 0; i < ticksT.length; i++) {
-				Vec2f c = curve.pointAt(ticksT[i]);
-				Colors.WHITE_FADE.a = decorationsAlpha;
-				tick.drawCentered(c.x, c.y, Colors.WHITE_FADE);
-				Colors.WHITE_FADE.a = alpha;
-			}
+			drawSliderTicks(g, trackPosition, sliderAlpha, decorationsAlpha);
+			Colors.WHITE_FADE.a = oldWHITE_FADEalpha;
 		}
+
 		if (GameMod.HIDDEN.isActive()) {
 			final int hiddenDecayTime = game.getHiddenDecayTime();
 			final int hiddenTimeDiff = game.getHiddenTimeDiff();
@@ -310,6 +304,33 @@ public class Slider implements GameObject {
 		}
 
 		Colors.WHITE_FADE.a = oldAlpha;
+	}
+
+	private void drawSliderTicks(Graphics g, int trackPosition, float curveAlpha, float decorationsAlpha) {
+		float tickScale = 0.5f + 0.5f * AnimationEquation.OUT_BACK.calc(decorationsAlpha);
+		Image tick = GameImage.SLIDER_TICK.getImage().getScaledCopy(tickScale);
+
+		// calculate which ticks need to be drawn (don't draw if sliderball crossed it)
+		int min = 0;
+		int max = ticksT.length;
+		if (trackPosition > hitObject.getTime()) {
+			for (int i = 0; i < ticksT.length; ) {
+				if (((trackPosition - hitObject.getTime()) % sliderTime) / sliderTime < ticksT[i]) {
+					break;
+				}
+				min = ++i;
+			}
+		}
+		if (currentRepeats % 2 == 1) {
+			max -= min;
+			min = 0;
+		}
+
+		for (int i = min; i < max; i++) {
+			Vec2f c = curve.pointAt(ticksT[i]);
+			Colors.WHITE_FADE.a = Math.min(curveAlpha, decorationsAlpha);
+			tick.drawCentered(c.x, c.y, Colors.WHITE_FADE);
+		}
 	}
 
 	/**
