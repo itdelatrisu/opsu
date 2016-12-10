@@ -104,6 +104,12 @@ public class Slider implements GameObject {
 	/** Number of ticks hit and tick intervals so far. */
 	private int ticksHit = 0, tickIntervals = 1;
 
+	/** The current tick expanded time */
+	private int tickExpand = 0;
+
+	/** The duration of the tick expand */
+	private final int TICKEXPANDTIME = 200;
+
 	/** Container dimensions. */
 	private static int containerWidth, containerHeight;
 
@@ -290,7 +296,7 @@ public class Slider implements GameObject {
 
 			// follow circle
 			if (followCircleActive) {
-				GameImage.SLIDER_FOLLOWCIRCLE.getImage().drawCentered(c.x, c.y);
+				GameImage.SLIDER_FOLLOWCIRCLE.getImage().getScaledCopy(1f + (tickExpand / (float) TICKEXPANDTIME) * 0.1f).drawCentered(c.x, c.y);
 
 				// "flashlight" mod: dim the screen
 				if (GameMod.FLASHLIGHT.isActive()) {
@@ -477,9 +483,17 @@ public class Slider implements GameObject {
 				mousePressed(mouseX, mouseY, trackPosition);
 		}
 
+		if (tickExpand > 0) {
+			tickExpand -= delta;
+			if (tickExpand < 0) {
+				tickExpand = 0;
+			}
+		}
+
 		// end of slider
 		if (trackPosition > hitObject.getTime() + sliderTimeTotal) {
 			tickIntervals++;
+			tickExpand = TICKEXPANDTIME;
 
 			// check if cursor pressed and within end circle
 			if (keyPressed || GameMod.RELAX.isActive()) {
@@ -508,6 +522,7 @@ public class Slider implements GameObject {
 			float t = getT(trackPosition, true);
 			if (Math.floor(t) > currentRepeats) {
 				currentRepeats++;
+				tickExpand = TICKEXPANDTIME;
 				isNewRepeat = true;
 				tickIndex = 0;
 			}
@@ -522,6 +537,7 @@ public class Slider implements GameObject {
 			if (t - Math.floor(t) >= ticksT[tickIndex]) {
 				tickIntervals++;
 				tickIndex = (tickIndex + 1) % ticksT.length;
+				tickExpand = TICKEXPANDTIME;
 				isNewTick = true;
 			}
 		}
