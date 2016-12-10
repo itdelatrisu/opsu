@@ -901,6 +901,7 @@ public class GameData {
 					float scale = (!hitResult.expand) ? 1f : 1f + (HITCIRCLE_ANIM_SCALE - 1f) * progress;
 					float alpha = 1f - progress;
 
+					// "hidden" mod: circle and slider animations not drawn
 					if (!GameMod.HIDDEN.isActive()) {
 						// slider curve
 						if (hitResult.curve != null) {
