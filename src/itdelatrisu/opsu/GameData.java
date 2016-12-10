@@ -901,20 +901,19 @@ public class GameData {
 					float scale = (!hitResult.expand) ? 1f : 1f + (HITCIRCLE_ANIM_SCALE - 1f) * progress;
 					float alpha = 1f - progress;
 
-					// slider curve
-					if (hitResult.curve != null) {
-						float oldWhiteAlpha = Colors.WHITE_FADE.a;
-						float oldColorAlpha = hitResult.color.a;
-						Colors.WHITE_FADE.a = alpha;
-						hitResult.color.a = alpha;
-						hitResult.curve.draw(hitResult.color);
-						Colors.WHITE_FADE.a = oldWhiteAlpha;
-						hitResult.color.a = oldColorAlpha;
-					}
+					if (!GameMod.HIDDEN.isActive()) {
+						// slider curve
+						if (hitResult.curve != null) {
+							float oldWhiteAlpha = Colors.WHITE_FADE.a;
+							float oldColorAlpha = hitResult.color.a;
+							Colors.WHITE_FADE.a = alpha;
+							hitResult.color.a = alpha;
+							hitResult.curve.draw(hitResult.color);
+							Colors.WHITE_FADE.a = oldWhiteAlpha;
+							hitResult.color.a = oldColorAlpha;
+						}
 
-					// hit circles
-					if (!(hitResult.hitResultType == HitObjectType.CIRCLE && GameMod.HIDDEN.isActive())) {
-						// "hidden" mod: expanding animation for only circles not drawn
+						// hit circles
 						Image scaledHitCircle = GameImage.HITCIRCLE.getImage().getScaledCopy(scale);
 						Image scaledHitCircleOverlay = GameImage.HITCIRCLE_OVERLAY.getImage().getScaledCopy(scale);
 						scaledHitCircle.setAlpha(alpha);
