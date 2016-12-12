@@ -344,10 +344,22 @@ public class Slider implements GameObject {
 			min = 0;
 		}
 
+		// calculate the tick alpha level
+		float sliderTickAlpha;
+		if (currentRepeats == 0) {
+			sliderTickAlpha = decorationsAlpha;
+		} else {
+			float t = getT(trackPosition, false);
+			if (currentRepeats % 2 == 1) {
+				t = 1f - t;
+			}
+			sliderTickAlpha = Utils.clamp(t * ticksT.length * 2, 0f, 1f);
+		}
+
 		// draw ticks
+		Colors.WHITE_FADE.a = Math.min(curveAlpha, sliderTickAlpha);
 		for (int i = min; i < max; i++) {
 			Vec2f c = curve.pointAt(ticksT[i]);
-			Colors.WHITE_FADE.a = Math.min(curveAlpha, decorationsAlpha);
 			tick.drawCentered(c.x, c.y, Colors.WHITE_FADE);
 		}
 	}
