@@ -219,7 +219,7 @@ public class Slider implements GameObject {
 
 		// ticks
 		if (ticksT != null) {
-			drawSliderTicks(g, trackPosition, sliderAlpha, decorationsAlpha);
+			drawSliderTicks(trackPosition, sliderAlpha, decorationsAlpha);
 			Colors.WHITE_FADE.a = oldWhiteFadeAlpha;
 		}
 
@@ -319,12 +319,11 @@ public class Slider implements GameObject {
 
 	/**
 	 * Draws slider ticks.
-	 * @param g the graphics context
 	 * @param trackPosition the track position
 	 * @param curveAlpha the curve alpha level
 	 * @param decorationsAlpha the decorations alpha level
 	 */
-	private void drawSliderTicks(Graphics g, int trackPosition, float curveAlpha, float decorationsAlpha) {
+	private void drawSliderTicks(int trackPosition, float curveAlpha, float decorationsAlpha) {
 		float tickScale = 0.5f + 0.5f * AnimationEquation.OUT_BACK.calc(decorationsAlpha);
 		Image tick = GameImage.SLIDER_TICK.getImage().getScaledCopy(tickScale);
 
