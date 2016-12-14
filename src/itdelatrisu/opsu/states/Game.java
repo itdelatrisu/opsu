@@ -1507,7 +1507,7 @@ public class Game extends BasicGameState {
 
 				// translate and rotate the object
 				g.translate(0, dt * dt * container.getHeight());
-				Vec2f rotationCenter = gameObj.getPointAt(beatmap.objects[idx].getTime());
+				Vec2f rotationCenter = gameObj.getPointAt((beatmap.objects[idx].getTime() + beatmap.objects[idx].getEndTime()) / 2);
 				g.rotate(rotationCenter.x, rotationCenter.y, rotSpeed * dt);
 				gameObj.draw(g, trackPosition);
 
