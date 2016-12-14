@@ -475,7 +475,6 @@ public class CurveRenderState {
 		GL20.glUseProgram(staticState.program);
 		GL20.glEnableVertexAttribArray(staticState.attribLoc);
 		GL20.glEnableVertexAttribArray(staticState.texCoordLoc);
-		GL20.glUniform2f(staticState.invSSLoc, 2.f/containerWidth, -2.f/containerHeight);
 		GL20.glUniform1i(staticState.texLoc, 0);
 		GL20.glUniform4f(staticState.colLoc, color.r, color.g, color.b, color.a);
 		GL20.glUniform4f(staticState.colBorderLoc, borderColor.r, borderColor.g, borderColor.b, borderColor.a);
@@ -521,9 +520,6 @@ public class CurveRenderState {
 
 		/** OpenGL shader attribute location of the texture coordinate attribute. */
 		protected int texCoordLoc = 0;
-
-		/** OpenGL shader uniform location of the inverse screen size attribute. */
-		protected int invSSLoc = 0;
 
 		/** OpenGL shader uniform location of the color attribute. */
 		protected int colLoc = 0;
@@ -577,7 +573,6 @@ public class CurveRenderState {
 				int vtxShdr = GL20.glCreateShader(GL20.GL_VERTEX_SHADER);
 				int frgShdr = GL20.glCreateShader(GL20.GL_FRAGMENT_SHADER);
 				GL20.glShaderSource(vtxShdr, "#version 110\n"
-						+ "uniform vec2 inv_screensize;\n"
 						+ "\n"
 						+ "attribute vec4 in_position;\n"
 						+ "attribute vec2 in_tex_coord;\n"
@@ -585,7 +580,7 @@ public class CurveRenderState {
 						+ "varying vec2 tex_coord;\n"
 						+ "void main()\n"
 						+ "{\n"
-						+ "    gl_Position = vec4(vec2(-1.0,1.0)+inv_screensize*in_position.xy,in_position.zw);\n"
+						+ "    gl_Position = gl_ModelViewProjectionMatrix * in_position;\n"
 						+ "    tex_coord = in_tex_coord;\n"
 						+ "}");
 				GL20.glCompileShader(vtxShdr);
@@ -628,7 +623,6 @@ public class CurveRenderState {
 				GL20.glDeleteShader(frgShdr);
 				attribLoc = GL20.glGetAttribLocation(program, "in_position");
 				texCoordLoc = GL20.glGetAttribLocation(program, "in_tex_coord");
-				invSSLoc = GL20.glGetUniformLocation(program, "inv_screensize");
 				texLoc = GL20.glGetUniformLocation(program, "tex");
 				colLoc = GL20.glGetUniformLocation(program, "col_tint");
 				colBorderLoc = GL20.glGetUniformLocation(program, "col_border");
@@ -649,7 +643,6 @@ public class CurveRenderState {
 				program = 0;
 				attribLoc = 0;
 				texCoordLoc = 0;
-				invSSLoc = 0;
 				colLoc = 0;
 				colBorderLoc = 0;
 				texLoc = 0;
