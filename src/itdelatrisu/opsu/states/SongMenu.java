@@ -498,6 +498,27 @@ public class SongMenu extends BasicGameState {
 		g.drawLine(0, footerY, width, footerY);
 		g.resetLineWidth();
 
+		// opsu logo in bottom bar
+		float footerHeight = height - footerY;
+		Image logo = GameImage.MENU_LOGO.getImage();
+		float logoSize = footerHeight * 3.25f;
+		logo = logo.getScaledCopy(logoSize / logo.getWidth());
+		Float position = MusicController.getBeatProgress();
+		if (position == null) {
+			position = System.currentTimeMillis() % 1000 / 1000f;
+		}
+		float x = width - footerHeight * 0.8f;
+		float y = height - footerHeight * 0.65f;
+		Image ghostLogo = logo.getScaledCopy((float) (1 - (0 - position) * 0.15));
+		logo = logo.getScaledCopy((float) (1 - (position) * 0.15));
+		logoSize = logo.getWidth();
+		logo.draw(x - logoSize / 2, y - logoSize / 2);
+		logoSize = ghostLogo.getWidth();
+		float a = Colors.GHOST_LOGO.a;
+		Colors.GHOST_LOGO.a *= (1f - position);
+		ghostLogo.draw(x - logoSize / 2, y - logoSize / 2, Colors.GHOST_LOGO);
+		Colors.GHOST_LOGO.a = a;
+
 		// header
 		if (focusNode != null) {
 			// music/loader icon
