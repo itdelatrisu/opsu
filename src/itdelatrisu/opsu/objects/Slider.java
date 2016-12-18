@@ -269,29 +269,28 @@ public class Slider implements GameObject {
 
 		// repeats
 		if (curveInterval == 1.0f) {
-			for (int tcurRepeat = currentRepeats; tcurRepeat <= currentRepeats + 1; tcurRepeat++) {
-				if (hitObject.getRepeatCount() - 1 > tcurRepeat) {
-					Image arrow = GameImage.REVERSEARROW.getImage();
-					// bouncing animation
-					//arrow = arrow.getScaledCopy((float) (1 + 0.2d * ((trackPosition + sliderTime * tcurRepeat) % 292) / 292));
-					float colorLuminance = 0.299f*color.r + 0.587f*color.g + 0.114f*color.b;
-					Color arrowColor = colorLuminance < 0.8f ? Color.white : Color.black;
-					if (tcurRepeat != currentRepeats) {
-						if (sliderTime == 0)
-							continue;
-						float t = Math.max(getT(trackPosition, true), 0);
-						arrow.setAlpha((float) (t - Math.floor(t)));
-					} else
-						arrow.setAlpha(Options.isSliderSnaking() ? decorationsAlpha : 1f);
-					if (tcurRepeat % 2 == 0) {
-						// last circle
-						arrow.setRotation(curve.getEndAngle());
-						arrow.drawCentered(endPos.x, endPos.y, arrowColor);
-					} else {
-						// first circle
-						arrow.setRotation(curve.getStartAngle());
-						arrow.drawCentered(x, y, arrowColor);
+			for (int tcurRepeat = currentRepeats; tcurRepeat <= currentRepeats + 1 && tcurRepeat < repeats - 1; tcurRepeat++) {
+				Image arrow = GameImage.REVERSEARROW.getImage();
+				// bouncing animation
+				//arrow = arrow.getScaledCopy((float) (1 + 0.2d * ((trackPosition + sliderTime * tcurRepeat) % 292) / 292));
+				float colorLuminance = 0.299f*color.r + 0.587f*color.g + 0.114f*color.b;
+				Color arrowColor = colorLuminance < 0.8f ? Color.white : Color.black;
+				if (tcurRepeat == 0) {
+					arrow.setAlpha(Options.isSliderSnaking() ? decorationsAlpha : 1f);
+				} else {
+					if (!sliderClickedInitial) {
+						continue;
 					}
+					arrow.setAlpha(getCircleAlphaAfterRepeat(trackPosition, tcurRepeat % 2 == 0));
+				}
+				if (tcurRepeat % 2 == 0) {
+					// last circle
+					arrow.setRotation(curve.getEndAngle());
+					arrow.drawCentered(endPos.x, endPos.y, arrowColor);
+				} else {
+					// first circle
+					arrow.setRotation(curve.getStartAngle());
+					arrow.drawCentered(x, y, arrowColor);
 				}
 			}
 		}
