@@ -180,6 +180,7 @@ public class Slider implements GameObject {
 	@Override
 	public void draw(Graphics g, int trackPosition) {
 		int timeDiff = hitObject.getTime() - trackPosition;
+		final int repeats = hitObject.getRepeatCount();
 		final int approachTime = game.getApproachTime();
 		final int fadeInTime = game.getFadeInTime();
 		float scale = timeDiff / (float) approachTime;
@@ -205,16 +206,37 @@ public class Slider implements GameObject {
 		float curveInterval = Options.isSliderSnaking() ? alpha : 1f;
 		curve.draw(color,curveInterval);
 
-		// end circle
-		Vec2f endCircPos = curve.pointAt(curveInterval);
-		hitCircle.drawCentered(endCircPos.x, endCircPos.y, color);
-		hitCircleOverlay.drawCentered(endCircPos.x, endCircPos.y, Colors.WHITE_FADE);
+		// end circle, only draw if ball still has to go there
+		if (curveInterval == 1f && currentRepeats < repeats - (repeats % 2 == 0 ? 1 : 0)) {
+			Color circleColor = new Color(color);
+			Color overlayColor = new Color(Colors.WHITE_FADE);
+			if (currentRepeats == 0) {
+				if (Options.isSliderSnaking()) {
+					// fade in end circle using decorationsAlpha when snaking sliders are enabled
+					circleColor.a = overlayColor.a = decorationsAlpha;
+				}
+			} else {
+				// fade in end circle after repeats
+				circleColor.a = overlayColor.a = getCircleAlphaAfterRepeat(trackPosition, true);
+			}
+			Vec2f endCircPos = curve.pointAt(curveInterval);
+			hitCircle.drawCentered(endCircPos.x, endCircPos.y, circleColor);
+			hitCircleOverlay.drawCentered(endCircPos.x, endCircPos.y, overlayColor);
+		}
 
-		// draw start circle when not clicked yet
-		if (!sliderClickedInitial) {
-			hitCircle.drawCentered(x, y, color);
-			if (!overlayAboveNumber)
-				hitCircleOverlay.drawCentered(x, y, Colors.WHITE_FADE);
+		// set first circle colors to fade in after repeats
+		Color firstCircleColor = new Color(color);
+		Color startCircleOverlayColor = new Color(Colors.WHITE_FADE);
+		if (sliderClickedInitial) {
+			// fade in first circle after repeats
+			firstCircleColor.a = startCircleOverlayColor.a = getCircleAlphaAfterRepeat(trackPosition, false);
+		}
+
+		// start circle, only draw if ball still has to go there
+		if (!sliderClickedInitial || currentRepeats < repeats - (repeats % 2 == 1 ? 1 : 0)) {
+			hitCircle.drawCentered(x, y, firstCircleColor);
+			if (!overlayAboveNumber || sliderClickedInitial)
+				hitCircleOverlay.drawCentered(x, y, startCircleOverlayColor);
 		}
 
 		color.a = alpha;
@@ -240,10 +262,8 @@ public class Slider implements GameObject {
 				hitCircle.getWidth() * 0.40f / data.getDefaultSymbolImage(0).getHeight(), alpha);
 
 			if (overlayAboveNumber) {
-				oldWhiteFadeAlpha = Colors.WHITE_FADE.a;
-				Colors.WHITE_FADE.a = sliderAlpha;
-				hitCircleOverlay.drawCentered(x, y, Colors.WHITE_FADE);
-				Colors.WHITE_FADE.a = oldWhiteFadeAlpha;
+				startCircleOverlayColor.a = sliderAlpha;
+				hitCircleOverlay.drawCentered(x, y, startCircleOverlayColor);
 			}
 		}
 
@@ -364,6 +384,24 @@ public class Slider implements GameObject {
 			Vec2f c = curve.pointAt(ticksT[i]);
 			tick.drawCentered(c.x, c.y, Colors.WHITE_FADE);
 		}
+	}
+
+	/**
+	 * Get the alpha level used to fade in circles & reversearrows after repeat
+	 * @param trackPosition current trackposition, in ms
+	 * @param endCircle request alpha for end circle (true) or start circle (false)?
+	 * @return alpha level as float in interval [0, 1]
+	 */
+	private float getCircleAlphaAfterRepeat(int trackPosition, boolean endCircle) {
+		int ticksN = ticksT == null ? 0 : ticksT.length;
+		float t = getT(trackPosition, false);
+		if (endCircle) {
+			t = 1f - t;
+		}
+		if (currentRepeats % 2 == (endCircle ? 0 : 1)) {
+			t = 1f;
+		}
+		return Utils.clamp(t * (ticksN + 1), 0f, 1f);
 	}
 
 	/**
