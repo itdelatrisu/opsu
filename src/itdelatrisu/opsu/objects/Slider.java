@@ -463,10 +463,10 @@ public class Slider implements GameObject {
 			if (timeDiff < hitResultOffset[GameData.HIT_50]) {
 				result = GameData.HIT_SLIDER30;
 				ticksHit++;
-				data.sendAnimationResult(trackPosition, x, y, color, true);
+				data.sendAnimationResult(trackPosition, this.x, this.y, color, true);
 			} else if (timeDiff < hitResultOffset[GameData.HIT_MISS]) {
 				result = GameData.HIT_MISS;
-				data.sendAnimationResult(trackPosition, x, y, color, false);
+				data.sendAnimationResult(trackPosition, this.x, this.y, color, false);
 			}
 			//else not a hit
 
