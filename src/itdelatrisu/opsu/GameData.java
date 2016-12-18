@@ -941,39 +941,45 @@ public class GameData {
 			hitResult.curve.draw(hitResult.color);
 			Colors.WHITE_FADE.a = oldWhiteAlpha;
 			hitResult.color.a = oldColorAlpha;
+			return;
+		}
+
+		if (hitResult.result == HIT_MISS) {
+			return;
+		}
+
+		if (hitResult.hitResultType != HitObjectType.CIRCLE
+			&& hitResult.hitResultType != HitObjectType.SLIDER_FIRST
+			&& hitResult.hitResultType != HitObjectType.SLIDER_LAST) {
+			return;
 		}
 
 		// circles
-		if (hitResult.result != HIT_MISS && (
-			hitResult.hitResultType == HitObjectType.CIRCLE ||
-				hitResult.hitResultType == HitObjectType.SLIDER_FIRST ||
-				hitResult.hitResultType == HitObjectType.SLIDER_LAST)) {
-			float progress = AnimationEquation.OUT_CUBIC.calc(
-				(float) Utils.clamp(trackPosition - hitResult.time, 0, HITCIRCLE_FADE_TIME) / HITCIRCLE_FADE_TIME);
-			float scale = (!hitResult.expand) ? 1f : 1f + (HITCIRCLE_ANIM_SCALE - 1f) * progress;
-			float alpha = 1f - progress;
+		float progress = AnimationEquation.OUT_CUBIC.calc(
+			(float) Utils.clamp(trackPosition - hitResult.time, 0, HITCIRCLE_FADE_TIME) / HITCIRCLE_FADE_TIME);
+		float scale = (!hitResult.expand) ? 1f : 1f + (HITCIRCLE_ANIM_SCALE - 1f) * progress;
+		float alpha = 1f - progress;
 
-			if (hitResult.result == HIT_SLIDER_REPEAT) {
-				// repeats
-				Image scaledRepeat = GameImage.REVERSEARROW.getImage().getScaledCopy(scale);
-				scaledRepeat.setAlpha(alpha);
-				float ang;
-				if (hitResult.hitResultType == HitObjectType.SLIDER_FIRST) {
-					ang = hitResult.curve.getStartAngle();
-				} else {
-					ang = hitResult.curve.getEndAngle();
-				}
-				scaledRepeat.rotate(ang);
-				scaledRepeat.drawCentered(hitResult.x, hitResult.y, hitResult.color);
+		if (hitResult.result == HIT_SLIDER_REPEAT) {
+			// repeats
+			Image scaledRepeat = GameImage.REVERSEARROW.getImage().getScaledCopy(scale);
+			scaledRepeat.setAlpha(alpha);
+			float ang;
+			if (hitResult.hitResultType == HitObjectType.SLIDER_FIRST) {
+				ang = hitResult.curve.getStartAngle();
+			} else {
+				ang = hitResult.curve.getEndAngle();
 			}
-			// hit circles
-			Image scaledHitCircle = GameImage.HITCIRCLE.getImage().getScaledCopy(scale);
-			Image scaledHitCircleOverlay = GameImage.HITCIRCLE_OVERLAY.getImage().getScaledCopy(scale);
-			scaledHitCircle.setAlpha(alpha);
-			scaledHitCircleOverlay.setAlpha(alpha);
-			scaledHitCircle.drawCentered(hitResult.x, hitResult.y, hitResult.color);
-			scaledHitCircleOverlay.drawCentered(hitResult.x, hitResult.y);
+			scaledRepeat.rotate(ang);
+			scaledRepeat.drawCentered(hitResult.x, hitResult.y, hitResult.color);
 		}
+		// hit circles
+		Image scaledHitCircle = GameImage.HITCIRCLE.getImage().getScaledCopy(scale);
+		Image scaledHitCircleOverlay = GameImage.HITCIRCLE_OVERLAY.getImage().getScaledCopy(scale);
+		scaledHitCircle.setAlpha(alpha);
+		scaledHitCircleOverlay.setAlpha(alpha);
+		scaledHitCircle.drawCentered(hitResult.x, hitResult.y, hitResult.color);
+		scaledHitCircleOverlay.drawCentered(hitResult.x, hitResult.y);
 	}
 
 	/**
