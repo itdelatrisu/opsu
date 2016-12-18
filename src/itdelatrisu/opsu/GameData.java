@@ -26,7 +26,6 @@ import itdelatrisu.opsu.beatmap.Beatmap;
 import itdelatrisu.opsu.beatmap.HitObject;
 import itdelatrisu.opsu.downloads.Updater;
 import itdelatrisu.opsu.objects.curves.Curve;
-import itdelatrisu.opsu.objects.curves.Vec2f;
 import itdelatrisu.opsu.replay.Replay;
 import itdelatrisu.opsu.replay.ReplayFrame;
 import itdelatrisu.opsu.ui.Colors;
@@ -892,54 +891,9 @@ public class GameData {
 					lighting.drawCentered(hitResult.x, hitResult.y, hitResult.color);
 				}
 
-				// slider done animation
-
-				// hit animations
-				if (hitResult.hitResultType == HitObjectType.SLIDER_CURVE && hitResult.curve != null) {
-					float progress = AnimationEquation.OUT_CUBIC.calc(
-						(float) Utils.clamp(trackPosition - hitResult.time, 0, HITCIRCLE_FADE_TIME) / HITCIRCLE_FADE_TIME);
-					float alpha = 1f - progress;
-
-					// slider curve
-					float oldWhiteAlpha = Colors.WHITE_FADE.a;
-					float oldColorAlpha = hitResult.color.a;
-					Colors.WHITE_FADE.a = alpha;
-					hitResult.color.a = alpha;
-					hitResult.curve.draw(hitResult.color);
-					Colors.WHITE_FADE.a = oldWhiteAlpha;
-					hitResult.color.a = oldColorAlpha;
-				}
-
-				// circles
-				if (hitResult.result != HIT_MISS && (
-				    hitResult.hitResultType == HitObjectType.CIRCLE ||
-				    hitResult.hitResultType == HitObjectType.SLIDER_FIRST ||
-				    hitResult.hitResultType == HitObjectType.SLIDER_LAST)) {
-					float progress = AnimationEquation.OUT_CUBIC.calc(
-							(float) Utils.clamp(trackPosition - hitResult.time, 0, HITCIRCLE_FADE_TIME) / HITCIRCLE_FADE_TIME);
-					float scale = (!hitResult.expand) ? 1f : 1f + (HITCIRCLE_ANIM_SCALE - 1f) * progress;
-					float alpha = 1f - progress;
-
-					if (hitResult.result == HIT_SLIDER_REPEAT) {
-						// repeats
-						Image scaledRepeat = GameImage.REVERSEARROW.getImage().getScaledCopy(scale);
-						scaledRepeat.setAlpha(alpha);
-						float ang;
-						if (hitResult.hitResultType == HitObjectType.SLIDER_FIRST) {
-							ang = hitResult.curve.getStartAngle();
-						} else {
-							ang = hitResult.curve.getEndAngle();
-						}
-						scaledRepeat.rotate(ang);
-						scaledRepeat.drawCentered(hitResult.x, hitResult.y, hitResult.color);
-					}
-					// hit circles
-					Image scaledHitCircle = GameImage.HITCIRCLE.getImage().getScaledCopy(scale);
-					Image scaledHitCircleOverlay = GameImage.HITCIRCLE_OVERLAY.getImage().getScaledCopy(scale);
-					scaledHitCircle.setAlpha(alpha);
-					scaledHitCircleOverlay.setAlpha(alpha);
-					scaledHitCircle.drawCentered(hitResult.x, hitResult.y, hitResult.color);
-					scaledHitCircleOverlay.drawCentered(hitResult.x, hitResult.y);
+				// hit animations, only draw when the 'hidden' mod is not enabled
+				if (!GameMod.HIDDEN.isActive()) {
+					drawHitAnimations(hitResult, trackPosition);
 				}
 
 				// hit result
@@ -964,6 +918,60 @@ public class GameData {
 					hitResult.curve.discardGeometry();
 				iter.remove();
 			}
+		}
+	}
+
+	/**
+	 * Draw the hit animations: circles, reversearrows, slider curves fading out and/or expanding
+	 * @param hitResult the hitresult which holds information about the kind of animation to draw
+	 * @param trackPosition the current track position (in ms)
+	 */
+	private void drawHitAnimations(HitObjectResult hitResult, int trackPosition) {
+		if (hitResult.hitResultType == HitObjectType.SLIDER_CURVE && hitResult.curve != null) {
+			float progress = AnimationEquation.OUT_CUBIC.calc(
+				(float) Utils.clamp(trackPosition - hitResult.time, 0, HITCIRCLE_FADE_TIME) / HITCIRCLE_FADE_TIME);
+			float alpha = 1f - progress;
+
+			// slider curve
+			float oldWhiteAlpha = Colors.WHITE_FADE.a;
+			float oldColorAlpha = hitResult.color.a;
+			Colors.WHITE_FADE.a = alpha;
+			hitResult.color.a = alpha;
+			hitResult.curve.draw(hitResult.color);
+			Colors.WHITE_FADE.a = oldWhiteAlpha;
+			hitResult.color.a = oldColorAlpha;
+		}
+
+		// circles
+		if (hitResult.result != HIT_MISS && (
+			hitResult.hitResultType == HitObjectType.CIRCLE ||
+				hitResult.hitResultType == HitObjectType.SLIDER_FIRST ||
+				hitResult.hitResultType == HitObjectType.SLIDER_LAST)) {
+			float progress = AnimationEquation.OUT_CUBIC.calc(
+				(float) Utils.clamp(trackPosition - hitResult.time, 0, HITCIRCLE_FADE_TIME) / HITCIRCLE_FADE_TIME);
+			float scale = (!hitResult.expand) ? 1f : 1f + (HITCIRCLE_ANIM_SCALE - 1f) * progress;
+			float alpha = 1f - progress;
+
+			if (hitResult.result == HIT_SLIDER_REPEAT) {
+				// repeats
+				Image scaledRepeat = GameImage.REVERSEARROW.getImage().getScaledCopy(scale);
+				scaledRepeat.setAlpha(alpha);
+				float ang;
+				if (hitResult.hitResultType == HitObjectType.SLIDER_FIRST) {
+					ang = hitResult.curve.getStartAngle();
+				} else {
+					ang = hitResult.curve.getEndAngle();
+				}
+				scaledRepeat.rotate(ang);
+				scaledRepeat.drawCentered(hitResult.x, hitResult.y, hitResult.color);
+			}
+			// hit circles
+			Image scaledHitCircle = GameImage.HITCIRCLE.getImage().getScaledCopy(scale);
+			Image scaledHitCircleOverlay = GameImage.HITCIRCLE_OVERLAY.getImage().getScaledCopy(scale);
+			scaledHitCircle.setAlpha(alpha);
+			scaledHitCircleOverlay.setAlpha(alpha);
+			scaledHitCircle.drawCentered(hitResult.x, hitResult.y, hitResult.color);
+			scaledHitCircleOverlay.drawCentered(hitResult.x, hitResult.y);
 		}
 	}
 
