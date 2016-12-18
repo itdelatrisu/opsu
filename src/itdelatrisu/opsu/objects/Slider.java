@@ -562,23 +562,6 @@ public class Slider implements GameObject {
 				tickIndex = 0;
 				isNewRepeat = true;
 				tickExpandTime = TICK_EXPAND_TIME;
-
-				// send hit result, to fade out reversearrow
-				HitObjectType type;
-				float posX, posY;
-				if (currentRepeats % 2 == 1) {
-					type = HitObjectType.SLIDER_LAST;
-					Vec2f endPos = curve.pointAt(1);
-					posX = endPos.x;
-					posY = endPos.y;
-				} else {
-					type = HitObjectType.SLIDER_FIRST;
-					posX = this.x;
-					posY = this.y;
-				}
-				float colorLuminance = 0.299f*color.r + 0.587f*color.g + 0.114f*color.b;
-				Color arrowColor = colorLuminance < 0.8f ? Color.white : Color.black;
-				data.sendRepeatSliderResult(trackPosition, posX, posY, arrowColor, curve, type);
 			}
 		}
 
@@ -606,13 +589,26 @@ public class Slider implements GameObject {
 			// held during new repeat
 			if (isNewRepeat) {
 				ticksHit++;
+
+				HitObjectType type;
+				float posX, posY;
 				if (currentRepeats % 2 > 0) {  // last circle
-					int lastIndex = hitObject.getSliderX().length;
-					data.sliderTickResult(trackPosition, GameData.HIT_SLIDER30,
-							curve.getX(lastIndex), curve.getY(lastIndex), hitObject, currentRepeats);
-				} else  // first circle
-					data.sliderTickResult(trackPosition, GameData.HIT_SLIDER30,
-							c.x, c.y, hitObject, currentRepeats);
+					type = HitObjectType.SLIDER_LAST;
+					Vec2f endPos = curve.pointAt(1f);
+					posX = endPos.x;
+					posY = endPos.y;
+				} else  { // first circle
+					type = HitObjectType.SLIDER_FIRST;
+					posX = this.x;
+					posY = this.y;
+				}
+				data.sliderTickResult(trackPosition, GameData.HIT_SLIDER30,
+					posX, posY, hitObject, currentRepeats);
+
+				// send hit result, to fade out reversearrow
+				float colorLuminance = 0.299f*color.r + 0.587f*color.g + 0.114f*color.b;
+				Color arrowColor = colorLuminance < 0.8f ? Color.white : Color.black;
+				data.sendRepeatSliderResult(trackPosition, posX, posY, arrowColor, curve, type);
 			}
 
 			// held during new tick
