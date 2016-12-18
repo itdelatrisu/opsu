@@ -213,11 +213,11 @@ public class Slider implements GameObject {
 			if (currentRepeats == 0) {
 				if (Options.isSliderSnaking()) {
 					// fade in end circle using decorationsAlpha when snaking sliders are enabled
-					circleColor.a = overlayColor.a = decorationsAlpha;
+					circleColor.a = overlayColor.a = sliderAlpha * decorationsAlpha;
 				}
 			} else {
 				// fade in end circle after repeats
-				circleColor.a = overlayColor.a = getCircleAlphaAfterRepeat(trackPosition, true);
+				circleColor.a = overlayColor.a = sliderAlpha * getCircleAlphaAfterRepeat(trackPosition, true);
 			}
 			Vec2f endCircPos = curve.pointAt(curveInterval);
 			hitCircle.drawCentered(endCircPos.x, endCircPos.y, circleColor);
@@ -229,7 +229,7 @@ public class Slider implements GameObject {
 		Color startCircleOverlayColor = new Color(Colors.WHITE_FADE);
 		if (sliderClickedInitial) {
 			// fade in first circle after repeats
-			firstCircleColor.a = startCircleOverlayColor.a = getCircleAlphaAfterRepeat(trackPosition, false);
+			firstCircleColor.a = startCircleOverlayColor.a = sliderAlpha * getCircleAlphaAfterRepeat(trackPosition, false);
 		}
 
 		// start circle, only draw if ball still has to go there
