@@ -22,6 +22,7 @@ import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.beatmap.Beatmap;
 import itdelatrisu.opsu.beatmap.BeatmapParser;
+import itdelatrisu.opsu.beatmap.TimingPoint;
 import itdelatrisu.opsu.ui.UI;
 
 import java.io.File;
@@ -182,6 +183,39 @@ public class MusicController {
 	 * Returns the beatmap associated with the current track.
 	 */
 	public static Beatmap getBeatmap() { return lastBeatmap; }
+
+	/**
+	 * Gets the progress of the current beat.
+	 * @return progress as a value in [0, 1], where 0 means a beat just happened and 1 means the next beat is coming right now.
+	 */
+	public static Float getBeatProgress() {
+		if (!isPlaying() || getBeatmap() == null) {
+			return null;
+		}
+		Beatmap map = getBeatmap();
+		if (map.timingPoints == null) {
+			return null;
+		}
+		int trackposition = getPosition();
+		TimingPoint p = null;
+		double beatlen = 0d;
+		int time = 0;
+		for (TimingPoint pts : map.timingPoints) {
+			if (pts.getTime() > getPosition()) {
+				break;
+			}
+			p = pts;
+			if (!p.isInherited() && p.getBeatLength() > 0) {
+				beatlen = p.getBeatLength();
+				time = p.getTime();
+			}
+		}
+		if (p == null) {
+			return null;
+		}
+		double beatLength = beatlen * 100d;
+		return (float) ((((trackposition - time) * 100) % beatLength) / beatLength);
+	}
 
 	/**
 	 * Returns true if the current track is playing.
