@@ -150,7 +150,8 @@ public class GameData {
 		HIT_SLIDER10      = 7,
 		HIT_SLIDER30      = 8,
 		HIT_MAX           = 9,   // not a hit result
-		HIT_SLIDER_REPEAT = 10;  // not a hit result
+		HIT_SLIDER_REPEAT = 10,  // not a hit result
+		HIT_ANIMATION_RESULT = 11;  // not a hit result
 
 	/** Hit result-related images (indexed by HIT_* constants). */
 	private Image[] hitResults;
@@ -1209,6 +1210,10 @@ public class GameData {
 
 	public void sendSliderCurveResult(int time, Color color, Curve curve) {
 		hitResultList.add(new HitObjectResult(time, HIT_SLIDER_REPEAT, 0f, 0f, color, HitObjectType.SLIDER_CURVE, curve, true, true));
+	}
+
+	public void sendAnimationResult(int time, float x, float y, Color color, boolean expand) {
+		hitResultList.add(new HitObjectResult(time, HIT_ANIMATION_RESULT, x, y, color, HitObjectType.CIRCLE, null, expand, true));
 	}
 
 	/**

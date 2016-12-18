@@ -210,10 +210,12 @@ public class Slider implements GameObject {
 		hitCircle.drawCentered(endCircPos.x, endCircPos.y, color);
 		hitCircleOverlay.drawCentered(endCircPos.x, endCircPos.y, Colors.WHITE_FADE);
 
-		// start circle
-		hitCircle.drawCentered(x, y, color);
-		if (!overlayAboveNumber)
-			hitCircleOverlay.drawCentered(x, y, Colors.WHITE_FADE);
+		// draw start circle when not clicked yet
+		if (!sliderClickedInitial) {
+			hitCircle.drawCentered(x, y, color);
+			if (!overlayAboveNumber)
+				hitCircleOverlay.drawCentered(x, y, Colors.WHITE_FADE);
+		}
 
 		color.a = alpha;
 
@@ -231,17 +233,18 @@ public class Slider implements GameObject {
 				alpha = Math.min(alpha, hiddenAlpha);
 			}
 		}
-		if (sliderClickedInitial)
-			;  // don't draw current combo number if already clicked
-		else
-			data.drawSymbolNumber(hitObject.getComboNumber(), x, y,
-			        hitCircle.getWidth() * 0.40f / data.getDefaultSymbolImage(0).getHeight(), alpha);
 
-		if (overlayAboveNumber) {
-			oldWhiteFadeAlpha = Colors.WHITE_FADE.a;
-			Colors.WHITE_FADE.a = sliderAlpha;
-			hitCircleOverlay.drawCentered(x, y, Colors.WHITE_FADE);
-			Colors.WHITE_FADE.a = oldWhiteFadeAlpha;
+		// draw combonumber and overlay if not initially clicked
+		if (!sliderClickedInitial) {
+			data.drawSymbolNumber(hitObject.getComboNumber(), x, y,
+				hitCircle.getWidth() * 0.40f / data.getDefaultSymbolImage(0).getHeight(), alpha);
+
+			if (overlayAboveNumber) {
+				oldWhiteFadeAlpha = Colors.WHITE_FADE.a;
+				Colors.WHITE_FADE.a = sliderAlpha;
+				hitCircleOverlay.drawCentered(x, y, Colors.WHITE_FADE);
+				Colors.WHITE_FADE.a = oldWhiteFadeAlpha;
+			}
 		}
 
 		// repeats
@@ -460,8 +463,11 @@ public class Slider implements GameObject {
 			if (timeDiff < hitResultOffset[GameData.HIT_50]) {
 				result = GameData.HIT_SLIDER30;
 				ticksHit++;
-			} else if (timeDiff < hitResultOffset[GameData.HIT_MISS])
+				data.sendAnimationResult(trackPosition, x, y, color, true);
+			} else if (timeDiff < hitResultOffset[GameData.HIT_MISS]) {
 				result = GameData.HIT_MISS;
+				data.sendAnimationResult(trackPosition, x, y, color, false);
+			}
 			//else not a hit
 
 			if (result > -1) {
@@ -489,8 +495,11 @@ public class Slider implements GameObject {
 				if (isAutoMod) {  // "auto" mod: catch any missed notes due to lag
 					ticksHit++;
 					data.sliderTickResult(time, GameData.HIT_SLIDER30, x, y, hitObject, currentRepeats);
-				} else
+					data.sendAnimationResult(time, x, y, color, true);
+				} else {
 					data.sliderTickResult(time, GameData.HIT_MISS, x, y, hitObject, currentRepeats);
+					data.sendAnimationResult(trackPosition, x, y, color, false);
+				}
 			}
 
 			// "auto" mod: send a perfect hit result
@@ -499,6 +508,7 @@ public class Slider implements GameObject {
 					ticksHit++;
 					sliderClickedInitial = true;
 					data.sliderTickResult(time, GameData.HIT_SLIDER30, x, y, hitObject, currentRepeats);
+					data.sendAnimationResult(time, x, y, color, true);
 				}
 			}
 
