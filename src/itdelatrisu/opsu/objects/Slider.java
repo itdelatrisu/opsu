@@ -441,7 +441,7 @@ public class Slider implements GameObject {
 		}
 		data.hitResult(hitObject.getTime() + (int) sliderTimeTotal, result,
 				cx, cy, color, comboEnd, hitObject, type, sliderHeldToEnd,
-				currentRepeats + 1, curve, sliderHeldToEnd);
+				currentRepeats + 1, null, sliderHeldToEnd);
 
 		return result;
 	}
@@ -530,6 +530,9 @@ public class Slider implements GameObject {
 
 			// calculate and send slider result
 			hitResult();
+
+			// send 'curve fade out' hit result
+			data.sendSliderCurveResult(getEndTime(), color, curve);
 			return true;
 		}
 
