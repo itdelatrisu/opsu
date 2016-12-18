@@ -186,7 +186,8 @@ public class MusicController {
 
 	/**
 	 * Gets the progress of the current beat.
-	 * @return progress as a value in [0, 1], where 0 means a beat just happened and 1 means the next beat is coming right now.
+	 * @return null if music is paused or no timingpoints are available, or progress as a value in
+	 *          [0, 1], where 0 means a beat just happened and 1 means the next beat is coming right now.
 	 */
 	public static Float getBeatProgress() {
 		if (!isPlaying() || getBeatmap() == null) {
