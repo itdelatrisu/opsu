@@ -1401,6 +1401,9 @@ public class Game extends BasicGameState {
 	 * @param trackPosition the track position
 	 */
 	private void drawHitObjects(Graphics g, int trackPosition) {
+		// draw result objects
+		data.drawHitResults(trackPosition);
+
 		// include previous object in follow points
 		int lastObjectIndex = -1;
 		if (objectIndex > 0 && objectIndex < beatmap.objects.length &&
@@ -1514,9 +1517,6 @@ public class Game extends BasicGameState {
 				g.popTransform();
 			}
 		}
-
-		// draw result objects
-		data.drawHitResults(trackPosition);
 	}
 
 	/**
