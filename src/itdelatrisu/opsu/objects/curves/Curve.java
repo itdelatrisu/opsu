@@ -95,7 +95,7 @@ public abstract class Curve {
 		Curve.borderColor = borderColor;
 
 		ContextCapabilities capabilities = GLContext.getCapabilities();
-		mmsliderSupported = capabilities.OpenGL20;
+		mmsliderSupported = capabilities.OpenGL30;
 		if (mmsliderSupported)
 			CurveRenderState.init(width, height, circleDiameter);
 		else {
