@@ -259,6 +259,12 @@ public class SongMenu extends BasicGameState {
 	/** Header and footer end and start y coordinates, respectively. */
 	private float headerY, footerY;
 
+	/** Footer pulsing logo button. */
+	private MenuButton footerLogoButton;
+
+	/** Whether the cursor hovers over the footer logo. */
+	private boolean bottomLogoHovered;
+
 	/** Time, in milliseconds, for fading the search bar. */
 	private int searchTransitionTimer = SEARCH_TRANSITION_TIME;
 
@@ -334,6 +340,14 @@ public class SongMenu extends BasicGameState {
 				Fonts.BOLD.getLineHeight() + Fonts.DEFAULT.getLineHeight() +
 				Fonts.SMALL.getLineHeight();
 		footerY = height - GameImage.SELECTION_MODS.getImage().getHeight();
+
+		// logo coordinates
+		float footerHeight = height - footerY;
+		Image logo = GameImage.MENU_LOGO.getImage();
+		logo = logo.getScaledCopy(footerHeight * 3.25f / logo.getWidth());
+		footerLogoButton = new MenuButton(logo, width - footerHeight * 0.8f, height - footerHeight * 0.65f);
+		footerLogoButton.setHoverAnimationDuration(1);
+		footerLogoButton.setHoverExpand(1.4f);
 
 		// initialize sorts
 		for (BeatmapSortOrder sort : BeatmapSortOrder.values())
@@ -499,25 +513,25 @@ public class SongMenu extends BasicGameState {
 		g.resetLineWidth();
 
 		// opsu logo in bottom bar
-		float footerHeight = height - footerY;
-		Image logo = GameImage.MENU_LOGO.getImage();
-		float logoSize = footerHeight * 3.25f;
-		logo = logo.getScaledCopy(logoSize / logo.getWidth());
 		Float position = MusicController.getBeatProgress();
 		if (position == null) {
 			position = System.currentTimeMillis() % 1000 / 1000f;
 		}
-		float x = width - footerHeight * 0.8f;
-		float y = height - footerHeight * 0.65f;
-		Image ghostLogo = logo.getScaledCopy((float) (1 - (0 - position) * 0.15));
-		logo = logo.getScaledCopy((float) (1 - (position) * 0.15));
-		logoSize = logo.getWidth();
-		logo.draw(x - logoSize / 2, y - logoSize / 2);
-		logoSize = ghostLogo.getWidth();
-		float a = Colors.GHOST_LOGO.a;
-		Colors.GHOST_LOGO.a *= (1f - position);
-		ghostLogo.draw(x - logoSize / 2, y - logoSize / 2, Colors.GHOST_LOGO);
-		Colors.GHOST_LOGO.a = a;
+		if (bottomLogoHovered) {
+			footerLogoButton.draw();
+		} else {
+			float expand = position * 0.15f;
+			footerLogoButton.draw(Color.white, 1f - expand);
+			Image ghostLogo = GameImage.MENU_LOGO.getImage();
+			ghostLogo = ghostLogo.getScaledCopy((height - footerY) * 3.25f / ghostLogo.getWidth());
+			ghostLogo = ghostLogo.getScaledCopy(1f + expand);
+			float scaleposmodx = ghostLogo.getWidth() / 2;
+			float scaleposmody = ghostLogo.getHeight() / 2;
+			float a = Colors.GHOST_LOGO.a;
+			Colors.GHOST_LOGO.a *= (1f - position);
+			ghostLogo.draw(footerLogoButton.getX() - scaleposmodx, footerLogoButton.getY() - scaleposmody, Colors.GHOST_LOGO);
+			Colors.GHOST_LOGO.a = a;
+		}
 
 		// header
 		if (focusNode != null) {
@@ -774,7 +788,18 @@ public class SongMenu extends BasicGameState {
 		}
 		updateDrawnSongPosition();
 
-		// mouse hover
+		// mouse hover (logo)
+		if (footerLogoButton.contains(mouseX, mouseY, 0.25f)) {
+			footerLogoButton.hoverUpdate(delta, true);
+			bottomLogoHovered = true;
+			// reset beatmap node hover
+			hoverIndex = null;
+			return;
+		}
+		footerLogoButton.hoverUpdate(delta, false);
+		bottomLogoHovered = false;
+
+		// mouse hover (beatmap nodes)
 		BeatmapSetNode node = getNodeAtPosition(mouseX, mouseY);
 		if (node != null) {
 			if (node == hoverIndex)
@@ -816,6 +841,11 @@ public class SongMenu extends BasicGameState {
 
 		if (isScrollingToFocusNode)
 			return;
+
+		if (bottomLogoHovered) {
+			startGame();
+			return;
+		}
 
 		songScrolling.pressed();
 		startScorePos.pressed();
