@@ -180,7 +180,7 @@ public class Slider implements GameObject {
 	@Override
 	public void draw(Graphics g, int trackPosition) {
 		int timeDiff = hitObject.getTime() - trackPosition;
-		final int repeats = hitObject.getRepeatCount();
+		final int repeatCount = hitObject.getRepeatCount();
 		final int approachTime = game.getApproachTime();
 		final int fadeInTime = game.getFadeInTime();
 		float scale = timeDiff / (float) approachTime;
@@ -198,7 +198,7 @@ public class Slider implements GameObject {
 		float oldWhiteFadeAlpha = Colors.WHITE_FADE.a;
 		float sliderAlpha = 1f;
 		if (GameMod.HIDDEN.isActive() && trackPosition > hitObject.getTime()) {
-			// "hidden" mod: fade out sliders
+			// "Hidden" mod: fade out sliders
 			Colors.WHITE_FADE.a = color.a = sliderAlpha =
 				Math.max(0f, 1f - ((float) (trackPosition - hitObject.getTime()) / (getEndTime() - hitObject.getTime())) * 1.05f);
 		}
@@ -206,8 +206,8 @@ public class Slider implements GameObject {
 		float curveInterval = Options.isSliderSnaking() ? alpha : 1f;
 		curve.draw(color,curveInterval);
 
-		// end circle, only draw if ball still has to go there
-		if (curveInterval == 1f && currentRepeats < repeats - (repeats % 2 == 0 ? 1 : 0)) {
+		// end circle (only draw if ball still has to go there)
+		if (curveInterval == 1f && currentRepeats < repeatCount - (repeatCount % 2 == 0 ? 1 : 0)) {
 			Color circleColor = new Color(color);
 			Color overlayColor = new Color(Colors.WHITE_FADE);
 			if (currentRepeats == 0) {
@@ -233,7 +233,7 @@ public class Slider implements GameObject {
 		}
 
 		// start circle, only draw if ball still has to go there
-		if (!sliderClickedInitial || currentRepeats < repeats - (repeats % 2 == 1 ? 1 : 0)) {
+		if (!sliderClickedInitial || currentRepeats < repeatCount - (repeatCount % 2 == 1 ? 1 : 0)) {
 			hitCircle.drawCentered(x, y, firstCircleColor);
 			if (!overlayAboveNumber || sliderClickedInitial)
 				hitCircleOverlay.drawCentered(x, y, startCircleOverlayColor);
@@ -256,7 +256,7 @@ public class Slider implements GameObject {
 			}
 		}
 
-		// draw combonumber and overlay if not initially clicked
+		// draw combo number and overlay if not initially clicked
 		if (!sliderClickedInitial) {
 			data.drawSymbolNumber(hitObject.getComboNumber(), x, y,
 				hitCircle.getWidth() * 0.40f / data.getDefaultSymbolImage(0).getHeight(), alpha);
@@ -269,11 +269,11 @@ public class Slider implements GameObject {
 
 		// repeats
 		if (curveInterval == 1.0f) {
-			for (int tcurRepeat = currentRepeats; tcurRepeat <= currentRepeats + 1 && tcurRepeat < repeats - 1; tcurRepeat++) {
+			for (int tcurRepeat = currentRepeats; tcurRepeat <= currentRepeats + 1 && tcurRepeat < repeatCount - 1; tcurRepeat++) {
 				Image arrow = GameImage.REVERSEARROW.getImage();
 				// bouncing animation
 				//arrow = arrow.getScaledCopy((float) (1 + 0.2d * ((trackPosition + sliderTime * tcurRepeat) % 292) / 292));
-				float colorLuminance = 0.299f*color.r + 0.587f*color.g + 0.114f*color.b;
+				float colorLuminance = Utils.getLuminance(color);
 				Color arrowColor = colorLuminance < 0.8f ? Color.white : Color.black;
 				if (tcurRepeat == 0) {
 					arrow.setAlpha(Options.isSliderSnaking() ? decorationsAlpha : 1f);
@@ -469,19 +469,21 @@ public class Slider implements GameObject {
 
 		float cx, cy;
 		HitObjectType type;
-		if (currentRepeats % 2 == 0) {  // last circle
+		if (currentRepeats % 2 == 0) {
+			// last circle
 			Vec2f lastPos = curve.pointAt(1);
 			cx = lastPos.x;
 			cy = lastPos.y;
 			type = HitObjectType.SLIDER_LAST;
-		} else {  // first circle
+		} else {
+			// first circle
 			cx = x;
 			cy = y;
 			type = HitObjectType.SLIDER_FIRST;
 		}
-		data.hitResult(hitObject.getTime() + (int) sliderTimeTotal, result,
+		data.sendHitResult(hitObject.getTime() + (int) sliderTimeTotal, result,
 				cx, cy, color, comboEnd, hitObject, type, sliderHeldToEnd,
-				currentRepeats + 1, null, sliderHeldToEnd);
+				currentRepeats + 1, curve, sliderHeldToEnd);
 
 		return result;
 	}
@@ -500,17 +502,17 @@ public class Slider implements GameObject {
 			if (timeDiff < hitResultOffset[GameData.HIT_50]) {
 				result = GameData.HIT_SLIDER30;
 				ticksHit++;
-				data.sendAnimationResult(trackPosition, this.x, this.y, color, true);
+				data.sendSliderStartResult(trackPosition, this.x, this.y, color, true);
 			} else if (timeDiff < hitResultOffset[GameData.HIT_MISS]) {
 				result = GameData.HIT_MISS;
-				data.sendAnimationResult(trackPosition, this.x, this.y, color, false);
+				data.sendSliderStartResult(trackPosition, this.x, this.y, color, false);
 			}
 			//else not a hit
 
 			if (result > -1) {
 				data.addHitError(hitObject.getTime(), x,y,trackPosition - hitObject.getTime());
 				sliderClickedInitial = true;
-				data.sliderTickResult(hitObject.getTime(), result, this.x, this.y, hitObject, currentRepeats);
+				data.sendSliderTickResult(hitObject.getTime(), result, this.x, this.y, hitObject, currentRepeats);
 				return true;
 			}
 		}
@@ -531,11 +533,11 @@ public class Slider implements GameObject {
 				sliderClickedInitial = true;
 				if (isAutoMod) {  // "auto" mod: catch any missed notes due to lag
 					ticksHit++;
-					data.sliderTickResult(time, GameData.HIT_SLIDER30, x, y, hitObject, currentRepeats);
-					data.sendAnimationResult(time, x, y, color, true);
+					data.sendSliderTickResult(time, GameData.HIT_SLIDER30, x, y, hitObject, currentRepeats);
+					data.sendSliderStartResult(time, x, y, color, true);
 				} else {
-					data.sliderTickResult(time, GameData.HIT_MISS, x, y, hitObject, currentRepeats);
-					data.sendAnimationResult(trackPosition, x, y, color, false);
+					data.sendSliderTickResult(time, GameData.HIT_MISS, x, y, hitObject, currentRepeats);
+					data.sendSliderStartResult(trackPosition, x, y, color, false);
 				}
 			}
 
@@ -544,8 +546,8 @@ public class Slider implements GameObject {
 				if (Math.abs(trackPosition - time) < hitResultOffset[GameData.HIT_300]) {
 					ticksHit++;
 					sliderClickedInitial = true;
-					data.sliderTickResult(time, GameData.HIT_SLIDER30, x, y, hitObject, currentRepeats);
-					data.sendAnimationResult(time, x, y, color, true);
+					data.sendSliderTickResult(time, GameData.HIT_SLIDER30, x, y, hitObject, currentRepeats);
+					data.sendSliderStartResult(time, x, y, color, true);
 				}
 			}
 
@@ -578,8 +580,6 @@ public class Slider implements GameObject {
 			// calculate and send slider result
 			hitResult();
 
-			// send 'curve fade out' hit result
-			data.sendSliderCurveResult(getEndTime(), color, curve);
 			return true;
 		}
 
@@ -629,29 +629,31 @@ public class Slider implements GameObject {
 
 				HitObjectType type;
 				float posX, posY;
-				if (currentRepeats % 2 > 0) {  // last circle
+				if (currentRepeats % 2 > 0) {
+					// last circle
 					type = HitObjectType.SLIDER_LAST;
 					Vec2f endPos = curve.pointAt(1f);
 					posX = endPos.x;
 					posY = endPos.y;
-				} else  { // first circle
+				} else {
+					// first circle
 					type = HitObjectType.SLIDER_FIRST;
 					posX = this.x;
 					posY = this.y;
 				}
-				data.sliderTickResult(trackPosition, GameData.HIT_SLIDER30,
+				data.sendSliderTickResult(trackPosition, GameData.HIT_SLIDER30,
 					posX, posY, hitObject, currentRepeats);
 
-				// send hit result, to fade out reversearrow
-				float colorLuminance = 0.299f*color.r + 0.587f*color.g + 0.114f*color.b;
+				// fade out reverse arrow
+				float colorLuminance = Utils.getLuminance(color);
 				Color arrowColor = colorLuminance < 0.8f ? Color.white : Color.black;
-				data.sendRepeatSliderResult(trackPosition, posX, posY, arrowColor, curve, type);
+				data.sendSliderRepeatResult(trackPosition, posX, posY, arrowColor, curve, type);
 			}
 
 			// held during new tick
 			if (isNewTick) {
 				ticksHit++;
-				data.sliderTickResult(trackPosition, GameData.HIT_SLIDER10,
+				data.sendSliderTickResult(trackPosition, GameData.HIT_SLIDER10,
 						c.x, c.y, hitObject, currentRepeats);
 			}
 
@@ -662,9 +664,9 @@ public class Slider implements GameObject {
 			followCircleActive = false;
 
 			if (isNewRepeat)
-				data.sliderTickResult(trackPosition, GameData.HIT_MISS, 0, 0, hitObject, currentRepeats);
+				data.sendSliderTickResult(trackPosition, GameData.HIT_MISS, 0, 0, hitObject, currentRepeats);
 			if (isNewTick)
-				data.sliderTickResult(trackPosition, GameData.HIT_MISS, 0, 0, hitObject, currentRepeats);
+				data.sendSliderTickResult(trackPosition, GameData.HIT_MISS, 0, 0, hitObject, currentRepeats);
 		}
 
 		return false;

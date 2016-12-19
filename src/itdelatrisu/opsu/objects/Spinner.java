@@ -252,7 +252,7 @@ public class Spinner implements GameObject {
 		else
 			result = GameData.HIT_MISS;
 
-		data.hitResult(hitObject.getEndTime(), result, width / 2, height / 2,
+		data.sendHitResult(hitObject.getEndTime(), result, width / 2, height / 2,
 				Color.transparent, true, hitObject, HitObjectType.SPINNER, true, 0, null, false);
 		return result;
 	}

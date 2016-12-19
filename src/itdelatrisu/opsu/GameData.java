@@ -140,23 +140,23 @@ public class GameData {
 
 	/** Hit result types. */
 	public static final int
-		HIT_MISS          = 0,
-		HIT_50            = 1,
-		HIT_100           = 2,
-		HIT_300           = 3,
-		HIT_100K          = 4,   // 100-Katu
-		HIT_300K          = 5,   // 300-Katu
-		HIT_300G          = 6,   // Geki
-		HIT_SLIDER10      = 7,
-		HIT_SLIDER30      = 8,
-		HIT_MAX           = 9,   // not a hit result
-		HIT_SLIDER_REPEAT = 10,  // not a hit result
+		HIT_MISS             = 0,
+		HIT_50               = 1,
+		HIT_100              = 2,
+		HIT_300              = 3,
+		HIT_100K             = 4,   // 100-Katu
+		HIT_300K             = 5,   // 300-Katu
+		HIT_300G             = 6,   // Geki
+		HIT_SLIDER10         = 7,
+		HIT_SLIDER30         = 8,
+		HIT_MAX              = 9,   // not a hit result
+		HIT_SLIDER_REPEAT    = 10,  // not a hit result
 		HIT_ANIMATION_RESULT = 11;  // not a hit result
 
-	/** Hit result-related images (indexed by HIT_* constants). */
+	/** Hit result-related images (indexed by HIT_* constants to HIT_MAX). */
 	private Image[] hitResults;
 
-	/** Counts of each hit result so far. */
+	/** Counts of each hit result so far (indexed by HIT_* constants to HIT_MAX). */
 	private int[] hitResultCount;
 
 	/** Total objects including slider hits/ticks (for determining Full Combo status). */
@@ -192,7 +192,7 @@ public class GameData {
 	/** Current x coordinate of the combo burst image (for sliding animation). */
 	private float comboBurstX;
 
-	/** Time offsets for obtaining each hit result (indexed by HIT_* constants). */
+	/** Time offsets for obtaining each hit result (indexed by HIT_* constants to HIT_MAX). */
 	private int[] hitResultOffset;
 
 	/** List of hit result objects associated with hit objects. */
@@ -232,7 +232,7 @@ public class GameData {
 	private LinkedBlockingDeque<HitErrorInfo> hitErrorList;
 
 	/** Hit object types, used for drawing results. */
-	public enum HitObjectType { CIRCLE, SLIDERTICK, SLIDER_FIRST, SLIDER_CURVE, SLIDER_LAST, SPINNER }
+	public enum HitObjectType { CIRCLE, SLIDERTICK, SLIDER_FIRST, SLIDER_LAST, SPINNER }
 
 	/** Hit result helper class. */
 	private class HitObjectResult {
@@ -892,16 +892,17 @@ public class GameData {
 					lighting.drawCentered(hitResult.x, hitResult.y, hitResult.color);
 				}
 
-				// hit animations, only draw when the 'hidden' mod is not enabled
+				// hit animations (only draw when the "Hidden" mod is not enabled)
 				if (!GameMod.HIDDEN.isActive()) {
 					drawHitAnimations(hitResult, trackPosition);
 				}
 
 				// hit result
 				if (!hitResult.hideResult && (
-					hitResult.hitResultType == HitObjectType.CIRCLE ||
-				    hitResult.hitResultType == HitObjectType.SPINNER ||
-				    hitResult.curve != null)) {
+				    hitResult.hitResultType == HitObjectType.CIRCLE ||
+				    hitResult.hitResultType == HitObjectType.SLIDER_FIRST ||
+				    hitResult.hitResultType == HitObjectType.SLIDER_LAST ||
+				    hitResult.hitResultType == HitObjectType.SPINNER)) {
 					float scaleProgress = AnimationEquation.IN_OUT_BOUNCE.calc(
 							(float) Utils.clamp(trackPosition - hitResult.time, 0, HITCIRCLE_TEXT_BOUNCE_TIME) / HITCIRCLE_TEXT_BOUNCE_TIME);
 					float scale = 1f + (HITCIRCLE_TEXT_ANIM_SCALE - 1f) * scaleProgress;
@@ -923,43 +924,42 @@ public class GameData {
 	}
 
 	/**
-	 * Draw the hit animations: circles, reversearrows, slider curves fading out and/or expanding
-	 * @param hitResult the hitresult which holds information about the kind of animation to draw
+	 * Draw the hit animations:
+	 *   circles, reverse arrows, slider curves (fading out and/or expanding).
+	 * @param hitResult the hit result
 	 * @param trackPosition the current track position (in ms)
 	 */
 	private void drawHitAnimations(HitObjectResult hitResult, int trackPosition) {
-		if (hitResult.hitResultType == HitObjectType.SLIDER_CURVE && hitResult.curve != null) {
+		// fade out slider curve
+		if (hitResult.result != HIT_SLIDER_REPEAT && hitResult.curve != null) {
 			float progress = AnimationEquation.OUT_CUBIC.calc(
 				(float) Utils.clamp(trackPosition - hitResult.time, 0, HITCIRCLE_FADE_TIME) / HITCIRCLE_FADE_TIME);
 			float alpha = 1f - progress;
-
-			// slider curve
 			float oldWhiteAlpha = Colors.WHITE_FADE.a;
 			float oldColorAlpha = hitResult.color.a;
-			Colors.WHITE_FADE.a = alpha;
-			hitResult.color.a = alpha;
+			Colors.WHITE_FADE.a = hitResult.color.a = alpha;
 			hitResult.curve.draw(hitResult.color);
 			Colors.WHITE_FADE.a = oldWhiteAlpha;
 			hitResult.color.a = oldColorAlpha;
-			return;
 		}
 
+		// miss, don't draw an animation
 		if (hitResult.result == HIT_MISS) {
 			return;
 		}
 
-		if (hitResult.hitResultType != HitObjectType.CIRCLE
-			&& hitResult.hitResultType != HitObjectType.SLIDER_FIRST
-			&& hitResult.hitResultType != HitObjectType.SLIDER_LAST) {
+		// not a circle?
+		if (hitResult.hitResultType != HitObjectType.CIRCLE &&
+		    hitResult.hitResultType != HitObjectType.SLIDER_FIRST &&
+		    hitResult.hitResultType != HitObjectType.SLIDER_LAST) {
 			return;
 		}
 
-		// circles
+		// hit circles
 		float progress = AnimationEquation.OUT_CUBIC.calc(
 			(float) Utils.clamp(trackPosition - hitResult.time, 0, HITCIRCLE_FADE_TIME) / HITCIRCLE_FADE_TIME);
 		float scale = (!hitResult.expand) ? 1f : 1f + (HITCIRCLE_ANIM_SCALE - 1f) * progress;
 		float alpha = 1f - progress;
-
 		if (hitResult.result == HIT_SLIDER_REPEAT) {
 			// repeats
 			Image scaledRepeat = GameImage.REVERSEARROW.getImage().getScaledCopy(scale);
@@ -973,7 +973,6 @@ public class GameData {
 			scaledRepeat.rotate(ang);
 			scaledRepeat.drawCentered(hitResult.x, hitResult.y, hitResult.color);
 		}
-		// hit circles
 		Image scaledHitCircle = GameImage.HITCIRCLE.getImage().getScaledCopy(scale);
 		Image scaledHitCircleOverlay = GameImage.HITCIRCLE_OVERLAY.getImage().getScaledCopy(scale);
 		scaledHitCircle.setAlpha(alpha);
@@ -1210,15 +1209,28 @@ public class GameData {
 			health = 0f;
 	}
 
-	public void sendRepeatSliderResult(int time, float x, float y, Color color, Curve curve, HitObjectType type) {
+	/**
+	 * Handles a slider repeat result (animation only: arrow).
+	 * @param time the repeat time
+	 * @param x the x coordinate
+	 * @param y the y coordinate
+	 * @param color the arrow color
+	 * @param curve the slider curve
+	 * @param type the hit object type
+	 */
+	public void sendSliderRepeatResult(int time, float x, float y, Color color, Curve curve, HitObjectType type) {
 		hitResultList.add(new HitObjectResult(time, HIT_SLIDER_REPEAT, x, y, color, type, curve, true, true));
 	}
 
-	public void sendSliderCurveResult(int time, Color color, Curve curve) {
-		hitResultList.add(new HitObjectResult(time, HIT_SLIDER_REPEAT, 0f, 0f, color, HitObjectType.SLIDER_CURVE, curve, true, true));
-	}
-
-	public void sendAnimationResult(int time, float x, float y, Color color, boolean expand) {
+	/**
+	 * Handles a slider start result (animation only: initial circle).
+	 * @param time the hit time
+	 * @param x the x coordinate
+	 * @param y the y coordinate
+	 * @param color the slider color
+	 * @param expand whether or not the hit result animation should expand
+	 */
+	public void sendSliderStartResult(int time, float x, float y, Color color, boolean expand) {
 		hitResultList.add(new HitObjectResult(time, HIT_ANIMATION_RESULT, x, y, color, HitObjectType.CIRCLE, null, expand, true));
 	}
 
@@ -1231,7 +1243,7 @@ public class GameData {
 	 * @param hitObject the hit object
 	 * @param repeat the current repeat number
 	 */
-	public void sliderTickResult(int time, int result, float x, float y, HitObject hitObject, int repeat) {
+	public void sendSliderTickResult(int time, int result, float x, float y, HitObject hitObject, int repeat) {
 		int hitValue = 0;
 		switch (result) {
 		case HIT_SLIDER30:
@@ -1412,11 +1424,12 @@ public class GameData {
 	 * @param curve the slider curve (or null if not applicable)
 	 * @param sliderHeldToEnd whether or not the slider was held to the end (if applicable)
 	 */
-	public void hitResult(int time, int result, float x, float y, Color color,
-						  boolean end, HitObject hitObject, HitObjectType hitResultType,
-						  boolean expand, int repeat, Curve curve, boolean sliderHeldToEnd) {
-		int hitResult = handleHitResult(time, result, x, y, color, end, hitObject,
-				hitResultType, repeat, (curve != null && !sliderHeldToEnd));
+	public void sendHitResult(
+		int time, int result, float x, float y, Color color,
+		boolean end, HitObject hitObject, HitObjectType hitResultType,
+		boolean expand, int repeat, Curve curve, boolean sliderHeldToEnd
+	) {
+		int hitResult = handleHitResult(time, result, x, y, color, end, hitObject, hitResultType, repeat, (curve != null && !sliderHeldToEnd));
 
 		if (hitResult == HIT_MISS && (GameMod.RELAX.isActive() || GameMod.AUTOPILOT.isActive()))
 			return;  // "relax" and "autopilot" mods: hide misses

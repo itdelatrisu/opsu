@@ -63,6 +63,7 @@ import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 import org.newdawn.slick.Animation;
+import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.state.StateBasedGame;
@@ -155,6 +156,14 @@ public class Utils {
 	 */
 	public static void drawCentered(Animation anim, float x, float y) {
 		anim.draw(x - (anim.getWidth() / 2f), y - (anim.getHeight() / 2f));
+	}
+
+	/**
+	 * Returns the luminance of a color.
+	 * @param c the color
+	 */
+	public static float getLuminance(Color c) {
+		return 0.299f*c.r + 0.587f*c.g + 0.114f*c.b;
 	}
 
 	/**
