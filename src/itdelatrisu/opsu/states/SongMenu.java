@@ -351,7 +351,7 @@ public class SongMenu extends BasicGameState {
 		logo = logo.getScaledCopy(footerLogoSize / logo.getWidth());
 		footerLogoButton = new MenuButton(logo, width - footerHeight * 0.8f, height - footerHeight * 0.65f);
 		footerLogoButton.setHoverAnimationDuration(1);
-		footerLogoButton.setHoverExpand(1.4f);
+		footerLogoButton.setHoverExpand(1.2f);
 
 		// initialize sorts
 		for (BeatmapSortOrder sort : BeatmapSortOrder.values())
