@@ -340,8 +340,29 @@ public class CurveRenderState {
 					float phi = (float)(Math.PI / divs);
 					float sinphi = (float)Math.sin(phi);
 					float cosphi = (float)Math.cos(phi);
-					float prev_ox = -offs_x;
-					float prev_oy = -offs_y;
+					float prev_ox = 0;
+					float prev_oy = -radius;
+
+					for (int j = 0; j < divs; j++) {
+						float ox = cosphi*prev_ox - sinphi*prev_oy;
+						float oy = sinphi*prev_ox + cosphi*prev_oy;
+
+						buff.put(1.0f);            buff.put(0.5f);
+						buff.put(0);               buff.put(0);
+						buff.put(0.0f);            buff.put(1.0f);
+						buff.put(0.0f);            buff.put(0.5f);
+						buff.put(0 + prev_ox);     buff.put(0 + prev_oy);
+						buff.put(1.0f);            buff.put(1.0f);
+						buff.put(0.0f);            buff.put(0.5f);
+						buff.put(0 + ox);          buff.put(0 + oy);
+						buff.put(1.0f);            buff.put(1.0f);
+
+						prev_ox = ox; prev_oy = oy;
+					}
+
+
+					prev_ox = -offs_x;
+					prev_oy = -offs_y;
 
 					for (int j = 0; j < divs; j++) {
 						float ox = cosphi*prev_ox - sinphi*prev_oy;
@@ -401,32 +422,6 @@ public class CurveRenderState {
 				buff.put(x + offs_x);      buff.put(y + offs_y);
 				buff.put(1.0f);            buff.put(1.0f);
 
-				if (i == curve.length-1) {
-					int divs = NewCurveStyleState.DIVIDES / 2;
-
-					float phi = (float)(Math.PI / divs);
-					float sinphi = (float)Math.sin(phi);
-					float cosphi = (float)Math.cos(phi);
-					float prev_ox = offs_x;
-					float prev_oy = offs_y;
-
-					for (int j = 0; j < divs; j++) {
-						float ox = cosphi*prev_ox - sinphi*prev_oy;
-						float oy = sinphi*prev_ox + cosphi*prev_oy;
-
-						buff.put(1.0f);       buff.put(0.5f);
-						buff.put(x);          buff.put(y);
-						buff.put(0.0f);       buff.put(1.0f);
-						buff.put(0.0f);       buff.put(0.5f);
-						buff.put(x + prev_ox);buff.put(y + prev_oy);
-						buff.put(1.0f);       buff.put(1.0f);
-						buff.put(0.0f);       buff.put(0.5f);
-						buff.put(x + ox);     buff.put(y + oy);
-						buff.put(1.0f);       buff.put(1.0f);
-
-						prev_ox = ox; prev_oy = oy;
-					}
-				}
 
 				last_dx = diff_x;
 				last_dy = diff_y;
@@ -459,6 +454,11 @@ public class CurveRenderState {
 		GL20.glUniform1i(staticState.texLoc, 0);
 		GL20.glUniform4f(staticState.colLoc, color.r, color.g, color.b, color.a);
 		GL20.glUniform4f(staticState.colBorderLoc, borderColor.r, borderColor.g, borderColor.b, borderColor.a);
+
+		float lastSegmentX = to == 0 ? curve[1].x - curve[0].x : curve[to].x - curve[to-1].x;
+		float lastSegmentY = to == 0 ? curve[1].y - curve[0].y : curve[to].y - curve[to-1].y;
+		float lastSegmentInvLen = 1.f/(float)Math.hypot(lastSegmentX, lastSegmentY);
+		GL20.glUniform4f(staticState.endPointLoc, curve[to].x, curve[to].y, lastSegmentX * lastSegmentInvLen, lastSegmentY * lastSegmentInvLen);
 		//stride is 6*4 for the floats (4 bytes) (u,v)(x,y,z,w)
 		//2*4 is for skipping the first 2 floats (u,v)
 		GL20.glVertexAttribPointer(staticState.attribLoc, 4, GL11.GL_FLOAT, false, 6 * 4, 2 * 4);
@@ -487,7 +487,7 @@ public class CurveRenderState {
 	private static class NewCurveStyleState {
 		/**
 		 * Used for new style Slider rendering, defines how many vertices there
-		 * are in a circle.
+		 * are in a circle. Must be even.
 		 */
 		protected static final int DIVIDES = 30;
 
@@ -499,6 +499,9 @@ public class CurveRenderState {
 
 		/** OpenGL shader attribute location of the texture coordinate attribute. */
 		protected int texCoordLoc = 0;
+
+		/** OpenGL shader uniform location of the end point attribute. */
+		protected int endPointLoc = 0;
 
 		/** OpenGL shader uniform location of the color attribute. */
 		protected int colLoc = 0;
@@ -551,7 +554,9 @@ public class CurveRenderState {
 				program = GL20.glCreateProgram();
 				int vtxShdr = GL20.glCreateShader(GL20.GL_VERTEX_SHADER);
 				int frgShdr = GL20.glCreateShader(GL20.GL_FRAGMENT_SHADER);
-				GL20.glShaderSource(vtxShdr, "#version 110\n"
+				GL20.glShaderSource(vtxShdr, "#version 130\n"
+						+ "\n"
+						+ "uniform vec4 endPoint;\n"
 						+ "\n"
 						+ "attribute vec4 in_position;\n"
 						+ "attribute vec2 in_tex_coord;\n"
@@ -559,7 +564,12 @@ public class CurveRenderState {
 						+ "varying vec2 tex_coord;\n"
 						+ "void main()\n"
 						+ "{\n"
-						+ "    gl_Position = gl_ModelViewProjectionMatrix * in_position;\n"
+						+ "    vec4 pos = in_position;\n"
+						+ "    if (gl_VertexID < " + 3 * DIVIDES / 2 + ") {\n"
+						+ "        mat2 rot = mat2(endPoint.zw, vec2(-1.0,1.0)*endPoint.wz);\n"
+						+ "        pos.xy = endPoint.xy + rot * in_position.xy;\n"
+						+ "    }\n"
+						+ "    gl_Position = gl_ModelViewProjectionMatrix * pos;\n"
 						+ "    tex_coord = in_tex_coord;\n"
 						+ "}");
 				GL20.glCompileShader(vtxShdr);
@@ -604,6 +614,7 @@ public class CurveRenderState {
 				texCoordLoc = GL20.glGetAttribLocation(program, "in_tex_coord");
 				texLoc = GL20.glGetUniformLocation(program, "tex");
 				colLoc = GL20.glGetUniformLocation(program, "col_tint");
+				endPointLoc = GL20.glGetUniformLocation(program, "endPoint");
 				colBorderLoc = GL20.glGetUniformLocation(program, "col_border");
 			}
 		}
