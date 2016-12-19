@@ -1012,11 +1012,6 @@ public class SongMenu extends BasicGameState {
 		case Input.KEY_ENTER:
 			if (focusNode == null)
 				break;
-			if (input.isKeyDown(Input.KEY_RCONTROL) || input.isKeyDown(Input.KEY_LCONTROL)) {
-				// turn on "auto" mod
-				if (!GameMod.AUTO.isActive())
-					GameMod.AUTO.toggle(true);
-			}
 			startGame();
 			break;
 		case Input.KEY_DOWN:
@@ -1202,6 +1197,10 @@ public class SongMenu extends BasicGameState {
 				scoreMap = ScoreDB.getMapSetScores(focusNode.getSelectedBeatmap());
 				focusScores = getScoreDataForNode(focusNode, true);
 			}
+
+			// turn off "auto" mod
+			if (GameMod.AUTO.isActive())
+				GameMod.AUTO.toggle(false);
 
 			resetGame = false;
 		}
@@ -1629,12 +1628,19 @@ public class SongMenu extends BasicGameState {
 		if (MusicController.isTrackLoading())
 			return;
 
-		SoundController.playSound(SoundEffect.MENUHIT);
 		Beatmap beatmap = MusicController.getBeatmap();
 		if (focusNode == null || beatmap != focusNode.getSelectedBeatmap()) {
 			UI.sendBarNotification("Unable to load the beatmap audio.");
 			return;
 		}
+
+		// turn on "auto" mod if holding "ctrl" key
+		if (input.isKeyDown(Input.KEY_RCONTROL) || input.isKeyDown(Input.KEY_LCONTROL)) {
+			if (!GameMod.AUTO.isActive())
+				GameMod.AUTO.toggle(true);
+		}
+
+		SoundController.playSound(SoundEffect.MENUHIT);
 		MultiClip.destroyExtraClips();
 		Game gameState = (Game) game.getState(Opsu.STATE_GAME);
 		gameState.loadBeatmap(beatmap);

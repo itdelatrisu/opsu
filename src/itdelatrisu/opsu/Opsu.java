@@ -243,9 +243,12 @@ public class Opsu extends StateBasedGame {
 				} else
 					songMenu.resetTrackOnLoad();
 			}
+
+			// reset game data
 			if (UI.getCursor().isBeatmapSkinned())
 				UI.getCursor().reset();
 			songMenu.resetGameDataOnLoad();
+
 			this.enterState(Opsu.STATE_SONGMENU, new EasedFadeOutTransition(), new FadeInTransition());
 			return false;
 		}
