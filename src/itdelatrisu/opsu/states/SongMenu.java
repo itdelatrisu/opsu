@@ -262,6 +262,9 @@ public class SongMenu extends BasicGameState {
 	/** Footer pulsing logo button. */
 	private MenuButton footerLogoButton;
 
+	/** Size of the footer pulsing logo. */
+	private float footerLogoSize;
+
 	/** Whether the cursor hovers over the footer logo. */
 	private boolean bottomLogoHovered;
 
@@ -343,8 +346,9 @@ public class SongMenu extends BasicGameState {
 
 		// logo coordinates
 		float footerHeight = height - footerY;
+		footerLogoSize = footerHeight * 3.25f;
 		Image logo = GameImage.MENU_LOGO.getImage();
-		logo = logo.getScaledCopy(footerHeight * 3.25f / logo.getWidth());
+		logo = logo.getScaledCopy(footerLogoSize / logo.getWidth());
 		footerLogoButton = new MenuButton(logo, width - footerHeight * 0.8f, height - footerHeight * 0.65f);
 		footerLogoButton.setHoverAnimationDuration(1);
 		footerLogoButton.setHoverExpand(1.4f);
@@ -523,8 +527,7 @@ public class SongMenu extends BasicGameState {
 			float expand = position * 0.15f;
 			footerLogoButton.draw(Color.white, 1f - expand);
 			Image ghostLogo = GameImage.MENU_LOGO.getImage();
-			ghostLogo = ghostLogo.getScaledCopy((height - footerY) * 3.25f / ghostLogo.getWidth());
-			ghostLogo = ghostLogo.getScaledCopy(1f + expand);
+			ghostLogo = ghostLogo.getScaledCopy((1f + expand) * footerLogoSize / ghostLogo.getWidth());
 			float scaleposmodx = ghostLogo.getWidth() / 2;
 			float scaleposmody = ghostLogo.getHeight() / 2;
 			float a = Colors.GHOST_LOGO.a;

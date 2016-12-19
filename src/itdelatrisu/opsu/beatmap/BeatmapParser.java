@@ -225,8 +225,7 @@ public class BeatmapParser {
 		}
 		try (
 			InputStream bis = new BufferedInputStream(new FileInputStream(map.getFile()));
-			MD5InputStreamWrapper md5stream = (!hasNoMD5Algorithm) ? new MD5InputStreamWrapper(bis) : null;
-			BufferedReader in = new BufferedReader(new InputStreamReader((md5stream != null) ? md5stream : bis, "UTF-8"));
+			BufferedReader in = new BufferedReader(new InputStreamReader(bis, "UTF-8"));
 		) {
 			String line;
 			boolean found = false;
@@ -249,12 +248,6 @@ public class BeatmapParser {
 			map.timingPoints.trimToSize();
 		} catch (IOException e) {
 			ErrorHandler.error(String.format("Failed to read file '%s'.", map.getFile().getAbsolutePath()), e, false);
-		} catch (NoSuchAlgorithmException e) {
-			ErrorHandler.error("Failed to get MD5 hash stream.", e, true);
-
-			// retry without MD5
-			hasNoMD5Algorithm = true;
-			parseOnlyTimingPoints(map);
 		}
 	}
 
