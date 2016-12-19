@@ -360,7 +360,6 @@ public class CurveRenderState {
 						prev_ox = ox; prev_oy = oy;
 					}
 
-
 					prev_ox = -offs_x;
 					prev_oy = -offs_y;
 
@@ -421,7 +420,6 @@ public class CurveRenderState {
 				buff.put(0.0f);            buff.put(0.5f);
 				buff.put(x + offs_x);      buff.put(y + offs_y);
 				buff.put(1.0f);            buff.put(1.0f);
-
 
 				last_dx = diff_x;
 				last_dy = diff_y;

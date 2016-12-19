@@ -100,7 +100,7 @@ public abstract class Curve {
 			CurveRenderState.init(width, height, circleDiameter);
 		else {
 			if (Options.getSkin().getSliderStyle() != Skin.STYLE_PEPPYSLIDER)
-				Log.warn("New slider style requires OpenGL 2.0.");
+				Log.warn("New slider style requires OpenGL 3.0.");
 		}
 	}
 
