@@ -38,8 +38,8 @@ import org.newdawn.slick.opengl.InternalTextureLoader;
  * AppGameContainer extension that sends critical errors to ErrorHandler.
  */
 public class Container extends AppGameContainer {
-	/** SlickException causing game failure. */
-	protected SlickException e = null;
+	/** Exception causing game failure. */
+	protected Exception e = null;
 
 	/**
 	 * Create a new container wrapping a game
@@ -72,16 +72,24 @@ public class Container extends AppGameContainer {
 			getDelta();
 			while (running())
 				gameLoop();
-		} finally {
-			// destroy the game container
-			close_sub();
-			destroy();
+		} catch (Exception e) {
+			this.e = e;
+		}
 
-			// report any critical errors
-			if (e != null) {
-				ErrorHandler.error(null, e, true);
-				e = null;
-			}
+		// destroy the game container
+		try {
+			close_sub();
+		} catch (Exception e) {
+			if (this.e == null)  // suppress if caused by a previous exception
+				this.e = e;
+		}
+		destroy();
+
+		// report any critical errors
+		if (e != null) {
+			ErrorHandler.error(null, e, true);
+			e = null;
+			forceExit = true;
 		}
 
 		if (forceExit) {

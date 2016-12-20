@@ -281,8 +281,6 @@ public class Cursor {
 
 		// reset angles
 		cursorAngle = 0f;
-		GameImage.CURSOR.getImage().setRotation(0f);
-		GameImage.CURSOR_TRAIL.getImage().setRotation(0f);
 	}
 
 	/**

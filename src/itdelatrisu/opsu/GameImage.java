@@ -623,7 +623,7 @@ public enum GameImage {
 	 * If the default image has already been loaded, this will do nothing.
 	 */
 	public void setDefaultImage() {
-		if (defaultImage != null || defaultImages != null)
+		if (defaultImage != null || defaultImages != null || Options.getSkin() == null)
 			return;
 
 		// try to load multiple images
