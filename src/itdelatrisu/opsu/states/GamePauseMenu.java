@@ -184,7 +184,7 @@ public class GamePauseMenu extends BasicGameState {
 
 	@Override
 	public void mouseWheelMoved(int newValue) {
-		if (Options.isMouseWheelDisabled() || Options.isMouseDisabled())
+		if (Options.isMouseWheelDisabled())
 			return;
 
 		UI.changeVolume((newValue < 0) ? -1 : 1);
