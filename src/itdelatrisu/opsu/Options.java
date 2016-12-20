@@ -20,6 +20,7 @@ package itdelatrisu.opsu;
 
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.beatmap.Beatmap;
+import itdelatrisu.opsu.beatmap.TimingPoint;
 import itdelatrisu.opsu.skins.Skin;
 import itdelatrisu.opsu.skins.SkinLoader;
 import itdelatrisu.opsu.ui.Fonts;
@@ -34,6 +35,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.net.URI;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
@@ -1340,6 +1342,9 @@ public class Options {
 		beatmap.audioFilename = new File(tokens[0]);
 		beatmap.title = tokens[1];
 		beatmap.artist = tokens[2];
+		// add a timingpoint so the logo can be pulsed in the mainmenu
+		beatmap.timingPoints = new ArrayList<>(1);
+		beatmap.timingPoints.add(new TimingPoint("-44,631.578947368421,4,1,0,100,1,0"));
 		try {
 			beatmap.endTime = Integer.parseInt(tokens[3]);
 		} catch (NumberFormatException e) {

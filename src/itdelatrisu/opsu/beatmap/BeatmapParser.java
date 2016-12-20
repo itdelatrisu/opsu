@@ -213,6 +213,45 @@ public class BeatmapParser {
 	}
 
 	/**
+	 * Parses the timingpoints for a beatmap.
+	 * @param map the map to parse timingpoints for
+	 */
+	public static void parseOnlyTimingPoints(Beatmap map) {
+		if (map == null || map.getFile() == null || !map.getFile().exists()) {
+			return;
+		}
+		if (map.timingPoints == null) {
+			map.timingPoints = new ArrayList<TimingPoint>();
+		}
+		try (
+			InputStream bis = new BufferedInputStream(new FileInputStream(map.getFile()));
+			BufferedReader in = new BufferedReader(new InputStreamReader(bis, "UTF-8"));
+		) {
+			String line;
+			boolean found = false;
+			while((line = in.readLine()) != null) {
+				line = line.trim();
+				if(!isValidLine(line)) {
+					continue;
+				}
+				if ("[TimingPoints]".equals(line)) {
+					found = true;
+					continue;
+				}
+				if (found) {
+					if (line.startsWith("[")) {
+						break;
+					}
+					parseSectionTimingPoints(map, line);
+				}
+			}
+			map.timingPoints.trimToSize();
+		} catch (IOException e) {
+			ErrorHandler.error(String.format("Failed to read file '%s'.", map.getFile().getAbsolutePath()), e, false);
+		}
+	}
+
+	/**
 	 * Parses a beatmap.
 	 * @param file the file to parse
 	 * @param dir the directory containing the beatmap
@@ -493,21 +532,7 @@ public class BeatmapParser {
 							break;
 
 						try {
-							// parse timing point
-							TimingPoint timingPoint = new TimingPoint(line);
-
-							// calculate BPM
-							if (!timingPoint.isInherited()) {
-								int bpm = Math.round(60000 / timingPoint.getBeatLength());
-								if (beatmap.bpmMin == 0)
-									beatmap.bpmMin = beatmap.bpmMax = bpm;
-								else if (bpm < beatmap.bpmMin)
-									beatmap.bpmMin = bpm;
-								else if (bpm > beatmap.bpmMax)
-									beatmap.bpmMax = bpm;
-							}
-
-							beatmap.timingPoints.add(timingPoint);
+							parseSectionTimingPoints(beatmap, line);
 						} catch (Exception e) {
 							Log.warn(String.format("Failed to read timing point '%s' for file '%s'.",
 									line, file.getAbsolutePath()), e);
@@ -622,6 +647,26 @@ public class BeatmapParser {
 			parseHitObjects(beatmap);
 
 		return beatmap;
+	}
+
+	/**
+	 * Parses a timing point in the timingpoints section of a beatmap file
+	 * @param beatmap the beatmap to add the timingpoint to
+	 * @param line the line with timingpoint to parse
+	 */
+	private static void parseSectionTimingPoints(Beatmap beatmap, String line) {
+		TimingPoint timingPoint = new TimingPoint(line);
+		if(!timingPoint.isInherited()) {
+			int bpm = Math.round(60000 / timingPoint.getBeatLength());
+			if( beatmap.bpmMin == 0 ) {
+				beatmap.bpmMin = beatmap.bpmMax = bpm;
+			} else if( bpm < beatmap.bpmMin ) {
+				beatmap.bpmMin = bpm;
+			} else if( bpm > beatmap.bpmMax ) {
+				beatmap.bpmMax = bpm;
+			}
+		}
+		beatmap.timingPoints.add(timingPoint);
 	}
 
 	/**

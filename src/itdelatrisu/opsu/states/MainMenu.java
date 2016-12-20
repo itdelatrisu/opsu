@@ -256,7 +256,18 @@ public class MainMenu extends BasicGameState {
 			playButton.draw();
 			exitButton.draw();
 		}
-		logo.draw();
+
+		// logo
+		Float position = MusicController.getBeatProgress();
+		if (position == null) {
+			position = System.currentTimeMillis() % 1000 / 1000f;
+		}
+		float scale = 1f + position * 0.05f;
+		logo.draw(Color.white, scale);
+		Image ghostLogo = GameImage.MENU_LOGO.getImage().getScaledCopy(logo.getCurrentScale() / scale * 1.05f);
+		float scaleposmodx = ghostLogo.getWidth() / 2;
+		float scaleposmody = ghostLogo.getHeight() / 2;
+		ghostLogo.draw(logo.getX() - scaleposmodx, logo.getY() - scaleposmody, Colors.GHOST_LOGO);
 
 		// draw music buttons
 		if (MusicController.isPlaying())
