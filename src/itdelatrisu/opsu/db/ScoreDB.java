@@ -360,7 +360,7 @@ public class ScoreDB {
 			ResultSet rs = selectMapSetStmt.executeQuery();
 
 			List<ScoreData> list = null;
-			String version = "";  // sorted by version, so pass through and check for differences
+			String version = null;  // sorted by version, so pass through and check for differences
 			while (rs.next()) {
 				ScoreData s = new ScoreData(rs);
 				if (!s.version.equals(version)) {
