@@ -213,45 +213,6 @@ public class BeatmapParser {
 	}
 
 	/**
-	 * Parses the timingpoints for a beatmap.
-	 * @param map the map to parse timingpoints for
-	 */
-	public static void parseOnlyTimingPoints(Beatmap map) {
-		if (map == null || map.getFile() == null || !map.getFile().exists()) {
-			return;
-		}
-		if (map.timingPoints == null) {
-			map.timingPoints = new ArrayList<TimingPoint>();
-		}
-		try (
-			InputStream bis = new BufferedInputStream(new FileInputStream(map.getFile()));
-			BufferedReader in = new BufferedReader(new InputStreamReader(bis, "UTF-8"));
-		) {
-			String line;
-			boolean found = false;
-			while((line = in.readLine()) != null) {
-				line = line.trim();
-				if(!isValidLine(line)) {
-					continue;
-				}
-				if ("[TimingPoints]".equals(line)) {
-					found = true;
-					continue;
-				}
-				if (found) {
-					if (line.startsWith("[")) {
-						break;
-					}
-					parseSectionTimingPoints(map, line);
-				}
-			}
-			map.timingPoints.trimToSize();
-		} catch (IOException e) {
-			ErrorHandler.error(String.format("Failed to read file '%s'.", map.getFile().getAbsolutePath()), e, false);
-		}
-	}
-
-	/**
 	 * Parses a beatmap.
 	 * @param file the file to parse
 	 * @param dir the directory containing the beatmap
@@ -532,7 +493,7 @@ public class BeatmapParser {
 							break;
 
 						try {
-							parseSectionTimingPoints(beatmap, line);
+							parseTimingPoint(beatmap, line);
 						} catch (Exception e) {
 							Log.warn(String.format("Failed to read timing point '%s' for file '%s'.",
 									line, file.getAbsolutePath()), e);
@@ -650,23 +611,68 @@ public class BeatmapParser {
 	}
 
 	/**
-	 * Parses a timing point in the timingpoints section of a beatmap file
-	 * @param beatmap the beatmap to add the timingpoint to
-	 * @param line the line with timingpoint to parse
+	 * Parses a timing point and adds it to the beatmap.
+	 * @param beatmap the beatmap
+	 * @param line the line containing the unparsed timing point
 	 */
-	private static void parseSectionTimingPoints(Beatmap beatmap, String line) {
+	private static void parseTimingPoint(Beatmap beatmap, String line) {
+		// parse timing point
 		TimingPoint timingPoint = new TimingPoint(line);
-		if(!timingPoint.isInherited()) {
+		beatmap.timingPoints.add(timingPoint);
+
+		// calculate BPM
+		if (!timingPoint.isInherited()) {
 			int bpm = Math.round(60000 / timingPoint.getBeatLength());
-			if( beatmap.bpmMin == 0 ) {
+			if (beatmap.bpmMin == 0) {
 				beatmap.bpmMin = beatmap.bpmMax = bpm;
-			} else if( bpm < beatmap.bpmMin ) {
+			} else if (bpm < beatmap.bpmMin) {
 				beatmap.bpmMin = bpm;
-			} else if( bpm > beatmap.bpmMax ) {
+			} else if (bpm > beatmap.bpmMax) {
 				beatmap.bpmMax = bpm;
 			}
 		}
-		beatmap.timingPoints.add(timingPoint);
+	}
+
+	/**
+	 * Parses all timing points in a beatmap.
+	 * @param beatmap the beatmap to parse
+	 */
+	public static void parseTimingPoints(Beatmap beatmap) {
+		if (beatmap.timingPoints != null)  // already parsed
+			return;
+
+		beatmap.timingPoints = new ArrayList<TimingPoint>();
+
+		try (BufferedReader in = new BufferedReader(new FileReader(beatmap.getFile()))) {
+			String line = in.readLine();
+			while (line != null) {
+				line = line.trim();
+				if (!line.equals("[TimingPoints]"))
+					line = in.readLine();
+				else
+					break;
+			}
+			if (line == null)  // no timing points
+				return;
+
+			while ((line = in.readLine()) != null) {
+				line = line.trim();
+				if (!isValidLine(line))
+					continue;
+				if (line.charAt(0) == '[')
+					break;
+
+				try {
+					parseTimingPoint(beatmap, line);
+				} catch (Exception e) {
+					Log.warn(String.format("Failed to read timing point '%s' for file '%s'.",
+							line, beatmap.getFile().getAbsolutePath()), e);
+				}
+			}
+			beatmap.timingPoints.trimToSize();
+		} catch (IOException e) {
+			ErrorHandler.error(String.format("Failed to read file '%s'.", beatmap.getFile().getAbsolutePath()), e, false);
+		}
 	}
 
 	/**

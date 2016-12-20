@@ -98,8 +98,8 @@ public class MenuButton {
 	/** The default max rotation angle of the button. */
 	private static final float DEFAULT_ANGLE_MAX = 30f;
 
-	/** The current scale of the drawn button */
-	private float currentScale = 1f;
+	/** The last scale at which the button was drawn. */
+	private float lastScale = 1f;
 
 	/**
 	 * Creates a new button from an Image.
@@ -170,9 +170,9 @@ public class MenuButton {
 	public float getY() { return y; }
 
 	/**
-	 * Returns the current scale.
+	 * Returns the last scale at which the button was drawn.
 	 */
-	public float getCurrentScale() { return currentScale; }
+	public float getLastScale() { return lastScale; }
 
 	/**
 	 * Sets text to draw in the middle of the button.
@@ -208,9 +208,9 @@ public class MenuButton {
 	public void draw(Color filter) { draw(filter, 1f); }
 
 	/**
-	 * Draw the button with a color filter.
+	 * Draw the button with a color filter at the given scale.
 	 * @param filter the color to filter with when drawing
-	 * @param scaleOverride the scale to use when drawing, works only for normal images
+	 * @param scaleOverride the scale to use when drawing (only works for normal images)
 	 */
 	@SuppressWarnings("deprecation")
 	public void draw(Color filter, float scaleOverride) {
@@ -223,14 +223,13 @@ public class MenuButton {
 
 		// normal images
 		if (imgL == null) {
-			float scalePosModX = 0;
-			float scalePosModY = 0;
+			float xScaleOffset = 0f, yScaleOffset = 0f;
 			if (scaleOverride != 1f) {
 				image = image.getScaledCopy(scaleOverride);
-				scalePosModX = image.getWidth() / 2 - xRadius;
-				scalePosModY = image.getHeight() / 2 - yRadius;
+				xScaleOffset = image.getWidth() / 2f - xRadius;
+				yScaleOffset = image.getHeight() / 2f - yRadius;
 			}
-			currentScale = scaleOverride;
+			lastScale = scaleOverride;
 			if (hoverEffect == 0)
 				image.draw(x - xRadius, y - yRadius, filter);
 			else {
@@ -240,16 +239,16 @@ public class MenuButton {
 					if (scale.getValue() != 1f) {
 						image = image.getScaledCopy(scale.getValue());
 						image.setAlpha(oldAlpha);
-						scalePosModX = image.getWidth() / 2 - xRadius;
-						scalePosModY = image.getHeight() / 2 - yRadius;
-						currentScale *= scale.getValue();
+						xScaleOffset = image.getWidth() / 2f - xRadius;
+						yScaleOffset = image.getHeight() / 2f - yRadius;
+						lastScale *= scale.getValue();
 					}
 				}
 				if ((hoverEffect & EFFECT_FADE) > 0)
 					image.setAlpha(alpha.getValue());
 				if ((hoverEffect & EFFECT_ROTATE) > 0)
 					image.setRotation(angle.getValue());
-				image.draw(x - xRadius - scalePosModX, y - yRadius - scalePosModY, filter);
+				image.draw(x - xRadius - xScaleOffset, y - yRadius - yScaleOffset, filter);
 				if (image == this.img) {
 					image.setAlpha(oldAlpha);
 					image.setRotation(oldAngle);

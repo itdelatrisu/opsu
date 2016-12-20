@@ -262,11 +262,8 @@ public class SongMenu extends BasicGameState {
 	/** Footer pulsing logo button. */
 	private MenuButton footerLogoButton;
 
-	/** Size of the footer pulsing logo. */
+	/** Size of the pulsing logo in the footer. */
 	private float footerLogoSize;
-
-	/** Whether the cursor hovers over the footer logo. */
-	private boolean bottomLogoHovered;
 
 	/** Time, in milliseconds, for fading the search bar. */
 	private int searchTransitionTimer = SEARCH_TRANSITION_TIME;
@@ -344,7 +341,7 @@ public class SongMenu extends BasicGameState {
 				Fonts.SMALL.getLineHeight();
 		footerY = height - GameImage.SELECTION_MODS.getImage().getHeight();
 
-		// logo coordinates
+		// footer logo coordinates
 		float footerHeight = height - footerY;
 		footerLogoSize = footerHeight * 3.25f;
 		Image logo = GameImage.MENU_LOGO.getImage();
@@ -516,24 +513,22 @@ public class SongMenu extends BasicGameState {
 		g.drawLine(0, footerY, width, footerY);
 		g.resetLineWidth();
 
-		// opsu logo in bottom bar
+		// footer logo (pulsing)
 		Float position = MusicController.getBeatProgress();
-		if (position == null) {
+		if (position == null)  // default to 60bpm
 			position = System.currentTimeMillis() % 1000 / 1000f;
-		}
-		if (bottomLogoHovered) {
+		if (footerLogoButton.contains(mouseX, mouseY, 0.25f)) {
+			// hovering over logo: stop pulsing
 			footerLogoButton.draw();
 		} else {
 			float expand = position * 0.15f;
 			footerLogoButton.draw(Color.white, 1f - expand);
 			Image ghostLogo = GameImage.MENU_LOGO.getImage();
 			ghostLogo = ghostLogo.getScaledCopy((1f + expand) * footerLogoSize / ghostLogo.getWidth());
-			float scaleposmodx = ghostLogo.getWidth() / 2;
-			float scaleposmody = ghostLogo.getHeight() / 2;
-			float a = Colors.GHOST_LOGO.a;
+			float oldGhostAlpha = Colors.GHOST_LOGO.a;
 			Colors.GHOST_LOGO.a *= (1f - position);
-			ghostLogo.draw(footerLogoButton.getX() - scaleposmodx, footerLogoButton.getY() - scaleposmody, Colors.GHOST_LOGO);
-			Colors.GHOST_LOGO.a = a;
+			ghostLogo.drawCentered(footerLogoButton.getX(), footerLogoButton.getY(), Colors.GHOST_LOGO);
+			Colors.GHOST_LOGO.a = oldGhostAlpha;
 		}
 
 		// header
@@ -697,6 +692,7 @@ public class SongMenu extends BasicGameState {
 		selectRandomButton.hoverUpdate(delta, mouseX, mouseY);
 		selectMapOptionsButton.hoverUpdate(delta, mouseX, mouseY);
 		selectOptionsButton.hoverUpdate(delta, mouseX, mouseY);
+		footerLogoButton.hoverUpdate(delta, mouseX, mouseY, 0.25f);
 
 		// beatmap menu timer
 		if (beatmapMenuTimer > -1) {
@@ -791,18 +787,7 @@ public class SongMenu extends BasicGameState {
 		}
 		updateDrawnSongPosition();
 
-		// mouse hover (logo)
-		if (footerLogoButton.contains(mouseX, mouseY, 0.25f)) {
-			footerLogoButton.hoverUpdate(delta, true);
-			bottomLogoHovered = true;
-			// reset beatmap node hover
-			hoverIndex = null;
-			return;
-		}
-		footerLogoButton.hoverUpdate(delta, false);
-		bottomLogoHovered = false;
-
-		// mouse hover (beatmap nodes)
+		// mouse hover
 		BeatmapSetNode node = getNodeAtPosition(mouseX, mouseY);
 		if (node != null) {
 			if (node == hoverIndex)
@@ -845,7 +830,7 @@ public class SongMenu extends BasicGameState {
 		if (isScrollingToFocusNode)
 			return;
 
-		if (bottomLogoHovered) {
+		if (footerLogoButton.contains(x, y, 0.25f)) {
 			startGame();
 			return;
 		}
@@ -1445,8 +1430,8 @@ public class SongMenu extends BasicGameState {
 		focusNode = BeatmapSetList.get().getNode(node, beatmapIndex);
 		Beatmap beatmap = focusNode.getSelectedBeatmap();
 		if (beatmap.timingPoints == null) {
-			// parse the timingpoints so we can pulse the main menu logo and bottom right logo in songmenu
-			BeatmapParser.parseOnlyTimingPoints(beatmap);
+			// parse timing points so we can pulse the logo
+			BeatmapParser.parseTimingPoints(beatmap);
 		}
 		MusicController.play(beatmap, false, preview);
 

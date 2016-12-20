@@ -135,6 +135,12 @@ public class Options {
 	/** Port binding. */
 	private static int port = 49250;
 
+	/** The theme song string: {@code filename,title,artist,length(ms)} */
+	private static String themeString = "theme.ogg,On the Bach,Jingle Punks,66000";
+
+	/** The theme song timing point string (for computing beats to pulse the logo) . */
+	private static String themeTimingPoint = "-44,631.578947368421,4,1,0,100,1,0";
+
 	/**
 	 * Returns whether the XDG flag in the manifest (if any) is set to "true".
 	 * @return true if XDG directories are enabled, false otherwise
@@ -210,12 +216,6 @@ public class Options {
 		File dir = new File(m.group(1));
 		return (dir.isDirectory()) ? dir : null;
 	}
-
-	/**
-	 * The theme song string:
-	 * {@code filename,title,artist,length(ms)}
-	 */
-	private static String themeString = "theme.ogg,On the Bach,Jingle Punks,66000";
 
 	/** Game options. */
 	public enum GameOption {
@@ -1342,15 +1342,14 @@ public class Options {
 		beatmap.audioFilename = new File(tokens[0]);
 		beatmap.title = tokens[1];
 		beatmap.artist = tokens[2];
-		// add a timingpoint so the logo can be pulsed in the mainmenu
-		beatmap.timingPoints = new ArrayList<>(1);
-		beatmap.timingPoints.add(new TimingPoint("-44,631.578947368421,4,1,0,100,1,0"));
 		try {
 			beatmap.endTime = Integer.parseInt(tokens[3]);
 		} catch (NumberFormatException e) {
 			ErrorHandler.error("Theme song length is not a valid integer", e, false);
 			return null;
 		}
+		beatmap.timingPoints = new ArrayList<>(1);
+		beatmap.timingPoints.add(new TimingPoint(themeTimingPoint));
 
 		return beatmap;
 	}

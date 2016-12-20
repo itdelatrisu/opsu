@@ -186,18 +186,16 @@ public class MusicController {
 
 	/**
 	 * Gets the progress of the current beat.
-	 * @return null if music is paused or no timingpoints are available, or progress as a value in
-	 *          [0, 1], where 0 means a beat just happened and 1 means the next beat is coming right now.
+	 * @return a beat progress value [0,1) where 0 marks the current beat and
+	 *         1 marks the next beat, or {@code null} if no beat information
+	 *         is available (e.g. music paused, no timing points)
 	 */
 	public static Float getBeatProgress() {
-		if (!isPlaying() || getBeatmap() == null) {
-			return null;
-		}
 		Beatmap map = getBeatmap();
-		if (map.timingPoints == null) {
+		if (!isPlaying() || map == null || map.timingPoints == null) {
 			return null;
 		}
-		int trackposition = getPosition();
+		int trackPosition = getPosition();
 		TimingPoint p = null;
 		double beatlen = 0d;
 		int time = 0;
@@ -215,7 +213,7 @@ public class MusicController {
 			return null;
 		}
 		double beatLength = beatlen * 100d;
-		return (float) ((((trackposition - time) * 100) % beatLength) / beatLength);
+		return (float) ((((trackPosition - time) * 100) % beatLength) / beatLength);
 	}
 
 	/**
