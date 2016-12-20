@@ -77,6 +77,12 @@ public class MusicController {
 	/** The track dim level, if dimmed. */
 	private static float dimLevel = 1f;
 
+	/** Current timing point index in the track, advanced by {@link #getBeatProgress()}. */
+	private static int timingPointIndex;
+
+	/** Last non-inherited timing point. */
+	private static TimingPoint lastTimingPoint;
+
 	// This class should not be instantiated.
 	private MusicController() {}
 
@@ -135,8 +141,10 @@ public class MusicController {
 			player.addListener(new MusicListener() {
 				@Override
 				public void musicEnded(Music music) {
-					if (music == player)  // don't fire if music swapped
+					if (music == player) {  // don't fire if music swapped
 						trackEnded = true;
+						resetTimingPoint();
+					}
 				}
 
 				@Override
@@ -158,6 +166,7 @@ public class MusicController {
 			setVolume(Options.getMusicVolume() * Options.getMasterVolume());
 			trackEnded = false;
 			pauseTime = 0f;
+			resetTimingPoint();
 			if (loop)
 				player.loop();
 			else
@@ -192,28 +201,33 @@ public class MusicController {
 	 */
 	public static Float getBeatProgress() {
 		Beatmap map = getBeatmap();
-		if (!isPlaying() || map == null || map.timingPoints == null) {
+		if (!isPlaying() || map == null || map.timingPoints == null || map.timingPoints.isEmpty())
 			return null;
+
+		// initialization
+		if (timingPointIndex == 0 && lastTimingPoint == null && !map.timingPoints.isEmpty()) {
+			TimingPoint timingPoint = map.timingPoints.get(0);
+			if (!timingPoint.isInherited())
+				lastTimingPoint = timingPoint;
 		}
+
+		// advance timing point index, record last non-inherited timing point
 		int trackPosition = getPosition();
-		TimingPoint p = null;
-		double beatlen = 0d;
-		int time = 0;
-		for (TimingPoint pts : map.timingPoints) {
-			if (pts.getTime() > getPosition()) {
+		for (int i = timingPointIndex + 1; i < map.timingPoints.size(); i++) {
+			TimingPoint timingPoint = map.timingPoints.get(i);
+			if (trackPosition < timingPoint.getTime())
 				break;
-			}
-			p = pts;
-			if (!p.isInherited() && p.getBeatLength() > 0) {
-				beatlen = p.getBeatLength();
-				time = p.getTime();
-			}
+			timingPointIndex = i;
+			if (!timingPoint.isInherited() && timingPoint.getBeatLength() > 0)
+				lastTimingPoint = timingPoint;
 		}
-		if (p == null) {
-			return null;
-		}
-		double beatLength = beatlen * 100d;
-		return (float) ((((trackPosition - time) * 100) % beatLength) / beatLength);
+		if (lastTimingPoint == null)
+			return null;  // no timing info
+
+		// calculate beat progress
+		double beatLength = lastTimingPoint.getBeatLength() * 100.0;
+		int beatTime = lastTimingPoint.getTime();
+		return (float) ((((trackPosition - beatTime) * 100.0) % beatLength) / beatLength);
 	}
 
 	/**
@@ -257,8 +271,10 @@ public class MusicController {
 	public static void stop() {
 		if (isPlaying())
 			player.stop();
-		if (trackExists())
+		if (trackExists()) {
 			pauseTime = 0f;
+			resetTimingPoint();
+		}
 	}
 
 	/**
@@ -297,7 +313,11 @@ public class MusicController {
 	 * @param position the new track position (in ms)
 	 */
 	public static boolean setPosition(int position) {
-		return (trackExists() && position >= 0 && player.setPosition(position / 1000f));
+		if (!trackExists() || position < 0)
+			return false;
+
+		resetTimingPoint();
+		return (player.setPosition(position / 1000f));
 	}
 
 	/**
@@ -338,6 +358,7 @@ public class MusicController {
 	public static void play(boolean loop) {
 		if (trackExists()) {
 			trackEnded = false;
+			resetTimingPoint();
 			if (loop)
 				player.loop();
 			else
@@ -409,6 +430,14 @@ public class MusicController {
 	}
 
 	/**
+	 * Resets timing point information.
+	 */
+	private static void resetTimingPoint() {
+		timingPointIndex = 0;
+		lastTimingPoint = null;
+	}
+
+	/**
 	 * Completely resets MusicController state.
 	 * <p>
 	 * Stops the current track, cancels track conversions, erases
@@ -438,6 +467,7 @@ public class MusicController {
 		themePlaying = false;
 		pauseTime = 0f;
 		trackDimmed = false;
+		resetTimingPoint();
 
 		// releases all sources from previous tracks
 		destroyOpenAL();
