@@ -81,7 +81,7 @@ public class BeatmapDifficultyCalculator {
 	 */
 	public BeatmapDifficultyCalculator(Beatmap beatmap) {
 		this.beatmap = beatmap;
-		if (beatmap.timingPoints == null)
+		if (beatmap.breaks == null)
 			BeatmapDB.load(beatmap, BeatmapDB.LOAD_ARRAY);
 		BeatmapParser.parseHitObjects(beatmap);
 	}
