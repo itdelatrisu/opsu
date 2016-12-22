@@ -31,5 +31,6 @@ The following projects were referenced in creating opsu!:
 
 Theme Song
 ----------
-The theme song is "On the Bach" by Jingle Punks, from the [YouTube Audio Library]
-(https://www.youtube.com/audiolibrary/music).
+Rainbows - Kevin MacLeod (incompetech.com)  
+Licensed under Creative Commons: By Attribution 3.0 License  
+http://creativecommons.org/licenses/by/3.0/

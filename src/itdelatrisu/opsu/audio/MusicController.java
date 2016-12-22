@@ -99,7 +99,6 @@ public class MusicController {
 			final File audioFile = beatmap.audioFilename;
 			if (!audioFile.isFile() && !ResourceLoader.resourceExists(audioFile.getPath())) {
 				UI.sendBarNotification(String.format("Could not find track '%s'.", audioFile.getName()));
-				System.out.println(beatmap);
 				return;
 			}
 
@@ -455,7 +454,7 @@ public class MusicController {
 			try {
 				trackLoader.join();
 			} catch (InterruptedException e) {
-				e.printStackTrace();
+				ErrorHandler.error(null, e, true);
 			}
 		}
 		trackLoader = null;

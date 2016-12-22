@@ -136,10 +136,10 @@ public class Options {
 	private static int port = 49250;
 
 	/** The theme song string: {@code filename,title,artist,length(ms)} */
-	private static String themeString = "theme.ogg,On the Bach,Jingle Punks,66000";
+	private static String themeString = "theme.mp3,Rainbows,Kevin MacLeod,219350";
 
 	/** The theme song timing point string (for computing beats to pulse the logo) . */
-	private static String themeTimingPoint = "-44,631.578947368421,4,1,0,100,1,0";
+	private static String themeTimingPoint = "-1100,545.454545454545,4,1,0,100,0,0";
 
 	/**
 	 * Returns whether the XDG flag in the manifest (if any) is set to "true".
@@ -267,7 +267,32 @@ public class Options {
 			public String write() { return themeString; }
 
 			@Override
-			public void read(String s) { themeString = s; }
+			public void read(String s) {
+				String oldThemeString = themeString;
+				themeString = s;
+				Beatmap beatmap = getThemeBeatmap();
+				if (beatmap == null) {
+					themeString = oldThemeString;
+					Log.warn(String.format("The theme song string [%s] is malformed.", s));
+				} else if (!beatmap.audioFilename.isFile()) {
+					themeString = oldThemeString;
+					Log.warn(String.format("Cannot find theme song [%s].", beatmap.audioFilename.getAbsolutePath()));
+				}
+			}
+		},
+		THEME_SONG_TIMINGPOINT ("ThemeSongTiming") {
+			@Override
+			public String write() { return themeTimingPoint; }
+
+			@Override
+			public void read(String s) {
+				try {
+					new TimingPoint(s);
+					themeTimingPoint = s;
+				} catch (Exception e) {
+					Log.warn(String.format("The theme song timing point [%s] is malformed.", s));
+				}
+			}
 		},
 		PORT ("Port") {
 			@Override
@@ -1329,14 +1354,12 @@ public class Options {
 
 	/**
 	 * Returns a dummy Beatmap containing the theme song.
-	 * @return the theme song beatmap
+	 * @return the theme song beatmap, or {@code null} if the theme string is malformed
 	 */
 	public static Beatmap getThemeBeatmap() {
 		String[] tokens = themeString.split(",");
-		if (tokens.length != 4) {
-			ErrorHandler.error("Theme song string is malformed.", null, false);
+		if (tokens.length != 4)
 			return null;
-		}
 
 		Beatmap beatmap = new Beatmap(null);
 		beatmap.audioFilename = new File(tokens[0]);
@@ -1345,11 +1368,14 @@ public class Options {
 		try {
 			beatmap.endTime = Integer.parseInt(tokens[3]);
 		} catch (NumberFormatException e) {
-			ErrorHandler.error("Theme song length is not a valid integer", e, false);
 			return null;
 		}
-		beatmap.timingPoints = new ArrayList<>(1);
-		beatmap.timingPoints.add(new TimingPoint(themeTimingPoint));
+		try {
+			beatmap.timingPoints = new ArrayList<>(1);
+			beatmap.timingPoints.add(new TimingPoint(themeTimingPoint));
+		} catch (Exception e) {
+			return null;
+		}
 
 		return beatmap;
 	}
