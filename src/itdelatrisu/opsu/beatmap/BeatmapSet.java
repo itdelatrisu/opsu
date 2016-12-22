@@ -208,4 +208,15 @@ public class BeatmapSet implements Iterable<Beatmap> {
 			BeatmapDB.updateFavoriteStatus(map);
 		}
 	}
+
+	/**
+	 * Returns whether any beatmap in this set has been played.
+	 */
+	public boolean isPlayed() {
+		for (Beatmap map : beatmaps) {
+			if (map.playCount > 0)
+				return true;
+		}
+		return false;
+	}
 }

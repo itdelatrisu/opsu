@@ -31,6 +31,7 @@ public class Colors {
 		BLUE_BACKGROUND = new Color(74, 130, 255),
 		BLUE_BUTTON     = new Color(40, 129, 237),
 		ORANGE_BUTTON   = new Color(200, 90, 3),
+		PINK_BUTTON     = new Color(223, 71, 147),
 		YELLOW_ALPHA    = new Color(255, 255, 0, 0.4f),
 		WHITE_FADE      = new Color(255, 255, 255, 1f),
 		RED_HOVER       = new Color(255, 112, 112),

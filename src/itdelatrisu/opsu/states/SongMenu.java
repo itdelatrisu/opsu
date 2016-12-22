@@ -943,7 +943,7 @@ public class SongMenu extends BasicGameState {
 					focusScores = null;
 					search.setText("");
 					searchTimer = SEARCH_DELAY;
-					searchTransitionTimer = 0;
+					searchTransitionTimer = SEARCH_TRANSITION_TIME;
 					searchResultString = null;
 					BeatmapSetList.get().reset();
 					BeatmapSetList.get().init();

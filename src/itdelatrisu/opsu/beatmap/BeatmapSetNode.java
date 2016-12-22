@@ -75,7 +75,7 @@ public class BeatmapSetNode {
 	public void draw(float x, float y, Grade grade, boolean focus) {
 		Image bg = GameImage.MENU_BUTTON_BG.getImage();
 		boolean expanded = (beatmapIndex > -1);
-		Beatmap beatmap;
+		Beatmap beatmap = beatmapSet.get(expanded ? beatmapIndex : 0);
 		bg.setAlpha(0.9f);
 		Color bgColor;
 		Color textColor = Options.getSkin().getSongSelectInactiveTextColor();
@@ -88,11 +88,10 @@ public class BeatmapSetNode {
 				textColor = Options.getSkin().getSongSelectActiveTextColor();
 			} else
 				bgColor = Colors.BLUE_BUTTON;
-			beatmap = beatmapSet.get(beatmapIndex);
-		} else {
+		} else if (beatmapSet.isPlayed())
 			bgColor = Colors.ORANGE_BUTTON;
-			beatmap = beatmapSet.get(0);
-		}
+		else
+			bgColor = Colors.PINK_BUTTON;
 		bg.draw(x, y, bgColor);
 
 		float cx = x + (bg.getWidth() * 0.043f);
