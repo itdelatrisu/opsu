@@ -54,6 +54,9 @@ public class BeatmapSetList {
 	/** Total number of beatmaps (i.e. Beatmap objects). */
 	private int mapCount = 0;
 
+	/** List containing all nodes in the current group. */
+	private ArrayList<BeatmapSetNode> groupNodes;
+
 	/** Current list of nodes (subset of parsedNodes, used for searches). */
 	private ArrayList<BeatmapSetNode> nodes;
 
@@ -97,7 +100,7 @@ public class BeatmapSetList {
 	 * This does not erase any parsed nodes.
 	 */
 	public void reset() {
-		nodes = parsedNodes;
+		nodes = groupNodes = BeatmapGroup.current().filter(parsedNodes);
 		expandedIndex = -1;
 		expandedStartNode = expandedEndNode = null;
 		lastQuery = "";
@@ -168,6 +171,7 @@ public class BeatmapSetList {
 		Beatmap beatmap = beatmapSet.get(0);
 		nodes.remove(index);
 		parsedNodes.remove(eCur);
+		groupNodes.remove(eCur);
 		mapCount -= beatmapSet.size();
 		if (beatmap.beatmapSetID > 0)
 			MSIDdb.remove(beatmap.beatmapSetID);
@@ -407,7 +411,7 @@ public class BeatmapSetList {
 			return;
 
 		// sort the list
-		Collections.sort(nodes, BeatmapSortOrder.getSort().getComparator());
+		Collections.sort(nodes, BeatmapSortOrder.current().getComparator());
 		expandedIndex = -1;
 		expandedStartNode = expandedEndNode = null;
 
@@ -444,7 +448,7 @@ public class BeatmapSetList {
 
 		// if empty query, reset to original list
 		if (query.isEmpty() || terms.isEmpty()) {
-			nodes = parsedNodes;
+			nodes = groupNodes;
 			return true;
 		}
 
@@ -472,14 +476,14 @@ public class BeatmapSetList {
 			String type = condType.remove();
 			String operator = condOperator.remove();
 			float value = condValue.remove();
-			for (BeatmapSetNode node : parsedNodes) {
+			for (BeatmapSetNode node : groupNodes) {
 				if (node.getBeatmapSet().matches(type, operator, value))
 					nodes.add(node);
 			}
 		} else {
 			// normal term
 			String term = terms.remove();
-			for (BeatmapSetNode node : parsedNodes) {
+			for (BeatmapSetNode node : groupNodes) {
 				if (node.getBeatmapSet().matches(term))
 					nodes.add(node);
 			}

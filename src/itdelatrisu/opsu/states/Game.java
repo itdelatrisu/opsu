@@ -1235,6 +1235,12 @@ public class Game extends BasicGameState {
 
 		// restart the game
 		if (restart != Restart.FALSE) {
+			// update play stats
+			if (restart == Restart.NEW) {
+				beatmap.incrementPlayCounter();
+				BeatmapDB.updatePlayStatistics(beatmap);
+			}
+
 			// load mods
 			if (isReplay) {
 				previousMods = GameMod.getModState();

@@ -30,6 +30,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -42,8 +43,30 @@ public class BeatmapDB {
 	/**
 	 * Current database version.
 	 * This value should be changed whenever the database format changes.
+	 * Add any update queries to the {@link #getUpdateQueries(int)} method.
 	 */
-	private static final String DATABASE_VERSION = "2015-09-02";
+	private static final int DATABASE_VERSION = 20161222;
+
+	/**
+	 * Returns a list of SQL queries to apply, in order, to update from
+	 * the given database version to the latest version.
+	 * @param version the current version
+	 * @return a list of SQL queries
+	 */
+	private static List<String> getUpdateQueries(int version) {
+		List<String> list = new LinkedList<String>();
+		if (version < 20161222) {
+			list.add("ALTER TABLE beatmaps ADD COLUMN dateAdded INTEGER");
+			list.add("ALTER TABLE beatmaps ADD COLUMN favorite BOOLEAN");
+			list.add("ALTER TABLE beatmaps ADD COLUMN playCount INTEGER");
+			list.add("ALTER TABLE beatmaps ADD COLUMN lastPlayed INTEGER");
+			list.add("UPDATE beatmaps SET dateAdded = 0, favorite = 0, playCount = 0, lastPlayed = 0");
+		}
+
+		/* add future updates here */
+
+		return list;
+	}
 
 	/** Minimum batch size ratio ({@code batchSize/cacheSize}) to invoke batch loading. */
 	private static final float LOAD_BATCH_MIN_RATIO = 0.2f;
@@ -58,7 +81,9 @@ public class BeatmapDB {
 	private static Connection connection;
 
 	/** Query statements. */
-	private static PreparedStatement insertStmt, selectStmt, deleteMapStmt, deleteGroupStmt, setStarsStmt, updateSizeStmt;
+	private static PreparedStatement
+		insertStmt, selectStmt, deleteMapStmt, deleteGroupStmt,
+		setStarsStmt, updatePlayStatsStmt, setFavoriteStmt, updateSizeStmt;
 
 	/** Current size of beatmap cache table. */
 	private static int cacheSize = -1;
@@ -75,6 +100,9 @@ public class BeatmapDB {
 		if (connection == null)
 			return;
 
+		// run any database updates
+		updateDatabase();
+
 		// create the database
 		createDatabase();
 
@@ -88,20 +116,21 @@ public class BeatmapDB {
 		// retrieve the cache size
 		getCacheSize();
 
-		// check the database version
-		checkVersion();
-
 		// prepare sql statements (not used here)
 		try {
 			insertStmt = connection.prepareStatement(
 				"INSERT INTO beatmaps VALUES (" +
-				"?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?," +
-				"?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+					"?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?," +
+					"?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?," +
+					"?, ?, ?, ?, ?, ?" +
+				")"
 			);
 			selectStmt = connection.prepareStatement("SELECT * FROM beatmaps WHERE dir = ? AND file = ?");
 			deleteMapStmt = connection.prepareStatement("DELETE FROM beatmaps WHERE dir = ? AND file = ?");
 			deleteGroupStmt = connection.prepareStatement("DELETE FROM beatmaps WHERE dir = ?");
 			setStarsStmt = connection.prepareStatement("UPDATE beatmaps SET stars = ? WHERE dir = ? AND file = ?");
+			updatePlayStatsStmt = connection.prepareStatement("UPDATE beatmaps SET playCount = ?, lastPlayed = ? WHERE dir = ? AND file = ?");
+			setFavoriteStmt = connection.prepareStatement("UPDATE beatmaps SET favorite = ? WHERE dir = ? AND file = ?");
 		} catch (SQLException e) {
 			ErrorHandler.error("Failed to prepare beatmap statements.", e, true);
 		}
@@ -124,7 +153,8 @@ public class BeatmapDB {
 					"audioFile TEXT, audioLeadIn INTEGER, previewTime INTEGER, countdown INTEGER, sampleSet TEXT, stackLeniency REAL, " +
 					"mode INTEGER, letterboxInBreaks BOOLEAN, widescreenStoryboard BOOLEAN, epilepsyWarning BOOLEAN, " +
 					"bg TEXT, sliderBorder TEXT, timingPoints TEXT, breaks TEXT, combo TEXT, " +
-					"md5hash TEXT, stars REAL" +
+					"md5hash TEXT, stars REAL, " +
+					"dateAdded INTEGER, favorite BOOLEAN, playCount INTEGER, lastPlayed INTEGER" +
 				"); " +
 				"CREATE TABLE IF NOT EXISTS info (" +
 					"key TEXT NOT NULL UNIQUE, value TEXT" +
@@ -145,29 +175,54 @@ public class BeatmapDB {
 	}
 
 	/**
-	 * Checks the stored table version, clears the beatmap database if different
-	 * from the current version, then updates the version field.
+	 * Applies any database updates by comparing the current version to the
+	 * stored version.  Does nothing if tables have not been created.
 	 */
-	private static void checkVersion() {
+	private static void updateDatabase() {
 		try (Statement stmt = connection.createStatement()) {
-			// get the stored version
-			String sql = "SELECT value FROM info WHERE key = 'version'";
+			int version = 0;
+
+			// if 'info' table does not exist, assume version 0 and apply all updates
+			String sql = "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'info'";
 			ResultSet rs = stmt.executeQuery(sql);
-			String version = (rs.next()) ? rs.getString(1) : "";
+			boolean infoExists = rs.isBeforeFirst();
 			rs.close();
+			if (!infoExists) {
+				// if 'beatmaps' table also does not exist, databases not yet created
+				sql = "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'beatmaps'";
+				ResultSet beatmapsRS = stmt.executeQuery(sql);
+				boolean beatmapsExists = beatmapsRS.isBeforeFirst();
+				beatmapsRS.close();
+				if (!beatmapsExists)
+					return;
+			} else {
+				// try to retrieve stored version
+				sql = "SELECT value FROM info WHERE key = 'version'";
+				ResultSet versionRS = stmt.executeQuery(sql);
+				String versionString = (versionRS.next()) ? versionRS.getString(1) : "0";
+				versionRS.close();
+				try {
+					version = Integer.parseInt(versionString);
+				} catch (NumberFormatException e) {}
+			}
 
-			// if different from current version, clear the database
-			if (!version.equals(DATABASE_VERSION)) {
-				clearDatabase();
+			// database versions match
+			if (version >= DATABASE_VERSION)
+				return;
 
-				// update version
+			// apply updates
+			for (String query : getUpdateQueries(version))
+				stmt.executeUpdate(query);
+
+			// update version
+			if (infoExists) {
 				PreparedStatement ps = connection.prepareStatement("REPLACE INTO info (key, value) VALUES ('version', ?)");
-				ps.setString(1, DATABASE_VERSION);
+				ps.setString(1, Integer.toString(DATABASE_VERSION));
 				ps.executeUpdate();
 				ps.close();
 			}
 		} catch (SQLException e) {
-			ErrorHandler.error("Beatmap database version checks failed.", e, true);
+			ErrorHandler.error("Failed to update beatmap database.", e, true);
 		}
 	}
 
@@ -344,6 +399,10 @@ public class BeatmapDB {
 			stmt.setString(40, beatmap.comboToString());
 			stmt.setString(41, beatmap.md5Hash);
 			stmt.setDouble(42, beatmap.starRating);
+			stmt.setLong(43, beatmap.dateAdded);
+			stmt.setBoolean(44, beatmap.favorite);
+			stmt.setInt(45, beatmap.playCount);
+			stmt.setLong(46, beatmap.lastPlayed);
 		} catch (SQLException e) {
 			throw e;
 		} catch (Exception e) {
@@ -487,6 +546,10 @@ public class BeatmapDB {
 			beatmap.sliderBorderFromString(rs.getString(37));
 			beatmap.md5Hash = rs.getString(41);
 			beatmap.starRating = rs.getDouble(42);
+			beatmap.dateAdded = rs.getLong(43);
+			beatmap.favorite = rs.getBoolean(44);
+			beatmap.playCount = rs.getInt(45);
+			beatmap.lastPlayed = rs.getLong(46);
 		} catch (SQLException e) {
 			throw e;
 		} catch (Exception e) {
@@ -590,6 +653,45 @@ public class BeatmapDB {
 		} catch (SQLException e) {
 			ErrorHandler.error(String.format("Failed to save star rating '%.4f' for beatmap '%s' in database.",
 					beatmap.starRating, beatmap.toString()), e, true);
+		}
+	}
+
+	/**
+	 * Updates the play statistics for a beatmap in the database.
+	 * @param beatmap the beatmap
+	 */
+	public static void updatePlayStatistics(Beatmap beatmap) {
+		if (connection == null)
+			return;
+
+		try {
+			updatePlayStatsStmt.setInt(1, beatmap.playCount);
+			updatePlayStatsStmt.setLong(2, beatmap.lastPlayed);
+			updatePlayStatsStmt.setString(3, beatmap.getFile().getParentFile().getName());
+			updatePlayStatsStmt.setString(4, beatmap.getFile().getName());
+			updatePlayStatsStmt.executeUpdate();
+		} catch (SQLException e) {
+			ErrorHandler.error(String.format("Failed to update play statistics for beatmap '%s' in database.",
+					beatmap.toString()), e, true);
+		}
+	}
+
+	/**
+	 * Updates the "favorite" status for a beatmap in the database.
+	 * @param beatmap the beatmap
+	 */
+	public static void updateFavoriteStatus(Beatmap beatmap) {
+		if (connection == null)
+			return;
+
+		try {
+			setFavoriteStmt.setBoolean(1, beatmap.favorite);
+			setFavoriteStmt.setString(2, beatmap.getFile().getParentFile().getName());
+			setFavoriteStmt.setString(3, beatmap.getFile().getName());
+			setFavoriteStmt.executeUpdate();
+		} catch (SQLException e) {
+			ErrorHandler.error(String.format("Failed to update favorite status for beatmap '%s' in database.",
+					beatmap.toString()), e, true);
 		}
 	}
 

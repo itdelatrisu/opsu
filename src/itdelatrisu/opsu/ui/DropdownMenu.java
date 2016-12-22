@@ -95,6 +95,9 @@ public class DropdownMenu<E> extends AbstractComponent {
 	/** The chevron images. */
 	private Image chevronDown, chevronRight;
 
+	/** Should the next click be blocked? */
+	private boolean blockClick = false;
+
 	/**
 	 * Creates a new dropdown menu.
 	 * @param container the container rendering this menu
@@ -327,6 +330,7 @@ public class DropdownMenu<E> extends AbstractComponent {
 		this.expanded = false;
 		this.lastUpdateTime = 0;
 		expandProgress.setTime(0);
+		blockClick = false;
 	}
 
 	@Override
@@ -349,7 +353,19 @@ public class DropdownMenu<E> extends AbstractComponent {
 			this.itemIndex = idx;
 			itemSelected(idx, items[idx]);
 		}
+		blockClick = true;
 		consumeEvent();
+	}
+
+	@Override
+	public void mouseClicked(int button, int x, int y, int clickCount) {
+		if (!active)
+			return;
+
+		if (blockClick) {
+			blockClick = false;
+			consumeEvent();
+		}
 	}
 
 	/**

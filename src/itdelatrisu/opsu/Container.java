@@ -21,7 +21,9 @@ package itdelatrisu.opsu;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.beatmap.Beatmap;
+import itdelatrisu.opsu.beatmap.BeatmapGroup;
 import itdelatrisu.opsu.beatmap.BeatmapSetList;
+import itdelatrisu.opsu.beatmap.BeatmapSortOrder;
 import itdelatrisu.opsu.beatmap.BeatmapWatchService;
 import itdelatrisu.opsu.downloads.DownloadList;
 import itdelatrisu.opsu.downloads.Updater;
@@ -145,6 +147,8 @@ public class Container extends AppGameContainer {
 		SoundController.stopTrack();
 
 		// reset BeatmapSetList data
+		BeatmapGroup.set(BeatmapGroup.ALL);
+		BeatmapSortOrder.set(BeatmapSortOrder.TITLE);
 		if (BeatmapSetList.get() != null)
 			BeatmapSetList.get().reset();
 

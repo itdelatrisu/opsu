@@ -19,6 +19,7 @@
 package itdelatrisu.opsu.beatmap;
 
 import itdelatrisu.opsu.GameMod;
+import itdelatrisu.opsu.db.BeatmapDB;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -184,5 +185,27 @@ public class BeatmapSet implements Iterable<Beatmap> {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Returns whether this beatmap set is a "favorite".
+	 */
+	public boolean isFavorite() {
+		for (Beatmap map : beatmaps) {
+			if (map.favorite)
+				return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Sets the "favorite" status of this beatmap set.
+	 * @param flag whether this beatmap set should have "favorite" status
+	 */
+	public void setFavorite(boolean flag) {
+		for (Beatmap map : beatmaps) {
+			map.favorite = flag;
+			BeatmapDB.updateFavoriteStatus(map);
+		}
 	}
 }

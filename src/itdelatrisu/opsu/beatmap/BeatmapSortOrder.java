@@ -18,47 +18,25 @@
 
 package itdelatrisu.opsu.beatmap;
 
-import itdelatrisu.opsu.GameImage;
-import itdelatrisu.opsu.ui.MenuButton;
-import itdelatrisu.opsu.ui.UI;
-
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
-
-import org.newdawn.slick.Image;
 
 /**
  * Beatmap sorting orders.
  */
 public enum BeatmapSortOrder {
-	TITLE   (0, "Title",   new TitleOrder()),
-	ARTIST  (1, "Artist",  new ArtistOrder()),
-	CREATOR (2, "Creator", new CreatorOrder()),
-	BPM     (3, "BPM",     new BPMOrder()),
-	LENGTH  (4, "Length",  new LengthOrder());
-
-	/** The ID of the sort (used for tab positioning). */
-	private final int id;
+	TITLE   ("Title",       new TitleOrder()),
+	ARTIST  ("Artist",      new ArtistOrder()),
+	CREATOR ("Creator",     new CreatorOrder()),
+	BPM     ("BPM",         new BPMOrder()),
+	LENGTH  ("Length",      new LengthOrder()),
+	DATE    ("Date Added",  new DateOrder()),
+	PLAYS   ("Most Played", new PlayOrder());
 
 	/** The name of the sort. */
 	private final String name;
 
 	/** The comparator for the sort. */
 	private final Comparator<BeatmapSetNode> comparator;
-
-	/** The tab associated with the sort (displayed in Song Menu screen). */
-	private MenuButton tab;
-
-	/** Total number of sorts. */
-	private static final int SIZE = values().length;
-
-	/** Array of BeatmapSortOrder objects in reverse order. */
-	public static final BeatmapSortOrder[] VALUES_REVERSED;
-	static {
-		VALUES_REVERSED = values();
-		Collections.reverse(Arrays.asList(VALUES_REVERSED));
-	}
 
 	/** Current sort. */
 	private static BeatmapSortOrder currentSort = TITLE;
@@ -67,13 +45,13 @@ public enum BeatmapSortOrder {
 	 * Returns the current sort.
 	 * @return the current sort
 	 */
-	public static BeatmapSortOrder getSort() { return currentSort; }
+	public static BeatmapSortOrder current() { return currentSort; }
 
 	/**
 	 * Sets a new sort.
 	 * @param sort the new sort
 	 */
-	public static void setSort(BeatmapSortOrder sort) { BeatmapSortOrder.currentSort = sort; }
+	public static void set(BeatmapSortOrder sort) { currentSort = sort; }
 
 	/**
 	 * Compares two BeatmapSetNode objects by title.
@@ -136,36 +114,56 @@ public enum BeatmapSortOrder {
 	}
 
 	/**
+	 * Compares two BeatmapSetNode objects by date added.
+	 * Uses the latest beatmap added in each set for comparison.
+	 */
+	private static class DateOrder implements Comparator<BeatmapSetNode> {
+		@Override
+		public int compare(BeatmapSetNode v, BeatmapSetNode w) {
+			long vMax = 0, wMax = 0;
+			for (Beatmap beatmap : v.getBeatmapSet()) {
+				if (beatmap.dateAdded > vMax)
+					vMax = beatmap.dateAdded;
+			}
+			for (Beatmap beatmap : w.getBeatmapSet()) {
+				if (beatmap.dateAdded > wMax)
+					wMax = beatmap.dateAdded;
+			}
+			return Long.compare(vMax, wMax);
+		}
+	}
+
+	/**
+	 * Compares two BeatmapSetNode objects by total plays
+	 * (summed across all beatmaps in each set).
+	 */
+	private static class PlayOrder implements Comparator<BeatmapSetNode> {
+		@Override
+		public int compare(BeatmapSetNode v, BeatmapSetNode w) {
+			int vTotal = 0, wTotal = 0;
+			for (Beatmap beatmap : v.getBeatmapSet())
+				vTotal += beatmap.playCount;
+			for (Beatmap beatmap : w.getBeatmapSet())
+				wTotal += beatmap.playCount;
+			return Integer.compare(vTotal, wTotal);
+		}
+	}
+
+	/**
 	 * Constructor.
-	 * @param id the ID of the sort (for tab positioning)
 	 * @param name the sort name
 	 * @param comparator the comparator for the sort
 	 */
-	BeatmapSortOrder(int id, String name, Comparator<BeatmapSetNode> comparator) {
-		this.id = id;
+	BeatmapSortOrder(String name, Comparator<BeatmapSetNode> comparator) {
 		this.name = name;
 		this.comparator = comparator;
 	}
 
 	/**
-	 * Initializes the sort tab.
-	 * @param containerWidth the container width
-	 * @param bottomY the bottom y coordinate
+	 * Returns the sort name.
+	 * @return the name
 	 */
-	public void init(int containerWidth, float bottomY) {
-		Image tab = GameImage.MENU_TAB.getImage();
-		int tabWidth = tab.getWidth();
-		float buttonX = containerWidth / 2f;
-		float tabOffset = (containerWidth - buttonX - tabWidth) / (SIZE - 1);
-		if (tabOffset > tabWidth) {  // prevent tabs from being spaced out
-			tabOffset = tabWidth;
-			buttonX = (containerWidth * 0.99f) - (tabWidth * SIZE);
-		}
-		this.tab = new MenuButton(tab,
-				(buttonX + (tabWidth / 2f)) + (id * tabOffset),
-				bottomY - (tab.getHeight() / 2f)
-		);
-	}
+	public String getName() { return name; }
 
 	/**
 	 * Returns the comparator for the sort.
@@ -173,20 +171,6 @@ public enum BeatmapSortOrder {
 	 */
 	public Comparator<BeatmapSetNode> getComparator() { return comparator; }
 
-	/**
-	 * Checks if the coordinates are within the image bounds.
-	 * @param x the x coordinate
-	 * @param y the y coordinate
-	 * @return true if within bounds
-	 */
-	public boolean contains(float x, float y) { return tab.contains(x, y); }
-
-	/**
-	 * Draws the sort tab.
-	 * @param selected whether the tab is selected (white) or not (red)
-	 * @param isHover whether to include a hover effect (unselected only)
-	 */
-	public void draw(boolean selected, boolean isHover) {
-		UI.drawTab(tab.getX(), tab.getY(), name, selected, isHover);
-	}
+	@Override
+	public String toString() { return name; }
 }

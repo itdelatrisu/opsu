@@ -120,6 +120,7 @@ public class BeatmapParser {
 
 		// parse directories
 		BeatmapSetNode lastNode = null;
+		long timestamp = System.currentTimeMillis();
 		for (File dir : dirs) {
 			currentDirectoryIndex++;
 			if (!dir.isDirectory())
@@ -163,6 +164,7 @@ public class BeatmapParser {
 
 				// add to parsed beatmap list
 				if (beatmap != null) {
+					beatmap.dateAdded = timestamp;
 					beatmaps.add(beatmap);
 					parsedBeatmaps.add(beatmap);
 				}
