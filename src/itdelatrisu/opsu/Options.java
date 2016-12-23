@@ -169,8 +169,11 @@ public class Options {
 	 * @return the XDG base directory, or the working directory if unavailable
 	 */
 	private static File getXDGBaseDir(String env, String fallback) {
+		File workingDir = Utils.isJarRunning() ?
+			Utils.getRunningDirectory().getParentFile() : Utils.getWorkingDirectory();
+
 		if (!USE_XDG)
-			return new File("./");
+			return workingDir;
 
 		String OS = System.getProperty("os.name").toLowerCase();
 		if (OS.indexOf("nix") >= 0 || OS.indexOf("nux") >= 0 || OS.indexOf("aix") > 0) {
@@ -186,7 +189,7 @@ public class Options {
 				ErrorHandler.error(String.format("Failed to create configuration folder at '%s/opsu'.", rootPath), null, false);
 			return dir;
 		} else
-			return new File("./");
+			return workingDir;
 	}
 
 	/**

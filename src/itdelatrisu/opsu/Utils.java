@@ -41,6 +41,7 @@ import java.net.SocketTimeoutException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.ByteBuffer;
+import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
@@ -539,6 +540,14 @@ public class Utils {
 			Log.error("Could not get the running directory.", e);
 			return null;
 		}
+	}
+
+	/**
+	 * Returns the current working directory.
+	 * @return the directory
+	 */
+	public static File getWorkingDirectory() {
+		return Paths.get(".").toAbsolutePath().normalize().toFile();
 	}
 
 	/**
