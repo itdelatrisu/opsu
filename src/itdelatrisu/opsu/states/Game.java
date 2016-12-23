@@ -1271,11 +1271,13 @@ public class Game extends BasicGameState {
 				loadImages();
 				setMapModifiers();
 				retries = 0;
-			} else if (restart == Restart.MANUAL) {
+			} else if (restart == Restart.MANUAL && !GameMod.AUTO.isActive()) {
 				// retry
 				retries++;
-			} else if (restart == Restart.REPLAY)
+			} else if (restart == Restart.REPLAY || GameMod.AUTO.isActive()) {
+				// replay
 				retries = 0;
+			}
 
 			gameObjects = new GameObject[beatmap.objects.length];
 			playbackSpeed = PlaybackSpeed.NORMAL;
@@ -1580,6 +1582,7 @@ public class Game extends BasicGameState {
 		autoMousePosition = new Vec2f();
 		autoMousePressed = false;
 		flashlightRadius = container.getHeight() * 2 / 3;
+		scoreboardStarStream.clear();
 
 		System.gc();
 	}
