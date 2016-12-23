@@ -498,6 +498,7 @@ public class MainMenu extends BasicGameState {
 		// music position bar
 		if (MusicController.isPlaying()) {
 			if (musicPositionBarContains(x, y)) {
+				lastMeasureProgress = 0f;
 				float pos = (x - musicBarX) / musicBarWidth;
 				MusicController.setPosition((int) (pos * MusicController.getDuration()));
 				return;
@@ -519,6 +520,7 @@ public class MainMenu extends BasicGameState {
 			UI.sendBarNotification(">> Next");
 			return;
 		} else if (musicPrevious.contains(x, y)) {
+			lastMeasureProgress = 0f;
 			if (!previous.isEmpty()) {
 				SongMenu menu = (SongMenu) game.getState(Opsu.STATE_SONGMENU);
 				menu.setFocus(BeatmapSetList.get().getBaseNode(previous.pop()), -1, true, false);
@@ -685,6 +687,7 @@ public class MainMenu extends BasicGameState {
 	 * @param user {@code true} if this was user-initiated, false otherwise (track end)
 	 */
 	private void nextTrack(boolean user) {
+		lastMeasureProgress = 0f;
 		boolean isTheme = MusicController.isThemePlaying();
 		if (isTheme && !user) {
 			// theme was playing, restart

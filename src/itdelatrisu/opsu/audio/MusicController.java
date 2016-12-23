@@ -206,6 +206,8 @@ public class MusicController {
 		int trackPosition = Math.max(0, getPosition());
 		double beatLength = lastTimingPoint.getBeatLength() * 100.0;
 		int beatTime = lastTimingPoint.getTime();
+		if (trackPosition < beatTime)
+			trackPosition += (beatLength / 100.0) * (beatTime / lastTimingPoint.getBeatLength());
 		return (float) ((((trackPosition - beatTime) * 100.0) % beatLength) / beatLength);
 	}
 
@@ -232,6 +234,8 @@ public class MusicController {
 		int trackPosition = Math.max(0, getPosition());
 		double measureLength = lastTimingPoint.getBeatLength() * lastTimingPoint.getMeter() * k * 100.0;
 		int beatTime = lastTimingPoint.getTime();
+		if (trackPosition < beatTime)
+			trackPosition += (measureLength / 100.0) * (beatTime / lastTimingPoint.getBeatLength());
 		return (float) ((((trackPosition - beatTime) * 100.0) % measureLength) / measureLength);
 	}
 

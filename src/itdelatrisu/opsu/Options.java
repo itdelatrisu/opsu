@@ -139,7 +139,7 @@ public class Options {
 	private static String themeString = "theme.mp3,Rainbows,Kevin MacLeod,219350";
 
 	/** The theme song timing point string (for computing beats to pulse the logo) . */
-	private static String themeTimingPoint = "-3300,545.454545454545,4,1,0,100,0,0";
+	private static String themeTimingPoint = "1080,545.454545454545,4,1,0,100,0,0";
 
 	/**
 	 * Returns whether the XDG flag in the manifest (if any) is set to "true".

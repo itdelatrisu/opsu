@@ -56,6 +56,12 @@ public class StarStream {
 	/** The spread of the stars' duration, in ms. */
 	private int durationSpread = 300;
 
+	/** The base (mean) scale at which stars are drawn. */
+	private float scaleBase = 1f;
+
+	/** The spread of the stars' scale.*/
+	private float scaleSpread = 0f;
+
 	/** The star image. */
 	private final Image starImg;
 
@@ -76,6 +82,9 @@ public class StarStream {
 		/** The star image rotation angle. */
 		private final int angle;
 
+		/** The star image scale. */
+		private final float scale;
+
 		/** The star animation progress. */
 		private final AnimatedValue animatedValue;
 
@@ -84,13 +93,15 @@ public class StarStream {
 		 * @param offset the position offset vector
 		 * @param direction the direction vector
 		 * @param angle the image rotation angle
+		 * @param scale the image scale
 		 * @param duration the time, in milliseconds, to show the star
 		 * @param eqn the animation equation to use
 		 */
-		public Star(Vec2f offset, Vec2f direction, int angle, int duration, AnimationEquation eqn) {
+		public Star(Vec2f offset, Vec2f direction, int angle, float scale, int duration, AnimationEquation eqn) {
 			this.offset = offset;
 			this.dir = direction;
 			this.angle = angle;
+			this.scale = scale;
 			this.animatedValue = new AnimatedValue(duration, 0f, 1f, eqn);
 		}
 
@@ -102,7 +113,7 @@ public class StarStream {
 			starImg.setImageColor(1f, 1f, 1f, Math.min((1 - t) * 5f, 1f));
 			starImg.drawEmbedded(
 				offset.x + t * dir.x, offset.y + t * dir.y,
-				starImg.getWidth(), starImg.getHeight(), angle
+				starImg.getWidth() * scale, starImg.getHeight() * scale, angle
 			);
 		}
 
@@ -138,6 +149,13 @@ public class StarStream {
 	public void setPositionSpread(float spread) { this.positionSpread = spread; }
 
 	/**
+	 * Sets the direction of this star stream.
+	 * @param dirX the new x-axis direction
+	 * @param dirY the new y-axis direction
+	 */
+	public void setDirection(float dirX, float dirY) { direction.set(dirX, dirY); }
+
+	/**
 	 * Set the direction spread of this star stream.
 	 * @param spread the spread of the stars' direction
 	 */
@@ -151,6 +169,16 @@ public class StarStream {
 	public void setDurationSpread(int base, int spread) {
 		this.durationBase = base;
 		this.durationSpread = spread;
+	}
+
+	/**
+	 * Sets the scale base and spread of this star stream.
+	 * @param base the base (mean) scale at which stars are drawn
+	 * @param spread the spread of the stars' scale
+	 */
+	public void setScaleSpread(float base, float spread) {
+		this.scaleBase = base;
+		this.scaleSpread = spread;
 	}
 
 	/**
@@ -196,10 +224,11 @@ public class StarStream {
 		Vec2f offset = position.cpy().add(direction.cpy().nor().normalize().scale((float) getGaussian(0, positionSpread)));
 		Vec2f dir = direction.cpy().scale(distanceRatio).add((float) getGaussian(0, directionSpread), (float) getGaussian(0, directionSpread));
 		int angle = (int) getGaussian(0, 22.5);
+		float scale = (float) getGaussian(scaleBase, scaleSpread);
 		int duration = Math.max(0, (int) (distanceRatio * getGaussian(durationBase, durationSpread)));
 		AnimationEquation eqn = random.nextBoolean() ? AnimationEquation.IN_OUT_QUAD : AnimationEquation.OUT_QUAD;
 
-		return new Star(offset, dir, angle, duration, eqn);
+		return new Star(offset, dir, angle, scale, duration, eqn);
 	}
 
 	/**

@@ -11,13 +11,67 @@ import org.newdawn.slick.Image;
  */
 public class StarFountain {
 	/** The (approximate) number of stars in each burst. */
-	private static final int BURST_SIZE = 80;
+	private static final int BURST_SIZE = 125;
 
 	/** Star streams. */
 	private final StarStream left, right;
 
 	/** Burst progress. */
-	private final AnimatedValue burstProgress = new AnimatedValue(800, 0, 1, AnimationEquation.LINEAR);
+	private final AnimatedValue burstProgress = new AnimatedValue(1000, 0, 1, AnimationEquation.LINEAR);
+
+	/** The maximum direction offsets. */
+	private final float xDirection, yDirection;
+
+	/** Motion types. */
+	private enum Motion {
+		NONE {
+			@Override
+			public void init(StarFountain fountain) {
+				fountain.left.setDirection(0, fountain.yDirection);
+				fountain.right.setDirection(0, fountain.yDirection);
+				fountain.left.setDirectionSpread(20f);
+				fountain.right.setDirectionSpread(20f);
+				fountain.left.setDurationSpread(1000, 200);
+				fountain.right.setDurationSpread(1000, 200);
+			}
+		},
+		OUTWARD_SWEEP {
+			@Override
+			public void init(StarFountain fountain) {
+				fountain.left.setDirectionSpread(0f);
+				fountain.right.setDirectionSpread(0f);
+				fountain.left.setDurationSpread(850, 0);
+				fountain.right.setDurationSpread(850, 0);
+			}
+
+			@Override
+			public void update(StarFountain fountain) {
+				float t = fountain.burstProgress.getValue();
+				fountain.left.setDirection(fountain.xDirection - fountain.xDirection * 2f * t, fountain.yDirection);
+				fountain.right.setDirection(-fountain.xDirection + fountain.xDirection * 2f * t, fountain.yDirection);
+			}
+		},
+		INWARD_SWEEP {
+			@Override
+			public void init(StarFountain fountain) { OUTWARD_SWEEP.init(fountain); }
+
+			@Override
+			public void update(StarFountain fountain) {
+				float t = fountain.burstProgress.getValue();
+				fountain.left.setDirection(-fountain.xDirection + fountain.xDirection * 2f * t, fountain.yDirection);
+				fountain.right.setDirection(fountain.xDirection - fountain.xDirection * 2f * t, fountain.yDirection);
+			}
+		};
+
+		/** Initializes the streams in the fountain. */
+		public void init(StarFountain fountain) {}
+
+		/** Updates the streams in the fountain. */
+		public void update(StarFountain fountain) {}
+	}
+
+	/** The current motion. */
+	private Motion motion = Motion.NONE;
 
 	/**
 	 * Initializes the star fountain.
@@ -26,19 +80,13 @@ public class StarFountain {
 	 */
 	public StarFountain(int containerWidth, int containerHeight) {
 		Image img = GameImage.STAR2.getImage();
-		float xDir = containerWidth * 0.4f, yDir = containerHeight * 0.75f;
-		this.left = new StarStream(-img.getWidth(), containerHeight, xDir, -yDir, 0);
-		this.right = new StarStream(containerWidth, containerHeight, -xDir, -yDir, 0);
-		setStreamProperties(left);
-		setStreamProperties(right);
-	}
-
-	/**
-	 * Sets attributes for the given star stream.
-	 */
-	private void setStreamProperties(StarStream stream) {
-		stream.setDirectionSpread(60f);
-		stream.setDurationSpread(1100, 200);
+		float xOffset = containerWidth * 0.125f;
+		this.xDirection = containerWidth / 2f - xOffset;
+		this.yDirection = -containerHeight * 0.85f;
+		this.left = new StarStream(xOffset - img.getWidth() / 2f, containerHeight, 0, yDirection, 0);
+		this.right = new StarStream(containerWidth - xOffset - img.getWidth() / 2f, containerHeight, 0, yDirection, 0);
+		left.setScaleSpread(1.1f, 0.2f);
+		right.setScaleSpread(1.1f, 0.2f);
 	}
 
 	/**
@@ -56,7 +104,9 @@ public class StarFountain {
 	public void update(int delta) {
 		left.update(delta);
 		right.update(delta);
+
 		if (burstProgress.update(delta)) {
+			motion.update(this);
 			int size = Math.round((float) delta / burstProgress.getDuration() * BURST_SIZE);
 			left.burst(size);
 			right.burst(size);
@@ -69,9 +119,15 @@ public class StarFountain {
 	 */
 	public void burst(boolean wait) {
 		if (wait && (burstProgress.getTime() < burstProgress.getDuration() || !left.isEmpty() || !right.isEmpty()))
-			return;
+			return;  // previous burst in progress
 
 		burstProgress.setTime(0);
+
+		Motion lastMotion = motion;
+		motion = Motion.values()[(int) (Math.random() * Motion.values().length)];
+		if (motion == lastMotion)  // don't do the same sweep twice
+			motion = Motion.NONE;
+		motion.init(this);
 	}
 
 	/**
@@ -81,5 +137,7 @@ public class StarFountain {
 		left.clear();
 		right.clear();
 		burstProgress.setTime(burstProgress.getDuration());
+		motion = Motion.NONE;
+		motion.init(this);
 	}
 }
