@@ -36,25 +36,31 @@ import org.newdawn.slick.Image;
  */
 public class StarStream {
 	/** The origin of the star stream. */
-	private Vec2f position;
+	private final Vec2f position;
 
 	/** The direction of the star stream. */
-	private Vec2f direction;
+	private final Vec2f direction;
+
+	/** The maximum number of stars to draw at once. */
+	private final int maxStars;
 
 	/** The spread of the stars' starting position. */
-	private float positionSpread;
+	private float positionSpread = 0f;
 
 	/** The spread of the stars' direction. */
-	private float directionSpread;
+	private float directionSpread = 0f;
+
+	/** The base (mean) duration for which stars are shown, in ms. */
+	private int durationBase = 1300;
+
+	/** The spread of the stars' duration, in ms. */
+	private int durationSpread = 300;
 
 	/** The star image. */
 	private final Image starImg;
 
 	/** The current list of stars. */
 	private final List<Star> stars;
-
-	/** The maximum number of stars to draw at once. */
-	private static final int MAX_STARS = 20;
 
 	/** Random number generator instance. */
 	private final Random random;
@@ -114,18 +120,37 @@ public class StarStream {
 	 * @param y the y position
 	 * @param dirX the x-axis direction
 	 * @param dirY the y-axis direction
-	 * @param posSpread the spread of the stars' starting position
-	 * @param dirSpread the spread of the stars' direction
+	 * @param k the maximum number of stars to draw at once (excluding bursts)
 	 */
-	public StarStream(float x, float y, float dirX, float dirY, float posSpread, float dirSpread) {
+	public StarStream(float x, float y, float dirX, float dirY, int k) {
 		this.position = new Vec2f(x, y);
 		this.direction = new Vec2f(dirX, dirY);
-		this.positionSpread = posSpread;
-		this.directionSpread = dirSpread;
-
+		this.maxStars = k;
 		this.starImg = GameImage.STAR2.getImage().copy();
-		this.stars = new ArrayList<Star>();
+		this.stars = new ArrayList<Star>(k);
 		this.random = new Random();
+	}
+
+	/**
+	 * Set the direction spread of this star stream.
+	 * @param spread the spread of the stars' starting position
+	 */
+	public void setPositionSpread(float spread) { this.positionSpread = spread; }
+
+	/**
+	 * Set the direction spread of this star stream.
+	 * @param spread the spread of the stars' direction
+	 */
+	public void setDirectionSpread(float spread) { this.directionSpread = spread; }
+
+	/**
+	 * Sets the duration base and spread of this star stream.
+	 * @param base the base (mean) duration for which stars are shown, in ms
+	 * @param spread the spread of the stars' duration, in ms
+	 */
+	public void setDurationSpread(int base, int spread) {
+		this.durationBase = base;
+		this.durationSpread = spread;
 	}
 
 	/**
@@ -144,9 +169,8 @@ public class StarStream {
 	/**
 	 * Updates the stars in the stream by a delta interval.
 	 * @param delta the delta interval since the last call
-	 * @param createNew whether to spawn new stars
 	 */
-	public void update(int delta, boolean createNew) {
+	public void update(int delta) {
 		// update current stars
 		Iterator<Star> iter = stars.iterator();
 		while (iter.hasNext()) {
@@ -156,13 +180,11 @@ public class StarStream {
 		}
 
 		// create new stars
-		if (createNew) {
-			for (int i = stars.size(); i < MAX_STARS; i++) {
-				if (Math.random() < ((i < 5) ? 0.25 : 0.66))
-					break;
+		for (int i = stars.size(); i < maxStars; i++) {
+			if (Math.random() < ((i < maxStars / 4) ? 0.25 : 0.66))
+				break;  // stagger spawning new stars
 
-				stars.add(createStar());
-			}
+			stars.add(createStar());
 		}
 	}
 
@@ -174,7 +196,7 @@ public class StarStream {
 		Vec2f offset = position.cpy().add(direction.cpy().nor().normalize().scale((float) getGaussian(0, positionSpread)));
 		Vec2f dir = direction.cpy().scale(distanceRatio).add((float) getGaussian(0, directionSpread), (float) getGaussian(0, directionSpread));
 		int angle = (int) getGaussian(0, 22.5);
-		int duration = (int) (distanceRatio * getGaussian(1300, 300));
+		int duration = (int) (distanceRatio * getGaussian(durationBase, durationSpread));
 		AnimationEquation eqn = random.nextBoolean() ? AnimationEquation.IN_OUT_QUAD : AnimationEquation.OUT_QUAD;
 
 		return new Star(offset, dir, angle, duration, eqn);

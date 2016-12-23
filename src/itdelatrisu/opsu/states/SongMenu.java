@@ -314,6 +314,9 @@ public class SongMenu extends BasicGameState {
 	/** The star stream. */
 	private StarStream starStream;
 
+	/** The maximum number of stars in the star stream. */
+	private static final int MAX_STREAM_STARS = 20;
+
 	/** Whether the menu is currently scrolling to the focus node (blocks other actions). */
 	private boolean isScrollingToFocusNode = false;
 
@@ -451,11 +454,9 @@ public class SongMenu extends BasicGameState {
 		});
 
 		// star stream
-		starStream = new StarStream(
-			width, (height - GameImage.STAR.getImage().getHeight()) / 2,
-			-width, 0,
-			height / 20f, 0.1f
-		);
+		starStream = new StarStream(width, (height - GameImage.STAR.getImage().getHeight()) / 2, -width, 0, MAX_STREAM_STARS);
+		starStream.setPositionSpread(height / 20f);
+		starStream.setDirectionSpread(10f);
 	}
 
 	@Override
@@ -770,7 +771,7 @@ public class SongMenu extends BasicGameState {
 		}
 
 		// star stream
-		starStream.update(delta, true);
+		starStream.update(delta);
 
 		// search
 		search.setFocus(true);

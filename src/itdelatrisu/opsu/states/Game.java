@@ -319,11 +319,10 @@ public class Game extends BasicGameState {
 		musicBarHeight = height * 0.9f;
 
 		// initialize scoreboard star stream
-		scoreboardStarStream = new StarStream(
-			0, height * 2f / 3f,
-			width / 3, 0,
-			height / 20, 0.2f
-		);
+		scoreboardStarStream = new StarStream(0, height * 2f / 3f, width / 4, 0, 0);
+		scoreboardStarStream.setPositionSpread(height / 20f);
+		scoreboardStarStream.setDirectionSpread(10f);
+		scoreboardStarStream.setDurationSpread(700, 100);
 
 		// create the associated GameData object
 		data = new GameData(width, height);
@@ -702,7 +701,7 @@ public class Game extends BasicGameState {
 			playbackSpeed.getButton().hoverUpdate(delta, mouseX, mouseY);
 		int trackPosition = MusicController.getPosition();
 		int firstObjectTime = beatmap.objects[0].getTime();
-		scoreboardStarStream.update(delta, false);
+		scoreboardStarStream.update(delta);
 
 		// returning from pause screen: must click previous mouse position
 		if (pauseTime > -1) {
