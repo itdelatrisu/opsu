@@ -239,8 +239,10 @@ public class MenuButton {
 					if (scale.getValue() != 1f) {
 						image = image.getScaledCopy(scale.getValue());
 						image.setAlpha(oldAlpha);
-						xScaleOffset = image.getWidth() / 2f - xRadius;
-						yScaleOffset = image.getHeight() / 2f - yRadius;
+						if (scaleOverride != 1f) {
+							xScaleOffset = image.getWidth() / 2f - xRadius;
+							yScaleOffset = image.getHeight() / 2f - yRadius;
+						}
 						lastScale *= scale.getValue();
 					}
 				}
