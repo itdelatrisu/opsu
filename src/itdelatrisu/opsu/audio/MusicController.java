@@ -195,13 +195,54 @@ public class MusicController {
 	/**
 	 * Gets the progress of the current beat.
 	 * @return a beat progress value [0,1) where 0 marks the current beat and
-	 *         1 marks the next beat, or {@code null} if no beat information
+	 *         1 marks the next beat, or {@code null} if no timing information
 	 *         is available (e.g. music paused, no timing points)
 	 */
 	public static Float getBeatProgress() {
+		if (!updateTimingPoint())
+			return null;
+
+		// calculate beat progress
+		int trackPosition = Math.max(0, getPosition());
+		double beatLength = lastTimingPoint.getBeatLength() * 100.0;
+		int beatTime = lastTimingPoint.getTime();
+		return (float) ((((trackPosition - beatTime) * 100.0) % beatLength) / beatLength);
+	}
+
+	/**
+	 * Gets the progress of the current measure.
+	 * @return a measure progress value [0,1) where 0 marks the start of the measure and
+	 *         1 marks the start of the next measure, or {@code null} if no timing information
+	 *         is available (e.g. music paused, no timing points)
+	 */
+	public static Float getMeasureProgress() { return getMeasureProgress(1); }
+
+	/**
+	 * Gets the progress of the current measure.
+	 * @param k the meter multiplier
+	 * @return a measure progress value [0,1) where 0 marks the start of the measure and
+	 *         1 marks the start of the next measure, or {@code null} if no timing information
+	 *         is available (e.g. music paused, no timing points)
+	 */
+	public static Float getMeasureProgress(int k) {
+		if (!updateTimingPoint())
+			return null;
+
+		// calculate measure progress
+		int trackPosition = Math.max(0, getPosition());
+		double measureLength = lastTimingPoint.getBeatLength() * lastTimingPoint.getMeter() * k * 100.0;
+		int beatTime = lastTimingPoint.getTime();
+		return (float) ((((trackPosition - beatTime) * 100.0) % measureLength) / measureLength);
+	}
+
+	/**
+	 * Updates the timing point information for the current track position.
+	 * @return {@code false} if timing point information is not available, {@code true} otherwise
+	 */
+	private static boolean updateTimingPoint() {
 		Beatmap map = getBeatmap();
 		if (!isPlaying() || map == null || map.timingPoints == null || map.timingPoints.isEmpty())
-			return null;
+			return false;
 
 		// initialization
 		if (timingPointIndex == 0 && lastTimingPoint == null && !map.timingPoints.isEmpty()) {
@@ -221,12 +262,9 @@ public class MusicController {
 				lastTimingPoint = timingPoint;
 		}
 		if (lastTimingPoint == null)
-			return null;  // no timing info
+			return false;  // no timing info
 
-		// calculate beat progress
-		double beatLength = lastTimingPoint.getBeatLength() * 100.0;
-		int beatTime = lastTimingPoint.getTime();
-		return (float) ((((trackPosition - beatTime) * 100.0) % beatLength) / beatLength);
+		return true;
 	}
 
 	/**
@@ -401,7 +439,7 @@ public class MusicController {
 	public static void playThemeSong() {
 		Beatmap beatmap = Options.getThemeBeatmap();
 		if (beatmap != null) {
-			play(beatmap, true, false);
+			play(beatmap, false, false);
 			themePlaying = true;
 		}
 	}

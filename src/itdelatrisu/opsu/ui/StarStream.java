@@ -32,7 +32,7 @@ import java.util.Random;
 import org.newdawn.slick.Image;
 
 /**
- * Horizontal star stream.
+ * Star stream.
  */
 public class StarStream {
 	/** The origin of the star stream. */
@@ -196,7 +196,7 @@ public class StarStream {
 		Vec2f offset = position.cpy().add(direction.cpy().nor().normalize().scale((float) getGaussian(0, positionSpread)));
 		Vec2f dir = direction.cpy().scale(distanceRatio).add((float) getGaussian(0, directionSpread), (float) getGaussian(0, directionSpread));
 		int angle = (int) getGaussian(0, 22.5);
-		int duration = (int) (distanceRatio * getGaussian(durationBase, durationSpread));
+		int duration = Math.max(0, (int) (distanceRatio * getGaussian(durationBase, durationSpread)));
 		AnimationEquation eqn = random.nextBoolean() ? AnimationEquation.IN_OUT_QUAD : AnimationEquation.OUT_QUAD;
 
 		return new Star(offset, dir, angle, duration, eqn);
@@ -215,6 +215,11 @@ public class StarStream {
 	 * Clears the stars currently in the stream.
 	 */
 	public void clear() { stars.clear(); }
+
+	/**
+	 * Returns whether there are any stars currently in this stream.
+	 */
+	public boolean isEmpty() { return stars.isEmpty(); }
 
 	/**
 	 * Returns the next pseudorandom, Gaussian ("normally") distributed {@code double} value
