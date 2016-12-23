@@ -50,6 +50,7 @@ import itdelatrisu.opsu.replay.ReplayFrame;
 import itdelatrisu.opsu.ui.Colors;
 import itdelatrisu.opsu.ui.Fonts;
 import itdelatrisu.opsu.ui.MenuButton;
+import itdelatrisu.opsu.ui.StarStream;
 import itdelatrisu.opsu.ui.UI;
 import itdelatrisu.opsu.ui.animations.AnimationEquation;
 
@@ -277,6 +278,9 @@ public class Game extends BasicGameState {
 	/** The current alpha of the scoreboard. */
 	private float currentScoreboardAlpha;
 
+	/** The star stream shown when passing another score. */
+	private StarStream scoreboardStarStream;
+
 	/** Music position bar background colors. */
 	private static final Color
 		MUSICBAR_NORMAL = new Color(12, 9, 10, 0.25f),
@@ -313,6 +317,13 @@ public class Game extends BasicGameState {
 		musicBarY = height * 0.05f;
 		musicBarWidth = Math.max(width * 0.005f, 7);
 		musicBarHeight = height * 0.9f;
+
+		// initialize scoreboard star stream
+		scoreboardStarStream = new StarStream(
+			0, height * 2f / 3f,
+			width / 3, 0,
+			height / 20, 0.2f
+		);
 
 		// create the associated GameData object
 		data = new GameData(width, height);
@@ -597,6 +608,7 @@ public class Game extends BasicGameState {
 			ScoreData currentScore = data.getCurrentScoreData(beatmap, true);
 			while (currentRank > 0 && previousScores[currentRank - 1].score < currentScore.score) {
 				currentRank--;
+				scoreboardStarStream.burst(20);
 				lastRankUpdateTime = trackPosition;
 			}
 
@@ -604,6 +616,9 @@ public class Game extends BasicGameState {
 				Utils.clamp((trackPosition - lastRankUpdateTime) / SCOREBOARD_ANIMATION_TIME, 0f, 1f)
 			);
 			int scoreboardPosition = 2 * container.getHeight() / 3;
+
+			// draw star stream behind the scores
+			scoreboardStarStream.draw();
 
 			if (currentRank < 4) {
 				// draw the (new) top 5 ranks
@@ -687,6 +702,7 @@ public class Game extends BasicGameState {
 			playbackSpeed.getButton().hoverUpdate(delta, mouseX, mouseY);
 		int trackPosition = MusicController.getPosition();
 		int firstObjectTime = beatmap.objects[0].getTime();
+		scoreboardStarStream.update(delta, false);
 
 		// returning from pause screen: must click previous mouse position
 		if (pauseTime > -1) {

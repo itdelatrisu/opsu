@@ -451,7 +451,11 @@ public class SongMenu extends BasicGameState {
 		});
 
 		// star stream
-		starStream = new StarStream(width, height);
+		starStream = new StarStream(
+			width, (height - GameImage.STAR.getImage().getHeight()) / 2,
+			-width, 0,
+			height / 20f, 0.1f
+		);
 	}
 
 	@Override
@@ -766,7 +770,7 @@ public class SongMenu extends BasicGameState {
 		}
 
 		// star stream
-		starStream.update(delta);
+		starStream.update(delta, true);
 
 		// search
 		search.setFocus(true);
