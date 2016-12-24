@@ -552,10 +552,11 @@ public class GameData {
 	 * @param x the starting x coordinate
 	 * @param y the y coordinate
 	 * @param scale the scale to apply
+	 * @param alpha the alpha level
 	 * @param fixedsize the width to use for all symbols
 	 * @param rightAlign align right (true) or left (false)
 	 */
-	public void drawFixedSizeSymbolString(String str, float x, float y, float scale, float fixedsize, boolean rightAlign) {
+	public void drawFixedSizeSymbolString(String str, float x, float y, float scale, float alpha, float fixedsize, boolean rightAlign) {
 		char[] c = str.toCharArray();
 		float cx = x;
 		if (rightAlign) {
@@ -564,14 +565,18 @@ public class GameData {
 				if (scale != 1.0f)
 					digit = digit.getScaledCopy(scale);
 				cx -= fixedsize;
+				digit.setAlpha(alpha);
 				digit.draw(cx + (fixedsize - digit.getWidth()) / 2, y);
+				digit.setAlpha(1f);
 			}
 		} else {
 			for (int i = 0; i < c.length; i++) {
 				Image digit = getScoreSymbolImage(c[i]);
 				if (scale != 1.0f)
 					digit = digit.getScaledCopy(scale);
+				digit.setAlpha(alpha);
 				digit.draw(cx + (fixedsize - digit.getWidth()) / 2, y);
+				digit.setAlpha(1f);
 				cx += fixedsize;
 			}
 		}
@@ -584,9 +589,10 @@ public class GameData {
 	 * @param g the graphics context
 	 * @param breakPeriod if true, will not draw scorebar and combo elements, and will draw grade
 	 * @param firstObject true if the first hit object's start time has not yet passed
+	 * @param alpha the alpha level at which to render all elements (except the hit error bar)
 	 */
 	@SuppressWarnings("deprecation")
-	public void drawGameElements(Graphics g, boolean breakPeriod, boolean firstObject) {
+	public void drawGameElements(Graphics g, boolean breakPeriod, boolean firstObject, float alpha) {
 		boolean relaxAutoPilot = (GameMod.RELAX.isActive() || GameMod.AUTOPILOT.isActive());
 		int margin = (int) (width * 0.008f);
 		float uiScale = GameImage.getUIscale();
@@ -594,14 +600,14 @@ public class GameData {
 		// score
 		if (!relaxAutoPilot)
 			drawFixedSizeSymbolString((scoreDisplay < 100000000) ? String.format("%08d", scoreDisplay) : Long.toString(scoreDisplay),
-					width - margin, 0, 1.0f, getScoreSymbolImage('0').getWidth() - 2, true);
+					width - margin, 0, 1f, alpha, getScoreSymbolImage('0').getWidth() - 2, true);
 
 		// score percentage
 		int symbolHeight = getScoreSymbolImage('0').getHeight();
 		if (!relaxAutoPilot)
 			drawSymbolString(
 					String.format((scorePercentDisplay < 10f) ? "0%.2f%%" : "%.2f%%", scorePercentDisplay),
-					width - margin, symbolHeight, 0.60f, 1f, true);
+					width - margin, symbolHeight, 0.60f, alpha, true);
 
 		// map progress circle
 		Beatmap beatmap = MusicController.getBeatmap();
@@ -615,23 +621,27 @@ public class GameData {
 				getScoreSymbolImage('%').getWidth()
 		) * 0.60f - circleDiameter);
 		if (!relaxAutoPilot) {
+			float oldWhiteAlpha = Colors.WHITE_ALPHA.a;
+			Colors.WHITE_ALPHA.a = alpha;
 			g.setAntiAlias(true);
 			g.setLineWidth(2f);
-			g.setColor(Color.white);
+			g.setColor(Colors.WHITE_ALPHA);
 			g.drawOval(circleX, symbolHeight, circleDiameter, circleDiameter);
 			if (trackPosition > firstObjectTime) {
 				// map progress (white)
-				g.fillArc(circleX, symbolHeight, circleDiameter, circleDiameter,
-						-90, -90 + (int) (360f * (trackPosition - firstObjectTime) / (beatmap.endTime - firstObjectTime))
-				);
+				float progress = Math.min((float) (trackPosition - firstObjectTime) / (beatmap.endTime - firstObjectTime), 1f);
+				g.fillArc(circleX, symbolHeight, circleDiameter, circleDiameter, -90, -90 + (int) (360f * progress));
 			} else {
 				// lead-in time (yellow)
+				float progress = (float) trackPosition / firstObjectTime;
+				float oldYellowAlpha = Colors.YELLOW_ALPHA.a;
+				Colors.YELLOW_ALPHA.a *= alpha;
 				g.setColor(Colors.YELLOW_ALPHA);
-				g.fillArc(circleX, symbolHeight, circleDiameter, circleDiameter,
-						-90 + (int) (360f * trackPosition / firstObjectTime), -90
-				);
+				g.fillArc(circleX, symbolHeight, circleDiameter, circleDiameter, -90 + (int) (360f * progress), -90);
+				Colors.YELLOW_ALPHA.a = oldYellowAlpha;
 			}
 			g.setAntiAlias(false);
+			Colors.WHITE_ALPHA.a = oldWhiteAlpha;
 		}
 
 		// mod icons
@@ -641,10 +651,12 @@ public class GameData {
 			int modCount = 0;
 			for (GameMod mod : GameMod.VALUES_REVERSED) {
 				if (mod.isActive()) {
+					mod.getImage().setAlpha(alpha);
 					mod.getImage().draw(
 							modX - (modCount * (modWidth / 2f)),
 							symbolHeight + circleDiameter + 10
 					);
+					mod.getImage().setAlpha(1f);
 					modCount++;
 				}
 			}
@@ -692,8 +704,8 @@ public class GameData {
 			float tickWidth = 2 * uiScale;
 			for (HitErrorInfo info : hitErrorList) {
 				int time = info.time;
-				float alpha = 1 - ((float) (trackPosition - time) / HIT_ERROR_FADE_TIME);
-				white.a = alpha * hitErrorAlpha;
+				float tickAlpha = 1 - ((float) (trackPosition - time) / HIT_ERROR_FADE_TIME);
+				white.a = tickAlpha * hitErrorAlpha;
 				g.setColor(white);
 				g.fillRect((hitErrorX + info.timeDiff - 1) * uiScale, tickY, tickWidth, tickHeight);
 			}
@@ -716,9 +728,12 @@ public class GameData {
 			float colourX = 4 * uiScale, colourY = 15 * uiScale;
 			Image colourCropped = colour.getSubImage(0, 0, (int) (645 * uiScale * healthRatio), colour.getHeight());
 
-			scorebar.setAlpha(1f);
+			scorebar.setAlpha(alpha);
 			scorebar.draw(0, 0);
+			scorebar.setAlpha(1f);
+			colourCropped.setAlpha(alpha);
 			colourCropped.draw(colourX, colourY);
+			colourCropped.setAlpha(1f);
 
 			Image ki = null;
 			if (health >= 50f)
@@ -729,7 +744,9 @@ public class GameData {
 				ki = GameImage.SCOREBAR_KI_DANGER2.getImage();
 			if (comboPopTime < COMBO_POP_TIME)
 				ki = ki.getScaledCopy(1f + (0.45f * (1f - (float) comboPopTime / COMBO_POP_TIME)));
+			ki.setAlpha(alpha);
 			ki.drawCentered(colourX + colourCropped.getWidth(), colourY);
+			ki.setAlpha(1f);
 
 			// combo burst
 			if (comboBurstIndex != -1 && comboBurstAlpha > 0f) {
@@ -745,8 +762,8 @@ public class GameData {
 				float comboPopFront = 1 + comboPop * 0.08f;
 				String comboString = String.format("%dx", combo);
 				if (comboPopTime != COMBO_POP_TIME)
-					drawSymbolString(comboString, margin, height - margin - (symbolHeight * comboPopBack), comboPopBack, 0.5f, false);
-				drawSymbolString(comboString, margin, height - margin - (symbolHeight * comboPopFront), comboPopFront, 1f, false);
+					drawSymbolString(comboString, margin, height - margin - (symbolHeight * comboPopBack), comboPopBack, 0.5f * alpha, false);
+				drawSymbolString(comboString, margin, height - margin - (symbolHeight * comboPopFront), comboPopFront, alpha, false);
 			}
 		} else if (!relaxAutoPilot) {
 			// grade
@@ -754,9 +771,9 @@ public class GameData {
 			if (grade != Grade.NULL) {
 				Image gradeImage = grade.getSmallImage();
 				float gradeScale = symbolHeight * 0.75f / gradeImage.getHeight();
-				gradeImage.getScaledCopy(gradeScale).draw(
-						circleX - gradeImage.getWidth(), symbolHeight
-				);
+				gradeImage = gradeImage.getScaledCopy(gradeScale);
+				gradeImage.setAlpha(alpha);
+				gradeImage.draw(circleX - gradeImage.getWidth(), symbolHeight);
 			}
 		}
 	}
@@ -781,7 +798,7 @@ public class GameData {
 		drawFixedSizeSymbolString(
 				(score < 100000000) ? String.format("%08d", score) : Long.toString(score),
 				210 * uiScale, (rankingHeight + 50) * uiScale,
-				scoreTextScale, getScoreSymbolImage('0').getWidth() * scoreTextScale - 2, false
+				scoreTextScale, 1f, getScoreSymbolImage('0').getWidth() * scoreTextScale - 2, false
 		);
 
 		// result counts
