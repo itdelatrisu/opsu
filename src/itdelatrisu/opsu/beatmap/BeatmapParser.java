@@ -311,6 +311,10 @@ public class BeatmapParser {
 								break;
 							case "EpilepsyWarning":
 								beatmap.epilepsyWarning = Utils.parseBoolean(tokens[1]);
+								break;
+//							case "SpecialStyle":  // mania only
+//								beatmap.specialStyle = Utils.parseBoolean(tokens[1]);
+//								break;
 							default:
 								break;
 							}
