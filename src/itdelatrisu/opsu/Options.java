@@ -277,7 +277,7 @@ public class Options {
 				if (beatmap == null) {
 					themeString = oldThemeString;
 					Log.warn(String.format("The theme song string [%s] is malformed.", s));
-				} else if (!beatmap.audioFilename.isFile()) {
+				} else if (!beatmap.audioFilename.isFile() && !ResourceLoader.resourceExists(beatmap.audioFilename.getName())) {
 					themeString = oldThemeString;
 					Log.warn(String.format("Cannot find theme song [%s].", beatmap.audioFilename.getAbsolutePath()));
 				}
