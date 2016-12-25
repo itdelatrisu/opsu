@@ -612,7 +612,7 @@ public class GameData {
 		// map progress circle
 		Beatmap beatmap = MusicController.getBeatmap();
 		int firstObjectTime = beatmap.objects[0].getTime();
-		int trackPosition = MusicController.getPosition();
+		int trackPosition = MusicController.getPosition(true);
 		float circleDiameter = symbolHeight * 0.60f;
 		int circleX = (int) (width - margin - (  // max width: "100.00%"
 				getScoreSymbolImage('1').getWidth() +
@@ -1171,7 +1171,7 @@ public class GameData {
 
 		// hit error bar
 		if (Options.isHitErrorBarEnabled()) {
-			int trackPosition = MusicController.getPosition();
+			int trackPosition = MusicController.getPosition(true);
 			Iterator<HitErrorInfo> iter = hitErrorList.iterator();
 			while (iter.hasNext()) {
 				HitErrorInfo info = iter.next();

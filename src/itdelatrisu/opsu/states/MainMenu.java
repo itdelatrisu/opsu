@@ -294,7 +294,7 @@ public class MainMenu extends BasicGameState {
 		g.fillRoundRect(musicBarX, musicBarY, musicBarWidth, musicBarHeight, 4);
 		g.setColor(Color.white);
 		if (!MusicController.isTrackLoading() && beatmap != null) {
-			float musicBarPosition = Math.min((float) MusicController.getPosition() / MusicController.getDuration(), 1f);
+			float musicBarPosition = Math.min((float) MusicController.getPosition(false) / MusicController.getDuration(), 1f);
 			g.fillRoundRect(musicBarX, musicBarY, musicBarWidth * musicBarPosition, musicBarHeight, 4);
 		}
 

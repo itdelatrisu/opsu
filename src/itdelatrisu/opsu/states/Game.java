@@ -343,7 +343,7 @@ public class Game extends BasicGameState {
 			throws SlickException {
 		int width = container.getWidth();
 		int height = container.getHeight();
-		int trackPosition = MusicController.getPosition();
+		int trackPosition = MusicController.getPosition(true);
 		if (pauseTime > -1)  // returning from pause screen
 			trackPosition = pauseTime;
 		else if (deathTime > -1)  // "Easy" mod: health bar increasing
@@ -717,7 +717,7 @@ public class Game extends BasicGameState {
 		skipButton.hoverUpdate(delta, mouseX, mouseY);
 		if (isReplay || GameMod.AUTO.isActive())
 			playbackSpeed.getButton().hoverUpdate(delta, mouseX, mouseY);
-		int trackPosition = MusicController.getPosition();
+		int trackPosition = MusicController.getPosition(true);
 		int firstObjectTime = beatmap.objects[0].getTime();
 		scoreboardStarStream.update(delta);
 
@@ -748,7 +748,7 @@ public class Game extends BasicGameState {
 		// replays: skip intro
 		if (isReplay && replaySkipTime > -1 && trackPosition >= replaySkipTime) {
 			if (skipIntro())
-				trackPosition = MusicController.getPosition();
+				trackPosition = MusicController.getPosition(true);
 		}
 
 		// "flashlight" mod: calculate visible area radius
@@ -781,7 +781,7 @@ public class Game extends BasicGameState {
 		else if (!gameFinished) {
 			// out of frames, use previous data
 			if (replayIndex >= replay.frames.length)
-				updateGame(replayX, replayY, delta, MusicController.getPosition(), lastKeysPressed);
+				updateGame(replayX, replayY, delta, MusicController.getPosition(true), lastKeysPressed);
 
 			// seeking to a position earlier than original track position
 			if (isSeeking && replayIndex - 1 >= 1 && replayIndex < replay.frames.length &&
@@ -960,7 +960,7 @@ public class Game extends BasicGameState {
 				if (restart != Restart.LOSE) {
 					restart = Restart.LOSE;
 					failTime = System.currentTimeMillis();
-					failTrackTime = MusicController.getPosition();
+					failTrackTime = MusicController.getPosition(true);
 					MusicController.fadeOut(MUSIC_FADEOUT_TIME);
 					MusicController.pitchFadeOut(MUSIC_FADEOUT_TIME);
 					rotations = new IdentityHashMap<GameObject, Float>();
@@ -997,7 +997,7 @@ public class Game extends BasicGameState {
 
 	@Override
 	public void keyPressed(int key, char c) {
-		int trackPosition = MusicController.getPosition();
+		int trackPosition = MusicController.getPosition(true);
 		int mouseX = input.getMouseX();
 		int mouseY = input.getMouseY();
 
@@ -1179,7 +1179,7 @@ public class Game extends BasicGameState {
 
 		// mouse wheel: pause the game
 		if (button == Input.MOUSE_MIDDLE_BUTTON && !Options.isMouseWheelDisabled()) {
-			int trackPosition = MusicController.getPosition();
+			int trackPosition = MusicController.getPosition(true);
 			if (pauseTime < 0 && breakTime <= 0 && trackPosition >= beatmap.objects[0].getTime()) {
 				pausedMousePosition = new Vec2f(x, y);
 				pausePulse = 0f;
@@ -1197,7 +1197,7 @@ public class Game extends BasicGameState {
 		else if (button == Input.MOUSE_RIGHT_BUTTON)
 			keys = ReplayFrame.KEY_M2;
 		if (keys != ReplayFrame.KEY_NONE)
-			gameKeyPressed(keys, x, y, MusicController.getPosition());
+			gameKeyPressed(keys, x, y, MusicController.getPosition(true));
 	}
 
 	/**
@@ -1256,7 +1256,7 @@ public class Game extends BasicGameState {
 		else if (button == Input.MOUSE_RIGHT_BUTTON)
 			keys = ReplayFrame.KEY_M2;
 		if (keys != ReplayFrame.KEY_NONE)
-			gameKeyReleased(keys, x, y, MusicController.getPosition());
+			gameKeyReleased(keys, x, y, MusicController.getPosition(true));
 	}
 
 	@Override
@@ -1270,7 +1270,7 @@ public class Game extends BasicGameState {
 		else if (key == Options.getGameKeyRight())
 			keys = ReplayFrame.KEY_K2;
 		if (keys != ReplayFrame.KEY_NONE)
-			gameKeyReleased(keys, input.getMouseX(), input.getMouseY(), MusicController.getPosition());
+			gameKeyReleased(keys, input.getMouseX(), input.getMouseY(), MusicController.getPosition(true));
 	}
 
 	/**
@@ -1659,7 +1659,7 @@ public class Game extends BasicGameState {
 	 */
 	private synchronized boolean skipIntro() {
 		int firstObjectTime = beatmap.objects[0].getTime();
-		int trackPosition = MusicController.getPosition();
+		int trackPosition = MusicController.getPosition(true);
 		if (objectIndex == 0 && trackPosition < firstObjectTime - SKIP_OFFSET) {
 			if (isLeadIn()) {
 				leadInTime = 0;

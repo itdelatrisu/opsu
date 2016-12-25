@@ -203,7 +203,7 @@ public class MusicController {
 			return null;
 
 		// calculate beat progress
-		int trackPosition = Math.max(0, getPosition());
+		int trackPosition = Math.max(0, getPosition(false));
 		double beatLength = lastTimingPoint.getBeatLength() * 100.0;
 		int beatTime = lastTimingPoint.getTime();
 		if (trackPosition < beatTime)
@@ -231,7 +231,7 @@ public class MusicController {
 			return null;
 
 		// calculate measure progress
-		int trackPosition = Math.max(0, getPosition());
+		int trackPosition = Math.max(0, getPosition(false));
 		double measureLength = lastTimingPoint.getBeatLength() * lastTimingPoint.getMeter() * k * 100.0;
 		int beatTime = lastTimingPoint.getTime();
 		if (trackPosition < beatTime)
@@ -256,7 +256,7 @@ public class MusicController {
 		}
 
 		// advance timing point index, record last non-inherited timing point
-		int trackPosition = getPosition();
+		int trackPosition = getPosition(false);
 		for (int i = timingPointIndex + 1; i < map.timingPoints.size(); i++) {
 			TimingPoint timingPoint = map.timingPoints.get(i);
 			if (trackPosition < timingPoint.getTime())
@@ -339,11 +339,16 @@ public class MusicController {
 	/**
 	 * Returns the position in the current track, in milliseconds.
 	 * If no track is loaded, 0 will be returned.
+	 * @param useOffsets whether to apply offsets {@link Options#getMusicOffset()}
+	 *                   and {@link Beatmap#localMusicOffset} to the position
 	 */
-	public static int getPosition() {
-		int offset = Options.getMusicOffset();
-		if (lastBeatmap != null)
-			offset += lastBeatmap.localMusicOffset;
+	public static int getPosition(boolean useOffsets) {
+		int offset = 0;
+		if (useOffsets) {
+			offset += Options.getMusicOffset();
+			if (lastBeatmap != null)
+				offset += lastBeatmap.localMusicOffset;
+		}
 
 		if (isPlaying())
 			return (int) (player.getPosition() * 1000 + offset);
