@@ -36,22 +36,20 @@ dependencies {
 	compile('org.lwjgl.lwjgl:lwjgl:2.9.3') {
 		exclude group: 'net.java.jinput', module: 'jinput'
 	}
-	compile('org.slick2d:slick2d-core:1.0.1') {
+	compile('org.slick2d:slick2d-core:1.0.2') {
 		exclude group: 'org.lwjgl.lwjgl', module: 'lwjgl'
 	}
 	compile 'org.jcraft:jorbis:0.0.17'
 	compile 'net.lingala.zip4j:zip4j:1.3.2'
-	compile 'com.googlecode.soundlibs:jlayer:1.0.1-1'
-	compile 'com.googlecode.soundlibs:mp3spi:1.9.5-1'
-	compile 'com.googlecode.soundlibs:tritonus-share:0.3.7-2'
-	compile 'org.xerial:sqlite-jdbc:3.8.10.2'
-	compile 'org.json:json:20140107'
-	compile 'net.java.dev.jna:jna:4.1.0'
-	compile 'net.java.dev.jna:jna-platform:4.1.0'
+	compile 'com.googlecode.soundlibs:jlayer:1.0.1.4'
+	compile 'com.googlecode.soundlibs:mp3spi:1.9.5.4'
+	compile 'com.googlecode.soundlibs:tritonus-share:0.3.7.4'
+	compile 'org.xerial:sqlite-jdbc:3.15.1'
+	compile 'org.json:json:20160810'
+	compile 'net.java.dev.jna:jna:4.2.2'
+	compile 'net.java.dev.jna:jna-platform:4.2.2'
 	compile 'org.apache.maven:maven-artifact:3.3.3'
-	compile 'org.apache.commons:commons-compress:1.9'
-	compile 'org.tukaani:xz:1.5'
-	compile 'com.github.jponge:lzma-java:1.3'
+	compile 'org.tukaani:xz:1.6'
 }
 
 def nativePlatforms = ['windows', 'linux', 'osx']
