@@ -70,7 +70,6 @@ public class Container extends AppGameContainer {
 	public void start() throws SlickException {
 		try {
 			setup();
-			ErrorHandler.setGlString();
 			getDelta();
 			while (running())
 				gameLoop();

@@ -114,6 +114,9 @@ public class Utils {
 		container.setAlwaysRender(true);
 		container.setUpdateOnlyWhenVisible(false);
 
+		// record OpenGL version
+		ErrorHandler.setGlString();
+
 		// calculate UI scale
 		GameImage.init(width, height);
 
