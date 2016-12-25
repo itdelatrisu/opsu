@@ -20,6 +20,7 @@ The images included in opsu! belong to their respective authors.
 * sherrie__fay
 * kouyang
 * teinecthel
+* Teddy Kelley - https://unsplash.com/photos/weuWmzv7xnU (main menu background)
 
 Projects
 --------
