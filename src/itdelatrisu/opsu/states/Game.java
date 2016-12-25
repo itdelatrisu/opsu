@@ -997,15 +997,12 @@ public class Game extends BasicGameState {
 
 	@Override
 	public void keyPressed(int key, char c) {
-		if (gameFinished)
-			return;
-
 		int trackPosition = MusicController.getPosition();
 		int mouseX = input.getMouseX();
 		int mouseY = input.getMouseY();
 
 		// game keys
-		if (!Keyboard.isRepeatEvent()) {
+		if (!Keyboard.isRepeatEvent() && !gameFinished) {
 			int keys = ReplayFrame.KEY_NONE;
 			if (key == Options.getGameKeyLeft())
 				keys = ReplayFrame.KEY_K1;
@@ -1017,6 +1014,12 @@ public class Game extends BasicGameState {
 
 		switch (key) {
 		case Input.KEY_ESCAPE:
+			// game finished: only advance the timer
+			if (gameFinished) {
+				gameFinishedTimer.setTime(gameFinishedTimer.getDuration());
+				break;
+			}
+
 			// "auto" mod or watching replay: go back to song menu
 			if (GameMod.AUTO.isActive() || isReplay) {
 				game.closeRequested();
@@ -1034,10 +1037,13 @@ public class Game extends BasicGameState {
 			break;
 		case Input.KEY_SPACE:
 			// skip intro
-			skipIntro();
+			if (!gameFinished)
+				skipIntro();
 			break;
 		case Input.KEY_R:
 			// restart
+			if (gameFinished)
+				break;
 			if (input.isKeyDown(Input.KEY_RCONTROL) || input.isKeyDown(Input.KEY_LCONTROL)) {
 				try {
 					if (trackPosition < beatmap.objects[0].getTime())
@@ -1052,6 +1058,8 @@ public class Game extends BasicGameState {
 			break;
 		case Input.KEY_S:
 			// save checkpoint
+			if (gameFinished)
+				break;
 			if (input.isKeyDown(Input.KEY_RCONTROL) || input.isKeyDown(Input.KEY_LCONTROL)) {
 				if (isLeadIn())
 					break;
@@ -1065,6 +1073,8 @@ public class Game extends BasicGameState {
 			break;
 		case Input.KEY_L:
 			// load checkpoint
+			if (gameFinished)
+				break;
 			if (input.isKeyDown(Input.KEY_RCONTROL) || input.isKeyDown(Input.KEY_LCONTROL)) {
 				int checkpoint = Options.getCheckpoint();
 				if (checkpoint == 0 || checkpoint > beatmap.endTime)
@@ -1095,6 +1105,8 @@ public class Game extends BasicGameState {
 			break;
 		case Input.KEY_F:
 			// change playback speed
+			if (gameFinished)
+				break;
 			if (isReplay || GameMod.AUTO.isActive()) {
 				playbackSpeed = playbackSpeed.next();
 				MusicController.setPitch(GameMod.getSpeedMultiplier() * playbackSpeed.getModifier());
@@ -1116,7 +1128,8 @@ public class Game extends BasicGameState {
 			Utils.takeScreenShot();
 			break;
 		case Input.KEY_TAB:
-			scoreboardVisible = !scoreboardVisible;
+			if (!gameFinished)
+				scoreboardVisible = !scoreboardVisible;
 			break;
 		}
 	}
