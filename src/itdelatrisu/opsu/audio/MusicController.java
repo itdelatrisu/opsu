@@ -341,10 +341,14 @@ public class MusicController {
 	 * If no track is loaded, 0 will be returned.
 	 */
 	public static int getPosition() {
+		int offset = Options.getMusicOffset();
+		if (lastBeatmap != null)
+			offset += lastBeatmap.localMusicOffset;
+
 		if (isPlaying())
-			return (int) (player.getPosition() * 1000 + Options.getMusicOffset());
+			return (int) (player.getPosition() * 1000 + offset);
 		else if (isPaused())
-			return Math.max((int) (pauseTime * 1000 + Options.getMusicOffset()), 0);
+			return Math.max((int) (pauseTime * 1000 + offset), 0);
 		else
 			return 0;
 	}

@@ -45,7 +45,7 @@ public class BeatmapDB {
 	 * This value should be changed whenever the database format changes.
 	 * Add any update queries to the {@link #getUpdateQueries(int)} method.
 	 */
-	private static final int DATABASE_VERSION = 20161222;
+	private static final int DATABASE_VERSION = 20161225;
 
 	/**
 	 * Returns a list of SQL queries to apply, in order, to update from
@@ -61,6 +61,10 @@ public class BeatmapDB {
 			list.add("ALTER TABLE beatmaps ADD COLUMN playCount INTEGER");
 			list.add("ALTER TABLE beatmaps ADD COLUMN lastPlayed INTEGER");
 			list.add("UPDATE beatmaps SET dateAdded = 0, favorite = 0, playCount = 0, lastPlayed = 0");
+		}
+		if (version < 20161225) {
+			list.add("ALTER TABLE beatmaps ADD COLUMN localOffset INTEGER");
+			list.add("UPDATE beatmaps SET localOffset = 0");
 		}
 
 		/* add future updates here */
@@ -83,7 +87,7 @@ public class BeatmapDB {
 	/** Query statements. */
 	private static PreparedStatement
 		insertStmt, selectStmt, deleteMapStmt, deleteGroupStmt,
-		setStarsStmt, updatePlayStatsStmt, setFavoriteStmt, updateSizeStmt;
+		setStarsStmt, updatePlayStatsStmt, setFavoriteStmt, setLocalOffsetStmt, updateSizeStmt;
 
 	/** Current size of beatmap cache table. */
 	private static int cacheSize = -1;
@@ -122,7 +126,7 @@ public class BeatmapDB {
 				"INSERT INTO beatmaps VALUES (" +
 					"?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?," +
 					"?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?," +
-					"?, ?, ?, ?, ?, ?" +
+					"?, ?, ?, ?, ?, ?, ?" +
 				")"
 			);
 			selectStmt = connection.prepareStatement("SELECT * FROM beatmaps WHERE dir = ? AND file = ?");
@@ -131,6 +135,7 @@ public class BeatmapDB {
 			setStarsStmt = connection.prepareStatement("UPDATE beatmaps SET stars = ? WHERE dir = ? AND file = ?");
 			updatePlayStatsStmt = connection.prepareStatement("UPDATE beatmaps SET playCount = ?, lastPlayed = ? WHERE dir = ? AND file = ?");
 			setFavoriteStmt = connection.prepareStatement("UPDATE beatmaps SET favorite = ? WHERE dir = ? AND file = ?");
+			setLocalOffsetStmt = connection.prepareStatement("UPDATE beatmaps SET localOffset = ? WHERE dir = ? AND file = ?");
 		} catch (SQLException e) {
 			ErrorHandler.error("Failed to prepare beatmap statements.", e, true);
 		}
@@ -154,7 +159,7 @@ public class BeatmapDB {
 					"mode INTEGER, letterboxInBreaks BOOLEAN, widescreenStoryboard BOOLEAN, epilepsyWarning BOOLEAN, " +
 					"bg TEXT, sliderBorder TEXT, timingPoints TEXT, breaks TEXT, combo TEXT, " +
 					"md5hash TEXT, stars REAL, " +
-					"dateAdded INTEGER, favorite BOOLEAN, playCount INTEGER, lastPlayed INTEGER" +
+					"dateAdded INTEGER, favorite BOOLEAN, playCount INTEGER, lastPlayed INTEGER, localOffset INTEGER" +
 				"); " +
 				"CREATE TABLE IF NOT EXISTS info (" +
 					"key TEXT NOT NULL UNIQUE, value TEXT" +
@@ -403,6 +408,7 @@ public class BeatmapDB {
 			stmt.setBoolean(44, beatmap.favorite);
 			stmt.setInt(45, beatmap.playCount);
 			stmt.setLong(46, beatmap.lastPlayed);
+			stmt.setInt(47, beatmap.localMusicOffset);
 		} catch (SQLException e) {
 			throw e;
 		} catch (Exception e) {
@@ -550,6 +556,7 @@ public class BeatmapDB {
 			beatmap.favorite = rs.getBoolean(44);
 			beatmap.playCount = rs.getInt(45);
 			beatmap.lastPlayed = rs.getLong(46);
+			beatmap.localMusicOffset = rs.getInt(47);
 		} catch (SQLException e) {
 			throw e;
 		} catch (Exception e) {
@@ -691,6 +698,25 @@ public class BeatmapDB {
 			setFavoriteStmt.executeUpdate();
 		} catch (SQLException e) {
 			ErrorHandler.error(String.format("Failed to update favorite status for beatmap '%s' in database.",
+					beatmap.toString()), e, true);
+		}
+	}
+
+	/**
+	 * Updates the local music offset for a beatmap in the database.
+	 * @param beatmap the beatmap
+	 */
+	public static void updateLocalOffset(Beatmap beatmap) {
+		if (connection == null)
+			return;
+
+		try {
+			setLocalOffsetStmt.setInt(1, beatmap.localMusicOffset);
+			setLocalOffsetStmt.setString(2, beatmap.getFile().getParentFile().getName());
+			setLocalOffsetStmt.setString(3, beatmap.getFile().getName());
+			setLocalOffsetStmt.executeUpdate();
+		} catch (SQLException e) {
+			ErrorHandler.error(String.format("Failed to update local music offset for beatmap '%s' in database.",
 					beatmap.toString()), e, true);
 		}
 	}

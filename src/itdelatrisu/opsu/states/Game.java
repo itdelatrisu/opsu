@@ -82,7 +82,7 @@ import org.newdawn.slick.state.transition.FadeInTransition;
 public class Game extends BasicGameState {
 	/** Game restart states. */
 	public enum Restart {
-		/** No restart. */
+		/** No restart (i.e. returning from pause screen). */
 		FALSE,
 		/** First time loading the song. */
 		NEW,
@@ -443,7 +443,7 @@ public class Game extends BasicGameState {
 		if (GameMod.FLASHLIGHT.isActive()) {
 			// render hit objects offscreen
 			Graphics.setCurrent(gOffscreen);
-			int trackPos = (isLeadIn()) ? (leadInTime - Options.getMusicOffset()) * -1 : trackPosition;
+			int trackPos = (isLeadIn()) ? (leadInTime - Options.getMusicOffset() - beatmap.localMusicOffset) * -1 : trackPosition;
 			drawHitObjects(gOffscreen, trackPos);
 
 			// restore original graphics context
@@ -568,8 +568,8 @@ public class Game extends BasicGameState {
 				Colors.WHITE_FADE.a = oldAlpha;
 			}
 
-			if (isLeadIn())
-				trackPosition = (leadInTime - Options.getMusicOffset()) * -1;  // render approach circles during song lead-in
+			if (isLeadIn())  // render approach circles during song lead-in
+				trackPosition = (leadInTime - Options.getMusicOffset() - beatmap.localMusicOffset) * -1;
 
 			// countdown
 			if (beatmap.countdown > 0) {
@@ -1131,6 +1131,16 @@ public class Game extends BasicGameState {
 			if (!gameFinished)
 				scoreboardVisible = !scoreboardVisible;
 			break;
+		case Input.KEY_EQUALS:
+		case Input.KEY_ADD:
+			if (!Keyboard.isRepeatEvent() && !gameFinished)
+				adjustLocalMusicOffset(1);
+			break;
+		case Input.KEY_MINUS:
+		case Input.KEY_SUBTRACT:
+			if (!Keyboard.isRepeatEvent() && !gameFinished)
+				adjustLocalMusicOffset(-1);
+			break;
 		}
 	}
 
@@ -1439,6 +1449,10 @@ public class Game extends BasicGameState {
 				currentRank = previousScores.length;
 			scoreboardVisible = true;
 			currentScoreboardAlpha = 0f;
+
+			// using local offset?
+			if (beatmap.localMusicOffset != 0)
+				UI.sendBarNotification(String.format("Using local beatmap offset (%dms)", beatmap.localMusicOffset));
 
 			// needs to play before setting position to resume without lag later
 			MusicController.play(false);
@@ -2083,5 +2097,20 @@ public class Game extends BasicGameState {
 	private boolean musicPositionBarContains(float cx, float cy) {
 		return ((cx > musicBarX && cx < musicBarX + musicBarWidth) &&
 		        (cy > musicBarY && cy < musicBarY + musicBarHeight));
+	}
+
+	/**
+	 * Adjusts the beatmap's local music offset.
+	 * @param sign the sign (multiplier)
+	 */
+	private void adjustLocalMusicOffset(int sign) {
+		boolean alt = input.isKeyDown(Input.KEY_LALT) || input.isKeyDown(Input.KEY_RALT);
+		int diff = sign * (alt ? 1 : 5);
+		int newOffset = Utils.clamp(beatmap.localMusicOffset + diff, -1000, 1000);
+		UI.sendBarNotification(String.format("Local beatmap offset set to %dms", newOffset));
+		if (beatmap.localMusicOffset != newOffset) {
+			beatmap.localMusicOffset = newOffset;
+			BeatmapDB.updateLocalOffset(beatmap);
+		}
 	}
 }

@@ -80,6 +80,9 @@ public class Beatmap implements Comparable<Beatmap> {
 	/** The last time this beatmap was played (timestamp). */
 	public long lastPlayed = 0;
 
+	/** The local music offset. */
+	public int localMusicOffset = 0;
+
 	/**
 	 * [General]
 	 */
