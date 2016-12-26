@@ -118,7 +118,7 @@ public class StarFountain {
 	 * @param wait if {@code true}, will not burst if a previous burst is in progress
 	 */
 	public void burst(boolean wait) {
-		if (wait && (burstProgress.getTime() < burstProgress.getDuration() || !left.isEmpty() || !right.isEmpty()))
+		if (wait && (!burstProgress.isFinished() || !left.isEmpty() || !right.isEmpty()))
 			return;  // previous burst in progress
 
 		burstProgress.setTime(0);

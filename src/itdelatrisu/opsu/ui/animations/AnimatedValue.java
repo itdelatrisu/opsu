@@ -131,4 +131,10 @@ public class AnimatedValue {
 		float t = eqn.calc((float) time / duration);
 		this.value = base + (t * diff);
 	}
+
+	/**
+	 * Returns whether the animation has completed.
+	 * @return true if {@link #getTime()} equals {@link #getDuration()}
+	 */
+	public boolean isFinished() { return time == duration; }
 }

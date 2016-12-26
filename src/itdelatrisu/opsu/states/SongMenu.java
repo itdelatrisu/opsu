@@ -736,7 +736,7 @@ public class SongMenu extends BasicGameState {
 			UI.getBackButton().draw();
 
 		// options overlay
-		if (showOptionsOverlay || optionsOverlayProgress.getTime() < optionsOverlayProgress.getDuration())
+		if (showOptionsOverlay || !optionsOverlayProgress.isFinished())
 			optionsOverlay.render(container, g);
 
 		UI.draw(g);
@@ -947,7 +947,7 @@ public class SongMenu extends BasicGameState {
 		if (isInputBlocked())
 			return;
 
-		if (showOptionsOverlay || optionsOverlayProgress.getTime() < optionsOverlayProgress.getDuration())
+		if (showOptionsOverlay || !optionsOverlayProgress.isFinished())
 			return;
 
 		// back
