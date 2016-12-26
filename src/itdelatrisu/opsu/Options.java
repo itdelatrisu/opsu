@@ -38,6 +38,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 import java.util.jar.Attributes;
@@ -47,9 +48,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.lwjgl.input.Keyboard;
+import org.lwjgl.opengl.Display;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
+import org.newdawn.slick.openal.SoundStore;
 import org.newdawn.slick.util.ClasspathLocation;
 import org.newdawn.slick.util.FileSystemLocation;
 import org.newdawn.slick.util.Log;
@@ -311,16 +314,31 @@ public class Options {
 
 		// in-game options
 		SCREEN_RESOLUTION ("Screen Resolution", "ScreenResolution", "Restart (Ctrl+Shift+F5) to apply resolution changes.") {
+			private Resolution[] itemList = null;
+
 			@Override
 			public String getValueString() { return resolution.toString(); }
 
 			@Override
-			public void click(GameContainer container) {
-				do {
-					resolution = resolution.next();
-				} while (resolution != Resolution.RES_800_600 && (
-				         container.getScreenWidth() < resolution.getWidth() ||
-				         container.getScreenHeight() < resolution.getHeight()));
+			public Object[] getItemList() {
+				if (itemList == null) {
+					int width = Display.getDesktopDisplayMode().getWidth();
+					int height = Display.getDesktopDisplayMode().getHeight();
+					List<Resolution> list = new ArrayList<Resolution>();
+					for (Resolution res : Resolution.values()) {
+						// only show resolutions that fit on the screen
+						if (res == Resolution.RES_800_600 || (width >= res.getWidth() && height >= res.getHeight()))
+							list.add(res);
+					}
+					itemList = list.toArray(new Resolution[list.size()]);
+				}
+				return itemList;
+			}
+
+			@Override
+			public void selectItem(int index, GameContainer container) {
+				resolution = itemList[index];
+				UI.sendBarNotification(getDescription());
 			}
 
 			@Override
@@ -337,23 +355,38 @@ public class Options {
 			public String getValueString() { return skinName; }
 
 			@Override
-			public void click(GameContainer container) {
-				skinDirIndex = (skinDirIndex + 1) % skinDirs.length;
-				skinName = skinDirs[skinDirIndex];
+			public Object[] getItemList() { return skinDirs; }
+
+			@Override
+			public void selectItem(int index, GameContainer container) {
+				skinName = skinDirs[index];
+				UI.sendBarNotification(getDescription());
 			}
 
 			@Override
 			public void read(String s) { skinName = s; }
 		},
 		TARGET_FPS ("Frame Limiter", "FrameSync", "Higher values may cause high CPU usage.") {
+			private String[] itemList = null;
+
 			@Override
 			public String getValueString() {
 				return String.format((getTargetFPS() == 60) ? "%dfps (vsync)" : "%dfps", getTargetFPS());
 			}
 
 			@Override
-			public void click(GameContainer container) {
-				targetFPSindex = (targetFPSindex + 1) % targetFPS.length;
+			public Object[] getItemList() {
+				if (itemList == null) {
+					itemList = new String[targetFPS.length];
+					for (int i = 0; i < targetFPS.length; i++)
+						itemList[i] = String.format((targetFPS[i] == 60) ? "%dfps (vsync)" : "%dfps", targetFPS[i]);
+				}
+				return itemList;
+			}
+
+			@Override
+			public void selectItem(int index, GameContainer container) {
+				targetFPSindex = index;
 				container.setTargetFrameRate(getTargetFPS());
 				container.setVSync(getTargetFPS() == 60);
 			}
@@ -375,8 +408,8 @@ public class Options {
 		SHOW_FPS ("Show FPS Counter", "FpsCounter", "Show an FPS counter in the bottom-right hand corner.", true),
 		SHOW_UNICODE ("Prefer Non-English Metadata", "ShowUnicode", "Where available, song titles will be shown in their native language.", false) {
 			@Override
-			public void click(GameContainer container) {
-				super.click(container);
+			public void toggle(GameContainer container) {
+				super.toggle(container);
 				if (bool) {
 					try {
 						Fonts.LARGE.loadGlyphs();
@@ -389,11 +422,23 @@ public class Options {
 			}
 		},
 		SCREENSHOT_FORMAT ("Screenshot Format", "ScreenshotFormat", "Press F12 to take a screenshot.") {
+			private String[] itemList = null;
+
 			@Override
 			public String getValueString() { return screenshotFormat[screenshotFormatIndex].toUpperCase(); }
 
 			@Override
-			public void click(GameContainer container) { screenshotFormatIndex = (screenshotFormatIndex + 1) % screenshotFormat.length; }
+			public Object[] getItemList() {
+				if (itemList == null) {
+					itemList = new String[screenshotFormat.length];
+					for (int i = 0; i < screenshotFormat.length; i++)
+						itemList[i] = screenshotFormat[i].toUpperCase();
+				}
+				return itemList;
+			}
+
+			@Override
+			public void selectItem(int index, GameContainer container) { screenshotFormatIndex = index; }
 
 			@Override
 			public String write() { return Integer.toString(screenshotFormatIndex); }
@@ -421,8 +466,8 @@ public class Options {
 		},
 		NEW_CURSOR ("Enable New Cursor", "NewCursor", "Use the new cursor style (may cause higher CPU usage).", true) {
 			@Override
-			public void click(GameContainer container) {
-				super.click(container);
+			public void toggle(GameContainer container) {
+				super.toggle(container);
 				UI.getCursor().reset();
 			}
 		},
@@ -430,16 +475,16 @@ public class Options {
 		LOAD_VERBOSE ("Show Detailed Loading Progress", "LoadVerbose", "Display more specific loading information in the splash screen.", false),
 		MASTER_VOLUME ("Master Volume", "VolumeUniversal", "Global volume level.", 35, 0, 100) {
 			@Override
-			public void drag(GameContainer container, int d) {
-				super.drag(container, d);
-				container.setMusicVolume(getMasterVolume() * getMusicVolume());
+			public void setValue(int value) {
+				super.setValue(value);
+				SoundStore.get().setMusicVolume(getMasterVolume() * getMusicVolume());
 			}
 		},
 		MUSIC_VOLUME ("Music Volume", "VolumeMusic", "Volume of music.", 80, 0, 100) {
 			@Override
-			public void drag(GameContainer container, int d) {
-				super.drag(container, d);
-				container.setMusicVolume(getMasterVolume() * getMusicVolume());
+			public void setValue(int value) {
+				super.setValue(value);
+				SoundStore.get().setMusicVolume(getMasterVolume() * getMusicVolume());
 			}
 		},
 		EFFECT_VOLUME ("Effect Volume", "VolumeEffect", "Volume of menu and game sounds.", 70, 0, 100),
@@ -539,7 +584,7 @@ public class Options {
 					val = i;
 			}
 		},
-		CHECKPOINT ("Track Checkpoint", "Checkpoint", "Press Ctrl+L while playing to load a checkpoint, and Ctrl+S to set one.", 0, 0, 3599) {
+		CHECKPOINT ("Track Checkpoint", "Checkpoint", "Press Ctrl+L while playing to load a checkpoint, and Ctrl+S to set one.", 0, 0, 1800) {
 			@Override
 			public String getValueString() {
 				return (val == 0) ? "Disabled" : String.format("%02d:%02d",
@@ -571,10 +616,10 @@ public class Options {
 		private int max, min;
 
 		/** Option types. */
-		private enum OptionType { BOOLEAN, NUMERIC, OTHER };
+		public enum OptionType { BOOLEAN, NUMERIC, SELECT };
 
-		/** Whether or not this is a numeric option. */
-		private OptionType type = OptionType.OTHER;
+		/** Option type. */
+		private OptionType type = OptionType.SELECT;
 
 		/**
 		 * Constructor for internal options (not displayed in-game).
@@ -643,6 +688,12 @@ public class Options {
 		public String getDescription() { return description; }
 
 		/**
+		 * Returns the option type.
+		 * @return the type
+		 */
+		public OptionType getType() { return type; }
+
+		/**
 		 * Returns the boolean value for the option, if applicable.
 		 * @return the boolean value
 		 */
@@ -655,6 +706,24 @@ public class Options {
 		public int getIntegerValue() { return val; }
 
 		/**
+		 * Returns the minimum integer value for this option, if applicable.
+		 * @return the minimum integer value
+		 */
+		public int getMinValue() { return min; }
+
+		/**
+		 * Returns the maximum integer value for this option, if applicable.
+		 * @return the maximum integer value
+		 */
+		public int getMaxValue() { return max; }
+
+		/**
+		 * Returns a list of values to choose from, if applicable.
+		 * @return the list of values, or {@code null} if not applicable
+		 */
+		public Object[] getItemList() { return null; }
+
+		/**
 		 * Sets the boolean value for the option.
 		 * @param value the new boolean value
 		 */
@@ -664,7 +733,20 @@ public class Options {
 		 * Sets the integer value for the option.
 		 * @param value the new integer value
 		 */
-		public void setValue(int value) { this.val = value; }
+		public void setValue(int value) { this.val = Utils.clamp(value, min, max); }
+
+		/**
+		 * Toggles the boolean value for the option, if applicable.
+		 * @param container the game container
+		 */
+		public void toggle(GameContainer container) { bool = !bool; }
+
+		/**
+		 * Selects an item with the given list index, if applicable.
+		 * @param index the selected item index (in {@link #getItemList()})
+		 * @param container the game container
+		 */
+		public void selectItem(int index, GameContainer container) {}
 
 		/**
 		 * Returns the value of the option as a string (via override).
@@ -681,27 +763,6 @@ public class Options {
 				return (bool) ? "Yes" : "No";
 			else
 				return "";
-		}
-
-		/**
-		 * Processes a mouse click action (via override).
-		 * <p>
-		 * By default, this inverts the current {@code bool} field.
-		 * @param container the game container
-		 */
-		public void click(GameContainer container) { bool = !bool; }
-
-		/**
-		 * Processes a mouse drag action (via override).
-		 * <p>
-		 * By default, only if this is a numeric option, the {@code val} field
-		 * will be shifted by {@code d} within the given bounds.
-		 * @param container the game container
-		 * @param d the dragged distance (modified by multiplier)
-		 */
-		public void drag(GameContainer container, int d) {
-			if (type == OptionType.NUMERIC)
-				val = Utils.clamp(val + d, min, max);
 		}
 
 		/**
@@ -765,9 +826,6 @@ public class Options {
 		/** Screen dimensions. */
 		private int width, height;
 
-		/** Enum values. */
-		private static Resolution[] values = Resolution.values();
-
 		/**
 		 * Constructor.
 		 * @param width the screen width
@@ -778,20 +836,11 @@ public class Options {
 			this.height = height;
 		}
 
-		/**
-		 * Returns the screen width.
-		 */
+		/** Returns the screen width. */
 		public int getWidth() { return width; }
 
-		/**
-		 * Returns the screen height.
-		 */
+		/** Returns the screen height. */
 		public int getHeight() { return height; }
-
-		/**
-		 * Returns the next (larger) Resolution.
-		 */
-		public Resolution next() { return values[(this.ordinal() + 1) % values.length]; }
 
 		@Override
 		public String toString() { return String.format("%sx%s", width, height); }
@@ -802,9 +851,6 @@ public class Options {
 
 	/** The available skin directories. */
 	private static String[] skinDirs;
-
-	/** The index in the skinDirs array. */
-	private static int skinDirIndex = 0;
 
 	/** The name of the skin. */
 	private static String skinName = "Default";
@@ -844,7 +890,8 @@ public class Options {
 	 * @param container the game container
 	 */
 	public static void setNextFPS(GameContainer container) {
-		GameOption.TARGET_FPS.click(container);
+		int index = (targetFPSindex + 1) % targetFPS.length;
+		GameOption.TARGET_FPS.selectItem(index, container);
 		UI.sendBarNotification(String.format("Frame limiter: %s", GameOption.TARGET_FPS.getValueString()));
 	}
 
@@ -1121,7 +1168,7 @@ public class Options {
 	 * sends a bar notification about the action.
 	 */
 	public static void toggleMouseDisabled() {
-		GameOption.DISABLE_MOUSE_BUTTONS.click(null);
+		GameOption.DISABLE_MOUSE_BUTTONS.toggle(null);
 		UI.sendBarNotification((GameOption.DISABLE_MOUSE_BUTTONS.getBooleanValue()) ?
 			"Mouse buttons are disabled." : "Mouse buttons are enabled.");
 	}
@@ -1317,14 +1364,6 @@ public class Options {
 		if (skinDir == null)
 			skin = new Skin(null);
 		else {
-			// set skin index
-			for (int i = 1; i < skinDirs.length; i++) {
-				if (skinDirs[i].equals(skinName)) {
-					skinDirIndex = i;
-					break;
-				}
-			}
-
 			// load the skin
 			skin = SkinLoader.loadSkin(skinDir);
 			ResourceLoader.addResourceLocation(new FileSystemLocation(skinDir));

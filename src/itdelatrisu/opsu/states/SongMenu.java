@@ -23,6 +23,7 @@ import itdelatrisu.opsu.GameData.Grade;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.GameMod;
 import itdelatrisu.opsu.Opsu;
+import itdelatrisu.opsu.OptionGroup;
 import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.ScoreData;
 import itdelatrisu.opsu.Utils;
@@ -50,6 +51,7 @@ import itdelatrisu.opsu.ui.DropdownMenu;
 import itdelatrisu.opsu.ui.Fonts;
 import itdelatrisu.opsu.ui.KineticScrolling;
 import itdelatrisu.opsu.ui.MenuButton;
+import itdelatrisu.opsu.ui.OptionsOverlay;
 import itdelatrisu.opsu.ui.StarStream;
 import itdelatrisu.opsu.ui.UI;
 import itdelatrisu.opsu.ui.animations.AnimatedValue;
@@ -75,7 +77,6 @@ import org.newdawn.slick.gui.TextField;
 import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.state.transition.EasedFadeOutTransition;
-import org.newdawn.slick.state.transition.EmptyTransition;
 import org.newdawn.slick.state.transition.FadeInTransition;
 
 /**
@@ -323,6 +324,15 @@ public class SongMenu extends BasicGameState {
 	/** Sort order dropdown menu. */
 	private DropdownMenu<BeatmapSortOrder> sortMenu;
 
+	/** Options overlay. */
+	private OptionsOverlay optionsOverlay;
+
+	/** Whether the options overlay is being shown. */
+	private boolean showOptionsOverlay = false;
+
+	/** The options overlay show/hide animation progress. */
+	private AnimatedValue optionsOverlayProgress = new AnimatedValue(500, 0f, 1f, AnimationEquation.OUT_CUBIC);
+
 	// game-related variables
 	private GameContainer container;
 	private StateBasedGame game;
@@ -457,6 +467,18 @@ public class SongMenu extends BasicGameState {
 		starStream = new StarStream(width, (height - GameImage.STAR.getImage().getHeight()) / 2, -width, 0, MAX_STREAM_STARS);
 		starStream.setPositionSpread(height / 20f);
 		starStream.setDirectionSpread(10f);
+
+		// options overlay
+		optionsOverlay = new OptionsOverlay(container, OptionGroup.ALL_OPTIONS, new OptionsOverlay.OptionsOverlayListener() {
+			@Override
+			public void close() {
+				showOptionsOverlay = false;
+				optionsOverlay.deactivate();
+				optionsOverlay.reset();
+				optionsOverlayProgress.setTime(0);
+			}
+		});
+		optionsOverlay.setConsumeAndClose(true);
 	}
 
 	@Override
@@ -533,7 +555,7 @@ public class SongMenu extends BasicGameState {
 					continue;
 				long prevScore = (rank + 1 < focusScores.length) ? focusScores[rank + 1].score : -1;
 				float t = Utils.clamp((time - (i * (duration - segmentDuration) / scoreButtons)) / (float) segmentDuration, 0f, 1f);
-				boolean focus = (t >= 0.9999f && ScoreData.buttonContains(mouseX, mouseY - offset, i));
+				boolean focus = (t >= 0.9999f && ScoreData.buttonContains(mouseX, mouseY - offset, i) && !showOptionsOverlay);
 				focusScores[rank].draw(g, offset + i * ScoreData.getButtonOffset(), rank, prevScore, focus, t);
 			}
 			g.clearClip();
@@ -710,8 +732,12 @@ public class SongMenu extends BasicGameState {
 		}
 
 		// back button
-		else
+		else if (!showOptionsOverlay)
 			UI.getBackButton().draw();
+
+		// options overlay
+		if (showOptionsOverlay || optionsOverlayProgress.getTime() < optionsOverlayProgress.getDuration())
+			optionsOverlay.render(container, g);
 
 		UI.draw(g);
 	}
@@ -742,6 +768,17 @@ public class SongMenu extends BasicGameState {
 		selectMapOptionsButton.hoverUpdate(delta, mouseX, mouseY);
 		selectOptionsButton.hoverUpdate(delta, mouseX, mouseY);
 		footerLogoButton.hoverUpdate(delta, mouseX, mouseY, 0.25f);
+
+		// options overlay
+		if (optionsOverlayProgress.update(delta)) {
+			// slide in/out
+			float t = optionsOverlayProgress.getValue();
+			int optionsOffset = (int) (optionsOverlay.getWidth() * t);
+			int optionsX = showOptionsOverlay ?
+				-optionsOverlay.getWidth() + optionsOffset : -optionsOffset;
+			optionsOverlay.setLocation(optionsX, 0);
+		} else if (showOptionsOverlay)
+			optionsOverlay.update(delta);
 
 		// beatmap menu timer
 		if (beatmapMenuTimer > -1) {
@@ -856,7 +893,7 @@ public class SongMenu extends BasicGameState {
 		// tooltips
 		if (sortMenu.baseContains(mouseX, mouseY))
 			UI.updateTooltip(delta, "Sort by...", false);
-		else if (focusScores != null && ScoreData.areaContains(mouseX, mouseY)) {
+		else if (focusScores != null && ScoreData.areaContains(mouseX, mouseY) && !showOptionsOverlay) {
 			int startScore = (int) (startScorePos.getPosition() / ScoreData.getButtonOffset());
 			int offset = (int) (-startScorePos.getPosition() + startScore * ScoreData.getButtonOffset());
 			int scoreButtons = Math.min(focusScores.length - startScore, MAX_SCORE_BUTTONS);
@@ -910,6 +947,9 @@ public class SongMenu extends BasicGameState {
 		if (isInputBlocked())
 			return;
 
+		if (showOptionsOverlay || optionsOverlayProgress.getTime() < optionsOverlayProgress.getDuration())
+			return;
+
 		// back
 		if (UI.getBackButton().contains(x, y)) {
 			SoundController.playSound(SoundEffect.MENUBACK);
@@ -930,7 +970,9 @@ public class SongMenu extends BasicGameState {
 			return;
 		} else if (selectOptionsButton.contains(x, y)) {
 			SoundController.playSound(SoundEffect.MENUHIT);
-			game.enterState(Opsu.STATE_OPTIONSMENU, new EmptyTransition(), new FadeInTransition());
+			showOptionsOverlay = true;
+			optionsOverlayProgress.setTime(0);
+			optionsOverlay.activate();
 			return;
 		}
 
@@ -1264,6 +1306,10 @@ public class SongMenu extends BasicGameState {
 		starStream.clear();
 		sortMenu.activate();
 		sortMenu.reset();
+		optionsOverlay.deactivate();
+		optionsOverlay.reset();
+		showOptionsOverlay = false;
+		optionsOverlayProgress.setTime(optionsOverlayProgress.getDuration());
 
 		// reset song stack
 		randomStack = new Stack<SongNode>();
@@ -1435,6 +1481,9 @@ public class SongMenu extends BasicGameState {
 			throws SlickException {
 		search.setFocus(false);
 		sortMenu.deactivate();
+		optionsOverlay.deactivate();
+		optionsOverlay.reset();
+		showOptionsOverlay = false;
 	}
 
 	/**

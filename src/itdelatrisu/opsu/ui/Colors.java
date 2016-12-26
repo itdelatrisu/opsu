@@ -47,7 +47,9 @@ public class Colors {
 		BLACK_BG_NORMAL = new Color(0, 0, 0, 0.25f),
 		BLACK_BG_HOVER  = new Color(0, 0, 0, 0.5f),
 		BLACK_BG_FOCUS  = new Color(0, 0, 0, 0.75f),
-		GHOST_LOGO      = new Color(1.0f, 1.0f, 1.0f, 0.25f);
+		GHOST_LOGO      = new Color(1.0f, 1.0f, 1.0f, 0.25f),
+		PINK_OPTION     = new Color(235, 117, 139),
+		BLUE_OPTION     = new Color(88, 217, 253);
 
 	// This class should not be instantiated.
 	private Colors() {}

@@ -28,7 +28,6 @@ import itdelatrisu.opsu.states.Game;
 import itdelatrisu.opsu.states.GamePauseMenu;
 import itdelatrisu.opsu.states.GameRanking;
 import itdelatrisu.opsu.states.MainMenu;
-import itdelatrisu.opsu.states.OptionsMenu;
 import itdelatrisu.opsu.states.SongMenu;
 import itdelatrisu.opsu.states.Splash;
 import itdelatrisu.opsu.ui.UI;
@@ -47,8 +46,8 @@ import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.StateBasedGame;
-import org.newdawn.slick.state.transition.FadeInTransition;
 import org.newdawn.slick.state.transition.EasedFadeOutTransition;
+import org.newdawn.slick.state.transition.FadeInTransition;
 import org.newdawn.slick.util.DefaultLogSystem;
 import org.newdawn.slick.util.FileSystemLocation;
 import org.newdawn.slick.util.Log;
@@ -69,8 +68,7 @@ public class Opsu extends StateBasedGame {
 		STATE_GAME          = 4,
 		STATE_GAMEPAUSEMENU = 5,
 		STATE_GAMERANKING   = 6,
-		STATE_OPTIONSMENU   = 7,
-		STATE_DOWNLOADSMENU = 8;
+		STATE_DOWNLOADSMENU = 7;
 
 	/** Server socket for restricting the program to a single instance. */
 	private static ServerSocket SERVER_SOCKET;
@@ -92,7 +90,6 @@ public class Opsu extends StateBasedGame {
 		addState(new Game(STATE_GAME));
 		addState(new GamePauseMenu(STATE_GAMEPAUSEMENU));
 		addState(new GameRanking(STATE_GAMERANKING));
-		addState(new OptionsMenu(STATE_OPTIONSMENU));
 		addState(new DownloadsMenu(STATE_DOWNLOADSMENU));
 	}
 
