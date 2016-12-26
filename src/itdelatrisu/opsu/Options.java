@@ -47,8 +47,10 @@ import java.util.jar.Manifest;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.lwjgl.LWJGLException;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.Display;
+import org.lwjgl.opengl.DisplayMode;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
@@ -339,6 +341,10 @@ public class Options {
 			public void selectItem(int index, GameContainer container) {
 				resolution = itemList[index];
 				UI.sendBarNotification(getDescription());
+
+				// check if fullscreen mode is possible with this resolution
+				if (FULLSCREEN.getBooleanValue() && !resolution.hasFullscreenDisplayMode())
+					FULLSCREEN.toggle(container);
 			}
 
 			@Override
@@ -349,7 +355,19 @@ public class Options {
 				} catch (IllegalArgumentException e) {}
 			}
 		},
-//		FULLSCREEN ("Fullscreen Mode", "Fullscreen", "Restart to apply changes.", false),
+		FULLSCREEN ("Fullscreen Mode", "Fullscreen", "Restart (Ctrl+Shift+F5) to apply changes.", false) {
+			@Override
+			public void toggle(GameContainer container) {
+				// check if fullscreen mode is possible with this resolution
+				if (!getBooleanValue() && !resolution.hasFullscreenDisplayMode()) {
+					UI.sendBarNotification(String.format("Fullscreen mode is not available at resolution %s", resolution.toString()));
+					return;
+				}
+
+				super.toggle(container);
+				UI.sendBarNotification(getDescription());
+			}
+		},
 		SKIN ("Skin", "Skin", "Restart (Ctrl+Shift+F5) to apply skin changes.") {
 			@Override
 			public String getValueString() { return skinName; }
@@ -842,6 +860,19 @@ public class Options {
 		/** Returns the screen height. */
 		public int getHeight() { return height; }
 
+		/** Returns whether this resolution is possible to use in fullscreen mode. */
+		public boolean hasFullscreenDisplayMode() {
+			try {
+				for (DisplayMode mode : Display.getAvailableDisplayModes()) {
+					if (width == mode.getWidth() && height == mode.getHeight())
+						return true;
+				}
+			} catch (LWJGLException e) {
+				ErrorHandler.error("Failed to get available display modes.", e, true);
+			}
+			return false;
+		}
+
 		@Override
 		public String toString() { return String.format("%sx%s", width, height); }
 	}
@@ -954,27 +985,34 @@ public class Options {
 	public static void setDisplayMode(Container app) {
 		int screenWidth = app.getScreenWidth();
 		int screenHeight = app.getScreenHeight();
+		boolean fullscreen = isFullscreen();
 
 		// check for larger-than-screen dimensions
 		if (screenWidth < resolution.getWidth() || screenHeight < resolution.getHeight())
 			resolution = Resolution.RES_800_600;
 
+		// check if fullscreen mode is possible with this resolution
+		if (fullscreen && !resolution.hasFullscreenDisplayMode())
+			fullscreen = false;
+
 		try {
-			app.setDisplayMode(resolution.getWidth(), resolution.getHeight(), false);
+			app.setDisplayMode(resolution.getWidth(), resolution.getHeight(), fullscreen);
 		} catch (SlickException e) {
 			ErrorHandler.error("Failed to set display mode.", e, true);
 		}
 
 		// set borderless window if dimensions match screen size
-		boolean borderless = (screenWidth == resolution.getWidth() && screenHeight == resolution.getHeight());
-		System.setProperty("org.lwjgl.opengl.Window.undecorated", Boolean.toString(borderless));
+		if (!fullscreen) {
+			boolean borderless = (screenWidth == resolution.getWidth() && screenHeight == resolution.getHeight());
+			System.setProperty("org.lwjgl.opengl.Window.undecorated", Boolean.toString(borderless));
+		}
 	}
 
-//	/**
-//	 * Returns whether or not fullscreen mode is enabled.
-//	 * @return true if enabled
-//	 */
-//	public static boolean isFullscreen() { return fullscreen; }
+	/**
+	 * Returns whether or not fullscreen mode is enabled.
+	 * @return true if enabled
+	 */
+	public static boolean isFullscreen() { return GameOption.FULLSCREEN.getBooleanValue(); }
 
 	/**
 	 * Returns whether or not the FPS counter display is enabled.

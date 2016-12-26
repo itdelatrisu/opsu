@@ -28,7 +28,7 @@ public class OptionGroup {
 	public static final OptionGroup[] ALL_OPTIONS = new OptionGroup[]{
 		new OptionGroup("Display", new GameOption[]{
 			GameOption.SCREEN_RESOLUTION,
-//			GameOption.FULLSCREEN,
+			GameOption.FULLSCREEN,
 			GameOption.SKIN,
 			GameOption.TARGET_FPS,
 			GameOption.SHOW_FPS,
