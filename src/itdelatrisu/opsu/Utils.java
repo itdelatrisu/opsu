@@ -420,18 +420,11 @@ public class Utils {
 	 * @param url the remote URL
 	 * @return the JSON object, or null if an error occurred
 	 * @throws IOException if an I/O exception occurs
+	 * @throws JSONException if a JSON exception occurs
 	 */
-	public static JSONObject readJsonObjectFromUrl(URL url) throws IOException {
+	public static JSONObject readJsonObjectFromUrl(URL url) throws IOException, JSONException {
 		String s = Utils.readDataFromUrl(url);
-		JSONObject json = null;
-		if (s != null) {
-			try {
-				json = new JSONObject(s);
-			} catch (JSONException e) {
-				ErrorHandler.error("Failed to create JSON object.", e, true);
-			}
-		}
-		return json;
+		return s == null ? null : new JSONObject(s);
 	}
 
 	/**
@@ -439,18 +432,11 @@ public class Utils {
 	 * @param url the remote URL
 	 * @return the JSON array, or null if an error occurred
 	 * @throws IOException if an I/O exception occurs
+	 * @throws JSONException if a JSON exception occurs
 	 */
-	public static JSONArray readJsonArrayFromUrl(URL url) throws IOException {
+	public static JSONArray readJsonArrayFromUrl(URL url) throws IOException, JSONException {
 		String s = Utils.readDataFromUrl(url);
-		JSONArray json = null;
-		if (s != null) {
-			try {
-				json = new JSONArray(s);
-			} catch (JSONException e) {
-				ErrorHandler.error("Failed to create JSON array.", e, true);
-			}
-		}
-		return json;
+		return s == null ? null : new JSONArray(s);
 	}
 
 	/**

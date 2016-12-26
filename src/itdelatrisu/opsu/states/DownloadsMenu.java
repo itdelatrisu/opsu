@@ -228,7 +228,7 @@ public class DownloadsMenu extends BasicGameState {
 					focusResult = -1;
 					startResultPos.setPosition(0);
 					if (nodes == null)
-						searchResultString = "An error has occurred.";
+						searchResultString = "An error occurred. See log for details.";
 					else {
 						if (query.isEmpty())
 							searchResultString = "Type to search!";

@@ -29,7 +29,9 @@ import java.net.URL;
 import java.net.URLEncoder;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
+import org.newdawn.slick.util.Log;
 
 /**
  * Download server: http://osu.mengsky.net/
@@ -72,6 +74,10 @@ public class MengSkyServer extends DownloadServer {
 				rankedOnlyFlag, rankedOnlyFlag, rankedOnlyFlag
 			);
 			JSONObject json = Utils.readJsonObjectFromUrl(new URL(search));
+			if (json == null) {
+				this.totalResults = -1;
+				return null;
+			}
 
 			// parse result list
 			JSONArray arr = json.getJSONArray("data");
@@ -102,6 +108,8 @@ public class MengSkyServer extends DownloadServer {
 			this.totalResults = resultCount;
 		} catch (MalformedURLException | UnsupportedEncodingException e) {
 			ErrorHandler.error(String.format("Problem loading result list for query '%s'.", query), e, true);
+		} catch (JSONException e) {
+			Log.error(e);
 		}
 		return nodes;
 	}

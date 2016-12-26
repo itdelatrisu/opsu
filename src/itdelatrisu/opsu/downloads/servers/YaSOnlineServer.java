@@ -33,7 +33,9 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
+import org.json.JSONException;
 import org.json.JSONObject;
+import org.newdawn.slick.util.Log;
 
 /**
  * Download server: http://osu.yas-online.net/
@@ -187,6 +189,8 @@ public class YaSOnlineServer extends DownloadServer {
 				this.totalResults = maxServerID;
 		} catch (MalformedURLException | UnsupportedEncodingException e) {
 			ErrorHandler.error(String.format("Problem loading result list for query '%s'.", query), e, true);
+		} catch (JSONException e) {
+			Log.error(e);
 		} finally {
 			Utils.setSSLCertValidation(true);
 		}

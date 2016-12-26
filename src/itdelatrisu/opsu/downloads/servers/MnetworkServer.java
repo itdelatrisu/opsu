@@ -32,6 +32,9 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.json.JSONException;
+import org.newdawn.slick.util.Log;
+
 /**
  * Download server: http://osu.uu.gl/
  */
@@ -121,6 +124,8 @@ public class MnetworkServer extends DownloadServer {
 			this.totalResults = nodes.length;
 		} catch (MalformedURLException | UnsupportedEncodingException e) {
 			ErrorHandler.error(String.format("Problem loading result list for query '%s'.", query), e, true);
+		} catch (JSONException e) {
+			Log.error(e);
 		}
 		return nodes;
 	}
