@@ -665,8 +665,16 @@ public class OptionsOverlay extends AbstractComponent {
 	@Override
 	public void mouseWheelMoved(int delta) {
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
-		if (!active || !contains(mouseX, mouseY))
+		if (!active)
 			return;
+
+		if (!contains(mouseX, mouseY)) {
+			if (consumeAndClose) {
+				consumeEvent();
+				listener.close();
+			}
+			return;
+		}
 
 		if (!isAdjustingSlider)
 			scrolling.scrollOffset(-delta);
