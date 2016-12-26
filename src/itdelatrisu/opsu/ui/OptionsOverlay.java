@@ -96,8 +96,8 @@ public class OptionsOverlay extends AbstractComponent {
 	/** The hover index in the current list. */
 	private int listHoverIndex = -1;
 
-	/** The current scroll offset. */
-	private int scrollOffset;
+	/** Kinetic scrolling. */
+	private final KineticScrolling scrolling;
 
 	/** The maximum scroll offset. */
 	private final int maxScrollOffset;
@@ -184,8 +184,9 @@ public class OptionsOverlay extends AbstractComponent {
 		for (OptionGroup group : groups)
 			maxScrollOffset += group.getOptions().length * optionHeight;
 		maxScrollOffset -= (int) (height * 0.97f - optionStartY);
-		this.scrollOffset = 0;
 		this.maxScrollOffset = maxScrollOffset;
+		this.scrolling = new KineticScrolling();
+		scrolling.setMinMax(0f, maxScrollOffset);
 	}
 
 	@Override
@@ -257,7 +258,7 @@ public class OptionsOverlay extends AbstractComponent {
 		// scrollbar
 		int scrollbarWidth = 10, scrollbarHeight = 45;
 		float scrollbarX = x + width - scrollbarWidth;
-		float scrollbarY = y + optionStartY + ((float) scrollOffset / maxScrollOffset) * (containerHeight - optionStartY - scrollbarHeight);
+		float scrollbarY = y + optionStartY + (scrolling.getPosition() / maxScrollOffset) * (containerHeight - optionStartY - scrollbarHeight);
 		g.setColor(Color.white);
 		g.fillRect(scrollbarX, scrollbarY, scrollbarWidth, scrollbarHeight);
 		g.clearClip();
@@ -283,7 +284,7 @@ public class OptionsOverlay extends AbstractComponent {
 	 */
 	private void renderOptions(Graphics g) {
 		listStartX = listStartY = listWidth = listHeight = 0; // render out of the screen
-		int cy = (int) y + optionStartY - scrollOffset;
+		int cy = (int) (y + optionStartY - scrolling.getPosition());
 		boolean render = true;
 		for (int groupIdx = 0; groupIdx < groups.length; groupIdx++) {
 			OptionGroup group = groups[groupIdx];
@@ -479,6 +480,7 @@ public class OptionsOverlay extends AbstractComponent {
 			UI.updateTooltip(delta, hoverOption.getDescription(), true);
 		backButton.hoverUpdate(delta, backButton.contains(mouseX, mouseY) && !keyEntryLeft && !keyEntryRight);
 		sliderSoundDelay = Math.max(sliderSoundDelay - delta, 0);
+		scrolling.update(delta);
 
 		if (!mouseMoved)
 			return;
@@ -564,21 +566,19 @@ public class OptionsOverlay extends AbstractComponent {
 			return;
 		}
 
+		scrolling.pressed();
+
 		// clicked an option?
 		hoverOption = selectedOption = getOptionAtPosition(x, y);
 		mousePressY = y;
 		if (hoverOption != null) {
-			if (hoverOption.getItemList() != null) {
-				SoundController.playSound(SoundEffect.MENUCLICK);
-				isListOptionOpen = true;
-			} else if (hoverOption.getType() == OptionType.NUMERIC) {
+			if (hoverOption.getType() == OptionType.NUMERIC) {
 				isAdjustingSlider = sliderOptionStartX <= x && x < sliderOptionStartX + sliderOptionWidth;
 				if (isAdjustingSlider) {
 					SoundController.playSound(SoundEffect.MENUCLICK);
 					updateSliderOption(x, y);
 				}
 			}
-			return;
 		}
 	}
 
@@ -608,6 +608,7 @@ public class OptionsOverlay extends AbstractComponent {
 		mousePressY = -1;
 		selectedOption = null;
 		sliderOptionWidth = 0;
+		scrolling.released();
 
 		if (mouseDragged)
 			return;
@@ -617,9 +618,14 @@ public class OptionsOverlay extends AbstractComponent {
 			if (hoverOption.getType() == OptionType.BOOLEAN) {
 				SoundController.playSound(SoundEffect.MENUCLICK);
 				hoverOption.toggle(container);
+			} else if (hoverOption.getItemList() != null) {
+				SoundController.playSound(SoundEffect.MENUCLICK);
+				isListOptionOpen = true;
 			} else if (hoverOption == GameOption.KEY_LEFT) {
+				SoundController.playSound(SoundEffect.MENUCLICK);
 				keyEntryLeft = true;
 			} else if (hoverOption == GameOption.KEY_RIGHT) {
+				SoundController.playSound(SoundEffect.MENUCLICK);
 				keyEntryRight = true;
 			}
 		}
@@ -630,8 +636,11 @@ public class OptionsOverlay extends AbstractComponent {
 		if (!active || !contains(oldx, oldy))
 			return;
 
-		if (!isAdjustingSlider)
-			scrollOffset = Utils.clamp(scrollOffset + oldy - newy, 0, maxScrollOffset);
+		if (!isAdjustingSlider) {
+			int diff = newy - oldy;
+			if (diff != 0)
+				scrolling.dragged(-diff);
+		}
 		consumeEvent();
 	}
 
@@ -642,7 +651,7 @@ public class OptionsOverlay extends AbstractComponent {
 			return;
 
 		if (!isAdjustingSlider)
-			scrollOffset = Utils.clamp(scrollOffset - delta, 0, maxScrollOffset);
+			scrolling.scrollOffset(-delta);
 		updateHoverOption(prevMouseX, prevMouseY);
 		consumeEvent();
 	}
@@ -724,7 +733,7 @@ public class OptionsOverlay extends AbstractComponent {
 		if (cy < y + optionStartY || cx < x + optionStartX || cx > x + optionStartX + optionWidth)
 			return null;  // out of bounds
 
-		int mouseVirtualY = scrollOffset + cy - (int) y - optionStartY;
+		int mouseVirtualY = (int) (scrolling.getPosition() + cy - y - optionStartY);
 		for (OptionGroup group : groups) {
 			mouseVirtualY -= optionGroupPadding;
 			for (int i = 0; i < group.getOptions().length; i++) {
@@ -764,7 +773,7 @@ public class OptionsOverlay extends AbstractComponent {
 		listWidth = listHeight = 0;
 		listHoverIndex = -1;
 		sliderOptionStartX = sliderOptionWidth = 0;
-		scrollOffset = 0;
+		scrolling.setPosition(0f);
 		keyEntryLeft = keyEntryRight = false;
 		mousePressY = -1;
 		prevMouseX = prevMouseY = -1;
