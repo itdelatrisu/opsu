@@ -155,14 +155,21 @@ public class BeatmapParser {
 								cachedBeatmaps.add(beatmap);
 							}
 							continue;
-						} else
+						} else  // out of sync, delete cache entry and re-parse
 							BeatmapDB.delete(dir.getName(), file.getName());
 					}
 				}
 
-				// Parse hit objects only when needed to save time/memory.
-				// Change boolean to 'true' to parse them immediately.
-				Beatmap beatmap = parseFile(file, dir, beatmaps, false);
+				// parse beatmap
+				Beatmap beatmap = null;
+				try {
+					// Parse hit objects only when needed to save time/memory.
+					// Change boolean to 'true' to parse them immediately.
+					beatmap = parseFile(file, dir, beatmaps, false);
+				} catch (Exception e) {
+					ErrorHandler.error(String.format("Failed to parse beatmap file '%s'.",
+							file.getAbsolutePath()), e, true);
+				}
 
 				// add to parsed beatmap list
 				if (beatmap != null) {
