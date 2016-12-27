@@ -142,6 +142,10 @@
 					<groupId>org.lwjgl.lwjgl</groupId>
 					<artifactId>lwjgl</artifactId>
 				</exclusion>
+				<exclusion>
+					<groupId>javax.jnlp</groupId>
+					<artifactId>jnlp-api</artifactId>
+				</exclusion>
 			</exclusions>
 		</dependency>
 		<dependency>

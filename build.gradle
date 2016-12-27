@@ -38,6 +38,7 @@ dependencies {
 	}
 	compile('org.slick2d:slick2d-core:1.0.2') {
 		exclude group: 'org.lwjgl.lwjgl', module: 'lwjgl'
+		exclude group: 'javax.jnlp', module: 'jnlp-api'
 	}
 	compile 'org.jcraft:jorbis:0.0.17'
 	compile 'net.lingala.zip4j:zip4j:1.3.2'
