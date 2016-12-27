@@ -266,14 +266,14 @@ public class DropdownMenu<E> extends AbstractComponent {
 		final int cornerRadius = 6;
 		g.setLineWidth(1f);
 		g.setColor((idx == -1) ? highlightColor : backgroundColor);
-		g.fillRoundRect(x, y, width, baseHeight, cornerRadius);
+		g.fillRoundRect((int) x, (int) y, width, baseHeight, cornerRadius);
 		g.setColor(borderColor);
-		g.drawRoundRect(x, y, width, baseHeight, cornerRadius);
+		g.drawRoundRect((int) x, (int) y, width, baseHeight, cornerRadius);
 		if (expanded || t >= 0.0001) {
 			float oldBackgroundAlpha = backgroundColor.a;
 			backgroundColor.a *= t;
 			g.setColor(backgroundColor);
-			g.fillRoundRect(x, y + offsetY, width, (height - offsetY) * t, cornerRadius);
+			g.fillRoundRect((int) x, (int) (y + offsetY), width, (height - offsetY) * t, cornerRadius);
 			backgroundColor.a = oldBackgroundAlpha;
 		}
 		if (idx >= 0 && t >= 0.9999) {
@@ -281,12 +281,12 @@ public class DropdownMenu<E> extends AbstractComponent {
 			float yPos = y + offsetY + (offsetY * idx);
 			int yOff = 0, hOff = 0;
 			if (idx == 0 || idx == items.length - 1) {
-				g.fillRoundRect(x, yPos, width, offsetY, cornerRadius);
+				g.fillRoundRect((int) x, (int) yPos, width, offsetY, cornerRadius);
 				if (idx == 0)
 					yOff = cornerRadius;
 				hOff = cornerRadius;
 			}
-			g.fillRect(x, yPos + yOff, width, offsetY - hOff);
+			g.fillRect((int) x, (int) (yPos + yOff), width, offsetY - hOff);
 		}
 		g.setColor(oldGColor);
 		g.setLineWidth(oldLineWidth);

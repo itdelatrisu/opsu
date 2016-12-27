@@ -369,9 +369,7 @@ public class SongMenu extends BasicGameState {
 		footerLogoButton.setHoverExpand(1.2f);
 
 		// initialize sorts
-		int sortWidth = (int) (width * 0.12f);
-		sortMenu = new DropdownMenu<BeatmapSortOrder>(container, BeatmapSortOrder.values(),
-				width * 0.87f, headerY - GameImage.MENU_TAB.getImage().getHeight() * 2.25f, sortWidth) {
+		sortMenu = new DropdownMenu<BeatmapSortOrder>(container, BeatmapSortOrder.values(), 0, 0, (int) (width * 0.12f)) {
 			@Override
 			public void itemSelected(int index, BeatmapSortOrder item) {
 				BeatmapSortOrder.set(item);
@@ -393,6 +391,10 @@ public class SongMenu extends BasicGameState {
 				return true;
 			}
 		};
+		sortMenu.setLocation(
+			(int) (width * 0.99f - sortMenu.getWidth()),
+			(int) (headerY - GameImage.MENU_TAB.getImage().getHeight() * 2.25f)
+		);
 		sortMenu.setBackgroundColor(Colors.BLACK_BG_HOVER);
 		sortMenu.setBorderColor(Colors.BLUE_DIVIDER);
 		sortMenu.setChevronRightColor(Color.white);
