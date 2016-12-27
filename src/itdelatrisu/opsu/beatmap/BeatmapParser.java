@@ -108,7 +108,7 @@ public class BeatmapParser {
 		totalDirectories = dirs.length;
 
 		// get last modified map from database
-		Map<String, Long> map = BeatmapDB.getLastModifiedMap();
+		Map<String, BeatmapDB.LastModifiedMapEntry> lastModifiedMap = BeatmapDB.getLastModifiedMap();
 
 		// beatmap lists
 		List<ArrayList<Beatmap>> allBeatmaps = new LinkedList<ArrayList<Beatmap>>();
@@ -137,21 +137,23 @@ public class BeatmapParser {
 				continue;
 
 			// create a new group entry
-			ArrayList<Beatmap> beatmaps = new ArrayList<Beatmap>();
+			ArrayList<Beatmap> beatmaps = new ArrayList<Beatmap>(files.length);
 			for (File file : files) {
 				currentFile = file;
 
 				// check if beatmap is cached
-				String path = String.format("%s/%s", dir.getName(), file.getName());
-				if (map != null) {
-					Long lastModified = map.get(path);
-					if (lastModified != null) {
+				String beatmapPath = String.format("%s/%s", dir.getName(), file.getName());
+				if (lastModifiedMap != null) {
+					BeatmapDB.LastModifiedMapEntry entry = lastModifiedMap.get(beatmapPath);
+					if (entry != null) {
 						// check last modified times
-						if (lastModified == file.lastModified()) {
-							// add to cached beatmap list
-							Beatmap beatmap = new Beatmap(file);
-							beatmaps.add(beatmap);
-							cachedBeatmaps.add(beatmap);
+						if (entry.getLastModified() == file.lastModified()) {
+							if (entry.getMode() == Beatmap.MODE_OSU) {  // only support standard mode
+								// add to cached beatmap list
+								Beatmap beatmap = new Beatmap(file);
+								beatmaps.add(beatmap);
+								cachedBeatmaps.add(beatmap);
+							}
 							continue;
 						} else
 							BeatmapDB.delete(dir.getName(), file.getName());
@@ -165,7 +167,8 @@ public class BeatmapParser {
 				// add to parsed beatmap list
 				if (beatmap != null) {
 					beatmap.dateAdded = timestamp;
-					beatmaps.add(beatmap);
+					if (beatmap.mode == Beatmap.MODE_OSU)  // only support standard mode
+						beatmaps.add(beatmap);
 					parsedBeatmaps.add(beatmap);
 				}
 			}
@@ -297,11 +300,6 @@ public class BeatmapParser {
 								break;
 							case "Mode":
 								beatmap.mode = Byte.parseByte(tokens[1]);
-
-								/* Non-Opsu! standard files not implemented (obviously). */
-								if (beatmap.mode != Beatmap.MODE_OSU)
-									return null;
-
 								break;
 							case "LetterboxInBreaks":
 								beatmap.letterboxInBreaks = Utils.parseBoolean(tokens[1]);

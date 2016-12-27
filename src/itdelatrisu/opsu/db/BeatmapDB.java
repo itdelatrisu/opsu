@@ -81,6 +81,31 @@ public class BeatmapDB {
 	/** Beatmap loading flags. */
 	public static final int LOAD_NONARRAY = 1, LOAD_ARRAY = 2, LOAD_ALL = 3;
 
+	/** Represents an entry in the last modified map. */
+	public static class LastModifiedMapEntry {
+		/** The last modified time. */
+		private final long lastModified;
+
+		/** The game mode. */
+		private final byte mode;
+
+		/**
+		 * Creates a new entry.
+		 * @param lastModified the last modified time
+		 * @param mode the game mode (Beatmap.MODE_*)
+		 */
+		public LastModifiedMapEntry(long lastModified, byte mode) {
+			this.lastModified = lastModified;
+			this.mode = mode;
+		}
+
+		/** Returns the last modified time. */
+		public long getLastModified() { return lastModified; }
+
+		/** Returns the game mode (Beatmap.MODE_*). */
+		public byte getMode() { return mode; }
+	}
+
 	/** Database connection. */
 	private static Connection connection;
 
@@ -583,22 +608,23 @@ public class BeatmapDB {
 	}
 
 	/**
-	 * Returns a map of file paths ({dir}/{file}) to last modified times, or
-	 * null if any error occurred.
+	 * Returns a map of file paths ({dir}/{file}) to last modified map entries,
+	 * or null if any error occurred.
 	 */
-	public static Map<String, Long> getLastModifiedMap() {
+	public static Map<String, LastModifiedMapEntry> getLastModifiedMap() {
 		if (connection == null)
 			return null;
 
 		try (Statement stmt = connection.createStatement()) {
-			Map<String, Long> map = new HashMap<String, Long>();
-			String sql = "SELECT dir, file, lastModified FROM beatmaps";
+			Map<String, LastModifiedMapEntry> map = new HashMap<String, LastModifiedMapEntry>();
+			String sql = "SELECT dir, file, lastModified, mode FROM beatmaps";
 			ResultSet rs = stmt.executeQuery(sql);
 			stmt.setFetchSize(100);
 			while (rs.next()) {
 				String path = String.format("%s/%s", rs.getString(1), rs.getString(2));
 				long lastModified = rs.getLong(3);
-				map.put(path, lastModified);
+				byte mode = rs.getByte(4);
+				map.put(path, new LastModifiedMapEntry(lastModified, mode));
 			}
 			rs.close();
 			return map;
