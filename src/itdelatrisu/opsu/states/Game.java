@@ -1614,7 +1614,7 @@ public class Game extends BasicGameState {
 	public void loadBeatmap(Beatmap beatmap) {
 		this.beatmap = beatmap;
 		Display.setTitle(String.format("%s - %s", game.getTitle(), beatmap.toString()));
-		if (beatmap.breaks == null)
+		if (beatmap.timingPoints == null)
 			BeatmapDB.load(beatmap, BeatmapDB.LOAD_ARRAY);
 		BeatmapParser.parseHitObjects(beatmap);
 		HitSound.setDefaultSampleSet(beatmap.sampleSet);

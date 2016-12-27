@@ -1579,7 +1579,7 @@ public class SongMenu extends BasicGameState {
 		Beatmap beatmap = focusNode.getSelectedBeatmap();
 		if (beatmap.timingPoints == null) {
 			// parse timing points so we can pulse the logo
-			BeatmapParser.parseTimingPoints(beatmap);
+			BeatmapDB.load(beatmap, BeatmapDB.LOAD_ARRAY);
 		}
 		MusicController.play(beatmap, false, preview);
 
