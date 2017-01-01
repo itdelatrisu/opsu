@@ -1,6 +1,6 @@
 /*
  * opsu! - an open-source osu! client
- * Copyright (C) 2014, 2015 Jeffrey Han
+ * Copyright (C) 2014, 2015, 2016 Jeffrey Han
  *
  * opsu! is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@
 package itdelatrisu.opsu;
 
 import fluddokt.opsu.fake.Log;
+import fluddokt.opsu.fake.gl.GL11;
 
 /*
 import java.awt.Cursor;
@@ -36,7 +37,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.UIManager;
 
-
+import org.lwjgl.opengl.GL11;
 import org.newdawn.slick.util.Log;
 import org.newdawn.slick.util.ResourceLoader;
 */
@@ -82,8 +83,22 @@ public class ErrorHandler {
 		messageReport = { descReport, scroll };
 	*/
 
+	/** OpenGL string (if any). */
+	private static String glString = null;
+
 	// This class should not be instantiated.
 	private ErrorHandler() {}
+
+	/**
+	 * Sets the OpenGL version string.
+	 */
+	public static void setGlString() {
+		try {
+			String glVersion = GL11.glGetString(GL11.GL_VERSION);
+			String glVendor = GL11.glGetString(GL11.GL_VENDOR);
+			glString = String.format("%s (%s)", glVersion, glVendor);
+		} catch (Exception e) {}
+	}
 
 	/**
 	 * Displays an error popup and logs the given error.
@@ -157,7 +172,8 @@ public class ErrorHandler {
 			}
 		} catch (Exception e1) {
 			Log.error("An error occurred in the crash popup.", e1);
-		}*/
+		}
+		*/
 	}
 
 	/**
@@ -200,25 +216,30 @@ public class ErrorHandler {
 		} catch (IOException e1) {
 			Log.warn("Could not read version file.", e1);
 		}
-						sb.append("**OS:** ");
-						sb.append(System.getProperty("os.name"));
-						sb.append(" (");
-						sb.append(System.getProperty("os.arch"));
-						sb.append(")\n");
-						sb.append("**JRE:** ");
-						sb.append(System.getProperty("java.version"));
-						sb.append('\n');
-						if (error != null) {
-							sb.append("**Error:** `");
-							sb.append(error);
-							sb.append("`\n");
-						}
-						if (trace != null) {
-							sb.append("**Stack trace:**");
-							sb.append("\n```\n");
-							sb.append(trace);
-							sb.append("```");
-						}
+		sb.append("**OS:** ");
+		sb.append(System.getProperty("os.name"));
+		sb.append(" (");
+		sb.append(System.getProperty("os.arch"));
+		sb.append(")\n");
+		sb.append("**JRE:** ");
+		sb.append(System.getProperty("java.version"));
+		sb.append('\n');
+		if (glString != null) {
+			sb.append("**OpenGL Version:** ");
+			sb.append(glString);
+			sb.append('\n');
+		}
+		if (error != null) {
+			sb.append("**Error:** `");
+			sb.append(error);
+			sb.append("`\n");
+		}
+		if (trace != null) {
+			sb.append("**Stack trace:**");
+			sb.append("\n```\n");
+			sb.append(trace);
+			sb.append("```");
+		}
 
 		// return auto-filled URI
 		try {

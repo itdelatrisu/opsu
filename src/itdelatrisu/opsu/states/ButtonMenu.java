@@ -1,6 +1,6 @@
 /*
  * opsu! - an open-source osu! client
- * Copyright (C) 2014, 2015 Jeffrey Han
+ * Copyright (C) 2014, 2015, 2016 Jeffrey Han
  *
  * opsu! is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -71,8 +71,8 @@ public class ButtonMenu extends BasicGameState {
 				Button.NO.click(container, game);
 			}
 		},
-		/** The initial beatmap management screen. */
-		BEATMAP (new Button[] { Button.CLEAR_SCORES, Button.DELETE, Button.CANCEL }) {
+		/** The initial beatmap management screen (for a non-"favorite" beatmap). */
+		BEATMAP (new Button[] { Button.CLEAR_SCORES, Button.FAVORITE_ADD, Button.DELETE, Button.CANCEL }) {
 			@Override
 			public String[] getTitle(GameContainer container, StateBasedGame game) {
 				BeatmapSetNode node = ((ButtonMenu) game.getState(Opsu.STATE_BUTTONMENU)).getNode();
@@ -90,6 +90,23 @@ public class ButtonMenu extends BasicGameState {
 				Input input = container.getInput();
 				if (input.isKeyDown(Input.KEY_LALT) || input.isKeyDown(Input.KEY_RALT))
 					super.scroll(container, game, newValue);
+			}
+		},
+		/** The initial beatmap management screen (for a "favorite" beatmap). */
+		BEATMAP_FAVORITE (new Button[] { Button.CLEAR_SCORES, Button.FAVORITE_REMOVE, Button.DELETE, Button.CANCEL }) {
+			@Override
+			public String[] getTitle(GameContainer container, StateBasedGame game) {
+				return BEATMAP.getTitle(container, game);
+			}
+
+			@Override
+			public void leave(GameContainer container, StateBasedGame game) {
+				BEATMAP.leave(container, game);
+			}
+
+			@Override
+			public void scroll(GameContainer container, StateBasedGame game, int newValue) {
+				BEATMAP.scroll(container, game, newValue);
 			}
 		},
 		/** The beatmap deletion screen for a beatmap set with multiple beatmaps. */
@@ -458,7 +475,7 @@ public class ButtonMenu extends BasicGameState {
 			@Override
 			public void click(GameContainer container, StateBasedGame game) {
 				SoundController.playSound(SoundEffect.MENUBACK);
-				game.enterState(Opsu.STATE_MAINMENU, new EmptyTransition(), new FadeInTransition(Color.black));
+				game.enterState(Opsu.STATE_MAINMENU, new EmptyTransition(), new FadeInTransition());
 			}
 		},
 		CLEAR_SCORES ("Clear local scores", Color.magenta) {
@@ -467,7 +484,26 @@ public class ButtonMenu extends BasicGameState {
 				SoundController.playSound(SoundEffect.MENUHIT);
 				BeatmapSetNode node = ((ButtonMenu) game.getState(Opsu.STATE_BUTTONMENU)).getNode();
 				((SongMenu) game.getState(Opsu.STATE_SONGMENU)).doStateActionOnLoad(MenuState.BEATMAP, node);
-				game.enterState(Opsu.STATE_SONGMENU, new EmptyTransition(), new FadeInTransition(Color.black));
+				game.enterState(Opsu.STATE_SONGMENU, new EmptyTransition(), new FadeInTransition());
+			}
+		},
+		FAVORITE_ADD ("Add to Favorites", Color.blue) {
+			@Override
+			public void click(GameContainer container, StateBasedGame game) {
+				SoundController.playSound(SoundEffect.MENUHIT);
+				BeatmapSetNode node = ((ButtonMenu) game.getState(Opsu.STATE_BUTTONMENU)).getNode();
+				node.getBeatmapSet().setFavorite(true);
+				game.enterState(Opsu.STATE_SONGMENU, new EmptyTransition(), new FadeInTransition());
+			}
+		},
+		FAVORITE_REMOVE ("Remove from Favorites", Color.blue) {
+			@Override
+			public void click(GameContainer container, StateBasedGame game) {
+				SoundController.playSound(SoundEffect.MENUHIT);
+				BeatmapSetNode node = ((ButtonMenu) game.getState(Opsu.STATE_BUTTONMENU)).getNode();
+				node.getBeatmapSet().setFavorite(false);
+				((SongMenu) game.getState(Opsu.STATE_SONGMENU)).doStateActionOnLoad(MenuState.BEATMAP_FAVORITE);
+				game.enterState(Opsu.STATE_SONGMENU, new EmptyTransition(), new FadeInTransition());
 			}
 		},
 		DELETE ("Delete...", Color.red) {
@@ -485,7 +521,7 @@ public class ButtonMenu extends BasicGameState {
 			@Override
 			public void click(GameContainer container, StateBasedGame game) {
 				SoundController.playSound(SoundEffect.MENUBACK);
-				game.enterState(Opsu.STATE_SONGMENU, new EmptyTransition(), new FadeInTransition(Color.black));
+				game.enterState(Opsu.STATE_SONGMENU, new EmptyTransition(), new FadeInTransition());
 			}
 		},
 		DELETE_CONFIRM ("Yes, delete this beatmap!", Color.red) {
@@ -494,7 +530,7 @@ public class ButtonMenu extends BasicGameState {
 				SoundController.playSound(SoundEffect.MENUHIT);
 				BeatmapSetNode node = ((ButtonMenu) game.getState(Opsu.STATE_BUTTONMENU)).getNode();
 				((SongMenu) game.getState(Opsu.STATE_SONGMENU)).doStateActionOnLoad(MenuState.BEATMAP_DELETE_CONFIRM, node);
-				game.enterState(Opsu.STATE_SONGMENU, new EmptyTransition(), new FadeInTransition(Color.black));
+				game.enterState(Opsu.STATE_SONGMENU, new EmptyTransition(), new FadeInTransition());
 			}
 		},
 		DELETE_GROUP ("Yes, delete all difficulties!", Color.red) {
@@ -509,7 +545,7 @@ public class ButtonMenu extends BasicGameState {
 				SoundController.playSound(SoundEffect.MENUHIT);
 				BeatmapSetNode node = ((ButtonMenu) game.getState(Opsu.STATE_BUTTONMENU)).getNode();
 				((SongMenu) game.getState(Opsu.STATE_SONGMENU)).doStateActionOnLoad(MenuState.BEATMAP_DELETE_SELECT, node);
-				game.enterState(Opsu.STATE_SONGMENU, new EmptyTransition(), new FadeInTransition(Color.black));
+				game.enterState(Opsu.STATE_SONGMENU, new EmptyTransition(), new FadeInTransition());
 			}
 		},
 		CANCEL_DELETE ("Nooooo! I didn't mean to!", Color.gray) {
@@ -523,7 +559,7 @@ public class ButtonMenu extends BasicGameState {
 			public void click(GameContainer container, StateBasedGame game) {
 				SoundController.playSound(SoundEffect.MENUHIT);
 				((SongMenu) game.getState(Opsu.STATE_SONGMENU)).doStateActionOnLoad(MenuState.RELOAD);
-				game.enterState(Opsu.STATE_SONGMENU, new EmptyTransition(), new FadeInTransition(Color.black));
+				game.enterState(Opsu.STATE_SONGMENU, new EmptyTransition(), new FadeInTransition());
 			}
 		},
 		RELOAD_CANCEL ("Cancel", Color.red) {
@@ -538,7 +574,7 @@ public class ButtonMenu extends BasicGameState {
 				SoundController.playSound(SoundEffect.MENUHIT);
 				ScoreData scoreData = ((ButtonMenu) game.getState(Opsu.STATE_BUTTONMENU)).getScoreData();
 				((SongMenu) game.getState(Opsu.STATE_SONGMENU)).doStateActionOnLoad(MenuState.SCORE, scoreData);
-				game.enterState(Opsu.STATE_SONGMENU, new EmptyTransition(), new FadeInTransition(Color.black));
+				game.enterState(Opsu.STATE_SONGMENU, new EmptyTransition(), new FadeInTransition());
 			}
 		},
 		CLOSE ("Close", Color.gray) {

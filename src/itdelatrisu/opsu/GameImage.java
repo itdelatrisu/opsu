@@ -1,6 +1,6 @@
 /*
  * opsu! - an open-source osu! client
- * Copyright (C) 2014, 2015 Jeffrey Han
+ * Copyright (C) 2014, 2015, 2016 Jeffrey Han
  *
  * opsu! is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -428,15 +428,14 @@ public enum GameImage {
 			return img.getScaledCopy((h / 14f) / img.getHeight());
 		}
 	},
-	OPTIONS_BG ("options-background", "png|jpg", false, true) {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			img.setAlpha(0.7f);
-			return img.getScaledCopy(w, h);
-		}
-	},
 	CHEVRON_DOWN ("chevron-down", "png", false, false),
 	CHEVRON_RIGHT ("chevron-right", "png", false, false),
+	CHEVRON_LEFT ("chevron-left", "png", false, false),
+
+	// Options menu
+	CONTROL_SLIDER_BALL ("control-sliderball", "png", false, false),
+	CONTROL_CHECK_ON ("control-check-on", "png", false, false),
+	CONTROL_CHECK_OFF ("control-check-off", "png", false, false),
 
 	// TODO: ensure this image hasn't been modified (checksum?)
 	ALPHA_MAP ("alphaInvert", "png", false, false);
@@ -696,7 +695,7 @@ public enum GameImage {
 	 * If the default image has already been loaded, this will do nothing.
 	 */
 	public void setDefaultImage() {
-		if (defaultImage != null || defaultImages != null)
+		if (defaultImage != null || defaultImages != null || Options.getSkin() == null)
 			return;
 
 		// try to load multiple images

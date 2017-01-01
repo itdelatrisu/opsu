@@ -1,6 +1,6 @@
 /*
  * opsu! - an open-source osu! client
- * Copyright (C) 2014, 2015 Jeffrey Han
+ * Copyright (C) 2014, 2015, 2016 Jeffrey Han
  *
  * opsu! is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -256,7 +256,7 @@ public class Spinner implements GameObject {
 		else
 			result = GameData.HIT_MISS;
 
-		data.hitResult(hitObject.getEndTime(), result, width / 2, height / 2,
+		data.sendHitResult(hitObject.getEndTime(), result, width / 2, height / 2,
 				Color.transparent, true, hitObject, HitObjectType.SPINNER, true, 0, null, false);
 		return result;
 	}

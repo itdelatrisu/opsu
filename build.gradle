@@ -20,6 +20,7 @@ sourceSets {
   }
 }
 
+
 eclipse.project {
     name = appName + "-core"
 }

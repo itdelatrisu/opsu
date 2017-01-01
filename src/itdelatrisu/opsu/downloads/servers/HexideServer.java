@@ -1,6 +1,6 @@
 /*
  * opsu! - an open-source osu! client
- * Copyright (C) 2014, 2015 Jeffrey Han
+ * Copyright (C) 2014, 2015, 2016 Jeffrey Han
  *
  * opsu! is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,10 +29,14 @@ import java.net.URL;
 import java.net.URLEncoder;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
+import org.newdawn.slick.util.Log;
 
 /**
  * Download server: https://osu.hexide.com/
+ * <p>
+ * <i>This server went offline in 2016.</i>
  */
 public class HexideServer extends DownloadServer {
 	/** Server name. */
@@ -127,6 +131,8 @@ public class HexideServer extends DownloadServer {
 			this.totalResults = arr.length() + resultIndex;
 		} catch (MalformedURLException | UnsupportedEncodingException e) {
 			ErrorHandler.error(String.format("Problem loading result list for query '%s'.", query), e, true);
+		} catch (JSONException e) {
+			Log.error(e);
 		}
 		return nodes;
 	}

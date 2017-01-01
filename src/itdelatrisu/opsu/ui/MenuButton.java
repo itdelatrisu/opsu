@@ -1,6 +1,6 @@
 /*
  * opsu! - an open-source osu! client
- * Copyright (C) 2014, 2015 Jeffrey Han
+ * Copyright (C) 2014, 2015, 2016 Jeffrey Han
  *
  * opsu! is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -101,6 +101,9 @@ public class MenuButton {
 	/** The default max rotation angle of the button. */
 	private static final float DEFAULT_ANGLE_MAX = 30f;
 
+	/** The last scale at which the button was drawn. */
+	private float lastScale = 1f;
+
 	/**
 	 * Creates a new button from an Image.
 	 * @param img the image
@@ -170,6 +173,11 @@ public class MenuButton {
 	public float getY() { return y; }
 
 	/**
+	 * Returns the last scale at which the button was drawn.
+	 */
+	public float getLastScale() { return lastScale; }
+
+	/**
 	 * Sets text to draw in the middle of the button.
 	 * @param text the text to draw
 	 * @param font the font to use when drawing
@@ -194,14 +202,21 @@ public class MenuButton {
 	/**
 	 * Draws the button.
 	 */
-	public void draw() { draw(Color.white); }
+	public void draw() { draw(Color.white, 1f); }
 
 	/**
-	 * Draw the button with a color filter.
+	 * Draws the button with a color filter.
 	 * @param filter the color to filter with when drawing
 	 */
+	public void draw(Color filter) { draw(filter, 1f); }
+
+	/**
+	 * Draw the button with a color filter at the given scale.
+	 * @param filter the color to filter with when drawing
+	 * @param scaleOverride the scale to use when drawing (only works for normal images)
+	 */
 	@SuppressWarnings("deprecation")
-	public void draw(Color filter) {
+	public void draw(Color filter, float scaleOverride) {
 		// animations: get current frame
 		Image image = this.img;
 		if (image == null) {
@@ -211,6 +226,13 @@ public class MenuButton {
 
 		// normal images
 		if (imgL == null) {
+			float xScaleOffset = 0f, yScaleOffset = 0f;
+			if (scaleOverride != 1f) {
+				image = image.getScaledCopy(scaleOverride);
+				xScaleOffset = image.getWidth() / 2f - xRadius;
+				yScaleOffset = image.getHeight() / 2f - yRadius;
+			}
+			lastScale = scaleOverride;
 			if (hoverEffect == 0)
 				image.draw(x - xRadius, y - yRadius, filter);
 			else {
@@ -220,13 +242,18 @@ public class MenuButton {
 					if (scale.getValue() != 1f) {
 						image = image.getScaledCopy(scale.getValue());
 						image.setAlpha(oldAlpha);
+						if (scaleOverride != 1f) {
+							xScaleOffset = image.getWidth() / 2f - xRadius;
+							yScaleOffset = image.getHeight() / 2f - yRadius;
+						}
+						lastScale *= scale.getValue();
 					}
 				}
 				if ((hoverEffect & EFFECT_FADE) > 0)
 					image.setAlpha(alpha.getValue());
 				if ((hoverEffect & EFFECT_ROTATE) > 0)
 					image.setRotation(angle.getValue());
-				image.draw(x - xRadius, y - yRadius, filter);
+				image.draw(x - xRadius - xScaleOffset, y - yRadius - yScaleOffset, filter);
 				if (image == this.img) {
 					image.setAlpha(oldAlpha);
 					image.setRotation(oldAngle);

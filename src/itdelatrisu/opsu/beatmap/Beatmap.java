@@ -1,6 +1,6 @@
 /*
  * opsu! - an open-source osu! client
- * Copyright (C) 2014, 2015 Jeffrey Han
+ * Copyright (C) 2014, 2015, 2016 Jeffrey Han
  *
  * opsu! is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -71,6 +71,21 @@ public class Beatmap implements Comparable<Beatmap> {
 
 	/** The star rating. */
 	public double starRating = -1;
+
+	/** The timestamp this beatmap was first loaded. */
+	public long dateAdded = 0;
+
+	/** Whether this beatmap is marked as a "favorite". */
+	public boolean favorite = false;
+
+	/** Total number of times this beatmap has been played. */
+	public int playCount = 0;
+
+	/** The last time this beatmap was played (timestamp). */
+	public long lastPlayed = 0;
+
+	/** The local music offset. */
+	public int localMusicOffset = 0;
 
 	/**
 	 * [General]
@@ -504,5 +519,13 @@ public class Beatmap implements Comparable<Beatmap> {
 
 		String[] rgb = s.split(",");
 		this.sliderBorder = new Color(new Color(Integer.parseInt(rgb[0]), Integer.parseInt(rgb[1]), Integer.parseInt(rgb[2])));
+	}
+
+	/**
+	 * Increments the play counter and last played time.
+	 */
+	public void incrementPlayCounter() {
+		this.playCount++;
+		this.lastPlayed = System.currentTimeMillis();
 	}
 }

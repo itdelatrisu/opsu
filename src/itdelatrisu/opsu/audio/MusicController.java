@@ -1,6 +1,6 @@
 /*
  * opsu! - an open-source osu! client
- * Copyright (C) 2014, 2015 Jeffrey Han
+ * Copyright (C) 2014, 2015, 2016 Jeffrey Han
  *
  * opsu! is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@ import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.beatmap.Beatmap;
 import itdelatrisu.opsu.beatmap.BeatmapParser;
+import itdelatrisu.opsu.beatmap.TimingPoint;
 import itdelatrisu.opsu.ui.UI;
 
 /*
@@ -79,6 +80,12 @@ public class MusicController {
 	/** The track dim level, if dimmed. */
 	private static float dimLevel = 1f;
 
+	/** Current timing point index in the track, advanced by {@link #getBeatProgress()}. */
+	private static int timingPointIndex;
+
+	/** Last non-inherited timing point. */
+	private static TimingPoint lastTimingPoint;
+
 	// This class should not be instantiated.
 	private MusicController() {}
 
@@ -95,7 +102,6 @@ public class MusicController {
 			final File audioFile = beatmap.audioFilename;
 			if (!audioFile.isFile() && !ResourceLoader.resourceExists(audioFile.getPath())) {
 				UI.sendBarNotification(String.format("Could not find track '%s'.", audioFile.getName()));
-				System.out.println(beatmap);
 				return;
 			}
 
@@ -137,8 +143,10 @@ public class MusicController {
 			player.addListener(new MusicListener() {
 				@Override
 				public void musicEnded(Music music) {
-					if (music == player)  // don't fire if music swapped
+					if (music == player) {  // don't fire if music swapped
 						trackEnded = true;
+						resetTimingPoint();
+					}
 				}
 
 				@Override
@@ -160,6 +168,7 @@ public class MusicController {
 			setVolume(Options.getMusicVolume() * Options.getMasterVolume());
 			trackEnded = false;
 			pauseTime = 0f;
+			resetTimingPoint();
 			if (loop)
 				player.loop();
 			else
@@ -185,6 +194,85 @@ public class MusicController {
 	 * Returns the beatmap associated with the current track.
 	 */
 	public static Beatmap getBeatmap() { return lastBeatmap; }
+
+	/**
+	 * Gets the progress of the current beat.
+	 * @return a beat progress value [0,1) where 0 marks the current beat and
+	 *         1 marks the next beat, or {@code null} if no timing information
+	 *         is available (e.g. music paused, no timing points)
+	 */
+	public static Float getBeatProgress() {
+		if (!updateTimingPoint())
+			return null;
+
+		// calculate beat progress
+		int trackPosition = Math.max(0, getPosition(false));
+		double beatLength = lastTimingPoint.getBeatLength() * 100.0;
+		int beatTime = lastTimingPoint.getTime();
+		if (trackPosition < beatTime)
+			trackPosition += (beatLength / 100.0) * (beatTime / lastTimingPoint.getBeatLength());
+		return (float) ((((trackPosition - beatTime) * 100.0) % beatLength) / beatLength);
+	}
+
+	/**
+	 * Gets the progress of the current measure.
+	 * @return a measure progress value [0,1) where 0 marks the start of the measure and
+	 *         1 marks the start of the next measure, or {@code null} if no timing information
+	 *         is available (e.g. music paused, no timing points)
+	 */
+	public static Float getMeasureProgress() { return getMeasureProgress(1); }
+
+	/**
+	 * Gets the progress of the current measure.
+	 * @param k the meter multiplier
+	 * @return a measure progress value [0,1) where 0 marks the start of the measure and
+	 *         1 marks the start of the next measure, or {@code null} if no timing information
+	 *         is available (e.g. music paused, no timing points)
+	 */
+	public static Float getMeasureProgress(int k) {
+		if (!updateTimingPoint())
+			return null;
+
+		// calculate measure progress
+		int trackPosition = Math.max(0, getPosition(false));
+		double measureLength = lastTimingPoint.getBeatLength() * lastTimingPoint.getMeter() * k * 100.0;
+		int beatTime = lastTimingPoint.getTime();
+		if (trackPosition < beatTime)
+			trackPosition += (measureLength / 100.0) * (beatTime / lastTimingPoint.getBeatLength());
+		return (float) ((((trackPosition - beatTime) * 100.0) % measureLength) / measureLength);
+	}
+
+	/**
+	 * Updates the timing point information for the current track position.
+	 * @return {@code false} if timing point information is not available, {@code true} otherwise
+	 */
+	private static boolean updateTimingPoint() {
+		Beatmap map = getBeatmap();
+		if (!isPlaying() || map == null || map.timingPoints == null || map.timingPoints.isEmpty())
+			return false;
+
+		// initialization
+		if (timingPointIndex == 0 && lastTimingPoint == null && !map.timingPoints.isEmpty()) {
+			TimingPoint timingPoint = map.timingPoints.get(0);
+			if (!timingPoint.isInherited())
+				lastTimingPoint = timingPoint;
+		}
+
+		// advance timing point index, record last non-inherited timing point
+		int trackPosition = getPosition(false);
+		for (int i = timingPointIndex + 1; i < map.timingPoints.size(); i++) {
+			TimingPoint timingPoint = map.timingPoints.get(i);
+			if (trackPosition < timingPoint.getTime())
+				break;
+			timingPointIndex = i;
+			if (!timingPoint.isInherited() && timingPoint.getBeatLength() > 0)
+				lastTimingPoint = timingPoint;
+		}
+		if (lastTimingPoint == null)
+			return false;  // no timing info
+
+		return true;
+	}
 
 	/**
 	 * Returns true if the current track is playing.
@@ -227,8 +315,10 @@ public class MusicController {
 	public static void stop() {
 		if (isPlaying())
 			player.stop();
-		if (trackExists())
+		if (trackExists()) {
 			pauseTime = 0f;
+			resetTimingPoint();
+		}
 	}
 
 	/**
@@ -241,14 +331,32 @@ public class MusicController {
 	}
 
 	/**
+	 * Fades out the pitch (and speed) of the track.
+	 * @param duration the pitch fade time (in ms)
+	 */
+	public static void pitchFadeOut(int duration) {
+		if (isPlaying())
+			player.pitchFade(duration, 0f);
+	}
+
+	/**
 	 * Returns the position in the current track, in milliseconds.
 	 * If no track is loaded, 0 will be returned.
+	 * @param useOffsets whether to apply offsets {@link Options#getMusicOffset()}
+	 *                   and {@link Beatmap#localMusicOffset} to the position
 	 */
-	public static int getPosition() {
+	public static int getPosition(boolean useOffsets) {
+		int offset = 0;
+		if (useOffsets) {
+			offset += Options.getMusicOffset();
+			if (lastBeatmap != null)
+				offset += lastBeatmap.localMusicOffset;
+		}
+
 		if (isPlaying())
-			return (int) (player.getPosition() * 1000 + Options.getMusicOffset());
+			return (int) (player.getPosition() * 1000 + offset);
 		else if (isPaused())
-			return Math.max((int) (pauseTime * 1000 + Options.getMusicOffset()), 0);
+			return Math.max((int) (pauseTime * 1000 + offset), 0);
 		else
 			return 0;
 	}
@@ -258,8 +366,11 @@ public class MusicController {
 	 * @param position the new track position (in ms)
 	 */
 	public static boolean setPosition(int position) {
-		//return (trackExists() && position >= 0 && player.setPosition(position / 1000f));
-		return (trackExists() && player.setPosition(position / 1000f));
+		if (!trackExists() || position < 0)
+			return false;
+
+		resetTimingPoint();
+		return (player.setPosition(position / 1000f));
 	}
 
 	/**
@@ -302,6 +413,7 @@ public class MusicController {
 	public static void play(boolean loop) {
 		if (trackExists()) {
 			trackEnded = false;
+			resetTimingPoint();
 			if (loop)
 				player.loop();
 			else
@@ -322,7 +434,7 @@ public class MusicController {
 	 * @param pitch the new pitch
 	 */
 	public static void setPitch(float pitch) {
-		SoundStore.get().setMusicPitch(pitch);
+		player.setPitch(pitch);
 	}
 
 	/**
@@ -345,7 +457,7 @@ public class MusicController {
 	public static void playThemeSong() {
 		Beatmap beatmap = Options.getThemeBeatmap();
 		if (beatmap != null) {
-			play(beatmap, true, false);
+			play(beatmap, false, false);
 			themePlaying = true;
 		}
 	}
@@ -373,6 +485,14 @@ public class MusicController {
 	}
 
 	/**
+	 * Resets timing point information.
+	 */
+	private static void resetTimingPoint() {
+		timingPointIndex = 0;
+		lastTimingPoint = null;
+	}
+
+	/**
 	 * Completely resets MusicController state.
 	 * <p>
 	 * Stops the current track, cancels track conversions, erases
@@ -390,7 +510,7 @@ public class MusicController {
 			try {
 				trackLoader.join();
 			} catch (InterruptedException e) {
-				e.printStackTrace();
+				ErrorHandler.error(null, e, true);
 			}
 		}
 		trackLoader = null;
@@ -402,6 +522,7 @@ public class MusicController {
 		themePlaying = false;
 		pauseTime = 0f;
 		trackDimmed = false;
+		resetTimingPoint();
 
 		// releases all sources from previous tracks
 		destroyOpenAL();

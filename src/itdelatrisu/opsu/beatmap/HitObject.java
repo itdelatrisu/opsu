@@ -1,6 +1,6 @@
 /*
  * opsu! - an open-source osu! client
- * Copyright (C) 2014, 2015 Jeffrey Han
+ * Copyright (C) 2014, 2015, 2016 Jeffrey Han
  *
  * opsu! is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -54,10 +54,10 @@ public class HitObject {
 	 * (Deprecated: only Beziers are currently used.)
 	 */
 	public static final char
-		SLIDER_CATMULL     = 'C',
-		SLIDER_BEZIER      = 'B',
-		SLIDER_LINEAR      = 'L',
-		SLIDER_PASSTHROUGH = 'P';
+		SLIDER_CATMULL       = 'C',
+		SLIDER_BEZIER        = 'B',
+		SLIDER_LINEAR        = 'L',
+		SLIDER_PERFECT_CURVE = 'P';
 
 	/** Max hit object coordinates. */
 	private static final int
@@ -428,7 +428,7 @@ public class HitObject {
 	 * @return a new Curve instance
 	 */
 	public Curve getSliderCurve(boolean scaled) {
-		if (sliderType == SLIDER_PASSTHROUGH && sliderX.length == 2) {
+		if (sliderType == SLIDER_PERFECT_CURVE && sliderX.length == 2) {
 			Vec2f nora = new Vec2f(sliderX[0] - x, sliderY[0] - y).nor();
 			Vec2f norb = new Vec2f(sliderX[0] - sliderX[1], sliderY[0] - sliderY[1]).nor();
 			if (Math.abs(norb.x * nora.y - norb.y * nora.x) < 0.00001f)

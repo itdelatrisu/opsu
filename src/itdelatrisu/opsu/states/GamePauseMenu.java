@@ -1,6 +1,6 @@
 /*
  * opsu! - an open-source osu! client
- * Copyright (C) 2014, 2015 Jeffrey Han
+ * Copyright (C) 2014, 2015, 2016 Jeffrey Han
  *
  * opsu! is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,7 +40,7 @@ import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.state.transition.FadeInTransition;
-import org.newdawn.slick.state.transition.FadeOutTransition;
+import org.newdawn.slick.state.transition.EasedFadeOutTransition;
 */
 
 /**
@@ -50,12 +50,6 @@ import org.newdawn.slick.state.transition.FadeOutTransition;
  * or return to the song menu from this state.
  */
 public class GamePauseMenu extends BasicGameState {
-	/** Music fade-out time, in milliseconds. */
-	private static final int FADEOUT_TIME = 1000;
-
-	/** Track position when the pause menu was loaded (for FADEOUT_TIME). */
-	private long pauseStartTime;
-
 	/** "Continue", "Retry", and "Back" buttons. */
 	private MenuButton continueButton, retryButton, backButton;
 
@@ -137,7 +131,7 @@ public class GamePauseMenu extends BasicGameState {
 				MusicController.playAt(MusicController.getBeatmap().previewTime, true);
 				if (UI.getCursor().isBeatmapSkinned())
 					UI.getCursor().reset();
-				game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
+				game.enterState(Opsu.STATE_SONGMENU, new EasedFadeOutTransition(), new FadeInTransition());
 			} else {
 				SoundController.playSound(SoundEffect.MENUBACK);
 				gameState.setRestart(Game.Restart.FALSE);
@@ -160,6 +154,12 @@ public class GamePauseMenu extends BasicGameState {
 		case Input.KEY_F12:
 			Utils.takeScreenShot();
 			break;
+		case Input.KEY_EQUALS:
+		case Input.KEY_ADD:
+		case Input.KEY_MINUS:
+		case Input.KEY_SUBTRACT:
+			UI.sendBarNotification("Offset can only be changed while game is not paused.");
+			break;
 		}
 	}
 
@@ -169,11 +169,6 @@ public class GamePauseMenu extends BasicGameState {
 			return;
 
 		boolean loseState = (gameState.getRestart() == Game.Restart.LOSE);
-
-		// if music faded out (i.e. health is zero), don't process any actions before FADEOUT_TIME
-		if (loseState && System.currentTimeMillis() - pauseStartTime < FADEOUT_TIME)
-			return;
-
 		if (continueButton.contains(x, y) && !loseState) {
 			SoundController.playSound(SoundEffect.MENUBACK);
 			gameState.setRestart(Game.Restart.FALSE);
@@ -191,13 +186,14 @@ public class GamePauseMenu extends BasicGameState {
 				MusicController.resume();
 			if (UI.getCursor().isBeatmapSkinned())
 				UI.getCursor().reset();
-			game.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
+			MusicController.setPitch(1.0f);
+			game.enterState(Opsu.STATE_SONGMENU, new EasedFadeOutTransition(), new FadeInTransition());
 		}
 	}
 
 	@Override
 	public void mouseWheelMoved(int newValue) {
-		if (Options.isMouseWheelDisabled() || Options.isMouseDisabled())
+		if (Options.isMouseWheelDisabled())
 			return;
 
 		UI.changeVolume((newValue < 0) ? -1 : 1);
@@ -207,12 +203,7 @@ public class GamePauseMenu extends BasicGameState {
 	public void enter(GameContainer container, StateBasedGame game)
 			throws SlickException {
 		UI.enter();
-		pauseStartTime = System.currentTimeMillis();
-		if (gameState.getRestart() == Game.Restart.LOSE) {
-			MusicController.fadeOut(FADEOUT_TIME);
-			SoundController.playSound(SoundEffect.FAIL);
-		} else
-			MusicController.pause();
+		MusicController.pause();
 		continueButton.resetHover();
 		retryButton.resetHover();
 		backButton.resetHover();

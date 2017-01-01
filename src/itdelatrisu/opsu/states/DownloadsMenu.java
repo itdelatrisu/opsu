@@ -1,6 +1,6 @@
 /*
  * opsu! - an open-source osu! client
- * Copyright (C) 2014, 2015 Jeffrey Han
+ * Copyright (C) 2014, 2015, 2016 Jeffrey Han
  *
  * opsu! is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,7 +35,6 @@ import itdelatrisu.opsu.downloads.DownloadList;
 import itdelatrisu.opsu.downloads.DownloadNode;
 import itdelatrisu.opsu.downloads.servers.BloodcatServer;
 import itdelatrisu.opsu.downloads.servers.DownloadServer;
-import itdelatrisu.opsu.downloads.servers.HexideServer;
 import itdelatrisu.opsu.downloads.servers.MengSkyServer;
 import itdelatrisu.opsu.downloads.servers.MnetworkServer;
 import itdelatrisu.opsu.downloads.servers.YaSOnlineServer;
@@ -45,6 +44,7 @@ import itdelatrisu.opsu.ui.Fonts;
 import itdelatrisu.opsu.ui.KineticScrolling;
 import itdelatrisu.opsu.ui.MenuButton;
 import itdelatrisu.opsu.ui.UI;
+
 
 
 //import java.io.File;
@@ -64,8 +64,8 @@ import org.newdawn.slick.SlickException;
 import org.newdawn.slick.gui.TextField;
 import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
+import org.newdawn.slick.state.transition.EasedFadeOutTransition;
 import org.newdawn.slick.state.transition.FadeInTransition;
-import org.newdawn.slick.state.transition.FadeOutTransition;
 import org.newdawn.slick.util.Log;
 */
 /**
@@ -86,8 +86,10 @@ public class DownloadsMenu extends BasicGameState {
 
 	/** Available beatmap download servers. */
 	private static final DownloadServer[] SERVERS = {
-		new BloodcatServer(), new HexideServer(), new YaSOnlineServer(),
-		new MnetworkServer(), new MengSkyServer()
+		new BloodcatServer(),
+		new YaSOnlineServer(),
+		new MnetworkServer(),
+		new MengSkyServer()
 	};
 
 	/** The current list of search results. */
@@ -157,7 +159,7 @@ public class DownloadsMenu extends BasicGameState {
 	private DropdownMenu<DownloadServer> serverMenu;
 
 	/** Beatmap importing thread. */
-	private Thread importThread;
+	private BeatmapImportThread importThread;
 
 	/** Beatmap set ID of the current beatmap being previewed, or -1 if none. */
 	private int previewID = -1;
@@ -231,7 +233,7 @@ public class DownloadsMenu extends BasicGameState {
 					focusResult = -1;
 					startResultPos.setPosition(0);
 					if (nodes == null)
-						searchResultString = "An error has occurred.";
+						searchResultString = "An error occurred. See log for details.";
 					else {
 						if (query.isEmpty())
 							searchResultString = "Type to search!";
@@ -248,6 +250,46 @@ public class DownloadsMenu extends BasicGameState {
 			} finally {
 				complete = true;
 			}
+		}
+	}
+
+	/** Thread for importing packed beatmaps. */
+	private class BeatmapImportThread extends Thread {
+		/** Whether this thread has completed execution. */
+		private boolean finished = false;
+
+		/** The last imported beatmap set node, if any. */
+		private BeatmapSetNode importedNode;
+
+		/** Returns true only if this thread has completed execution. */
+		public boolean isFinished() { return finished; }
+
+		/** Returns an imported beatmap set node, or null if none. */
+		public BeatmapSetNode getImportedBeatmap() { return importedNode; }
+
+		@Override
+		public void run() {
+			try {
+				importBeatmaps();
+			} finally {
+				finished = true;
+			}
+		};
+
+		/** Imports all packed beatmaps. */
+		private void importBeatmaps() {
+			// invoke unpacker and parser
+			File[] dirs = OszUnpacker.unpackAllFiles(Options.getOSZDir(), Options.getBeatmapDir());
+			if (dirs != null && dirs.length > 0) {
+				this.importedNode = BeatmapParser.parseDirectories(dirs);
+				if (importedNode != null) {
+					// send notification
+					UI.sendBarNotification((dirs.length == 1) ? "Imported 1 new song." :
+							String.format("Imported %d new songs.", dirs.length));
+				}
+			}
+
+			DownloadList.get().clearDownloads(Download.Status.COMPLETE);
 		}
 	}
 
@@ -517,6 +559,23 @@ public class DownloadsMenu extends BasicGameState {
 		UI.update(delta);
 		if (importThread == null)
 			MusicController.loopTrackIfEnded(false);
+		else if (importThread.isFinished()) {
+			BeatmapSetNode importedNode = importThread.getImportedBeatmap();
+			if (importedNode != null) {
+				// stop preview
+				previewID = -1;
+				SoundController.stopTrack();
+
+				// initialize song list
+				BeatmapSetList.get().reset();
+				BeatmapSetList.get().init();
+
+				// focus new beatmap
+				// NOTE: This can't be called in another thread because it makes OpenGL calls.
+				((SongMenu) game.getState(Opsu.STATE_SONGMENU)).setFocus(importedNode, -1, true, true);
+			}
+			importThread = null;
+		}
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
 		UI.getBackButton().hoverUpdate(delta, mouseX, mouseY);
 		prevPage.hoverUpdate(delta, mouseX, mouseY);
@@ -590,7 +649,7 @@ public class DownloadsMenu extends BasicGameState {
 		if (UI.getBackButton().contains(x, y)) {
 			SoundController.playSound(SoundEffect.MENUBACK);
 			((MainMenu) game.getState(Opsu.STATE_MAINMENU)).reset();
-			game.enterState(Opsu.STATE_MAINMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
+			game.enterState(Opsu.STATE_MAINMENU, new EasedFadeOutTransition(), new FadeInTransition());
 			return;
 		}
 
@@ -734,33 +793,7 @@ public class DownloadsMenu extends BasicGameState {
 			SoundController.playSound(SoundEffect.MENUCLICK);
 
 			// import songs in new thread
-			importThread = new Thread() {
-				@Override
-				public void run() {
-					// invoke unpacker and parser
-					File[] dirs = OszUnpacker.unpackAllFiles(Options.getOSZDir(), Options.getBeatmapDir());
-					if (dirs != null && dirs.length > 0) {
-						BeatmapSetNode node = BeatmapParser.parseDirectories(dirs);
-						if (node != null) {
-							// stop preview
-							previewID = -1;
-							SoundController.stopTrack();
-
-							// initialize song list
-							BeatmapSetList.get().reset();
-							BeatmapSetList.get().init();
-							((SongMenu) game.getState(Opsu.STATE_SONGMENU)).setFocus(node, -1, true, true);
-
-							// send notification
-							UI.sendBarNotification((dirs.length == 1) ? "Imported 1 new song." :
-									String.format("Imported %d new songs.", dirs.length));
-						}
-					}
-
-					DownloadList.get().clearDownloads(Download.Status.COMPLETE);
-					importThread = null;
-				}
-			};
+			importThread = new BeatmapImportThread();
 			importThread.start();
 			return;
 		}
@@ -884,7 +917,7 @@ public class DownloadsMenu extends BasicGameState {
 				// return to main menu
 				SoundController.playSound(SoundEffect.MENUBACK);
 				((MainMenu) game.getState(Opsu.STATE_MAINMENU)).reset();
-				game.enterState(Opsu.STATE_MAINMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
+				game.enterState(Opsu.STATE_MAINMENU, new EasedFadeOutTransition(), new FadeInTransition());
 			}
 			break;
 		case Input.KEY_ENTER:

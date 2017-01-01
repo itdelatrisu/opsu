@@ -86,6 +86,13 @@ public class Input {
 
 	public static final int ANDROID_BACK = Keys.BACK;
 	public static final int ANDROID_MENU = Keys.MENU;
+	
+	public static final int KEY_EQUALS = Keys.EQUALS;
+	public static final int KEY_MINUS = Keys.MINUS;
+	
+	
+	public static final int KEY_ADD = Keys.PLUS;
+	public static final int KEY_SUBTRACT = Keys.MINUS;//todo NUMPAD
 
 	boolean isRightButtonDown = false;
 

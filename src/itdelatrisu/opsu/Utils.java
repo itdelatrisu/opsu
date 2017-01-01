@@ -1,6 +1,6 @@
 /*
  * opsu! - an open-source osu! client
- * Copyright (C) 2014, 2015 Jeffrey Han
+ * Copyright (C) 2014, 2015, 2016 Jeffrey Han
  *
  * opsu! is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -48,8 +48,10 @@ import java.net.SocketTimeoutException;
 import java.net.URISyntaxException;
 import java.net.URL;
 //import java.nio.ByteBuffer;
+import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.cert.X509Certificate;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
@@ -59,6 +61,10 @@ import java.util.jar.JarFile;
 /*
 import javax.imageio.ImageIO;
 */
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -68,6 +74,7 @@ import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 import org.newdawn.slick.Animation;
+import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.state.StateBasedGame;
@@ -118,6 +125,9 @@ public class Utils {
 		container.setAlwaysRender(true);
 		container.setUpdateOnlyWhenVisible(false);
 
+		// record OpenGL version
+		ErrorHandler.setGlString();
+
 		// calculate UI scale
 		GameImage.init(width, height);
 
@@ -161,6 +171,14 @@ public class Utils {
 	 */
 	public static void drawCentered(Animation anim, float x, float y) {
 		anim.draw(x - (anim.getWidth() / 2f), y - (anim.getHeight() / 2f));
+	}
+
+	/**
+	 * Returns the luminance of a color.
+	 * @param c the color
+	 */
+	public static float getLuminance(Color c) {
+		return 0.299f*c.r + 0.587f*c.g + 0.114f*c.b;
 	}
 
 	/**
@@ -356,7 +374,7 @@ public class Utils {
 	 * deletes the directory itself.
 	 * @param dir the directory to delete
 	 */
-	private static void deleteDirectory(File dir) {
+	public static void deleteDirectory(File dir) {
 		if (dir == null || !dir.isDirectory())
 			return;
 
@@ -417,18 +435,11 @@ public class Utils {
 	 * @param url the remote URL
 	 * @return the JSON object, or null if an error occurred
 	 * @throws IOException if an I/O exception occurs
+	 * @throws JSONException if a JSON exception occurs
 	 */
-	public static JSONObject readJsonObjectFromUrl(URL url) throws IOException {
+	public static JSONObject readJsonObjectFromUrl(URL url) throws IOException, JSONException {
 		String s = Utils.readDataFromUrl(url);
-		JSONObject json = null;
-		if (s != null) {
-			try {
-				json = new JSONObject(s);
-			} catch (JSONException e) {
-				ErrorHandler.error("Failed to create JSON object.", e, true);
-			}
-		}
-		return json;
+		return s == null ? null : new JSONObject(s);
 	}
 
 	/**
@@ -436,18 +447,11 @@ public class Utils {
 	 * @param url the remote URL
 	 * @return the JSON array, or null if an error occurred
 	 * @throws IOException if an I/O exception occurs
+	 * @throws JSONException if a JSON exception occurs
 	 */
-	public static JSONArray readJsonArrayFromUrl(URL url) throws IOException {
+	public static JSONArray readJsonArrayFromUrl(URL url) throws IOException, JSONException {
 		String s = Utils.readDataFromUrl(url);
-		JSONArray json = null;
-		if (s != null) {
-			try {
-				json = new JSONArray(s);
-			} catch (JSONException e) {
-				ErrorHandler.error("Failed to create JSON array.", e, true);
-			}
-		}
-		return json;
+		return s == null ? null : new JSONArray(s);
 	}
 
 	/**
@@ -546,6 +550,14 @@ public class Utils {
 	}
 
 	/**
+	 * Returns the current working directory.
+	 * @return the directory
+	 */
+	public static File getWorkingDirectory() {
+		return Paths.get(".").toAbsolutePath().normalize().toFile();
+	}
+
+	/**
 	 * Parses the integer string argument as a boolean:
 	 * {@code 1} is {@code true}, and all other values are {@code false}.
 	 * @param s the {@code String} containing the boolean representation to be parsed
@@ -619,5 +631,29 @@ public class Utils {
 				outChannel.close();
 		}
 		src.delete();
+	}
+
+	/**
+	 * Switches validation of SSL certificates on or off by installing a default
+	 * all-trusting {@link TrustManager}.
+	 * @param enabled whether to validate SSL certificates
+	 * @author neu242 (http://stackoverflow.com/a/876785)
+	 */
+	public static void setSSLCertValidation(boolean enabled) {
+		// create a trust manager that does not validate certificate chains
+		TrustManager[] trustAllCerts = new TrustManager[]{
+			new X509TrustManager() {
+				@Override public X509Certificate[] getAcceptedIssuers() { return new X509Certificate[0]; }
+				@Override public void checkClientTrusted(X509Certificate[] certs, String authType) {}
+				@Override public void checkServerTrusted(X509Certificate[] certs, String authType) {}
+			}
+		};
+
+		// install the all-trusting trust manager
+		try {
+			SSLContext sc = SSLContext.getInstance("SSL");
+			sc.init(null, enabled ? null : trustAllCerts, null);
+			HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+		} catch (Exception e) {}
 	}
 }

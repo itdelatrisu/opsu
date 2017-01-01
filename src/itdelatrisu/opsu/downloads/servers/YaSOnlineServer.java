@@ -1,6 +1,6 @@
 /*
  * opsu! - an open-source osu! client
- * Copyright (C) 2014, 2015 Jeffrey Han
+ * Copyright (C) 2014, 2015, 2016 Jeffrey Han
  *
  * opsu! is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,7 +33,9 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
+import org.json.JSONException;
 import org.json.JSONObject;
+import org.newdawn.slick.util.Log;
 
 /**
  * Download server: http://osu.yas-online.net/
@@ -93,6 +95,8 @@ public class YaSOnlineServer extends DownloadServer {
 	 */
 	private String getDownloadURLFromMapData(int beatmapSetID) throws IOException {
 		try {
+			Utils.setSSLCertValidation(false);
+
 			// read JSON
 			String search = String.format(DOWNLOAD_URL, beatmapSetID);
 			JSONObject json = Utils.readJsonObjectFromUrl(new URL(search));
@@ -114,6 +118,8 @@ public class YaSOnlineServer extends DownloadServer {
 		} catch (MalformedURLException | UnsupportedEncodingException e) {
 			ErrorHandler.error(String.format("Problem retrieving download URL for beatmap '%d'.", beatmapSetID), e, true);
 			return null;
+		} finally {
+			Utils.setSSLCertValidation(true);
 		}
 	}
 
@@ -121,6 +127,8 @@ public class YaSOnlineServer extends DownloadServer {
 	public DownloadNode[] resultList(String query, int page, boolean rankedOnly) throws IOException {
 		DownloadNode[] nodes = null;
 		try {
+			Utils.setSSLCertValidation(false);
+
 			// read JSON
 			String search;
 			boolean isSearch;
@@ -183,6 +191,10 @@ public class YaSOnlineServer extends DownloadServer {
 				this.totalResults = maxServerID;
 		} catch (MalformedURLException | UnsupportedEncodingException e) {
 			ErrorHandler.error(String.format("Problem loading result list for query '%s'.", query), e, true);
+		} catch (JSONException e) {
+			Log.error(e);
+		} finally {
+			Utils.setSSLCertValidation(true);
 		}
 		return nodes;
 	}

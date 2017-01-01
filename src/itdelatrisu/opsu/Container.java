@@ -1,6 +1,6 @@
 /*
  * opsu! - an open-source osu! client
- * Copyright (C) 2014, 2015 Jeffrey Han
+ * Copyright (C) 2014, 2015, 2016 Jeffrey Han
  *
  * opsu! is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,8 +20,11 @@ package itdelatrisu.opsu;
 
 import fluddokt.opsu.fake.*;
 import itdelatrisu.opsu.audio.MusicController;
+import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.beatmap.Beatmap;
+import itdelatrisu.opsu.beatmap.BeatmapGroup;
 import itdelatrisu.opsu.beatmap.BeatmapSetList;
+import itdelatrisu.opsu.beatmap.BeatmapSortOrder;
 import itdelatrisu.opsu.beatmap.BeatmapWatchService;
 import itdelatrisu.opsu.downloads.DownloadList;
 import itdelatrisu.opsu.downloads.Updater;
@@ -40,8 +43,8 @@ import org.newdawn.slick.opengl.InternalTextureLoader;
  * AppGameContainer extension that sends critical errors to ErrorHandler.
  */
 public class Container extends AppGameContainer {
-	/** SlickException causing game failure. */
-	protected SlickException e = null;
+	/** Exception causing game failure. */
+	protected Exception e = null;
 
 	/**
 	 * Create a new container wrapping a game
@@ -73,16 +76,24 @@ public class Container extends AppGameContainer {
 			getDelta();
 			while (running())
 				gameLoop();
-		} finally {
-			// destroy the game container
-			close_sub();
-			destroy();
+		} catch (Exception e) {
+			this.e = e;
+		}
 
-			// report any critical errors
-			if (e != null) {
-				ErrorHandler.error(null, e, true);
-				e = null;
-			}
+		// destroy the game container
+		try {
+			close_sub();
+		} catch (Exception e) {
+			if (this.e == null)  // suppress if caused by a previous exception
+				this.e = e;
+		}
+		destroy();
+
+		// report any critical errors
+		if (e != null) {
+			ErrorHandler.error(null, e, true);
+			e = null;
+			forceExit = true;
 		}
 
 		if (forceExit) {
@@ -135,7 +146,12 @@ public class Container extends AppGameContainer {
 		// prevent loading tracks from re-initializing OpenAL
 		MusicController.reset();
 
+		// stop any playing track
+		SoundController.stopTrack();
+
 		// reset BeatmapSetList data
+		BeatmapGroup.set(BeatmapGroup.ALL);
+		BeatmapSortOrder.set(BeatmapSortOrder.TITLE);
 		if (BeatmapSetList.get() != null)
 			BeatmapSetList.get().reset();
 
@@ -146,6 +162,9 @@ public class Container extends AppGameContainer {
 		if (!Options.isWatchServiceEnabled())
 			BeatmapWatchService.destroy();
 		BeatmapWatchService.removeListeners();
+
+		// delete temporary directory
+		Utils.deleteDirectory(Options.TEMP_DIR);
 	}
 
 	@Override

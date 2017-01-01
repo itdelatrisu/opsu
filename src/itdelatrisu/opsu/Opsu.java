@@ -1,6 +1,6 @@
 /*
  * opsu! - an open-source osu! client
- * Copyright (C) 2014, 2015 Jeffrey Han
+ * Copyright (C) 2014, 2015, 2016 Jeffrey Han
  *
  * opsu! is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,7 +30,6 @@ import itdelatrisu.opsu.states.Game;
 import itdelatrisu.opsu.states.GamePauseMenu;
 import itdelatrisu.opsu.states.GameRanking;
 import itdelatrisu.opsu.states.MainMenu;
-import itdelatrisu.opsu.states.OptionsMenu;
 import itdelatrisu.opsu.states.SongMenu;
 import itdelatrisu.opsu.states.Splash;
 import itdelatrisu.opsu.ui.UI;
@@ -47,13 +46,12 @@ import java.net.ServerSocket;
 import java.net.UnknownHostException;
 
 /*
-import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.StateBasedGame;
+import org.newdawn.slick.state.transition.EasedFadeOutTransition;
 import org.newdawn.slick.state.transition.FadeInTransition;
-import org.newdawn.slick.state.transition.FadeOutTransition;
 import org.newdawn.slick.util.ClasspathLocation;
 import org.newdawn.slick.util.DefaultLogSystem;
 import org.newdawn.slick.util.FileSystemLocation;
@@ -75,8 +73,7 @@ public class Opsu extends StateBasedGame {
 		STATE_GAME          = 4,
 		STATE_GAMEPAUSEMENU = 5,
 		STATE_GAMERANKING   = 6,
-		STATE_OPTIONSMENU   = 7,
-		STATE_DOWNLOADSMENU = 8;
+		STATE_DOWNLOADSMENU = 7;
 
 	/** Server socket for restricting the program to a single instance. */
 	private static ServerSocket SERVER_SOCKET;
@@ -98,7 +95,6 @@ public class Opsu extends StateBasedGame {
 		addState(new Game(STATE_GAME));
 		addState(new GamePauseMenu(STATE_GAMEPAUSEMENU));
 		addState(new GameRanking(STATE_GAMERANKING));
-		addState(new OptionsMenu(STATE_OPTIONSMENU));
 		addState(new DownloadsMenu(STATE_DOWNLOADSMENU));
 	}
 
@@ -124,7 +120,17 @@ public class Opsu extends StateBasedGame {
 		} catch (FileNotFoundException e) {
 			Log.error(e);
 		}
-		
+
+		/*
+		// set default exception handler
+		Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+			@Override
+			public void uncaughtException(Thread t, Throwable e) {
+				ErrorHandler.error("** Uncaught Exception! **", e, true);
+				System.exit(1);
+			}
+		});
+		*/
 
 		// parse configuration file
 		Options.parseOptions();
@@ -136,13 +142,17 @@ public class Opsu extends StateBasedGame {
 		} catch (UnknownHostException e) {
 			// shouldn't happen
 		} catch (IOException e) {
-			ErrorHandler.error(String.format(
+			errorAndExit(
+				null,
+				String.format(
 					"opsu! could not be launched for one of these reasons:\n" +
 					"- An instance of opsu! is already running.\n" +
 					"- Another program is bound to port %d. " +
 					"You can change the port opsu! uses by editing the \"Port\" field in the configuration file.",
-					Options.getPort()), null, false);
-			System.exit(1);
+					Options.getPort()
+				),
+				false
+			);
 		}
 		*/
 
@@ -187,7 +197,7 @@ public class Opsu extends StateBasedGame {
 		try {
 			DBController.init();
 		} catch (UnsatisfiedLinkError e) {
-			errorAndExit(e, "The databases could not be initialized.");
+			errorAndExit(e, "The databases could not be initialized.", true);
 		}
 
 		/*
@@ -241,7 +251,7 @@ public class Opsu extends StateBasedGame {
 				*/
 		//	}
 		} catch (SlickException e) {
-			errorAndExit(e, "An error occurred while creating the game container.");
+			errorAndExit(e, "An error occurred while creating the game container.", true);
 		}
 	}
 
@@ -260,14 +270,18 @@ public class Opsu extends StateBasedGame {
 			} else {
 				if (id == STATE_GAME) {
 					MusicController.pause();
+					MusicController.setPitch(1.0f);
 					MusicController.resume();
 				} else
 					songMenu.resetTrackOnLoad();
 			}
+
+			// reset game data
 			if (UI.getCursor().isBeatmapSkinned())
 				UI.getCursor().reset();
 			songMenu.resetGameDataOnLoad();
-			this.enterState(Opsu.STATE_SONGMENU, new FadeOutTransition(Color.black), new FadeInTransition(Color.black));
+
+			this.enterState(Opsu.STATE_SONGMENU, new EasedFadeOutTransition(), new FadeInTransition());
 			return false;
 		}
 
@@ -306,15 +320,16 @@ public class Opsu extends StateBasedGame {
 	 * Throws an error and exits the application with the given message.
 	 * @param e the exception that caused the crash
 	 * @param message the message to display
+	 * @param report whether to ask to report the error
 	 */
-	private static void errorAndExit(Throwable e, String message) {
+	private static void errorAndExit(Throwable e, String message, boolean report) {
 		// JARs will not run properly inside directories containing '!'
 		// http://bugs.java.com/view_bug.do?bug_id=4523159
 		if (Utils.isJarRunning() && Utils.getRunningDirectory() != null &&
 		    Utils.getRunningDirectory().getAbsolutePath().indexOf('!') != -1)
 			ErrorHandler.error("JARs cannot be run from some paths containing '!'. Please move or rename the file and try again.", null, false);
 		else
-			ErrorHandler.error(message, e, true);
+			ErrorHandler.error(message, e, report);
 		System.exit(1);
 	}
 }

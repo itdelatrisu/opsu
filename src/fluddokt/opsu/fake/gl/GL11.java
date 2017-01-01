@@ -3,8 +3,6 @@ package fluddokt.opsu.fake.gl;
 import java.nio.ByteBuffer;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Application.ApplicationType;
-
 import fluddokt.opsu.fake.Log;
 
 public class GL11 {
@@ -54,6 +52,10 @@ public class GL11 {
 	public static final int GL_UNSIGNED_BYTE = com.badlogic.gdx.graphics.GL20.GL_UNSIGNED_BYTE;
 	public static final int GL_UNSIGNED_INT = com.badlogic.gdx.graphics.GL20.GL_UNSIGNED_INT;
 	public static final int GL_FLOAT = com.badlogic.gdx.graphics.GL20.GL_FLOAT;
+	public static final int GL_EQUAL = com.badlogic.gdx.graphics.GL20.GL_EQUAL;
+	public static final int GL_LESS = com.badlogic.gdx.graphics.GL20.GL_LESS;
+	public static final int GL_VERSION = com.badlogic.gdx.graphics.GL20.GL_VERSION;
+	public static final int GL_VENDOR = com.badlogic.gdx.graphics.GL20.GL_VENDOR;
 	
 	public static int glGetInteger(int pname) {
 		Gdx.gl20.glGetIntegerv(pname, UtilBuff.prepare());
@@ -269,6 +271,18 @@ public class GL11 {
 
 	public static void glFlush() {
 		Gdx.gl20.glFlush();
+	}
+
+	public static void glDepthFunc(int func) {
+		Gdx.gl20.glDepthFunc(func);
+	}
+
+	public static void glColorMask(boolean r, boolean g, boolean b, boolean a) {
+		Gdx.gl20.glColorMask(r,g,b,a);
+	}
+
+	public static String glGetString(int name) {
+		return Gdx.gl20.glGetString(name);
 	}
 
 }

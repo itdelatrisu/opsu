@@ -1,6 +1,6 @@
 /*
  * opsu! - an open-source osu! client
- * Copyright (C) 2014, 2015 Jeffrey Han
+ * Copyright (C) 2014, 2015, 2016 Jeffrey Han
  *
  * opsu! is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -108,6 +108,12 @@ public class Slider implements GameObject {
 	/** Number of ticks hit and tick intervals so far. */
 	private int ticksHit = 0, tickIntervals = 1;
 
+	/** The current tick time for the follow circle expanding animation. */
+	private int tickExpandTime = 0;
+
+	/** The duration of the follow circle expanding animation on ticks. */
+	private static final int TICK_EXPAND_TIME = 200;
+
 	/** Container dimensions. */
 	private static int containerWidth, containerHeight;
 
@@ -178,6 +184,7 @@ public class Slider implements GameObject {
 	@Override
 	public void draw(Graphics g, int trackPosition) {
 		int timeDiff = hitObject.getTime() - trackPosition;
+		final int repeatCount = hitObject.getRepeatCount();
 		final int approachTime = game.getApproachTime();
 		final int fadeInTime = game.getFadeInTime();
 		float scale = timeDiff / (float) approachTime;
@@ -192,31 +199,58 @@ public class Slider implements GameObject {
 		Image hitCircle = GameImage.HITCIRCLE.getImage();
 		Vec2f endPos = curve.pointAt(1);
 
+		float oldWhiteFadeAlpha = Colors.WHITE_FADE.a;
+		float sliderAlpha = 1f;
+		if (GameMod.HIDDEN.isActive() && trackPosition > hitObject.getTime()) {
+			// "Hidden" mod: fade out sliders
+			Colors.WHITE_FADE.a = color.a = sliderAlpha =
+				Math.max(0f, 1f - ((float) (trackPosition - hitObject.getTime()) / (getEndTime() - hitObject.getTime())) * 1.05f);
+		}
+
 		float curveInterval = Options.isSliderSnaking() ? alpha : 1f;
 		curve.draw(color,curveInterval);
+
+		// end circle (only draw if ball still has to go there)
+		if (curveInterval == 1f && currentRepeats < repeatCount - (repeatCount % 2 == 0 ? 1 : 0)) {
+			Color circleColor = new Color(color);
+			Color overlayColor = new Color(Colors.WHITE_FADE);
+			if (currentRepeats == 0) {
+				if (Options.isSliderSnaking()) {
+					// fade in end circle using decorationsAlpha when snaking sliders are enabled
+					circleColor.a = overlayColor.a = sliderAlpha * decorationsAlpha;
+				}
+			} else {
+				// fade in end circle after repeats
+				circleColor.a = overlayColor.a = sliderAlpha * getCircleAlphaAfterRepeat(trackPosition, true);
+			}
+			Vec2f endCircPos = curve.pointAt(curveInterval);
+			hitCircle.drawCentered(endCircPos.x, endCircPos.y, circleColor);
+			hitCircleOverlay.drawCentered(endCircPos.x, endCircPos.y, overlayColor);
+		}
+
+		// set first circle colors to fade in after repeats
+		Color firstCircleColor = new Color(color);
+		Color startCircleOverlayColor = new Color(Colors.WHITE_FADE);
+		if (sliderClickedInitial) {
+			// fade in first circle after repeats
+			firstCircleColor.a = startCircleOverlayColor.a = sliderAlpha * getCircleAlphaAfterRepeat(trackPosition, false);
+		}
+
+		// start circle, only draw if ball still has to go there
+		if (!sliderClickedInitial || currentRepeats < repeatCount - (repeatCount % 2 == 1 ? 1 : 0)) {
+			hitCircle.drawCentered(x, y, firstCircleColor);
+			if (!overlayAboveNumber || sliderClickedInitial)
+				hitCircleOverlay.drawCentered(x, y, startCircleOverlayColor);
+		}
+
 		color.a = alpha;
-
-		// end circle
-		Vec2f endCircPos = curve.pointAt(curveInterval);
-		hitCircle.drawCentered(endCircPos.x, endCircPos.y, color);
-		hitCircleOverlay.drawCentered(endCircPos.x, endCircPos.y, Colors.WHITE_FADE);
-
-		// start circle
-		hitCircle.drawCentered(x, y, color);
-		if (!overlayAboveNumber)
-			hitCircleOverlay.drawCentered(x, y, Colors.WHITE_FADE);
 
 		// ticks
 		if (ticksT != null) {
-			float tickScale = 0.5f + 0.5f * AnimationEquation.OUT_BACK.calc(decorationsAlpha);
-			Image tick = GameImage.SLIDER_TICK.getImage().getScaledCopy(tickScale);
-			for (int i = 0; i < ticksT.length; i++) {
-				Vec2f c = curve.pointAt(ticksT[i]);
-				Colors.WHITE_FADE.a = decorationsAlpha;
-				tick.drawCentered(c.x, c.y, Colors.WHITE_FADE);
-				Colors.WHITE_FADE.a = alpha;
-			}
+			drawSliderTicks(trackPosition, sliderAlpha, decorationsAlpha);
+			Colors.WHITE_FADE.a = oldWhiteFadeAlpha;
 		}
+
 		if (GameMod.HIDDEN.isActive()) {
 			final int hiddenDecayTime = game.getHiddenDecayTime();
 			final int hiddenTimeDiff = game.getHiddenTimeDiff();
@@ -225,35 +259,42 @@ public class Slider implements GameObject {
 				alpha = Math.min(alpha, hiddenAlpha);
 			}
 		}
-		if (sliderClickedInitial)
-			;  // don't draw current combo number if already clicked
-		else
+
+		// draw combo number and overlay if not initially clicked
+		if (!sliderClickedInitial) {
 			data.drawSymbolNumber(hitObject.getComboNumber(), x, y,
-			        hitCircle.getWidth() * 0.40f / data.getDefaultSymbolImage(0).getHeight(), alpha);
-		if (overlayAboveNumber)
-			hitCircleOverlay.drawCentered(x, y, Colors.WHITE_FADE);
+				hitCircle.getWidth() * 0.40f / data.getDefaultSymbolImage(0).getHeight(), alpha);
+
+			if (overlayAboveNumber) {
+				startCircleOverlayColor.a = sliderAlpha;
+				hitCircleOverlay.drawCentered(x, y, startCircleOverlayColor);
+			}
+		}
 
 		// repeats
 		if (curveInterval == 1.0f) {
-			for (int tcurRepeat = currentRepeats; tcurRepeat <= currentRepeats + 1; tcurRepeat++) {
-				if (hitObject.getRepeatCount() - 1 > tcurRepeat) {
-					Image arrow = GameImage.REVERSEARROW.getImage();
-					if (tcurRepeat != currentRepeats) {
-						if (sliderTime == 0)
-							continue;
-						float t = Math.max(getT(trackPosition, true), 0);
-						arrow.setAlpha((float) (t - Math.floor(t)));
-					} else
-						arrow.setAlpha(Options.isSliderSnaking() ? decorationsAlpha : 1f);
-					if (tcurRepeat % 2 == 0) {
-						// last circle
-						arrow.setRotation(curve.getEndAngle());
-						arrow.drawCentered(endPos.x, endPos.y);
-					} else {
-						// first circle
-						arrow.setRotation(curve.getStartAngle());
-						arrow.drawCentered(x, y);
+			for (int tcurRepeat = currentRepeats; tcurRepeat <= currentRepeats + 1 && tcurRepeat < repeatCount - 1; tcurRepeat++) {
+				Image arrow = GameImage.REVERSEARROW.getImage();
+				// bouncing animation
+				//arrow = arrow.getScaledCopy((float) (1 + 0.2d * ((trackPosition + sliderTime * tcurRepeat) % 292) / 292));
+				float colorLuminance = Utils.getLuminance(color);
+				Color arrowColor = colorLuminance < 0.8f ? Color.white : Color.black;
+				if (tcurRepeat == 0) {
+					arrow.setAlpha(Options.isSliderSnaking() ? decorationsAlpha : 1f);
+				} else {
+					if (!sliderClickedInitial) {
+						continue;
 					}
+					arrow.setAlpha(getCircleAlphaAfterRepeat(trackPosition, tcurRepeat % 2 == 0));
+				}
+				if (tcurRepeat % 2 == 0) {
+					// last circle
+					arrow.setRotation(curve.getEndAngle());
+					arrow.drawCentered(endPos.x, endPos.y, arrowColor);
+				} else {
+					// first circle
+					arrow.setRotation(curve.getStartAngle());
+					arrow.drawCentered(x, y, arrowColor);
 				}
 			}
 		}
@@ -266,6 +307,10 @@ public class Slider implements GameObject {
 			// Since update() might not have run before drawing during a replay, the
 			// slider time may not have been calculated, which causes NAN numbers and flicker.
 			if (sliderTime == 0)
+				return;
+
+			// Don't draw follow ball if already done
+			if (trackPosition > hitObject.getTime() + sliderTimeTotal)
 				return;
 
 			Vec2f c = curve.pointAt(getT(trackPosition, false));
@@ -281,7 +326,8 @@ public class Slider implements GameObject {
 
 			// follow circle
 			if (followCircleActive) {
-				GameImage.SLIDER_FOLLOWCIRCLE.getImage().drawCentered(c.x, c.y);
+				float followCircleScale = 1f + (tickExpandTime / (float) TICK_EXPAND_TIME) * 0.1f;
+				GameImage.SLIDER_FOLLOWCIRCLE.getImage().getScaledCopy(followCircleScale).drawCentered(c.x, c.y);
 
 				// "flashlight" mod: dim the screen
 				if (GameMod.FLASHLIGHT.isActive()) {
@@ -295,6 +341,70 @@ public class Slider implements GameObject {
 		}
 
 		Colors.WHITE_FADE.a = oldAlpha;
+	}
+
+	/**
+	 * Draws slider ticks.
+	 * @param trackPosition the track position
+	 * @param curveAlpha the curve alpha level
+	 * @param decorationsAlpha the decorations alpha level
+	 */
+	private void drawSliderTicks(int trackPosition, float curveAlpha, float decorationsAlpha) {
+		float tickScale = 0.5f + 0.5f * AnimationEquation.OUT_BACK.calc(decorationsAlpha);
+		Image tick = GameImage.SLIDER_TICK.getImage().getScaledCopy(tickScale);
+
+		// calculate which ticks need to be drawn (don't draw if sliderball crossed it)
+		int min = 0;
+		int max = ticksT.length;
+		if (trackPosition > hitObject.getTime()) {
+			for (int i = 0; i < ticksT.length; ) {
+				if (((trackPosition - hitObject.getTime()) % sliderTime) / sliderTime < ticksT[i]) {
+					break;
+				}
+				min = ++i;
+			}
+		}
+		if (currentRepeats % 2 == 1) {
+			max -= min;
+			min = 0;
+		}
+
+		// calculate the tick alpha level
+		float sliderTickAlpha;
+		if (currentRepeats == 0) {
+			sliderTickAlpha = decorationsAlpha;
+		} else {
+			float t = getT(trackPosition, false);
+			if (currentRepeats % 2 == 1) {
+				t = 1f - t;
+			}
+			sliderTickAlpha = Utils.clamp(t * ticksT.length * 2, 0f, 1f);
+		}
+
+		// draw ticks
+		Colors.WHITE_FADE.a = Math.min(curveAlpha, sliderTickAlpha);
+		for (int i = min; i < max; i++) {
+			Vec2f c = curve.pointAt(ticksT[i]);
+			tick.drawCentered(c.x, c.y, Colors.WHITE_FADE);
+		}
+	}
+
+	/**
+	 * Get the alpha level used to fade in circles & reversearrows after repeat
+	 * @param trackPosition current trackposition, in ms
+	 * @param endCircle request alpha for end circle (true) or start circle (false)?
+	 * @return alpha level as float in interval [0, 1]
+	 */
+	private float getCircleAlphaAfterRepeat(int trackPosition, boolean endCircle) {
+		int ticksN = ticksT == null ? 0 : ticksT.length;
+		float t = getT(trackPosition, false);
+		if (endCircle) {
+			t = 1f - t;
+		}
+		if (currentRepeats % 2 == (endCircle ? 0 : 1)) {
+			t = 1f;
+		}
+		return Utils.clamp(t * (ticksN + 1), 0f, 1f);
 	}
 
 	/**
@@ -363,17 +473,19 @@ public class Slider implements GameObject {
 
 		float cx, cy;
 		HitObjectType type;
-		if (currentRepeats % 2 == 0) {  // last circle
+		if (currentRepeats % 2 == 0) {
+			// last circle
 			Vec2f lastPos = curve.pointAt(1);
 			cx = lastPos.x;
 			cy = lastPos.y;
 			type = HitObjectType.SLIDER_LAST;
-		} else {  // first circle
+		} else {
+			// first circle
 			cx = x;
 			cy = y;
 			type = HitObjectType.SLIDER_FIRST;
 		}
-		data.hitResult(hitObject.getTime() + (int) sliderTimeTotal, result,
+		data.sendHitResult(hitObject.getTime() + (int) sliderTimeTotal, result,
 				cx, cy, color, comboEnd, hitObject, type, sliderHeldToEnd,
 				currentRepeats + 1, curve, sliderHeldToEnd);
 
@@ -394,14 +506,17 @@ public class Slider implements GameObject {
 			if (timeDiff < hitResultOffset[GameData.HIT_50]) {
 				result = GameData.HIT_SLIDER30;
 				ticksHit++;
-			} else if (timeDiff < hitResultOffset[GameData.HIT_MISS])
+				data.sendSliderStartResult(trackPosition, this.x, this.y, color, true);
+			} else if (timeDiff < hitResultOffset[GameData.HIT_MISS]) {
 				result = GameData.HIT_MISS;
+				data.sendSliderStartResult(trackPosition, this.x, this.y, color, false);
+			}
 			//else not a hit
 
 			if (result > -1) {
 				data.addHitError(hitObject.getTime(), x,y,trackPosition - hitObject.getTime());
 				sliderClickedInitial = true;
-				data.sliderTickResult(hitObject.getTime(), result, this.x, this.y, hitObject, currentRepeats);
+				data.sendSliderTickResult(hitObject.getTime(), result, this.x, this.y, hitObject, currentRepeats);
 				return true;
 			}
 		}
@@ -422,9 +537,12 @@ public class Slider implements GameObject {
 				sliderClickedInitial = true;
 				if (isAutoMod) {  // "auto" mod: catch any missed notes due to lag
 					ticksHit++;
-					data.sliderTickResult(time, GameData.HIT_SLIDER30, x, y, hitObject, currentRepeats);
-				} else
-					data.sliderTickResult(time, GameData.HIT_MISS, x, y, hitObject, currentRepeats);
+					data.sendSliderTickResult(time, GameData.HIT_SLIDER30, x, y, hitObject, currentRepeats);
+					data.sendSliderStartResult(time, x, y, color, true);
+				} else {
+					data.sendSliderTickResult(time, GameData.HIT_MISS, x, y, hitObject, currentRepeats);
+					data.sendSliderStartResult(trackPosition, x, y, color, false);
+				}
 			}
 
 			// "auto" mod: send a perfect hit result
@@ -432,7 +550,8 @@ public class Slider implements GameObject {
 				if (Math.abs(trackPosition - time) < hitResultOffset[GameData.HIT_300]) {
 					ticksHit++;
 					sliderClickedInitial = true;
-					data.sliderTickResult(time, GameData.HIT_SLIDER30, x, y, hitObject, currentRepeats);
+					data.sendSliderTickResult(time, GameData.HIT_SLIDER30, x, y, hitObject, currentRepeats);
+					data.sendSliderStartResult(time, x, y, color, true);
 				}
 			}
 
@@ -444,6 +563,7 @@ public class Slider implements GameObject {
 		// end of slider
 		if (trackPosition > hitObject.getTime() + sliderTimeTotal) {
 			tickIntervals++;
+			tickExpandTime = TICK_EXPAND_TIME;
 
 			// check if cursor pressed and within end circle
 			if (keyPressed || GameMod.RELAX.isActive()) {
@@ -463,7 +583,15 @@ public class Slider implements GameObject {
 
 			// calculate and send slider result
 			hitResult();
+
 			return true;
+		}
+
+		// update tick expand time
+		if (tickExpandTime > 0) {
+			tickExpandTime -= delta;
+			if (tickExpandTime < 0)
+				tickExpandTime = 0;
 		}
 
 		// repeats
@@ -472,8 +600,9 @@ public class Slider implements GameObject {
 			float t = getT(trackPosition, true);
 			if (Math.floor(t) > currentRepeats) {
 				currentRepeats++;
-				tickIntervals++;
+				tickIndex = 0;
 				isNewRepeat = true;
+				tickExpandTime = TICK_EXPAND_TIME;
 			}
 		}
 
@@ -487,6 +616,7 @@ public class Slider implements GameObject {
 				tickIntervals++;
 				tickIndex = (tickIndex + 1) % ticksT.length;
 				isNewTick = true;
+				tickExpandTime = TICK_EXPAND_TIME;
 			}
 		}
 
@@ -500,19 +630,34 @@ public class Slider implements GameObject {
 			// held during new repeat
 			if (isNewRepeat) {
 				ticksHit++;
-				if (currentRepeats % 2 > 0) {  // last circle
-					int lastIndex = hitObject.getSliderX().length;
-					data.sliderTickResult(trackPosition, GameData.HIT_SLIDER30,
-							curve.getX(lastIndex), curve.getY(lastIndex), hitObject, currentRepeats);
-				} else  // first circle
-					data.sliderTickResult(trackPosition, GameData.HIT_SLIDER30,
-							c.x, c.y, hitObject, currentRepeats);
+
+				HitObjectType type;
+				float posX, posY;
+				if (currentRepeats % 2 > 0) {
+					// last circle
+					type = HitObjectType.SLIDER_LAST;
+					Vec2f endPos = curve.pointAt(1f);
+					posX = endPos.x;
+					posY = endPos.y;
+				} else {
+					// first circle
+					type = HitObjectType.SLIDER_FIRST;
+					posX = this.x;
+					posY = this.y;
+				}
+				data.sendSliderTickResult(trackPosition, GameData.HIT_SLIDER30,
+					posX, posY, hitObject, currentRepeats);
+
+				// fade out reverse arrow
+				float colorLuminance = Utils.getLuminance(color);
+				Color arrowColor = colorLuminance < 0.8f ? Color.white : Color.black;
+				data.sendSliderRepeatResult(trackPosition, posX, posY, arrowColor, curve, type);
 			}
 
 			// held during new tick
 			if (isNewTick) {
 				ticksHit++;
-				data.sliderTickResult(trackPosition, GameData.HIT_SLIDER10,
+				data.sendSliderTickResult(trackPosition, GameData.HIT_SLIDER10,
 						c.x, c.y, hitObject, currentRepeats);
 			}
 
@@ -523,9 +668,9 @@ public class Slider implements GameObject {
 			followCircleActive = false;
 
 			if (isNewRepeat)
-				data.sliderTickResult(trackPosition, GameData.HIT_MISS, 0, 0, hitObject, currentRepeats);
+				data.sendSliderTickResult(trackPosition, GameData.HIT_MISS, 0, 0, hitObject, currentRepeats);
 			if (isNewTick)
-				data.sliderTickResult(trackPosition, GameData.HIT_MISS, 0, 0, hitObject, currentRepeats);
+				data.sendSliderTickResult(trackPosition, GameData.HIT_MISS, 0, 0, hitObject, currentRepeats);
 		}
 
 		return false;
@@ -579,5 +724,6 @@ public class Slider implements GameObject {
 		tickIndex = 0;
 		ticksHit = 0;
 		tickIntervals = 1;
+		tickExpandTime = 0;
 	}
 }

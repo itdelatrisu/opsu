@@ -1,6 +1,6 @@
 /*
  * opsu! - an open-source osu! client
- * Copyright (C) 2014, 2015 Jeffrey Han
+ * Copyright (C) 2014, 2015, 2016 Jeffrey Han
  *
  * opsu! is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@
 package itdelatrisu.opsu.beatmap;
 
 import itdelatrisu.opsu.GameMod;
+import itdelatrisu.opsu.db.BeatmapDB;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -183,6 +184,39 @@ public class BeatmapSet implements Iterable<Beatmap> {
 				return true;
 		}
 
+		return false;
+	}
+
+	/**
+	 * Returns whether this beatmap set is a "favorite".
+	 */
+	public boolean isFavorite() {
+		for (Beatmap map : beatmaps) {
+			if (map.favorite)
+				return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Sets the "favorite" status of this beatmap set.
+	 * @param flag whether this beatmap set should have "favorite" status
+	 */
+	public void setFavorite(boolean flag) {
+		for (Beatmap map : beatmaps) {
+			map.favorite = flag;
+			BeatmapDB.updateFavoriteStatus(map);
+		}
+	}
+
+	/**
+	 * Returns whether any beatmap in this set has been played.
+	 */
+	public boolean isPlayed() {
+		for (Beatmap map : beatmaps) {
+			if (map.playCount > 0)
+				return true;
+		}
 		return false;
 	}
 }

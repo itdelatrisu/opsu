@@ -1,6 +1,6 @@
 /*
  * opsu! - an open-source osu! client
- * Copyright (C) 2014, 2015 Jeffrey Han
+ * Copyright (C) 2014, 2015, 2016 Jeffrey Han
  *
  * opsu! is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -129,8 +129,6 @@ public class Download {
 
 	/** Last calculated ETA string. */
 	private String lastTimeRemaining;
-	
-	Thread dlThread;
 
 	/**
 	 * Constructor.
@@ -179,12 +177,13 @@ public class Download {
 
 	/**
 	 * Starts the download from the "waiting" status.
+	 * @return the started download thread, or {@code null} if none started
 	 */
-	public void start() {
+	public Thread start() {
 		if (status != Status.WAITING)
-			return;
+			return null;
 
-		dlThread = new Thread() {
+		Thread t = new Thread() {
 			@Override
 			public void run() {
 				// open connection
@@ -310,10 +309,9 @@ public class Download {
 						listener.error();
 				}
 			}
-
-			
 		};
-		dlThread.start();
+		t.start();
+		return t;
 	}
 
 	/**

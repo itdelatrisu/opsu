@@ -1,6 +1,6 @@
 /*
  * opsu! - an open-source osu! client
- * Copyright (C) 2014, 2015 Jeffrey Han
+ * Copyright (C) 2014, 2015, 2016 Jeffrey Han
  *
  * opsu! is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@ import fluddokt.opsu.fake.*;
 
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.beatmap.Beatmap;
+import itdelatrisu.opsu.beatmap.TimingPoint;
 import itdelatrisu.opsu.skins.Skin;
 import itdelatrisu.opsu.skins.SkinLoader;
 import itdelatrisu.opsu.ui.Fonts;
@@ -36,24 +37,36 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.net.URI;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /*
 import org.lwjgl.input.Keyboard;
+import org.lwjgl.opengl.Display;
+import org.lwjgl.opengl.DisplayMode;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
+import org.newdawn.slick.openal.SoundStore;
 import org.newdawn.slick.util.ClasspathLocation;
 import org.newdawn.slick.util.FileSystemLocation;
 import org.newdawn.slick.util.Log;
 import org.newdawn.slick.util.ResourceLoader;
+
+import com.sun.jna.platform.win32.Advapi32Util;
+import com.sun.jna.platform.win32.Win32Exception;
+import com.sun.jna.platform.win32.WinReg;
 */
+
 /**
  * Handles all user options.
  */
@@ -76,19 +89,11 @@ public class Options {
 	/** File for storing user options. */
 	private static final File OPTIONS_FILE = new File(CONFIG_DIR, "../.opsu.cfg");
 
-	/** Beatmap directories (where to search for files). */
-	private static final File[] BEATMAP_DIRS = {
-		//"C:/Program Files (x86)/osu!/Songs/",
-		//"C:/Program Files/osu!/Songs/",
-		new File(DATA_DIR, "Songs/")
-	};
+	/** The default beatmap directory (unless an osu! installation is detected). */
+	private static final File BEATMAP_DIR = new File(DATA_DIR, "Songs/");
 
-	/** Skin directories (where to search for skins). */
-	private static final String[] SKIN_ROOT_DIRS = {
-		"C:/Program Files (x86)/osu!/Skins/",
-		"C:/Program Files/osu!/Skins/",
-		new File(DATA_DIR, "Skins/").getPath()
-	};
+	/** The default skin directory (unless an osu! installation is detected). */
+	private static final File SKIN_ROOT_DIR = new File(DATA_DIR, "Skins/");
 
 	/** Cached beatmap database name. */
 	public static final File BEATMAP_DB = new File(DATA_DIR, ".opsu.db");
@@ -98,6 +103,9 @@ public class Options {
 
 	/** Directory where natives are unpacked. */
 	public static final File NATIVE_DIR = new File(CACHE_DIR, "Natives/");
+
+	/** Directory where temporary files are stored (deleted on exit). */
+	public static final File TEMP_DIR = new File(CACHE_DIR, "Temp/");
 
 	/** Font file name. */
 	public static final String FONT_NAME = "DroidSansFallback.ttf";
@@ -135,6 +143,12 @@ public class Options {
 	/** Port binding. */
 	private static int port = 49250;
 
+	/** The theme song string: {@code filename,title,artist,length(ms)} */
+	private static String themeString = "theme.mp3,Rainbows,Kevin MacLeod,219350";
+
+	/** The theme song timing point string (for computing beats to pulse the logo) . */
+	private static String themeTimingPoint = "1120,545.454545454545,4,1,0,100,0,0";
+
 	/**
 	 * Returns whether the XDG flag in the manifest (if any) is set to "true".
 	 * @return true if XDG directories are enabled, false otherwise
@@ -166,8 +180,13 @@ public class Options {
 	 * @return the XDG base directory, or the working directory if unavailable
 	 */
 	private static File getXDGBaseDir(String env, String fallback) {
+		return new File("./opsu");
+		/*
+		File workingDir = Utils.isJarRunning() ?
+			Utils.getRunningDirectory().getParentFile() : Utils.getWorkingDirectory();
+
 		if (!USE_XDG)
-			return new File("./opsu");
+			return workingDir;
 
 		String OS = System.getProperty("os.name").toLowerCase();
 		if (OS.indexOf("nix") >= 0 || OS.indexOf("nux") >= 0 || OS.indexOf("aix") > 0) {
@@ -183,14 +202,37 @@ public class Options {
 				ErrorHandler.error(String.format("Failed to create configuration folder at '%s/opsu'.", rootPath), null, false);
 			return dir;
 		} else
-			return new File("./opsu");
+			return workingDir;
+		*/
 	}
 
 	/**
-	 * The theme song string:
-	 * {@code filename,title,artist,length(ms)}
+	 * Returns the osu! installation directory.
+	 * @return the directory, or null if not found
 	 */
-	private static String themeString = "theme.ogg,On the Bach,Jingle Punks,66000";
+	private static File getOsuInstallationDirectory() {
+		if (!System.getProperty("os.name").startsWith("Win"))
+			return null;  // only works on Windows
+
+		// registry location
+		final WinReg.HKEY rootKey = WinReg.HKEY_CLASSES_ROOT;
+		final String regKey = "osu\\DefaultIcon";
+		final String regValue = null; // default value
+		final String regPathPattern = "\"(.+)\\\\[^\\/]+\\.exe\"";
+
+		String value;
+		try {
+			value = Advapi32Util.registryGetStringValue(rootKey, regKey, regValue);
+		} catch (Win32Exception e) {
+			return null;  // key/value not found
+		}
+		Pattern pattern = Pattern.compile(regPathPattern);
+		Matcher m = pattern.matcher(value);
+		if (!m.find())
+			return null;
+		File dir = new File(m.group(1));
+		return (dir.isDirectory()) ? dir : null;
+	}
 
 	/** Game options. */
 	public enum GameOption {
@@ -243,7 +285,32 @@ public class Options {
 			public String write() { return themeString; }
 
 			@Override
-			public void read(String s) { themeString = s; }
+			public void read(String s) {
+				String oldThemeString = themeString;
+				themeString = s;
+				Beatmap beatmap = getThemeBeatmap();
+				if (beatmap == null) {
+					themeString = oldThemeString;
+					Log.warn(String.format("The theme song string [%s] is malformed.", s));
+				} else if (!beatmap.audioFilename.isFile() && !ResourceLoader.resourceExists(beatmap.audioFilename.getName())) {
+					themeString = oldThemeString;
+					Log.warn(String.format("Cannot find theme song [%s].", beatmap.audioFilename.getAbsolutePath()));
+				}
+			}
+		},
+		THEME_SONG_TIMINGPOINT ("ThemeSongTiming") {
+			@Override
+			public String write() { return themeTimingPoint; }
+
+			@Override
+			public void read(String s) {
+				try {
+					new TimingPoint(s);
+					themeTimingPoint = s;
+				} catch (Exception e) {
+					Log.warn(String.format("The theme song timing point [%s] is malformed.", s));
+				}
+			}
 		},
 		PORT ("Port") {
 			@Override
@@ -259,16 +326,35 @@ public class Options {
 
 		// in-game options
 		SCREEN_RESOLUTION ("Screen Resolution", "ScreenResolution", "Restart (Ctrl+Shift+F5) to apply resolution changes.") {
+			private Resolution[] itemList = null;
+
 			@Override
 			public String getValueString() { return resolution.toString(); }
 
 			@Override
-			public void click(GameContainer container) {
-				do {
-					resolution = resolution.next();
-				} while (resolution != Resolution.RES_800_600 && (
-				         container.getScreenWidth() < resolution.getWidth() ||
-				         container.getScreenHeight() < resolution.getHeight()));
+			public Object[] getItemList() {
+				if (itemList == null) {
+					int width = Display.getDesktopDisplayMode().getWidth();
+					int height = Display.getDesktopDisplayMode().getHeight();
+					List<Resolution> list = new ArrayList<Resolution>();
+					for (Resolution res : Resolution.values()) {
+						// only show resolutions that fit on the screen
+						if (res == Resolution.RES_800_600 || (width >= res.getWidth() && height >= res.getHeight()))
+							list.add(res);
+					}
+					itemList = list.toArray(new Resolution[list.size()]);
+				}
+				return itemList;
+			}
+
+			@Override
+			public void selectItem(int index, GameContainer container) {
+				resolution = itemList[index];
+				UI.sendBarNotification(getDescription());
+
+				// check if fullscreen mode is possible with this resolution
+				if (FULLSCREEN.getBooleanValue() && !resolution.hasFullscreenDisplayMode())
+					FULLSCREEN.toggle(container);
 			}
 
 			@Override
@@ -279,29 +365,56 @@ public class Options {
 				} catch (IllegalArgumentException e) {}
 			}
 		},
-//		FULLSCREEN ("Fullscreen Mode", "Fullscreen", "Restart to apply changes.", false),
+		FULLSCREEN ("Fullscreen Mode", "Fullscreen", "Restart (Ctrl+Shift+F5) to apply changes.", false) {
+			@Override
+			public void toggle(GameContainer container) {
+				// check if fullscreen mode is possible with this resolution
+				if (!getBooleanValue() && !resolution.hasFullscreenDisplayMode()) {
+					UI.sendBarNotification(String.format("Fullscreen mode is not available at resolution %s", resolution.toString()));
+					return;
+				}
+
+				super.toggle(container);
+				UI.sendBarNotification(getDescription());
+			}
+		},
 		SKIN ("Skin", "Skin", "Restart (Ctrl+Shift+F5) to apply skin changes.") {
 			@Override
 			public String getValueString() { return skinName; }
 
 			@Override
-			public void click(GameContainer container) {
-				skinDirIndex = (skinDirIndex + 1) % skinDirs.length;
-				skinName = skinDirs[skinDirIndex];
+			public Object[] getItemList() { return skinDirs; }
+
+			@Override
+			public void selectItem(int index, GameContainer container) {
+				skinName = skinDirs[index];
+				UI.sendBarNotification(getDescription());
 			}
 
 			@Override
 			public void read(String s) { skinName = s; }
 		},
 		TARGET_FPS ("Frame Limiter", "FrameSync", "Higher values may cause high CPU usage.") {
+			private String[] itemList = null;
+
 			@Override
 			public String getValueString() {
 				return String.format((getTargetFPS() == 60) ? "%dfps (vsync)" : "%dfps", getTargetFPS());
 			}
 
 			@Override
-			public void click(GameContainer container) {
-				targetFPSindex = (targetFPSindex + 1) % targetFPS.length;
+			public Object[] getItemList() {
+				if (itemList == null) {
+					itemList = new String[targetFPS.length];
+					for (int i = 0; i < targetFPS.length; i++)
+						itemList[i] = String.format((targetFPS[i] == 60) ? "%dfps (vsync)" : "%dfps", targetFPS[i]);
+				}
+				return itemList;
+			}
+
+			@Override
+			public void selectItem(int index, GameContainer container) {
+				targetFPSindex = index;
 				container.setTargetFrameRate(getTargetFPS());
 				container.setVSync(getTargetFPS() == 60);
 			}
@@ -323,8 +436,8 @@ public class Options {
 		SHOW_FPS ("Show FPS Counter", "FpsCounter", "Show an FPS counter in the bottom-right hand corner.", true),
 		SHOW_UNICODE ("Prefer Non-English Metadata", "ShowUnicode", "Where available, song titles will be shown in their native language.", false) {
 			@Override
-			public void click(GameContainer container) {
-				super.click(container);
+			public void toggle(GameContainer container) {
+				super.toggle(container);
 				if (bool) {
 					try {
 						Fonts.LARGE.loadGlyphs();
@@ -337,11 +450,23 @@ public class Options {
 			}
 		},
 		SCREENSHOT_FORMAT ("Screenshot Format", "ScreenshotFormat", "Press F12 to take a screenshot.") {
+			private String[] itemList = null;
+
 			@Override
 			public String getValueString() { return screenshotFormat[screenshotFormatIndex].toUpperCase(); }
 
 			@Override
-			public void click(GameContainer container) { screenshotFormatIndex = (screenshotFormatIndex + 1) % screenshotFormat.length; }
+			public Object[] getItemList() {
+				if (itemList == null) {
+					itemList = new String[screenshotFormat.length];
+					for (int i = 0; i < screenshotFormat.length; i++)
+						itemList[i] = screenshotFormat[i].toUpperCase();
+				}
+				return itemList;
+			}
+
+			@Override
+			public void selectItem(int index, GameContainer container) { screenshotFormatIndex = index; }
 
 			@Override
 			public String write() { return Integer.toString(screenshotFormatIndex); }
@@ -369,8 +494,8 @@ public class Options {
 		},
 		NEW_CURSOR ("Enable New Cursor", "NewCursor", "Use the new cursor style (may cause higher CPU usage).", true) {
 			@Override
-			public void click(GameContainer container) {
-				super.click(container);
+			public void toggle(GameContainer container) {
+				super.toggle(container);
 				UI.getCursor().reset();
 			}
 		},
@@ -378,16 +503,16 @@ public class Options {
 		LOAD_VERBOSE ("Show Detailed Loading Progress", "LoadVerbose", "Display more specific loading information in the splash screen.", false),
 		MASTER_VOLUME ("Master Volume", "VolumeUniversal", "Global volume level.", 35, 0, 100) {
 			@Override
-			public void drag(GameContainer container, int d) {
-				super.drag(container, d);
-				container.setMusicVolume(getMasterVolume() * getMusicVolume());
+			public void setValue(int value) {
+				super.setValue(value);
+				SoundStore.get().setMusicVolume(getMasterVolume() * getMusicVolume());
 			}
 		},
 		MUSIC_VOLUME ("Music Volume", "VolumeMusic", "Volume of music.", 80, 0, 100) {
 			@Override
-			public void drag(GameContainer container, int d) {
-				super.drag(container, d);
-				container.setMusicVolume(getMasterVolume() * getMusicVolume());
+			public void setValue(int value) {
+				super.setValue(value);
+				SoundStore.get().setMusicVolume(getMasterVolume() * getMusicVolume());
 			}
 		},
 		EFFECT_VOLUME ("Effect Volume", "VolumeEffect", "Volume of menu and game sounds.", 70, 0, 100),
@@ -489,7 +614,7 @@ public class Options {
 					val = i;
 			}
 		},
-		CHECKPOINT ("Track Checkpoint", "Checkpoint", "Press Ctrl+L while playing to load a checkpoint, and Ctrl+S to set one.", 0, 0, 3599) {
+		CHECKPOINT ("Track Checkpoint", "Checkpoint", "Press Ctrl+L while playing to load a checkpoint, and Ctrl+S to set one.", 0, 0, 1800) {
 			@Override
 			public String getValueString() {
 				return (val == 0) ? "Disabled" : String.format("%02d:%02d",
@@ -576,10 +701,10 @@ public class Options {
 		private int max, min;
 
 		/** Option types. */
-		private enum OptionType { BOOLEAN, NUMERIC, OTHER };
+		public enum OptionType { BOOLEAN, NUMERIC, SELECT };
 
-		/** Whether or not this is a numeric option. */
-		private OptionType type = OptionType.OTHER;
+		/** Option type. */
+		private OptionType type = OptionType.SELECT;
 
 		/**
 		 * Constructor for internal options (not displayed in-game).
@@ -648,6 +773,12 @@ public class Options {
 		public String getDescription() { return description; }
 
 		/**
+		 * Returns the option type.
+		 * @return the type
+		 */
+		public OptionType getType() { return type; }
+
+		/**
 		 * Returns the boolean value for the option, if applicable.
 		 * @return the boolean value
 		 */
@@ -660,6 +791,24 @@ public class Options {
 		public int getIntegerValue() { return val; }
 
 		/**
+		 * Returns the minimum integer value for this option, if applicable.
+		 * @return the minimum integer value
+		 */
+		public int getMinValue() { return min; }
+
+		/**
+		 * Returns the maximum integer value for this option, if applicable.
+		 * @return the maximum integer value
+		 */
+		public int getMaxValue() { return max; }
+
+		/**
+		 * Returns a list of values to choose from, if applicable.
+		 * @return the list of values, or {@code null} if not applicable
+		 */
+		public Object[] getItemList() { return null; }
+
+		/**
 		 * Sets the boolean value for the option.
 		 * @param value the new boolean value
 		 */
@@ -669,7 +818,20 @@ public class Options {
 		 * Sets the integer value for the option.
 		 * @param value the new integer value
 		 */
-		public void setValue(int value) { this.val = value; }
+		public void setValue(int value) { this.val = Utils.clamp(value, min, max); }
+
+		/**
+		 * Toggles the boolean value for the option, if applicable.
+		 * @param container the game container
+		 */
+		public void toggle(GameContainer container) { bool = !bool; }
+
+		/**
+		 * Selects an item with the given list index, if applicable.
+		 * @param index the selected item index (in {@link #getItemList()})
+		 * @param container the game container
+		 */
+		public void selectItem(int index, GameContainer container) {}
 
 		/**
 		 * Returns the value of the option as a string (via override).
@@ -686,27 +848,6 @@ public class Options {
 				return (bool) ? "Yes" : "No";
 			else
 				return "";
-		}
-
-		/**
-		 * Processes a mouse click action (via override).
-		 * <p>
-		 * By default, this inverts the current {@code bool} field.
-		 * @param container the game container
-		 */
-		public void click(GameContainer container) { bool = !bool; }
-
-		/**
-		 * Processes a mouse drag action (via override).
-		 * <p>
-		 * By default, only if this is a numeric option, the {@code val} field
-		 * will be shifted by {@code d} within the given bounds.
-		 * @param container the game container
-		 * @param d the dragged distance (modified by multiplier)
-		 */
-		public void drag(GameContainer container, int d) {
-			if (type == OptionType.NUMERIC)
-				val = Utils.clamp(val + d, min, max);
 		}
 
 		/**
@@ -779,9 +920,6 @@ public class Options {
 		/** Screen dimensions. */
 		private int width, height;
 
-		/** Enum values. */
-		private static Resolution[] values = Resolution.values();
-
 		/**
 		 * Constructor.
 		 * @param width the screen width
@@ -792,20 +930,24 @@ public class Options {
 			this.height = height;
 		}
 
-		/**
-		 * Returns the screen width.
-		 */
+		/** Returns the screen width. */
 		public int getWidth() { return width; }
 
-		/**
-		 * Returns the screen height.
-		 */
+		/** Returns the screen height. */
 		public int getHeight() { return height; }
 
-		/**
-		 * Returns the next (larger) Resolution.
-		 */
-		public Resolution next() { return values[(this.ordinal() + 1) % values.length]; }
+		/** Returns whether this resolution is possible to use in fullscreen mode. */
+		public boolean hasFullscreenDisplayMode() {
+			try {
+				for (DisplayMode mode : Display.getAvailableDisplayModes()) {
+					if (width == mode.getWidth() && height == mode.getHeight())
+						return true;
+				}
+			} catch (LWJGLException e) {
+				ErrorHandler.error("Failed to get available display modes.", e, true);
+			}
+			return false;
+		}
 
 		@Override
 		public String toString() { return String.format("%sx%s", width, height); }
@@ -816,9 +958,6 @@ public class Options {
 
 	/** The available skin directories. */
 	private static String[] skinDirs;
-
-	/** The index in the skinDirs array. */
-	private static int skinDirIndex = 0;
 
 	/** The name of the skin. */
 	private static String skinName = "Default";
@@ -858,7 +997,8 @@ public class Options {
 	 * @param container the game container
 	 */
 	public static void setNextFPS(GameContainer container) {
-		GameOption.TARGET_FPS.click(container);
+		int index = (targetFPSindex + 1) % targetFPS.length;
+		GameOption.TARGET_FPS.selectItem(index, container);
 		UI.sendBarNotification(String.format("Frame limiter: %s", GameOption.TARGET_FPS.getValueString()));
 	}
 
@@ -921,13 +1061,18 @@ public class Options {
 	public static void setDisplayMode(Container app) {
 		int screenWidth = app.getScreenWidth();
 		int screenHeight = app.getScreenHeight();
+		boolean fullscreen = isFullscreen();
 
 		// check for larger-than-screen dimensions
 		if (screenWidth < resolution.getWidth() || screenHeight < resolution.getHeight())
 			resolution = Resolution.RES_800_600;
 
+		// check if fullscreen mode is possible with this resolution
+		if (fullscreen && !resolution.hasFullscreenDisplayMode())
+			fullscreen = false;
+
 		try {
-			app.setDisplayMode(resolution.getWidth(), resolution.getHeight(), false);
+			app.setDisplayMode(resolution.getWidth(), resolution.getHeight(), fullscreen);
 		} catch (SlickException e) {
 			ErrorHandler.error("Failed to set display mode.", e, true);
 		}
@@ -938,11 +1083,11 @@ public class Options {
 		System.setProperty("org.lwjgl.opengl.Window.undecorated", Boolean.toString(borderless));
 	}
 
-//	/**
-//	 * Returns whether or not fullscreen mode is enabled.
-//	 * @return true if enabled
-//	 */
-//	public static boolean isFullscreen() { return fullscreen; }
+	/**
+	 * Returns whether or not fullscreen mode is enabled.
+	 * @return true if enabled
+	 */
+	public static boolean isFullscreen() { return GameOption.FULLSCREEN.getBooleanValue(); }
 
 	/**
 	 * Returns whether or not the FPS counter display is enabled.
@@ -1159,7 +1304,7 @@ public class Options {
 	 * sends a bar notification about the action.
 	 */
 	public static void toggleMouseDisabled() {
-		GameOption.DISABLE_MOUSE_BUTTONS.click(null);
+		GameOption.DISABLE_MOUSE_BUTTONS.toggle(null);
 		UI.sendBarNotification((GameOption.DISABLE_MOUSE_BUTTONS.getBooleanValue()) ?
 			"Mouse buttons are disabled." : "Mouse buttons are enabled.");
 	}
@@ -1246,8 +1391,9 @@ public class Options {
 				return beatmapDir;
 		}
 
-		// none found, create new directory
-		if (!beatmapDir.mkdir())
+		// use default directory
+		beatmapDir = BEATMAP_DIR;
+		if (!beatmapDir.isDirectory() && !beatmapDir.mkdir())
 			ErrorHandler.error(String.format("Failed to create beatmap directory at '%s'.", beatmapDir.getAbsolutePath()), null, false);
 		return beatmapDir;
 	}
@@ -1317,15 +1463,17 @@ public class Options {
 		if (skinRootDir != null && skinRootDir.isDirectory())
 			return skinRootDir;
 
-		// search for directory
-		for (int i = 0; i < SKIN_ROOT_DIRS.length; i++) {
-			skinRootDir = new File(SKIN_ROOT_DIRS[i]);
+		// use osu! installation directory, if found
+		File osuDir = getOsuInstallationDirectory();
+		if (osuDir != null) {
+			skinRootDir = new File(osuDir, SKIN_ROOT_DIR.getName());
 			if (skinRootDir.isDirectory())
 				return skinRootDir;
 		}
 
-		// none found, create new directory
-		if (!skinRootDir.mkdir())
+		// use default directory
+		skinRootDir = SKIN_ROOT_DIR;
+		if (!skinRootDir.isDirectory() && !skinRootDir.mkdir())
 			ErrorHandler.error(String.format("Failed to create skins directory at '%s'.", skinRootDir.getAbsolutePath()), null, false);
 		return skinRootDir;
 	}
@@ -1351,14 +1499,6 @@ public class Options {
 		if (skinDir == null)
 			skin = new Skin(null);
 		else {
-			// set skin index
-			for (int i = 1; i < skinDirs.length; i++) {
-				if (skinDirs[i].equals(skinName)) {
-					skinDirIndex = i;
-					break;
-				}
-			}
-
 			// load the skin
 			skin = SkinLoader.loadSkin(skinDir);
 			ResourceLoader.addResourceLocation(new FileSystemLocation(skinDir));
@@ -1391,14 +1531,12 @@ public class Options {
 
 	/**
 	 * Returns a dummy Beatmap containing the theme song.
-	 * @return the theme song beatmap
+	 * @return the theme song beatmap, or {@code null} if the theme string is malformed
 	 */
 	public static Beatmap getThemeBeatmap() {
 		String[] tokens = themeString.split(",");
-		if (tokens.length != 4) {
-			ErrorHandler.error("Theme song string is malformed.", null, false);
+		if (tokens.length != 4)
 			return null;
-		}
 
 		Beatmap beatmap = new Beatmap(null);
 		beatmap.audioFilename = new File(tokens[0]);
@@ -1407,7 +1545,12 @@ public class Options {
 		try {
 			beatmap.endTime = Integer.parseInt(tokens[3]);
 		} catch (NumberFormatException e) {
-			ErrorHandler.error("Theme song length is not a valid integer", e, false);
+			return null;
+		}
+		try {
+			beatmap.timingPoints = new ArrayList<>(1);
+			beatmap.timingPoints.add(new TimingPoint(themeTimingPoint));
+		} catch (Exception e) {
 			return null;
 		}
 

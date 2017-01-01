@@ -6,4 +6,8 @@ public class FadeInTransition extends STransition {
 		// TODO Auto-generated constructor stub
 	}
 
+	public FadeInTransition() {
+		// TODO Auto-generated constructor stub
+	}
+
 }

@@ -1,6 +1,6 @@
 /*
  * opsu! - an open-source osu! client
- * Copyright (C) 2014, 2015 Jeffrey Han
+ * Copyright (C) 2014, 2015, 2016 Jeffrey Han
  *
  * opsu! is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,6 +31,7 @@ import java.sql.SQLException;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 /*
 import org.newdawn.slick.Color;
@@ -334,6 +335,69 @@ public class ScoreData implements Comparable<ScoreData> {
 		}
 
 		c.a = oldAlpha;
+	}
+
+	/**
+	 * Draws the score in-game (smaller and with less information).
+	 * @param g the current graphics context
+	 * @param vPos the base y position of the scoreboard
+	 * @param rank the current rank of this score
+	 * @param position the animated position offset
+	 * @param data an instance of GameData to draw rank number
+	 * @param alpha the transparency of the score
+	 * @param isActive if this score is the one currently played
+	 */
+	public void drawSmall(Graphics g, int vPos, int rank, float position, GameData data, float alpha, boolean isActive) {
+		int rectWidth = (int) (145 * GameImage.getUIscale());  //135
+		int rectHeight = data.getScoreSymbolImage('0').getHeight();
+		int vertDistance = rectHeight + 10;
+		int yPos = (int) (vPos + position * vertDistance - rectHeight / 2);
+		int xPaddingLeft = Math.max(4, (int) (rectWidth * 0.04f));
+		int xPaddingRight = Math.max(2, (int) (rectWidth * 0.02f));
+		int yPadding = Math.max(2, (int) (rectHeight * 0.02f));
+		String scoreString = String.format(Locale.US, "%,d", score);
+		String comboString = String.format("%dx", combo);
+		String rankString = String.format("%d", rank);
+
+		Color white = Colors.WHITE_ALPHA, blue = Colors.BLUE_SCOREBOARD, black = Colors.BLACK_ALPHA;
+		float oldAlphaWhite = white.a, oldAlphaBlue = blue.a, oldAlphaBlack = black.a;
+
+		// rectangle background
+		Color rectColor = isActive ? white : blue;
+		rectColor.a = alpha * 0.2f;
+		g.setColor(rectColor);
+		g.fillRect(0, yPos, rectWidth, rectHeight);
+		black.a = alpha * 0.2f;
+		g.setColor(black);
+		float oldLineWidth = g.getLineWidth();
+		g.setLineWidth(1f);
+		g.drawRect(0, yPos, rectWidth, rectHeight);
+		g.setLineWidth(oldLineWidth);
+
+		// rank
+		data.drawSymbolString(rankString, rectWidth, yPos, 1.0f, alpha * 0.2f, true);
+
+		white.a = blue.a = alpha * 0.75f;
+
+		// player name
+		if (playerName != null)
+			Fonts.MEDIUMBOLD.drawString(xPaddingLeft, yPos + yPadding, playerName, white);
+
+		// score
+		Fonts.DEFAULT.drawString(
+			xPaddingLeft, yPos + rectHeight - Fonts.DEFAULT.getLineHeight() - yPadding, scoreString, white
+		);
+
+		// combo
+		Fonts.DEFAULT.drawString(
+			rectWidth - Fonts.DEFAULT.getWidth(comboString) - xPaddingRight,
+			yPos + rectHeight - Fonts.DEFAULT.getLineHeight() - yPadding,
+			comboString, blue
+		);
+
+		white.a = oldAlphaWhite;
+		blue.a = oldAlphaBlue;
+		black.a = oldAlphaBlack;
 	}
 
 	/**

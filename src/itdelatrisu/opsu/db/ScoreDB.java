@@ -1,6 +1,6 @@
 /*
  * opsu! - an open-source osu! client
- * Copyright (C) 2014, 2015 Jeffrey Han
+ * Copyright (C) 2014, 2015, 2016 Jeffrey Han
  *
  * opsu! is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -310,6 +310,16 @@ public class ScoreDB {
 	 * @return all scores for the beatmap, or null if any error occurred
 	 */
 	public static ScoreData[] getMapScores(Beatmap beatmap) {
+		return getMapScoresExcluding(beatmap, null);
+	}
+
+	/**
+	 * Retrieves the game scores for a beatmap while excluding a score.
+	 * @param beatmap the beatmap
+	 * @param exclude the filename (replay string) of the score to exclude
+	 * @return all scores for the beatmap except for exclude, or null if any error occurred
+	 */
+	public static ScoreData[] getMapScoresExcluding(Beatmap beatmap, String exclude) {
 		if (connection == null)
 			return null;
 
@@ -323,7 +333,11 @@ public class ScoreDB {
 			ResultSet rs = selectMapStmt.executeQuery();
 			while (rs.next()) {
 				ScoreData s = new ScoreData(rs);
-				list.add(s);
+				if (s.replayString != null && s.replayString.equals(exclude)) {
+					// don't return this score
+				} else {
+					list.add(s);
+				}
 			}
 			rs.close();
 		} catch (SQLException e) {
@@ -352,7 +366,7 @@ public class ScoreDB {
 			ResultSet rs = selectMapSetStmt.executeQuery();
 
 			List<ScoreData> list = null;
-			String version = "";  // sorted by version, so pass through and check for differences
+			String version = null;  // sorted by version, so pass through and check for differences
 			while (rs.next()) {
 				ScoreData s = new ScoreData(rs);
 				if (!s.version.equals(version)) {

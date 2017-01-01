@@ -1,6 +1,6 @@
 /*
  * opsu! - an open-source osu! client
- * Copyright (C) 2014, 2015 Jeffrey Han
+ * Copyright (C) 2014, 2015, 2016 Jeffrey Han
  *
  * opsu! is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -289,8 +289,6 @@ public class Cursor {
 
 		// reset angles
 		cursorAngle = 0f;
-		GameImage.CURSOR.getImage().setRotation(0f);
-		GameImage.CURSOR_TRAIL.getImage().setRotation(0f);
 	}
 
 	/**

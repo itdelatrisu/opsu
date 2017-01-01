@@ -1,6 +1,6 @@
 /*
  * opsu! - an open-source osu! client
- * Copyright (C) 2014, 2015 Jeffrey Han
+ * Copyright (C) 2014, 2015, 2016 Jeffrey Han
  *
  * opsu! is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,26 +18,19 @@
 
 package itdelatrisu.opsu.replay;
 
-import fluddokt.opsu.fake.*;
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.Options;
-import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.beatmap.Beatmap;
 import itdelatrisu.opsu.beatmap.BeatmapSetList;
 import itdelatrisu.opsu.db.ScoreDB;
 
-
-
-//import java.io.File;
+import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
-
-/*
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 
 import org.newdawn.slick.util.Log;
-*/
 
 /**
  * Importer for replay files.
@@ -64,7 +57,7 @@ public class ReplayImporter {
 		// find all OSR files
 		files = dir.listFiles(new FilenameFilter() {
 			@Override
-			public boolean accept(java.io.File dir, String name) {
+			public boolean accept(File dir, String name) {
 				return name.toLowerCase().endsWith(".osr");
 			}
 		});
@@ -101,8 +94,7 @@ public class ReplayImporter {
 				// move to replay directory
 				File moveToFile = new File(replayDir, String.format("%s.osr", r.getReplayFilename()));
 				try {
-					//Files.move(file.toPath(), moveToFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-					Utils.moveFile(file, moveToFile);
+					Files.move(file.toPath(), moveToFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
 				} catch (IOException e) {
 					Log.warn(String.format("Failed to move replay '%s' to the replay directory '%s'.", file, replayDir), e);
 				}
@@ -126,8 +118,7 @@ public class ReplayImporter {
 		dir.mkdir();
 		File moveToFile = new File(dir, file.getName());
 		try {
-			//Files.move(file.toPath(), moveToFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-			Utils.moveFile(file, moveToFile);
+			Files.move(file.toPath(), moveToFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
 		} catch (IOException e) {
 			Log.warn(String.format("Failed to move replay '%s' to the failed import directory '%s'.", file, dir), e);
 		}
