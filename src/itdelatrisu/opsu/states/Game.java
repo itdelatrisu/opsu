@@ -1355,7 +1355,9 @@ public class Game extends BasicGameState {
 			}
 
 			// initialize object maps
-			Color[] combo = beatmap.getComboColors();
+			boolean ignoreSkins = Options.isBeatmapSkinIgnored();
+			Color[] combo = ignoreSkins ? Options.getSkin().getComboColors() : beatmap.getComboColors();
+			int comboIndex = 0;
 			for (int i = 0; i < beatmap.objects.length; i++) {
 				HitObject hitObject = beatmap.objects[i];
 
@@ -1364,7 +1366,17 @@ public class Game extends BasicGameState {
 				if (i + 1 >= beatmap.objects.length || beatmap.objects[i + 1].isNewCombo())
 					comboEnd = true;
 
-				Color color = combo[hitObject.getComboIndex()];
+				// calculate color index if ignoring beatmap skin
+				Color color;
+				if (ignoreSkins) {
+					if (hitObject.isNewCombo() || i == 0) {
+						int skip = (hitObject.isSpinner() ? 0 : 1) + hitObject.getComboSkip();
+						for (int j = 0; j < skip; j++)
+							comboIndex = (comboIndex + 1) % combo.length;
+					}
+					color = combo[comboIndex];
+				} else
+					color = combo[hitObject.getComboIndex()];
 
 				// pass beatLength to hit objects
 				int hitObjectTime = hitObject.getTime();
