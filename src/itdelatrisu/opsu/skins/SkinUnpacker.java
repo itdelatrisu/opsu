@@ -16,9 +16,8 @@
  * along with opsu!.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package itdelatrisu.opsu.beatmap;
+package itdelatrisu.opsu.skins;
 
-import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.Utils;
 
 import java.io.File;
@@ -27,9 +26,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Unpacker for OSZ (ZIP) archives.
+ * Unpacker for OSK (ZIP) archives.
  */
-public class OszUnpacker {
+public class SkinUnpacker {
 	/** The index of the current file being unpacked. */
 	private static int fileIndex = -1;
 
@@ -37,10 +36,10 @@ public class OszUnpacker {
 	private static File[] files;
 
 	// This class should not be instantiated.
-	private OszUnpacker() {}
+	private SkinUnpacker() {}
 
 	/**
-	 * Invokes the unpacker for each OSZ archive in a root directory.
+	 * Invokes the unpacker for each OSK archive in a root directory.
 	 * @param root the root directory
 	 * @param dest the destination directory
 	 * @return an array containing the new (unpacked) directories
@@ -48,11 +47,11 @@ public class OszUnpacker {
 	public static File[] unpackAllFiles(File root, File dest) {
 		List<File> dirs = new ArrayList<File>();
 
-		// find all OSZ files
+		// find all OSK files
 		files = root.listFiles(new FilenameFilter() {
 			@Override
 			public boolean accept(File dir, String name) {
-				return name.toLowerCase().endsWith(".osz");
+				return name.toLowerCase().endsWith(".osk");
 			}
 		});
 		if (files == null || files.length < 1) {
@@ -60,23 +59,18 @@ public class OszUnpacker {
 			return new File[0];
 		}
 
-		// unpack OSZs
-		BeatmapWatchService ws = (Options.isWatchServiceEnabled()) ? BeatmapWatchService.get() : null;
-		if (ws != null)
-			ws.pause();
+		// unpack OSKs
 		for (File file : files) {
 			fileIndex++;
 			String dirName = file.getName().substring(0, file.getName().lastIndexOf('.'));
-			File songDir = new File(dest, dirName);
-			if (!songDir.isDirectory()) {
-				songDir.mkdir();
-				Utils.unzip(file, songDir);
-				file.delete();  // delete the OSZ when finished
-				dirs.add(songDir);
+			File skinDir = new File(dest, dirName);
+			if (!skinDir.isDirectory()) {
+				skinDir.mkdir();
+				Utils.unzip(file, skinDir);
+				file.delete();  // delete the OSK when finished
+				dirs.add(skinDir);
 			}
 		}
-		if (ws != null)
-			ws.resume();
 
 		fileIndex = -1;
 		files = null;

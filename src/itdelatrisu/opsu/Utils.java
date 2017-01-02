@@ -72,6 +72,9 @@ import org.newdawn.slick.util.Log;
 
 import com.sun.jna.platform.FileUtils;
 
+import net.lingala.zip4j.core.ZipFile;
+import net.lingala.zip4j.exception.ZipException;
+
 /**
  * Contains miscellaneous utilities.
  */
@@ -320,6 +323,21 @@ public class Utils {
 				cleanName.append(replace);
 		}
 		return cleanName.toString();
+	}
+
+	/**
+	 * Extracts the contents of a ZIP archive to a destination.
+	 * @param file the ZIP archive
+	 * @param dest the destination directory
+	 */
+	public static void unzip(File file, File dest) {
+		try {
+			ZipFile zipFile = new ZipFile(file);
+			zipFile.extractAll(dest.getAbsolutePath());
+		} catch (ZipException e) {
+			ErrorHandler.error(String.format("Failed to unzip file %s to dest %s.",
+					file.getAbsolutePath(), dest.getAbsolutePath()), e, false);
+		}
 	}
 
 	/**

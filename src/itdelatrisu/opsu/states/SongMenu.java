@@ -242,7 +242,7 @@ public class SongMenu extends BasicGameState {
 				BeatmapDB.clearDatabase();
 
 				// invoke unpacker
-				OszUnpacker.unpackAllFiles(Options.getOSZDir(), beatmapDir);
+				OszUnpacker.unpackAllFiles(Options.getImportDir(), beatmapDir);
 			}
 
 			// invoke parser

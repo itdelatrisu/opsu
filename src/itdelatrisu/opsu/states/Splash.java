@@ -29,6 +29,7 @@ import itdelatrisu.opsu.beatmap.BeatmapSetList;
 import itdelatrisu.opsu.beatmap.BeatmapWatchService;
 import itdelatrisu.opsu.beatmap.OszUnpacker;
 import itdelatrisu.opsu.replay.ReplayImporter;
+import itdelatrisu.opsu.skins.SkinUnpacker;
 import itdelatrisu.opsu.ui.UI;
 import itdelatrisu.opsu.ui.animations.AnimatedValue;
 import itdelatrisu.opsu.ui.animations.AnimationEquation;
@@ -143,15 +144,19 @@ public class Splash extends BasicGameState {
 					@Override
 					public void run() {
 						File beatmapDir = Options.getBeatmapDir();
+						File importDir = Options.getImportDir();
 
 						// unpack all OSZ archives
-						OszUnpacker.unpackAllFiles(Options.getOSZDir(), beatmapDir);
+						OszUnpacker.unpackAllFiles(importDir, beatmapDir);
 
 						// parse song directory
 						BeatmapParser.parseAllFiles(beatmapDir);
 
+						// import skins
+						SkinUnpacker.unpackAllFiles(importDir, Options.getSkinRootDir());
+
 						// import replays
-						ReplayImporter.importAllReplaysFromDir(Options.getReplayImportDir());
+						ReplayImporter.importAllReplaysFromDir(importDir);
 
 						// load sounds
 						SoundController.init();

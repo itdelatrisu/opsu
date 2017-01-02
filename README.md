@@ -49,19 +49,17 @@ The following files and folders will be created by opsu! as needed:
   logged to this file, and other warnings not shown are logged as well.
 * `Songs/`: The beatmap directory (not used if an osu! installation is detected).
   The parser searches all of its subdirectories for .osu files to load.
-* `SongPacks/`: The beatmap pack directory.  The unpacker extracts all .osz
-  files within this directory to the beatmap directory.
 * `Skins/`: The skins directory.  Each skin must be placed in a folder within
   this directory.  Any game resource (in `res/`) can be skinned by placing a
   file with the same name in a skin folder.  Skins can be selected in the
   options menu.
-* `Screenshots/`: The screenshot directory. Screenshots can be taken by
-  pressing the F12 key.
 * `Replays/`: The replay directory.  Replays of each completed game are saved
   as .osr files, and can be viewed at a later time or shared with others.
-* `ReplayImport/`: The replay import directory.  The importer moves all .osr
-  files within this directory to the replay directory and saves the scores in
-  the scores database.  Replays can be imported from osu! as well as opsu!.
+* `Import/`: The import directory.  All beatmap packs (.osz) and skin
+  packs (.osk) are unpacked to the proper location.  All replays (.osr) are
+  moved to the replay directory, and their scores saved to the scores database.
+* `Screenshots/`: The screenshot directory. Screenshots can be taken by
+  pressing the F12 key.
 * `Natives/`: The native libraries directory.
 * `Temp/`: The temporary files directory.  Deleted when opsu! exits.
 

@@ -122,17 +122,14 @@ public class Options {
 	/** The beatmap directory. */
 	private static File beatmapDir;
 
-	/** The OSZ archive directory. */
-	private static File oszDir;
+	/** The import directory. */
+	private static File importDir;
 
 	/** The screenshot directory (created when needed). */
 	private static File screenshotDir;
 
 	/** The replay directory (created when needed). */
 	private static File replayDir;
-
-	/** The replay import directory. */
-	private static File replayImportDir;
 
 	/** The root skin directory. */
 	private static File skinRootDir;
@@ -235,12 +232,12 @@ public class Options {
 			@Override
 			public void read(String s) { beatmapDir = new File(s); }
 		},
-		OSZ_DIRECTORY ("OSZDirectory") {
+		IMPORT_DIRECTORY ("ImportDirectory") {
 			@Override
-			public String write() { return getOSZDir().getAbsolutePath(); }
+			public String write() { return getImportDir().getAbsolutePath(); }
 
 			@Override
-			public void read(String s) { oszDir = new File(s); }
+			public void read(String s) { importDir = new File(s); }
 		},
 		SCREENSHOT_DIRECTORY ("ScreenshotDirectory") {
 			@Override
@@ -255,13 +252,6 @@ public class Options {
 
 			@Override
 			public void read(String s) { replayDir = new File(s); }
-		},
-		REPLAY_IMPORT_DIRECTORY ("ReplayImportDirectory") {
-			@Override
-			public String write() { return getReplayImportDir().getAbsolutePath(); }
-
-			@Override
-			public void read(String s) { replayImportDir = new File(s); }
 		},
 		SKIN_DIRECTORY ("SkinDirectory") {
 			@Override
@@ -369,15 +359,32 @@ public class Options {
 			}
 		},
 		SKIN ("Skin", "Skin", "Restart (Ctrl+Shift+F5) to apply skin changes.") {
+			private String[] itemList = null;
+
+			/** Creates the list of available skins. */
+			private void createSkinList() {
+				File[] dirs = SkinLoader.getSkinDirectories(getSkinRootDir());
+				itemList = new String[dirs.length + 1];
+				itemList[0] = Skin.DEFAULT_SKIN_NAME;
+				for (int i = 0; i < dirs.length; i++)
+					itemList[i + 1] = dirs[i].getName();
+			}
+
 			@Override
 			public String getValueString() { return skinName; }
 
 			@Override
-			public Object[] getItemList() { return skinDirs; }
+			public Object[] getItemList() {
+				if (itemList == null)
+					createSkinList();
+				return itemList;
+			}
 
 			@Override
 			public void selectItem(int index, GameContainer container) {
-				skinName = skinDirs[index];
+				if (itemList == null)
+					createSkinList();
+				skinName = itemList[index];
 				UI.sendBarNotification(getDescription());
 			}
 
@@ -880,9 +887,6 @@ public class Options {
 	/** Current screen resolution. */
 	private static Resolution resolution = Resolution.RES_1024_768;
 
-	/** The available skin directories. */
-	private static String[] skinDirs;
-
 	/** The name of the skin. */
 	private static String skinName = "Default";
 
@@ -1302,33 +1306,18 @@ public class Options {
 	}
 
 	/**
-	 * Returns the OSZ archive directory.
-	 * If invalid, this will create and return a "SongPacks" directory.
-	 * @return the OSZ archive directory
+	 * Returns the import directory (for beatmaps, skins, and replays).
+	 * If invalid, this will create and return an "Import" directory.
+	 * @return the import directory
 	 */
-	public static File getOSZDir() {
-		if (oszDir != null && oszDir.isDirectory())
-			return oszDir;
+	public static File getImportDir() {
+		if (importDir != null && importDir.isDirectory())
+			return importDir;
 
-		oszDir = new File(DATA_DIR, "SongPacks/");
-		if (!oszDir.isDirectory() && !oszDir.mkdir())
-			ErrorHandler.error(String.format("Failed to create song packs directory at '%s'.", oszDir.getAbsolutePath()), null, false);
-		return oszDir;
-	}
-
-	/**
-	 * Returns the replay import directory.
-	 * If invalid, this will create and return a "ReplayImport" directory.
-	 * @return the replay import directory
-	 */
-	public static File getReplayImportDir() {
-		if (replayImportDir != null && replayImportDir.isDirectory())
-			return replayImportDir;
-
-		replayImportDir = new File(DATA_DIR, "ReplayImport/");
-		if (!replayImportDir.isDirectory() && !replayImportDir.mkdir())
-			ErrorHandler.error(String.format("Failed to create replay import directory at '%s'.", replayImportDir.getAbsolutePath()), null, false);
-		return replayImportDir;
+		importDir = new File(DATA_DIR, "Import/");
+		if (!importDir.isDirectory() && !importDir.mkdir())
+			ErrorHandler.error(String.format("Failed to create import directory at '%s'.", importDir.getAbsolutePath()), null, false);
+		return importDir;
 	}
 
 	/**
@@ -1389,13 +1378,6 @@ public class Options {
 		File skinDir = getSkinDir();
 		if (skinDir == null)  // invalid skin name
 			skinName = Skin.DEFAULT_SKIN_NAME;
-
-		// create available skins list
-		File[] dirs = SkinLoader.getSkinDirectories(getSkinRootDir());
-		skinDirs = new String[dirs.length + 1];
-		skinDirs[0] = Skin.DEFAULT_SKIN_NAME;
-		for (int i = 0; i < dirs.length; i++)
-			skinDirs[i + 1] = dirs[i].getName();
 
 		// set skin and modify resource locations
 		ResourceLoader.removeAllResourceLocations();

@@ -26,6 +26,7 @@ import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.beatmap.BeatmapParser;
 import itdelatrisu.opsu.beatmap.OszUnpacker;
 import itdelatrisu.opsu.replay.ReplayImporter;
+import itdelatrisu.opsu.skins.SkinUnpacker;
 import itdelatrisu.opsu.ui.animations.AnimatedValue;
 import itdelatrisu.opsu.ui.animations.AnimationEquation;
 
@@ -284,6 +285,9 @@ public class UI {
 			text = (BeatmapParser.getStatus() == BeatmapParser.Status.INSERTING) ?
 					"Updating database..." : "Loading beatmaps...";
 			progress = BeatmapParser.getParserProgress();
+		} else if ((file = SkinUnpacker.getCurrentFileName()) != null) {
+			text = "Unpacking skins...";
+			progress = SkinUnpacker.getUnpackerProgress();
 		} else if ((file = ReplayImporter.getCurrentFileName()) != null) {
 			text = "Importing replays...";
 			progress = ReplayImporter.getLoadingProgress();

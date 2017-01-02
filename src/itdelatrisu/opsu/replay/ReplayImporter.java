@@ -37,7 +37,7 @@ import org.newdawn.slick.util.Log;
  */
 public class ReplayImporter {
 	/** The subdirectory (within the replay import directory) to move replays that could not be imported. */
-	private static final String FAILED_IMPORT_DIR = "failed";
+	private static final String FAILED_IMPORT_DIR = "InvalidReplays";
 
 	/** The index of the current file being imported. */
 	private static int fileIndex = -1;
@@ -114,7 +114,7 @@ public class ReplayImporter {
 	 * @param file the file to move
 	 */
 	private static void moveToFailedDirectory(File file) {
-		File dir = new File(Options.getReplayImportDir(), FAILED_IMPORT_DIR);
+		File dir = new File(Options.getImportDir(), FAILED_IMPORT_DIR);
 		dir.mkdir();
 		File moveToFile = new File(dir, file.getName());
 		try {

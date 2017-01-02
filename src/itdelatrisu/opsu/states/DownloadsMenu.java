@@ -274,7 +274,7 @@ public class DownloadsMenu extends BasicGameState {
 		/** Imports all packed beatmaps. */
 		private void importBeatmaps() {
 			// invoke unpacker and parser
-			File[] dirs = OszUnpacker.unpackAllFiles(Options.getOSZDir(), Options.getBeatmapDir());
+			File[] dirs = OszUnpacker.unpackAllFiles(Options.getImportDir(), Options.getBeatmapDir());
 			if (dirs != null && dirs.length > 0) {
 				this.importedNode = BeatmapParser.parseDirectories(dirs);
 				if (importedNode != null) {
