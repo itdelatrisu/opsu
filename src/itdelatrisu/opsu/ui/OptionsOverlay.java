@@ -428,7 +428,7 @@ public class OptionsOverlay extends AbstractComponent {
 		float sliderY = cy + optionHeight / 2;
 		g.drawLine(sliderStartX, sliderY, sliderStartX + sliderWidth, sliderY);
 		float sliderValue = (float) (sliderWidth + 10) * (option.getIntegerValue() - option.getMinValue()) / (option.getMaxValue() - option.getMinValue());
-		sliderBallImg.draw(sliderStartX + sliderValue - iconSize / 2f, sliderY - iconSize / 2f, Colors.PINK_OPTION);
+		sliderBallImg.draw((int) (sliderStartX + sliderValue - iconSize / 2f), (int) (sliderY - iconSize / 2f), Colors.PINK_OPTION);
 	}
 
 	/**
