@@ -785,91 +785,92 @@ public class GameData {
 	 */
 	public void drawRankingElements(Graphics g, Beatmap beatmap) {
 		// TODO Version 2 skins
-		float rankingHeight = 75;
-		float scoreTextScale = 1.0f;
+		float rankingHeight = 96;
+		float scoreTextScale = 1.33f;
 		float symbolTextScale = 1.15f;
 		float rankResultScale = 0.5f;
 		float uiScale = GameImage.getUIscale();
 
 		// ranking panel
-		GameImage.RANKING_PANEL.getImage().draw(0, (int) (rankingHeight * uiScale));
+		GameImage.RANKING_PANEL.getImage().draw(0, (int) (102 * uiScale));
 
 		// score
 		drawFixedSizeSymbolString(
-				(score < 100000000) ? String.format("%08d", score) : Long.toString(score),
-				210 * uiScale, (rankingHeight + 50) * uiScale,
-				scoreTextScale, 1f, getScoreSymbolImage('0').getWidth() * scoreTextScale - 2, false
+			(score < 100000000) ? String.format("%08d", score) : Long.toString(score),
+			180 * uiScale, 120 * uiScale,
+			scoreTextScale, 1f, getScoreSymbolImage('0').getWidth() * scoreTextScale, false
 		);
 
 		// result counts
-		float resultInitialX = 130;
-		float resultInitialY = rankingHeight + 140;
-		float resultHitInitialX = 65;
-		float resultHitInitialY = rankingHeight + 182;
+		float resultHitInitialX = 64;
+		float resultHitInitialY = 256;
+		float resultInitialX = 128;
+		float resultInitialY = resultHitInitialY - (getScoreSymbolImage('0').getHeight() * symbolTextScale) / 2f;
 		float resultOffsetX = 320;
 		float resultOffsetY = 96;
 
 		int[] rankDrawOrder = { HIT_300, HIT_300G, HIT_100, HIT_100K, HIT_50, HIT_MISS };
 		int[] rankResultOrder = {
-				hitResultCount[HIT_300], hitResultCount[HIT_300G],
-				hitResultCount[HIT_100], hitResultCount[HIT_100K] + hitResultCount[HIT_300K],
-				hitResultCount[HIT_50], hitResultCount[HIT_MISS]
+			hitResultCount[HIT_300], hitResultCount[HIT_300G],
+			hitResultCount[HIT_100], hitResultCount[HIT_100K] + hitResultCount[HIT_300K],
+			hitResultCount[HIT_50], hitResultCount[HIT_MISS]
 		};
 
 		for (int i = 0; i < rankDrawOrder.length; i += 2) {
+			float offsetY = (resultOffsetY * (i / 2));
 			hitResults[rankDrawOrder[i]].getScaledCopy(rankResultScale).drawCentered(
-					resultHitInitialX * uiScale,
-					(resultHitInitialY + (resultOffsetY * (i / 2))) * uiScale);
+				resultHitInitialX * uiScale, (resultHitInitialY + offsetY) * uiScale
+			);
 			hitResults[rankDrawOrder[i+1]].getScaledCopy(rankResultScale).drawCentered(
-					(resultHitInitialX + resultOffsetX) * uiScale,
-					(resultHitInitialY  + (resultOffsetY * (i / 2))) * uiScale);
+				(resultHitInitialX + resultOffsetX) * uiScale, (resultHitInitialY  + offsetY) * uiScale
+			);
 			drawSymbolString(String.format("%dx", rankResultOrder[i]),
-					resultInitialX * uiScale,
-					(resultInitialY + (resultOffsetY * (i / 2))) * uiScale,
-					symbolTextScale, 1f, false);
+				resultInitialX * uiScale, (resultInitialY + offsetY) * uiScale, symbolTextScale, 1f, false
+			);
 			drawSymbolString(String.format("%dx", rankResultOrder[i+1]),
-					(resultInitialX + resultOffsetX) * uiScale,
-					(resultInitialY + (resultOffsetY * (i / 2))) * uiScale,
-					symbolTextScale, 1f, false);
-		}
-
-		// combo and accuracy
-		float accuracyX = 295;
-		float textY = rankingHeight + 425;
-		float numbersY = textY + 30;
-		drawSymbolString(String.format("%dx", comboMax),
-				25 * uiScale, numbersY * uiScale, symbolTextScale, 1f, false);
-		drawSymbolString(String.format("%02.2f%%", getScorePercent()),
-				(accuracyX + 20) * uiScale, numbersY * uiScale, symbolTextScale, 1f, false);
-		GameImage.RANKING_MAXCOMBO.getImage().draw(10 * uiScale, textY * uiScale);
-		GameImage.RANKING_ACCURACY.getImage().draw(accuracyX * uiScale, textY * uiScale);
-
-		// full combo
-		if (comboMax == fullObjectCount) {
-			GameImage.RANKING_PERFECT.getImage().draw(
-					width * 0.08f,
-					(height * 0.99f) - GameImage.RANKING_PERFECT.getImage().getHeight()
+				(resultInitialX + resultOffsetX) * uiScale, (resultInitialY + offsetY) * uiScale, symbolTextScale, 1f, false
 			);
 		}
 
+		// combo and accuracy
+		float accuracyX = 291;
+		float textY = 480;
+		float numbersY = textY + 48;
+		drawSymbolString(
+			String.format("%dx", comboMax),
+			24 * uiScale, numbersY * uiScale, symbolTextScale, 1f, false
+		);
+		drawSymbolString(
+			String.format("%02.2f%%", getScorePercent()),
+			(accuracyX + 20) * uiScale, numbersY * uiScale, symbolTextScale, 1f, false
+		);
+		GameImage.RANKING_MAXCOMBO.getImage().draw(8 * uiScale, textY * uiScale);
+		GameImage.RANKING_ACCURACY.getImage().draw(accuracyX * uiScale, textY * uiScale);
+
+		// full combo
+		if (comboMax == fullObjectCount)
+			GameImage.RANKING_PERFECT.getImage().draw(177 * uiScale, 613 * uiScale);
+
 		// grade
 		Grade grade = getGrade();
-		if (grade != Grade.NULL)
-			grade.getLargeImage().draw(width - grade.getLargeImage().getWidth(), rankingHeight);
+		if (grade != Grade.NULL) {
+			Image gradeImg = grade.getLargeImage();
+			gradeImg.draw(width - 8 * uiScale - gradeImg.getWidth(), 100 * uiScale);
+		}
 
 		// header
 		Image rankingTitle = GameImage.RANKING_TITLE.getImage();
 		g.setColor(Colors.BLACK_ALPHA);
-		g.fillRect(0, 0, width, 100 * uiScale);
-		rankingTitle.draw((width * 0.97f) - rankingTitle.getWidth(), 0);
+		g.fillRect(0, 0, width, rankingHeight * uiScale);
+		rankingTitle.draw(width - 24 * uiScale - rankingTitle.getWidth(), 0);
 		float marginX = width * 0.01f, marginY = height * 0.002f;
 		Fonts.LARGE.drawString(marginX, marginY,
-				String.format("%s - %s [%s]", beatmap.getArtist(), beatmap.getTitle(), beatmap.version), Color.white);
+			String.format("%s - %s [%s]", beatmap.getArtist(), beatmap.getTitle(), beatmap.version), Color.white);
 		Fonts.MEDIUM.drawString(marginX, marginY + Fonts.LARGE.getLineHeight() - 6,
-				String.format("Beatmap by %s", beatmap.creator), Color.white);
+			String.format("Beatmap by %s", beatmap.creator), Color.white);
 		String player = (scoreData.playerName == null) ? "" : String.format(" by %s", scoreData.playerName);
 		Fonts.MEDIUM.drawString(marginX, marginY + Fonts.LARGE.getLineHeight() + Fonts.MEDIUM.getLineHeight() - 10,
-				String.format("Played%s on %s.", player, scoreData.getTimeString()), Color.white);
+			String.format("Played%s on %s.", player, scoreData.getTimeString()), Color.white);
 
 		// mod icons
 		int modWidth = GameMod.AUTO.getImage().getWidth();

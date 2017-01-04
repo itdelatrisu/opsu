@@ -213,7 +213,7 @@ public class ErrorHandler {
 		sb.append(System.getProperty("java.version"));
 		sb.append('\n');
 		if (glString != null) {
-			sb.append("**OpenGL Version:** ");
+			sb.append("**OpenGL version:** ");
 			sb.append(glString);
 			sb.append('\n');
 		}

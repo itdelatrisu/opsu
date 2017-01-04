@@ -286,7 +286,7 @@ public class UI {
 					"Updating database..." : "Loading beatmaps...";
 			progress = BeatmapParser.getParserProgress();
 		} else if ((file = SkinUnpacker.getCurrentFileName()) != null) {
-			text = "Unpacking skins...";
+			text = "Unpacking new skins...";
 			progress = SkinUnpacker.getUnpackerProgress();
 		} else if ((file = ReplayImporter.getCurrentFileName()) != null) {
 			text = "Importing replays...";

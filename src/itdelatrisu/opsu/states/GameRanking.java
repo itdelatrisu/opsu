@@ -104,7 +104,7 @@ public class GameRanking extends BasicGameState {
 		Beatmap beatmap = MusicController.getBeatmap();
 
 		// background
-		if (!beatmap.drawBackground(width, height, 0.7f, true))
+		if (!beatmap.drawBackground(width, height, 0.5f, true))
 			GameImage.PLAYFIELD.getImage().draw(0,0);
 
 		// ranking screen elements
