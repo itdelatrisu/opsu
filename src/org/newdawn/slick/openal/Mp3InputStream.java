@@ -64,7 +64,7 @@ public class Mp3InputStream extends InputStream implements AudioInputStream {
 	/** The sample rate. */
 	private int sampleRate;
 
-	/** The buffer length. */
+	/** The buffer length in Samples. */
 	private int bufLen = 0;
 
 	/** True if we've reached the end of the available data. */
@@ -105,6 +105,57 @@ public class Mp3InputStream extends InputStream implements AudioInputStream {
 
 		bufLen = buf.getBufferLength();
 		bitstream.closeFrame();
+
+		int skips = 0;
+		//System.out.println("Buflen: "+bufLen);
+		// bufLen 0 but is still an actual frame (Hopefully this only happens for the first frame)
+		if (bufLen == 0 && !header.vbr()) {
+			bufLen = 2304; //Seems all mp3 frames are 2304 in length so this should be fine?
+		}
+		
+		int headervbr_delay = header.vbr_delay();
+		if (headervbr_delay != 0) {
+			if(header.vbr_isXing()){
+				//need to skip an extra frame?
+				skips += 1;
+			}
+			int vbrDelayBytes = headervbr_delay * channels;
+			bpos += (vbrDelayBytes % bufLen) *2;//two byte per sample
+			skips += (vbrDelayBytes / bufLen);
+		}
+		for (int i = 0; i < skips; i++) {
+			try {
+				header = bitstream.readFrame();
+			} catch (BitstreamException e) {
+				Log.error(e);
+			}
+			try {
+				decoder.decodeFrame(header, bitstream);
+			} catch (DecoderException e) {
+				Log.error(e);
+			}
+			bufLen = buf.getBufferLength();
+			//System.out.println("Bufleni"+i+": "+bufLen);
+			bitstream.closeFrame();
+		}
+		
+
+		/*
+		String tstr;
+		tstr="\n"+("Mp3 BufLen :"+bufLen+" sr:"+sampleRate+" "
+		+"ms ch:"+channels+" "
+				+" "+header.version_string()
+		//+" sh:"+Integer.toBinaryString(header.getSyncHeader())
+		+" lay:"+header.layer_string()
+		+" mode:"+header.mode_string()
+		+" slot:"+header.slots()
+		+" sfreq:"+header.sample_frequency_string()
+		+ "br:"+header.bitrate_string()
+		+" ms:"+header.ms_per_frame()
+		+" skips: "+skips+" "+bpos
+		);
+		System.out.println(tstr);
+		*/
 	}
 
 	@Override
