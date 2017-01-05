@@ -31,6 +31,8 @@ import itdelatrisu.opsu.beatmap.Beatmap;
 import itdelatrisu.opsu.replay.Replay;
 import itdelatrisu.opsu.ui.MenuButton;
 import itdelatrisu.opsu.ui.UI;
+import itdelatrisu.opsu.ui.animations.AnimatedValue;
+import itdelatrisu.opsu.ui.animations.AnimationEquation;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -43,8 +45,8 @@ import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
-import org.newdawn.slick.state.transition.FadeInTransition;
 import org.newdawn.slick.state.transition.EasedFadeOutTransition;
+import org.newdawn.slick.state.transition.FadeInTransition;
 import org.newdawn.slick.util.Log;
 
 /**
@@ -63,6 +65,9 @@ public class GameRanking extends BasicGameState {
 
 	/** Button coordinates. */
 	private float retryY, replayY;
+
+	/** Animation progress. */
+	private AnimatedValue animationProgress = new AnimatedValue(6000, 0f, 1f, AnimationEquation.LINEAR);
 
 	// game-related variables
 	private GameContainer container;
@@ -108,7 +113,7 @@ public class GameRanking extends BasicGameState {
 			GameImage.PLAYFIELD.getImage().draw(0,0);
 
 		// ranking screen elements
-		data.drawRankingElements(g, beatmap);
+		data.drawRankingElements(g, beatmap, animationProgress.getTime());
 
 		// buttons
 		replayButton.draw();
@@ -130,6 +135,7 @@ public class GameRanking extends BasicGameState {
 		else
 			MusicController.loopTrackIfEnded(true);
 		UI.getBackButton().hoverUpdate(delta, mouseX, mouseY);
+		animationProgress.update(delta);
 	}
 
 	@Override
@@ -209,6 +215,9 @@ public class GameRanking extends BasicGameState {
 			game.enterState(Opsu.STATE_GAME, new EasedFadeOutTransition(), new FadeInTransition());
 			return;
 		}
+
+		// otherwise, finish the animation
+		animationProgress.setTime(animationProgress.getDuration());
 	}
 
 	@Override
@@ -220,10 +229,12 @@ public class GameRanking extends BasicGameState {
 			if (!MusicController.isTrackDimmed())
 				MusicController.toggleTrackDimmed(0.5f);
 			replayButton.setY(retryY);
+			animationProgress.setTime(animationProgress.getDuration());
 		} else {
 			SoundController.playSound(SoundEffect.APPLAUSE);
 			retryButton.resetHover();
 			replayButton.setY(!GameMod.AUTO.isActive() ? replayY : retryY);
+			animationProgress.setTime(0);
 		}
 		replayButton.resetHover();
 	}

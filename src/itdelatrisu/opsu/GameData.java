@@ -348,7 +348,7 @@ public class GameData {
 	/**
 	 * Constructor for score viewing.
 	 * This will initialize all parameters and images needed for the
-	 * {@link #drawRankingElements(Graphics, Beatmap)} method.
+	 * {@link #drawRankingElements(Graphics, Beatmap, int)} method.
 	 * @param s the ScoreData object
 	 * @param width container width
 	 * @param height container height
@@ -782,86 +782,144 @@ public class GameData {
 	 * Draws ranking elements: score, results, ranking, game mods.
 	 * @param g the graphics context
 	 * @param beatmap the beatmap
+	 * @param time the animation time
 	 */
-	public void drawRankingElements(Graphics g, Beatmap beatmap) {
+	public void drawRankingElements(Graphics g, Beatmap beatmap, int time) {
 		// TODO Version 2 skins
-		float rankingHeight = 96;
-		float scoreTextScale = 1.33f;
 		float symbolTextScale = 1.15f;
-		float rankResultScale = 0.5f;
 		float uiScale = GameImage.getUIscale();
+		Image zeroImg = getScoreSymbolImage('0');
+
+		// animation timings
+		int animationTime = 400, offsetTime = 150, gradeAnimationTime = 1000, whiteAnimationTime = 2200;
+		int rankStart = 50, comboStart = 1800, perfectStart = 2700, gradeStart = 2800, whiteStart = 3800;
 
 		// ranking panel
 		GameImage.RANKING_PANEL.getImage().draw(0, (int) (102 * uiScale));
 
 		// score
+		float scoreTextScale = 1.33f;
 		drawFixedSizeSymbolString(
 			(score < 100000000) ? String.format("%08d", score) : Long.toString(score),
 			180 * uiScale, 120 * uiScale,
-			scoreTextScale, 1f, getScoreSymbolImage('0').getWidth() * scoreTextScale, false
+			scoreTextScale, 1f, zeroImg.getWidth() * scoreTextScale, false
 		);
 
 		// result counts
-		float resultHitInitialX = 64;
-		float resultHitInitialY = 256;
-		float resultInitialX = 128;
-		float resultInitialY = resultHitInitialY - (getScoreSymbolImage('0').getHeight() * symbolTextScale) / 2f;
-		float resultOffsetX = 320;
-		float resultOffsetY = 96;
-
-		int[] rankDrawOrder = { HIT_300, HIT_300G, HIT_100, HIT_100K, HIT_50, HIT_MISS };
-		int[] rankResultOrder = {
-			hitResultCount[HIT_300], hitResultCount[HIT_300G],
-			hitResultCount[HIT_100], hitResultCount[HIT_100K] + hitResultCount[HIT_300K],
-			hitResultCount[HIT_50], hitResultCount[HIT_MISS]
-		};
-
-		for (int i = 0; i < rankDrawOrder.length; i += 2) {
-			float offsetY = (resultOffsetY * (i / 2));
-			hitResults[rankDrawOrder[i]].getScaledCopy(rankResultScale).drawCentered(
-				resultHitInitialX * uiScale, (resultHitInitialY + offsetY) * uiScale
-			);
-			hitResults[rankDrawOrder[i+1]].getScaledCopy(rankResultScale).drawCentered(
-				(resultHitInitialX + resultOffsetX) * uiScale, (resultHitInitialY  + offsetY) * uiScale
-			);
-			drawSymbolString(String.format("%dx", rankResultOrder[i]),
-				resultInitialX * uiScale, (resultInitialY + offsetY) * uiScale, symbolTextScale, 1f, false
-			);
-			drawSymbolString(String.format("%dx", rankResultOrder[i+1]),
-				(resultInitialX + resultOffsetX) * uiScale, (resultInitialY + offsetY) * uiScale, symbolTextScale, 1f, false
-			);
+		if (time >= rankStart) {
+			float rankResultScale = 0.5f;
+			float resultHitInitialX = 64, resultHitInitialY = 256;
+			float resultInitialX = 128;
+			float resultInitialY = resultHitInitialY - (zeroImg.getHeight() * symbolTextScale) / 2f;
+			float resultOffsetX = 320, resultOffsetY = 96;
+			int[] rankDrawOrder = { HIT_300, HIT_100, HIT_50, HIT_300G, HIT_100K, HIT_MISS };
+			int[] rankResultOrder = {
+				hitResultCount[HIT_300], hitResultCount[HIT_100],
+				hitResultCount[HIT_50], hitResultCount[HIT_300G],
+				hitResultCount[HIT_100K] + hitResultCount[HIT_300K], hitResultCount[HIT_MISS]
+			};
+			for (int i = 0; i < rankDrawOrder.length; i++) {
+				float offsetX = i < 3 ? 0 : resultOffsetX;
+				float offsetY = (resultOffsetY * (i % 3));
+				int startTime = rankStart + i * animationTime;
+				if (time >= startTime) {
+					float t = Math.min((float) (time - startTime) / animationTime, 1f);
+					float tp = AnimationEquation.OUT_CUBIC.calc(t);
+					float scale = 2f - tp;
+					float alpha = tp;
+					Image img = hitResults[rankDrawOrder[i]].getScaledCopy(rankResultScale * scale);
+					img.setAlpha(alpha);
+					img.drawCentered(
+						(resultHitInitialX + offsetX) * uiScale, (resultHitInitialY + offsetY) * uiScale
+					);
+				}
+				if (time >= startTime + offsetTime) {
+					float t = Math.min((float) (time - startTime) / animationTime, 1f);
+					float tp = AnimationEquation.OUT_CUBIC.calc(t);
+					float alpha = tp;
+					offsetX += -64f * (1f - tp);
+					drawSymbolString(String.format("%dx", rankResultOrder[i]),
+						(resultInitialX + offsetX) * uiScale, (resultInitialY + offsetY) * uiScale, symbolTextScale, alpha, false
+					);
+				}
+			}
 		}
 
 		// combo and accuracy
 		float accuracyX = 291;
 		float textY = 480;
 		float numbersY = textY + 48;
-		drawSymbolString(
-			String.format("%dx", comboMax),
-			24 * uiScale, numbersY * uiScale, symbolTextScale, 1f, false
-		);
-		drawSymbolString(
-			String.format("%02.2f%%", getScorePercent()),
-			(accuracyX + 20) * uiScale, numbersY * uiScale, symbolTextScale, 1f, false
-		);
-		GameImage.RANKING_MAXCOMBO.getImage().draw(8 * uiScale, textY * uiScale);
-		GameImage.RANKING_ACCURACY.getImage().draw(accuracyX * uiScale, textY * uiScale);
+		if (time >= comboStart) {
+			float t = Math.min((float) (time - comboStart) / animationTime, 1f);
+			float alpha = t;
+			Image img = GameImage.RANKING_MAXCOMBO.getImage();
+			img.setAlpha(alpha);
+			img.draw(8 * uiScale, textY * uiScale);
+			img.setAlpha(1f);
+		}
+		if (time >= comboStart + offsetTime) {
+			float t = Math.min((float) (time - (comboStart + offsetTime)) / animationTime, 1f);
+			float tp = AnimationEquation.OUT_CUBIC.calc(t);
+			float alpha = tp;
+			float offsetX = -15f * (1f - tp);
+			drawSymbolString(
+				String.format("%dx", comboMax),
+				(24 + offsetX) * uiScale, numbersY * uiScale, symbolTextScale, alpha, false
+			);
+		}
+		if (time >= comboStart + animationTime) {
+			float t = Math.min((float) (time - (comboStart + animationTime)) / animationTime, 1f);
+			float alpha = t;
+			Image img = GameImage.RANKING_ACCURACY.getImage();
+			img.setAlpha(alpha);
+			img.draw(accuracyX * uiScale, textY * uiScale);
+			img.setAlpha(1f);
+		}
+		if (time >= comboStart + animationTime + offsetTime) {
+			float t = Math.min((float) (time - (comboStart + animationTime + offsetTime)) / animationTime, 1f);
+			float tp = AnimationEquation.OUT_CUBIC.calc(t);
+			float alpha = tp;
+			float offsetX = -62f * (1f - tp);
+			drawSymbolString(
+				String.format("%02.2f%%", getScorePercent()),
+				(accuracyX + 20 + offsetX) * uiScale, numbersY * uiScale, symbolTextScale, alpha, false
+			);
+		}
 
 		// full combo
-		if (comboMax == fullObjectCount)
-			GameImage.RANKING_PERFECT.getImage().draw(177 * uiScale, 613 * uiScale);
+		if (time >= perfectStart) {
+			float t = Math.min((float) (time - perfectStart) / animationTime, 1f);
+			float tp = AnimationEquation.OUT_CUBIC.calc(t);
+			float scale = 1.1f - 0.1f * tp;
+			float alpha = tp;
+			if (comboMax == fullObjectCount) {
+				Image img = GameImage.RANKING_PERFECT.getImage().getScaledCopy(scale);
+				img.setAlpha(alpha);
+				img.drawCentered(416 * uiScale, 688 * uiScale);
+			}
+		}
 
 		// grade
-		Grade grade = getGrade();
-		if (grade != Grade.NULL) {
-			Image gradeImg = grade.getLargeImage();
-			gradeImg.draw(width - 8 * uiScale - gradeImg.getWidth(), 100 * uiScale);
+		if (time >= gradeStart) {
+			float t = Math.min((float) (time - gradeStart) / gradeAnimationTime, 1f);
+			float tp = AnimationEquation.IN_CUBIC.calc(t);
+			float scale = 1.5f - 0.5f * tp;
+			float alpha = tp;
+			Grade grade = getGrade();
+			if (grade != Grade.NULL) {
+				Image img = grade.getLargeImage();
+				float x = width - 8 * uiScale - img.getWidth() / 2f;
+				float y = 100 * uiScale + img.getHeight() / 2f;
+				img = img.getScaledCopy(scale);
+				img.setAlpha(alpha);
+				img.drawCentered(x, y);
+			}
 		}
 
 		// header
 		Image rankingTitle = GameImage.RANKING_TITLE.getImage();
 		g.setColor(Colors.BLACK_ALPHA);
-		g.fillRect(0, 0, width, rankingHeight * uiScale);
+		g.fillRect(0, 0, width, 96 * uiScale);
 		rankingTitle.draw(width - 24 * uiScale - rankingTitle.getWidth(), 0);
 		float marginX = width * 0.01f, marginY = height * 0.002f;
 		Fonts.LARGE.drawString(marginX, marginY,
@@ -873,14 +931,39 @@ public class GameData {
 			String.format("Played%s on %s.", player, scoreData.getTimeString()), Color.white);
 
 		// mod icons
-		int modWidth = GameMod.AUTO.getImage().getWidth();
-		float modX = (width * 0.98f) - modWidth;
-		int modCount = 0;
-		for (GameMod mod : GameMod.VALUES_REVERSED) {
-			if ((mod.getBit() & scoreData.mods) > 0) {
-				mod.getImage().draw(modX - (modCount * (modWidth / 2f)), height / 2f);
-				modCount++;
+		if (scoreData.mods != 0) {
+			int modWidth = GameMod.AUTO.getImage().getWidth();
+			int modHeight = GameMod.AUTO.getImage().getHeight();
+			float modX = (width * 0.98f) - modWidth;
+			int modCount = 0;
+			for (GameMod mod : GameMod.VALUES_REVERSED) {
+				if ((scoreData.mods & mod.getBit()) > 0) {
+					if (time >= animationTime * modCount) {
+						float t = Math.min((float) (time - animationTime * modCount) / animationTime, 1f);
+						float tp = AnimationEquation.OUT_CUBIC.calc(t);
+						float scale = 2f - tp;
+						float alpha = tp;
+						Image img = mod.getImage().getScaledCopy(scale);
+						img.setAlpha(alpha);
+						img.drawCentered(
+							modX - (modCount * (modWidth / 2f)) + modWidth / 2f,
+							height / 2f + modHeight / 2f
+						);
+						modCount++;
+					}
+				}
 			}
+		}
+
+		// white flash
+		if (time >= whiteStart && time < whiteStart + whiteAnimationTime) {
+			float t = (float) (time - whiteStart) / whiteAnimationTime;
+			float alpha = 0.75f - 0.75f * AnimationEquation.OUT_CUBIC.calc(t);
+			float oldWhiteAlpha = Colors.WHITE_FADE.a;
+			Colors.WHITE_FADE.a = alpha;
+			g.setColor(Colors.WHITE_FADE);
+			g.fillRect(0, 0, width, height);
+			Colors.WHITE_FADE.a = oldWhiteAlpha;
 		}
 	}
 
