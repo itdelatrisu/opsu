@@ -238,16 +238,30 @@ public class MainMenu extends BasicGameState {
 			throws SlickException {
 		int width = container.getWidth();
 		int height = container.getHeight();
+		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
+
+		Beatmap beatmap = MusicController.getBeatmap();
 
 		// draw background
-		Beatmap beatmap = MusicController.getBeatmap();
-		if (Options.isDynamicBackgroundEnabled() &&
-			beatmap != null && beatmap.drawBackground(width, height, bgAlpha.getValue(), true))
-				;
+		float parallaxX = 0, parallaxY = 0;
+		if (Options.isParallaxEnabled()) {
+			int offset = (int) (height * (GameImage.PARALLAX_SCALE - 1f));
+			parallaxX = -offset / 2f * (mouseX - width / 2) / (width / 2);
+			parallaxY = -offset / 2f * (mouseY - height / 2) / (height / 2);
+		}
+		if (Options.isDynamicBackgroundEnabled() && beatmap != null &&
+			beatmap.drawBackground(width, height, parallaxX, parallaxY, bgAlpha.getValue(), true))
+			;
 		else {
 			Image bg = GameImage.MENU_BG.getImage();
-			bg.setAlpha(bgAlpha.getValue());
-			bg.draw();
+			if (Options.isParallaxEnabled()) {
+				bg = bg.getScaledCopy(GameImage.PARALLAX_SCALE);
+				bg.setAlpha(bgAlpha.getValue());
+				bg.drawCentered(width / 2 + parallaxX, height / 2 + parallaxY);
+			} else {
+				bg.setAlpha(bgAlpha.getValue());
+				bg.drawCentered(width / 2, height / 2);
+			}
 		}
 
 		// top/bottom horizontal bars
@@ -289,7 +303,6 @@ public class MainMenu extends BasicGameState {
 		musicPrevious.draw();
 
 		// draw music position bar
-		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
 		g.setColor((musicPositionBarContains(mouseX, mouseY)) ? Colors.BLACK_BG_HOVER : Colors.BLACK_BG_NORMAL);
 		g.fillRoundRect(musicBarX, musicBarY, musicBarWidth, musicBarHeight, 4);
 		g.setColor(Color.white);

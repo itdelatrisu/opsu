@@ -105,15 +105,28 @@ public class GameRanking extends BasicGameState {
 			throws SlickException {
 		int width = container.getWidth();
 		int height = container.getHeight();
+		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
 
 		Beatmap beatmap = MusicController.getBeatmap();
 
 		// background
-		if (!beatmap.drawBackground(width, height, 0.5f, true)) {
-			Image playfield = GameImage.MENU_BG.getImage();
-			playfield.setAlpha(0.5f);
-			playfield.draw();
-			playfield.setAlpha(1f);
+		float parallaxX = 0, parallaxY = 0;
+		if (Options.isParallaxEnabled()) {
+			int offset = (int) (height * (GameImage.PARALLAX_SCALE - 1f));
+			parallaxX = -offset / 2f * (mouseX - width / 2) / (width / 2);
+			parallaxY = -offset / 2f * (mouseY - height / 2) / (height / 2);
+		}
+		if (!beatmap.drawBackground(width, height, parallaxX, parallaxY, 0.5f, true)) {
+			Image bg = GameImage.MENU_BG.getImage();
+			if (Options.isParallaxEnabled()) {
+				bg = bg.getScaledCopy(GameImage.PARALLAX_SCALE);
+				bg.setAlpha(0.5f);
+				bg.drawCentered(width / 2 + parallaxX, height / 2 + parallaxY);
+			} else {
+				bg.setAlpha(0.5f);
+				bg.drawCentered(width / 2, height / 2);
+				bg.setAlpha(1f);
+			}
 		}
 
 		// ranking screen elements

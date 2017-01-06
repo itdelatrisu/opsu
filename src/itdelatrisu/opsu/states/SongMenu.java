@@ -496,11 +496,23 @@ public class SongMenu extends BasicGameState {
 		// background
 		if (focusNode != null) {
 			Beatmap focusNodeBeatmap = focusNode.getSelectedBeatmap();
-			if (!focusNodeBeatmap.drawBackground(width, height, bgAlpha.getValue(), true)) {
-				Image playfield = GameImage.MENU_BG.getImage();
-				playfield.setAlpha(bgAlpha.getValue());
-				playfield.draw();
-				playfield.setAlpha(1f);
+			float parallaxX = 0, parallaxY = 0;
+			if (Options.isParallaxEnabled()) {
+				int offset = (int) (height * (GameImage.PARALLAX_SCALE - 1f));
+				parallaxX = -offset / 2f * (mouseX - width / 2) / (width / 2);
+				parallaxY = -offset / 2f * (mouseY - height / 2) / (height / 2);
+			}
+			if (!focusNodeBeatmap.drawBackground(width, height, parallaxX, parallaxY, bgAlpha.getValue(), true)) {
+				Image bg = GameImage.MENU_BG.getImage();
+				if (Options.isParallaxEnabled()) {
+					bg = bg.getScaledCopy(GameImage.PARALLAX_SCALE);
+					bg.setAlpha(bgAlpha.getValue());
+					bg.drawCentered(width / 2 + parallaxX, height / 2 + parallaxY);
+				} else {
+					bg.setAlpha(bgAlpha.getValue());
+					bg.drawCentered(width / 2, height / 2);
+					bg.setAlpha(1f);
+				}
 			}
 		}
 

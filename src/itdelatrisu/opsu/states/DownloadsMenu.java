@@ -417,7 +417,15 @@ public class DownloadsMenu extends BasicGameState {
 		boolean inDropdownMenu = serverMenu.contains(mouseX, mouseY);
 
 		// background
-		GameImage.SEARCH_BG.getImage().draw();
+		Image bg = GameImage.SEARCH_BG.getImage();
+		if (Options.isParallaxEnabled()) {
+			int offset = (int) (height * (GameImage.PARALLAX_SCALE - 1f));
+			float parallaxX = -offset / 2f * (mouseX - width / 2) / (width / 2);
+			float parallaxY = -offset / 2f * (mouseY - height / 2) / (height / 2);
+			bg = bg.getScaledCopy(GameImage.PARALLAX_SCALE);
+			bg.drawCentered(width / 2 + parallaxX, height / 2 + parallaxY);
+		} else
+			bg.drawCentered(width / 2, height / 2);
 
 		// title
 		Fonts.LARGE.drawString(width * 0.024f, height * 0.03f, "Download Beatmaps!", Color.white);

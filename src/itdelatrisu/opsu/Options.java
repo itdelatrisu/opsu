@@ -617,6 +617,7 @@ public class Options {
 						val - TimeUnit.MINUTES.toSeconds(TimeUnit.SECONDS.toMinutes(val)));
 			}
 		},
+		PARALLAX ("Parallax", "MenuParallax", "Add a parallax effect based on the current cursor position.", true),
 		ENABLE_THEME_SONG ("Enable Theme Song", "MenuMusic", "Whether to play the theme song upon starting opsu!", true),
 		REPLAY_SEEKING ("Replay Seeking", "ReplaySeeking", "Enable a seeking bar on the left side of the screen during replays.", false),
 		DISABLE_UPDATER ("Disable Automatic Updates", "DisableUpdater", "Disable automatic checking for updates upon starting opsu!.", false),
@@ -1143,6 +1144,12 @@ public class Options {
 	 * @return true if Unicode preferred
 	 */
 	public static boolean useUnicodeMetadata() { return GameOption.SHOW_UNICODE.getBooleanValue(); }
+
+	/**
+	 * Returns whether parallax is enabled.
+	 * @return true if enabled
+	 */
+	public static boolean isParallaxEnabled() { return GameOption.PARALLAX.getBooleanValue(); }
 
 	/**
 	 * Returns whether or not to play the theme song.

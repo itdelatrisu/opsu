@@ -407,6 +407,9 @@ public enum GameImage {
 	/** The unscaled container height that uiscale is based on. */
 	private static final int UNSCALED_HEIGHT = 768;
 
+	/** Value to scale backgrounds for the parallax effect. */
+	public static final float PARALLAX_SCALE = 1.008f;
+
 	/** Filename suffix for HD images. */
 	public static final String HD_SUFFIX = "@2x";
 

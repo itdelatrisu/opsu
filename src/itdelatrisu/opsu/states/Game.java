@@ -367,11 +367,11 @@ public class Game extends BasicGameState {
 			else
 				dimLevel = 1f;
 		}
-		if (Options.isDefaultPlayfieldForced() || !beatmap.drawBackground(width, height, dimLevel, false)) {
-			Image playfield = GameImage.MENU_BG.getImage();
-			playfield.setAlpha(dimLevel);
-			playfield.draw();
-			playfield.setAlpha(1f);
+		if (Options.isDefaultPlayfieldForced() || !beatmap.drawBackground(width, height, 0, 0, dimLevel, false)) {
+			Image bg = GameImage.MENU_BG.getImage();
+			bg.setAlpha(dimLevel);
+			bg.drawCentered(width / 2, height / 2);
+			bg.setAlpha(1f);
 		}
 
 		if (GameMod.FLASHLIGHT.isActive())
