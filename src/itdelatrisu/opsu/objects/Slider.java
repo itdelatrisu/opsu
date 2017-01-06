@@ -556,33 +556,6 @@ public class Slider implements GameObject {
 				mousePressed(mouseX, mouseY, trackPosition);
 		}
 
-		// end of slider
-		if (trackPosition > hitObject.getTime() + sliderTimeTotal) {
-			tickIntervals++;
-			tickExpandTime = TICK_EXPAND_TIME;
-
-			// check if cursor pressed and within end circle
-			if (keyPressed || GameMod.RELAX.isActive()) {
-				Vec2f c = curve.pointAt(getT(trackPosition, false));
-				double distance = Math.hypot(c.x - mouseX, c.y - mouseY);
-				if (distance < followRadius)
-					sliderHeldToEnd = true;
-			}
-
-			// final circle hit
-			if (sliderHeldToEnd)
-				ticksHit++;
-
-			// "auto" mod: always send a perfect hit result
-			if (isAutoMod)
-				ticksHit = tickIntervals;
-
-			// calculate and send slider result
-			hitResult();
-
-			return true;
-		}
-
 		// update tick expand time
 		if (tickExpandTime > 0) {
 			tickExpandTime -= delta;
@@ -590,30 +563,35 @@ public class Slider implements GameObject {
 				tickExpandTime = 0;
 		}
 
+		// TODO: Some ticks/repeats get missed if delta updates skip past them.
+		// The code tries to catch this, but doesn't completely work...
+
 		// repeats
-		boolean isNewRepeat = false;
-		if (repeatCount - 1 > currentRepeats) {
+		int newRepeats = 0;
+		while (repeatCount - 1 > currentRepeats) {
 			float t = getT(trackPosition, true);
 			if (Math.floor(t) > currentRepeats) {
 				currentRepeats++;
 				tickIndex = 0;
-				isNewRepeat = true;
+				newRepeats++;
 				tickExpandTime = TICK_EXPAND_TIME;
-			}
+			} else
+				break;
 		}
 
 		// ticks
-		boolean isNewTick = false;
-		if (ticksT != null &&
-			tickIntervals < (ticksT.length * (currentRepeats + 1)) + repeatCount &&
-			tickIntervals < (ticksT.length * repeatCount) + repeatCount) {
+		int newTicks = 0;
+		while (ticksT != null &&
+		       tickIntervals < (ticksT.length * (currentRepeats + 1)) + 1 &&
+		       tickIntervals < (ticksT.length * repeatCount) + repeatCount) {
 			float t = getT(trackPosition, true);
-			if (t - Math.floor(t) >= ticksT[tickIndex]) {
+			if (t - Math.floor(t) >= ticksT[tickIndex] || tickIntervals < (ticksT.length * currentRepeats) + 1) {
 				tickIntervals++;
 				tickIndex = (tickIndex + 1) % ticksT.length;
-				isNewTick = true;
+				newTicks++;
 				tickExpandTime = TICK_EXPAND_TIME;
-			}
+			} else
+				break;
 		}
 
 		// holding slider...
@@ -624,12 +602,13 @@ public class Slider implements GameObject {
 			followCircleActive = true;
 
 			// held during new repeat
-			if (isNewRepeat) {
+			int newRepeatCount = 0;
+			while (newRepeats-- > 0) {
 				ticksHit++;
 
 				HitObjectType type;
 				float posX, posY;
-				if (currentRepeats % 2 > 0) {
+				if ((currentRepeats + newRepeatCount) % 2 > 0) {
 					// last circle
 					type = HitObjectType.SLIDER_LAST;
 					Vec2f endPos = curve.pointAt(1f);
@@ -648,13 +627,19 @@ public class Slider implements GameObject {
 				float colorLuminance = Utils.getLuminance(color);
 				Color arrowColor = colorLuminance < 0.8f ? Color.white : Color.black;
 				data.sendSliderRepeatResult(trackPosition, posX, posY, arrowColor, curve, type);
+
+				newRepeatCount++;
 			}
 
 			// held during new tick
-			if (isNewTick) {
+			int tickIdx = tickIndex;
+			while (newTicks-- > 0) {
 				ticksHit++;
+
+				tickIdx = (tickIdx + (ticksT.length - 1)) % ticksT.length;
+				Vec2f tickPos = curve.pointAt(ticksT[tickIdx]);
 				data.sendSliderTickResult(trackPosition, GameData.HIT_SLIDER10,
-						c.x, c.y, hitObject, currentRepeats);
+					tickPos.x, tickPos.y, hitObject, currentRepeats);
 			}
 
 			// held near end of slider
@@ -663,10 +648,37 @@ public class Slider implements GameObject {
 		} else {
 			followCircleActive = false;
 
-			if (isNewRepeat)
+			while (newRepeats-- > 0)
 				data.sendSliderTickResult(trackPosition, GameData.HIT_MISS, 0, 0, hitObject, currentRepeats);
-			if (isNewTick)
+			while (newTicks-- > 0)
 				data.sendSliderTickResult(trackPosition, GameData.HIT_MISS, 0, 0, hitObject, currentRepeats);
+		}
+
+		// end of slider
+		if (trackPosition > hitObject.getTime() + sliderTimeTotal) {
+			tickIntervals++;
+			tickExpandTime = TICK_EXPAND_TIME;
+
+			// check if cursor pressed and within end circle
+			if (keyPressed || GameMod.RELAX.isActive()) {
+				Vec2f pos = curve.pointAt(getT(trackPosition, false));
+				double dist = Math.hypot(pos.x - mouseX, pos.y - mouseY);
+				if (dist < followRadius)
+					sliderHeldToEnd = true;
+			}
+
+			// final circle hit
+			if (sliderHeldToEnd)
+				ticksHit++;
+
+			// "auto" mod: always send a perfect hit result
+			if (isAutoMod)
+				ticksHit = tickIntervals;
+
+			// calculate and send slider result
+			hitResult();
+
+			return true;
 		}
 
 		return false;
