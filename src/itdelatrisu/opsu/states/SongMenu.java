@@ -496,8 +496,12 @@ public class SongMenu extends BasicGameState {
 		// background
 		if (focusNode != null) {
 			Beatmap focusNodeBeatmap = focusNode.getSelectedBeatmap();
-			if (!focusNodeBeatmap.drawBackground(width, height, bgAlpha.getValue(), true))
-				GameImage.PLAYFIELD.getImage().draw();
+			if (!focusNodeBeatmap.drawBackground(width, height, bgAlpha.getValue(), true)) {
+				Image playfield = GameImage.MENU_BG.getImage();
+				playfield.setAlpha(bgAlpha.getValue());
+				playfield.draw();
+				playfield.setAlpha(1f);
+			}
 		}
 
 		// star stream
