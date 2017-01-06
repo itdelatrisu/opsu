@@ -970,52 +970,59 @@ public class GameData {
 	/**
 	 * Draws stored hit results and removes them from the list as necessary.
 	 * @param trackPosition the current track position (in ms)
+	 * @param over true if drawing elements over hit objects, false for under
 	 */
-	public void drawHitResults(int trackPosition) {
+	public void drawHitResults(int trackPosition, boolean over) {
 		Iterator<HitObjectResult> iter = hitResultList.iterator();
 		while (iter.hasNext()) {
 			HitObjectResult hitResult = iter.next();
 			if (hitResult.time + HITRESULT_TIME > trackPosition) {
-				// spinner
-				if (hitResult.hitResultType == HitObjectType.SPINNER && hitResult.result != HIT_MISS) {
-					Image spinnerOsu = GameImage.SPINNER_OSU.getImage();
-					spinnerOsu.setAlpha(hitResult.alpha);
-					spinnerOsu.drawCentered(width / 2, height / 4);
-					spinnerOsu.setAlpha(1f);
-				}
+				// results drawn OVER hit objects
+				if (over) {
+					// spinner
+					if (hitResult.hitResultType == HitObjectType.SPINNER && hitResult.result != HIT_MISS) {
+						Image spinnerOsu = GameImage.SPINNER_OSU.getImage();
+						spinnerOsu.setAlpha(hitResult.alpha);
+						spinnerOsu.drawCentered(width / 2, height / 4);
+						spinnerOsu.setAlpha(1f);
+					}
 
-				// hit lighting
-				else if (Options.isHitLightingEnabled() && !hitResult.hideResult && hitResult.result != HIT_MISS &&
-					hitResult.result != HIT_SLIDER30 && hitResult.result != HIT_SLIDER10) {
-					// TODO: add particle system
-					Image lighting = GameImage.LIGHTING.getImage();
-					lighting.setAlpha(hitResult.alpha);
-					lighting.drawCentered(hitResult.x, hitResult.y, hitResult.color);
-				}
+					// hit lighting
+					else if (Options.isHitLightingEnabled() && !hitResult.hideResult && hitResult.result != HIT_MISS &&
+						hitResult.result != HIT_SLIDER30 && hitResult.result != HIT_SLIDER10) {
+						// TODO: add particle system
+						Image lighting = GameImage.LIGHTING.getImage();
+						lighting.setAlpha(hitResult.alpha);
+						lighting.drawCentered(hitResult.x, hitResult.y, hitResult.color);
+					}
 
-				// hit animations (only draw when the "Hidden" mod is not enabled)
-				if (!GameMod.HIDDEN.isActive()) {
-					drawHitAnimations(hitResult, trackPosition);
-				}
-
-				// hit result
-				if (!hitResult.hideResult && (
-				    hitResult.hitResultType == HitObjectType.CIRCLE ||
-				    hitResult.hitResultType == HitObjectType.SLIDER_FIRST ||
-				    hitResult.hitResultType == HitObjectType.SLIDER_LAST ||
-				    hitResult.hitResultType == HitObjectType.SPINNER)) {
-					float scaleProgress = AnimationEquation.IN_OUT_BOUNCE.calc(
+					// hit result
+					if (!hitResult.hideResult && (
+					    hitResult.hitResultType == HitObjectType.CIRCLE ||
+					    hitResult.hitResultType == HitObjectType.SLIDER_FIRST ||
+					    hitResult.hitResultType == HitObjectType.SLIDER_LAST ||
+					    hitResult.hitResultType == HitObjectType.SPINNER ||
+					    (hitResult.hitResultType == HitObjectType.SLIDERTICK && Options.getSkin().getVersion() == 1))) {
+						float scaleProgress = AnimationEquation.IN_OUT_BOUNCE.calc(
 							(float) Utils.clamp(trackPosition - hitResult.time, 0, HITCIRCLE_TEXT_BOUNCE_TIME) / HITCIRCLE_TEXT_BOUNCE_TIME);
-					float scale = 1f + (HITCIRCLE_TEXT_ANIM_SCALE - 1f) * scaleProgress;
-					float fadeProgress = AnimationEquation.OUT_CUBIC.calc(
+						float scale = 1f + (HITCIRCLE_TEXT_ANIM_SCALE - 1f) * scaleProgress;
+						float fadeProgress = AnimationEquation.OUT_CUBIC.calc(
 							(float) Utils.clamp((trackPosition - hitResult.time) - HITCIRCLE_FADE_TIME, 0, HITCIRCLE_TEXT_FADE_TIME) / HITCIRCLE_TEXT_FADE_TIME);
-					float alpha = 1f - fadeProgress;
-					Image scaledHitResult = hitResults[hitResult.result].getScaledCopy(scale);
-					scaledHitResult.setAlpha(alpha);
-					scaledHitResult.drawCentered(hitResult.x, hitResult.y);
+						float alpha = 1f - fadeProgress;
+						Image scaledHitResult = hitResults[hitResult.result].getScaledCopy(scale);
+						scaledHitResult.setAlpha(alpha);
+						scaledHitResult.drawCentered(hitResult.x, hitResult.y);
+					}
+
+					hitResult.alpha = 1 - ((float) (trackPosition - hitResult.time) / HITRESULT_FADE_TIME);
 				}
 
-				hitResult.alpha = 1 - ((float) (trackPosition - hitResult.time) / HITRESULT_FADE_TIME);
+				// results drawn UNDER hit objects
+				else {
+					// hit animations (only draw when the "Hidden" mod is not enabled)
+					if (!GameMod.HIDDEN.isActive())
+						drawHitAnimations(hitResult, trackPosition);
+				}
 			} else {
 				if (hitResult.curve != null)
 					hitResult.curve.discardGeometry();

@@ -1501,8 +1501,8 @@ public class Game extends BasicGameState {
 	 * @param trackPosition the track position
 	 */
 	private void drawHitObjects(Graphics g, int trackPosition) {
-		// draw result objects
-		data.drawHitResults(trackPosition);
+		// draw result objects (under)
+		data.drawHitResults(trackPosition, false);
 
 		// include previous object in follow points
 		int lastObjectIndex = -1;
@@ -1617,6 +1617,9 @@ public class Game extends BasicGameState {
 				g.popTransform();
 			}
 		}
+
+		// draw result objects (over)
+		data.drawHitResults(trackPosition, true);
 	}
 
 	/**
