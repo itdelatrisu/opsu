@@ -525,12 +525,13 @@ public class Game extends BasicGameState {
 				if ((endTimeDiff > 1500 && endTimeDiff < 2000) ||
 					(endTimeDiff > 500 && endTimeDiff < 1000)) {
 					Image arrow = GameImage.WARNINGARROW.getImage();
+					Color color = (Options.getSkin().getVersion() == 1) ? Color.white : Color.red;
 					arrow.setRotation(0);
-					arrow.draw(width * 0.15f, height * 0.15f);
-					arrow.draw(width * 0.15f, height * 0.75f);
+					arrow.draw(width * 0.15f, height * 0.15f, color);
+					arrow.draw(width * 0.15f, height * 0.75f, color);
 					arrow.setRotation(180);
-					arrow.draw(width * 0.75f, height * 0.15f);
-					arrow.draw(width * 0.75f, height * 0.75f);
+					arrow.draw(width * 0.75f, height * 0.15f, color);
+					arrow.draw(width * 0.75f, height * 0.75f, color);
 				}
 			}
 		}

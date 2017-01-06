@@ -980,7 +980,8 @@ public class GameData {
 				// results drawn OVER hit objects
 				if (over) {
 					// spinner
-					if (hitResult.hitResultType == HitObjectType.SPINNER && hitResult.result != HIT_MISS) {
+					if (hitResult.hitResultType == HitObjectType.SPINNER && hitResult.result != HIT_MISS &&
+					    Options.getSkin().getVersion() == 1) {
 						Image spinnerOsu = GameImage.SPINNER_OSU.getImage();
 						spinnerOsu.setAlpha(hitResult.alpha);
 						spinnerOsu.drawCentered(width / 2, height / 4);
