@@ -1064,6 +1064,19 @@ public class GameData {
 			return;
 		}
 
+		// slider follow circle
+		if (hitResult.expand && (
+		    hitResult.hitResultType == HitObjectType.SLIDER_FIRST ||
+		    hitResult.hitResultType == HitObjectType.SLIDER_LAST)) {
+			float progress = AnimationEquation.OUT_CUBIC.calc(
+				(float) Utils.clamp(trackPosition - hitResult.time, 0, HITCIRCLE_FADE_TIME) / HITCIRCLE_FADE_TIME);
+			float scale = 1f - 0.2f * progress;
+			float alpha = 1f - progress;
+			Image fc = GameImage.SLIDER_FOLLOWCIRCLE.getImage().getScaledCopy(scale);
+			fc.setAlpha(alpha);
+			fc.drawCentered(hitResult.x, hitResult.y);
+		}
+
 		// hit circles
 		float progress = AnimationEquation.OUT_CUBIC.calc(
 			(float) Utils.clamp(trackPosition - hitResult.time, 0, HITCIRCLE_FADE_TIME) / HITCIRCLE_FADE_TIME);
