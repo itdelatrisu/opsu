@@ -77,10 +77,9 @@ public class SoundController {
 	/**
 	 * Loads and returns a Clip from a resource.
 	 * @param ref the resource name
-	 * @param isMP3 true if MP3, false if WAV
 	 * @return the loaded and opened clip
 	 */
-	private static MultiClip loadClip(String ref, boolean isMP3) {
+	private static MultiClip loadClip(String ref) {
 		try {
 			URL url = ResourceLoader.getResource(ref);
 
@@ -93,9 +92,9 @@ public class SoundController {
 			in.close();
 
 			AudioInputStream audioIn = AudioSystem.getAudioInputStream(url);
-			return loadClip(ref, audioIn, isMP3);
+			return loadClip(ref, audioIn);
 		} catch (Exception e) {
-			ErrorHandler.error(String.format("Failed to load file '%s'.", ref), e, true);
+			ErrorHandler.error(String.format("Failed to load audio file '%s'.", ref), e, true);
 			return null;
 		}
 	}
@@ -104,19 +103,31 @@ public class SoundController {
 	 * Loads and returns a Clip from an audio input stream.
 	 * @param ref the resource name
 	 * @param audioIn the audio input stream
-	 * @param isMP3 true if MP3, false if WAV
 	 * @return the loaded and opened clip
 	 */
-	private static MultiClip loadClip(String ref, AudioInputStream audioIn, boolean isMP3)
+	private static MultiClip loadClip(String ref, AudioInputStream audioIn)
 			throws IOException, LineUnavailableException {
 		AudioFormat format = audioIn.getFormat();
-		if (isMP3) {
+		String encoding = format.getEncoding().toString();
+		if (encoding.startsWith("MPEG")) {
+			// decode MP3
 			AudioFormat decodedFormat = new AudioFormat(
 					AudioFormat.Encoding.PCM_SIGNED, format.getSampleRate(), 16,
 					format.getChannels(), format.getChannels() * 2, format.getSampleRate(), false);
 			AudioInputStream decodedAudioIn = AudioSystem.getAudioInputStream(decodedFormat, audioIn);
 			format = decodedFormat;
 			audioIn = decodedAudioIn;
+		} else if (encoding.startsWith("GSM")) {
+			// Currently there's no way to decode GSM in WAV containers in Java.
+			// http://www.jsresources.org/faq_audio.html#gsm_in_wav
+			ErrorHandler.error(
+				"Failed to load audio file.\n" +
+				"Java cannot decode GSM in WAV containers; " +
+				"please re-encode this file to PCM format or remove it:\n" + ref,
+				null,
+				false
+			);
+			return null;
 		}
 		DataLine.Info info = new DataLine.Info(Clip.class, format);
 		if (AudioSystem.isLineSupported(info))
@@ -213,7 +224,7 @@ public class SoundController {
 				ErrorHandler.error(String.format("Could not find sound file '%s'.", s.getFileName()), null, false);
 				continue;
 			}
-			MultiClip newClip = loadClip(currentFileName, currentFileName.endsWith(".mp3"));
+			MultiClip newClip = loadClip(currentFileName);
 			if (s.getClip() != null) {  // clip previously loaded (e.g. program restart)
 				if (newClip != null) {
 					s.getClip().destroy();  // destroy previous clip
@@ -232,7 +243,7 @@ public class SoundController {
 					ErrorHandler.error(String.format("Could not find hit sound file '%s'.", filename), null, false);
 					continue;
 				}
-				MultiClip newClip = loadClip(currentFileName, false);
+				MultiClip newClip = loadClip(currentFileName);
 				if (s.getClip(ss) != null) {  // clip previously loaded (e.g. program restart)
 					if (newClip != null) {
 						s.getClip(ss).destroy();  // destroy previous clip
@@ -351,13 +362,12 @@ public class SoundController {
 	 * Plays a track from a remote URL.
 	 * If a track is currently playing, it will be stopped.
 	 * @param url the remote URL
-	 * @param name the track file name
-	 * @param isMP3 true if MP3, false if WAV
+	 * @param filename the track file name
 	 * @param listener the line listener
 	 * @return true if playing, false otherwise
 	 * @throws SlickException if any error occurred
 	 */
-	public static synchronized boolean playTrack(String url, String name, boolean isMP3, LineListener listener)
+	public static synchronized boolean playTrack(String url, String filename, LineListener listener)
 		throws SlickException {
 		// stop previous track
 		stopTrack();
@@ -366,7 +376,6 @@ public class SoundController {
 		File dir = Options.TEMP_DIR;
 		if (!dir.isDirectory())
 			dir.mkdir();
-		String filename = String.format("%s.%s", name, isMP3 ? "mp3" : "wav");
 		final File downloadFile = new File(dir, filename);
 		boolean complete;
 		if (downloadFile.isFile()) {
@@ -392,7 +401,7 @@ public class SoundController {
 		if (complete) {
 			try {
 				AudioInputStream audioIn = AudioSystem.getAudioInputStream(downloadFile);
-				currentTrack = loadClip(filename, audioIn, isMP3);
+				currentTrack = loadClip(filename, audioIn);
 				playClip(currentTrack, Options.getMusicVolume() * Options.getMasterVolume(), listener);
 				return true;
 			} catch (Exception e) {

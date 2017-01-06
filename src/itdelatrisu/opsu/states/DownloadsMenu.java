@@ -679,8 +679,7 @@ public class DownloadsMenu extends BasicGameState {
 											previewID = -1;
 											boolean playing = SoundController.playTrack(
 												url,
-												Integer.toString(node.getID()),
-												true,
+												String.format("%d.mp3", node.getID()),
 													new LineListener() {
 													@Override
 													public void update(LineEvent event) {

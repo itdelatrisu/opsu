@@ -143,15 +143,14 @@
 					<artifactId>lwjgl</artifactId>
 				</exclusion>
 				<exclusion>
+					<groupId>org.jcraft</groupId>
+					<artifactId>jorbis</artifactId>
+				</exclusion>
+				<exclusion>
 					<groupId>javax.jnlp</groupId>
 					<artifactId>jnlp-api</artifactId>
 				</exclusion>
 			</exclusions>
-		</dependency>
-		<dependency>
-			<groupId>org.jcraft</groupId>
-			<artifactId>jorbis</artifactId>
-			<version>0.0.17</version>
 		</dependency>
 		<dependency>
 			<groupId>net.lingala.zip4j</groupId>
@@ -167,11 +166,17 @@
 			<groupId>com.googlecode.soundlibs</groupId>
 			<artifactId>mp3spi</artifactId>
 			<version>1.9.5.4</version>
+			<exclusions>
+				<exclusion>
+					<groupId>com.googlecode.soundlibs</groupId>
+					<artifactId>tritonus-share</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>com.googlecode.soundlibs</groupId>
-			<artifactId>tritonus-share</artifactId>
-			<version>0.3.7.4</version>
+			<artifactId>tritonus-all</artifactId>
+			<version>0.3.7.2</version>
 		</dependency>
 		<dependency>
 			<groupId>org.xerial</groupId>
