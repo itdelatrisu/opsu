@@ -23,6 +23,7 @@ import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
 import itdelatrisu.opsu.beatmap.Beatmap;
+import itdelatrisu.opsu.beatmap.Health;
 import itdelatrisu.opsu.beatmap.HitObject;
 import itdelatrisu.opsu.downloads.Updater;
 import itdelatrisu.opsu.objects.curves.Curve;
@@ -47,9 +48,6 @@ import org.newdawn.slick.Image;
  * Holds game data and renders all related elements.
  */
 public class GameData {
-	/** Delta multiplier for steady HP drain. */
-	public static final float HP_DRAIN_MULTIPLIER = 1 / 200f;
-
 	/** Time, in milliseconds, for a hit result to remain existent. */
 	public static final int HITRESULT_TIME = 833;
 
@@ -149,9 +147,11 @@ public class GameData {
 		HIT_300G             = 6,   // Geki
 		HIT_SLIDER10         = 7,
 		HIT_SLIDER30         = 8,
-		HIT_MAX              = 9,   // not a hit result
-		HIT_SLIDER_REPEAT    = 10,  // not a hit result
-		HIT_ANIMATION_RESULT = 11;  // not a hit result
+		HIT_MAX              = 9,
+		HIT_SLIDER_REPEAT    = 10,
+		HIT_ANIMATION_RESULT = 11,
+		HIT_SPINNERSPIN      = 12,
+		HIT_SPINNERBONUS     = 13;
 
 	/** Hit result-related images (indexed by HIT_* constants to HIT_MAX). */
 	private Image[] hitResults;
@@ -298,18 +298,11 @@ public class GameData {
 	/** Displayed game score percent (for animation, slightly behind score percent). */
 	private float scorePercentDisplay;
 
-	/** Current health bar percentage. */
-	private float health;
-
-	/** Displayed health (for animation, slightly behind health). */
-	private float healthDisplay;
+	/** Health. */
+	private Health health = new Health();
 
 	/** The difficulty multiplier used in the score formula. */
 	private int difficultyMultiplier = 2;
-
-	/** Beatmap HPDrainRate value. (0:easy ~ 10:hard) */
-	@SuppressWarnings("unused")
-	private float drainRate = 5f;
 
 	/** Default text symbol images. */
 	private Image[] defaultSymbols;
@@ -383,10 +376,8 @@ public class GameData {
 		score = 0;
 		scoreDisplay = 0;
 		scorePercentDisplay = 0f;
-		health = 100f;
-		healthDisplay = 100f;
+		health.reset();
 		hitResultCount = new int[HIT_MAX];
-		drainRate = 5f;
 		if (hitResultList != null) {
 			for (HitObjectResult hitResult : hitResultList) {
 				if (hitResult.curve != null)
@@ -476,12 +467,6 @@ public class GameData {
 	 * @param c the character [0-9,.%x]
 	 */
 	public Image getScoreSymbolImage(char c) { return scoreSymbols.get(c); }
-
-	/**
-	 * Sets the health drain rate.
-	 * @param drainRate the new drain rate [0-10]
-	 */
-	public void setDrainRate(float drainRate) { this.drainRate = drainRate; }
 
 	/**
 	 * Sets the array of hit result offsets.
@@ -713,7 +698,7 @@ public class GameData {
 
 		if (!breakPeriod && !relaxAutoPilot) {
 			// scorebar
-			float healthRatio = healthDisplay / 100f;
+			float healthRatio = health.getHealthDisplay() / 100f;
 			if (firstObject) {  // gradually move ki before map begins
 				if (firstObjectTime >= 1500 && trackPosition < firstObjectTime - 500)
 					healthRatio = (float) trackPosition / (firstObjectTime - 500);
@@ -736,9 +721,9 @@ public class GameData {
 			colourCropped.setAlpha(1f);
 
 			Image ki = null;
-			if (health >= 50f)
+			if (health.getHealth() >= 50f)
 				ki = GameImage.SCOREBAR_KI.getImage();
-			else if (health >= 25f)
+			else if (health.getHealth() >= 25f)
 				ki = GameImage.SCOREBAR_KI_DANGER.getImage();
 			else
 				ki = GameImage.SCOREBAR_KI_DANGER2.getImage();
@@ -1104,31 +1089,34 @@ public class GameData {
 	}
 
 	/**
-	 * Changes health by a given percentage, modified by drainRate.
-	 * @param percent the health percentage
-	 */
-	public void changeHealth(float percent) {
-		// TODO: drainRate formula
-		health += percent;
-		if (health > 100f)
-			health = 100f;
-		else if (health < 0f)
-			health = 0f;
-	}
-
-	/**
 	 * Returns the current health percentage.
 	 */
-	public float getHealth() { return health; }
+	public float getHealthPercent() { return health.getHealth(); }
+
+	/**
+	 * Sets the health modifiers.
+	 * @param hpDrainRate the HP drain rate
+	 * @param hpMultiplierNormal the normal HP multiplier
+	 * @param hpMultiplierComboEnd the combo-end HP multiplier
+	 */
+	public void setHealthModifiers(float hpDrainRate, float hpMultiplierNormal, float hpMultiplierComboEnd) {
+		health.setModifiers(hpDrainRate, hpMultiplierNormal, hpMultiplierComboEnd);
+	}
 
 	/**
 	 * Returns false if health is zero.
 	 * If "No Fail" or "Auto" mods are active, this will always return true.
 	 */
 	public boolean isAlive() {
-		return (health > 0f || GameMod.NO_FAIL.isActive() || GameMod.AUTO.isActive() ||
+		return (health.getHealth() > 0f || GameMod.NO_FAIL.isActive() || GameMod.AUTO.isActive() ||
 		        GameMod.RELAX.isActive() || GameMod.AUTOPILOT.isActive());
 	}
+
+	/**
+	 * Changes health by a raw value.
+	 * @param value the health value
+	 */
+	public void changeHealth(float value) { health.changeHealth(value); }
 
 	/**
 	 * Changes score by a raw value (not affected by other modifiers).
@@ -1237,18 +1225,7 @@ public class GameData {
 		}
 
 		// health display
-		if (healthDisplay != health) {
-			float shift = delta / 15f;
-			if (healthDisplay < health) {
-				healthDisplay += shift;
-				if (healthDisplay > health)
-					healthDisplay = health;
-			} else {
-				healthDisplay -= shift;
-				if (healthDisplay < health)
-					healthDisplay = health;
-			}
-		}
+		health.update(delta);
 
 		// combo burst
 		if (comboBurstIndex > -1 && Options.isComboBurstEnabled()) {
@@ -1328,7 +1305,7 @@ public class GameData {
 			SoundController.playSound(SoundEffect.COMBOBREAK);
 		combo = 0;
 		if (GameMod.SUDDEN_DEATH.isActive())
-			health = 0f;
+			health.setHealth(0f);
 	}
 
 	/**
@@ -1370,7 +1347,6 @@ public class GameData {
 		switch (result) {
 		case HIT_SLIDER30:
 			hitValue = 30;
-			changeHealth(2f);
 			SoundController.playHitSound(
 					hitObject.getEdgeHitSoundType(repeat),
 					hitObject.getSampleSet(repeat),
@@ -1378,7 +1354,6 @@ public class GameData {
 			break;
 		case HIT_SLIDER10:
 			hitValue = 10;
-			changeHealth(1f);
 			SoundController.playHitSound(HitSound.SLIDERTICK);
 			break;
 		case HIT_MISS:
@@ -1392,6 +1367,7 @@ public class GameData {
 			// calculate score and increment combo streak
 			score += hitValue;
 			incrementComboStreak();
+			health.changeHealthForHit(result);
 
 			if (!Options.isPerfectHitBurstEnabled())
 				;  // hide perfect hit results
@@ -1399,6 +1375,29 @@ public class GameData {
 				hitResultList.add(new HitObjectResult(time, result, x, y, null, HitObjectType.SLIDERTICK, null, false, false));
 		}
 		fullObjectCount++;
+	}
+
+	/**
+	 * Handles a spinner spin result.
+	 * @param result the hit result (HIT_* constants)
+	 */
+	public void sendSpinnerSpinResult(int result) {
+		int hitValue = 0;
+		switch (result) {
+		case HIT_SPINNERSPIN:
+			hitValue = 100;
+			SoundController.playSound(SoundEffect.SPINNERSPIN);
+			break;
+		case HIT_SPINNERBONUS:
+			hitValue = 1100;
+			SoundController.playSound(SoundEffect.SPINNERBONUS);
+			break;
+		default:
+			return;
+		}
+
+		score += hitValue;
+		health.changeHealthForHit(result);
 	}
 
 	/**
@@ -1474,11 +1473,9 @@ public class GameData {
 		switch (result) {
 		case HIT_300:
 			hitValue = 300;
-			changeHealth(5f);
 			break;
 		case HIT_100:
 			hitValue = 100;
-			changeHealth(2f);
 			comboEnd |= 1;
 			break;
 		case HIT_50:
@@ -1487,7 +1484,6 @@ public class GameData {
 			break;
 		case HIT_MISS:
 			hitValue = 0;
-			changeHealth(-10f);
 			comboEnd |= 2;
 			resetComboStreak();
 			break;
@@ -1505,6 +1501,7 @@ public class GameData {
 			if (!noIncrementCombo)
 				incrementComboStreak();
 		}
+		health.changeHealthForHit(result);
 		hitResultCount[result]++;
 		fullObjectCount++;
 
@@ -1512,16 +1509,16 @@ public class GameData {
 		if (end) {
 			if (comboEnd == 0) {
 				result = HIT_300G;
-				changeHealth(15f);
+				health.changeHealthForHit(HIT_300G);
 				hitResultCount[result]++;
 			} else if ((comboEnd & 2) == 0) {
 				if (result == HIT_100) {
 					result = HIT_100K;
-					changeHealth(10f);
+					health.changeHealthForHit(HIT_100K);
 					hitResultCount[result]++;
 				} else if (result == HIT_300) {
 					result = HIT_300K;
-					changeHealth(10f);
+					health.changeHealthForHit(HIT_300K);
 					hitResultCount[result]++;
 				}
 			}

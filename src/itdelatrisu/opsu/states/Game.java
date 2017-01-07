@@ -31,6 +31,7 @@ import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
 import itdelatrisu.opsu.beatmap.Beatmap;
+import itdelatrisu.opsu.beatmap.BeatmapHPDropRateCalculator;
 import itdelatrisu.opsu.beatmap.BeatmapParser;
 import itdelatrisu.opsu.beatmap.HitObject;
 import itdelatrisu.opsu.beatmap.TimingPoint;
@@ -291,6 +292,12 @@ public class Game extends BasicGameState {
 	/** Timer after game has finished, before changing states. */
 	private AnimatedValue gameFinishedTimer = new AnimatedValue(2500, 0, 1, AnimationEquation.LINEAR);
 
+	/** The HP drop rate. */
+	private float hpDropRate = 0.05f;
+
+	/** The last track position. */
+	private int lastTrackPosition = 0;
+
 	/** Music position bar background colors. */
 	private static final Color
 		MUSICBAR_NORMAL = new Color(12, 9, 10, 0.25f),
@@ -506,7 +513,7 @@ public class Game extends BasicGameState {
 				trackPosition - breakTime > 2000 &&
 				trackPosition - breakTime < 5000) {
 				// show break start
-				if (data.getHealth() >= 50) {
+				if (data.getHealthPercent() >= 50) {
 					GameImage.SECTION_PASS.getImage().drawCentered(width / 2f, height / 2f);
 					if (!breakSound) {
 						SoundController.playSound(SoundEffect.SECTIONPASS);
@@ -765,8 +772,8 @@ public class Game extends BasicGameState {
 
 		// "Easy" mod: multiple "lives"
 		if (GameMod.EASY.isActive() && deathTime > -1) {
-			if (data.getHealth() < 99f) {
-				data.changeHealth(delta / 10f);
+			if (data.getHealthPercent() < 99f) {
+				data.changeHealth(delta / 5f);
 				data.updateDisplays(delta);
 				return;
 			}
@@ -825,6 +832,8 @@ public class Game extends BasicGameState {
 				SoundController.mute(false);
 			}
 		}
+
+		lastTrackPosition = trackPosition;
 
 		// update in-game scoreboard
 		if (previousScores != null && trackPosition > firstObjectTime) {
@@ -944,7 +953,9 @@ public class Game extends BasicGameState {
 		}
 
 		// drain health
-		data.changeHealth(delta * -1 * GameData.HP_DRAIN_MULTIPLIER);
+		if (lastTrackPosition > 0)
+			data.changeHealth((trackPosition - lastTrackPosition) * -1 * hpDropRate);
+
 		if (!data.isAlive()) {
 			// "Easy" mod
 			if (GameMod.EASY.isActive() && !GameMod.SUDDEN_DEATH.isActive()) {
@@ -1099,6 +1110,7 @@ public class Game extends BasicGameState {
 						;
 					objectIndex--;
 					lastReplayTime = beatmap.objects[objectIndex].getTime();
+					lastTrackPosition = checkpoint;
 				} catch (SlickException e) {
 					ErrorHandler.error("Failed to load checkpoint.", e, false);
 				}
@@ -1170,6 +1182,7 @@ public class Game extends BasicGameState {
 				SoundController.mute(true);  // mute sounds while seeking
 				float pos = (y - musicBarY) / musicBarHeight * beatmap.endTime;
 				MusicController.setPosition((int) pos);
+				lastTrackPosition = (int) pos;
 				isSeeking = true;
 			}
 			return;
@@ -1665,6 +1678,7 @@ public class Game extends BasicGameState {
 		scoreboardStarStream.clear();
 		gameFinished = false;
 		gameFinishedTimer.setTime(0);
+		lastTrackPosition = 0;
 
 		System.gc();
 	}
@@ -1769,19 +1783,17 @@ public class Game extends BasicGameState {
 
 		// overallDifficulty (hit result time offsets)
 		hitResultOffset = new int[GameData.HIT_MAX];
-		hitResultOffset[GameData.HIT_300]  = (int) (79.5f - (overallDifficulty * 6));
-		hitResultOffset[GameData.HIT_100]  = (int) (139.5f - (overallDifficulty * 8));
-		hitResultOffset[GameData.HIT_50]   = (int) (199.5f - (overallDifficulty * 10));
+		hitResultOffset[GameData.HIT_300]  = (int) Utils.mapDifficultyRange(overallDifficulty, 80, 50, 20);
+		hitResultOffset[GameData.HIT_100]  = (int) Utils.mapDifficultyRange(overallDifficulty, 140, 100, 60);
+		hitResultOffset[GameData.HIT_50]   = (int) Utils.mapDifficultyRange(overallDifficulty, 200, 150, 100);
 		hitResultOffset[GameData.HIT_MISS] = (int) (500 - (overallDifficulty * 10));
-		//final float mult = 0.608f;
-		//hitResultOffset[GameData.HIT_300]  = (int) ((128 - (overallDifficulty * 9.6)) * mult);
-		//hitResultOffset[GameData.HIT_100]  = (int) ((224 - (overallDifficulty * 12.8)) * mult);
-		//hitResultOffset[GameData.HIT_50]   = (int) ((320 - (overallDifficulty * 16)) * mult);
-		//hitResultOffset[GameData.HIT_MISS] = (int) ((1000 - (overallDifficulty * 10)) * mult);
 		data.setHitResultOffset(hitResultOffset);
 
 		// HPDrainRate (health change)
-		data.setDrainRate(HPDrainRate);
+		BeatmapHPDropRateCalculator hpCalc = new BeatmapHPDropRateCalculator(beatmap, HPDrainRate, overallDifficulty);
+		hpCalc.calculate();
+		hpDropRate = hpCalc.getHpDropRate();
+		data.setHealthModifiers(HPDrainRate, hpCalc.getHpMultiplierNormal(), hpCalc.getHpMultiplierComboEnd());
 
 		// difficulty multiplier (scoring)
 		data.calculateDifficultyMultiplier(beatmap.HPDrainRate, beatmap.circleSize, beatmap.overallDifficulty);
