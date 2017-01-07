@@ -130,6 +130,9 @@ public class GameRanking extends BasicGameState {
 		}
 
 		// ranking screen elements
+		if (!Options.isRankingElementsAnimationEnabled()) {
+			animationProgress.setTime(animationProgress.getDuration());
+		}
 		data.drawRankingElements(g, beatmap, animationProgress.getTime());
 
 		// buttons
