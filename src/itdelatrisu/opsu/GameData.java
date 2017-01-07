@@ -38,6 +38,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.Random;
 
 import org.newdawn.slick.Animation;
 import org.newdawn.slick.Color;
@@ -152,6 +153,9 @@ public class GameData {
 		HIT_ANIMATION_RESULT = 11,
 		HIT_SPINNERSPIN      = 12,
 		HIT_SPINNERBONUS     = 13;
+
+	/** Random number generator for score animation **/
+	private static Random random = new Random();
 
 	/** Hit result-related images (indexed by HIT_* constants to HIT_MAX). */
 	private Image[] hitResults;
@@ -784,8 +788,12 @@ public class GameData {
 
 		// score
 		float scoreTextScale = 1.33f;
+		int scoreWidth = Math.max(8, (int) Math.log10(score) + 1);
+		int correctDigitsWidth = Math.min(scoreWidth, (int) ((double) time / whiteStart * scoreWidth));
+		long correctDigitsFactor = (long) Math.pow(10, scoreWidth - correctDigitsWidth);
+		long displayScore = score / correctDigitsFactor * correctDigitsFactor + Math.abs(random.nextLong()) % correctDigitsFactor;
 		drawFixedSizeSymbolString(
-			(score < 100000000) ? String.format("%08d", score) : Long.toString(score),
+			(displayScore < 100000000) ? String.format("%08d", displayScore) : Long.toString(displayScore),
 			180 * uiScale, 120 * uiScale,
 			scoreTextScale, 1f, zeroImg.getWidth() * scoreTextScale, false
 		);
