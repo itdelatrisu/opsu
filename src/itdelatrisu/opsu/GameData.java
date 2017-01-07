@@ -1310,7 +1310,7 @@ public class GameData {
 	 * Resets the combo streak to zero.
 	 */
 	private void resetComboStreak() {
-		if (combo >= 20 && !(GameMod.RELAX.isActive() || GameMod.AUTOPILOT.isActive()))
+		if (combo > 20 && !(GameMod.RELAX.isActive() || GameMod.AUTOPILOT.isActive()))
 			SoundController.playSound(SoundEffect.COMBOBREAK);
 		combo = 0;
 		if (GameMod.SUDDEN_DEATH.isActive())
