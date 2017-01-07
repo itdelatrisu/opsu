@@ -152,7 +152,8 @@ public class GameData {
 		HIT_SLIDER_REPEAT    = 10,
 		HIT_ANIMATION_RESULT = 11,
 		HIT_SPINNERSPIN      = 12,
-		HIT_SPINNERBONUS     = 13;
+		HIT_SPINNERBONUS     = 13,
+		HIT_MU               = 14;  // Mu
 
 	/** Random number generator (for score animation). **/
 	private static Random random = new Random();
@@ -1529,7 +1530,8 @@ public class GameData {
 					health.changeHealthForHit(HIT_300K);
 					hitResultCount[result]++;
 				}
-			}
+			} else if (hitValue > 0)
+				health.changeHealthForHit(HIT_MU);
 			comboEnd = 0;
 		}
 

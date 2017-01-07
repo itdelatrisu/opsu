@@ -38,6 +38,7 @@ public class Health {
 		HP_100K         = 10f,   // 100-Katu
 		HP_300K         = 10f,   // 300-Katu
 		HP_300G         = 14f,   // Geki
+		HP_MU           = 6f,
 		HP_SLIDER10     = 3f,
 		HP_SLIDER30     = 4f,
 		HP_SPINNERSPIN  = 1.7f,
@@ -140,6 +141,9 @@ public class Health {
 			break;
 		case GameData.HIT_300G:
 			changeHealth(hpMultiplierComboEnd * HP_300G);
+			break;
+		case GameData.HIT_MU:
+			changeHealth(hpMultiplierNormal * HP_MU);
 			break;
 		case GameData.HIT_SLIDER10:
 			changeHealth(hpMultiplierNormal * HP_SLIDER10);
