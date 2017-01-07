@@ -119,9 +119,6 @@ public class Game extends BasicGameState {
 	/** Tolerance in case if hit object is not snapped to the grid. */
 	private static final float STACK_LENIENCE = 3f;
 
-	/** Stack time window of the previous object, in ms. */
-	private static final int STACK_TIMEOUT = 1000;
-
 	/** Stack position offset modifier. */
 	private static final float STACK_OFFSET_MODIFIER = 0.05f;
 
@@ -1776,10 +1773,7 @@ public class Game extends BasicGameState {
 				Options.getSkin().getSliderBorderColor() : beatmap.getSliderBorderColor());
 
 		// approachRate (hit object approach time)
-		if (approachRate < 5)
-			approachTime = (int) (1800 - (approachRate * 120));
-		else
-			approachTime = (int) (1200 - ((approachRate - 5) * 150));
+		approachTime = (int) Utils.mapDifficultyRange(approachRate, 1800, 1200, 450);
 
 		// overallDifficulty (hit result time offsets)
 		hitResultOffset = new int[GameData.HIT_MAX];
@@ -2070,7 +2064,7 @@ public class Game extends BasicGameState {
 					continue;
 
 				// check if in range stack calculation
-				float timeI = hitObjectI.getTime() - (STACK_TIMEOUT * beatmap.stackLeniency);
+				float timeI = hitObjectI.getTime() - (approachTime * beatmap.stackLeniency);
 				float timeN = hitObjectN.isSlider() ? gameObjects[n].getEndTime() : hitObjectN.getTime();
 				if (timeI > timeN)
 					break;

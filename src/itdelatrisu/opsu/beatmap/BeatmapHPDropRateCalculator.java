@@ -78,7 +78,7 @@ public class BeatmapHPDropRateCalculator {
 		float lowestHpComboEnd = Utils.mapDifficultyRange(hpDrainRate, 198, 170, 80);
 		float lowestHpEnd = Utils.mapDifficultyRange(hpDrainRate, 198, 180, 80);
 		float hpRecoveryAvailable = Utils.mapDifficultyRange(hpDrainRate, 8, 4, 0);
-		int difficultyPreEmpt = (int) Utils.mapDifficultyRange(overallDifficulty, 1800, 1200, 450);
+		int approachTime = (int) Utils.mapDifficultyRange(overallDifficulty, 1800, 1200, 450);
 
 		float testDrop = 0.05f;
 		Health health = new Health();
@@ -88,7 +88,7 @@ public class BeatmapHPDropRateCalculator {
 			health.reset();
 			health.setModifiers(hpDrainRate, hpMultiplierNormal, hpMultiplierComboEnd);
 			double lowestHp = health.getRawHealth();
-			int lastTime = beatmap.objects[0].getTime() - difficultyPreEmpt;
+			int lastTime = beatmap.objects[0].getTime() - approachTime;
 			int comboTooLowCount = 0;
 			boolean fail = false;
 			int timingPointIndex = 0;
