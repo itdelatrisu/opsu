@@ -154,7 +154,7 @@ public class GameData {
 		HIT_SPINNERSPIN      = 12,
 		HIT_SPINNERBONUS     = 13;
 
-	/** Random number generator for score animation **/
+	/** Random number generator (for score animation). **/
 	private static Random random = new Random();
 
 	/** Hit result-related images (indexed by HIT_* constants to HIT_MAX). */

@@ -250,8 +250,13 @@ public class GameRanking extends BasicGameState {
 		} else {
 			SoundController.playSound(SoundEffect.APPLAUSE);
 			retryButton.resetHover();
-			replayButton.setY(!GameMod.AUTO.isActive() ? replayY : retryY);
-			animationProgress.setTime(0);
+			if (GameMod.AUTO.isActive()) {
+				replayButton.setY(retryY);
+				animationProgress.setTime(animationProgress.getDuration());
+			} else {
+				replayButton.setY(replayY);
+				animationProgress.setTime(0);
+			}
 		}
 		replayButton.resetHover();
 	}
