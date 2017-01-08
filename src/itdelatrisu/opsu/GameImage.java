@@ -622,28 +622,22 @@ public enum GameImage {
 		if (defaultImage != null || defaultImages != null || Options.getSkin() == null)
 			return;
 
-		// try to load multiple images
+		// check for multiple images first, then single images
+
+		// try to load from skin directory
 		File skinDir = Options.getSkin().getDirectory();
-		if (filenameFormat != null) {
-			if (skinDir != null && ((defaultImages = loadImageArray(skinDir)) != null)) {
+		if (skinDir != null) {
+			if ((filenameFormat != null && (defaultImages = loadImageArray(skinDir)) != null) ||
+			    (defaultImage = loadImageSingle(skinDir)) != null) {
 				isSkinned = true;
-				process();
-				return;
-			}
-			if ((defaultImages = loadImageArray(null)) != null) {
-				isSkinned = false;
 				process();
 				return;
 			}
 		}
 
-		// try to load a single image
-		if (skinDir != null && ((defaultImage = loadImageSingle(skinDir)) != null)) {
-			isSkinned = true;
-			process();
-			return;
-		}
-		if ((defaultImage = loadImageSingle(null)) != null) {
+		// try to load default image
+		if ((filenameFormat != null && (defaultImages = loadImageArray(null)) != null) ||
+		    (defaultImage = loadImageSingle(null)) != null) {
 			isSkinned = false;
 			process();
 			return;
