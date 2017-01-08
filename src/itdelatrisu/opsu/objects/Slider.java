@@ -329,7 +329,7 @@ public class Slider implements GameObject {
 				sliderBallFrame = sliderBallFrame.getFlippedCopy(true, false);
 			float angle = (float) (Math.atan2(c2.y - c.y, c2.x - c.x) * 180 / Math.PI);
 			sliderBallFrame.setRotation(angle);
-			sliderBallFrame.drawCentered(c.x, c.y);
+			sliderBallFrame.drawCentered(c.x, c.y, Options.getSkin().isAllowSliderBallTint() ? color : Color.white);
 
 			// follow circle
 			if (followCircleActive || !releaseExpand.isFinished()) {
