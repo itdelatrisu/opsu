@@ -177,6 +177,7 @@ public class Opsu extends StateBasedGame {
 			Updater.get().setUpdateInfo(args[0], args[1]);
 
 		// check for updates
+		Updater.get().getCurrentVersion();  // load this for the main menu
 		if (!Options.isUpdaterDisabled()) {
 			new Thread() {
 				@Override

@@ -642,7 +642,7 @@ public class Options {
 		private int max, min;
 
 		/** Option types. */
-		public enum OptionType { BOOLEAN, NUMERIC, SELECT };
+		public enum OptionType { BOOLEAN, NUMERIC, SELECT }
 
 		/** Option type. */
 		private OptionType type = OptionType.SELECT;

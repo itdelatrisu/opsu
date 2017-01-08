@@ -179,6 +179,24 @@ public class Updater {
 	public String updatedToVersion() { return (justUpdated()) ? updatedToVersion : null; }
 
 	/**
+	 * Loads and returns the current program version.
+	 * @return the version string, or {@code null} if unable to determine the version
+	 */
+	public String getCurrentVersion() {
+		if (currentVersion == null) {
+			try {
+				Properties props = new Properties();
+				props.load(ResourceLoader.getResourceAsStream(Options.VERSION_FILE));
+				if ((currentVersion = getVersion(props)) == null)
+					return null;
+			} catch (IOException e) {
+				return null;
+			}
+		}
+		return currentVersion.toString();
+	}
+
+	/**
 	 * Returns the version from a set of properties.
 	 * @param props the set of properties
 	 * @return the version, or null if not found
@@ -203,10 +221,12 @@ public class Updater {
 		status = Status.CHECKING;
 
 		// get current version
-		Properties props = new Properties();
-		props.load(ResourceLoader.getResourceAsStream(Options.VERSION_FILE));
-		if ((currentVersion = getVersion(props)) == null)
-			return;
+		if (currentVersion == null) {
+			Properties props = new Properties();
+			props.load(ResourceLoader.getResourceAsStream(Options.VERSION_FILE));
+			if ((currentVersion = getVersion(props)) == null)
+				return;
+		}
 
 		// get latest version
 		String s = null;
@@ -219,7 +239,7 @@ public class Updater {
 			status = Status.CONNECTION_ERROR;
 			return;
 		}
-		props = new Properties();
+		Properties props = new Properties();
 		props.load(new StringReader(s));
 		if ((latestVersion = getVersion(props)) == null)
 			return;

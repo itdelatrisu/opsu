@@ -303,6 +303,7 @@ public enum GameImage {
 	MUSIC_PAUSE ("music-pause", "png", false, false),
 	MUSIC_NEXT ("music-next", "png", false, false),
 	MUSIC_PREVIOUS ("music-previous", "png", false, false),
+	MUSIC_NOW_PLAYING ("music-now-playing", "png", false, false),
 
 	DOWNLOADS ("downloads", "png", false, false) {
 		@Override
