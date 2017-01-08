@@ -426,6 +426,7 @@ public class Utils {
 		conn.setConnectTimeout(Download.CONNECTION_TIMEOUT);
 		conn.setReadTimeout(Download.READ_TIMEOUT);
 		conn.setUseCaches(false);
+		conn.setRequestProperty("User-Agent", "Mozilla/5.0...");
 		try {
 			conn.connect();
 		} catch (SocketTimeoutException e) {
