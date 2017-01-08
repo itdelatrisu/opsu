@@ -938,7 +938,12 @@ public class SongMenu extends BasicGameState {
 		if (isScrollingToFocusNode)
 			return;
 
-		songScrolling.pressed();
+		if (input.isMouseButtonDown(Input.MOUSE_RIGHT_BUTTON)) {
+			// scroll to the mouse position on the screen
+			songScrolling.setSpeedMultiplier(2f);
+			scrollSongsToPosition(y);
+		} else
+			songScrolling.pressed();
 		startScorePos.pressed();
 	}
 
@@ -951,6 +956,8 @@ public class SongMenu extends BasicGameState {
 		if (isScrollingToFocusNode)
 			return;
 
+		if (songScrolling.isPressed())
+			songScrolling.setSpeedMultiplier(1f);
 		songScrolling.released();
 		startScorePos.released();
 	}
@@ -1254,26 +1261,25 @@ public class SongMenu extends BasicGameState {
 		if (isInputBlocked())
 			return;
 
+		// check mouse button
+		if (input.isMouseButtonDown(Input.MOUSE_MIDDLE_BUTTON))
+			return;
+
 		int diff = newy - oldy;
 		if (diff == 0)
 			return;
 
-		// check mouse button (right click scrolls faster on songs)
-		int multiplier;
-		if (input.isMouseButtonDown(Input.MOUSE_RIGHT_BUTTON))
-			multiplier = 10;
-		else if (input.isMouseButtonDown(Input.MOUSE_LEFT_BUTTON))
-			multiplier = 1;
-		else
-			return;
-
 		// score buttons
 		if (focusScores != null && focusScores.length >= MAX_SCORE_BUTTONS && ScoreData.areaContains(oldx, oldy))
-			startScorePos.dragged(-diff * multiplier);
+			startScorePos.dragged(-diff);
 
 		// song buttons
-		else
-			songScrolling.dragged(-diff * multiplier);
+		else {
+			if (songScrolling.isPressed())
+				songScrolling.dragged(-diff);
+			else
+				scrollSongsToPosition(newy);
+		}
 	}
 
 	@Override
@@ -1799,6 +1805,17 @@ public class SongMenu extends BasicGameState {
 				return node;
 		}
 		return null;
+	}
+
+	/**
+	 * Scrolls the song list to the given y position.
+	 * @param y the y coordinate (will be clamped)
+	 */
+	private void scrollSongsToPosition(int y) {
+		float scrollBase = headerY + DIVIDER_LINE_WIDTH / 2;
+		float scrollHeight = MAX_SONG_BUTTONS * buttonOffset;
+		float t = Utils.clamp((y - scrollBase) / scrollHeight, 0f, 1f);
+		songScrolling.scrollToPosition(songScrolling.getMin() + t * (songScrolling.getMax() - songScrolling.getMin()));
 	}
 
 	/**

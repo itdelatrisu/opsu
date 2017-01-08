@@ -74,6 +74,24 @@ public class KineticScrolling {
 	public float getTargetPosition() { return target; }
 
 	/**
+	 * Returns the minimum value.
+	 * @return the min
+	 */
+	public float getMin() { return min; }
+
+	/**
+	 * Returns the minimum value.
+	 * @return the max
+	 */
+	public float getMax() { return max; }
+
+	/**
+	 * Returns if the mouse state is currently pressed.
+	 * @return true if pressed
+	 */
+	public boolean isPressed() { return pressed; }
+
+	/**
 	 * Updates the scrolling.
 	 * @param delta the elapsed time since the last update
 	 */
