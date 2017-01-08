@@ -18,6 +18,8 @@
 
 package itdelatrisu.opsu.skins;
 
+import itdelatrisu.opsu.OpsuConstants;
+
 import java.io.File;
 
 import org.newdawn.slick.Color;
@@ -79,7 +81,7 @@ public class Skin {
 	 */
 
 	/** The name of the skin. */
-	protected String name = "opsu! Default Skin";
+	protected String name = OpsuConstants.PROJECT_NAME + " Default Skin";
 
 	/** The skin author. */
 	protected String author = "[various authors]";

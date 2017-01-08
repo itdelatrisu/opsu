@@ -86,10 +86,10 @@ Gradle builds are built to the `build` directory.
   operating systems.
 
 ## Credits
-This software was created by Jeffrey Han 
+This software was created by Jeffrey Han
 ([@itdelatrisu](https://github.com/itdelatrisu/)).  All game concepts and
-designs are based on work by osu! developer Dean Herbert.  Other credits can
-be found [here](CREDITS.md).
+designs are based on work by [osu!](https://osu.ppy.sh/) developer Dean Herbert
+([@ppy](https://github.com/ppy)).  Other credits can be found [here](CREDITS.md).
 
 ## License
 **This software is licensed under GNU GPL version 3.**

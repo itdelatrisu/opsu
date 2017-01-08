@@ -18,6 +18,7 @@
 
 package itdelatrisu.opsu.downloads;
 
+import itdelatrisu.opsu.OpsuConstants;
 import itdelatrisu.opsu.downloads.Download.Status;
 
 import java.util.ArrayList;
@@ -34,7 +35,10 @@ public class DownloadList {
 	private static DownloadList list = new DownloadList();
 
 	/** The exit confirmation message. */
-	public static final String EXIT_CONFIRMATION = "Beatmap downloads are in progress.\nAre you sure you want to quit opsu!?";
+	public static final String EXIT_CONFIRMATION = String.format(
+		"Beatmap downloads are in progress.\nAre you sure you want to quit %s?",
+		OpsuConstants.PROJECT_NAME
+	);
 
 	/** Current list of downloads. */
 	private List<DownloadNode> nodes;

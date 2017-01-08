@@ -18,9 +18,9 @@
 
 package itdelatrisu.opsu.states;
 
-import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.Opsu;
+import itdelatrisu.opsu.OpsuConstants;
 import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.MusicController;
@@ -41,7 +41,8 @@ import itdelatrisu.opsu.ui.animations.AnimatedValue;
 import itdelatrisu.opsu.ui.animations.AnimationEquation;
 
 import java.awt.Desktop;
-import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Stack;
 
 import org.newdawn.slick.Color;
@@ -365,15 +366,15 @@ public class MainMenu extends BasicGameState {
 		boolean inMusicPosBar = musicPositionBarContains(mouseX, mouseY);
 		g.setColor(inMusicPosBar ? Colors.BLACK_BG_HOVER : Colors.BLACK_BG_NORMAL);
 		g.fillRect(musicBarX, musicBarY, musicBarWidth, musicBarHeight);
-		float oldWhiteAlpha = Colors.WHITE_FADE.a;
-		float musicPosAlpha = inMusicPosBar ? 0.8f : 0.65f;
-		Colors.WHITE_FADE.a = musicPosAlpha;
-		g.setColor(Colors.WHITE_FADE);
 		if (!MusicController.isTrackLoading() && beatmap != null) {
+			float oldWhiteAlpha = Colors.WHITE_FADE.a;
+			float musicPosAlpha = inMusicPosBar ? 0.8f : 0.65f;
+			Colors.WHITE_FADE.a = musicPosAlpha;
+			g.setColor(Colors.WHITE_FADE);
 			float musicBarPosition = Math.min((float) MusicController.getPosition(false) / MusicController.getDuration(), 1f);
 			g.fillRect(musicBarX, musicBarY, musicBarWidth * musicBarPosition, musicBarHeight);
+			Colors.WHITE_FADE.a = oldWhiteAlpha;
 		}
-		Colors.WHITE_FADE.a = oldWhiteAlpha;
 
 		// draw repository button
 		if (repoButton != null)
@@ -390,15 +391,22 @@ public class MainMenu extends BasicGameState {
 
 		// draw text
 		float marginX = width * 0.015f, topMarginY = height * 0.01f;
-		float lineHeight = Fonts.MEDIUMBOLD.getLineHeight() * 0.925f;
 		Fonts.MEDIUMBOLD.drawString(marginX, topMarginY,
-			String.format("Loaded %d songs and %d beatmaps.",
+			String.format("You have %d songs and %d beatmaps available!",
 				BeatmapSetList.get().getMapSetCount(), BeatmapSetList.get().getMapCount()),
 			Color.white
 		);
+		float lineHeight = Fonts.MEDIUMBOLD.getLineHeight() * 0.925f;
 		Fonts.MEDIUM.drawString(marginX, topMarginY + lineHeight,
-			String.format("opsu! has been running for %s.",
+			String.format("%s has been running for %s.",
+				OpsuConstants.PROJECT_NAME,
 				Utils.getTimeString((int) (System.currentTimeMillis() - programStartTime) / 1000)),
+			Color.white
+		);
+		lineHeight += Fonts.MEDIUM.getLineHeight() * 0.925f;
+		Fonts.MEDIUM.drawString(marginX, topMarginY + lineHeight,
+			String.format("It is currently %s.",
+				new SimpleDateFormat("h:mm a").format(new Date())),
 			Color.white
 		);
 
@@ -501,7 +509,12 @@ public class MainMenu extends BasicGameState {
 			UI.updateTooltip(delta, "Previous track", false);
 		else if (repoButton != null && repoButton.contains(mouseX, mouseY)) {
 			String version = Updater.get().getCurrentVersion();
-			String tooltip = String.format("running opsu!%s\ncreated by @itdelatrisu", (version == null) ? "" : " v" + version);
+			String tooltip = String.format(
+				"running %s %s\ncreated by %s",
+				OpsuConstants.PROJECT_NAME,
+				(version == null) ? "(unknown version)" : "v" + version,
+				OpsuConstants.PROJECT_AUTHOR
+			);
 			UI.updateTooltip(delta, tooltip, true);
 		} else if (Updater.get().showButton()) {
 			Updater.Status status = Updater.get().getStatus();
@@ -520,10 +533,10 @@ public class MainMenu extends BasicGameState {
 		UI.enter();
 		if (!enterNotification) {
 			if (Updater.get().getStatus() == Updater.Status.UPDATE_AVAILABLE) {
-				UI.sendBarNotification("An opsu! update is available.");
+				UI.sendBarNotification("An new update is available.");
 				enterNotification = true;
 			} else if (Updater.get().justUpdated()) {
-				UI.sendBarNotification("opsu! is now up to date!");
+				UI.sendBarNotification(OpsuConstants.PROJECT_NAME + " is now up to date!");
 				enterNotification = true;
 			}
 		}
@@ -616,13 +629,9 @@ public class MainMenu extends BasicGameState {
 
 		// repository button actions
 		if (repoButton != null && repoButton.contains(x, y)) {
-			try {
-				Desktop.getDesktop().browse(Options.REPOSITORY_URI);
-			} catch (UnsupportedOperationException e) {
-				UI.sendBarNotification("The repository web page could not be opened.");
-			} catch (IOException e) {
-				ErrorHandler.error("Could not browse to repository URI.", e, false);
-			}
+			SoundController.playSound(SoundEffect.MENUHIT);
+			((ButtonMenu) game.getState(Opsu.STATE_BUTTONMENU)).setMenuState(MenuState.ABOUT);
+			game.enterState(Opsu.STATE_BUTTONMENU);
 			return;
 		}
 

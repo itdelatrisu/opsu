@@ -126,11 +126,14 @@ public class Opsu extends StateBasedGame {
 			errorAndExit(
 				null,
 				String.format(
-					"opsu! could not be launched for one of these reasons:\n" +
-					"- An instance of opsu! is already running.\n" +
+					"%s could not be launched for one of these reasons:\n" +
+					"- An instance of %s is already running.\n" +
 					"- Another program is bound to port %d. " +
-					"You can change the port opsu! uses by editing the \"Port\" field in the configuration file.",
-					Options.getPort()
+					"You can change the port %s uses by editing the \"Port\" field in the configuration file.",
+					OpsuConstants.PROJECT_NAME,
+					OpsuConstants.PROJECT_NAME,
+					Options.getPort(),
+					OpsuConstants.PROJECT_NAME
 				),
 				false
 			);
@@ -198,7 +201,7 @@ public class Opsu extends StateBasedGame {
 		try {
 			// loop until force exit
 			while (true) {
-				Opsu opsu = new Opsu("opsu!");
+				Opsu opsu = new Opsu(OpsuConstants.PROJECT_NAME);
 				Container app = new Container(opsu);
 
 				// basic game settings

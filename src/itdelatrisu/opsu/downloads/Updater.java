@@ -19,6 +19,7 @@
 package itdelatrisu.opsu.downloads;
 
 import itdelatrisu.opsu.ErrorHandler;
+import itdelatrisu.opsu.OpsuConstants;
 import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.downloads.Download.DownloadListener;
@@ -47,7 +48,10 @@ public class Updater {
 	private static Updater updater = new Updater();
 
 	/** The exit confirmation message. */
-	public static final String EXIT_CONFIRMATION = "An opsu! update is being downloaded.\nAre you sure you want to quit opsu!?";
+	public static final String EXIT_CONFIRMATION = String.format(
+		"A new update is being downloaded.\nAre you sure you want to quit %s?",
+		OpsuConstants.PROJECT_NAME
+	);
 
 	/**
 	 * Returns the single instance of this class.
@@ -203,10 +207,9 @@ public class Updater {
 	 */
 	private DefaultArtifactVersion getVersion(Properties props) {
 		String version = props.getProperty("version");
-		if (version == null || version.equals("${pom.version}")) {
-			status = Status.INTERNAL_ERROR;
+		if (version == null || version.equals("${pom.version}"))
 			return null;
-		} else
+		else
 			return new DefaultArtifactVersion(version);
 	}
 
@@ -224,16 +227,21 @@ public class Updater {
 		if (currentVersion == null) {
 			Properties props = new Properties();
 			props.load(ResourceLoader.getResourceAsStream(Options.VERSION_FILE));
-			if ((currentVersion = getVersion(props)) == null)
+			if ((currentVersion = getVersion(props)) == null) {
+				status = Status.INTERNAL_ERROR;
 				return;
+			}
 		}
 
 		// get latest version
 		String s = null;
 		try {
-			s = Utils.readDataFromUrl(new URL(Options.VERSION_REMOTE));
+			s = Utils.readDataFromUrl(new URL(OpsuConstants.VERSION_REMOTE));
 		} catch (UnknownHostException e) {
-			Log.warn(String.format("Check for updates failed. Please check your internet connection, or your connection to %s.", Options.VERSION_REMOTE));
+			Log.warn(String.format(
+				"Check for updates failed. Please check your internet connection, or your connection to %s.",
+				OpsuConstants.VERSION_REMOTE)
+			);
 		}
 		if (s == null) {
 			status = Status.CONNECTION_ERROR;
@@ -241,8 +249,10 @@ public class Updater {
 		}
 		Properties props = new Properties();
 		props.load(new StringReader(s));
-		if ((latestVersion = getVersion(props)) == null)
+		if ((latestVersion = getVersion(props)) == null) {
+			status = Status.INTERNAL_ERROR;
 			return;
+		}
 
 		// compare versions
 		if (latestVersion.compareTo(currentVersion) <= 0)

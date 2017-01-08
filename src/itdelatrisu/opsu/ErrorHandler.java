@@ -46,8 +46,8 @@ public class ErrorHandler {
 
 	/** Error popup description text. */
 	private static final String
-		desc  = "opsu! has encountered an error.",
-		descReport = "opsu! has encountered an error. Please report this!";
+		desc = "An error occurred. :(",
+		descReport = "Something bad happened. Please report this!";
 
 	/** Error popup button options. */
 	private static final String[]
@@ -167,16 +167,27 @@ public class ErrorHandler {
 	}
 
 	/**
-	 * Returns the issue reporting URI.
-	 * This will auto-fill the report with the relevant information if possible.
-	 * @param error a description of the error
-	 * @param e the exception causing the error
-	 * @param trace the stack trace
-	 * @return the created URI
+	 * Returns the issue reporting URI with the given title and body.
+	 * @param title the issue title
+	 * @param body the issue body
+	 * @return the encoded URI
 	 */
-	private static URI getIssueURI(String error, Throwable e, String trace) {
-		// generate report information
-		String issueTitle = (error != null) ? error : e.getMessage();
+	public static URI getIssueURI(String title, String body) {
+		try {
+			return URI.create(String.format(OpsuConstants.ISSUES_URL,
+				URLEncoder.encode(title, "UTF-8"),
+				URLEncoder.encode(body, "UTF-8"))
+			);
+		} catch (UnsupportedEncodingException e) {
+			Log.warn("URLEncoder failed to encode the auto-filled issue report URL.");
+			return URI.create(String.format(OpsuConstants.ISSUES_URL, "", ""));
+		}
+	}
+
+	/**
+	 * Returns environment information formatted in markdown (for issue reports).
+	 */
+	public static String getEnvironmentInfoForIssue() {
 		StringBuilder sb = new StringBuilder();
 		try {
 			// read version and build date from version file, if possible
@@ -217,6 +228,22 @@ public class ErrorHandler {
 			sb.append(glString);
 			sb.append('\n');
 		}
+		return sb.toString();
+	}
+
+	/**
+	 * Returns the issue reporting URI.
+	 * This will auto-fill the report with the relevant information if possible.
+	 * @param error a description of the error
+	 * @param e the exception causing the error
+	 * @param trace the stack trace
+	 * @return the created URI
+	 */
+	private static URI getIssueURI(String error, Throwable e, String trace) {
+		// generate report information
+		String issueTitle = (error != null) ? error : e.getMessage();
+		StringBuilder sb = new StringBuilder();
+		sb.append(getEnvironmentInfoForIssue());
 		if (error != null) {
 			sb.append("**Error:** `");
 			sb.append(error);
@@ -230,13 +257,6 @@ public class ErrorHandler {
 		}
 
 		// return auto-filled URI
-		try {
-			return URI.create(String.format(Options.ISSUES_URL,
-					URLEncoder.encode(issueTitle, "UTF-8"),
-					URLEncoder.encode(sb.toString(), "UTF-8")));
-		} catch (UnsupportedEncodingException e1) {
-			Log.warn("URLEncoder failed to encode the auto-filled issue report URL.");
-			return URI.create(String.format(Options.ISSUES_URL, "", ""));
-		}
+		return getIssueURI(issueTitle, sb.toString());
 	}
 }

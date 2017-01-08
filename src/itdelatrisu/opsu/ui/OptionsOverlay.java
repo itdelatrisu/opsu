@@ -19,6 +19,7 @@
 package itdelatrisu.opsu.ui;
 
 import itdelatrisu.opsu.GameImage;
+import itdelatrisu.opsu.OpsuConstants;
 import itdelatrisu.opsu.OptionGroup;
 import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.Options.GameOption;
@@ -253,7 +254,8 @@ public class OptionsOverlay extends AbstractComponent {
 		g.fillRect(x, y, width, height);
 
 		// title
-		String title = "Options", subtitle = "Change the way opsu! behaves";
+		String title = "Options";
+		String subtitle = String.format("Change the way %s behaves", OpsuConstants.PROJECT_NAME);
 		float titleX = x + width / 2 - Fonts.XLARGE.getWidth(title) / 2;
 		float titleY = y + height * 0.03f;
 		float subtitleX = x + width / 2 - Fonts.DEFAULT.getWidth(subtitle) / 2;

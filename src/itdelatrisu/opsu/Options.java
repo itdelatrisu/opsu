@@ -33,7 +33,6 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -109,15 +108,6 @@ public class Options {
 
 	/** Version file name. */
 	public static final String VERSION_FILE = "version";
-
-	/** Repository address. */
-	public static final URI REPOSITORY_URI = URI.create("https://github.com/itdelatrisu/opsu");
-
-	/** Issue reporting address. */
-	public static final String ISSUES_URL = "https://github.com/itdelatrisu/opsu/issues/new?title=%s&body=%s";
-
-	/** Address containing the latest version file. */
-	public static final String VERSION_REMOTE = "https://raw.githubusercontent.com/itdelatrisu/opsu/gh-pages/version";
 
 	/** The beatmap directory. */
 	private static File beatmapDir;
@@ -618,9 +608,9 @@ public class Options {
 			}
 		},
 		PARALLAX ("Parallax", "MenuParallax", "Add a parallax effect based on the current cursor position.", true),
-		ENABLE_THEME_SONG ("Enable Theme Song", "MenuMusic", "Whether to play the theme song upon starting opsu!", true),
+		ENABLE_THEME_SONG ("Enable Theme Song", "MenuMusic", OpsuConstants.PROJECT_NAME + " will play themed music throughout the game, instead of using random beatmaps.", true),
 		REPLAY_SEEKING ("Replay Seeking", "ReplaySeeking", "Enable a seeking bar on the left side of the screen during replays.", false),
-		DISABLE_UPDATER ("Disable Automatic Updates", "DisableUpdater", "Disable automatic checking for updates upon starting opsu!.", false),
+		DISABLE_UPDATER ("Disable Automatic Updates", "DisableUpdater", "Disable automatic checking for updates upon startup.", false),
 		ENABLE_WATCH_SERVICE ("Enable Watch Service", "WatchService", "Watch the beatmap directory for changes. Requires a restart.", false);
 
 		/** Option name. */
@@ -1503,7 +1493,7 @@ public class Options {
 			// header
 			SimpleDateFormat dateFormat = new SimpleDateFormat("EEEE, MMMM dd, yyyy");
 			String date = dateFormat.format(new Date());
-			writer.write("# opsu! configuration");
+			writer.write(String.format("# %s configuration", OpsuConstants.PROJECT_NAME));
 			writer.newLine();
 			writer.write("# last updated on ");
 			writer.write(date);
