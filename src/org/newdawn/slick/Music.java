@@ -455,7 +455,7 @@ public class Music {
 		}
 		if (fadeTime > 0) {
 			fadeTime -= delta;
-			if (fadeTime < 0) {
+			if (fadeTime <= 0) {
 				fadeTime = 0;
 				if (stopAfterFade) {
 					stop();

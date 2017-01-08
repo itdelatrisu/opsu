@@ -633,6 +633,7 @@ public class Input {
 	 */
 	public void removeKeyListener(KeyListener listener) {
 		keyListeners.remove(listener);
+		keyListenersToAdd.remove(listener);
 		
 		if (!mouseListeners.contains(listener) && !controllerListeners.contains(listener)) {
 			allListeners.remove(listener);
@@ -659,6 +660,7 @@ public class Input {
 	 */
 	public void removeMouseListener(MouseListener listener) {
 		mouseListeners.remove(listener);
+		mouseListenersToAdd.remove(listener);
 		
 		if (!controllerListeners.contains(listener) && !keyListeners.contains(listener)) {
 			allListeners.remove(listener);
@@ -798,7 +800,7 @@ public class Input {
 	 * @return The absolute y position of the mouse cursor
 	 */
 	public int getAbsoluteMouseY() {
-		return height - Mouse.getY();
+		return height - Mouse.getY() - 1;
 	}
 	   
 	/**
@@ -807,7 +809,7 @@ public class Input {
 	 * @return The x position of the mouse cursor
 	 */
 	public int getMouseX() {
-		return (int) ((Mouse.getX() * scaleX)+xoffset);
+		return (int) ((getAbsoluteMouseX() * scaleX)+xoffset);
 	}
 	
 	/**
@@ -816,7 +818,7 @@ public class Input {
 	 * @return The y position of the mouse cursor
 	 */
 	public int getMouseY() {
-		return (int) (((height-Mouse.getY()) * scaleY)+yoffset);
+		return (int) ((getAbsoluteMouseY() * scaleY)+yoffset);
 	}
 	
 	/**
@@ -1239,7 +1241,7 @@ public class Input {
 					mousePressed[Mouse.getEventButton()] = true;
 
 					pressedX = (int) (xoffset + (Mouse.getEventX() * scaleX));
-					pressedY =  (int) (yoffset + ((height-Mouse.getEventY()) * scaleY));
+					pressedY =  (int) (yoffset + ((height-Mouse.getEventY()-1) * scaleY));
 					lastMouseX = pressedX;
 					lastMouseY = pressedY;
 
@@ -1257,7 +1259,7 @@ public class Input {
 					mousePressed[Mouse.getEventButton()] = false;
 					
 					int releasedX = (int) (xoffset + (Mouse.getEventX() * scaleX));
-					int releasedY = (int) (yoffset + ((height-Mouse.getEventY()) * scaleY));
+					int releasedY = (int) (yoffset + ((height-Mouse.getEventY()-1) * scaleY));
 					if ((pressedX != -1) && 
 					    (pressedY != -1) &&
 						(Math.abs(pressedX - releasedX) < mouseClickTolerance) && 

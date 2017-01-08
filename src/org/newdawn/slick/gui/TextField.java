@@ -29,6 +29,7 @@
 package org.newdawn.slick.gui;
 
 import org.lwjgl.Sys;
+import org.lwjgl.input.Keyboard;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Font;
 import org.newdawn.slick.Graphics;
@@ -502,7 +503,13 @@ public class TextField extends AbstractComponent {
 				if (consume) {
 					container.getInput().consumeEvent();
 				}
-			} else if ((c < 127) && (c > 31) && (value.length() < maxCharacter)) {
+			} else if (key == Input.KEY_RETURN) {
+				notifyListeners();
+				// Nobody more will be notified
+				if (consume) {
+					container.getInput().consumeEvent();
+				}
+			} else if (c != Keyboard.CHAR_NONE && key != Input.KEY_TAB && value.length() < maxCharacter) {
 				if (cursorPos < value.length()) {
 					value = value.substring(0, cursorPos) + c
 							+ value.substring(cursorPos);
@@ -510,12 +517,6 @@ public class TextField extends AbstractComponent {
 					value = value.substring(0, cursorPos) + c;
 				}
 				cursorPos++;
-				// Nobody more will be notified
-				if (consume) {
-					container.getInput().consumeEvent();
-				}
-			} else if (key == Input.KEY_RETURN) {
-				notifyListeners();
 				// Nobody more will be notified
 				if (consume) {
 					container.getInput().consumeEvent();
