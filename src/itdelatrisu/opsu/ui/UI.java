@@ -20,6 +20,7 @@ package itdelatrisu.opsu.ui;
 
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.GameImage;
+import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.SoundController;
@@ -45,6 +46,9 @@ import org.newdawn.slick.state.StateBasedGame;
  * Draws common UI components.
  */
 public class UI {
+	/** The target frame rate when the window does not have focus. */
+	private static final int IDLE_FPS = 30;
+
 	/** Cursor. */
 	private static Cursor cursor = new Cursor();
 
@@ -75,8 +79,12 @@ public class UI {
 	/** The alpha level of the current tooltip (if any). */
 	private static AnimatedValue tooltipAlpha = new AnimatedValue(200, 0f, 1f, AnimationEquation.LINEAR);
 
+	/** The displayed FPS. */
+	private static float fpsDisplay = 0f;
+
 	// game-related variables
 	private static GameContainer container;
+	private static StateBasedGame game;
 	private static Input input;
 
 	// This class should not be instantiated.
@@ -89,6 +97,7 @@ public class UI {
 	 */
 	public static void init(GameContainer container, StateBasedGame game) {
 		UI.container = container;
+		UI.game = game;
 		UI.input = container.getInput();
 
 		// initialize cursor
@@ -117,6 +126,7 @@ public class UI {
 		updateVolumeDisplay(delta);
 		updateBarNotification(delta);
 		tooltipAlpha.update(-delta);
+		updateFPS(delta);
 	}
 
 	/**
@@ -198,16 +208,17 @@ public class UI {
 		if (!Options.isFPSCounterEnabled())
 			return;
 
-		String fps = String.format("%dFPS", container.getFPS());
+		int fps = Math.round(fpsDisplay);
+		String s = String.format("%dFPS", fps);
 		Fonts.BOLD.drawString(
-				container.getWidth() * 0.997f - Fonts.BOLD.getWidth(fps),
-				container.getHeight() * 0.997f - Fonts.BOLD.getHeight(fps),
-				Integer.toString(container.getFPS()), Color.white
+			container.getWidth() * 0.997f - Fonts.BOLD.getWidth(s),
+			container.getHeight() * 0.997f - Fonts.BOLD.getHeight(s),
+			Integer.toString(fps), Color.white
 		);
 		Fonts.DEFAULT.drawString(
-				container.getWidth() * 0.997f - Fonts.BOLD.getWidth("FPS"),
-				container.getHeight() * 0.997f - Fonts.BOLD.getHeight("FPS"),
-				"FPS", Color.white
+			container.getWidth() * 0.997f - Fonts.BOLD.getWidth("FPS"),
+			container.getHeight() * 0.997f - Fonts.BOLD.getHeight("FPS"),
+			"FPS", Color.white
 		);
 	}
 
@@ -485,6 +496,32 @@ public class UI {
 		Colors.BLACK_ALPHA.a = oldAlphaB;
 		Colors.WHITE_ALPHA.a = oldAlphaW;
 	}
+
+	/**
+	 * Updates the FPS display by a delta interval.
+	 * Also changes the frame rate if the window has lost or restored focus.
+	 * @param delta the delta interval since the last call
+	 */
+	private static void updateFPS(int delta){
+		// change frame rate when focus is lost/restored
+		boolean focus = (game.getCurrentStateID() == Opsu.STATE_GAME) ? true : container.hasFocus();
+		container.setTargetFrameRate(focus ? Options.getTargetFPS() : IDLE_FPS);
+
+		// update displayed FPS
+		if (Options.isFPSCounterEnabled()) {
+			int fps = container.getFPS();
+			float multiplier = delta / 250f;
+			if (fpsDisplay < fps)
+				fpsDisplay = Math.min(fpsDisplay + (fps - fpsDisplay) * multiplier, fps);
+			else if (fpsDisplay > fps)
+				fpsDisplay = Math.max(fpsDisplay - (fpsDisplay - fps) * multiplier, fps);
+		}
+	}
+
+	/**
+	 * Resets the displayed FPS.
+	 */
+	public static void resetFPSDisplay() { fpsDisplay = 0f; }
 
 	/**
 	 * Shows a confirmation dialog (used before exiting the game).

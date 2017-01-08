@@ -420,7 +420,13 @@ public class Options {
 				}
 			}
 		},
-		SHOW_FPS ("Show FPS Counter", "FpsCounter", "Show an FPS counter in the bottom-right hand corner.", true),
+		SHOW_FPS ("Show FPS Counter", "FpsCounter", "Show an FPS counter in the bottom-right hand corner.", true) {
+			@Override
+			public void toggle(GameContainer container) {
+				super.toggle(container);
+				UI.resetFPSDisplay();
+			}
+		},
 		SHOW_UNICODE ("Prefer Non-English Metadata", "ShowUnicode", "Where available, song titles will be shown in their native language.", false) {
 			@Override
 			public void toggle(GameContainer container) {
