@@ -97,7 +97,7 @@ public class UI {
 
 		// back button
 		if (GameImage.MENU_BACK.getImages() != null) {
-			Animation back = GameImage.MENU_BACK.getAnimation(120);
+			Animation back = GameImage.MENU_BACK.getAnimation();
 			backButton = new MenuButton(back, back.getWidth() / 2f, container.getHeight() - (back.getHeight() / 2f));
 		} else {
 			Image back = GameImage.MENU_BACK.getImage();

@@ -325,6 +325,8 @@ public class Slider implements GameObject {
 //			float dis = hitObject.getPixelLength() * HitObject.getXMultiplier() * (t - (int) t);
 //			Image sliderBallFrame = sliderBallImages[(int) (dis / (diameter * Math.PI) * 30) % sliderBallImages.length];
 			Image sliderBallFrame = sliderBallImages[(int) (t * sliderTime * 60 / 1000) % sliderBallImages.length];
+			if (currentRepeats % 2 == 1 && Options.getSkin().isSliderBallFlipped())
+				sliderBallFrame = sliderBallFrame.getFlippedCopy(true, false);
 			float angle = (float) (Math.atan2(c2.y - c.y, c2.x - c.x) * 180 / Math.PI);
 			sliderBallFrame.setRotation(angle);
 			sliderBallFrame.drawCentered(c.x, c.y);

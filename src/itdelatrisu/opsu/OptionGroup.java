@@ -65,7 +65,6 @@ public class OptionGroup {
 			GameOption.DISABLE_MOUSE_WHEEL,
 			GameOption.DISABLE_MOUSE_BUTTONS,
 			GameOption.CURSOR_SIZE,
-			GameOption.NEW_CURSOR,
 			GameOption.DISABLE_CURSOR
 		}),
 		new OptionGroup("Custom", new GameOption[] {

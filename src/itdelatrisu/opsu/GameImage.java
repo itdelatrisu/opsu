@@ -37,8 +37,6 @@ public enum GameImage {
 	CURSOR ("cursor", "png"),
 	CURSOR_MIDDLE ("cursormiddle", "png"),
 	CURSOR_TRAIL ("cursortrail", "png"),
-	CURSOR_OLD ("cursor2", "png", false, false),  // custom
-	CURSOR_TRAIL_OLD ("cursortrail2", "png", false, false),  // custom
 
 	// Game
 	SECTION_PASS ("section-pass", "png"),
@@ -568,12 +566,29 @@ public enum GameImage {
 	/**
 	 * Returns an Animation based on the image array.
 	 * If no image array exists, returns the single image as an animation.
+	 */
+	public Animation getAnimation() {
+		Image[] images = getImages();
+		if (images == null)
+			images = new Image[] { getImage() };
+
+		int fps = Options.getSkin().getAnimationFramerate();
+		if (fps == -1)
+			fps = images.length;
+
+		return new Animation(images, 1000 / fps);
+	}
+
+	/**
+	 * Returns an Animation based on the image array.
+	 * If no image array exists, returns the single image as an animation.
 	 * @param duration the duration to show each frame in the animation
 	 */
 	public Animation getAnimation(int duration){
 		Image[] images = getImages();
 		if (images == null)
 			images = new Image[] { getImage() };
+
 		return new Animation(images, duration);
 	}
 

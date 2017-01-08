@@ -1723,7 +1723,7 @@ public class Game extends BasicGameState {
 
 		// skip button
 		if (GameImage.SKIP.getImages() != null) {
-			Animation skip = GameImage.SKIP.getAnimation(120);
+			Animation skip = GameImage.SKIP.getAnimation();
 			skipButton = new MenuButton(skip, width - skip.getWidth() / 2f, height - (skip.getHeight() / 2f));
 		} else {
 			Image skip = GameImage.SKIP.getImage();

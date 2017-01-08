@@ -479,13 +479,6 @@ public class Options {
 					val = i;
 			}
 		},
-		NEW_CURSOR ("Enable New Cursor", "NewCursor", "Use the new cursor style (may cause higher CPU usage).", true) {
-			@Override
-			public void toggle(GameContainer container) {
-				super.toggle(container);
-				UI.getCursor().reset();
-			}
-		},
 		DYNAMIC_BACKGROUND ("Enable Dynamic Backgrounds", "DynamicBackground", "The song background will be used as the main menu background.", true),
 		LOAD_VERBOSE ("Show Detailed Loading Progress", "LoadVerbose", "Display more specific loading information in the splash screen.", false),
 		MASTER_VOLUME ("Master Volume", "VolumeUniversal", "Global volume level.", 35, 0, 100) {
@@ -1038,12 +1031,6 @@ public class Options {
 	 * @return the scale [0.5, 2]
 	 */
 	public static float getCursorScale() { return GameOption.CURSOR_SIZE.getIntegerValue() / 100f; }
-
-	/**
-	 * Returns whether or not the new cursor type is enabled.
-	 * @return true if enabled
-	 */
-	public static boolean isNewCursorEnabled() { return GameOption.NEW_CURSOR.getBooleanValue(); }
 
 	/**
 	 * Returns whether or not the main menu background should be the current track image.

@@ -118,24 +118,19 @@ public class Cursor {
 		if (Options.isCursorDisabled())
 			return;
 
-		// determine correct cursor image
-		Image cursor = null, cursorMiddle = null, cursorTrail = null;
-		boolean beatmapSkinned = GameImage.CURSOR.hasBeatmapSkinImage();
-		boolean newStyle, hasMiddle;
 		Skin skin = Options.getSkin();
-		if (beatmapSkinned) {
-			newStyle = true;  // osu! currently treats all beatmap cursors as new-style cursors
-			hasMiddle = GameImage.CURSOR_MIDDLE.hasBeatmapSkinImage();
+
+		// determine correct cursor image
+		Image cursor = GameImage.CURSOR.getImage();
+		Image cursorTrail = GameImage.CURSOR_TRAIL.getImage();
+		Image cursorMiddle = null;
+		if (GameImage.CURSOR.hasBeatmapSkinImage()) {
+			if (GameImage.CURSOR_MIDDLE.hasBeatmapSkinImage())
+				cursorMiddle = GameImage.CURSOR_MIDDLE.getImage();
+		} else if (GameImage.CURSOR.hasGameSkinImage()) {
+			if (GameImage.CURSOR_MIDDLE.hasGameSkinImage())
+				cursorMiddle = GameImage.CURSOR_MIDDLE.getImage();
 		} else
-			newStyle = hasMiddle = Options.isNewCursorEnabled();
-		if (newStyle || beatmapSkinned) {
-			cursor = GameImage.CURSOR.getImage();
-			cursorTrail = GameImage.CURSOR_TRAIL.getImage();
-		} else {
-			cursor = GameImage.CURSOR.hasGameSkinImage() ? GameImage.CURSOR.getImage() : GameImage.CURSOR_OLD.getImage();
-			cursorTrail = GameImage.CURSOR_TRAIL.hasGameSkinImage() ? GameImage.CURSOR_TRAIL.getImage() : GameImage.CURSOR_TRAIL_OLD.getImage();
-		}
-		if (hasMiddle)
 			cursorMiddle = GameImage.CURSOR_MIDDLE.getImage();
 
 		// scale cursor
@@ -159,7 +154,7 @@ public class Cursor {
 		// TODO: use an image buffer
 		int removeCount = 0;
 		float FPSmod = Math.max(container.getFPS(), 1) / 60f;
-		if (newStyle) {
+		if (cursorMiddle != null) {
 			// new style: add all points between cursor movements
 			if (lastPosition == null) {
 				lastPosition = new Point(mouseX, mouseY);
@@ -187,25 +182,36 @@ public class Cursor {
 		float t = 2f / trail.size();
 		int cursorTrailWidth = cursorTrail.getWidth(), cursorTrailHeight = cursorTrail.getHeight();
 		float cursorTrailRotation = (skin.isCursorTrailRotated()) ? cursorAngle : 0;
+		float offsetX = -cursorTrailWidth / 2f, offsetY = -cursorTrailHeight / 2f;
+		if (!skin.isCursorCentered())
+			offsetX = offsetY = 0f;
 		cursorTrail.startUse();
 		for (Point p : trail) {
 			alpha += t;
 			cursorTrail.setImageColor(1f, 1f, 1f, alpha);
 			cursorTrail.drawEmbedded(
-					p.x - (cursorTrailWidth / 2f), p.y - (cursorTrailHeight / 2f),
-					cursorTrailWidth, cursorTrailHeight, cursorTrailRotation);
+				p.x + offsetX, p.y + offsetY,
+				cursorTrailWidth, cursorTrailHeight, cursorTrailRotation
+			);
 		}
 		cursorTrail.drawEmbedded(
-				mouseX - (cursorTrailWidth / 2f), mouseY - (cursorTrailHeight / 2f),
-				cursorTrailWidth, cursorTrailHeight, cursorTrailRotation);
+			mouseX + offsetX, mouseY + offsetY,
+			cursorTrailWidth, cursorTrailHeight, cursorTrailRotation
+		);
 		cursorTrail.endUse();
 
 		// draw the other components
-		if (newStyle && skin.isCursorRotated())
+		if (skin.isCursorRotated())
 			cursor.setRotation(cursorAngle);
-		cursor.drawCentered(mouseX, mouseY);
-		if (hasMiddle)
-			cursorMiddle.drawCentered(mouseX, mouseY);
+		if (skin.isCursorCentered()) {
+			cursor.drawCentered(mouseX, mouseY);
+			if (cursorMiddle != null)
+				cursorMiddle.drawCentered(mouseX, mouseY);
+		} else {
+			cursor.draw(mouseX, mouseY);
+			if (cursorMiddle != null)
+				cursorMiddle.drawCentered(mouseX + cursor.getWidth() / 2, mouseY + cursor.getHeight() / 2);
+		}
 	}
 
 	/**

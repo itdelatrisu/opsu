@@ -273,7 +273,7 @@ public class Skin {
 
 	/**
 	 * Returns the frame rate of animations.
-	 * @return the FPS, or {@code -1} (TODO)
+	 * @return the FPS, or {@code -1} if not set
 	 */
 	public int getAnimationFramerate() { return animationFramerate; }
 

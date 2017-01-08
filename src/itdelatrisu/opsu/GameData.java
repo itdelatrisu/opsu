@@ -414,8 +414,9 @@ public class GameData {
 				comboBurstImages = new Image[]{ GameImage.COMBO_BURST.getImage() };
 
 			// scorebar-colour animation
-			Image[] scorebar = GameImage.SCOREBAR_COLOUR.getImages();
-			scorebarColour = (scorebar != null) ? new Animation(scorebar, 60) : null;
+			scorebarColour = null;
+			if (GameImage.SCOREBAR_COLOUR.getImages() != null)
+				scorebarColour = GameImage.SCOREBAR_COLOUR.getAnimation();
 
 			// default symbol images
 			defaultSymbols = new Image[10];
