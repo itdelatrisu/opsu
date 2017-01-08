@@ -116,6 +116,20 @@ public class Fonts {
 	}
 
 	/**
+	 * Adds and loads glyphs for a font.
+	 * @param font the font to add the glyphs to
+	 * @param c the character to load
+	 */
+	public static void loadGlyphs(UnicodeFont font, char c) {
+		font.addGlyphs(c, c);
+		try {
+			font.loadGlyphs();
+		} catch (SlickException e) {
+			Log.warn(String.format("Failed to load glyphs for codepoint '%d'.", (int) c), e);
+		}
+	}
+
+	/**
 	 * Wraps the given string into a list of split lines based on the width.
 	 * @param font the font used to draw the string
 	 * @param text the text to split

@@ -1200,9 +1200,10 @@ public class Input {
 		
 		while (Keyboard.next()) {
 			if (Keyboard.getEventKeyState()) {
-				int eventKey = resolveEventKey(Keyboard.getEventKey(), Keyboard.getEventCharacter());
+				char eventCh = Keyboard.getEventCharacter();
+				int eventKey = resolveEventKey(Keyboard.getEventKey(), eventCh);
 				
-				keys[eventKey] = Keyboard.getEventCharacter();
+				keys[eventKey] = eventCh;
 				pressed[eventKey] = true;
 				nextRepeat[eventKey] = System.currentTimeMillis() + keyRepeatInitial;
 				
@@ -1211,14 +1212,15 @@ public class Input {
 					KeyListener listener = (KeyListener) keyListeners.get(i);
 					
 					if (listener.isAcceptingInput()) {
-						listener.keyPressed(eventKey, Keyboard.getEventCharacter());
+						listener.keyPressed(eventKey, eventCh);
 						if (consumed) {
 							break;
 						}
 					}
 				}
 			} else {
-				int eventKey = resolveEventKey(Keyboard.getEventKey(), Keyboard.getEventCharacter());
+				char eventCh = Keyboard.getEventCharacter();
+				int eventKey = resolveEventKey(Keyboard.getEventKey(), eventCh);
 				nextRepeat[eventKey] = 0;
 				
 				consumed = false;
@@ -1226,6 +1228,12 @@ public class Input {
 					KeyListener listener = (KeyListener) keyListeners.get(i);
 					if (listener.isAcceptingInput()) {
 						listener.keyReleased(eventKey, keys[eventKey]);
+						// Fix Unicode input in some keyboards (Chinese, Japanese, etc.)
+						// not firing keypress events: fire them here.
+						if (eventCh != Keyboard.CHAR_NONE && keys[eventKey] != eventCh) {
+							listener.keyPressed(eventKey, eventCh);
+							listener.keyReleased(eventKey, eventCh);
+						}
 						if (consumed) {
 							break;
 						}

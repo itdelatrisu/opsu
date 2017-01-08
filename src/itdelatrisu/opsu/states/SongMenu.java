@@ -73,6 +73,7 @@ import org.newdawn.slick.Image;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.SpriteSheet;
+import org.newdawn.slick.UnicodeFont;
 import org.newdawn.slick.gui.TextField;
 import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
@@ -171,6 +172,9 @@ public class SongMenu extends BasicGameState {
 
 	/** The search textfield. */
 	private TextField search;
+
+	/** The search font. */
+	private UnicodeFont searchFont;
 
 	/**
 	 * Delay timer, in milliseconds, before running another search.
@@ -272,7 +276,7 @@ public class SongMenu extends BasicGameState {
 	private int searchTransitionTimer = SEARCH_TRANSITION_TIME;
 
 	/** The text length of the last string in the search TextField. */
-	private int lastSearchTextLength = -1;
+	private int lastSearchTextLength = 0;
 
 	/** Whether the song folder changed (notified via the watch service). */
 	private boolean songFolderChanged = false;
@@ -419,8 +423,9 @@ public class SongMenu extends BasicGameState {
 		// search
 		int textFieldX = (int) (width * 0.7125f + Fonts.BOLD.getWidth("Search: "));
 		int textFieldY = (int) (headerY + Fonts.BOLD.getLineHeight() / 2);
+		searchFont = Fonts.BOLD;
 		search = new TextField(
-				container, Fonts.BOLD, textFieldX, textFieldY,
+				container, searchFont, textFieldX, textFieldY,
 				(int) (width * 0.99f) - textFieldX, Fonts.BOLD.getLineHeight()
 		);
 		search.setBackgroundColor(Color.transparent);
@@ -854,9 +859,11 @@ public class SongMenu extends BasicGameState {
 					BeatmapSetList.get().init();
 					if (search.getText().isEmpty()) {  // cleared search
 						// use previous start/focus if possible
-						if (oldFocusNode != null)
+						if (oldFocusNode != null) {
 							setFocus(oldFocusNode.getNode(), oldFocusNode.getIndex(), true, true);
-						else
+							songChangeTimer.setTime(songChangeTimer.getDuration());
+							musicIconBounceTimer.setTime(musicIconBounceTimer.getDuration());
+						} else
 							setFocus(BeatmapSetList.get().getRandomNode(), -1, true, true);
 					} else {
 						int size = BeatmapSetList.get().size();
@@ -1117,6 +1124,7 @@ public class SongMenu extends BasicGameState {
 				searchTimer = SEARCH_DELAY;
 				searchTransitionTimer = 0;
 				searchResultString = null;
+				lastSearchTextLength = 0;
 			} else {
 				// return to main menu
 				SoundController.playSound(SoundEffect.MENUBACK);
@@ -1238,8 +1246,12 @@ public class SongMenu extends BasicGameState {
 			break;
 		default:
 			// wait for user to finish typing
-			// TODO: accept all characters (current conditions are from TextField class)
-			if ((c > 31 && c < 127) || key == Input.KEY_BACK) {
+			if (Character.isLetterOrDigit(c) || key == Input.KEY_BACK) {
+				// load glyphs
+				if (c > 255)
+					Fonts.loadGlyphs(searchFont, c);
+
+				// reset search timer
 				searchTimer = 0;
 				int textLength = search.getText().length();
 				if (lastSearchTextLength != textLength) {
@@ -1772,6 +1784,7 @@ public class SongMenu extends BasicGameState {
 		searchTransitionTimer = SEARCH_TRANSITION_TIME;
 		searchResultString = null;
 		lastBackgroundImage = null;
+		lastSearchTextLength = 0;
 
 		// reload songs in new thread
 		reloadThread = new BeatmapReloadThread(fullReload);

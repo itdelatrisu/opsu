@@ -509,7 +509,7 @@ public class TextField extends AbstractComponent {
 				if (consume) {
 					container.getInput().consumeEvent();
 				}
-			} else if (c != Keyboard.CHAR_NONE && key != Input.KEY_TAB && value.length() < maxCharacter) {
+			} else if (c > 31 && value.length() < maxCharacter) {
 				if (cursorPos < value.length()) {
 					value = value.substring(0, cursorPos) + c
 							+ value.substring(cursorPos);

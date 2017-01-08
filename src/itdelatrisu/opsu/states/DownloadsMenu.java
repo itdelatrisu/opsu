@@ -56,6 +56,7 @@ import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
+import org.newdawn.slick.UnicodeFont;
 import org.newdawn.slick.gui.TextField;
 import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
@@ -125,6 +126,9 @@ public class DownloadsMenu extends BasicGameState {
 
 	/** The search textfield. */
 	private TextField search;
+	
+	/** The search font. */
+	private UnicodeFont searchFont;
 
 	/**
 	 * Delay timer, in milliseconds, before running another search.
@@ -314,8 +318,9 @@ public class DownloadsMenu extends BasicGameState {
 		// search
 		searchTimer = SEARCH_DELAY;
 		searchResultString = "Loading data from server...";
+		searchFont = Fonts.DEFAULT;
 		search = new TextField(
-				container, Fonts.DEFAULT, (int) baseX, (int) searchY,
+				container, searchFont, (int) baseX, (int) searchY,
 				(int) searchWidth, Fonts.MEDIUM.getLineHeight()
 		);
 		search.setBackgroundColor(Colors.BLACK_BG_NORMAL);
@@ -929,6 +934,11 @@ public class DownloadsMenu extends BasicGameState {
 		default:
 			// wait for user to finish typing
 			if (Character.isLetterOrDigit(c) || key == Input.KEY_BACK) {
+				// load glyphs
+				if (c > 255)
+					Fonts.loadGlyphs(searchFont, c);
+
+				// reset search timer
 				searchTimer = 0;
 				pageDir = Page.RESET;
 			}
