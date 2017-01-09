@@ -35,10 +35,10 @@ import org.newdawn.slick.UnicodeFont;
  * Notification manager.
  */
 public class NotificationManager {
-	/** Duration, in milliseconds, to display notifications. */
+	/** Duration, in milliseconds, to display bubble notifications. */
 	private static final int NOTIFICATION_TIME = 8000;
 
-	/** Duration, in milliseconds, to animate notifications in/out. */
+	/** Duration, in milliseconds, to animate bubble notifications in/out. */
 	private static final int NOTIFICATION_ANIMATION_TIME = 450;
 
 	/** Duration, in milliseconds, to display bar notifications. */
@@ -51,9 +51,12 @@ public class NotificationManager {
 	}
 
 	/** Notification. */
-	private class Notification {
+	private class BubbleNotification {
 		/** The listener. */
 		private final NotificationListener listener;
+
+		/** The notification string. */
+		private final String message;
 
 		/** The lines of text. */
 		private final List<String> lines;
@@ -73,14 +76,18 @@ public class NotificationManager {
 		/** The font to use. */
 		private final UnicodeFont font = Fonts.SMALLBOLD;
 
+		/** Whether this notification has been clicked. */
+		private boolean clicked = false;
+
 		/**
-		 * Creates a new notification.
+		 * Creates a new bubble notification.
 		 * @param s the notification string
 		 * @param c the border color
 		 * @param listener the listener
 		 * @param width the element width
 		 */
-		public Notification(String s, Color c, NotificationListener listener, int width) {
+		public BubbleNotification(String s, Color c, NotificationListener listener, int width) {
+			this.message = s;
 			this.lines = Fonts.wrap(font, s, (int) (width * 0.96f), true);
 			this.borderColor = new Color(c);
 			this.borderFocusColor = (borderColor.equals(Color.white)) ?
@@ -103,7 +110,7 @@ public class NotificationManager {
 		public int getHeight() { return height; }
 
 		/**
-		 * Sets the position of this notification.
+		 * Sets the position of this bubble.
 		 * @param x the x coordinate
 		 * @param y the y coordinate
 		 */
@@ -113,7 +120,7 @@ public class NotificationManager {
 		}
 
 		/**
-		 * Returns true if the coordinates are within the notification bounds.
+		 * Returns true if the coordinates are within the bubble bounds.
 		 * @param cx the x coordinate
 		 * @param cy the y coordinate
 		 */
@@ -122,7 +129,7 @@ public class NotificationManager {
 		}
 
 		/**
-		 * Draws the notification.
+		 * Draws the bubble notification.
 		 * @param g the graphics context
 		 * @param focus true if focused
 		 */
@@ -156,6 +163,7 @@ public class NotificationManager {
 			g.drawRoundRect(x + offset, y, width, height, cornerRadius);
 
 			// draw text
+			Fonts.loadGlyphs(font, message);
 			int cx = x + (int) (width * 0.02f) + offset, cy = y + lineHeight / 4;
 			for (String s : lines) {
 				font.drawString(cx, cy, s, Colors.WHITE_FADE);
@@ -167,7 +175,7 @@ public class NotificationManager {
 		}
 
 		/**
-		 * Updates the notification by a delta interval.
+		 * Updates the bubble notification by a delta interval.
 		 * @param delta the delta interval since the last call.
 		 * @return true if an update was applied, false if the timer is finished
 		 */
@@ -182,18 +190,22 @@ public class NotificationManager {
 		/** Returns whether this notification is finished being displayed. */
 		public boolean isFinished() { return time >= NOTIFICATION_TIME; }
 
-		/** Click handler. */
-		public void click() {
-			if (isFinished())
+		/**
+		 * Click handler.
+		 * @param doAction whether to fire the listener
+		 */
+		public synchronized void click(boolean doAction) {
+			if (isFinished() || clicked)
 				return;
+			clicked = true;
 			time = Math.max(time, NOTIFICATION_TIME - NOTIFICATION_ANIMATION_TIME);
-			if (listener != null)
+			if (listener != null && doAction)
 				listener.click();
 		}
 	}
 
-	/** All notifications. */
-	private List<Notification> notifications;
+	/** All bubble notifications. */
+	private List<BubbleNotification> notifications;
 
 	/** The current bar notification string. */
 	private String barNotif;
@@ -212,15 +224,15 @@ public class NotificationManager {
 	public NotificationManager(GameContainer container) {
 		this.container = container;
 		this.input = container.getInput();
-		this.notifications = Collections.synchronizedList(new ArrayList<Notification>());
+		this.notifications = Collections.synchronizedList(new ArrayList<BubbleNotification>());
 		input.addMouseListener(new MouseListener() {
 			@Override
 			public void mousePressed(int button, int x, int y) {
-				if (button != Input.MOUSE_LEFT_BUTTON)
+				if (button == Input.MOUSE_MIDDLE_BUTTON)
 					return;
-				for (Notification n : notifications) {
+				for (BubbleNotification n : notifications) {
 					if (n.contains(x, y)) {
-						n.click();
+						n.click(button == Input.MOUSE_LEFT_BUTTON);
 						break;
 					}
 				}
@@ -252,7 +264,7 @@ public class NotificationManager {
 	 */
 	private void drawNotifications(Graphics g) {
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
-		for (Notification n : notifications) {
+		for (BubbleNotification n : notifications) {
 			if (!n.isFinished())
 				n.draw(g, n.contains(mouseX, mouseY));
 		}
@@ -291,7 +303,7 @@ public class NotificationManager {
 	public void update(int delta) {
 		// update notifications
 		boolean allFinished = true;
-		for (Notification n : notifications) {
+		for (BubbleNotification n : notifications) {
 			if (n.update(delta))
 				allFinished = false;
 		}
@@ -307,26 +319,26 @@ public class NotificationManager {
 	}
 
 	/**
-	 * Submits a notification for drawing.
+	 * Submits a bubble notification for drawing.
 	 * @param s the notification string
 	 */
 	public void sendNotification(String s) { sendNotification(s, Color.white); }
 
 	/**
-	 * Submits a notification for drawing.
+	 * Submits a bubble notification for drawing.
 	 * @param s the notification string
 	 * @param c the border color
 	 */
 	public void sendNotification(String s, Color c) { sendNotification(s, c, null); }
 
 	/**
-	 * Submits a notification for drawing.
+	 * Submits a bubble notification for drawing.
 	 * @param s the notification string
 	 * @param c the border color
 	 * @param listener the listener
 	 */
 	public synchronized void sendNotification(String s, Color c, NotificationListener listener) {
-		Notification notif = new Notification(s, c, listener, container.getWidth() / 5);
+		BubbleNotification notif = new BubbleNotification(s, c, listener, container.getWidth() / 5);
 		int x, y;
 		int bottomY = (int) (container.getHeight() * 0.9645f);
 		int paddingX = 6;
@@ -335,7 +347,7 @@ public class NotificationManager {
 			x = container.getWidth() - paddingX - notif.getWidth();
 			y = bottomY - notif.getHeight();
 		} else {
-			Notification n = notifications.get(notifications.size() - 1);
+			BubbleNotification n = notifications.get(notifications.size() - 1);
 			x = n.getX();
 			y = n.getY() - paddingY - notif.getHeight();
 			if (y <= paddingY) {
