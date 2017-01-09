@@ -285,6 +285,8 @@ public class DownloadsMenu extends BasicGameState {
 					// send notification
 					UI.getNotificationManager().sendNotification((dirs.length == 1) ?
 						"Imported 1 new song." : String.format("Imported %d new songs.", dirs.length));
+				} else {
+					UI.getNotificationManager().sendNotification("No Standard beatmaps could be loaded.", Color.red);
 				}
 			}
 
