@@ -465,7 +465,7 @@ public class SongMenu extends BasicGameState {
 				if (!songFolderChanged && kind != StandardWatchEventKinds.ENTRY_MODIFY) {
 					songFolderChanged = true;
 					if (game_.getCurrentStateID() == Opsu.STATE_SONGMENU)
-						UI.getNotificationManager().sendBarNotification("Changes in Songs folder detected. Hit F5 to refresh.");
+						UI.getNotificationManager().sendNotification("Changes in Songs folder detected.\nHit F5 to refresh.");
 				}
 			}
 		});

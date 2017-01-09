@@ -35,12 +35,14 @@ import itdelatrisu.opsu.ui.Colors;
 import itdelatrisu.opsu.ui.Fonts;
 import itdelatrisu.opsu.ui.MenuButton;
 import itdelatrisu.opsu.ui.MenuButton.Expand;
+import itdelatrisu.opsu.ui.NotificationManager.NotificationListener;
 import itdelatrisu.opsu.ui.StarFountain;
 import itdelatrisu.opsu.ui.UI;
 import itdelatrisu.opsu.ui.animations.AnimatedValue;
 import itdelatrisu.opsu.ui.animations.AnimationEquation;
 
 import java.awt.Desktop;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Stack;
@@ -533,10 +535,25 @@ public class MainMenu extends BasicGameState {
 		UI.enter();
 		if (!enterNotification) {
 			if (Updater.get().getStatus() == Updater.Status.UPDATE_AVAILABLE) {
-				UI.getNotificationManager().sendBarNotification("An new update is available.");
+				UI.getNotificationManager().sendNotification("A new update is available!");
 				enterNotification = true;
 			} else if (Updater.get().justUpdated()) {
-				UI.getNotificationManager().sendBarNotification(OpsuConstants.PROJECT_NAME + " is now up to date!");
+				String updateMessage = OpsuConstants.PROJECT_NAME + " is now up to date!";
+				final String version = Updater.get().getCurrentVersion();
+				if (version != null && Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+					updateMessage += "\nClick to see changes.";
+					UI.getNotificationManager().sendNotification(updateMessage, Color.white, new NotificationListener() {
+						@Override
+						public void click() {
+							try {
+								Desktop.getDesktop().browse(OpsuConstants.getChangelogURI(version));
+							} catch (IOException e) {
+								UI.getNotificationManager().sendBarNotification("The web page could not be opened.");
+							}
+						}
+					});
+				} else
+					UI.getNotificationManager().sendNotification(updateMessage);
 				enterNotification = true;
 			}
 		}

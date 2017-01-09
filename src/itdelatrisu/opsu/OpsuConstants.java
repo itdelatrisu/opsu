@@ -18,7 +18,9 @@
 
 package itdelatrisu.opsu;
 
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.net.URLEncoder;
 
 /**
  * Project-specific constants.
@@ -44,6 +46,18 @@ public class OpsuConstants {
 
 	/** Address containing the latest version file. */
 	public static final String VERSION_REMOTE = "https://raw.githubusercontent.com/itdelatrisu/opsu/gh-pages/version";
+
+	/** Changelog address. */
+	private static final String CHANGELOG_URL = "https://github.com/itdelatrisu/opsu/releases/tag/%s";
+
+	/** Returns the changelog URI for the given version. */
+	public static URI getChangelogURI(String version) {
+		try {
+			return URI.create(String.format(CHANGELOG_URL, URLEncoder.encode(version, "UTF-8")));
+		} catch (UnsupportedEncodingException e) {
+			return WEBSITE_URI;
+		}
+	}
 
 	// This class should not be instantiated.
 	private OpsuConstants() {}

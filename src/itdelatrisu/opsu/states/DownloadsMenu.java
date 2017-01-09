@@ -126,7 +126,7 @@ public class DownloadsMenu extends BasicGameState {
 
 	/** The search textfield. */
 	private TextField search;
-	
+
 	/** The search font. */
 	private UnicodeFont searchFont;
 
@@ -283,8 +283,8 @@ public class DownloadsMenu extends BasicGameState {
 				this.importedNode = BeatmapParser.parseDirectories(dirs);
 				if (importedNode != null) {
 					// send notification
-					UI.getNotificationManager().sendBarNotification((dirs.length == 1) ? "Imported 1 new song." :
-							String.format("Imported %d new songs.", dirs.length));
+					UI.getNotificationManager().sendNotification((dirs.length == 1) ?
+						"Imported 1 new song." : String.format("Imported %d new songs.", dirs.length));
 				}
 			}
 

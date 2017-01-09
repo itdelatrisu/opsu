@@ -24,6 +24,7 @@ import itdelatrisu.opsu.beatmap.HitObject;
 import itdelatrisu.opsu.downloads.Download;
 import itdelatrisu.opsu.downloads.DownloadNode;
 import itdelatrisu.opsu.replay.PlaybackSpeed;
+import itdelatrisu.opsu.ui.Colors;
 import itdelatrisu.opsu.ui.Fonts;
 import itdelatrisu.opsu.ui.UI;
 
@@ -298,6 +299,10 @@ public class Utils {
 						}
 					}
 					ImageIO.write(image, Options.getScreenshotFormat(), file);
+					UI.getNotificationManager().sendNotification(
+						String.format("Saved screenshot to %s", file.getAbsolutePath()),
+						Colors.PURPLE
+					);
 				} catch (Exception e) {
 					ErrorHandler.error("Failed to take a screenshot.", e, true);
 				}

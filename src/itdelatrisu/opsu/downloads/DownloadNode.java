@@ -276,12 +276,12 @@ public class DownloadNode {
 		download.setListener(new DownloadListener() {
 			@Override
 			public void completed() {
-				UI.getNotificationManager().sendBarNotification(String.format("Download complete: %s", getTitle()));
+				UI.getNotificationManager().sendNotification(String.format("Download complete: %s", getTitle()), Colors.GREEN);
 			}
 
 			@Override
 			public void error() {
-				UI.getNotificationManager().sendBarNotification("Download failed due to a connection error.");
+				UI.getNotificationManager().sendNotification("Download failed due to a connection error.", Color.red);
 			}
 		});
 		this.download = download;

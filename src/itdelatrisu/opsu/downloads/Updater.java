@@ -23,6 +23,7 @@ import itdelatrisu.opsu.OpsuConstants;
 import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.downloads.Download.DownloadListener;
+import itdelatrisu.opsu.ui.Colors;
 import itdelatrisu.opsu.ui.UI;
 
 import java.io.File;
@@ -37,6 +38,7 @@ import java.util.Locale;
 import java.util.Properties;
 
 import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
+import org.newdawn.slick.Color;
 import org.newdawn.slick.util.Log;
 import org.newdawn.slick.util.ResourceLoader;
 
@@ -272,13 +274,13 @@ public class Updater {
 				@Override
 				public void completed() {
 					status = Status.UPDATE_DOWNLOADED;
-					UI.getNotificationManager().sendBarNotification("Update has finished downloading.");
+					UI.getNotificationManager().sendNotification("Update has finished downloading.", Colors.GREEN);
 				}
 
 				@Override
 				public void error() {
 					status = Status.CONNECTION_ERROR;
-					UI.getNotificationManager().sendBarNotification("Update failed due to a connection error.");
+					UI.getNotificationManager().sendNotification("Update failed due to a connection error.", Color.red);
 				}
 			});
 		}
