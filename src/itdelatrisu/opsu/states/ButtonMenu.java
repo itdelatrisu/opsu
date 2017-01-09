@@ -474,7 +474,7 @@ public class ButtonMenu extends BasicGameState {
 			for (int i = 0; i < title.length; i++) {
 				// wrap text if too long
 				if (Fonts.LARGE.getWidth(title[i]) > maxLineWidth) {
-					List<String> list = Fonts.wrap(Fonts.LARGE, title[i], maxLineWidth);
+					List<String> list = Fonts.wrap(Fonts.LARGE, title[i], maxLineWidth, false);
 					actualTitle.addAll(list);
 				} else
 					actualTitle.add(title[i]);
