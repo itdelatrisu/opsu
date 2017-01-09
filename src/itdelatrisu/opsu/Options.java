@@ -320,7 +320,7 @@ public class Options {
 			@Override
 			public void selectItem(int index, GameContainer container) {
 				resolution = itemList[index];
-				UI.sendBarNotification(getDescription());
+				UI.getNotificationManager().sendBarNotification(getDescription());
 
 				// check if fullscreen mode is possible with this resolution
 				if (FULLSCREEN.getBooleanValue() && !resolution.hasFullscreenDisplayMode())
@@ -340,12 +340,12 @@ public class Options {
 			public void toggle(GameContainer container) {
 				// check if fullscreen mode is possible with this resolution
 				if (!getBooleanValue() && !resolution.hasFullscreenDisplayMode()) {
-					UI.sendBarNotification(String.format("Fullscreen mode is not available at resolution %s", resolution.toString()));
+					UI.getNotificationManager().sendBarNotification(String.format("Fullscreen mode is not available at resolution %s", resolution.toString()));
 					return;
 				}
 
 				super.toggle(container);
-				UI.sendBarNotification(getDescription());
+				UI.getNotificationManager().sendBarNotification(getDescription());
 			}
 		},
 		SKIN ("Skin", "Skin", "Restart (Ctrl+Shift+F5) to apply skin changes.") {
@@ -375,7 +375,7 @@ public class Options {
 				if (itemList == null)
 					createSkinList();
 				skinName = itemList[index];
-				UI.sendBarNotification(getDescription());
+				UI.getNotificationManager().sendBarNotification(getDescription());
 			}
 
 			@Override
@@ -917,7 +917,7 @@ public class Options {
 	public static void setNextFPS(GameContainer container) {
 		int index = (targetFPSindex + 1) % targetFPS.length;
 		GameOption.TARGET_FPS.selectItem(index, container);
-		UI.sendBarNotification(String.format("Frame limiter: %s", GameOption.TARGET_FPS.getValueString()));
+		UI.getNotificationManager().sendBarNotification(String.format("Frame limiter: %s", GameOption.TARGET_FPS.getValueString()));
 	}
 
 	/**
@@ -1201,7 +1201,7 @@ public class Options {
 	 */
 	public static void toggleMouseDisabled() {
 		GameOption.DISABLE_MOUSE_BUTTONS.toggle(null);
-		UI.sendBarNotification((GameOption.DISABLE_MOUSE_BUTTONS.getBooleanValue()) ?
+		UI.getNotificationManager().sendBarNotification((GameOption.DISABLE_MOUSE_BUTTONS.getBooleanValue()) ?
 			"Mouse buttons are disabled." : "Mouse buttons are enabled.");
 	}
 

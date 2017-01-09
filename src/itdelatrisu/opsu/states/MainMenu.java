@@ -533,10 +533,10 @@ public class MainMenu extends BasicGameState {
 		UI.enter();
 		if (!enterNotification) {
 			if (Updater.get().getStatus() == Updater.Status.UPDATE_AVAILABLE) {
-				UI.sendBarNotification("An new update is available.");
+				UI.getNotificationManager().sendBarNotification("An new update is available.");
 				enterNotification = true;
 			} else if (Updater.get().justUpdated()) {
-				UI.sendBarNotification(OpsuConstants.PROJECT_NAME + " is now up to date!");
+				UI.getNotificationManager().sendBarNotification(OpsuConstants.PROJECT_NAME + " is now up to date!");
 				enterNotification = true;
 			}
 		}
@@ -596,15 +596,15 @@ public class MainMenu extends BasicGameState {
 		if (musicPlay.contains(x, y)) {
 			if (MusicController.isPlaying()) {
 				MusicController.pause();
-				UI.sendBarNotification("Pause");
+				UI.getNotificationManager().sendBarNotification("Pause");
 			} else if (!MusicController.isTrackLoading()) {
 				MusicController.resume();
-				UI.sendBarNotification("Play");
+				UI.getNotificationManager().sendBarNotification("Play");
 			}
 			return;
 		} else if (musicNext.contains(x, y)) {
 			nextTrack(true);
-			UI.sendBarNotification(">> Next");
+			UI.getNotificationManager().sendBarNotification(">> Next");
 			return;
 		} else if (musicPrevious.contains(x, y)) {
 			lastMeasureProgress = 0f;
@@ -616,7 +616,7 @@ public class MainMenu extends BasicGameState {
 			} else
 				MusicController.setPosition(0);
 			musicInfoProgress.setTime(0);
-			UI.sendBarNotification("<< Previous");
+			UI.getNotificationManager().sendBarNotification("<< Previous");
 			return;
 		}
 

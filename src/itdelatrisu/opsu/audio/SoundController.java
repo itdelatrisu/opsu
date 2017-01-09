@@ -388,7 +388,7 @@ public class SoundController {
 
 				@Override
 				public void error() {
-					UI.sendBarNotification("Failed to download track preview.");
+					UI.getNotificationManager().sendBarNotification("Failed to download track preview.");
 				}
 			});
 			try {

@@ -272,13 +272,13 @@ public class Updater {
 				@Override
 				public void completed() {
 					status = Status.UPDATE_DOWNLOADED;
-					UI.sendBarNotification("Update has finished downloading.");
+					UI.getNotificationManager().sendBarNotification("Update has finished downloading.");
 				}
 
 				@Override
 				public void error() {
 					status = Status.CONNECTION_ERROR;
-					UI.sendBarNotification("Update failed due to a connection error.");
+					UI.getNotificationManager().sendBarNotification("Update failed due to a connection error.");
 				}
 			});
 		}

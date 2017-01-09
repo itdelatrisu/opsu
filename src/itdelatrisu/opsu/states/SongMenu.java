@@ -465,7 +465,7 @@ public class SongMenu extends BasicGameState {
 				if (!songFolderChanged && kind != StandardWatchEventKinds.ENTRY_MODIFY) {
 					songFolderChanged = true;
 					if (game_.getCurrentStateID() == Opsu.STATE_SONGMENU)
-						UI.sendBarNotification("Changes in Songs folder detected. Hit F5 to refresh.");
+						UI.getNotificationManager().sendBarNotification("Changes in Songs folder detected. Hit F5 to refresh.");
 				}
 			}
 		});
@@ -1029,7 +1029,7 @@ public class SongMenu extends BasicGameState {
 					setFocus(BeatmapSetList.get().getRandomNode(), -1, true, true);
 
 					if (BeatmapSetList.get().size() < 1 && group.getEmptyMessage() != null)
-						UI.sendBarNotification(group.getEmptyMessage());
+						UI.getNotificationManager().sendBarNotification(group.getEmptyMessage());
 				}
 				return;
 			}
@@ -1867,7 +1867,7 @@ public class SongMenu extends BasicGameState {
 
 		Beatmap beatmap = MusicController.getBeatmap();
 		if (focusNode == null || beatmap != focusNode.getSelectedBeatmap()) {
-			UI.sendBarNotification("Unable to load the beatmap audio.");
+			UI.getNotificationManager().sendBarNotification("Unable to load the beatmap audio.");
 			return;
 		}
 

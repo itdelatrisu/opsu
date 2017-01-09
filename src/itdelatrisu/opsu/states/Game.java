@@ -1076,7 +1076,7 @@ public class Game extends BasicGameState {
 				int position = (pauseTime > -1) ? pauseTime : trackPosition;
 				if (Options.setCheckpoint(position / 1000)) {
 					SoundController.playSound(SoundEffect.MENUCLICK);
-					UI.sendBarNotification("Checkpoint saved.");
+					UI.getNotificationManager().sendBarNotification("Checkpoint saved.");
 				}
 			}
 			break;
@@ -1097,7 +1097,7 @@ public class Game extends BasicGameState {
 						MusicController.resume();
 					}
 					SoundController.playSound(SoundEffect.MENUHIT);
-					UI.sendBarNotification("Checkpoint loaded.");
+					UI.getNotificationManager().sendBarNotification("Checkpoint loaded.");
 
 					// skip to checkpoint
 					MusicController.setPosition(checkpoint);
@@ -1475,7 +1475,7 @@ public class Game extends BasicGameState {
 
 			// using local offset?
 			if (beatmap.localMusicOffset != 0)
-				UI.sendBarNotification(String.format("Using local beatmap offset (%dms)", beatmap.localMusicOffset));
+				UI.getNotificationManager().sendBarNotification(String.format("Using local beatmap offset (%dms)", beatmap.localMusicOffset));
 
 			// needs to play before setting position to resume without lag later
 			MusicController.play(false);
@@ -2127,14 +2127,14 @@ public class Game extends BasicGameState {
 	 */
 	private void adjustLocalMusicOffset(int sign) {
 		if (pauseTime > -1) {
-			UI.sendBarNotification("Offset can only be changed while game is not paused.");
+			UI.getNotificationManager().sendBarNotification("Offset can only be changed while game is not paused.");
 			return;
 		}
 
 		boolean alt = input.isKeyDown(Input.KEY_LALT) || input.isKeyDown(Input.KEY_RALT);
 		int diff = sign * (alt ? 1 : 5);
 		int newOffset = Utils.clamp(beatmap.localMusicOffset + diff, -1000, 1000);
-		UI.sendBarNotification(String.format("Local beatmap offset set to %dms", newOffset));
+		UI.getNotificationManager().sendBarNotification(String.format("Local beatmap offset set to %dms", newOffset));
 		if (beatmap.localMusicOffset != newOffset) {
 			beatmap.localMusicOffset = newOffset;
 			BeatmapDB.updateLocalOffset(beatmap);

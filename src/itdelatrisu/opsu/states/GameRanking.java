@@ -207,13 +207,13 @@ public class GameRanking extends BasicGameState {
 					gameState.setRestart((data.isGameplay()) ? Game.Restart.REPLAY : Game.Restart.NEW);
 					returnToGame = true;
 				} catch (FileNotFoundException e) {
-					UI.sendBarNotification("Replay file not found.");
+					UI.getNotificationManager().sendBarNotification("Replay file not found.");
 				} catch (IOException e) {
 					Log.error("Failed to load replay data.", e);
-					UI.sendBarNotification("Failed to load replay data. See log for details.");
+					UI.getNotificationManager().sendBarNotification("Failed to load replay data. See log for details.");
 				}
 			} else
-				UI.sendBarNotification("Replay file not found.");
+				UI.getNotificationManager().sendBarNotification("Replay file not found.");
 		}
 
 		// retry
