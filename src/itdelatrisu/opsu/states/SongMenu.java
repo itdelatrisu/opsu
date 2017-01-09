@@ -946,6 +946,9 @@ public class SongMenu extends BasicGameState {
 			return;
 
 		if (input.isMouseButtonDown(Input.MOUSE_RIGHT_BUTTON)) {
+			if (focusNode == null || getNodeAtPosition(x, y) != null)
+				return;
+
 			// scroll to the mouse position on the screen
 			songScrolling.setSpeedMultiplier(2f);
 			scrollSongsToPosition(y);
@@ -963,8 +966,7 @@ public class SongMenu extends BasicGameState {
 		if (isScrollingToFocusNode)
 			return;
 
-		if (songScrolling.isPressed())
-			songScrolling.setSpeedMultiplier(1f);
+		songScrolling.setSpeedMultiplier(1f);
 		songScrolling.released();
 		startScorePos.released();
 	}
