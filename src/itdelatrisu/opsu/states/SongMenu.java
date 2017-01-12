@@ -942,11 +942,27 @@ public class SongMenu extends BasicGameState {
 		if (button == Input.MOUSE_MIDDLE_BUTTON)
 			return;
 
+		// block input
+		if (isInputBlocked())
+			return;
+
+		if (showOptionsOverlay || !optionsOverlayProgress.isFinished())
+			return;
+
 		if (isScrollingToFocusNode)
 			return;
 
 		if (input.isMouseButtonDown(Input.MOUSE_RIGHT_BUTTON)) {
-			if (focusNode == null || getNodeAtPosition(x, y) != null)
+			// check if anything was clicked
+			for (BeatmapGroup group : BeatmapGroup.values()) {
+				if (group.contains(x, y))
+					return;
+			}
+			if (UI.getBackButton().contains(x, y) ||
+			    selectModsButton.contains(x, y) || selectRandomButton.contains(x, y) ||
+			    selectMapOptionsButton.contains(x, y) || selectOptionsButton.contains(x, y) ||
+			    focusNode == null || getNodeAtPosition(x, y) != null ||
+			    footerLogoButton.contains(x, y, 0.25f) || ScoreData.areaContains(x, y))
 				return;
 
 			// scroll to the mouse position on the screen
