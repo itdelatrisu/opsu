@@ -621,7 +621,7 @@ public class SongMenu extends BasicGameState {
 			// music/loader icon
 			float marginX = width * 0.005f, marginY = height * 0.005f;
 			Image musicNote = GameImage.MENU_MUSICNOTE.getImage();
-			if (MusicController.isTrackLoading())
+			if (MusicController.isTrackLoading() && musicIconBounceTimer.isFinished())
 				loader.draw(marginX, marginY);
 			else {
 				float t = musicIconBounceTimer.getValue() * 2f;
@@ -826,8 +826,7 @@ public class SongMenu extends BasicGameState {
 
 			// song change timers
 			songChangeTimer.update(delta);
-			if (!MusicController.isTrackLoading())
-				musicIconBounceTimer.update(delta);
+			musicIconBounceTimer.update(delta);
 		}
 
 		// star stream
