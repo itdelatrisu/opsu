@@ -348,8 +348,8 @@ public class ScoreData implements Comparable<ScoreData> {
 	 * @param isActive if this score is the one currently played
 	 */
 	public void drawSmall(Graphics g, int vPos, int rank, float position, GameData data, float alpha, boolean isActive) {
-		int rectWidth = (int) (145 * GameImage.getUIscale());  //135
-		int rectHeight = data.getScoreSymbolImage('0').getHeight();
+		int rectWidth = (int) (145 * GameImage.getUIscale()* Options.getMobileUIScale(0.5f));  //135
+		int rectHeight = (int) (data.getScoreSymbolImage('0').getHeight()* Options.getMobileUIScale(0.5f));
 		int vertDistance = rectHeight + 10;
 		int yPos = (int) (vPos + position * vertDistance - rectHeight / 2);
 		int xPaddingLeft = Math.max(4, (int) (rectWidth * 0.04f));

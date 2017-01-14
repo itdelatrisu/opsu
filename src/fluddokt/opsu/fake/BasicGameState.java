@@ -1,6 +1,6 @@
 package fluddokt.opsu.fake;
 
-public abstract class BasicGameState {
+public abstract class BasicGameState extends GameState{
 
 	public int getID() {
 		return 0;

@@ -19,6 +19,8 @@
 package itdelatrisu.opsu.states;
 
 import fluddokt.opsu.fake.*;
+import fluddokt.newdawn.slick.state.transition.*;
+
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.Opsu;

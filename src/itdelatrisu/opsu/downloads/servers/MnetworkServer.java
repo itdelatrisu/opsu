@@ -18,6 +18,7 @@
 
 package itdelatrisu.opsu.downloads.servers;
 
+import fluddokt.opsu.fake.Log;
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.downloads.DownloadNode;
@@ -33,7 +34,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.json.JSONException;
+/*
 import org.newdawn.slick.util.Log;
+*/
 
 /**
  * Download server: http://osu.uu.gl/

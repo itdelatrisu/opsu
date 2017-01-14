@@ -10,7 +10,7 @@ public class Music implements AbsMusicCompleteListener{
 	AbsMusic music;
 	ArrayList<MusicListener> musicListenerList = new ArrayList<MusicListener>();
 	float pitch = 1;
-
+	float volume = 1;
 	public Music(String path, boolean b) {
 		if(music != null){
 			music.dispose();
@@ -73,10 +73,7 @@ public class Music implements AbsMusicCompleteListener{
 		music.stop();
 	}
 
-	public void fade(int duration, float f, boolean b) {
-		//System.out.println("Music fade " + music.getName());
-		music.fade(duration, f, b);
-	}
+	
 
 	float lastPosition = 0;// music.getPosition();
 	float lastUpdatePosition = 0;
@@ -89,7 +86,7 @@ public class Music implements AbsMusicCompleteListener{
 	private void syncPosition(){
 		lastPosition = music.getPosition();
 		lastTime = TimeUtils.millis() - (long) (lastPosition * 1000 / pitch);
-		System.out.println("sync"+" "+lastPosition+" "+lastTime);
+		//System.out.println("sync"+" "+lastPosition+" "+lastTime);
 		avgDiff = 0;
 		diffCnt = 0;
 	}
@@ -147,6 +144,7 @@ public class Music implements AbsMusicCompleteListener{
 
 	public void setMusicVolume(float musvolume) {
 		music.setVolume(musvolume);
+		volume = musvolume;
 	}
 
 	public void addListener(MusicListener musicListener) {
@@ -161,16 +159,61 @@ public class Music implements AbsMusicCompleteListener{
 		}
 	}
 
-	public void setMusicPitch(float pitch) {
+	public void setPitch(float pitch) {
 		music.setPitch(pitch);
 		this.pitch= pitch;
 		syncPosition();
-		System.out.println("Pitch :"+pitch);
 	}
 
 	@Override
 	public void requestSync(AbsMusic mus) {
 		System.out.println("Music Request Sync");
 		syncPosition();
+	}
+
+	public void pitchFade(final int duration, final float endPitch) {
+		new Thread() {
+			public void run() {
+				long lastUpdateTime = TimeUtils.millis();
+				float oldPitch = pitch;
+				while ( true ) {
+					try {
+						long deltaTime = (TimeUtils.millis() - lastUpdateTime);
+						float newPitch = oldPitch + ((endPitch - oldPitch) * deltaTime/duration);
+						if (deltaTime > duration)
+							break;
+						setPitch(newPitch);
+						Thread.sleep(10);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+				//setPitch(oldPitch);
+			}
+		}.start();
+	}
+	public void fade(final int duration, final float endVolume, final boolean endAfterFade) {
+		new Thread() {
+			public void run() {
+				long lastUpdateTime = TimeUtils.millis();
+				float oldVol = volume;
+				while ( true ) {
+					try {
+						long deltaTime = (TimeUtils.millis() - lastUpdateTime);
+						float newVol = oldVol + ((endVolume - oldVol) * deltaTime/duration);
+						setVolume(newVol);
+						Thread.sleep(10);
+						if (deltaTime > duration)
+							break;
+						
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+				if(endAfterFade)
+					pause();
+				//setVolume(oldVol);
+			}
+		}.start();
 	}
 }

@@ -92,7 +92,7 @@ public class Input {
 	
 	
 	public static final int KEY_ADD = Keys.PLUS;
-	public static final int KEY_SUBTRACT = Keys.MINUS;//todo NUMPAD
+	public static final int KEY_SUBTRACT = 0;//todo NUMPAD
 
 	boolean isRightButtonDown = false;
 

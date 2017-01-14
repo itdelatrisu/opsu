@@ -18,6 +18,8 @@
 
 package itdelatrisu.opsu;
 
+import com.badlogic.gdx.Application.ApplicationType;
+
 import itdelatrisu.opsu.Options.GameOption;
 
 /**
@@ -27,16 +29,24 @@ public class OptionGroup {
 	/** All option groups. */
 	public static final OptionGroup[] ALL_OPTIONS = new OptionGroup[]{
 		new OptionGroup("Display", new GameOption[]{
+				/*
 			GameOption.SCREEN_RESOLUTION,
 			GameOption.FULLSCREEN,
+			*/
 			GameOption.SKIN,
-			GameOption.TARGET_FPS,
+			//GameOption.TARGET_FPS,
 			GameOption.SHOW_FPS,
 			GameOption.SHOW_UNICODE,
-			GameOption.SCREENSHOT_FORMAT,
+			//GameOption.SCREENSHOT_FORMAT,
 			GameOption.DYNAMIC_BACKGROUND,
 			GameOption.LOAD_HD_IMAGES,
-			GameOption.LOAD_VERBOSE
+			GameOption.LOAD_VERBOSE,
+			
+			(com.badlogic.gdx.Gdx.app.getType() == ApplicationType.Desktop) ? 
+					GameOption.SCREEN_RESOLUTION : GameOption.NULL,
+			(com.badlogic.gdx.Gdx.app.getType() == ApplicationType.Desktop) ? 
+					GameOption.TARGET_FPS : GameOption.NULL,
+			
 		}),
 		new OptionGroup("Music", new GameOption[] {
 			GameOption.MASTER_VOLUME,
@@ -74,8 +84,16 @@ public class OptionGroup {
 			GameOption.FIXED_OD,
 			GameOption.CHECKPOINT,
 			GameOption.REPLAY_SEEKING,
-			GameOption.DISABLE_UPDATER,
-			GameOption.ENABLE_WATCH_SERVICE
+			//GameOption.DISABLE_UPDATER,
+			//GameOption.ENABLE_WATCH_SERVICE
+		})
+		,
+		new OptionGroup("Extras", new GameOption[] {
+			GameOption.MOBILE_UI_SCALING,
+			GameOption.IN_GAME_PAUSE,
+			GameOption.NEW_SLIDER,
+			GameOption.SLIDER_QUALITY,
+			GameOption.SCOREBOARD,
 		})
 	};
 

@@ -23,8 +23,8 @@ public abstract class AbsMusic {
 
 	public abstract void stop() ;
 
-	public void fade(int duration, float f, boolean b){
-		stop();
+	public void volFade(int duration, float f, boolean b){
+		pause();
 	}
 
 	public abstract float getPosition() ;
@@ -38,5 +38,7 @@ public abstract class AbsMusic {
 	}
 
 	public abstract void setPitch(float pitch);
+
+	public void pitchFade(int duration, float endPitch) {	}
 
 }

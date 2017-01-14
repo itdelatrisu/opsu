@@ -97,7 +97,7 @@ public abstract class AudioInputStream2 {
 	 * @return The number of shorts read or -1 to indicate no more short are available
 	 * @throws IOException Indicates a failure to read the underlying media
 	 */
-	public int read(short[] b) throws IOException { return read(b, 0, b.length); };
+	public int read(short[] b) throws IOException { return read(b, 0, b.length); }
 
 	/**
 	 * Check if the stream is at the end, i.e. end of file or URL 
@@ -126,5 +126,5 @@ public abstract class AudioInputStream2 {
 		for(int i=0; i<n; i++)
 			read();
 		return n;
-	};
+	}
 }

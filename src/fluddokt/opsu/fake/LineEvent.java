@@ -5,7 +5,7 @@ public class LineEvent {
 	public static enum Type{
 		STOP
 		
-	};
+	}
 
 	Type type;
 	public LineEvent(Type type) {

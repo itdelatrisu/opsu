@@ -418,12 +418,13 @@ public class SoundController {
 		return false;
 		*/
 		try {
-			currentTrack = new MultiClip(url, isMP3, listener);
+			currentTrack = new MultiClip(new URL(url), isMP3, listener);
 			playClip(currentTrack, Options.getMusicVolume() * Options.getMasterVolume(), listener);
-			return currentTrack;
+			return true;
 		} catch ( Exception e) {
-			throw new SlickException(String.format("Failed to load clip '%s'.", url.getFile(), e));
+			UI.sendBarNotification(String.format("Failed to load clip '%s'.", url));
 		}
+		return false;
 	}
 
 	/**

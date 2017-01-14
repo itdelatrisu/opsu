@@ -18,11 +18,14 @@
 
 package itdelatrisu.opsu.ui;
 
+import fluddokt.opsu.fake.Image;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.ui.animations.AnimatedValue;
 import itdelatrisu.opsu.ui.animations.AnimationEquation;
 
+/*
 import org.newdawn.slick.Image;
+*/
 
 /**
  * Star fountain consisting of two star streams.

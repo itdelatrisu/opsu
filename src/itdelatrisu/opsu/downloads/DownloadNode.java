@@ -95,10 +95,10 @@ public class DownloadNode {
 
 		// download info
 		infoBaseX = width * 0.75f;
-		/*
-		infoBaseY = height * 0.07f + Fonts.LARGE.getLineHeight() * 2f;
-		*/
-		infoBaseY = searchY;
+		//*
+		infoBaseY = height * 0.07f + Fonts.LARGE.getLineHeight();
+		//*/
+		//infoBaseY = searchY;
 		infoWidth = width * 0.25f;
 		infoHeight = Fonts.DEFAULT.getLineHeight() * 2.4f;
 

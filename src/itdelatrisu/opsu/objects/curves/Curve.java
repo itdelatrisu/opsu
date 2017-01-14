@@ -145,6 +145,10 @@ public abstract class Curve {
 				hitCircleOverlay.drawCentered(curve[i].x, curve[i].y, Colors.WHITE_FADE);
 			for (int i = 0; i < drawUpTo; i+=Options.getSliderQuality())
 				hitCircle.drawCentered(curve[i].x, curve[i].y, color);
+			
+			Vec2f endPoi = pointAt(t);
+			hitCircleOverlay.drawCentered(endPoi.x, endPoi.y, Colors.WHITE_FADE);
+			hitCircle.drawCentered(endPoi.x, endPoi.y, color);
 		}
 
 		// mmsliders

@@ -18,6 +18,7 @@
 
 package itdelatrisu.opsu.states;
 
+import fluddokt.newdawn.slick.state.transition.*;
 import fluddokt.opsu.fake.*;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.Opsu;
@@ -44,6 +45,7 @@ import itdelatrisu.opsu.ui.Fonts;
 import itdelatrisu.opsu.ui.KineticScrolling;
 import itdelatrisu.opsu.ui.MenuButton;
 import itdelatrisu.opsu.ui.UI;
+
 
 
 
@@ -502,7 +504,7 @@ public class DownloadsMenu extends BasicGameState {
 		g.setColor(Colors.BLACK_BG_NORMAL);
 		g.fillRect(downloadsX, downloadsY,
 				width * 0.25f, height - downloadsY * 2f);
-		Fonts.LARGE.drawString(downloadsX + width * 0.015f, downloadsY + height * 0.015f, "Downloads", Color.white);
+		Fonts.LARGE.drawString(downloadsX + width * 0.015f, downloadsY, "Downloads", Color.white);
 		int downloadsSize = DownloadList.get().size();
 		if (downloadsSize > 0) {
 			int maxDownloadsShown = DownloadNode.maxDownloadsShown();
@@ -687,15 +689,18 @@ public class DownloadsMenu extends BasicGameState {
 								SoundController.stopTrack();
 							} else {
 								// play preview
-								try {
-									final URL url = new URL(serverMenu.getSelectedItem().getPreviewURL(node.getID()));
-									MusicController.pause();
-									new Thread() {
-										@Override
-										public void run() {
-											try {
-												previewID = -1;
-												SoundController.playTrack(url, true, new LineListener() {
+								final String url = serverMenu.getSelectedItem().getPreviewURL(node.getID());
+								MusicController.pause();
+								new Thread() {
+									@Override
+									public void run() {
+										try {
+											previewID = -1;
+											boolean playing = SoundController.playTrack(
+												url,
+												Integer.toString(node.getID()),
+												true,
+													new LineListener() {
 													@Override
 													public void update(LineEvent event) {
 														if (event.getType() == LineEvent.Type.STOP) {
@@ -705,18 +710,16 @@ public class DownloadsMenu extends BasicGameState {
 															}
 														}
 													}
-												});
+												}
+											);
+											if (playing)
 												previewID = node.getID();
-											} catch (SlickException e) {
-												UI.sendBarNotification("Failed to load track preview. See log for details.");
-												Log.warn("",e);
-											}
+										} catch (SlickException e) {
+											UI.sendBarNotification("Failed to load track preview. See log for details.");
+											Log.error(e);
 										}
-									}.start();
-								} catch (MalformedURLException e) {
-									UI.sendBarNotification("Could not load track preview (bad URL).");
-									Log.error(e);
-								}
+									}
+								}.start();
 							}
 							return;
 						}

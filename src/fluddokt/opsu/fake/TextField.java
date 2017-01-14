@@ -4,7 +4,11 @@ import java.awt.event.KeyEvent;
 
 import com.badlogic.gdx.Gdx;
 
-public class TextField implements InputListener {
+import fluddokt.opsu.fake.gui.AbstractComponent;
+import fluddokt.opsu.fake.gui.GInputAdapter;
+import fluddokt.opsu.fake.gui.GInputListener;
+
+public class TextField extends GInputAdapter {
 
 	UnicodeFont font;
 	int x, y, w, h;
@@ -78,20 +82,12 @@ public class TextField implements InputListener {
 		str = new StringBuilder(string);
 	}
 
-	public float getWidth() {
+	public int getWidth() {
 		return w;
 	}
 
-	public float getHeight() {
+	public int getHeight() {
 		return h;
-	}
-
-	@Override
-	public void keyDown(int keycode) {
-	}
-
-	@Override
-	public void keyUp(int keycode) {
 	}
 
 	@Override
@@ -103,7 +99,7 @@ public class TextField implements InputListener {
 	}
 
 	@Override
-	public void touchDown(int screenX, int screenY, int pointer, int button) {
+	public void mousePressed(int button, int screenX, int screenY) {
 		if (!(screenX < x || screenX > x + w || screenY < y || screenY > y + h)) {
 			Gdx.input.setOnscreenKeyboardVisible(true);
 		} else {
@@ -111,19 +107,11 @@ public class TextField implements InputListener {
 		}
 	}
 
-	@Override
-	public void touchUp(int screenX, int screenY, int pointer, int button) {
-	
-	}
-
-	@Override
-	public void touchDragged(int screenX, int screenY, int pointer) {
-	
-	}
-
 	public void setLocation(int x, int y) {
 		this.x = x;
 		this.y = y;
 	}
+
+	
 
 }

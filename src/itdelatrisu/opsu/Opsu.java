@@ -19,6 +19,7 @@
 package itdelatrisu.opsu;
 
 import fluddokt.opsu.fake.*;
+import fluddokt.newdawn.slick.state.transition.*;
 
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.db.DBController;

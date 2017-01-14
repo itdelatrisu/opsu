@@ -3,6 +3,7 @@ package fluddokt.opsu.fake;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Application.ApplicationType;
 
+import fluddokt.opsu.fake.gui.GInputListener;
 import fluddokt.opsu.fake.gui.GUIContext;
 
 public class GameContainer extends GUIContext{
@@ -139,10 +140,12 @@ public class GameContainer extends GUIContext{
 		// TODO Auto-generated method stub
 		
 	}
-	public void addInputListener(InputListener listener) {
+	@Override
+	public void addInputListener(GInputListener listener) {
 		sbg.addKeyListener(listener);
 	}
-	public void removeInputListener(InputListener listener) {
+	@Override
+	public void removeInputListener(GInputListener listener) {
 		sbg.removeKeyListener(listener);
 		
 	}

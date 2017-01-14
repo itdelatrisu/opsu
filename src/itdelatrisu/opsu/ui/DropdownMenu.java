@@ -353,11 +353,7 @@ public class DropdownMenu<E> extends AbstractComponent {
 		}
 		if (!menuClicked(idx))
 			return;
-		this.expanded = (idx == -1) ? !expanded : false;
-		if (idx >= 0 && itemIndex != idx) {
-			this.itemIndex = idx;
-			itemSelected(idx, items[idx]);
-		}
+
 		blockClick = true;
 		consumeEvent();
 	}
@@ -391,7 +387,24 @@ public class DropdownMenu<E> extends AbstractComponent {
 	public void setFocus(boolean focus) { /* does not currently use the "focus" concept */ }
 
 	@Override
-	public void mouseReleased(int button, int x, int y) { /* does not currently use the "focus" concept */ }
+	public void mouseReleased(int button, int x, int y) {
+		if (!active)
+			return;
+		int idx = getIndexAt(x, y);
+		if (idx == -2) {
+			this.expanded = false;
+			return;
+		}
+		if (!menuClicked(idx))
+			return;
+		this.expanded = (idx == -1) ? !expanded : false;
+		if (idx >= 0 && itemIndex != idx) {
+			this.itemIndex = idx;
+			itemSelected(idx, items[idx]);
+		}
+		blockClick = true;
+		consumeEvent();
+	}
 
 	/**
 	 * Selects the item at the given index.

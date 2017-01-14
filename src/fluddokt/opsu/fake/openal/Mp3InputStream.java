@@ -143,6 +143,29 @@ public class Mp3InputStream extends AudioInputStream2 {
 
 		return buf.getBuffer()[bpos++]&0xffff;
 	}
+	
+	@Override
+	public int read(short[] b, int off, int len) {
+		if (atEnd())
+			return -1;
+		while (bpos >= bufLen) {
+			if(!nextFrame())
+				return -1;
+		}
+		int copied = 0;
+		while(copied < len) {
+			if (bpos >= bufLen && !nextFrame())
+				break;
+			int tocopy = len-copied;
+			if(tocopy > bufLen-bpos)
+				tocopy = bufLen-bpos;
+			
+			System.arraycopy(buf.getBuffer(), bpos, b, off+copied, tocopy);
+			bpos+=tocopy;
+			copied += tocopy;
+		}
+		return copied;
+	}
 
 	private boolean nextFrame() {
 		try {
@@ -176,36 +199,7 @@ public class Mp3InputStream extends AudioInputStream2 {
 	@Override
 	public int getRate() { return sampleRate; }
 
-	/*@Override
-	public int read(short[] b, int off, int len) throws IOException {*/
-		/*int i = -1;
-		try {
-			for (i = 0; i < len; i++) {
-				int value = read();
-				if (value >= 0)
-					b[i] = (short) value;
-				else
-					return (i == 0) ? -1 : i;
-			
-			}
-		} catch (IOException e) {
-			Log.error(e);
-			return i;
-		}
-
-		return len;*/
-	/*	while (bpos >= bufLen) {
-			if(!nextFrame())
-				return -1;
-		}
-		if(len > bufLen-bpos)
-			len=bufLen-bpos;
-		
-		System.arraycopy(buf.getBuffer(), bpos, b, off, len);
-		bpos+=len;
-
-		return len;
-	}*/
+	
 	
 	public short[] data() {
 		return buf.getBuffer();

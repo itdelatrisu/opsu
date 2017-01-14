@@ -8,20 +8,26 @@ import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.utils.OrderedSet;
 import com.badlogic.gdx.utils.TimeUtils;
 
+import fluddokt.newdawn.slick.state.transition.Transition;
+import fluddokt.opsu.fake.gui.GInputListener;
+
 public abstract class StateBasedGame extends Game2 implements InputProcessor {
 
 	public GameContainer gc;
-	BasicGameState currentState = new BasicGameState() {
-	};
+	final static BasicGameState EMPTY_STATE = new BasicGameState(){};
+	BasicGameState currentState = EMPTY_STATE;
 	BasicGameState nextState = null;
+	BasicGameState oldState = null;
 	HashMap<Integer, BasicGameState> bgs = new HashMap<Integer, BasicGameState>();
 	LinkedList<BasicGameState> orderedbgs = new LinkedList<BasicGameState>();
 	String title;
-	OrderedSet<InputListener> keyListeners = new OrderedSet<InputListener>();
+	OrderedSet<GInputListener> inputListener = new OrderedSet<GInputListener>();
 	boolean rightIsPressed;
 	int touchX = 0;
 	int touchY = 0;
 	long touchTime;
+	
+	Transition enterT, leaveT;
 	
 	public StateBasedGame(String name) {
 		this.title = name;
@@ -39,10 +45,14 @@ public abstract class StateBasedGame extends Game2 implements InputProcessor {
 
 	}
 
-	public void enterState(int newState, STransition STransition,
-			FadeInTransition fadeInTransition) {
-		System.out.println("Enter State Transition " + newState);
+	public void enterState(int newState, Transition leaveT, Transition enterT) {
+		System.out.println("Enter State Transition " + newState+" "+enterT+" "+leaveT);
+		this.enterT = enterT;
+		this.leaveT = leaveT;
+		oldState = currentState;
+		currentState = EMPTY_STATE;
 		nextState = bgs.get(newState);
+		
 	}
 
 	private boolean enterNextState() throws SlickException {
@@ -50,7 +60,7 @@ public abstract class StateBasedGame extends Game2 implements InputProcessor {
 			if (gc == null) {
 				throw new Error("");
 			}
-			currentState.leave(gc, this);
+			oldState.leave(gc, this);
 			currentState = nextState;
 			nextState = null;
 			touchX = 0;
@@ -88,23 +98,50 @@ public abstract class StateBasedGame extends Game2 implements InputProcessor {
 		
 		if(lastEnteredState > 0){
 			if(deltaTime > 32) {
-				deltaTime = 0;
 				lastEnteredState--;
 			}
 			else
 				lastEnteredState = 0;
 		}
-			
-		if(enterNextState())
-			lastEnteredState = 20;
 		
-		if (currentState != null) {
-			currentState.update(gc, this, deltaTime);
-			currentState.render(gc, this, Graphics.getGraphics());
+		if (leaveT == null)
+			enterNextState();
+		{
+			if (leaveT != null) {
+				if (leaveT.isComplete()) {
+					leaveT = null;
+				} else {
+					leaveT.update(this, gc, deltaTime);
+					//oldState.update(gc, this, deltaTime);
+				}
+			} else{
+				if (enterT != null) {
+					if (enterT.isComplete()) {
+						enterT = null;
+					} else {
+						enterT.update(this, gc, deltaTime);
+					}
+				}
+				if (currentState != null && lastEnteredState == 0)
+					currentState.update(gc, this, deltaTime);
+			}
+			Graphics g = Graphics.getGraphics();
+			if (leaveT != null) {
+				leaveT.preRender(this, gc, g);
+				oldState.render(gc, this, g);
+				leaveT.postRender(this, gc, g);
+			} else if (enterT != null) {
+				enterT.preRender(this, gc, g);
+				currentState.render(gc, this, g);
+				enterT.postRender(this, gc, g);
+			} else {
+				currentState.render(gc, this, g);
+			}
+			
 			/*
 			if(Graphics.curFont!=null){
 				if(GameContainer.music!=null)
-					Graphics.getGraphics().drawString(""
+					g.drawString(""
 					+" "+(GameContainer.music.lastTime&0xffff)
 					+" "+pad(""+(int)((GameContainer.music.music.getPosition()-GameContainer.music.lastGetPos)*1000))
 					+" avg:"+pad(""+(int)(GameContainer.music.avgDiff*1000)/1000f)
@@ -136,8 +173,11 @@ public abstract class StateBasedGame extends Game2 implements InputProcessor {
 	@Override
 	public boolean keyDown(int keycode) {
 		// System.out.println("Key:"+keycode);
-		for (InputListener keylis : keyListeners) {
-			keylis.keyDown(keycode);
+		for (GInputListener keylis : inputListener) {
+			keylis.consumeEvent = false;
+			keylis.keyPressed(keycode, (char)0);
+			if (keylis.consumeEvent)
+				return true;
 		}
 		currentState.keyPressed(keycode, (char)0);
 				//com.badlogic.gdx.Input.Keys.toString(keycode).charAt(0));
@@ -147,8 +187,11 @@ public abstract class StateBasedGame extends Game2 implements InputProcessor {
 
 	@Override
 	public boolean keyUp(int keycode) {
-		for (InputListener keylis : keyListeners) {
-			keylis.keyUp(keycode);
+		for (GInputListener keylis : inputListener) {
+			keylis.consumeEvent = false;
+			keylis.keyReleased(keycode, (char)0);
+			if (keylis.consumeEvent)
+				return true;
 		}
 		currentState.keyReleased(keycode, (char)0);
 				//com.badlogic.gdx.Input.Keys.toString(keycode).charAt(0));
@@ -158,8 +201,11 @@ public abstract class StateBasedGame extends Game2 implements InputProcessor {
 
 	@Override
 	public boolean keyTyped(char character) {
-		for (InputListener keylis : keyListeners) {
+		for (GInputListener keylis : inputListener) {
+			keylis.consumeEvent = false;
 			keylis.keyType(character);
+			if (keylis.consumeEvent)
+				return true;
 		}
 		return false;
 	}
@@ -167,21 +213,18 @@ public abstract class StateBasedGame extends Game2 implements InputProcessor {
 	@Override
 	public boolean touchDown(int screenX, int screenY, int pointer, int button) {
 		try {
-			for (InputListener keylis : keyListeners) {
-				keylis.touchDown(screenX, screenY, pointer, button);
-			}
 			if (pointer > 0) {
 				if(rightIsPressed){
-					currentState.mouseReleased(Input.MOUSE_RIGHT_BUTTON, oldx, oldy);
+					mouseReleased(Input.MOUSE_RIGHT_BUTTON, oldx, oldy);
 				}
-				currentState.mousePressed(Input.MOUSE_RIGHT_BUTTON, oldx, oldy );
+				mousePressed(Input.MOUSE_RIGHT_BUTTON, oldx, oldy );
 				gc.getInput().setMouseRighButtontDown(true);
 				rightIsPressed = true;
 				touchX = oldx;
 				touchY = oldy;
 				touchTime = TimeUtils.millis();
 			} else {
-				currentState.mousePressed(button, screenX, screenY);
+				mousePressed(button, screenX, screenY);
 				oldx = screenX;
 				oldy = screenY;
 				touchX = screenX;
@@ -194,27 +237,64 @@ public abstract class StateBasedGame extends Game2 implements InputProcessor {
 		}
 		return false;
 	}
+	private void mousePressed(int button, int x, int y) {
+		for (GInputListener keylis : inputListener) {
+			keylis.consumeEvent = false;
+			keylis.mousePressed(button, x, y);
+			if (keylis.consumeEvent)
+				return;
+		}
+		currentState.mousePressed(button, x, y);
+	}
+	private void mouseReleased(int button, int x, int y) {
+		for (GInputListener keylis : inputListener) {
+			keylis.consumeEvent = false;
+			keylis.mouseReleased(button, x, y);
+			if (keylis.consumeEvent)
+				return;
+		}
+		currentState.mouseReleased(button, x, y);
+		
+	}
+	private void mouseClicked(int button, int x, int y, int clickCount) {
+		for (GInputListener keylis : inputListener) {
+			keylis.consumeEvent = false;
+			keylis.mouseClicked(button, x, y, clickCount);
+			if (keylis.consumeEvent)
+				return;
+		}
+		currentState.mouseClicked(button, x, y, clickCount);
+		
+	}
+	private void mouseDragged(int oldx, int oldy, int newx, int newy) {
+		for (GInputListener keylis : inputListener) {
+			keylis.consumeEvent = false;
+			keylis.mouseDragged(oldx, oldy, newx, newy);
+			if (keylis.consumeEvent)
+				return;
+		}
+		currentState.mouseDragged(oldx, oldy, newx, newy);
+	}
 
 	@Override
 	public boolean touchUp(int screenX, int screenY, int pointer, int button) {
-		for (InputListener keylis : keyListeners) {
-			keylis.touchUp(screenX, screenY, pointer, button);
-		}
 		if (pointer > 0){
-			currentState.mouseReleased(Input.MOUSE_RIGHT_BUTTON, oldx, oldy);
 			int dx = oldx - touchX;
 			int dy = oldy - touchY;
-			if( TimeUtils.timeSinceMillis(touchTime) < 500 && dx*dx + dy*dy < 10 * 10)
-				currentState.mouseClicked(Input.MOUSE_RIGHT_BUTTON, oldx, oldy, 1);
+			if( TimeUtils.timeSinceMillis(touchTime) < 500 && dx*dx + dy*dy < 10 * 10) {
+				mouseClicked(Input.MOUSE_RIGHT_BUTTON, oldx, oldy, 1);
+			}
+			mouseReleased(Input.MOUSE_RIGHT_BUTTON, oldx, oldy);
 			
 			gc.getInput().setMouseRighButtontDown(false);
 			rightIsPressed = false;
 		} else {
-			currentState.mouseReleased(button, screenX, screenY);
 			int dx = screenX - touchX;
 			int dy = screenY - touchY;
-			if( TimeUtils.timeSinceMillis(touchTime) < 500 && dx*dx + dy*dy < 10 * 10)
-				currentState.mouseClicked(button, screenX, screenY, 1);
+			if( TimeUtils.timeSinceMillis(touchTime) < 500 && dx*dx + dy*dy < 10 * 10) {
+				mouseClicked(button, screenX, screenY, 1);
+			}
+			mouseReleased(button, screenX, screenY);
 			
 			oldx = screenX;
 			oldy = screenY;
@@ -226,11 +306,8 @@ public abstract class StateBasedGame extends Game2 implements InputProcessor {
 
 	@Override
 	public boolean touchDragged(int screenX, int screenY, int pointer) {
-		for (InputListener keylis : keyListeners) {
-			keylis.touchDragged(screenX, screenY, pointer);
-		}
 		if (pointer == 0) {
-			currentState.mouseDragged(oldx, oldy, screenX, screenY);
+			mouseDragged(oldx, oldy, screenX, screenY);
 			oldx = screenX;
 			oldy = screenY;
 		}
@@ -249,6 +326,12 @@ public abstract class StateBasedGame extends Game2 implements InputProcessor {
 
 	@Override
 	public boolean scrolled(int amount) {
+		for (GInputListener keylis : inputListener) {
+			keylis.consumeEvent = false;
+			keylis.mouseWheelMoved(-amount*120);
+			if (keylis.consumeEvent)
+				return true;
+		}
 		currentState.mouseWheelMoved(-amount);
 		return false;
 	}
@@ -268,12 +351,12 @@ public abstract class StateBasedGame extends Game2 implements InputProcessor {
 		gc = gameContainer;
 	}
 
-	public void addKeyListener(InputListener listener) {
-		keyListeners.add(listener);
+	public void addKeyListener(GInputListener listener) {
+		inputListener.add(listener);
 
 	}
 
-	public void removeKeyListener(InputListener listener) {
-		keyListeners.remove(listener);
+	public void removeKeyListener(GInputListener listener) {
+		inputListener.remove(listener);
 	}
 }

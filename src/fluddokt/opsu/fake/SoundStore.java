@@ -22,7 +22,7 @@ public class SoundStore {
 	}
 
 	public void setMusicPitch(float pitch) {
-		music.setMusicPitch(pitch);
+		music.setPitch(pitch);
 		
 	}
 

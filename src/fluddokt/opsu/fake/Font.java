@@ -1,6 +1,5 @@
 package fluddokt.opsu.fake;
 
-import java.util.HashSet;
 import java.util.LinkedList;
 
 import com.badlogic.gdx.files.FileHandle;
@@ -48,9 +47,9 @@ public class Font {
 	LinkedList<Effect> colorEffects = new LinkedList<Effect>();
 	public BitmapFont bitmap;
 	int padbottom = 0, padtop = 0;
-	StringBuilder chars = new StringBuilder();
-	HashSet<Character> set = new HashSet<Character>();
-	boolean glythsAdded = false;
+	//StringBuilder chars = new StringBuilder();
+	//HashSet<Character> set = new HashSet<Character>();
+	//boolean glythsAdded = false;
 
 	DynamicFreeTypeFont dynFont;
 
@@ -58,7 +57,7 @@ public class Font {
 	}
 
 	public void drawString(float x, float y, String string) {
-		checkString(string);
+		//checkString(string);
 		Graphics.getGraphics().drawString(this, string, x, y + padtop);
 	}
 
@@ -85,9 +84,10 @@ public class Font {
 	}
 
 	public void addGlyphs(String string) {
-		checkString(string);
+		//checkString(string);
 	}
 
+	/*
 	private void checkString(String string) {
 		for (int i = 0; i < string.length(); i++) {
 			char c = string.charAt(i);
@@ -98,6 +98,7 @@ public class Font {
 			}
 		}
 	}
+	*/
 
 	public void loadGlyphs() throws SlickException {
 	}

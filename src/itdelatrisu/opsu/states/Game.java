@@ -19,6 +19,7 @@
 package itdelatrisu.opsu.states;
 
 import fluddokt.opsu.fake.*;
+import fluddokt.newdawn.slick.state.transition.*;
 
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.GameData;
@@ -56,6 +57,7 @@ import itdelatrisu.opsu.ui.StarStream;
 import itdelatrisu.opsu.ui.UI;
 import itdelatrisu.opsu.ui.animations.AnimatedValue;
 import itdelatrisu.opsu.ui.animations.AnimationEquation;
+
 
 
 //import java.io.File;
@@ -508,6 +510,7 @@ public class Game extends BasicGameState {
 		
 		// background
 		float dimLevel = Options.getBackgroundDim();
+		
 		if (trackPosition < firstObjectTime) {
 			if (timeDiff < approachTime)
 				dimLevel += (1f - dimLevel) * ((float) timeDiff / Math.min(approachTime, firstObjectTime));
@@ -672,7 +675,7 @@ public class Game extends BasicGameState {
 		}
 
 		// in-game scoreboard
-		if (previousScores != null && trackPosition >= firstObjectTime && !GameMod.RELAX.isActive() && !GameMod.AUTOPILOT.isActive()) {
+		if (Options.GameOption.SCOREBOARD.getBooleanValue() && previousScores != null && trackPosition >= firstObjectTime && !GameMod.RELAX.isActive() && !GameMod.AUTOPILOT.isActive()) {
 			ScoreData currentScore = data.getCurrentScoreData(beatmap, true);
 			while (currentRank > 0 && previousScores[currentRank - 1].score < currentScore.score) {
 				currentRank--;
@@ -683,7 +686,7 @@ public class Game extends BasicGameState {
 			float animation = AnimationEquation.IN_OUT_QUAD.calc(
 				Utils.clamp((trackPosition - lastRankUpdateTime) / SCOREBOARD_ANIMATION_TIME, 0f, 1f)
 			);
-			int scoreboardPosition = 2 * container.getHeight() / 3;
+			int scoreboardPosition = 9 * container.getHeight() / 16;
 
 			// draw star stream behind the scores
 			scoreboardStarStream.draw();
@@ -1202,7 +1205,7 @@ public class Game extends BasicGameState {
 
 	private void pauseGame(int x, int y) {
 		// pause game
-		int trackPosition = MusicController.getPosition();
+		int trackPosition = MusicController.getPosition(true);
 		if (pauseTime < 0 && breakTime <= 0 && trackPosition >= beatmap.objects[0].getTime()) {
 			pausedMousePosition = new Vec2f(x, y);
 			pausePulse = 0f;
@@ -1881,7 +1884,7 @@ public class Game extends BasicGameState {
 	/**
 	 * Returns whether or not the track is in the lead-in time state.
 	 */
-	public boolean isLeadIn() { return MusicController.getPosition() < 0; }
+	public boolean isLeadIn() { return MusicController.getPosition(true) < 0; }
 
 	/**
 	 * Returns the object approach time, in milliseconds.

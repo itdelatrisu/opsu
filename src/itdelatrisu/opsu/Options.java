@@ -19,7 +19,6 @@
 package itdelatrisu.opsu;
 
 import fluddokt.opsu.fake.*;
-
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.beatmap.Beatmap;
 import itdelatrisu.opsu.beatmap.TimingPoint;
@@ -211,6 +210,8 @@ public class Options {
 	 * @return the directory, or null if not found
 	 */
 	private static File getOsuInstallationDirectory() {
+		return null;
+		/*
 		if (!System.getProperty("os.name").startsWith("Win"))
 			return null;  // only works on Windows
 
@@ -232,6 +233,7 @@ public class Options {
 			return null;
 		File dir = new File(m.group(1));
 		return (dir.isDirectory()) ? dir : null;
+		*/
 	}
 
 	/** Game options. */
@@ -325,7 +327,7 @@ public class Options {
 		},
 
 		// in-game options
-		SCREEN_RESOLUTION ("Screen Resolution", "ScreenResolution", "Restart (Ctrl+Shift+F5) to apply resolution changes.") {
+		SCREEN_RESOLUTION ("Screen Resolution", "ScreenResolution", "Restart to apply resolution changes.") {
 			private Resolution[] itemList = null;
 
 			@Override
@@ -365,7 +367,7 @@ public class Options {
 				} catch (IllegalArgumentException e) {}
 			}
 		},
-		FULLSCREEN ("Fullscreen Mode", "Fullscreen", "Restart (Ctrl+Shift+F5) to apply changes.", false) {
+		FULLSCREEN ("Fullscreen Mode", "Fullscreen", "Restart to apply changes.", false) {
 			@Override
 			public void toggle(GameContainer container) {
 				// check if fullscreen mode is possible with this resolution
@@ -378,7 +380,7 @@ public class Options {
 				UI.sendBarNotification(getDescription());
 			}
 		},
-		SKIN ("Skin", "Skin", "Restart (Ctrl+Shift+F5) to apply skin changes.") {
+		SKIN ("Skin", "Skin", "Restart to apply skin changes.") {
 			@Override
 			public String getValueString() { return skinName; }
 
@@ -632,14 +634,14 @@ public class Options {
 				(com.badlogic.gdx.Gdx.graphics.getWidth()/com.badlogic.gdx.Gdx.graphics.getPpiX()) <= 6.0f?//screen width less than 6 inches
 						20:
 						10
-				, 2, 30) {
+				, 5, 25) {
 			@Override
 			public String getValueString() { return (val == 0) ? "Disabled" : String.format("%.1f", val / 10f); }
 			
 			@Override
 			public void read(String s) {
 				int i = (int) (Float.parseFloat(s) * 10f);
-				if (i >= 2 && i <= 30)
+				if (i >= 5 && i <= 25)
 					val = i;
 			}
 			
@@ -648,7 +650,7 @@ public class Options {
 		},
 		NEW_SLIDER("Enable New Slider", "NewSlider", "Use the new Slider style.",true),
 		
-		SLIDER_QUALITY ("Slider Quality", "SliderQuality", "Lower values for better looking sliders (For old sliders).", 1, 1, 7) {
+		SLIDER_QUALITY ("Old Slider Quality", "SliderQuality", "Lower values for better looking sliders (For old sliders).", 1, 1, 7) {
 			@Override
 			public String getValueString() { 
 				switch(val){
@@ -680,6 +682,8 @@ public class Options {
 					val = 1;
 			}
 		},
+		SCOREBOARD("Show Scoreboard", "Scoreboard", "Shows the in game scoreboard.",true),
+		
 		;
 
 		/** Option name. */
@@ -713,6 +717,8 @@ public class Options {
 		GameOption(String displayName) {
 			this(null, displayName, null);
 		}
+
+		public void click(GameContainer container) {}
 
 		/**
 		 * Constructor for other option types.
@@ -938,6 +944,7 @@ public class Options {
 
 		/** Returns whether this resolution is possible to use in fullscreen mode. */
 		public boolean hasFullscreenDisplayMode() {
+			/*
 			try {
 				for (DisplayMode mode : Display.getAvailableDisplayModes()) {
 					if (width == mode.getWidth() && height == mode.getHeight())
@@ -946,6 +953,7 @@ public class Options {
 			} catch (LWJGLException e) {
 				ErrorHandler.error("Failed to get available display modes.", e, true);
 			}
+			*/
 			return false;
 		}
 
@@ -981,7 +989,7 @@ public class Options {
 	private static int
 		keyLeft  = Keyboard.KEY_NONE,
 		keyRight = Keyboard.KEY_NONE;
-	
+
 	// This class should not be instantiated.
 	private Options() {}
 
@@ -1384,9 +1392,10 @@ public class Options {
 		if (beatmapDir != null && beatmapDir.isDirectory())
 			return beatmapDir;
 
-		// search for directory
-		for (int i = 0; i < BEATMAP_DIRS.length; i++) {
-			beatmapDir = BEATMAP_DIRS[i];
+		// use osu! installation directory, if found
+		File osuDir = getOsuInstallationDirectory();
+		if (osuDir != null) {
+			beatmapDir = new File(osuDir, BEATMAP_DIR.getName());
 			if (beatmapDir.isDirectory())
 				return beatmapDir;
 		}
@@ -1633,6 +1642,4 @@ public class Options {
 			ErrorHandler.error(String.format("Failed to write to file '%s'.", OPTIONS_FILE.getAbsolutePath()), e, false);
 		}
 	}
-
-	
 }

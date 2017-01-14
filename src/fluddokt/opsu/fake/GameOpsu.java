@@ -25,7 +25,7 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 public class GameOpsu extends com.badlogic.gdx.Game {
 
-	final String VERSION = "OpsuAnd0.12.1a";
+	final String VERSION = "OpsuAnd0.13.0a";
 	public StateBasedGame sbg;
 	
 	Stage stage;
@@ -238,7 +238,7 @@ public class GameOpsu extends com.badlogic.gdx.Game {
 				System.out.println("Dialog count:"+dialogCnt);
 			}
 			
-		}.button("Ignore and Continue","S").button("Report on github","R").button("Close Opsu", "CloseOpsu");;
+		}.button("Ignore and Continue","S").button("Report on github","R").button("Close Opsu", "CloseOpsu");
 		dialog.getContentTable().row();
 		Label tex =new Label(string+"\n"+bodyString, skin);
 		

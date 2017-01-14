@@ -11,8 +11,8 @@ public abstract class GUIContext {
 		return input;
 	}
 	
-	public abstract void addInputListener(InputListener listener);
-	public abstract void removeInputListener(InputListener listener);
+	public abstract void addInputListener(GInputListener listener);
+	public abstract void removeInputListener(GInputListener listener);
 
 	public long getTime() {
 		return TimeUtils.millis();

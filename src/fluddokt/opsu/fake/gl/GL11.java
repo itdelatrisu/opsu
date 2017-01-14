@@ -56,6 +56,9 @@ public class GL11 {
 	public static final int GL_LESS = com.badlogic.gdx.graphics.GL20.GL_LESS;
 	public static final int GL_VERSION = com.badlogic.gdx.graphics.GL20.GL_VERSION;
 	public static final int GL_VENDOR = com.badlogic.gdx.graphics.GL20.GL_VENDOR;
+	public static final int GL_ALWAYS = com.badlogic.gdx.graphics.GL20.GL_ALWAYS;
+	public static final int GL_LINES = com.badlogic.gdx.graphics.GL20.GL_LINES;
+	public static final int GL_LEQUAL = com.badlogic.gdx.graphics.GL20.GL_LEQUAL;
 	
 	public static int glGetInteger(int pname) {
 		Gdx.gl20.glGetIntegerv(pname, UtilBuff.prepare());

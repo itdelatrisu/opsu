@@ -1,5 +1,5 @@
 package fluddokt.opsu.fake;
 
-public class STransition {
+public class GameState {
 
 }

@@ -40,6 +40,7 @@ public class Colors {
 		WHITE_FADE      = new Color(255, 255, 255, 1f),
 		RED_HOVER       = new Color(255, 112, 112),
 		GREEN           = new Color(137, 201, 79),
+		WHITE           = new Color(255, 255, 255),
 		LIGHT_ORANGE    = new Color(255, 192, 128),
 		LIGHT_GREEN     = new Color(128, 255, 128),
 		LIGHT_BLUE      = new Color(128, 128, 255),

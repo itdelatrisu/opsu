@@ -37,6 +37,7 @@ import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 /*
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.ContextCapabilities;
+import org.lwjgl.opengl.EXTFramebufferObject;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 import org.lwjgl.opengl.GL14;
@@ -67,6 +68,7 @@ public class CurveRenderState {
 
 	/** The vertex buffer used for the curve's vertices. */
 	private int vboID;
+	private int vertexidVboId;
 
 	/** The HitObject associated with the curve to be drawn. */
 	protected HitObject hitObject;
@@ -130,6 +132,7 @@ public class CurveRenderState {
 			vboID = GL15.glGenBuffers();
 			createVertexBuffer(vboID);
 		}
+
 		int drawUpTo = (int) (t * (curve.length - 1));
 		this.renderCurve(color, borderColor, drawUpTo);
 	}
@@ -172,7 +175,7 @@ public class CurveRenderState {
 		state.oldArrayBuffer = GL11.glGetInteger(GL15.GL_ARRAY_BUFFER_BINDING);
 		//GL11.glDisable(GL11.GL_POLYGON_SMOOTH);
 		GL11.glEnable(GL11.GL_BLEND);
-		//GL14.glBlendEquation(GL14.GL_FUNC_ADD);
+		GL14.glBlendEquation(GL14.GL_FUNC_ADD);
 		GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 		GL11.glEnable(GL11.GL_DEPTH_TEST);
 		GL11.glDepthMask(true);
@@ -187,9 +190,7 @@ public class CurveRenderState {
 		
 		GL20.glUseProgram(0);
 
-		/*
 		GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT);
-		*/
 
 		return state;
 	}
@@ -199,8 +200,6 @@ public class CurveRenderState {
 	 * @param state the old state to restore
 	 */
 	private void restoreRenderState(RenderState state) {
-		/*
-		*/
 		GL11.glEnable(GL11.GL_BLEND);
 		GL20.glUseProgram(state.oldProgram);
 		GL11.glDisable(GL11.GL_TEXTURE_1D);
@@ -448,6 +447,15 @@ public class CurveRenderState {
 		buff.flip();
 		GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, bufferID);
 		GL15.glBufferData(GL15.GL_ARRAY_BUFFER, buff, GL15.GL_STATIC_DRAW);
+		
+		vertexidVboId = GL15.glGenBuffers();
+		GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, vertexidVboId);
+		FloatBuffer buff2 = BufferUtils.createByteBuffer(4 * 3 * (triangle_count)).asFloatBuffer();
+		for (int i=0; i<3 * triangle_count; i++)
+			buff2.put(i);
+		buff2.flip();
+		GL15.glBufferData(GL15.GL_ARRAY_BUFFER, buff2, GL15.GL_STATIC_DRAW);
+		
 		GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, arrayBufferBinding);
 	}
 
@@ -465,9 +473,13 @@ public class CurveRenderState {
 		staticState.program.begin();
 		GL20.glEnableVertexAttribArray(staticState.attribLoc);
 		GL20.glEnableVertexAttribArray(staticState.texCoordLoc);
+		GL20.glEnableVertexAttribArray(staticState.vertexIDLoc);
 		GL20.glUniform1i(staticState.texLoc, 0);
 		GL20.glUniform4f(staticState.colLoc, color.r, color.g, color.b, color.a);
 		GL20.glUniform4f(staticState.colBorderLoc, borderColor.r, borderColor.g, borderColor.b, borderColor.a);
+	
+		com.badlogic.gdx.Gdx.gl20.glUniformMatrix4fv(staticState.modelViewMatrix, 1, false, 
+				Graphics.camera.combined.val, 0);
 
 		float lastSegmentX = to == 0 ? curve[1].x - curve[0].x : curve[to].x - curve[to-1].x;
 		float lastSegmentY = to == 0 ? curve[1].y - curve[0].y : curve[to].y - curve[to-1].y;
@@ -478,13 +490,18 @@ public class CurveRenderState {
 		GL20.glVertexAttribPointer(staticState.attribLoc, 4, GL11.GL_FLOAT, false, 6 * 4, 2 * 4);
 		GL20.glVertexAttribPointer(staticState.texCoordLoc, 2, GL11.GL_FLOAT, false, 6 * 4, 0);
 
+		GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, vertexidVboId);
+		GL20.glVertexAttribPointer(staticState.vertexIDLoc, 1, GL11.GL_FLOAT, false, 4, 0);
+		
 		/*
 		if (clear) {
 			GL11.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 			GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
 		}*/
-
-
+		//GL11.glDepthFunc(GL11.GL_ALWAYS);
+		
+		
+	
 		GL11.glColorMask(false,false,false,false);
 		GL11.glDrawArrays(GL11.GL_TRIANGLES, 0, pointIndices[to]);
 		GL11.glColorMask(true,true,true,true);
@@ -492,10 +509,11 @@ public class CurveRenderState {
 		GL11.glDepthFunc(GL11.GL_EQUAL);
 		GL11.glDrawArrays(GL11.GL_TRIANGLES, 0, pointIndices[to]);
 		GL11.glDepthFunc(GL11.GL_LESS);
-
-		GL11.glFlush();
+	   
+		//GL11.glFlush();
 		GL20.glDisableVertexAttribArray(staticState.texCoordLoc);
 		GL20.glDisableVertexAttribArray(staticState.attribLoc);
+		GL20.glDisableVertexAttribArray(staticState.vertexIDLoc);
 		staticState.program.end();
 		restoreRenderState(state);
 	}
@@ -517,7 +535,6 @@ public class CurveRenderState {
 		//protected int program = 0;
 		protected ShaderProgram program = null;
 		
-
 		/** OpenGL shader attribute location of the vertex position attribute. */
 		protected int attribLoc = 0;
 
@@ -539,13 +556,18 @@ public class CurveRenderState {
 		/** OpenGL texture id for the gradient texture for the curve. */
 		//protected int gradientTexture = 0;
 		protected Texture gradientTexture = null;
+		
+		/** OpenGL shader uniform location of the ModelViewProjectionMatrix. */
+		protected int modelViewMatrix = 0;
+		/** OpenGL shader attribute location of the vertex id. */
+		protected int vertexIDLoc = 0;
+		
 		/**
 		 * Reads the first row of the slider gradient texture and upload it as
 		 * a 1D texture to OpenGL if it hasn't already been done.
 		 */
 		public void initGradient() {
 			if (gradientTexture == null) {
-				
 				Image slider = GameImage.SLIDER_GRADIENT.getImage().getScaledCopy(1.0f / GameImage.getUIscale());
 				
 				Gdx2DPixmap g2dpix = new Gdx2DPixmap(slider.getWidth(), 1, Gdx2DPixmap.GDX2D_FORMAT_RGBA8888);
@@ -576,7 +598,6 @@ public class CurveRenderState {
 					buff.put((byte) (255 * col.a));
 				}
 				buff.flip();
-				
 				GL11.glBindTexture(GL11.GL_TEXTURE_1D, gradientTexture);
 				GL11.glTexImage1D(GL11.GL_TEXTURE_1D, 0, GL11.GL_RGBA, slider.getWidth(), 0, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, buff);
 				ContextCapabilities capabilities = GLContext.getCapabilities();
@@ -596,54 +617,70 @@ public class CurveRenderState {
 		 * if it hasn't already been compiled and linked.
 		 */
 		public void initShaderProgram() {
-		//TODO fixme
 			if (program == null) {
 				String vertexShader = 
 					"#version 100\n"
 					+ "\n"
+					+ "uniform vec4 endPoint;\n"
+					+ "uniform mat4 modelViewProjectionMatrix;\n"
+					+ "\n"
 					+ "attribute vec4 in_position;\n"
 					+ "attribute vec2 in_tex_coord;\n"
+					+ "attribute float vertexID;\n"
 					+ "\n"
 					+ "varying vec2 tex_coord;\n"
 					+ "void main()\n"
 					+ "{\n"
-					+ "    gl_Position = in_position;\n"
+					+ "    vec4 pos = in_position;\n"
+					+ "    if (int(vertexID) < " + 3 * DIVIDES / 2 + ") {\n"
+					+ "        mat2 rot = mat2(endPoint.zw, vec2(-1.0,1.0)*endPoint.wz);\n"
+					+ "        pos.xy = endPoint.xy + rot * in_position.xy;\n"
+					+ "    }\n"
+					+ "    gl_Position = modelViewProjectionMatrix * pos;\n"
 					+ "    tex_coord = in_tex_coord;\n"
 					+ "}";
 				String fragmentShader = 
 					"#version 100\n"
-					+ "precision mediump float;\n"
+					+ "precision highp float;\n"
 					+ "\n"
 					+ "uniform sampler2D tex;\n"
 					+ "uniform vec2 tex_size;\n"
-					+ "uniform vec3 col_tint;\n"
+					+ "uniform vec4 col_tint;\n"
 					+ "uniform vec4 col_border;\n"
 					+ "\n"
 					+ "varying vec2 tex_coord;\n"
 					+ "\n"
 					+ "void main()\n"
 					+ "{\n"
-					+ "    vec4 in_color = texture2D(tex, tex_coord);\n"
+					+ "    vec4 in_color = texture2D(tex, vec2(tex_coord.x,0.5));\n"
 					+ "    float blend_factor = in_color.r-in_color.b;\n"
-					+ "    vec4 new_color = vec4(mix(in_color.xyz*col_border.xyz,col_tint,blend_factor),in_color.w);\n"
+					+ "    vec4 new_color = vec4(mix(in_color.xyz*col_border.xyz,col_tint.xyz,blend_factor),in_color.w*col_tint.w);\n"
 					+ "    gl_FragColor = new_color;\n"
 					+ "}";
+				if (program != null)
+					program.dispose();
 				program = new ShaderProgram(vertexShader, fragmentShader);
-				System.out.println("Program Log: "+program.getLog()+" ");
+				//String ShaderLog = program.getLog();
+				//if (ShaderLog.length() > 0)
+				//	System.out.println("Shader Program Log: "+ShaderLog+" ");
 				
-				attribLoc = program.getAttributeLocation("in_position");// prg.glGetAttribLocation(program, "in_position");
-				texCoordLoc = program.getAttributeLocation("in_tex_coord");//GL20.glGetAttribLocation(program, "in_tex_coord");
-				texLoc = program.getUniformLocation("tex");//GL20.glGetUniformLocation(program, "tex");
-				colLoc = program.getUniformLocation("col_tint");//GL20.glGetUniformLocation(program, "col_tint");
-				colBorderLoc = program.getUniformLocation	("col_border");// GL20.glGetUniformLocation(program, "col_border");
+				attribLoc = program.getAttributeLocation("in_position");
+				texCoordLoc = program.getAttributeLocation("in_tex_coord");
+				texLoc = program.getUniformLocation("tex");
+				colLoc = program.getUniformLocation("col_tint");
+				endPointLoc = program.getUniformLocation("endPoint");
+				colBorderLoc = program.getUniformLocation("col_border");
+				modelViewMatrix = program.getUniformLocation("modelViewProjectionMatrix");
+				vertexIDLoc = program.getAttributeLocation("vertexID");
 			}
 			/*
 			if (program == 0) {
 				program = GL20.glCreateProgram();
 				int vtxShdr = GL20.glCreateShader(GL20.GL_VERTEX_SHADER);
 				int frgShdr = GL20.glCreateShader(GL20.GL_FRAGMENT_SHADER);
-				GL20.glShaderSource(vtxShdr, 
-						"#version 100\n"
+				GL20.glShaderSource(vtxShdr, "#version 130\n"
+						+ "\n"
+						+ "uniform vec4 endPoint;\n"
 						+ "\n"
 						+ "attribute vec4 in_position;\n"
 						+ "attribute vec2 in_tex_coord;\n"
@@ -665,13 +702,9 @@ public class CurveRenderState {
 					String error = GL20.glGetShaderInfoLog(vtxShdr, 1024);
 					Log.error("Vertex Shader compilation failed.", new Exception(error));
 				}
-				GL20.glShaderSource(frgShdr, 
-						"#version 100\n"
-						+ "#ifdef GL_ES\n"
-						+ "precision mediump float;\n"
-						+ "#endif\n"
+				GL20.glShaderSource(frgShdr, "#version 110\n"
 						+ "\n"
-						+ "uniform sampler2D tex;\n"
+						+ "uniform sampler1D tex;\n"
 						+ "uniform vec2 tex_size;\n"
 						+ "uniform vec4 col_tint;\n"
 						+ "uniform vec4 col_border;\n"
@@ -680,7 +713,7 @@ public class CurveRenderState {
 						+ "\n"
 						+ "void main()\n"
 						+ "{\n"
-						+ "    vec4 in_color = texture2D(tex, tex_coord);\n"
+						+ "    vec4 in_color = texture1D(tex, tex_coord.x);\n"
 						+ "    float blend_factor = in_color.r-in_color.b;\n"
 						+ "    vec4 new_color = vec4(mix(in_color.xyz*col_border.xyz,col_tint.xyz,blend_factor),in_color.w*col_tint.w);\n"
 						+ "    gl_FragColor = new_color;\n"
@@ -716,15 +749,19 @@ public class CurveRenderState {
 		 */
 		private void shutdown() {
 			if (gradientTexture != null) {
-				//GL11.glDeleteTextures(gradientTexture);
-				//gradientTexture = 0;
+				/*
+				GL11.glDeleteTextures(gradientTexture);
+				gradientTexture = 0;
+				 */
 				gradientTexture.dispose();
 				gradientTexture = null;
 			}
 
-			if (program != null) { //(program != 0) {
-				//GL20.glDeleteProgram(program);
-				//program = 0;
+			if (program != null) {
+				/*
+				GL20.glDeleteProgram(program);
+				program = 0;
+				*/
 				program.dispose();
 				program = null;
 				attribLoc = 0;
@@ -732,6 +769,8 @@ public class CurveRenderState {
 				colLoc = 0;
 				colBorderLoc = 0;
 				texLoc = 0;
+				modelViewMatrix = 0;
+				vertexIDLoc = 0;
 			}
 		}
 	}

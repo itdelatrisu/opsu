@@ -1,7 +1,5 @@
 package fluddokt.opsu.fake;
 
-import java.util.HashMap;
-
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Pixmap.Blending;
@@ -18,6 +16,7 @@ import com.badlogic.gdx.graphics.g2d.freetype.FreeType.Library;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeType.SizeMetrics;
 import com.badlogic.gdx.graphics.glutils.PixmapTextureData;
 import com.badlogic.gdx.utils.GdxRuntimeException;
+import com.badlogic.gdx.utils.IntMap;
 
 public class DynamicFreeTypeFont {
 	FileHandle handle;
@@ -55,7 +54,8 @@ public class DynamicFreeTypeFont {
 	}
 
 	// ArrayList<Texture> pages = new ArrayList<Texture>();
-	HashMap<Character, CharInfo> charmap = new HashMap<Character, CharInfo>();
+	//HashMap<Character, CharInfo> charmap = new HashMap<Character, CharInfo>();
+	IntMap<CharInfo> charmap = new IntMap<CharInfo>();
 	Pixmap curPixmap;
 	Texture curTexture;
 
@@ -76,40 +76,41 @@ public class DynamicFreeTypeFont {
 	public void draw(SpriteBatch batch, String str, float x, float y) {
 		x = (int)x;
 		y = (int)y;
-		int prevchrIndex = 0;
-		CharInfo prevCharInfo = null;
+		//int prevchrIndex = 0;
+		//CharInfo prevCharInfo = null;
 		float ox = x;
-		for (int i = 0; i < str.length(); i++) {
+		y+= ascent;
+		int strlen = str.length();
+		for (int i = 0; i < strlen; i++) {
 			char thischr = str.charAt(i);
 			if (thischr == '\n') {
 				y += getLineHeight();
 				x = ox;
-				continue;
-			}
+			} else {
+				/*if (useKerning) {
+					//int thisChrIndex = FreeType.getCharIndex(face, thischr);
+					float spacing = 0;//to26p6float(FreeType.getKerning(face, prevchrIndex, thisChrIndex,;
+							//FreeType.FT_KERNING_DEFAULT));
+					//prevchrIndex = thisChrIndex;
+					
+					//OpenType kerning via the 'GPOS' table is not supported! You need a higher-level library like HarfBuzz, Pango, or ICU, 
+					//System.out.println(spacing+" "+thischr);
+					if(spacing==0 && prevCharInfo != null)
+						spacing += prevCharInfo.horadvance;
+					x += spacing;
+				}*/
 				
-			if (useKerning) {
-				int thisChrIndex = FreeType.getCharIndex(face, thischr);
-				float spacing = 0;//to26p6float(FreeType.getKerning(face, prevchrIndex, thisChrIndex,;
-						//FreeType.FT_KERNING_DEFAULT));
-				prevchrIndex = thisChrIndex;
-				
-				//OpenType kerning via the 'GPOS' table is not supported! You need a higher-level library like HarfBuzz, Pango, or ICU, 
-				//System.out.println(spacing+" "+thischr);
-				if(spacing==0 && prevCharInfo != null)
-					spacing += prevCharInfo.horadvance;
-				x += spacing;
+				CharInfo ci = getCharInfo(thischr);
+				TextureRegion tr = ci.region;
+				batch.draw(tr, x + ci.sBitmapLeft// xoffset
+				, y - ci.sBitmapTop);// ci.yoffset);//-
+														// tr.getRegionHeight() +
+														// ci.ybear );//-
+				//if (!useKerning) {
+					x += ci.horadvance;
+				//}
+				//prevCharInfo = ci;
 			}
-			
-			CharInfo ci = getCharInfo(str.charAt(i));
-			TextureRegion tr = ci.region;
-			batch.draw(tr, x + ci.sBitmapLeft// xoffset
-			, y - ci.sBitmapTop + ascent);// ci.yoffset);//-
-													// tr.getRegionHeight() +
-													// ci.ybear );//-
-			if (!useKerning) {
-				x += ci.horadvance;
-			}
-			prevCharInfo = ci;
 		}
 	}
 

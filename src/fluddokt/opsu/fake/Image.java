@@ -17,7 +17,7 @@ public class Image {
 	TextureRegion tex;
 	float width, height;
 	private float alpha = 1f, rotation = 0;
-	String name;
+	//String name;
 	String filename;
 	TextureInfo texinfo;
 	static HashMap<String, TextureInfo> texmap = new HashMap<String, TextureInfo>();
@@ -106,7 +106,7 @@ public class Image {
 		tex.flip(false, true);
 		width = tex.getRegionWidth();
 		height = tex.getRegionHeight();
-		name = filename;
+		//name = filename;
 	}
 
 	class SqPixmapTextureData implements TextureData {
@@ -257,7 +257,7 @@ public class Image {
 		width = copy.width;
 		height = copy.height;
 		filename = copy.filename;
-		name = copy.name+"[c]";
+		//name = copy.name+"[c]";
 	}
 	public Image(Image copy, float wid, float hei) {
 		//texinfo = copy.texinfo;
@@ -268,7 +268,7 @@ public class Image {
 		width = wid;
 		height = hei;
 		filename = copy.filename;
-		name = copy.name + " s " + wid + " " + hei;
+		//name = copy.name + " s " + wid + " " + hei;
 	}
 
 	public Image(Image copy, int x, int y, int wid, int hei) {
@@ -287,7 +287,7 @@ public class Image {
 		width = (tex.getRegionWidth() / dx);
 		height = (tex.getRegionHeight() / dy);
 		filename = copy.filename;
-		name = copy.name + " r " + x + " " + y + " " + wid + " " + hei;
+		//name = copy.name + " r " + x + " " + y + " " + wid + " " + hei;
 	}
 
 	public Image() {
@@ -299,7 +299,7 @@ public class Image {
 		fb = new FrameBuffer(Pixmap.Format.RGBA8888, width, height, false);
 		fbg = new FBGraphics(fb);
 		tex = new TextureRegion(fb.getColorBufferTexture());
-		name = "FrameBuffer image";
+		//name = "FrameBuffer image";
 	}
 
 	public int getHeight() {
@@ -449,6 +449,12 @@ public class Image {
 		Graphics.getGraphics().drawTexture(getTextureRegion(), x, y,
 				w, h, r);
 		
+	}
+
+	public void drawEmbedded(float x, float y, float w, float h, int angle) {
+		Graphics.getGraphics().setColor(imageColor);
+		Graphics.getGraphics().drawTexture(getTextureRegion(), x, y,
+				w, h, angle);
 	}
 
 	

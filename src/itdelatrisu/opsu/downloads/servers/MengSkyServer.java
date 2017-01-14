@@ -18,6 +18,7 @@
 
 package itdelatrisu.opsu.downloads.servers;
 
+import fluddokt.opsu.fake.Log;
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.downloads.DownloadNode;
@@ -31,7 +32,9 @@ import java.net.URLEncoder;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+/*
 import org.newdawn.slick.util.Log;
+*/
 
 /**
  * Download server: http://osu.mengsky.net/

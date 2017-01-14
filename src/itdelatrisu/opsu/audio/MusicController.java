@@ -353,12 +353,12 @@ public class MusicController {
 				offset += lastBeatmap.localMusicOffset;
 		}
 
-		if (isPlaying())
+		//if (isPlaying())
 			return (int) (player.getPosition() * 1000 + offset);
-		else if (isPaused())
-			return Math.max((int) (pauseTime * 1000 + offset), 0);
-		else
-			return 0;
+		//else if (isPaused())
+		//	return Math.max((int) (pauseTime * 1000 + offset), 0);
+		//else
+		//	return 0;
 	}
 
 	/**
@@ -366,7 +366,7 @@ public class MusicController {
 	 * @param position the new track position (in ms)
 	 */
 	public static boolean setPosition(int position) {
-		if (!trackExists() || position < 0)
+		if (!trackExists())
 			return false;
 
 		resetTimingPoint();

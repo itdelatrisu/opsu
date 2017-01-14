@@ -61,33 +61,6 @@ public class MusicGdx extends AbsMusic implements OnCompletionListener{
 		music.stop();
 	}
 
-	public void fade(int duration, float f, boolean b) {
-		// TODO Auto-generated method stub
-		// final int dura = duration;
-		
-		/*new Thread() {
-			@Override
-			public void run() {
-				float mult = 1;
-				float sub = (1 / 60f) / (dura / 1000f);
-				float volume = music.getVolume();
-				while (mult >= 0) {
-					try {
-						mult -= sub;
-						// System.out.println("Fade:"+mult+" "+sub);
-						music.setVolume(volume * mult);
-						Thread.sleep(16);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
-				}
-				music.stop();
-			}
-		}.start();*/
-
-		music.stop();
-	}
-
 	@Override
 	public float getPosition() {
 		return music.getPosition();
@@ -109,8 +82,6 @@ public class MusicGdx extends AbsMusic implements OnCompletionListener{
 
 	@Override
 	public void setPitch(float pitch) {
-		// TODO Auto-generated method stub
-		
 	}
 
 }

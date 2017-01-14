@@ -18,6 +18,9 @@
 
 package itdelatrisu.opsu.ui;
 
+import fluddokt.opsu.fake.*;
+import fluddokt.opsu.fake.gui.*;
+
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.OptionGroup;
 import itdelatrisu.opsu.Options;
@@ -27,6 +30,7 @@ import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
 
+/*
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
@@ -35,6 +39,7 @@ import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.gui.AbstractComponent;
 import org.newdawn.slick.gui.GUIContext;
+*/
 
 /**
  * Options overlay.
@@ -92,6 +97,9 @@ public class OptionsOverlay extends AbstractComponent {
 
 	/** Whether or not a slider is currently being adjusted. */
 	private boolean isAdjustingSlider;
+	
+	private boolean isMaybeAdjustingSlider;
+	private int maybeAdjustx, maybeAdjusty;
 
 	/** The current absolute x-coordinate of the selected slider. */
 	private int sliderOptionStartX;
@@ -179,7 +187,7 @@ public class OptionsOverlay extends AbstractComponent {
 		// overlay positions
 		this.x = 0;
 		this.y = 0;
-		this.width = (int) (containerWidth * 0.42f);
+		this.width = (int) (containerHeight * 0.7f * Options.getMobileUIScale(0.5f));
 		this.height = containerHeight;
 
 		// option positions
@@ -332,7 +340,7 @@ public class OptionsOverlay extends AbstractComponent {
 	 * @param focus whether this option is focused
 	 */
 	private void renderOption(Graphics g, GameOption option, int cy, boolean focus) {
-		Color color = focus ? Colors.GREEN : Colors.WHITE_FADE;
+		Color color = focus ? Colors.GREEN : Colors.WHITE;
 		OptionType type = option.getType();
 		Object[] items = option.getItemList();
 		if (items != null)
@@ -567,13 +575,13 @@ public class OptionsOverlay extends AbstractComponent {
 
 		// list option already open
 		if (isListOptionOpen) {
-			SoundController.playSound(SoundEffect.MENUCLICK);
+			/*SoundController.playSound(SoundEffect.MENUCLICK);
 			int index = getListIndex(x, y);
 			if (y > optionStartY && index != -1)
 				hoverOption.selectItem(index, container);
 			isListOptionOpen = false;
 			listHoverIndex = -1;
-			updateHoverOption(x, y);
+			updateHoverOption(x, y);*/
 			return;
 		}
 
@@ -591,19 +599,30 @@ public class OptionsOverlay extends AbstractComponent {
 		mousePressY = y;
 		if (hoverOption != null) {
 			if (hoverOption.getType() == OptionType.NUMERIC) {
-				isAdjustingSlider = sliderOptionStartX <= x && x < sliderOptionStartX + sliderOptionWidth;
-				if (isAdjustingSlider) {
-					SoundController.playSound(SoundEffect.MENUCLICK);
-					updateSliderOption(x, y);
-				}
+				isMaybeAdjustingSlider = sliderOptionStartX <= x && x < sliderOptionStartX + sliderOptionWidth;
+				maybeAdjustx = x;
+				maybeAdjusty = y;
 			}
 		}
 	}
 
 	@Override
 	public void mouseReleased(int button, int x, int y) {
+		System.out.println("Mouse Released "+x+" "+y+" "+isListOptionOpen+" "+active+" "+mousePressY);
+		
 		if (!active)
 			return;
+
+		if (isListOptionOpen) {
+			SoundController.playSound(SoundEffect.MENUCLICK);
+			int index = getListIndex(x, y);
+			if (y > optionStartY && index != -1)
+				hoverOption.selectItem(index, container);
+			isListOptionOpen = false;
+			listHoverIndex = -1;
+			updateHoverOption(x, y);
+			return;
+		}
 
 		// check if associated mouse press was in the overlay
 		if (mousePressY == -1)
@@ -613,7 +632,8 @@ public class OptionsOverlay extends AbstractComponent {
 
 		if (button == Input.MOUSE_MIDDLE_BUTTON)
 			return;
-
+		
+		
 		// finish adjusting slider
 		if (isAdjustingSlider) {
 			isAdjustingSlider = false;
@@ -648,12 +668,39 @@ public class OptionsOverlay extends AbstractComponent {
 			}
 		}
 	}
+	
+	@Override
+	public void mouseClicked(int button, int x, int y, int clickCount) {
+		if (!active || !contains(x, y))
+			return;
+		if (isMaybeAdjustingSlider) {
+			SoundController.playSound(SoundEffect.MENUCLICK);
+			updateSliderOption(x, y);
+			System.out.println(x+" "+y);
+			isMaybeAdjustingSlider = false;
+		}
+	}
 
 	@Override
 	public void mouseDragged(int oldx, int oldy, int newx, int newy) {
 		if (!active || !contains(oldx, oldy))
 			return;
 
+		if (isMaybeAdjustingSlider) {
+			if (Math.abs(newx - maybeAdjustx) > container.getHeight()/100) {
+				isAdjustingSlider = true;
+				isMaybeAdjustingSlider = false;
+			}
+			if (Math.abs(newy - maybeAdjusty) > container.getHeight()/100) {
+				isAdjustingSlider = false;
+				isMaybeAdjustingSlider = false;
+			}
+			if (isAdjustingSlider) {
+				SoundController.playSound(SoundEffect.MENUCLICK);
+				updateSliderOption(newx, newy);
+			}
+			System.out.println(newx+" "+newy);
+		}
 		if (!isAdjustingSlider) {
 			int diff = newy - oldy;
 			if (diff != 0)
@@ -665,16 +712,8 @@ public class OptionsOverlay extends AbstractComponent {
 	@Override
 	public void mouseWheelMoved(int delta) {
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
-		if (!active)
+		if (!active || !contains(mouseX, mouseY))
 			return;
-
-		if (!contains(mouseX, mouseY)) {
-			if (consumeAndClose) {
-				consumeEvent();
-				listener.close();
-			}
-			return;
-		}
 
 		if (!isAdjustingSlider)
 			scrolling.scrollOffset(-delta);

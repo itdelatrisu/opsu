@@ -554,7 +554,10 @@ public class Utils {
 	 * @return the directory
 	 */
 	public static File getWorkingDirectory() {
+		/*
 		return Paths.get(".").toAbsolutePath().normalize().toFile();
+		*/
+		return new File(".");
 	}
 
 	/**

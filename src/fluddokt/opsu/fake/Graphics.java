@@ -1,5 +1,7 @@
 package fluddokt.opsu.fake;
 
+import java.util.LinkedList;
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -9,6 +11,7 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.utils.ScissorStack;
 
 public class Graphics {
@@ -16,7 +19,7 @@ public class Graphics {
 	static SpriteBatch batch;
 	static ShapeRenderer shapeRender;
 	static UnicodeFont curFont;
-	static OrthographicCamera camera;
+	public static OrthographicCamera camera;
 	final static int NONE = 0;
 	final static int SPRITE = 3;
 	final static int SHAPELINE = 5;
@@ -161,24 +164,30 @@ public class Graphics {
 	
 	static void endMode() {
 		Gdx.gl20.glLineWidth(lineWidth);
-		if (mode == SPRITE) {
-			batch.end();
-		} else if (mode == SHAPEFILLED || mode == SHAPELINE) {
-			shapeRender.end();
+		switch (mode) {
+			case SPRITE:
+				batch.end();
+				break;
+			case SHAPEFILLED: 
+			case SHAPELINE:
+				shapeRender.end();
+				break;
 		}
-
 		mode = 0;
 	}
 
 	static void beginMode(int nmode) {
-		
-		if (nmode == SPRITE) {
-			batch.begin();
-		} else if (nmode == SHAPEFILLED) {
-			Gdx.gl.glEnable(GL20.GL_BLEND);
-			shapeRender.begin(ShapeType.Filled);
-		} else if (nmode == SHAPELINE) {
-			shapeRender.begin(ShapeType.Line);
+		switch (nmode) {
+			case SPRITE:
+				batch.begin();
+				break;
+			case SHAPEFILLED: 
+				Gdx.gl.glEnable(GL20.GL_BLEND);
+				shapeRender.begin(ShapeType.Filled);
+				break;
+			case SHAPELINE:
+				shapeRender.begin(ShapeType.Line);
+				break;
 		}
 		mode = nmode;
 	}
@@ -317,7 +326,56 @@ public class Graphics {
 	public float getLineWidth() {
 		return 1;
 	}
-	
-	
 
+	public void pushTransform() {
+		checkMode(NONE);
+		TransformState state = getNewTranformState();
+		state.position.set(camera.position);
+		state.direction.set(camera.direction);
+		state.up.set(camera.up);
+		transformStack.addLast(state);
+	}
+	
+	final Vector3 Z_AXIS = new Vector3(0, 0, 1);
+	final Vector3 temp = new Vector3();
+	public void rotate(float x, float y, float a) {
+		checkMode(NONE);
+		temp.set(x, y, 0);
+		camera.rotateAround(temp, Z_AXIS, a);
+		updateCamera();
+	}
+
+	public void translate(float x, float y) {
+		checkMode(NONE);
+		camera.translate(-x, -y);
+		updateCamera();
+	}
+
+	public void popTransform() {
+		checkMode(NONE);
+		TransformState state = transformStack.removeLast();
+		camera.position.set(state.position);
+		camera.direction.set(state.direction);
+		camera.up.set(state.up);
+		updateCamera();
+		transformPool.addFirst(state);
+		
+	}
+	public void updateCamera() {
+		camera.update();
+		batch.setProjectionMatrix(camera.combined);
+		shapeRender.setProjectionMatrix(camera.combined);
+	}
+	private class TransformState {
+		Vector3 direction = new Vector3();
+		Vector3 position = new Vector3();
+		Vector3 up = new Vector3();
+	}
+	private TransformState getNewTranformState() {
+		if (transformPool.size() > 0)
+			return transformPool.removeFirst();
+		return new TransformState();
+	}
+	private LinkedList<TransformState> transformStack = new LinkedList<TransformState>();
+	private LinkedList<TransformState> transformPool = new LinkedList<TransformState>();
 }

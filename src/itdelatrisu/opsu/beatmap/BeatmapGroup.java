@@ -18,7 +18,8 @@
 
 package itdelatrisu.opsu.beatmap;
 
-import fluddokt.opsu.fake.Image;
+import fluddokt.opsu.fake.*;
+
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.ui.MenuButton;
 import itdelatrisu.opsu.ui.UI;
@@ -61,7 +62,7 @@ public enum BeatmapGroup {
 			PriorityQueue<BeatmapSetNode> pq = new PriorityQueue<BeatmapSetNode>(K, new Comparator<BeatmapSetNode>() {
 				@Override
 				public int compare(BeatmapSetNode v, BeatmapSetNode w) {
-					return Long.compare(lastPlayed(v.getBeatmapSet()), lastPlayed(w.getBeatmapSet()));
+					return Long2.compare(lastPlayed(v.getBeatmapSet()), lastPlayed(w.getBeatmapSet()));
 				}
 			});
 			for (BeatmapSetNode node : list) {
