@@ -608,8 +608,6 @@ public class OptionsOverlay extends AbstractComponent {
 
 	@Override
 	public void mouseReleased(int button, int x, int y) {
-		System.out.println("Mouse Released "+x+" "+y+" "+isListOptionOpen+" "+active+" "+mousePressY);
-		
 		if (!active)
 			return;
 
