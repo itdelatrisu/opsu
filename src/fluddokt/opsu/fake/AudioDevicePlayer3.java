@@ -4,7 +4,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.AudioDevice;
 import com.badlogic.gdx.utils.TimeUtils;
 
-import javazoom.jl.decoder.*;
+import javazoom2.jl.decoder.*;
 
 public class AudioDevicePlayer3 extends AudioDevicePlayer{
 

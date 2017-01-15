@@ -31,12 +31,12 @@ package fluddokt.opsu.fake.openal;
 import java.io.IOException;
 import java.io.InputStream;
 
-import javazoom.jl.decoder.Bitstream;
-import javazoom.jl.decoder.BitstreamException;
-import javazoom.jl.decoder.Decoder;
-import javazoom.jl.decoder.DecoderException;
-import javazoom.jl.decoder.Header;
-import javazoom.jl.decoder.SampleBuffer;
+import javazoom2.jl.decoder.Bitstream;
+import javazoom2.jl.decoder.BitstreamException;
+import javazoom2.jl.decoder.Decoder;
+import javazoom2.jl.decoder.DecoderException;
+import javazoom2.jl.decoder.Header;
+import javazoom2.jl.decoder.SampleBuffer;
 import fluddokt.opsu.fake.*;
 //import org.newdawn.slick.util.Log;
 
@@ -89,10 +89,7 @@ public class Mp3InputStream extends AudioInputStream2 {
 
 		channels = (header.mode() == Header.SINGLE_CHANNEL) ? 1 : 2;
 		sampleRate = header.frequency();
-		if(sampleRate == 0){
-			System.out.println("MP3 "+sampleRate+" "+channels);
-			throw new IOException("Not MP3?");
-		}
+
 		buf = new SampleBuffer(sampleRate, channels);
 		decoder.setOutputBuffer(buf);
 
@@ -103,13 +100,27 @@ public class Mp3InputStream extends AudioInputStream2 {
 		}
 
 		bufLen = buf.getBufferLength();
-		//if(bufLen<=0){
-		///	Log.error("buf Len is < 0 ");
-		//}
+		System.out.println("Buflen1: "+bufLen);
 		bitstream.closeFrame();
+
+		int skips = 0;
+		//System.out.println("Buflen: "+bufLen);
+		// bufLen 0 but is still an actual frame (Hopefully this only happens for the first frame)
+		if (bufLen == 0 && !header.vbr()) {
+			bufLen = 2304; //Seems all mp3 frames are 2304 in length so this should be fine?
+		}
 		
-		
-		while(bufLen<=0){
+		int headervbr_delay = header.vbr_delay();
+		if (headervbr_delay != 0) {
+			if(header.vbr_isXing()){
+				//need to skip an extra frame?
+				skips += 1;
+			}
+			int vbrDelayBytes = headervbr_delay * channels;
+			bpos += (vbrDelayBytes % bufLen);//two byte per sample
+			skips += (vbrDelayBytes / bufLen);
+		}
+		for (int i = 0; i < skips; i++) {
 			try {
 				header = bitstream.readFrame();
 			} catch (BitstreamException e) {
@@ -121,15 +132,9 @@ public class Mp3InputStream extends AudioInputStream2 {
 				Log.error(e);
 			}
 			bufLen = buf.getBufferLength();
-			/*if(bufLen<=0){
-				Log.error("buf Len is < 0  ");
-			}*/
+
 			bitstream.closeFrame();
-
 		}
-
-		
-		
 	}
 
 	@Override
@@ -198,8 +203,6 @@ public class Mp3InputStream extends AudioInputStream2 {
 
 	@Override
 	public int getRate() { return sampleRate; }
-
-	
 	
 	public short[] data() {
 		return buf.getBuffer();
