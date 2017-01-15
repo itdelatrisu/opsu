@@ -18,8 +18,12 @@
 
 package itdelatrisu.opsu;
 
+import fluddokt.ex.DeviceInfo;
+import fluddokt.opsu.fake.GameOpsu;
 import fluddokt.opsu.fake.Log;
 import fluddokt.opsu.fake.gl.GL11;
+
+
 
 /*
 import java.awt.Cursor;
@@ -27,15 +31,18 @@ import java.awt.Desktop;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+*/
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLEncoder;
-import java.util.Properties;
+//import java.util.Properties;
 
+/*
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.UIManager;
+
 
 import org.lwjgl.opengl.GL11;
 import org.newdawn.slick.util.Log;
@@ -55,13 +62,16 @@ public class ErrorHandler {
 		descReport = "Something bad happened. Please report this!";
 
 	/** Error popup button options. */
+	/*
 	private static final String[]
 		optionsLog  = {"View Error Log", "Close"},
 		optionsReport = {"Send Report", "Close"},
 		optionsLogReport = {"Send Report", "View Error Log", "Close"};
+		*/
 
 	/** Text area for Exception. */
-/*	private static final JTextArea textArea = new JTextArea(7, 30);
+	/*
+	private static final JTextArea textArea = new JTextArea(7, 30);
 	static {
 		textArea.setEditable(false);
 		textArea.setBackground(UIManager.getColor("Panel.background"));
@@ -70,12 +80,12 @@ public class ErrorHandler {
 		textArea.setLineWrap(true);
 		textArea.setWrapStyleWord(true);
 	}
-*/
+	*/
 	/** Scroll pane holding JTextArea. */
 	/*
 	private static final JScrollPane scroll = new JScrollPane(textArea);
 	*/
-
+	
 	/** Error popup objects. */
 	/*
 	private static final Object[]
@@ -117,7 +127,8 @@ public class ErrorHandler {
 			Log.error(error);
 		else
 			Log.error(error, e);
-/*
+
+		/*
 		// set the textArea to the error message
 		textArea.setText(null);
 		if (error != null) {
@@ -197,10 +208,9 @@ public class ErrorHandler {
 	/**
 	 * Returns environment information formatted in markdown (for issue reports).
 	 */
-	/*
 	public static String getEnvironmentInfoForIssue() {
 		StringBuilder sb = new StringBuilder();
-		try {
+		/*try {
 			// read version and build date from version file, if possible
 			Properties props = new Properties();
 			props.load(ResourceLoader.getResourceAsStream(Options.VERSION_FILE));
@@ -214,31 +224,36 @@ public class ErrorHandler {
 					sb.append(hash.substring(0, 12));
 					sb.append(')');
 				}
-							sb.append('\n');
-						}
-						String timestamp = props.getProperty("build.date");
-						if (timestamp != null &&
-						    !timestamp.equals("${maven.build.timestamp}") && !timestamp.equals("${timestamp}")) {
-							sb.append("**Build date:** ");
-							sb.append(timestamp);
-							sb.append('\n');
-						}
+				sb.append('\n');
+			}
+			String timestamp = props.getProperty("build.date");
+			if (timestamp != null &&
+			    !timestamp.equals("${maven.build.timestamp}") && !timestamp.equals("${timestamp}")) {
+				sb.append("**Build date:** ");
+				sb.append(timestamp);
+				sb.append('\n');
+			}
 		} catch (IOException e1) {
 			Log.warn("Could not read version file.", e1);
 		}
+		*/
+		sb.append("**Version:** ");
+		sb.append(GameOpsu.VERSION);
+		sb.append('\n');
 		sb.append("**OS:** ");
 		sb.append(System.getProperty("os.name"));
 		sb.append(" (");
 		sb.append(System.getProperty("os.arch"));
 		sb.append(")\n");
 		sb.append("**JRE:** ");
-		sb.append(System.getProperty("java.version"));
+		sb.append(System.getProperty("java.vendor")+" "+System.getProperty("java.version"));
 		sb.append('\n');
 		if (glString != null) {
 			sb.append("**OpenGL version:** ");
 			sb.append(glString);
 			sb.append('\n');
 		}
+		sb.append(DeviceInfo.info.getInfo());
 		return sb.toString();
 	}
 
@@ -250,7 +265,7 @@ public class ErrorHandler {
 	 * @param trace the stack trace
 	 * @return the created URI
 	 */
-	private static URI getIssueURI(String error, Throwable e, String trace) {
+	public static URI getIssueURI(String error, Throwable e, String trace) {
 		// generate report information
 		String issueTitle = (error != null) ? error : e.getMessage();
 		StringBuilder sb = new StringBuilder();
@@ -269,6 +284,5 @@ public class ErrorHandler {
 
 		// return auto-filled URI
 		return getIssueURI(issueTitle, sb.toString());
-		
-	}*/
+	}
 }

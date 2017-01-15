@@ -3,7 +3,6 @@ package fluddokt.opsu.fake.gui;
 import com.badlogic.gdx.utils.TimeUtils;
 
 import fluddokt.opsu.fake.Input;
-import fluddokt.opsu.fake.InputListener;
 
 public abstract class GUIContext {
 	Input input = new Input();

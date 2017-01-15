@@ -20,9 +20,12 @@ package itdelatrisu.opsu.db;
 
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.Options;
+import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.beatmap.Beatmap;
 import itdelatrisu.opsu.beatmap.BeatmapParser;
 
+
+import java.io.IOException;
 //import java.io.File;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -35,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 
 //import org.newdawn.slick.util.Log;
+
 
 import fluddokt.opsu.fake.*;
 
@@ -128,6 +132,14 @@ public class BeatmapDB {
 	 * Initializes the database connection.
 	 */
 	public static void init() {
+		if (Options.O_BEATMAP_DB.isFile()) {
+			try {
+				Utils.moveFile(Options.O_BEATMAP_DB, Options.BEATMAP_DB);
+			} catch (IOException e) {
+				ErrorHandler.error("Failed to move old BeatmapDB", e, true);
+				e.printStackTrace();
+			}
+		}
 		// create a database connection
 		connection = DBController.createConnection(Options.BEATMAP_DB.getAbsolutePath());
 		if (connection == null)
@@ -222,13 +234,13 @@ public class BeatmapDB {
 			// if 'info' table does not exist, assume version 0 and apply all updates
 			String sql = "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'info'";
 			ResultSet rs = stmt.executeQuery(sql);
-			boolean infoExists = rs.isBeforeFirst();
+			boolean infoExists = rs.next();
 			rs.close();
 			if (!infoExists) {
 				// if 'beatmaps' table also does not exist, databases not yet created
 				sql = "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'beatmaps'";
 				ResultSet beatmapsRS = stmt.executeQuery(sql);
-				boolean beatmapsExists = beatmapsRS.isBeforeFirst();
+				boolean beatmapsExists = beatmapsRS.next();
 				beatmapsRS.close();
 				if (!beatmapsExists)
 					return;

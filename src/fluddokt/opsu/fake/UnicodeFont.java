@@ -6,5 +6,10 @@ public class UnicodeFont extends Font {
 		super(font.name, font.style, font.size, font.file);
 	}
 
+	public void addGlyphs(char c, char c2) {
+		// TODO Auto-generated method stub
+		
+	}
+
 
 }

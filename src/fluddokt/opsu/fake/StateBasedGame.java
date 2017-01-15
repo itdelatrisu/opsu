@@ -32,8 +32,6 @@ public abstract class StateBasedGame extends Game2 implements InputProcessor {
 	public StateBasedGame(String name) {
 		this.title = name;
 		Display.setTitle(name);
-		// gc.width = Gdx.graphics.getWidth();
-		// gc.height = Gdx.graphics.getHeight();
 	}
 
 	public BasicGameState getState(int state) {
@@ -46,7 +44,6 @@ public abstract class StateBasedGame extends Game2 implements InputProcessor {
 	}
 
 	public void enterState(int newState, Transition leaveT, Transition enterT) {
-		System.out.println("Enter State Transition " + newState+" "+enterT+" "+leaveT);
 		this.enterT = enterT;
 		this.leaveT = leaveT;
 		oldState = currentState;
@@ -137,27 +134,7 @@ public abstract class StateBasedGame extends Game2 implements InputProcessor {
 			} else {
 				currentState.render(gc, this, g);
 			}
-			
-			/*
-			if(Graphics.curFont!=null){
-				if(GameContainer.music!=null)
-					g.drawString(""
-					+" "+(GameContainer.music.lastTime&0xffff)
-					+" "+pad(""+(int)((GameContainer.music.music.getPosition()-GameContainer.music.lastGetPos)*1000))
-					+" avg:"+pad(""+(int)(GameContainer.music.avgDiff*1000)/1000f)
-					//+" "+GameContainer.music.music.getPosition()
-					//+" "+GameContainer.music.lastGPos
-					, 10, 100);
-			}
-			*/
 		}
-	}
-
-	private String pad(String s) {
-		while(s.length()<6){
-			s=' '+s;
-		}
-		return s;
 	}
 
 	public void init() throws SlickException {

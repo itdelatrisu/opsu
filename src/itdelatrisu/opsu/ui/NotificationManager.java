@@ -18,18 +18,22 @@
 
 package itdelatrisu.opsu.ui;
 
+import fluddokt.opsu.fake.*;
+import fluddokt.opsu.fake.gui.MouseListener;
 import itdelatrisu.opsu.ui.animations.AnimationEquation;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+/*
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.MouseListener;
 import org.newdawn.slick.UnicodeFont;
+*/
 
 /**
  * Notification manager.

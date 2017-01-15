@@ -21,8 +21,10 @@ package itdelatrisu.opsu.db;
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.ScoreData;
+import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.beatmap.Beatmap;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -85,6 +87,14 @@ public class ScoreDB {
 	 * Initializes the database connection.
 	 */
 	public static void init() {
+		if (Options.O_SCORE_DB.isFile()) {
+			try {
+				Utils.moveFile(Options.O_SCORE_DB, Options.SCORE_DB);
+			} catch (IOException e) {
+				ErrorHandler.error("Failed to move old ScoreDB", e, true);
+				e.printStackTrace();
+			}
+		}
 		// create a database connection
 		connection = DBController.createConnection(Options.SCORE_DB.getAbsolutePath());
 		if (connection == null)

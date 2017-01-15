@@ -4,9 +4,7 @@ import java.awt.event.KeyEvent;
 
 import com.badlogic.gdx.Gdx;
 
-import fluddokt.opsu.fake.gui.AbstractComponent;
 import fluddokt.opsu.fake.gui.GInputAdapter;
-import fluddokt.opsu.fake.gui.GInputListener;
 
 public class TextField extends GInputAdapter {
 

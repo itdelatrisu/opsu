@@ -340,7 +340,7 @@ public class Replay {
 
 						// compress data
 						ByteArrayOutputStream bout = new ByteArrayOutputStream();
-						LZMAOutputStream lzma = new LZMAOutputStream(bout, new LZMA2Options(), bytes.length);
+						LZMAOutputStream lzma = new LZMAOutputStream(bout, new LZMA2Options(0), bytes.length); //#79
 						try {
 							lzma.write(bytes);
 						} catch (IOException e) {

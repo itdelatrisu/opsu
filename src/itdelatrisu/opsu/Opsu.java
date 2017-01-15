@@ -20,7 +20,6 @@ package itdelatrisu.opsu;
 
 import fluddokt.opsu.fake.*;
 import fluddokt.newdawn.slick.state.transition.*;
-
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.db.DBController;
 import itdelatrisu.opsu.downloads.DownloadList;
@@ -34,6 +33,7 @@ import itdelatrisu.opsu.states.MainMenu;
 import itdelatrisu.opsu.states.SongMenu;
 import itdelatrisu.opsu.states.Splash;
 import itdelatrisu.opsu.ui.UI;
+
 
 
 //import java.io.File;
@@ -107,6 +107,7 @@ public class Opsu extends StateBasedGame {
 		Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
 			@Override
 			public void uncaughtException(Thread t, Throwable e) {
+				e.printStackTrace();
 				ErrorHandler.error("** Uncaught Exception! **", e, true);
 			}
 		});
@@ -203,7 +204,6 @@ public class Opsu extends StateBasedGame {
 		} catch (UnsatisfiedLinkError e) {
 			errorAndExit(e, "The databases could not be initialized.", true);
 		}
-
 		/*
 		// check if just updated
 		if (args.length >= 2)

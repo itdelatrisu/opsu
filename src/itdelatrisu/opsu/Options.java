@@ -41,13 +41,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
+/*
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/*
+
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
@@ -82,10 +83,11 @@ public class Options {
 	private static final File CACHE_DIR = getXDGBaseDir("XDG_CACHE_HOME", ".cache");
 
 	/** File for logging errors. */
-	public static final File LOG_FILE = new File(CONFIG_DIR, ".opsu.log");
+	public static final File LOG_FILE = new File(CONFIG_DIR, "opsu.log");
 
 	/** File for storing user options. */
-	private static final File OPTIONS_FILE = new File(CONFIG_DIR, "../.opsu.cfg");
+	private static final File OPTIONS_FILE = new File(CONFIG_DIR, "opsu.cfg");
+	private static final File O_OPTIONS_FILE = new File(CONFIG_DIR, "../.opsu.cfg");
 
 	/** The default beatmap directory (unless an osu! installation is detected). */
 	private static final File BEATMAP_DIR = new File(DATA_DIR, "Songs/");
@@ -94,10 +96,12 @@ public class Options {
 	private static final File SKIN_ROOT_DIR = new File(DATA_DIR, "Skins/");
 
 	/** Cached beatmap database name. */
-	public static final File BEATMAP_DB = new File(DATA_DIR, ".opsu.db");
+	public static final File BEATMAP_DB = File.local("opsu.db");
+	public static final File O_BEATMAP_DB = new File(DATA_DIR, ".opsu.db");
 
 	/** Score database name. */
-	public static final File SCORE_DB = new File(DATA_DIR, ".opsu_scores.db");
+	public static final File SCORE_DB = File.local("opsu_scores.db");
+	public static final File O_SCORE_DB = new File(DATA_DIR, ".opsu_scores.db");
 
 	/** Directory where natives are unpacked. */
 	public static final File NATIVE_DIR = new File(CACHE_DIR, "Natives/");
@@ -680,6 +684,7 @@ public class Options {
 			}
 		},
 		SCOREBOARD("Show Scoreboard", "Scoreboard", "Shows the in game scoreboard.",true),
+		DISABLE_SPINNER_UI("Removes some spinner ui elements.", "DisableSpinnerUI", "Makes spinners less laggy maybe.", false),
 		
 		;
 
@@ -1542,6 +1547,14 @@ public class Options {
 	 * Reads user options from the options file, if it exists.
 	 */
 	public static void parseOptions() {
+		if (O_OPTIONS_FILE.isFile()) {
+			try {
+				Utils.moveFile(O_OPTIONS_FILE, OPTIONS_FILE);
+			} catch (IOException e) {
+				ErrorHandler.error("Failed to move old option", e, true);
+				e.printStackTrace();
+			}
+		}
 		// if no config file, use default settings
 		if (!OPTIONS_FILE.isFile()) {
 			saveOptions();

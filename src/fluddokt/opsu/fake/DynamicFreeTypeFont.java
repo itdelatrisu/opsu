@@ -16,6 +16,7 @@ import com.badlogic.gdx.graphics.g2d.freetype.FreeType.Library;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeType.SizeMetrics;
 import com.badlogic.gdx.graphics.glutils.PixmapTextureData;
 import com.badlogic.gdx.utils.GdxRuntimeException;
+import com.badlogic.gdx.utils.IntFloatMap;
 import com.badlogic.gdx.utils.IntMap;
 
 public class DynamicFreeTypeFont {
@@ -56,6 +57,8 @@ public class DynamicFreeTypeFont {
 	// ArrayList<Texture> pages = new ArrayList<Texture>();
 	//HashMap<Character, CharInfo> charmap = new HashMap<Character, CharInfo>();
 	IntMap<CharInfo> charmap = new IntMap<CharInfo>();
+	IntFloatMap charwidth = new IntFloatMap();
+	
 	Pixmap curPixmap;
 	Texture curTexture;
 
@@ -280,10 +283,25 @@ public class DynamicFreeTypeFont {
 	public int getWidth(String str) {
 		float len = 0;
 		for (int i = 0; i < str.length(); i++) {
-			float t = getCharInfo(str.charAt(i)).horadvance;
+			char c = str.charAt(i);
+			if (!charwidth.containsKey(c)) {
+				charwidth.put(c, getCharWidth(c));
+			}
+			float t = charwidth.get(c, 0);
 			len += t;
 		}
 		return (int) len;
+	}
+
+	private float getCharWidth(char c) {
+		FreeType.loadChar(face, c,
+				fontParam.size < 16 ? FreeType.FT_LOAD_DEFAULT : 
+									FreeType.FT_LOAD_NO_HINTING
+				 |FreeType.FT_LOAD_NO_BITMAP
+		);
+		GlyphSlot slot = face.getGlyph();
+		GlyphMetrics metrics = slot.getMetrics();
+		return to26p6float(metrics.getHoriAdvance());
 	}
 
 	public int getLineHeight() {

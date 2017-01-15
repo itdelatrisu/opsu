@@ -18,9 +18,11 @@
 
 package itdelatrisu.opsu.skins;
 
+import fluddokt.opsu.fake.File;
+
 import itdelatrisu.opsu.Utils;
 
-import java.io.File;
+//import java.io.File;
 import java.io.FilenameFilter;
 import java.util.ArrayList;
 import java.util.List;
@@ -50,7 +52,7 @@ public class SkinUnpacker {
 		// find all OSK files
 		files = root.listFiles(new FilenameFilter() {
 			@Override
-			public boolean accept(File dir, String name) {
+			public boolean accept(java.io.File dir, String name) {
 				return name.toLowerCase().endsWith(".osk");
 			}
 		});

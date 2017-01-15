@@ -4,9 +4,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.net.URI;
-import java.net.URISyntaxException;
-
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.Opsu;
@@ -25,7 +22,7 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 public class GameOpsu extends com.badlogic.gdx.Game {
 
-	final String VERSION = "OpsuAnd0.13.0a";
+	public final static String VERSION = "OpsuAnd0.14.0a";
 	public StateBasedGame sbg;
 	
 	Stage stage;
@@ -36,6 +33,8 @@ public class GameOpsu extends com.badlogic.gdx.Game {
 	boolean inited = false;
 
 	private int dialogCnt;
+	
+	Label loadingLabel;
 	public GameOpsu() {
 		gameOpsu = this;
 	}
@@ -82,53 +81,61 @@ public class GameOpsu extends com.badlogic.gdx.Game {
 		}
 	}
 
+	int delayLoad = 0;
 	@Override
 	public void render() {
 		super.render();
-		if (dialogCnt == 0){
+		
+		if (delayLoad>2 && dialogCnt == 0){
 		try{
-		if (!inited){
-			if (Gdx.graphics.getWidth() > Gdx.graphics.getHeight()){
-				Opsu.main(new String[0]);
-				sbg = Opsu.opsu;
-				sbg.gc.width = Gdx.graphics.getWidth();
-				sbg.gc.height = Gdx.graphics.getHeight();
-				
-			
+			if (!inited){
+				if (Gdx.graphics.getWidth() > Gdx.graphics.getHeight()){
+					Opsu.main(new String[0]);
+					sbg = Opsu.opsu;
+					sbg.gc.width = Gdx.graphics.getWidth();
+					sbg.gc.height = Gdx.graphics.getHeight();
+					
+					Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+					
+					try {
+						sbg.init();
+					} catch (SlickException e) {
+						e.printStackTrace();
+						error("SlickErrorInit", e);
+					}
+					File dataDir = Options.DATA_DIR;
+					System.out.println("dataDir :"+dataDir+" "+dataDir.isExternal()+" "+dataDir.exists());
+					if(dataDir.isExternal()){
+						File nomediafile = new File(dataDir, ".nomedia");
+						if(!nomediafile.exists())
+							new FileOutputStream(nomediafile.getIOFile()).close();
+					}
+					System.out.println("Local Dir:"+Gdx.files.getLocalStoragePath());
+					Gdx.input.setInputProcessor(new InputMultiplexer(stage, sbg));
+					inited = true;
+					table.removeActor(loadingLabel);
+				}
+			} else {
+				Color bgcolor = Graphics.bgcolor;
+				if (bgcolor != null)
+					Gdx.gl.glClearColor(bgcolor.r, bgcolor.g, bgcolor.b, 1);
+				Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 				try {
-					sbg.init();
+					sbg.render();
 				} catch (SlickException e) {
 					e.printStackTrace();
-					error("SlickErrorInit", e);
+					error("SlickErrorRender", e);
 				}
-				File dataDir = Options.DATA_DIR;
-				System.out.println("dataDir :"+dataDir+" "+dataDir.isExternal()+" "+dataDir.exists());
-				if(dataDir.isExternal()){
-					File nomediafile = new File(dataDir, ".nomedia");
-					if(!nomediafile.exists())
-						new FileOutputStream(nomediafile.getIOFile()).close();
-				}
-				Gdx.input.setInputProcessor(new InputMultiplexer(stage, sbg));
-				inited = true;
+				//loadingImage.draw(32, 32,128, 128);
+				Graphics.checkMode(0);
 			}
-		} else {
-			Color bgcolor = Graphics.bgcolor;
-			if (bgcolor != null)
-				Gdx.gl.glClearColor(bgcolor.r, bgcolor.g, bgcolor.b, 1);
-			Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-			try {
-				sbg.render();
-			} catch (SlickException e) {
+			} catch (Throwable e){
 				e.printStackTrace();
-				error("SlickErrorRender", e);
+				error("RenderError", e);
 			}
-			Graphics.checkMode(0);
-		}
-		} catch (Throwable e){
-			e.printStackTrace();
-			error("RenderError", e);
-		}
 		} else {
+			if (delayLoad<=2)
+				delayLoad++;
 			Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 		}
 		stage.act(Gdx.graphics.getDeltaTime());
@@ -178,6 +185,7 @@ public class GameOpsu extends com.badlogic.gdx.Game {
 						+ Gdx.files.getLocalStoragePath() , null);
 			}
 		}
+		
 		Gdx.graphics.setVSync(false);
 		Gdx.input.setCatchBackKey(true);
 		
@@ -186,6 +194,9 @@ public class GameOpsu extends com.badlogic.gdx.Game {
 		
 		
 		Graphics.init();
+		
+		loadingLabel = new Label("Loading...", skin);
+		table.addActor(loadingLabel);
 		
 	}
 
@@ -217,16 +228,9 @@ public class GameOpsu extends com.badlogic.gdx.Game {
 					try {
 						System.out.println("Reporting");
 						Desktop.getDesktop().browse(
-								new URI("https://github.com/fluddokt/opsu/issues/new?"
-									+"title="+java.net.URLEncoder.encode(title, "UTF-8")
-									+"&body="+java.net.URLEncoder.encode(title+"\n"+VERSION+"\n"+body ,"UTF-8")
-								)
+							ErrorHandler.getIssueURI(title, e, body)
 						);
-					} catch (URISyntaxException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
+					}  catch (IOException e) {
 						e.printStackTrace();
 					}
 				}

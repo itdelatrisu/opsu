@@ -330,6 +330,8 @@ public class SongMenu extends BasicGameState {
 
 	/** Whether the menu is currently scrolling to the focus node (blocks other actions). */
 	private boolean isScrollingToFocusNode = false;
+	
+	private boolean rightMouseScrolling = false;
 
 	/** Sort order dropdown menu. */
 	private DropdownMenu<BeatmapSortOrder> sortMenu;
@@ -965,7 +967,7 @@ public class SongMenu extends BasicGameState {
 		if (isScrollingToFocusNode)
 			return;
 
-		if (input.isMouseButtonDown(Input.MOUSE_RIGHT_BUTTON)) {
+		if (button == Input.MOUSE_RIGHT_BUTTON) {
 			// check if anything was clicked
 			for (BeatmapGroup group : BeatmapGroup.values()) {
 				if (group.contains(x, y))
@@ -981,6 +983,7 @@ public class SongMenu extends BasicGameState {
 			// scroll to the mouse position on the screen
 			songScrolling.setSpeedMultiplier(2f);
 			scrollSongsToPosition(y);
+			rightMouseScrolling = true;
 		} else
 			songScrolling.pressed();
 		startScorePos.pressed();
@@ -995,9 +998,13 @@ public class SongMenu extends BasicGameState {
 		if (isScrollingToFocusNode)
 			return;
 
-		songScrolling.setSpeedMultiplier(1f);
-		songScrolling.released();
-		startScorePos.released();
+		if (button == Input.MOUSE_RIGHT_BUTTON) {
+			rightMouseScrolling = false;
+		} else {
+			songScrolling.setSpeedMultiplier(1f);
+			songScrolling.released();
+			startScorePos.released();
+		}
 	}
 
 	@Override
@@ -1321,7 +1328,7 @@ public class SongMenu extends BasicGameState {
 		else {
 			if (songScrolling.isPressed())
 				songScrolling.dragged(-diff);
-			else
+			else if(rightMouseScrolling)
 				scrollSongsToPosition(newy);
 		}
 	}

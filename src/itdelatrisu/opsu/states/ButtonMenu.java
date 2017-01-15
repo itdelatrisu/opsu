@@ -41,10 +41,12 @@ import itdelatrisu.opsu.ui.UI;
 import itdelatrisu.opsu.ui.animations.AnimatedValue;
 import itdelatrisu.opsu.ui.animations.AnimationEquation;
 
-import java.awt.Desktop;
+
+//import java.awt.Desktop;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+
 /*
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;

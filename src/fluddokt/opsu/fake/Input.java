@@ -1,8 +1,11 @@
 package fluddokt.opsu.fake;
 
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Buttons;
 import com.badlogic.gdx.Input.Keys;
+
+import fluddokt.opsu.fake.gui.MouseListener;
 
 public class Input {
 
@@ -121,6 +124,11 @@ public class Input {
 	
 	public void setMouseRighButtontDown(boolean b) {
 		isRightButtonDown = b;
+	}
+
+	public void addMouseListener(MouseListener mouseListener) {
+		GameOpsu.gameOpsu.sbg.addKeyListener(mouseListener);
+		
 	}
 
 }

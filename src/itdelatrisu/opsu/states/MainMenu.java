@@ -20,7 +20,6 @@ package itdelatrisu.opsu.states;
 
 import fluddokt.opsu.fake.*;
 import fluddokt.newdawn.slick.state.transition.*;
-
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.OpsuConstants;
@@ -45,6 +44,7 @@ import itdelatrisu.opsu.ui.animations.AnimatedValue;
 import itdelatrisu.opsu.ui.animations.AnimationEquation;
 
 
+
 /*
 import java.awt.Desktop;
 */
@@ -52,6 +52,8 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Stack;
+
+import com.badlogic.gdx.math.Rectangle;
 /*
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
@@ -139,7 +141,7 @@ public class MainMenu extends BasicGameState {
 	private Rectangle musicInfoRect;
 
 	/** Music info bar fill. */
-	private GradientFill musicInfoFill;
+	//TODO private GradientFill musicInfoFill;
 
 	/** Music info bar animation progress. */
 	private AnimatedValue musicInfoProgress = new AnimatedValue(600, 0f, 1f, AnimationEquation.OUT_CUBIC);
@@ -196,11 +198,13 @@ public class MainMenu extends BasicGameState {
 		int musicInfoHeight = (int) (Fonts.MEDIUM.getLineHeight() * 1.3f);
 		Image infoImg = GameImage.MUSIC_NOW_PLAYING.getImage();
 		musicInfoImg = infoImg.getScaledCopy((float) musicInfoHeight / infoImg.getHeight());
+		/*
 		musicInfoFill = new GradientFill(
 			0, 0, Color.transparent,
 			musicInfoImg.getWidth(), musicInfoImg.getHeight(), new Color(0, 0, 0, 0.9f),
 			true
 		);
+		*/
 		musicInfoRect = new Rectangle(0, 0, 1, musicInfoHeight);
 
 		// initialize music buttons
@@ -346,10 +350,10 @@ public class MainMenu extends BasicGameState {
 			int rectX = imgX - margin, rectWidth = width - rectX;
 			musicInfoRect.setX(rectX);
 			musicInfoRect.setWidth(rectWidth);
-			musicInfoFill.setStart(margin, 0);
-			g.fill(musicInfoRect, musicInfoFill);
+			//musicInfoFill.setStart(margin, 0);
+			//g.fill(musicInfoRect, musicInfoFill);
 			g.setLineWidth(2f);
-			g.drawGradientLine(rectX, rectHeight, 0f, 0f, 0f, 0f, width, rectHeight, 1f, 1f, 1f, 1f);
+			//g.drawGradientLine(rectX, rectHeight, 0f, 0f, 0f, 0f, width, rectHeight, 1f, 1f, 1f, 1f);
 			g.resetLineWidth();
 			musicInfoImg.setAlpha(t);
 			musicInfoImg.draw(imgX, 0);

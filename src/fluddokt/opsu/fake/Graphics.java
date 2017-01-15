@@ -161,41 +161,34 @@ public class Graphics {
 		shapeRender.line(x1, y1, x2, y2);
 	}
 
-	
-	static void endMode() {
-		Gdx.gl20.glLineWidth(lineWidth);
-		switch (mode) {
-			case SPRITE:
-				batch.end();
-				break;
-			case SHAPEFILLED: 
-			case SHAPELINE:
-				shapeRender.end();
-				break;
-		}
-		mode = 0;
-	}
-
-	static void beginMode(int nmode) {
-		switch (nmode) {
-			case SPRITE:
-				batch.begin();
-				break;
-			case SHAPEFILLED: 
-				Gdx.gl.glEnable(GL20.GL_BLEND);
-				shapeRender.begin(ShapeType.Filled);
-				break;
-			case SHAPELINE:
-				shapeRender.begin(ShapeType.Line);
-				break;
-		}
-		mode = nmode;
-	}
-
 	public static void checkMode(int nmode) {
 		if (mode != nmode) {
-			endMode();
-			beginMode(nmode);
+			Gdx.gl20.glLineWidth(lineWidth);
+			//end
+			switch (mode) {
+				case SPRITE:
+					batch.end();
+					break;
+				case SHAPEFILLED: 
+				case SHAPELINE:
+					shapeRender.end();
+					break;
+			}
+			//begin
+			switch (nmode) {
+				case SPRITE:
+					batch.begin();
+					break;
+				case SHAPEFILLED: 
+					Gdx.gl.glEnable(GL20.GL_BLEND);
+					shapeRender.begin(ShapeType.Filled);
+					break;
+				case SHAPELINE:
+					Gdx.gl.glEnable(GL20.GL_BLEND);
+					shapeRender.begin(ShapeType.Line);
+					break;
+			}
+			mode = nmode;
 		}
 	}
 

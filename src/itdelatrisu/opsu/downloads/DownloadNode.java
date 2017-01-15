@@ -286,7 +286,7 @@ public class DownloadNode {
 		/*
 		String path = String.format("%s%c%d", Options.getImportDir(), File.separatorChar, beatmapSetID);
 		*/
-		File path =  new File(Options.getOSZDir(),Integer.toString(beatmapSetID));
+		File path =  new File(Options.getImportDir(),Integer.toString(beatmapSetID));
 		String rename = String.format("%d %s - %s.osz", beatmapSetID, artist, title);
 		Download download = new Download(url, path, rename);
 		download.setListener(new DownloadListener() {

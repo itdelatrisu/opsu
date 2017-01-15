@@ -367,7 +367,7 @@ public class Utils {
 	 */
 	public static void unzip(File file, File dest) {
 		try {
-			ZipFile zipFile = new ZipFile(file);
+			ZipFile zipFile = new ZipFile(file.getIOFile());
 			zipFile.extractAll(dest.getAbsolutePath());
 		} catch (ZipException e) {
 			ErrorHandler.error(String.format("Failed to unzip file %s to dest %s.",

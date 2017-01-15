@@ -195,6 +195,8 @@ public class Updater {
 	 * @return the version string, or {@code null} if unable to determine the version
 	 */
 	public String getCurrentVersion() {
+		return GameOpsu.VERSION;
+		/*
 		if (currentVersion == null) {
 			try {
 				Properties props = new Properties();
@@ -206,8 +208,9 @@ public class Updater {
 			}
 		}
 		return currentVersion.toString();
+		*/
 	}
-
+	
 	/**
 	 * Returns the version from a set of properties.
 	 * @param props the set of properties

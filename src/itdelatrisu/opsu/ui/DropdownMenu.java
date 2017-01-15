@@ -353,9 +353,16 @@ public class DropdownMenu<E> extends AbstractComponent {
 		}
 		if (!menuClicked(idx))
 			return;
-
+		this.expanded = (idx == -1) ? !expanded : expanded;
 		blockClick = true;
 		consumeEvent();
+	}
+
+	@Override
+	public void mouseDragged(int oldx, int oldy, int newx, int newy) {
+		if(expanded){
+			consumeEvent();
+		}
 	}
 
 	@Override
@@ -397,7 +404,7 @@ public class DropdownMenu<E> extends AbstractComponent {
 		}
 		if (!menuClicked(idx))
 			return;
-		this.expanded = (idx == -1) ? !expanded : false;
+		this.expanded = (idx == -1) ? expanded : false;
 		if (idx >= 0 && itemIndex != idx) {
 			this.itemIndex = idx;
 			itemSelected(idx, items[idx]);

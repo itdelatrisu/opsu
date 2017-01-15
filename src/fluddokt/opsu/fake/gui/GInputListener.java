@@ -1,5 +1,7 @@
 package fluddokt.opsu.fake.gui;
 
+import fluddokt.opsu.fake.Input;
+
 public abstract class GInputListener {
 	public boolean consumeEvent;
 	
@@ -30,4 +32,14 @@ public abstract class GInputListener {
 	public boolean isConsumed() {
 		return consumeEvent;
 	}
+
+	public void mouseMoved(int oldx, int oldy, int newx, int newy) {}
+
+	public boolean isAcceptingInput() {	return false; }
+
+	public void inputStarted() {}
+
+	public void setInput(Input input) {}
+
+	public void inputEnded() {}
 }

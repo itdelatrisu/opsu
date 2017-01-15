@@ -427,11 +427,11 @@ public class SoundController {
 		return false;
 		*/
 		try {
-			currentTrack = new MultiClip(new URL(url), isMP3, listener);
+			currentTrack = new MultiClip(new URL(url), true, listener);
 			playClip(currentTrack, Options.getMusicVolume() * Options.getMasterVolume(), listener);
 			return true;
 		} catch ( Exception e) {
-			UI.sendBarNotification(String.format("Failed to load clip '%s'.", url));
+			UI.getNotificationManager().sendBarNotification(String.format("Failed to load clip '%s'.", url));
 		}
 		return false;
 	}

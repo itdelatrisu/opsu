@@ -457,5 +457,13 @@ public class Image {
 				w, h, angle);
 	}
 
+	public void setFlipped(boolean x, boolean y) {
+		/*    isFlipped false true
+		flip? false     false true
+		      true      true  false
+		*/
+		tex.flip(x ^ tex.isFlipX(), y ^ !tex.isFlipY());
+	}
+
 	
 }

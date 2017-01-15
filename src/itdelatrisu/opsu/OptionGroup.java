@@ -94,6 +94,7 @@ public class OptionGroup {
 			GameOption.NEW_SLIDER,
 			GameOption.SLIDER_QUALITY,
 			GameOption.SCOREBOARD,
+			GameOption.DISABLE_SPINNER_UI,
 		})
 	};
 

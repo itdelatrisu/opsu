@@ -207,6 +207,8 @@ public class Spinner implements GameObject {
 			data.drawSymbolString(Integer.toString(drawnRPM), (width + rpmImg.getWidth() * 0.95f) / 2f,
 					height - data.getScoreSymbolImage('0').getHeight() * 1.025f, 1f, 1f, true);
 
+		if(!Options.GameOption.DISABLE_SPINNER_UI.getBooleanValue()) {
+			//>>>>>>>>>>
 		// spinner meter (subimage)
 		Image spinnerMetre = GameImage.SPINNER_METRE.getImage();
 		int spinnerMetreY = (spinnerComplete) ? 0 : (int) (spinnerMetre.getHeight() * (1 - (rotations / rotationsNeeded)));
@@ -226,6 +228,11 @@ public class Spinner implements GameObject {
 			Image approachCircleScaled = GameImage.SPINNER_APPROACHCIRCLE.getImage().getScaledCopy(approachScale);
 			approachCircleScaled.setAlpha(alpha);
 			approachCircleScaled.drawCentered(width / 2, height / 2);
+		}
+			//>>>>>>>>>>
+		} else {
+			g.setColor(Color.white);
+			g.drawOval(width / 2-height/2, 0, height, height);
 		}
 		GameImage.SPINNER_SPIN.getImage().setAlpha(alpha);
 		GameImage.SPINNER_SPIN.getImage().drawCentered(width / 2, height * 3 / 4);
