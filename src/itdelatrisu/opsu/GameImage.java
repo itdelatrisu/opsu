@@ -1,6 +1,6 @@
 /*
  * opsu! - an open-source osu! client
- * Copyright (C) 2014, 2015, 2016 Jeffrey Han
+ * Copyright (C) 2014-2017 Jeffrey Han
  *
  * opsu! is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,8 +40,6 @@ public enum GameImage {
 	CURSOR ("cursor", "png"),
 	CURSOR_MIDDLE ("cursormiddle", "png"),
 	CURSOR_TRAIL ("cursortrail", "png"),
-	CURSOR_OLD ("cursor2", "png", false, false),  // custom
-	CURSOR_TRAIL_OLD ("cursortrail2", "png", false, false),  // custom
 
 	// Game
 	SECTION_PASS ("section-pass", "png"),
@@ -81,13 +79,6 @@ public enum GameImage {
 	HITCIRCLE_SELECT ("hitcircleselect", "png"),
 	UNRANKED ("play-unranked", "png"),
 	FOLLOWPOINT ("followpoint", "png"),
-	PLAYFIELD ("playfield", "png|jpg", false, false) {
-		@Override
-		protected Image process_sub(Image img, int w, int h) {
-			img.setAlpha(0.7f);
-			return img.getScaledCopy(w, h);
-		}
-	},
 
 	// Game Pause/Fail
 	PAUSE_CONTINUE ("pause-continue", "png"),
@@ -378,6 +369,7 @@ public enum GameImage {
 			return img.getScaledCopy(Options.getMobileUIScaleHigh());
 		}
 	},
+	MUSIC_NOW_PLAYING ("music-now-playing", "png", false, false),
 
 	DOWNLOADS ("downloads", "png", false, false) {
 		@Override
@@ -486,6 +478,9 @@ public enum GameImage {
 
 	/** The unscaled container height that uiscale is based on. */
 	private static final int UNSCALED_HEIGHT = 768;
+
+	/** Value to scale backgrounds for the parallax effect. */
+	public static final float PARALLAX_SCALE = 1.008f;
 
 	/** Filename suffix for HD images. */
 	public static final String HD_SUFFIX = "@2x";
@@ -644,12 +639,29 @@ public enum GameImage {
 	/**
 	 * Returns an Animation based on the image array.
 	 * If no image array exists, returns the single image as an animation.
+	 */
+	public Animation getAnimation() {
+		Image[] images = getImages();
+		if (images == null)
+			images = new Image[] { getImage() };
+
+		int fps = Options.getSkin().getAnimationFramerate();
+		if (fps == -1)
+			fps = images.length;
+
+		return new Animation(images, 1000 / fps);
+	}
+
+	/**
+	 * Returns an Animation based on the image array.
+	 * If no image array exists, returns the single image as an animation.
 	 * @param duration the duration to show each frame in the animation
 	 */
 	public Animation getAnimation(int duration){
 		Image[] images = getImages();
 		if (images == null)
 			images = new Image[] { getImage() };
+
 		return new Animation(images, duration);
 	}
 
@@ -698,28 +710,22 @@ public enum GameImage {
 		if (defaultImage != null || defaultImages != null || Options.getSkin() == null)
 			return;
 
-		// try to load multiple images
+		// check for multiple images first, then single images
+
+		// try to load from skin directory
 		File skinDir = Options.getSkin().getDirectory();
-		if (filenameFormat != null) {
-			if (skinDir != null && ((defaultImages = loadImageArray(skinDir)) != null)) {
+		if (skinDir != null) {
+			if ((filenameFormat != null && (defaultImages = loadImageArray(skinDir)) != null) ||
+			    (defaultImage = loadImageSingle(skinDir)) != null) {
 				isSkinned = true;
-				process();
-				return;
-			}
-			if ((defaultImages = loadImageArray(null)) != null) {
-				isSkinned = false;
 				process();
 				return;
 			}
 		}
 
-		// try to load a single image
-		if (skinDir != null && ((defaultImage = loadImageSingle(skinDir)) != null)) {
-			isSkinned = true;
-			process();
-			return;
-		}
-		if ((defaultImage = loadImageSingle(null)) != null) {
+		// try to load default image
+		if ((filenameFormat != null && (defaultImages = loadImageArray(null)) != null) ||
+		    (defaultImage = loadImageSingle(null)) != null) {
 			isSkinned = false;
 			process();
 			return;

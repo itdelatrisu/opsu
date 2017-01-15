@@ -1,6 +1,6 @@
 /*
  * opsu! - an open-source osu! client
- * Copyright (C) 2014, 2015, 2016 Jeffrey Han
+ * Copyright (C) 2014-2017 Jeffrey Han
  *
  * opsu! is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -41,6 +41,7 @@ public class OptionGroup {
 			GameOption.DYNAMIC_BACKGROUND,
 			GameOption.LOAD_HD_IMAGES,
 			GameOption.LOAD_VERBOSE,
+			GameOption.PARALLAX,
 			
 			(com.badlogic.gdx.Gdx.app.getType() == ApplicationType.Desktop) ? 
 					GameOption.SCREEN_RESOLUTION : GameOption.NULL,
@@ -74,7 +75,6 @@ public class OptionGroup {
 			GameOption.DISABLE_MOUSE_WHEEL,
 			GameOption.DISABLE_MOUSE_BUTTONS,
 			GameOption.CURSOR_SIZE,
-			GameOption.NEW_CURSOR,
 			GameOption.DISABLE_CURSOR
 		}),
 		new OptionGroup("Custom", new GameOption[] {

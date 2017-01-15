@@ -1,6 +1,6 @@
 /*
  * opsu! - an open-source osu! client
- * Copyright (C) 2014, 2015, 2016 Jeffrey Han
+ * Copyright (C) 2014-2017 Jeffrey Han
  *
  * opsu! is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -146,11 +146,14 @@ public class Opsu extends StateBasedGame {
 			errorAndExit(
 				null,
 				String.format(
-					"opsu! could not be launched for one of these reasons:\n" +
-					"- An instance of opsu! is already running.\n" +
+					"%s could not be launched for one of these reasons:\n" +
+					"- An instance of %s is already running.\n" +
 					"- Another program is bound to port %d. " +
-					"You can change the port opsu! uses by editing the \"Port\" field in the configuration file.",
-					Options.getPort()
+					"You can change the port %s uses by editing the \"Port\" field in the configuration file.",
+					OpsuConstants.PROJECT_NAME,
+					OpsuConstants.PROJECT_NAME,
+					Options.getPort(),
+					OpsuConstants.PROJECT_NAME
 				),
 				false
 			);
@@ -207,6 +210,7 @@ public class Opsu extends StateBasedGame {
 			Updater.get().setUpdateInfo(args[0], args[1]);
 
 		// check for updates
+		Updater.get().getCurrentVersion();  // load this for the main menu
 		if (!Options.isUpdaterDisabled()) {
 			new Thread() {
 				@Override
@@ -231,7 +235,7 @@ public class Opsu extends StateBasedGame {
 		
 			// loop until force exit
 		//	while (true) {
-				opsu = new Opsu("opsu!");
+				opsu = new Opsu(OpsuConstants.PROJECT_NAME);
 				Container app = new Container(opsu);
 
 				// basic game settings

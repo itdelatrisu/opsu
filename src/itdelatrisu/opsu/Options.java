@@ -1,6 +1,6 @@
 /*
  * opsu! - an open-source osu! client
- * Copyright (C) 2014, 2015, 2016 Jeffrey Han
+ * Copyright (C) 2014-2017 Jeffrey Han
  *
  * opsu! is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,7 +34,6 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -112,29 +111,17 @@ public class Options {
 	/** Version file name. */
 	public static final String VERSION_FILE = "version";
 
-	/** Repository address. */
-	public static final URI REPOSITORY_URI = URI.create("https://github.com/itdelatrisu/opsu");
-
-	/** Issue reporting address. */
-	public static final String ISSUES_URL = "https://github.com/itdelatrisu/opsu/issues/new?title=%s&body=%s";
-
-	/** Address containing the latest version file. */
-	public static final String VERSION_REMOTE = "https://raw.githubusercontent.com/itdelatrisu/opsu/gh-pages/version";
-
 	/** The beatmap directory. */
 	private static File beatmapDir;
 
-	/** The OSZ archive directory. */
-	private static File oszDir;
+	/** The import directory. */
+	private static File importDir;
 
 	/** The screenshot directory (created when needed). */
 	private static File screenshotDir;
 
 	/** The replay directory (created when needed). */
 	private static File replayDir;
-
-	/** The replay import directory. */
-	private static File replayImportDir;
 
 	/** The root skin directory. */
 	private static File skinRootDir;
@@ -247,12 +234,12 @@ public class Options {
 			@Override
 			public void read(String s) { beatmapDir = new File(s); }
 		},
-		OSZ_DIRECTORY ("OSZDirectory") {
+		IMPORT_DIRECTORY ("ImportDirectory") {
 			@Override
-			public String write() { return getOSZDir().getAbsolutePath(); }
+			public String write() { return getImportDir().getAbsolutePath(); }
 
 			@Override
-			public void read(String s) { oszDir = new File(s); }
+			public void read(String s) { importDir = new File(s); }
 		},
 		SCREENSHOT_DIRECTORY ("ScreenshotDirectory") {
 			@Override
@@ -267,13 +254,6 @@ public class Options {
 
 			@Override
 			public void read(String s) { replayDir = new File(s); }
-		},
-		REPLAY_IMPORT_DIRECTORY ("ReplayImportDirectory") {
-			@Override
-			public String write() { return getReplayImportDir().getAbsolutePath(); }
-
-			@Override
-			public void read(String s) { replayImportDir = new File(s); }
 		},
 		SKIN_DIRECTORY ("SkinDirectory") {
 			@Override
@@ -352,7 +332,7 @@ public class Options {
 			@Override
 			public void selectItem(int index, GameContainer container) {
 				resolution = itemList[index];
-				UI.sendBarNotification(getDescription());
+				UI.getNotificationManager().sendBarNotification(getDescription());
 
 				// check if fullscreen mode is possible with this resolution
 				if (FULLSCREEN.getBooleanValue() && !resolution.hasFullscreenDisplayMode())
@@ -372,25 +352,42 @@ public class Options {
 			public void toggle(GameContainer container) {
 				// check if fullscreen mode is possible with this resolution
 				if (!getBooleanValue() && !resolution.hasFullscreenDisplayMode()) {
-					UI.sendBarNotification(String.format("Fullscreen mode is not available at resolution %s", resolution.toString()));
+					UI.getNotificationManager().sendBarNotification(String.format("Fullscreen mode is not available at resolution %s", resolution.toString()));
 					return;
 				}
 
 				super.toggle(container);
-				UI.sendBarNotification(getDescription());
+				UI.getNotificationManager().sendBarNotification(getDescription());
 			}
 		},
 		SKIN ("Skin", "Skin", "Restart to apply skin changes.") {
+			private String[] itemList = null;
+
+			/** Creates the list of available skins. */
+			private void createSkinList() {
+				File[] dirs = SkinLoader.getSkinDirectories(getSkinRootDir());
+				itemList = new String[dirs.length + 1];
+				itemList[0] = Skin.DEFAULT_SKIN_NAME;
+				for (int i = 0; i < dirs.length; i++)
+					itemList[i + 1] = dirs[i].getName();
+			}
+
 			@Override
 			public String getValueString() { return skinName; }
 
 			@Override
-			public Object[] getItemList() { return skinDirs; }
+			public Object[] getItemList() {
+				if (itemList == null)
+					createSkinList();
+				return itemList;
+			}
 
 			@Override
 			public void selectItem(int index, GameContainer container) {
-				skinName = skinDirs[index];
-				UI.sendBarNotification(getDescription());
+				if (itemList == null)
+					createSkinList();
+				skinName = itemList[index];
+				UI.getNotificationManager().sendBarNotification(getDescription());
 			}
 
 			@Override
@@ -435,7 +432,13 @@ public class Options {
 				}
 			}
 		},
-		SHOW_FPS ("Show FPS Counter", "FpsCounter", "Show an FPS counter in the bottom-right hand corner.", true),
+		SHOW_FPS ("Show FPS Counter", "FpsCounter", "Show an FPS counter in the bottom-right hand corner.", true) {
+			@Override
+			public void toggle(GameContainer container) {
+				super.toggle(container);
+				UI.resetFPSDisplay();
+			}
+		},
 		SHOW_UNICODE ("Prefer Non-English Metadata", "ShowUnicode", "Where available, song titles will be shown in their native language.", false) {
 			@Override
 			public void toggle(GameContainer container) {
@@ -492,13 +495,6 @@ public class Options {
 				int i = (int) (Float.parseFloat(s) * 100f);
 				if (i >= 50 && i <= 200)
 					val = i;
-			}
-		},
-		NEW_CURSOR ("Enable New Cursor", "NewCursor", "Use the new cursor style (may cause higher CPU usage).", true) {
-			@Override
-			public void toggle(GameContainer container) {
-				super.toggle(container);
-				UI.getCursor().reset();
 			}
 		},
 		DYNAMIC_BACKGROUND ("Enable Dynamic Backgrounds", "DynamicBackground", "The song background will be used as the main menu background.", true),
@@ -560,7 +556,7 @@ public class Options {
 		SHOW_FOLLOW_POINTS ("Show Follow Points", "FollowPoints", "Whether to show follow points between hit objects.", true),
 		SHOW_HIT_ERROR_BAR ("Show Hit Error Bar", "ScoreMeter", "Shows precisely how accurate you were with each hit.", false),
 		LOAD_HD_IMAGES ("Load HD Images", "LoadHDImages", String.format("Loads HD (%s) images when available. Increases memory usage and loading times.", GameImage.HD_SUFFIX), true),
-		FIXED_CS ("Fixed Circle Size (CS)", "FixedCS", "Determines the size of circles and sliders.", 0, 0, 100) {
+		FIXED_CS ("Fixed CS", "FixedCS", "Determines the size of circles and sliders.", 0, 0, 100) {
 			@Override
 			public String getValueString() { return (val == 0) ? "Disabled" : String.format("%.1f", val / 10f); }
 
@@ -574,7 +570,7 @@ public class Options {
 					val = i;
 			}
 		},
-		FIXED_HP ("Fixed HP Drain Rate (HP)", "FixedHP", "Determines the rate at which health decreases.", 0, 0, 100) {
+		FIXED_HP ("Fixed HP", "FixedHP", "Determines the rate at which health decreases.", 0, 0, 100) {
 			@Override
 			public String getValueString() { return (val == 0) ? "Disabled" : String.format("%.1f", val / 10f); }
 
@@ -588,7 +584,7 @@ public class Options {
 					val = i;
 			}
 		},
-		FIXED_AR ("Fixed Approach Rate (AR)", "FixedAR", "Determines how long hit circles stay on the screen.", 0, 0, 100) {
+		FIXED_AR ("Fixed AR", "FixedAR", "Determines how long hit circles stay on the screen.", 0, 0, 100) {
 			@Override
 			public String getValueString() { return (val == 0) ? "Disabled" : String.format("%.1f", val / 10f); }
 
@@ -602,7 +598,7 @@ public class Options {
 					val = i;
 			}
 		},
-		FIXED_OD ("Fixed Overall Difficulty (OD)", "FixedOD", "Determines the time window for hit results.", 0, 0, 100) {
+		FIXED_OD ("Fixed OD", "FixedOD", "Determines the time window for hit results.", 0, 0, 100) {
 			@Override
 			public String getValueString() { return (val == 0) ? "Disabled" : String.format("%.1f", val / 10f); }
 
@@ -624,9 +620,10 @@ public class Options {
 						val - TimeUnit.MINUTES.toSeconds(TimeUnit.SECONDS.toMinutes(val)));
 			}
 		},
-		ENABLE_THEME_SONG ("Enable Theme Song", "MenuMusic", "Whether to play the theme song upon starting opsu!", true),
+		PARALLAX ("Parallax", "MenuParallax", "Add a parallax effect based on the current cursor position.", true),
+		ENABLE_THEME_SONG ("Enable Theme Song", "MenuMusic", OpsuConstants.PROJECT_NAME + " will play themed music throughout the game, instead of using random beatmaps.", true),
 		REPLAY_SEEKING ("Replay Seeking", "ReplaySeeking", "Enable a seeking bar on the left side of the screen during replays.", false),
-		DISABLE_UPDATER ("Disable Automatic Updates", "DisableUpdater", "Disable automatic checking for updates upon starting opsu!.", false),
+		DISABLE_UPDATER ("Disable Automatic Updates", "DisableUpdater", "Disable automatic checking for updates upon startup.", false),
 		ENABLE_WATCH_SERVICE ("Enable Watch Service", "WatchService", "Watch the beatmap directory for changes. Requires a restart.", false),
 	
 		IN_GAME_PAUSE("In game pause button", "InGamePause", "Shows a in game pasue button.", false),
@@ -705,7 +702,7 @@ public class Options {
 		private int max, min;
 
 		/** Option types. */
-		public enum OptionType { BOOLEAN, NUMERIC, SELECT };
+		public enum OptionType { BOOLEAN, NUMERIC, SELECT }
 
 		/** Option type. */
 		private OptionType type = OptionType.SELECT;
@@ -964,9 +961,6 @@ public class Options {
 	/** Current screen resolution. */
 	private static Resolution resolution = Resolution.RES_1024_768;
 
-	/** The available skin directories. */
-	private static String[] skinDirs;
-
 	/** The name of the skin. */
 	private static String skinName = "Default";
 
@@ -1007,7 +1001,7 @@ public class Options {
 	public static void setNextFPS(GameContainer container) {
 		int index = (targetFPSindex + 1) % targetFPS.length;
 		GameOption.TARGET_FPS.selectItem(index, container);
-		UI.sendBarNotification(String.format("Frame limiter: %s", GameOption.TARGET_FPS.getValueString()));
+		UI.getNotificationManager().sendBarNotification(String.format("Frame limiter: %s", GameOption.TARGET_FPS.getValueString()));
 	}
 
 	/**
@@ -1128,12 +1122,6 @@ public class Options {
 	public static float getCursorScale() { return GameOption.CURSOR_SIZE.getIntegerValue() / 100f; }
 
 	/**
-	 * Returns whether or not the new cursor type is enabled.
-	 * @return true if enabled
-	 */
-	public static boolean isNewCursorEnabled() { return GameOption.NEW_CURSOR.getBooleanValue(); }
-
-	/**
 	 * Returns whether to disable the cursor
 	 * @return true if disabled
 	 */
@@ -1240,6 +1228,12 @@ public class Options {
 	public static boolean useUnicodeMetadata() { return GameOption.SHOW_UNICODE.getBooleanValue(); }
 
 	/**
+	 * Returns whether parallax is enabled.
+	 * @return true if enabled
+	 */
+	public static boolean isParallaxEnabled() { return GameOption.PARALLAX.getBooleanValue(); }
+
+	/**
 	 * Returns whether or not to play the theme song.
 	 * @return true if enabled
 	 */
@@ -1313,7 +1307,7 @@ public class Options {
 	 */
 	public static void toggleMouseDisabled() {
 		GameOption.DISABLE_MOUSE_BUTTONS.toggle(null);
-		UI.sendBarNotification((GameOption.DISABLE_MOUSE_BUTTONS.getBooleanValue()) ?
+		UI.getNotificationManager().sendBarNotification((GameOption.DISABLE_MOUSE_BUTTONS.getBooleanValue()) ?
 			"Mouse buttons are disabled." : "Mouse buttons are enabled.");
 	}
 
@@ -1408,33 +1402,18 @@ public class Options {
 	}
 
 	/**
-	 * Returns the OSZ archive directory.
-	 * If invalid, this will create and return a "SongPacks" directory.
-	 * @return the OSZ archive directory
+	 * Returns the import directory (for beatmaps, skins, and replays).
+	 * If invalid, this will create and return an "Import" directory.
+	 * @return the import directory
 	 */
-	public static File getOSZDir() {
-		if (oszDir != null && oszDir.isDirectory())
-			return oszDir;
+	public static File getImportDir() {
+		if (importDir != null && importDir.isDirectory())
+			return importDir;
 
-		oszDir = new File(DATA_DIR, "SongPacks/");
-		if (!oszDir.isDirectory() && !oszDir.mkdir())
-			ErrorHandler.error(String.format("Failed to create song packs directory at '%s'.", oszDir.getAbsolutePath()), null, false);
-		return oszDir;
-	}
-
-	/**
-	 * Returns the replay import directory.
-	 * If invalid, this will create and return a "ReplayImport" directory.
-	 * @return the replay import directory
-	 */
-	public static File getReplayImportDir() {
-		if (replayImportDir != null && replayImportDir.isDirectory())
-			return replayImportDir;
-
-		replayImportDir = new File(DATA_DIR, "ReplayImport/");
-		if (!replayImportDir.isDirectory() && !replayImportDir.mkdir())
-			ErrorHandler.error(String.format("Failed to create replay import directory at '%s'.", replayImportDir.getAbsolutePath()), null, false);
-		return replayImportDir;
+		importDir = new File(DATA_DIR, "Import/");
+		if (!importDir.isDirectory() && !importDir.mkdir())
+			ErrorHandler.error(String.format("Failed to create import directory at '%s'.", importDir.getAbsolutePath()), null, false);
+		return importDir;
 	}
 
 	/**
@@ -1495,13 +1474,6 @@ public class Options {
 		File skinDir = getSkinDir();
 		if (skinDir == null)  // invalid skin name
 			skinName = Skin.DEFAULT_SKIN_NAME;
-
-		// create available skins list
-		File[] dirs = SkinLoader.getSkinDirectories(getSkinRootDir());
-		skinDirs = new String[dirs.length + 1];
-		skinDirs[0] = Skin.DEFAULT_SKIN_NAME;
-		for (int i = 0; i < dirs.length; i++)
-			skinDirs[i + 1] = dirs[i].getName();
 
 		// set skin and modify resource locations
 		ResourceLoader.removeAllResourceLocations();
@@ -1623,7 +1595,7 @@ public class Options {
 			// header
 			SimpleDateFormat dateFormat = new SimpleDateFormat("EEEE, MMMM dd, yyyy");
 			String date = dateFormat.format(new Date());
-			writer.write("# opsu! configuration");
+			writer.write(String.format("# %s configuration", OpsuConstants.PROJECT_NAME));
 			writer.newLine();
 			writer.write("# last updated on ");
 			writer.write(date);

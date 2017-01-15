@@ -1,6 +1,6 @@
 /*
  * opsu! - an open-source osu! client
- * Copyright (C) 2014, 2015, 2016 Jeffrey Han
+ * Copyright (C) 2014-2017 Jeffrey Han
  *
  * opsu! is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,6 +34,8 @@ import itdelatrisu.opsu.beatmap.Beatmap;
 import itdelatrisu.opsu.replay.Replay;
 import itdelatrisu.opsu.ui.MenuButton;
 import itdelatrisu.opsu.ui.UI;
+import itdelatrisu.opsu.ui.animations.AnimatedValue;
+import itdelatrisu.opsu.ui.animations.AnimationEquation;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -47,8 +49,8 @@ import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
-import org.newdawn.slick.state.transition.FadeInTransition;
 import org.newdawn.slick.state.transition.EasedFadeOutTransition;
+import org.newdawn.slick.state.transition.FadeInTransition;
 import org.newdawn.slick.util.Log;
 
 */
@@ -69,6 +71,9 @@ public class GameRanking extends BasicGameState {
 
 	/** Button coordinates. */
 	private float retryY, replayY;
+
+	/** Animation progress. */
+	private AnimatedValue animationProgress = new AnimatedValue(6000, 0f, 1f, AnimationEquation.LINEAR);
 
 	// game-related variables
 	private GameContainer container;
@@ -106,15 +111,32 @@ public class GameRanking extends BasicGameState {
 			throws SlickException {
 		int width = container.getWidth();
 		int height = container.getHeight();
+		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
 
 		Beatmap beatmap = MusicController.getBeatmap();
 
 		// background
-		if (!beatmap.drawBackground(width, height, 0.7f, true))
-			GameImage.PLAYFIELD.getImage().draw(0,0);
+		float parallaxX = 0, parallaxY = 0;
+		if (Options.isParallaxEnabled()) {
+			int offset = (int) (height * (GameImage.PARALLAX_SCALE - 1f));
+			parallaxX = -offset / 2f * (mouseX - width / 2) / (width / 2);
+			parallaxY = -offset / 2f * (mouseY - height / 2) / (height / 2);
+		}
+		if (!beatmap.drawBackground(width, height, parallaxX, parallaxY, 0.5f, true)) {
+			Image bg = GameImage.MENU_BG.getImage();
+			if (Options.isParallaxEnabled()) {
+				bg = bg.getScaledCopy(GameImage.PARALLAX_SCALE);
+				bg.setAlpha(0.5f);
+				bg.drawCentered(width / 2 + parallaxX, height / 2 + parallaxY);
+			} else {
+				bg.setAlpha(0.5f);
+				bg.drawCentered(width / 2, height / 2);
+				bg.setAlpha(1f);
+			}
+		}
 
 		// ranking screen elements
-		data.drawRankingElements(g, beatmap);
+		data.drawRankingElements(g, beatmap, animationProgress.getTime());
 
 		// buttons
 		replayButton.draw();
@@ -136,6 +158,7 @@ public class GameRanking extends BasicGameState {
 		else
 			MusicController.loopTrackIfEnded(true);
 		UI.getBackButton().hoverUpdate(delta, mouseX, mouseY);
+		animationProgress.update(delta);
 	}
 
 	@Override
@@ -190,13 +213,13 @@ public class GameRanking extends BasicGameState {
 					gameState.setRestart((data.isGameplay()) ? Game.Restart.REPLAY : Game.Restart.NEW);
 					returnToGame = true;
 				} catch (FileNotFoundException e) {
-					UI.sendBarNotification("Replay file not found.");
+					UI.getNotificationManager().sendBarNotification("Replay file not found.");
 				} catch (IOException e) {
 					Log.error("Failed to load replay data.", e);
-					UI.sendBarNotification("Failed to load replay data. See log for details.");
+					UI.getNotificationManager().sendBarNotification("Failed to load replay data. See log for details.");
 				}
 			} else
-				UI.sendBarNotification("Replay file not found.");
+				UI.getNotificationManager().sendBarNotification("Replay file not found.");
 		}
 
 		// retry
@@ -215,6 +238,9 @@ public class GameRanking extends BasicGameState {
 			game.enterState(Opsu.STATE_GAME, new EasedFadeOutTransition(), new FadeInTransition());
 			return;
 		}
+
+		// otherwise, finish the animation
+		animationProgress.setTime(animationProgress.getDuration());
 	}
 
 	@Override
@@ -226,10 +252,17 @@ public class GameRanking extends BasicGameState {
 			if (!MusicController.isTrackDimmed())
 				MusicController.toggleTrackDimmed(0.5f);
 			replayButton.setY(retryY);
+			animationProgress.setTime(animationProgress.getDuration());
 		} else {
 			SoundController.playSound(SoundEffect.APPLAUSE);
 			retryButton.resetHover();
-			replayButton.setY(!GameMod.AUTO.isActive() ? replayY : retryY);
+			if (GameMod.AUTO.isActive()) {
+				replayButton.setY(retryY);
+				animationProgress.setTime(animationProgress.getDuration());
+			} else {
+				replayButton.setY(replayY);
+				animationProgress.setTime(0);
+			}
 		}
 		replayButton.resetHover();
 	}

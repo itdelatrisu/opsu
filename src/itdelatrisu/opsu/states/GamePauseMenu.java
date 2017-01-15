@@ -1,6 +1,6 @@
 /*
  * opsu! - an open-source osu! client
- * Copyright (C) 2014, 2015, 2016 Jeffrey Han
+ * Copyright (C) 2014-2017 Jeffrey Han
  *
  * opsu! is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -87,7 +87,7 @@ public class GamePauseMenu extends BasicGameState {
 			GameImage.PAUSE_RETRY.hasBeatmapSkinImage() ||
 			GameImage.PAUSE_BACK.hasBeatmapSkinImage();
 		if (!buttonsSkinned || bg.hasBeatmapSkinImage())
-			bg.getImage().draw();
+			bg.getImage().drawCentered(container.getWidth() / 2, container.getHeight() / 2);
 		else
 			g.setBackground(Color.black);
 
@@ -159,7 +159,7 @@ public class GamePauseMenu extends BasicGameState {
 		case Input.KEY_ADD:
 		case Input.KEY_MINUS:
 		case Input.KEY_SUBTRACT:
-			UI.sendBarNotification("Offset can only be changed while game is not paused.");
+			UI.getNotificationManager().sendBarNotification("Offset can only be changed while game is not paused.");
 			break;
 		}
 	}

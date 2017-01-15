@@ -1,6 +1,6 @@
 /*
  * opsu! - an open-source osu! client
- * Copyright (C) 2014, 2015, 2016 Jeffrey Han
+ * Copyright (C) 2014-2017 Jeffrey Han
  *
  * opsu! is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,6 +17,8 @@
  */
 
 package itdelatrisu.opsu.skins;
+
+import itdelatrisu.opsu.OpsuConstants;
 
 import fluddokt.opsu.fake.*;
 
@@ -83,7 +85,7 @@ public class Skin {
 	 */
 
 	/** The name of the skin. */
-	protected String name = "opsu! Default Skin";
+	protected String name = OpsuConstants.PROJECT_NAME + " Default Skin";
 
 	/** The skin author. */
 	protected String author = "[various authors]";
@@ -275,7 +277,7 @@ public class Skin {
 
 	/**
 	 * Returns the frame rate of animations.
-	 * @return the FPS, or {@code -1} (TODO)
+	 * @return the FPS, or {@code -1} if not set
 	 */
 	public int getAnimationFramerate() { return animationFramerate; }
 

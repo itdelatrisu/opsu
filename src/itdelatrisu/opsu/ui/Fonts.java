@@ -1,6 +1,6 @@
 /*
  * opsu! - an open-source osu! client
- * Copyright (C) 2014, 2015, 2016 Jeffrey Han
+ * Copyright (C) 2014-2017 Jeffrey Han
  *
  * opsu! is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -46,7 +46,7 @@ import org.newdawn.slick.util.ResourceLoader;
  * Fonts used for drawing.
  */
 public class Fonts {
-	public static UnicodeFont DEFAULT, BOLD, XLARGE, LARGE, MEDIUM, MEDIUMBOLD, SMALL;
+	public static UnicodeFont DEFAULT, BOLD, XLARGE, LARGE, MEDIUM, MEDIUMBOLD, SMALL, SMALLBOLD;
 
 	/** Set of all Unicode strings already loaded per font. */
 	private static HashMap<UnicodeFont, HashSet<String>> loadedGlyphs = new HashMap<UnicodeFont, HashSet<String>>();
@@ -72,6 +72,7 @@ public class Fonts {
 		MEDIUM = new UnicodeFont(font.deriveFont(fontBase * 3 / 2));
 		MEDIUMBOLD = new UnicodeFont(font.deriveFont(Font.BOLD, fontBase * 3 / 2));
 		SMALL = new UnicodeFont(font.deriveFont(fontBase));
+		SMALLBOLD = new UnicodeFont(font.deriveFont(Font.BOLD, fontBase));
 		ColorEffect colorEffect = new ColorEffect();
 		loadFont(DEFAULT, colorEffect);
 		loadFont(BOLD, colorEffect);
@@ -80,6 +81,7 @@ public class Fonts {
 		loadFont(MEDIUM, colorEffect);
 		loadFont(MEDIUMBOLD, colorEffect);
 		loadFont(SMALL, colorEffect);
+		loadFont(SMALLBOLD, colorEffect);
 	}
 
 	/**
@@ -123,14 +125,29 @@ public class Fonts {
 	}
 
 	/**
+	 * Adds and loads glyphs for a font.
+	 * @param font the font to add the glyphs to
+	 * @param c the character to load
+	 */
+	public static void loadGlyphs(UnicodeFont font, char c) {
+		font.addGlyphs(c, c);
+		try {
+			font.loadGlyphs();
+		} catch (SlickException e) {
+			Log.warn(String.format("Failed to load glyphs for codepoint '%d'.", (int) c), e);
+		}
+	}
+
+	/**
 	 * Wraps the given string into a list of split lines based on the width.
 	 * @param font the font used to draw the string
 	 * @param text the text to split
 	 * @param width the maximum width of a line
+	 * @param newlines true if the "\n" character should break a line
 	 * @return the list of split strings
 	 * @author davedes (http://slick.ninjacave.com/forum/viewtopic.php?t=3778)
 	 */
-	public static List<String> wrap(Font font, String text, int width) {
+	public static List<String> wrap(Font font, String text, int width, boolean newlines) {
 		List<String> list = new ArrayList<String>();
 		String str = text;
 		String line = "";
@@ -141,7 +158,7 @@ public class Fonts {
 			if (Character.isWhitespace(c))
 				lastSpace = i;
 			String append = line + c;
-			if (font.getWidth(append) > width) {
+			if (font.getWidth(append) > width || (newlines && c == '\n')) {
 				int split = (lastSpace != -1) ? lastSpace : i;
 				int splitTrimmed = split;
 				if (lastSpace != -1 && split < str.length() - 1)

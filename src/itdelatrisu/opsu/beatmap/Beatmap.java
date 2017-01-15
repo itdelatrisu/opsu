@@ -1,6 +1,6 @@
 /*
  * opsu! - an open-source osu! client
- * Copyright (C) 2014, 2015, 2016 Jeffrey Han
+ * Copyright (C) 2014-2017 Jeffrey Han
  *
  * opsu! is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,6 +20,7 @@ package itdelatrisu.opsu.beatmap;
 
 import fluddokt.opsu.fake.*;
 
+import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.Options;
 
 //import java.io.File;
@@ -327,11 +328,13 @@ public class Beatmap implements Comparable<Beatmap> {
 	 * Draws the beatmap background image.
 	 * @param width the container width
 	 * @param height the container height
+	 * @param offsetX the x offset (from the screen center)
+	 * @param offsetY the y offset (from the screen center)
 	 * @param alpha the alpha value
 	 * @param stretch if true, stretch to screen dimensions; otherwise, maintain aspect ratio
 	 * @return true if successful, false if any errors were produced
 	 */
-	public boolean drawBackground(int width, int height, float alpha, boolean stretch) {
+	public boolean drawBackground(int width, int height, float offsetX, float offsetY, float alpha, boolean stretch) {
 		if (bg == null)
 			return false;
 
@@ -358,9 +361,16 @@ public class Beatmap implements Comparable<Beatmap> {
 			else
 				sheight = (int) (width * bgImage.getHeight() / (float) bgImage.getWidth());
 		}
+		if (Options.isParallaxEnabled()) {
+			swidth = (int) (swidth * GameImage.PARALLAX_SCALE);
+			sheight = (int) (sheight * GameImage.PARALLAX_SCALE);
+		}
 		bgImage = bgImage.getScaledCopy(swidth, sheight);
 		bgImage.setAlpha(alpha);
-		bgImage.drawCentered(width / 2, height / 2);
+		if (!Options.isParallaxEnabled() && offsetX == 0f && offsetY == 0f)
+			bgImage.drawCentered(width / 2, height / 2);
+		else
+			bgImage.drawCentered(width / 2 + offsetX, height / 2 + offsetY);
 		return true;
 	}
 

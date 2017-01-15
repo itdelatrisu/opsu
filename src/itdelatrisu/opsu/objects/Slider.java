@@ -1,6 +1,6 @@
 /*
  * opsu! - an open-source osu! client
- * Copyright (C) 2014, 2015, 2016 Jeffrey Han
+ * Copyright (C) 2014-2017 Jeffrey Han
  *
  * opsu! is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,6 +32,7 @@ import itdelatrisu.opsu.objects.curves.Curve;
 import itdelatrisu.opsu.objects.curves.Vec2f;
 import itdelatrisu.opsu.states.Game;
 import itdelatrisu.opsu.ui.Colors;
+import itdelatrisu.opsu.ui.animations.AnimatedValue;
 import itdelatrisu.opsu.ui.animations.AnimationEquation;
 
 /*
@@ -108,11 +109,14 @@ public class Slider implements GameObject {
 	/** Number of ticks hit and tick intervals so far. */
 	private int ticksHit = 0, tickIntervals = 1;
 
-	/** The current tick time for the follow circle expanding animation. */
-	private int tickExpandTime = 0;
+	/** The animation progress for ticks expanding the follow circle. */
+	private AnimatedValue tickExpand = new AnimatedValue(200, 0.1f, 0f, AnimationEquation.LINEAR);
 
-	/** The duration of the follow circle expanding animation on ticks. */
-	private static final int TICK_EXPAND_TIME = 200;
+	/** The animation progress for the initial expansion of the follow circle. */
+	private AnimatedValue initialExpand = new AnimatedValue(150, 0f, 1f, AnimationEquation.OUT_QUAD);
+
+	/** The animation progress for the release of the follow circle. */
+	private AnimatedValue releaseExpand = new AnimatedValue(100, 0f, 1f, AnimationEquation.IN_QUAD);
 
 	/** Container dimensions. */
 	private static int containerWidth, containerHeight;
@@ -179,6 +183,11 @@ public class Slider implements GameObject {
 			for (int i = 0; i < tickCount; i++, t += tickTOffset)
 				ticksT[i] = t;
 		}
+
+		// follow circle animations
+		tickExpand.setTime(tickExpand.getDuration());
+		initialExpand.setTime(initialExpand.getDuration());
+		releaseExpand.setTime(releaseExpand.getDuration());
 	}
 
 	@Override
@@ -320,14 +329,26 @@ public class Slider implements GameObject {
 //			float dis = hitObject.getPixelLength() * HitObject.getXMultiplier() * (t - (int) t);
 //			Image sliderBallFrame = sliderBallImages[(int) (dis / (diameter * Math.PI) * 30) % sliderBallImages.length];
 			Image sliderBallFrame = sliderBallImages[(int) (t * sliderTime * 60 / 1000) % sliderBallImages.length];
+			if (currentRepeats % 2 == 1 && Options.getSkin().isSliderBallFlipped())
+				sliderBallFrame = sliderBallFrame.getFlippedCopy(true, false);
 			float angle = (float) (Math.atan2(c2.y - c.y, c2.x - c.x) * 180 / Math.PI);
 			sliderBallFrame.setRotation(angle);
-			sliderBallFrame.drawCentered(c.x, c.y);
+			sliderBallFrame.drawCentered(c.x, c.y, Options.getSkin().isAllowSliderBallTint() ? color : Color.white);
 
 			// follow circle
-			if (followCircleActive) {
-				float followCircleScale = 1f + (tickExpandTime / (float) TICK_EXPAND_TIME) * 0.1f;
-				GameImage.SLIDER_FOLLOWCIRCLE.getImage().getScaledCopy(followCircleScale).drawCentered(c.x, c.y);
+			if (followCircleActive || !releaseExpand.isFinished()) {
+				// expanding/fading animations
+				Image fc = GameImage.SLIDER_FOLLOWCIRCLE.getImage();
+				if (!initialExpand.isFinished()) {
+					fc = fc.getScaledCopy(0.5f + 0.5f * initialExpand.getValue());
+					fc.setAlpha(initialExpand.getValue());
+				} else if (!releaseExpand.isFinished()) {
+					fc = fc.getScaledCopy(1f + releaseExpand.getValue());
+					fc.setAlpha(1f - releaseExpand.getValue());
+				} else if (!tickExpand.isFinished()) {
+					fc = fc.getScaledCopy(1f + tickExpand.getValue());
+				}
+				fc.drawCentered(c.x, c.y);
 
 				// "flashlight" mod: dim the screen
 				if (GameMod.FLASHLIGHT.isActive()) {
@@ -560,64 +581,42 @@ public class Slider implements GameObject {
 				mousePressed(mouseX, mouseY, trackPosition);
 		}
 
-		// end of slider
-		if (trackPosition > hitObject.getTime() + sliderTimeTotal) {
-			tickIntervals++;
-			tickExpandTime = TICK_EXPAND_TIME;
-
-			// check if cursor pressed and within end circle
-			if (keyPressed || GameMod.RELAX.isActive()) {
-				Vec2f c = curve.pointAt(getT(trackPosition, false));
-				double distance = Math.hypot(c.x - mouseX, c.y - mouseY);
-				if (distance < followRadius)
-					sliderHeldToEnd = true;
-			}
-
-			// final circle hit
-			if (sliderHeldToEnd)
-				ticksHit++;
-
-			// "auto" mod: always send a perfect hit result
-			if (isAutoMod)
-				ticksHit = tickIntervals;
-
-			// calculate and send slider result
-			hitResult();
-
-			return true;
-		}
-
 		// update tick expand time
-		if (tickExpandTime > 0) {
-			tickExpandTime -= delta;
-			if (tickExpandTime < 0)
-				tickExpandTime = 0;
-		}
+		tickExpand.update(delta);
+		initialExpand.update(delta);
+		releaseExpand.update(delta);
+
+		// TODO: Some ticks/repeats get missed if delta updates skip past them.
+		// The code tries to catch this, but doesn't completely work...
 
 		// repeats
-		boolean isNewRepeat = false;
-		if (repeatCount - 1 > currentRepeats) {
+		int newRepeats = 0;
+		while (repeatCount - 1 > currentRepeats) {
 			float t = getT(trackPosition, true);
 			if (Math.floor(t) > currentRepeats) {
 				currentRepeats++;
 				tickIndex = 0;
-				isNewRepeat = true;
-				tickExpandTime = TICK_EXPAND_TIME;
-			}
+				newRepeats++;
+				if (initialExpand.isFinished())
+					tickExpand.setTime(0);
+			} else
+				break;
 		}
 
 		// ticks
-		boolean isNewTick = false;
-		if (ticksT != null &&
-			tickIntervals < (ticksT.length * (currentRepeats + 1)) + repeatCount &&
-			tickIntervals < (ticksT.length * repeatCount) + repeatCount) {
+		int newTicks = 0;
+		while (ticksT != null &&
+		       tickIntervals < (ticksT.length * (currentRepeats + 1)) + 1 &&
+		       tickIntervals < (ticksT.length * repeatCount) + repeatCount) {
 			float t = getT(trackPosition, true);
-			if (t - Math.floor(t) >= ticksT[tickIndex]) {
+			if (t - Math.floor(t) >= ticksT[tickIndex] || tickIntervals < (ticksT.length * currentRepeats) + 1) {
 				tickIntervals++;
 				tickIndex = (tickIndex + 1) % ticksT.length;
-				isNewTick = true;
-				tickExpandTime = TICK_EXPAND_TIME;
-			}
+				newTicks++;
+				if (initialExpand.isFinished())
+					tickExpand.setTime(0);
+			} else
+				break;
 		}
 
 		// holding slider...
@@ -625,15 +624,21 @@ public class Slider implements GameObject {
 		double distance = Math.hypot(c.x - mouseX, c.y - mouseY);
 		if (((keyPressed || GameMod.RELAX.isActive()) && distance < followRadius) || isAutoMod) {
 			// mouse pressed and within follow circle
-			followCircleActive = true;
+			if (!followCircleActive) {
+				followCircleActive = true;
+				initialExpand.setTime(0);
+				releaseExpand.setTime(releaseExpand.getDuration());
+				tickExpand.setTime(tickExpand.getDuration());
+			}
 
 			// held during new repeat
-			if (isNewRepeat) {
+			int newRepeatCount = 0;
+			while (newRepeats-- > 0) {
 				ticksHit++;
 
 				HitObjectType type;
 				float posX, posY;
-				if (currentRepeats % 2 > 0) {
+				if ((currentRepeats + newRepeatCount) % 2 > 0) {
 					// last circle
 					type = HitObjectType.SLIDER_LAST;
 					Vec2f endPos = curve.pointAt(1f);
@@ -652,25 +657,61 @@ public class Slider implements GameObject {
 				float colorLuminance = Utils.getLuminance(color);
 				Color arrowColor = colorLuminance < 0.8f ? Color.white : Color.black;
 				data.sendSliderRepeatResult(trackPosition, posX, posY, arrowColor, curve, type);
+
+				newRepeatCount++;
 			}
 
 			// held during new tick
-			if (isNewTick) {
+			int tickIdx = tickIndex;
+			while (newTicks-- > 0) {
 				ticksHit++;
+
+				tickIdx = (tickIdx + (ticksT.length - 1)) % ticksT.length;
+				Vec2f tickPos = curve.pointAt(ticksT[tickIdx]);
 				data.sendSliderTickResult(trackPosition, GameData.HIT_SLIDER10,
-						c.x, c.y, hitObject, currentRepeats);
+					tickPos.x, tickPos.y, hitObject, currentRepeats);
 			}
 
 			// held near end of slider
 			if (!sliderHeldToEnd && trackPosition > hitObject.getTime() + sliderTimeTotal - hitResultOffset[GameData.HIT_300])
 				sliderHeldToEnd = true;
 		} else {
-			followCircleActive = false;
+			if (followCircleActive) {
+				followCircleActive = false;
+				releaseExpand.setTime(0);
+				initialExpand.setTime(initialExpand.getDuration());
+			}
 
-			if (isNewRepeat)
+			while (newRepeats-- > 0)
 				data.sendSliderTickResult(trackPosition, GameData.HIT_MISS, 0, 0, hitObject, currentRepeats);
-			if (isNewTick)
+			while (newTicks-- > 0)
 				data.sendSliderTickResult(trackPosition, GameData.HIT_MISS, 0, 0, hitObject, currentRepeats);
+		}
+
+		// end of slider
+		if (trackPosition > hitObject.getTime() + sliderTimeTotal) {
+			tickIntervals++;
+
+			// check if cursor pressed and within end circle
+			if (keyPressed || GameMod.RELAX.isActive()) {
+				Vec2f pos = curve.pointAt(getT(trackPosition, false));
+				double dist = Math.hypot(pos.x - mouseX, pos.y - mouseY);
+				if (dist < followRadius)
+					sliderHeldToEnd = true;
+			}
+
+			// final circle hit
+			if (sliderHeldToEnd)
+				ticksHit++;
+
+			// "auto" mod: always send a perfect hit result
+			if (isAutoMod)
+				ticksHit = tickIntervals;
+
+			// calculate and send slider result
+			hitResult();
+
+			return true;
 		}
 
 		return false;
@@ -724,6 +765,8 @@ public class Slider implements GameObject {
 		tickIndex = 0;
 		ticksHit = 0;
 		tickIntervals = 1;
-		tickExpandTime = 0;
+		tickExpand.setTime(tickExpand.getDuration());
+		initialExpand.setTime(initialExpand.getDuration());
+		releaseExpand.setTime(releaseExpand.getDuration());
 	}
 }

@@ -1,6 +1,6 @@
 /*
  * opsu! - an open-source osu! client
- * Copyright (C) 2014, 2015, 2016 Jeffrey Han
+ * Copyright (C) 2014-2017 Jeffrey Han
  *
  * opsu! is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,12 +22,14 @@ import fluddokt.opsu.fake.*;
 
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.GameImage;
+import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.beatmap.BeatmapParser;
 import itdelatrisu.opsu.beatmap.OszUnpacker;
 import itdelatrisu.opsu.replay.ReplayImporter;
+import itdelatrisu.opsu.skins.SkinUnpacker;
 import itdelatrisu.opsu.ui.animations.AnimatedValue;
 import itdelatrisu.opsu.ui.animations.AnimationEquation;
 
@@ -48,6 +50,9 @@ import org.newdawn.slick.state.StateBasedGame;
  * Draws common UI components.
  */
 public class UI {
+	/** The target frame rate when the window does not have focus. */
+	private static final int IDLE_FPS = 30;
+
 	/** Cursor. */
 	private static Cursor cursor = new Cursor();
 
@@ -60,15 +65,6 @@ public class UI {
 	/** Volume display elapsed time. */
 	private static int volumeDisplay = -1;
 
-	/** The current bar notification string. */
-	private static String barNotif;
-
-	/** The current bar notification timer. */
-	private static int barNotifTimer = -1;
-
-	/** Duration, in milliseconds, to display bar notifications. */
-	private static final int BAR_NOTIFICATION_TIME = 1500;
-
 	/** The current tooltip. */
 	private static String tooltip;
 
@@ -78,8 +74,15 @@ public class UI {
 	/** The alpha level of the current tooltip (if any). */
 	private static AnimatedValue tooltipAlpha = new AnimatedValue(200, 0f, 1f, AnimationEquation.LINEAR);
 
+	/** The displayed FPS. */
+	private static float fpsDisplay = 0f;
+	
+	/** Notification manager. */
+	private static NotificationManager notificationManager;
+
 	// game-related variables
 	private static GameContainer container;
+	private static StateBasedGame game;
 	private static Input input;
 
 	// This class should not be instantiated.
@@ -92,6 +95,7 @@ public class UI {
 	 */
 	public static void init(GameContainer container, StateBasedGame game) {
 		UI.container = container;
+		UI.game = game;
 		UI.input = container.getInput();
 
 		// initialize cursor
@@ -100,7 +104,7 @@ public class UI {
 
 		// back button
 		if (GameImage.MENU_BACK.getImages() != null) {
-			Animation back = GameImage.MENU_BACK.getAnimation(120);
+			Animation back = GameImage.MENU_BACK.getAnimation();
 			backButton = new MenuButton(back, back.getWidth() / 2f, container.getHeight() - (back.getHeight() / 2f));
 		} else {
 			Image back = GameImage.MENU_BACK.getImage();
@@ -109,6 +113,9 @@ public class UI {
 		backButton.setHoverAnimationDuration(350);
 		backButton.setHoverAnimationEquation(AnimationEquation.IN_OUT_BACK);
 		backButton.setHoverExpand(MenuButton.Expand.UP_RIGHT);
+		
+		// notification manager
+		notificationManager = new NotificationManager(container);
 	}
 
 	/**
@@ -118,8 +125,9 @@ public class UI {
 	public static void update(int delta) {
 		cursor.update(delta);
 		updateVolumeDisplay(delta);
-		updateBarNotification(delta);
+		notificationManager.update(delta);
 		tooltipAlpha.update(-delta);
+		updateFPS(delta);
 	}
 
 	/**
@@ -127,7 +135,7 @@ public class UI {
 	 * @param g the graphics context
 	 */
 	public static void draw(Graphics g) {
-		drawBarNotification(g);
+		notificationManager.draw(g);
 		drawVolume(g);
 		drawFPS();
 		cursor.draw();
@@ -142,7 +150,7 @@ public class UI {
 	 * @param mousePressed whether or not the mouse button is pressed
 	 */
 	public static void draw(Graphics g, int mouseX, int mouseY, boolean mousePressed) {
-		drawBarNotification(g);
+		notificationManager.draw(g);
 		drawVolume(g);
 		drawFPS();
 		cursor.draw(mouseX, mouseY, mousePressed);
@@ -155,7 +163,7 @@ public class UI {
 	public static void enter() {
 		backButton.resetHover();
 		cursor.resetLocations();
-		resetBarNotification();
+		notificationManager.reset();
 		resetTooltip();
 	}
 
@@ -163,6 +171,11 @@ public class UI {
 	 * Returns the game cursor.
 	 */
 	public static Cursor getCursor() { return cursor; }
+	
+	/**
+	 * Returns the notification manager instance.
+	 */
+	public static NotificationManager getNotificationManager() { return notificationManager; }
 
 	/**
 	 * Returns the 'menu-back' MenuButton.
@@ -201,16 +214,17 @@ public class UI {
 		if (!Options.isFPSCounterEnabled())
 			return;
 
-		String fps = String.format("%dFPS", container.getFPS());
+		int fps = Math.round(fpsDisplay);
+		String s = String.format("%dFPS", fps);
 		Fonts.BOLD.drawString(
-				container.getWidth() * 0.997f - Fonts.BOLD.getWidth(fps),
-				container.getHeight() * 0.997f - Fonts.BOLD.getHeight(fps),
-				Integer.toString(container.getFPS()), Color.white
+			container.getWidth() * 0.997f - Fonts.BOLD.getWidth(s),
+			container.getHeight() * 0.997f - Fonts.BOLD.getHeight(s),
+			Integer.toString(fps), Color.white
 		);
 		Fonts.DEFAULT.drawString(
-				container.getWidth() * 0.997f - Fonts.BOLD.getWidth("FPS"),
-				container.getHeight() * 0.997f - Fonts.BOLD.getHeight("FPS"),
-				"FPS", Color.white
+			container.getWidth() * 0.997f - Fonts.BOLD.getWidth("FPS"),
+			container.getHeight() * 0.997f - Fonts.BOLD.getHeight("FPS"),
+			"FPS", Color.white
 		);
 	}
 
@@ -288,6 +302,9 @@ public class UI {
 			text = (BeatmapParser.getStatus() == BeatmapParser.Status.INSERTING) ?
 					"Updating database..." : "Loading beatmaps...";
 			progress = BeatmapParser.getParserProgress();
+		} else if ((file = SkinUnpacker.getCurrentFileName()) != null) {
+			text = "Unpacking new skins...";
+			progress = SkinUnpacker.getUnpackerProgress();
 		} else if ((file = ReplayImporter.getCurrentFileName()) != null) {
 			text = "Importing replays...";
 			progress = ReplayImporter.getLoadingProgress();
@@ -429,62 +446,30 @@ public class UI {
 	}
 
 	/**
-	 * Submits a bar notification for drawing.
-	 * Must be called with {@link #drawBarNotification(Graphics)}.
-	 * @param s the notification string
-	 */
-	public static void sendBarNotification(String s) {
-		if (s != null) {
-			barNotif = s;
-			barNotifTimer = 0;
-		}
-	}
-
-	/**
-	 * Updates the bar notification by a delta interval.
+	 * Updates the FPS display by a delta interval.
+	 * Also changes the frame rate if the window has lost or restored focus.
 	 * @param delta the delta interval since the last call
 	 */
-	private static void updateBarNotification(int delta) {
-		if (barNotifTimer > -1 && barNotifTimer < BAR_NOTIFICATION_TIME) {
-			barNotifTimer += delta;
-			if (barNotifTimer > BAR_NOTIFICATION_TIME)
-				barNotifTimer = BAR_NOTIFICATION_TIME;
+	private static void updateFPS(int delta){
+		// change frame rate when focus is lost/restored
+		boolean focus = (game.getCurrentStateID() == Opsu.STATE_GAME) ? true : container.hasFocus();
+		container.setTargetFrameRate(focus ? Options.getTargetFPS() : IDLE_FPS);
+
+		// update displayed FPS
+		if (Options.isFPSCounterEnabled()) {
+			int fps = container.getFPS();
+			float multiplier = delta / 250f;
+			if (fpsDisplay < fps)
+				fpsDisplay = Math.min(fpsDisplay + (fps - fpsDisplay) * multiplier, fps);
+			else if (fpsDisplay > fps)
+				fpsDisplay = Math.max(fpsDisplay - (fpsDisplay - fps) * multiplier, fps);
 		}
 	}
 
 	/**
-	 * Resets the bar notification.
+	 * Resets the displayed FPS.
 	 */
-	public static void resetBarNotification() {
-		barNotifTimer = -1;
-		barNotif = null;
-	}
-
-	/**
-	 * Draws the notification sent from {@link #sendBarNotification(String)}.
-	 * @param g the graphics context
-	 */
-	public static void drawBarNotification(Graphics g) {
-		if (barNotifTimer <= 0 || barNotifTimer >= BAR_NOTIFICATION_TIME)
-			return;
-
-		float alpha = 1f;
-		if (barNotifTimer >= BAR_NOTIFICATION_TIME * 0.9f)
-			alpha -= 1 - ((BAR_NOTIFICATION_TIME - barNotifTimer) / (BAR_NOTIFICATION_TIME * 0.1f));
-		int midX = container.getWidth() / 2, midY = container.getHeight() / 2;
-		float barHeight = Fonts.LARGE.getLineHeight() * (1f + 0.6f * Math.min(barNotifTimer * 15f / BAR_NOTIFICATION_TIME, 1f));
-		float oldAlphaB = Colors.BLACK_ALPHA.a, oldAlphaW = Colors.WHITE_ALPHA.a;
-		Colors.BLACK_ALPHA.a *= alpha;
-		Colors.WHITE_ALPHA.a = alpha;
-		g.setColor(Colors.BLACK_ALPHA);
-		g.fillRect(0, midY - barHeight / 2f, container.getWidth(), barHeight);
-		Fonts.LARGE.drawString(
-				midX - Fonts.LARGE.getWidth(barNotif) / 2f,
-				midY - Fonts.LARGE.getLineHeight() / 2.2f,
-				barNotif, Colors.WHITE_ALPHA);
-		Colors.BLACK_ALPHA.a = oldAlphaB;
-		Colors.WHITE_ALPHA.a = oldAlphaW;
-	}
+	public static void resetFPSDisplay() { fpsDisplay = 0f; }
 
 	/**
 	 * Shows a confirmation dialog (used before exiting the game).

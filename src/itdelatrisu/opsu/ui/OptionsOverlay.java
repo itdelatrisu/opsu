@@ -1,6 +1,6 @@
 /*
  * opsu! - an open-source osu! client
- * Copyright (C) 2014, 2015, 2016 Jeffrey Han
+ * Copyright (C) 2014-2017 Jeffrey Han
  *
  * opsu! is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@ import fluddokt.opsu.fake.*;
 import fluddokt.opsu.fake.gui.*;
 
 import itdelatrisu.opsu.GameImage;
+import itdelatrisu.opsu.OpsuConstants;
 import itdelatrisu.opsu.OptionGroup;
 import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.Options.GameOption;
@@ -261,7 +262,8 @@ public class OptionsOverlay extends AbstractComponent {
 		g.fillRect(x, y, width, height);
 
 		// title
-		String title = "Options", subtitle = "Change the way opsu! behaves";
+		String title = "Options";
+		String subtitle = String.format("Change the way %s behaves", OpsuConstants.PROJECT_NAME);
 		float titleX = x + width / 2 - Fonts.XLARGE.getWidth(title) / 2;
 		float titleY = y + height * 0.03f;
 		float subtitleX = x + width / 2 - Fonts.DEFAULT.getWidth(subtitle) / 2;
@@ -436,7 +438,7 @@ public class OptionsOverlay extends AbstractComponent {
 		float sliderY = cy + optionHeight / 2;
 		g.drawLine(sliderStartX, sliderY, sliderStartX + sliderWidth, sliderY);
 		float sliderValue = (float) (sliderWidth + 10) * (option.getIntegerValue() - option.getMinValue()) / (option.getMaxValue() - option.getMinValue());
-		sliderBallImg.draw(sliderStartX + sliderValue - iconSize / 2f, sliderY - iconSize / 2f, Colors.PINK_OPTION);
+		sliderBallImg.draw((int) (sliderStartX + sliderValue - iconSize / 2f), (int) (sliderY - iconSize / 2f), Colors.PINK_OPTION);
 	}
 
 	/**

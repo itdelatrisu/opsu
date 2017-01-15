@@ -1,6 +1,6 @@
 /*
  * opsu! - an open-source osu! client
- * Copyright (C) 2014, 2015, 2016 Jeffrey Han
+ * Copyright (C) 2014-2017 Jeffrey Han
  *
  * opsu! is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,6 +34,7 @@ import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
 import itdelatrisu.opsu.beatmap.Beatmap;
+import itdelatrisu.opsu.beatmap.BeatmapHPDropRateCalculator;
 import itdelatrisu.opsu.beatmap.BeatmapParser;
 import itdelatrisu.opsu.beatmap.HitObject;
 import itdelatrisu.opsu.beatmap.TimingPoint;
@@ -122,9 +123,6 @@ public class Game extends BasicGameState {
 
 	/** Tolerance in case if hit object is not snapped to the grid. */
 	private static final float STACK_LENIENCE = 3f;
-
-	/** Stack time window of the previous object, in ms. */
-	private static final int STACK_TIMEOUT = 1000;
 
 	/** Stack position offset modifier. */
 	private static final float STACK_OFFSET_MODIFIER = 0.05f;
@@ -302,6 +300,12 @@ public class Game extends BasicGameState {
 	/** Timer after game has finished, before changing states. */
 	private AnimatedValue gameFinishedTimer = new AnimatedValue(2500, 0, 1, AnimationEquation.LINEAR);
 
+	/** The HP drop rate. */
+	private float hpDropRate = 0.05f;
+
+	/** The last track position. */
+	private int lastTrackPosition = 0;
+
 	/** Music position bar background colors. */
 	private static final Color
 		MUSICBAR_NORMAL = new Color(12, 9, 10, 0.25f),
@@ -380,11 +384,11 @@ public class Game extends BasicGameState {
 			else
 				dimLevel = 1f;
 		}
-		if (Options.isDefaultPlayfieldForced() || !beatmap.drawBackground(width, height, dimLevel, false)) {
-			Image playfield = GameImage.PLAYFIELD.getImage();
-			playfield.setAlpha(dimLevel);
-			playfield.draw();
-			playfield.setAlpha(1f);
+		if (Options.isDefaultPlayfieldForced() || !beatmap.drawBackground(width, height, 0, 0, dimLevel, false)) {
+			Image bg = GameImage.MENU_BG.getImage();
+			bg.setAlpha(dimLevel);
+			bg.drawCentered(width / 2, height / 2);
+			bg.setAlpha(1f);
 		}
 		*/
 
@@ -558,7 +562,7 @@ public class Game extends BasicGameState {
 				trackPosition - breakTime > 2000 &&
 				trackPosition - breakTime < 5000) {
 				// show break start
-				if (data.getHealth() >= 50) {
+				if (data.getHealthPercent() >= 50) {
 					GameImage.SECTION_PASS.getImage().drawCentered(width / 2f, height / 2f);
 					if (!breakSound) {
 						SoundController.playSound(SoundEffect.SECTIONPASS);
@@ -577,12 +581,13 @@ public class Game extends BasicGameState {
 				if ((endTimeDiff > 1500 && endTimeDiff < 2000) ||
 					(endTimeDiff > 500 && endTimeDiff < 1000)) {
 					Image arrow = GameImage.WARNINGARROW.getImage();
+					Color color = (Options.getSkin().getVersion() == 1) ? Color.white : Color.red;
 					arrow.setRotation(0);
-					arrow.draw(width * 0.15f, height * 0.15f);
-					arrow.draw(width * 0.15f, height * 0.75f);
+					arrow.draw(width * 0.15f, height * 0.15f, color);
+					arrow.draw(width * 0.15f, height * 0.75f, color);
 					arrow.setRotation(180);
-					arrow.draw(width * 0.75f, height * 0.15f);
-					arrow.draw(width * 0.75f, height * 0.75f);
+					arrow.draw(width * 0.75f, height * 0.15f, color);
+					arrow.draw(width * 0.75f, height * 0.75f, color);
 				}
 			}
 		}
@@ -826,8 +831,8 @@ public class Game extends BasicGameState {
 
 		// "Easy" mod: multiple "lives"
 		if (GameMod.EASY.isActive() && deathTime > -1) {
-			if (data.getHealth() < 99f) {
-				data.changeHealth(delta / 10f);
+			if (data.getHealthPercent() < 99f) {
+				data.changeHealth(delta / 5f);
 				data.updateDisplays(delta);
 				return;
 			}
@@ -886,6 +891,8 @@ public class Game extends BasicGameState {
 				SoundController.mute(false);
 			}
 		}
+
+		lastTrackPosition = trackPosition;
 
 		// update in-game scoreboard
 		if (previousScores != null && trackPosition > firstObjectTime) {
@@ -1005,7 +1012,9 @@ public class Game extends BasicGameState {
 		}
 
 		// drain health
-		data.changeHealth(delta * -1 * GameData.HP_DRAIN_MULTIPLIER);
+		if (lastTrackPosition > 0)
+			data.changeHealth((trackPosition - lastTrackPosition) * -1 * hpDropRate);
+
 		if (!data.isAlive()) {
 			// "Easy" mod
 			if (GameMod.EASY.isActive() && !GameMod.SUDDEN_DEATH.isActive()) {
@@ -1124,7 +1133,7 @@ public class Game extends BasicGameState {
 				int position = (pauseTime > -1) ? pauseTime : trackPosition;
 				if (Options.setCheckpoint(position / 1000)) {
 					SoundController.playSound(SoundEffect.MENUCLICK);
-					UI.sendBarNotification("Checkpoint saved.");
+					UI.getNotificationManager().sendBarNotification("Checkpoint saved.");
 				}
 			}
 			break;
@@ -1147,7 +1156,7 @@ public class Game extends BasicGameState {
 					}
 					*/
 					SoundController.playSound(SoundEffect.MENUHIT);
-					UI.sendBarNotification("Checkpoint loaded.");
+					UI.getNotificationManager().sendBarNotification("Checkpoint loaded.");
 
 					// skip to checkpoint
 					MusicController.setPosition(checkpoint);
@@ -1157,6 +1166,7 @@ public class Game extends BasicGameState {
 						;
 					objectIndex--;
 					lastReplayTime = beatmap.objects[objectIndex].getTime();
+					lastTrackPosition = checkpoint;
 				} catch (SlickException e) {
 					ErrorHandler.error("Failed to load checkpoint.", e, false);
 				}
@@ -1240,6 +1250,7 @@ public class Game extends BasicGameState {
 				SoundController.mute(true);  // mute sounds while seeking
 				float pos = (y - musicBarY) / musicBarHeight * beatmap.endTime;
 				MusicController.setPosition((int) pos);
+				lastTrackPosition = (int) pos;
 				isSeeking = true;
 			}
 			return;
@@ -1441,7 +1452,9 @@ public class Game extends BasicGameState {
 			}
 
 			// initialize object maps
-			Color[] combo = beatmap.getComboColors();
+			boolean ignoreSkins = Options.isBeatmapSkinIgnored();
+			Color[] combo = ignoreSkins ? Options.getSkin().getComboColors() : beatmap.getComboColors();
+			int comboIndex = 0;
 			for (int i = 0; i < beatmap.objects.length; i++) {
 				HitObject hitObject = beatmap.objects[i];
 
@@ -1450,7 +1463,17 @@ public class Game extends BasicGameState {
 				if (i + 1 >= beatmap.objects.length || beatmap.objects[i + 1].isNewCombo())
 					comboEnd = true;
 
-				Color color = combo[hitObject.getComboIndex()];
+				// calculate color index if ignoring beatmap skin
+				Color color;
+				if (ignoreSkins) {
+					if (hitObject.isNewCombo() || i == 0) {
+						int skip = (hitObject.isSpinner() ? 0 : 1) + hitObject.getComboSkip();
+						for (int j = 0; j < skip; j++)
+							comboIndex = (comboIndex + 1) % combo.length;
+					}
+					color = combo[comboIndex];
+				} else
+					color = combo[hitObject.getComboIndex()];
 
 				// pass beatLength to hit objects
 				int hitObjectTime = hitObject.getTime();
@@ -1538,7 +1561,7 @@ public class Game extends BasicGameState {
 
 			// using local offset?
 			if (beatmap.localMusicOffset != 0)
-				UI.sendBarNotification(String.format("Using local beatmap offset (%dms)", beatmap.localMusicOffset));
+				UI.getNotificationManager().sendBarNotification(String.format("Using local beatmap offset (%dms)", beatmap.localMusicOffset));
 
 			// needs to play before setting position to resume without lag later
 			MusicController.play(false);
@@ -1575,8 +1598,8 @@ public class Game extends BasicGameState {
 	 * @param trackPosition the track position
 	 */
 	private void drawHitObjects(Graphics g, int trackPosition) {
-		// draw result objects
-		data.drawHitResults(trackPosition);
+		// draw result objects (under)
+		data.drawHitResults(trackPosition, false);
 
 		// include previous object in follow points
 		int lastObjectIndex = -1;
@@ -1691,6 +1714,9 @@ public class Game extends BasicGameState {
 				g.popTransform();
 			}
 		}
+
+		// draw result objects (over)
+		data.drawHitResults(trackPosition, true);
 	}
 
 	/**
@@ -1735,6 +1761,7 @@ public class Game extends BasicGameState {
 		scoreboardStarStream.clear();
 		gameFinished = false;
 		gameFinishedTimer.setTime(0);
+		lastTrackPosition = 0;
 
 		System.gc();
 	}
@@ -1784,7 +1811,7 @@ public class Game extends BasicGameState {
 
 		// skip button
 		if (GameImage.SKIP.getImages() != null) {
-			Animation skip = GameImage.SKIP.getAnimation(120);
+			Animation skip = GameImage.SKIP.getAnimation();
 			skipButton = new MenuButton(skip, width - skip.getWidth() / 2f, height - (skip.getHeight() / 2f));
 		} else {
 			Image skip = GameImage.SKIP.getImage();
@@ -1837,26 +1864,21 @@ public class Game extends BasicGameState {
 				Options.getSkin().getSliderBorderColor() : beatmap.getSliderBorderColor());
 
 		// approachRate (hit object approach time)
-		if (approachRate < 5)
-			approachTime = (int) (1800 - (approachRate * 120));
-		else
-			approachTime = (int) (1200 - ((approachRate - 5) * 150));
+		approachTime = (int) Utils.mapDifficultyRange(approachRate, 1800, 1200, 450);
 
 		// overallDifficulty (hit result time offsets)
 		hitResultOffset = new int[GameData.HIT_MAX];
-		hitResultOffset[GameData.HIT_300]  = (int) (79.5f - (overallDifficulty * 6));
-		hitResultOffset[GameData.HIT_100]  = (int) (139.5f - (overallDifficulty * 8));
-		hitResultOffset[GameData.HIT_50]   = (int) (199.5f - (overallDifficulty * 10));
+		hitResultOffset[GameData.HIT_300]  = (int) Utils.mapDifficultyRange(overallDifficulty, 80, 50, 20);
+		hitResultOffset[GameData.HIT_100]  = (int) Utils.mapDifficultyRange(overallDifficulty, 140, 100, 60);
+		hitResultOffset[GameData.HIT_50]   = (int) Utils.mapDifficultyRange(overallDifficulty, 200, 150, 100);
 		hitResultOffset[GameData.HIT_MISS] = (int) (500 - (overallDifficulty * 10));
-		//final float mult = 0.608f;
-		//hitResultOffset[GameData.HIT_300]  = (int) ((128 - (overallDifficulty * 9.6)) * mult);
-		//hitResultOffset[GameData.HIT_100]  = (int) ((224 - (overallDifficulty * 12.8)) * mult);
-		//hitResultOffset[GameData.HIT_50]   = (int) ((320 - (overallDifficulty * 16)) * mult);
-		//hitResultOffset[GameData.HIT_MISS] = (int) ((1000 - (overallDifficulty * 10)) * mult);
 		data.setHitResultOffset(hitResultOffset);
 
 		// HPDrainRate (health change)
-		data.setDrainRate(HPDrainRate);
+		BeatmapHPDropRateCalculator hpCalc = new BeatmapHPDropRateCalculator(beatmap, HPDrainRate, overallDifficulty);
+		hpCalc.calculate();
+		hpDropRate = hpCalc.getHpDropRate();
+		data.setHealthModifiers(HPDrainRate, hpCalc.getHpMultiplierNormal(), hpCalc.getHpMultiplierComboEnd());
 
 		// difficulty multiplier (scoring)
 		data.calculateDifficultyMultiplier(beatmap.HPDrainRate, beatmap.circleSize, beatmap.overallDifficulty);
@@ -2133,7 +2155,7 @@ public class Game extends BasicGameState {
 					continue;
 
 				// check if in range stack calculation
-				float timeI = hitObjectI.getTime() - (STACK_TIMEOUT * beatmap.stackLeniency);
+				float timeI = hitObjectI.getTime() - (approachTime * beatmap.stackLeniency);
 				float timeN = hitObjectN.isSlider() ? gameObjects[n].getEndTime() : hitObjectN.getTime();
 				if (timeI > timeN)
 					break;
@@ -2196,14 +2218,14 @@ public class Game extends BasicGameState {
 	 */
 	private void adjustLocalMusicOffset(int sign) {
 		if (pauseTime > -1) {
-			UI.sendBarNotification("Offset can only be changed while game is not paused.");
+			UI.getNotificationManager().sendBarNotification("Offset can only be changed while game is not paused.");
 			return;
 		}
 
 		boolean alt = input.isKeyDown(Input.KEY_LALT) || input.isKeyDown(Input.KEY_RALT);
 		int diff = sign * (alt ? 1 : 5);
 		int newOffset = Utils.clamp(beatmap.localMusicOffset + diff, -1000, 1000);
-		UI.sendBarNotification(String.format("Local beatmap offset set to %dms", newOffset));
+		UI.getNotificationManager().sendBarNotification(String.format("Local beatmap offset set to %dms", newOffset));
 		if (beatmap.localMusicOffset != newOffset) {
 			beatmap.localMusicOffset = newOffset;
 			BeatmapDB.updateLocalOffset(beatmap);

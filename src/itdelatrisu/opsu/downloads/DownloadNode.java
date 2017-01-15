@@ -1,6 +1,6 @@
 /*
  * opsu! - an open-source osu! client
- * Copyright (C) 2014, 2015, 2016 Jeffrey Han
+ * Copyright (C) 2014-2017 Jeffrey Han
  *
  * opsu! is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -284,7 +284,7 @@ public class DownloadNode {
 		if (url == null)
 			return;
 		/*
-		String path = String.format("%s%c%d", Options.getOSZDir(), File.separatorChar, beatmapSetID);
+		String path = String.format("%s%c%d", Options.getImportDir(), File.separatorChar, beatmapSetID);
 		*/
 		File path =  new File(Options.getOSZDir(),Integer.toString(beatmapSetID));
 		String rename = String.format("%d %s - %s.osz", beatmapSetID, artist, title);
@@ -292,12 +292,12 @@ public class DownloadNode {
 		download.setListener(new DownloadListener() {
 			@Override
 			public void completed() {
-				UI.sendBarNotification(String.format("Download complete: %s", getTitle()));
+				UI.getNotificationManager().sendNotification(String.format("Download complete: %s", getTitle()), Colors.GREEN);
 			}
 
 			@Override
 			public void error() {
-				UI.sendBarNotification("Download failed due to a connection error.");
+				UI.getNotificationManager().sendNotification("Download failed due to a connection error.", Color.red);
 			}
 		});
 		this.download = download;

@@ -1,6 +1,6 @@
 /*
  * opsu! - an open-source osu! client
- * Copyright (C) 2014, 2015, 2016 Jeffrey Han
+ * Copyright (C) 2014-2017 Jeffrey Han
  *
  * opsu! is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,6 +28,7 @@ import itdelatrisu.opsu.beatmap.HitObject;
 import itdelatrisu.opsu.downloads.Download;
 import itdelatrisu.opsu.downloads.DownloadNode;
 import itdelatrisu.opsu.replay.PlaybackSpeed;
+import itdelatrisu.opsu.ui.Colors;
 import itdelatrisu.opsu.ui.Fonts;
 import itdelatrisu.opsu.ui.UI;
 
@@ -82,6 +83,9 @@ import org.newdawn.slick.util.Log;
 
 import com.sun.jna.platform.FileUtils;
 */
+
+import net.lingala.zip4j.core.ZipFile;
+import net.lingala.zip4j.exception.ZipException;
 
 /**
  * Contains miscellaneous utilities.
@@ -235,6 +239,23 @@ public class Utils {
 	}
 
 	/**
+	 * Maps a difficulty value to the given range.
+	 * @param difficulty the difficulty value
+	 * @param min the min
+	 * @param mid the mid
+	 * @param max the max
+	 * @author peppy (ppy/osu-iPhone:OsuFunctions.m)
+	 */
+	public static float mapDifficultyRange(float difficulty, float min, float mid, float max) {
+		if (difficulty > 5f)
+			return mid + (max - mid) * (difficulty - 5f) / 5f;
+		else if (difficulty < 5f)
+			return mid - (mid - min) * (5f - difficulty) / 5f;
+		else
+			return mid;
+	}
+
+	/**
 	 * Returns true if a game input key is pressed (mouse/keyboard left/right).
 	 * @return true if pressed
 	 */
@@ -290,6 +311,10 @@ public class Utils {
 						}
 					}
 					ImageIO.write(image, Options.getScreenshotFormat(), file);
+					UI.getNotificationManager().sendNotification(
+						String.format("Saved screenshot to %s", file.getAbsolutePath()),
+						Colors.PURPLE
+					);
 				} catch (Exception e) {
 					ErrorHandler.error("Failed to take a screenshot.", e, true);
 				}
@@ -333,6 +358,21 @@ public class Utils {
 				cleanName.append(replace);
 		}
 		return cleanName.toString();
+	}
+
+	/**
+	 * Extracts the contents of a ZIP archive to a destination.
+	 * @param file the ZIP archive
+	 * @param dest the destination directory
+	 */
+	public static void unzip(File file, File dest) {
+		try {
+			ZipFile zipFile = new ZipFile(file);
+			zipFile.extractAll(dest.getAbsolutePath());
+		} catch (ZipException e) {
+			ErrorHandler.error(String.format("Failed to unzip file %s to dest %s.",
+					file.getAbsolutePath(), dest.getAbsolutePath()), e, false);
+		}
 	}
 
 	/**
@@ -406,6 +446,7 @@ public class Utils {
 		conn.setConnectTimeout(Download.CONNECTION_TIMEOUT);
 		conn.setReadTimeout(Download.READ_TIMEOUT);
 		conn.setUseCaches(false);
+		conn.setRequestProperty("User-Agent", "Mozilla/5.0...");
 		try {
 			conn.connect();
 		} catch (SocketTimeoutException e) {
