@@ -35,8 +35,6 @@ import org.newdawn.slick.util.Log;
 
 /**
  * Download server: https://osu.hexide.com/
- * <p>
- * <i>This server went offline in 2016.</i>
  */
 public class HexideServer extends DownloadServer {
 	/** Server name. */
@@ -75,6 +73,8 @@ public class HexideServer extends DownloadServer {
 	public DownloadNode[] resultList(String query, int page, boolean rankedOnly) throws IOException {
 		DownloadNode[] nodes = null;
 		try {
+			Utils.setSSLCertValidation(false);
+
 			// read JSON
 			int resultIndex = (page - 1) * PAGE_LIMIT;
 			String search;
@@ -133,6 +133,8 @@ public class HexideServer extends DownloadServer {
 			ErrorHandler.error(String.format("Problem loading result list for query '%s'.", query), e, true);
 		} catch (JSONException e) {
 			Log.error(e);
+		} finally {
+			Utils.setSSLCertValidation(true);
 		}
 		return nodes;
 	}
