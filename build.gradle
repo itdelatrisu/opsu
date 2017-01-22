@@ -23,7 +23,7 @@ targetCompatibility = 1.7
 sourceSets {
 	main {
 		java {
-			srcDir 'src'
+			srcDir 'src/main/java'
 		}
 	}
 }
@@ -75,7 +75,7 @@ nativePlatforms.each { platform -> //noinspection GroovyAssignabilityCheck
 }
 
 processResources {
-	from 'res'
+	from 'src/main/res'
 	exclude '**/Thumbs.db'
 
 	filesMatching('version') {
