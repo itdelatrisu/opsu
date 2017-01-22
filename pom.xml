@@ -67,12 +67,10 @@
 							<goal>exec</goal>
 						</goals>
 						<configuration>
-							<skip>${jar}</skip>
 							<executable>java</executable>
 							<arguments>
-								<argument>-cp</argument>
-								<classpath />
-								<argument>${mainClassName}</argument>
+								<argument>-jar</argument>
+								<argument>${project.build.directory}/${project.build.finalName}.jar</argument>
 							</arguments>
 						</configuration>
 					</execution>
