@@ -693,10 +693,8 @@ public class DownloadsMenu extends BasicGameState {
 													@Override
 													public void update(LineEvent event) {
 														if (event.getType() == LineEvent.Type.STOP) {
-															if (previewID != -1) {
-																SoundController.stopTrack();
+															if (previewID != -1)
 																previewID = -1;
-															}
 														}
 													}
 												}
