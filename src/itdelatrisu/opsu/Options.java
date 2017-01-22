@@ -386,7 +386,14 @@ public class Options {
 
 			@Override
 			public String getValueString() {
-				return String.format((getTargetFPS() == 60) ? "%dfps (vsync)" : "%dfps", getTargetFPS());
+                            if(getTargetFPS()==60){
+                                return String.format("%dfps (vsync)", getTargetFPS());
+                            } else if(getTargetFPS()==3000) {
+                                return String.format("Unlimited");
+                            } else {
+                                return String.format("%dfps",getTargetFPS());
+                            }
+                            //return String.format((getTargetFPS() == 60) ? "%dfps (vsync)" : "%dfps", getTargetFPS());
 			}
 
 			@Override
@@ -884,7 +891,7 @@ public class Options {
 	private static Skin skin;
 
 	/** Frame limiters. */
-	private static final int[] targetFPS = { 60, 120, 240 };
+	private static final int[] targetFPS = { 60, 120, 240, 500, 1000, 3000 };
 
 	/** Index in targetFPS[] array. */
 	private static int targetFPSindex = 0;
