@@ -1,5 +1,5 @@
 # opsu!
-A fork of [Opsu](https://github.com/itdelatrisu/opsu) using libgdx to fake slicks API.
+A fork of [opsu!](https://github.com/itdelatrisu/opsu) using libgdx to fake Slick2D's API.
 APK releases can be found [here](https://github.com/fluddokt/opsu/releases).
 
 ## Building
