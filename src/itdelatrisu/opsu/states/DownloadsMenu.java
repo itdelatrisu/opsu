@@ -18,6 +18,26 @@
 
 package itdelatrisu.opsu.states;
 
+import java.io.File;
+import java.io.IOException;
+
+import javax.sound.sampled.LineEvent;
+import javax.sound.sampled.LineListener;
+
+import org.newdawn.slick.Color;
+import org.newdawn.slick.GameContainer;
+import org.newdawn.slick.Graphics;
+import org.newdawn.slick.Image;
+import org.newdawn.slick.Input;
+import org.newdawn.slick.SlickException;
+import org.newdawn.slick.UnicodeFont;
+import org.newdawn.slick.gui.TextField;
+import org.newdawn.slick.state.BasicGameState;
+import org.newdawn.slick.state.StateBasedGame;
+import org.newdawn.slick.state.transition.EasedFadeOutTransition;
+import org.newdawn.slick.state.transition.FadeInTransition;
+import org.newdawn.slick.util.Log;
+
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.Options;
@@ -43,26 +63,6 @@ import itdelatrisu.opsu.ui.Fonts;
 import itdelatrisu.opsu.ui.KineticScrolling;
 import itdelatrisu.opsu.ui.MenuButton;
 import itdelatrisu.opsu.ui.UI;
-
-import java.io.File;
-import java.io.IOException;
-
-import javax.sound.sampled.LineEvent;
-import javax.sound.sampled.LineListener;
-
-import org.newdawn.slick.Color;
-import org.newdawn.slick.GameContainer;
-import org.newdawn.slick.Graphics;
-import org.newdawn.slick.Image;
-import org.newdawn.slick.Input;
-import org.newdawn.slick.SlickException;
-import org.newdawn.slick.UnicodeFont;
-import org.newdawn.slick.gui.TextField;
-import org.newdawn.slick.state.BasicGameState;
-import org.newdawn.slick.state.StateBasedGame;
-import org.newdawn.slick.state.transition.EasedFadeOutTransition;
-import org.newdawn.slick.state.transition.FadeInTransition;
-import org.newdawn.slick.util.Log;
 
 /**
  * Downloads menu.
@@ -692,7 +692,6 @@ public class DownloadsMenu extends BasicGameState {
 													public void update(LineEvent event) {
 														if (event.getType() == LineEvent.Type.STOP) {
 															if (previewID != -1) {
-																SoundController.stopTrack();
 																previewID = -1;
 															}
 														}
