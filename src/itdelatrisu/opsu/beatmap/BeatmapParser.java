@@ -289,7 +289,7 @@ public class BeatmapParser {
 										}
 									}
 									if (!match) {
-										Log.error(String.format("Audio file '%s' not found in directory '%s'.", tokens[1], dir.getName()));
+										Log.warn(String.format("Audio file '%s' not found in directory '%s'.", tokens[1], dir.getName()));
 										return null;
 									}
 								}

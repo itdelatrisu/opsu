@@ -131,7 +131,7 @@ public enum BeatmapSortOrder {
 				if (beatmap.dateAdded > wMax)
 					wMax = beatmap.dateAdded;
 			}
-			return Long.compare(vMax, wMax);
+			return Long2.compare(vMax, wMax);
 		}
 	}
 
@@ -147,7 +147,7 @@ public enum BeatmapSortOrder {
 				vTotal += beatmap.playCount;
 			for (Beatmap beatmap : w.getBeatmapSet())
 				wTotal += beatmap.playCount;
-			return Integer.compare(vTotal, wTotal);
+			return Integer2.compare(vTotal, wTotal);
 		}
 	}
 
