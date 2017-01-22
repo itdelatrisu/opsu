@@ -18,14 +18,6 @@
 
 package itdelatrisu.opsu.audio;
 
-import itdelatrisu.opsu.ErrorHandler;
-import itdelatrisu.opsu.Options;
-import itdelatrisu.opsu.audio.HitSound.SampleSet;
-import itdelatrisu.opsu.beatmap.HitObject;
-import itdelatrisu.opsu.downloads.Download;
-import itdelatrisu.opsu.downloads.Download.DownloadListener;
-import itdelatrisu.opsu.ui.UI;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -40,7 +32,16 @@ import javax.sound.sampled.LineListener;
 import javax.sound.sampled.LineUnavailableException;
 
 import org.newdawn.slick.SlickException;
+import org.newdawn.slick.util.Log;
 import org.newdawn.slick.util.ResourceLoader;
+
+import itdelatrisu.opsu.ErrorHandler;
+import itdelatrisu.opsu.Options;
+import itdelatrisu.opsu.audio.HitSound.SampleSet;
+import itdelatrisu.opsu.beatmap.HitObject;
+import itdelatrisu.opsu.downloads.Download;
+import itdelatrisu.opsu.downloads.Download.DownloadListener;
+import itdelatrisu.opsu.ui.UI;
 
 /**
  * Controller for all (non-music) sound components.
@@ -275,8 +276,10 @@ public class SoundController {
 	 * @param listener the line listener
 	 */
 	private static void playClip(MultiClip clip, float volume, LineListener listener) {
-		if (clip == null)  // clip failed to load properly
+		if (clip == null) {
+			Log.error("clip failed to load properly.");
 			return;
+		}
 
 		if (volume > 0f && !isMuted) {
 			try {

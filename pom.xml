@@ -12,19 +12,18 @@
 		<XDG>false</XDG>
 	</properties>
 	<build>
-		<sourceDirectory>src</sourceDirectory>
 		<resources>
 			<resource>
+                <directory>src/main/resources</directory>
 				<filtering>false</filtering>
-				<directory>res</directory>
 				<excludes>
 					<exclude>**/Thumbs.db</exclude>
 					<exclude>**/version</exclude>
 				</excludes>
 			</resource>
-			<resource>
+            <resource>
+                <directory>src/main/resources</directory>
 				<filtering>true</filtering>
-				<directory>res</directory>
 				<includes>
 					<include>**/version</include>
 				</includes>
@@ -55,6 +54,7 @@
 					</execution>
 				</executions>
 			</plugin>
+			
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>exec-maven-plugin</artifactId>
@@ -62,17 +62,15 @@
 				<executions>
 					<execution>
 						<id>run</id>
-						<phase>compile</phase>
+						<phase>integration-test</phase>
 						<goals>
 							<goal>exec</goal>
 						</goals>
 						<configuration>
-							<skip>${jar}</skip>
 							<executable>java</executable>
 							<arguments>
-								<argument>-cp</argument>
-								<classpath />
-								<argument>${mainClassName}</argument>
+								<argument>-jar</argument>
+								<argument>${project.build.directory}/${project.build.finalName}.jar</argument>
 							</arguments>
 						</configuration>
 					</execution>
@@ -207,6 +205,12 @@
 			<groupId>org.tukaani</groupId>
 			<artifactId>xz</artifactId>
 			<version>1.6</version>
+		</dependency>
+		<dependency>
+		    <groupId>junit</groupId>
+		    <artifactId>junit</artifactId>
+		    <version>4.12</version>
+		    <scope>test</scope>
 		</dependency>
 	</dependencies>
 </project>
