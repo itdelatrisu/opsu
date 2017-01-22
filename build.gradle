@@ -75,7 +75,7 @@ nativePlatforms.each { platform -> //noinspection GroovyAssignabilityCheck
 }
 
 processResources {
-	from 'src/main/res'
+	from 'src/main/resources'
 	exclude '**/Thumbs.db'
 
 	filesMatching('version') {
