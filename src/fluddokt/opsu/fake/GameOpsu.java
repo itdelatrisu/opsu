@@ -22,7 +22,7 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 public class GameOpsu extends com.badlogic.gdx.Game {
 
-	public final static String VERSION = "OpsuAnd0.14.0a";
+	public final static String VERSION = "0.14.0a";
 	public StateBasedGame sbg;
 	
 	Stage stage;
