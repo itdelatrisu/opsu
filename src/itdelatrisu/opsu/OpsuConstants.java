@@ -30,7 +30,7 @@ public class OpsuConstants {
 	public static final String PROJECT_NAME = "opsu!";
 
 	/** Project author. */
-	public static final String PROJECT_AUTHOR = "@itdelatrisu";
+	public static final String PROJECT_AUTHOR = "@itdelatrisu + @fluddokt";
 
 	/** Website address. */
 	public static final URI WEBSITE_URI = URI.create("https://itdelatrisu.github.io/opsu/");
@@ -39,7 +39,7 @@ public class OpsuConstants {
 	public static final URI REPOSITORY_URI = URI.create("https://github.com/fluddokt/opsu");
 
 	/** Credits address. */
-	public static final URI CREDITS_URI = URI.create("https://github.com/itdelatrisu/opsu/blob/master/CREDITS.md");
+	public static final URI CREDITS_URI = URI.create("https://github.com/fluddokt/opsu/blob/master/CREDITS.md");
 
 	/** Issue reporting address. */
 	public static final String ISSUES_URL = "https://github.com/fluddokt/opsu/issues/new?title=%s&body=%s";
@@ -48,7 +48,7 @@ public class OpsuConstants {
 	public static final String VERSION_REMOTE = "https://raw.githubusercontent.com/itdelatrisu/opsu/gh-pages/version";
 
 	/** Changelog address. */
-	private static final String CHANGELOG_URL = "https://github.com/itdelatrisu/opsu/releases/tag/%s";
+	private static final String CHANGELOG_URL = "https://github.com/fluddokt/opsu/releases/tag/%s";
 
 	/** Returns the changelog URI for the given version. */
 	public static URI getChangelogURI(String version) {

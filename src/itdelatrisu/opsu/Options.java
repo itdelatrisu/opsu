@@ -624,14 +624,14 @@ public class Options {
 						val - TimeUnit.MINUTES.toSeconds(TimeUnit.SECONDS.toMinutes(val)));
 			}
 		},
-		PARALLAX ("Parallax", "MenuParallax", "Add a parallax effect based on the current cursor position.", true),
+		PARALLAX ("Parallax", "MenuParallax", "Add a parallax effect based on the current cursor position.", false),
 		ENABLE_THEME_SONG ("Enable Theme Song", "MenuMusic", OpsuConstants.PROJECT_NAME + " will play themed music throughout the game, instead of using random beatmaps.", true),
 		REPLAY_SEEKING ("Replay Seeking", "ReplaySeeking", "Enable a seeking bar on the left side of the screen during replays.", false),
 		DISABLE_UPDATER ("Disable Automatic Updates", "DisableUpdater", "Disable automatic checking for updates upon startup.", false),
 		ENABLE_WATCH_SERVICE ("Enable Watch Service", "WatchService", "Watch the beatmap directory for changes. Requires a restart.", false),
 	
-		IN_GAME_PAUSE("In game pause button", "InGamePause", "Shows a in game pasue button.", false),
-		MOBILE_UI_SCALING ("Scales certain UI elements.", "MobileUIScale", "Scales certain UI elements. Requires Restart", 
+		IN_GAME_PAUSE("Enable in-game pause button", "InGamePause", "Displays a pause button during gameplay.", false),
+		MOBILE_UI_SCALING ("UI Scale", "MobileUIScale", "Scales certain UI elements. Requires a restart.", 
 				(com.badlogic.gdx.Gdx.graphics.getWidth()/com.badlogic.gdx.Gdx.graphics.getPpiX()) <= 6.0f?//screen width less than 6 inches
 						20:
 						10
@@ -651,7 +651,7 @@ public class Options {
 		},
 		NEW_SLIDER("Enable New Slider", "NewSlider", "Use the new Slider style.",true),
 		
-		SLIDER_QUALITY ("Old Slider Quality", "SliderQuality", "Lower values for better looking sliders (For old sliders).", 1, 1, 7) {
+		SLIDER_QUALITY ("Old Slider Quality", "SliderQuality", "Lower values for better-looking sliders (in the old slider style).", 1, 1, 7) {
 			@Override
 			public String getValueString() { 
 				switch(val){
@@ -683,8 +683,8 @@ public class Options {
 					val = 1;
 			}
 		},
-		SCOREBOARD("Show Scoreboard", "Scoreboard", "Shows the in game scoreboard.",true),
-		DISABLE_SPINNER_UI("Removes some spinner ui elements.", "DisableSpinnerUI", "Makes spinners less laggy maybe.", false),
+		SCOREBOARD("Enable in-game scoreboard", "Scoreboard", "Displays the in-game scoreboard.", false),
+		DISABLE_SPINNER_UI("Remove some spinner UI elements", "DisableSpinnerUI", "Makes spinners less laggy (maybe).", false),
 		
 		;
 
