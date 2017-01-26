@@ -100,7 +100,7 @@ public class SkinLoader {
 								if (tokens[1].equalsIgnoreCase("latest"))
 									skin.version = Skin.LATEST_VERSION;
 								else
-									skin.version = Integer.parseInt(tokens[1]);
+									skin.version = Float.parseFloat(tokens[1]);
 								break;
 							case "SliderBallFlip":
 								skin.sliderBallFlip = Utils.parseBoolean(tokens[1]);

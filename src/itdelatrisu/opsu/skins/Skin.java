@@ -39,7 +39,7 @@ public class Skin {
 		STYLE_OPENGLSLIDER = 4;  // not implemented
 
 	/** The latest skin version. */
-	protected static final int LATEST_VERSION = 2;
+	protected static final float LATEST_VERSION = 2;
 
 	/** The default list of combos with combo sounds. */
 	private static final int[] DEFAULT_CUSTOM_COMBO_BURST_SOUNDS = { 50, 75, 100, 200, 300 };
@@ -87,7 +87,7 @@ public class Skin {
 	protected String author = "[various authors]";
 
 	/** The skin version. */
-	protected int version = LATEST_VERSION;
+	protected float version = LATEST_VERSION;
 
 	/** When a slider has a reverse, should the ball sprite flip horizontally? */
 	protected boolean sliderBallFlip = false;
@@ -213,7 +213,7 @@ public class Skin {
 	/**
 	 * Returns the skin version.
 	 */
-	public int getVersion() { return version; }
+	public float getVersion() { return version; }
 
 	/**
 	 * Returns whether the slider ball should be flipped horizontally during a reverse.
