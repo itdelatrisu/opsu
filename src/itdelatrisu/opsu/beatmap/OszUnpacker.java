@@ -84,7 +84,7 @@ public class OszUnpacker {
 
 		if (!dirs.isEmpty()) {
 			String text = String.format("Imported %d new beatmap pack%s.", dirs.size(), dirs.size() == 1 ? "" : "s");
-			UI.getNotificationManager().bufferNotification(text);
+			UI.getNotificationManager().sendNotification(text);
 		}
 
 		return dirs.toArray(new File[dirs.size()]);

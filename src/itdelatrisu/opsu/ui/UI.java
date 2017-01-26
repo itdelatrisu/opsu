@@ -111,7 +111,7 @@ public class UI {
 		backButton.setHoverExpand(MenuButton.Expand.UP_RIGHT);
 
 		// notification manager
-		notificationManager = new NotificationManager(container, game);
+		notificationManager = new NotificationManager(container);
 	}
 
 	/**

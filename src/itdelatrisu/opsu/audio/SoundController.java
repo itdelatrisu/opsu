@@ -280,7 +280,7 @@ public class SoundController {
 					}
 				};
 			}
-			UI.getNotificationManager().bufferNotification(text, Color.red, listener);
+			UI.getNotificationManager().sendNotification(text, Color.red, listener);
 		}
 	}
 

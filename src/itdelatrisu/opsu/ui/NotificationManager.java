@@ -18,7 +18,6 @@
 
 package itdelatrisu.opsu.ui;
 
-import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.ui.animations.AnimationEquation;
 
 import java.util.ArrayList;
@@ -31,7 +30,6 @@ import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.MouseListener;
 import org.newdawn.slick.UnicodeFont;
-import org.newdawn.slick.state.StateBasedGame;
 
 /**
  * Notification manager.
@@ -98,15 +96,6 @@ public class NotificationManager {
 			this.width = width;
 			this.height = (int) (font.getLineHeight() * (lines.size() + 0.5f));
 		}
-
-		/** Returns the notification string. */
-		public String getMessage() { return message; }
-
-		/** Returns the border color. */
-		public Color getColor() { return borderColor; }
-
-		/** Returns the listener (if any). */
-		public NotificationListener getListener() { return listener; }
 
 		/** Returns the x position. */
 		public int getX() { return x; }
@@ -221,9 +210,6 @@ public class NotificationManager {
 	/** All bubble notifications. */
 	private List<BubbleNotification> notifications;
 
-	/** Buffered bubble notifications (release with {@link #unbufferNotifications()}. */
-	private List<BubbleNotification> notificationBuffer;
-
 	/** The current bar notification string. */
 	private String barNotif;
 
@@ -232,20 +218,16 @@ public class NotificationManager {
 
 	// game-related variables
 	private final GameContainer container;
-	private final StateBasedGame game;
 	private final Input input;
 
 	/**
 	 * Constructor.
 	 * @param container the game container
-	 * @param game the game object
 	 */
-	public NotificationManager(GameContainer container, StateBasedGame game) {
+	public NotificationManager(GameContainer container) {
 		this.container = container;
-		this.game = game;
 		this.input = container.getInput();
 		this.notifications = Collections.synchronizedList(new ArrayList<BubbleNotification>());
-		this.notificationBuffer = new ArrayList<BubbleNotification>();
 		input.addMouseListener(new MouseListener() {
 			@Override
 			public void mousePressed(int button, int x, int y) {
@@ -341,10 +323,6 @@ public class NotificationManager {
 			if (barNotifTimer > BAR_NOTIFICATION_TIME)
 				barNotifTimer = BAR_NOTIFICATION_TIME;
 		}
-
-		// unbuffer notifications if we're not in the splash screen
-		if (!notificationBuffer.isEmpty() && game.getCurrentStateID() != Opsu.STATE_SPLASH)
-			unbufferNotifications();
 	}
 
 	/**
@@ -386,38 +364,6 @@ public class NotificationManager {
 		}
 		notif.setPosition(x, y);
 		notifications.add(notif);
-	}
-
-	/**
-	 * Buffers a bubble notification, drawn when {@link #unbufferNotifications()} is called.
-	 * @param s the notification string
-	 */
-	public void bufferNotification(String s) { bufferNotification(s, Color.white); }
-
-	/**
-	 * Buffers a bubble notification, drawn when {@link #unbufferNotifications()} is called.
-	 * @param s the notification string
-	 * @param c the border color
-	 */
-	public void bufferNotification(String s, Color c) { bufferNotification(s, c, null); }
-
-	/**
-	 * Buffers a bubble notification, drawn when {@link #unbufferNotifications()} is called.
-	 * @param s the notification string
-	 * @param c the border color
-	 * @param listener the listener
-	 */
-	public void bufferNotification(String s, Color c, NotificationListener listener) {
-		notificationBuffer.add(new BubbleNotification(s, c, listener, container.getWidth() / 5));
-	}
-
-	/**
-	 * Releases all buffered notifications.
-	 */
-	public synchronized void unbufferNotifications() {
-		for (BubbleNotification n : notificationBuffer)
-			sendNotification(n.getMessage(), n.getColor(), n.getListener());
-		notificationBuffer.clear();
 	}
 
 	/**
