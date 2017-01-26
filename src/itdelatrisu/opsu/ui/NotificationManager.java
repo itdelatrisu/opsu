@@ -201,6 +201,9 @@ public class NotificationManager {
 		/** Returns whether this notification is finished being displayed. */
 		public boolean isFinished() { return time >= NOTIFICATION_TIME; }
 
+		/** Returns whether this notification has finished animating in. */
+		public boolean isStartAnimationFinished() { return time >= NOTIFICATION_ANIMATION_TIME; }
+
 		/**
 		 * Click handler.
 		 * @param doAction whether to fire the listener
@@ -242,7 +245,7 @@ public class NotificationManager {
 		this.game = game;
 		this.input = container.getInput();
 		this.notifications = Collections.synchronizedList(new ArrayList<BubbleNotification>());
-		this.notificationBuffer = Collections.synchronizedList(new ArrayList<BubbleNotification>());
+		this.notificationBuffer = new ArrayList<BubbleNotification>();
 		input.addMouseListener(new MouseListener() {
 			@Override
 			public void mousePressed(int button, int x, int y) {
@@ -320,10 +323,14 @@ public class NotificationManager {
 	 */
 	public void update(int delta) {
 		// update notifications
-		boolean allFinished = true;
+		boolean allFinished = true, startFinished = true;
 		for (BubbleNotification n : notifications) {
-			if (n.update(delta))
+			if (startFinished) {
+				if (n.update(delta))
+					allFinished = false;
+			} else if (!n.isFinished())
 				allFinished = false;
+			startFinished = n.isStartAnimationFinished();
 		}
 		if (allFinished)
 			notifications.clear();  // clear when all are finished showing
@@ -336,7 +343,7 @@ public class NotificationManager {
 		}
 
 		// unbuffer notifications if we're not in the splash screen
-		if (game.getCurrentStateID() != Opsu.STATE_SPLASH)
+		if (!notificationBuffer.isEmpty() && game.getCurrentStateID() != Opsu.STATE_SPLASH)
 			unbufferNotifications();
 	}
 
