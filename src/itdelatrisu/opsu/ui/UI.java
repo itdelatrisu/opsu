@@ -72,7 +72,7 @@ public class UI {
 
 	/** The displayed FPS. */
 	private static float fpsDisplay = 0f;
-	
+
 	/** Notification manager. */
 	private static NotificationManager notificationManager;
 
@@ -109,9 +109,9 @@ public class UI {
 		backButton.setHoverAnimationDuration(350);
 		backButton.setHoverAnimationEquation(AnimationEquation.IN_OUT_BACK);
 		backButton.setHoverExpand(MenuButton.Expand.UP_RIGHT);
-		
+
 		// notification manager
-		notificationManager = new NotificationManager(container);
+		notificationManager = new NotificationManager(container, game);
 	}
 
 	/**
@@ -167,7 +167,7 @@ public class UI {
 	 * Returns the game cursor.
 	 */
 	public static Cursor getCursor() { return cursor; }
-	
+
 	/**
 	 * Returns the notification manager instance.
 	 */
