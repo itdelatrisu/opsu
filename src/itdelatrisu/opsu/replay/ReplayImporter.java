@@ -23,6 +23,7 @@ import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.beatmap.Beatmap;
 import itdelatrisu.opsu.beatmap.BeatmapSetList;
 import itdelatrisu.opsu.db.ScoreDB;
+import itdelatrisu.opsu.ui.UI;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -76,6 +77,7 @@ public class ReplayImporter {
 		}
 
 		// import OSRs
+		int importCount = 0;
 		for (File file : files) {
 			fileIndex++;
 			Replay r = new Replay(file);
@@ -95,6 +97,7 @@ public class ReplayImporter {
 				File moveToFile = new File(replayDir, String.format("%s.osr", r.getReplayFilename()));
 				try {
 					Files.move(file.toPath(), moveToFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+					importCount++;
 				} catch (IOException e) {
 					Log.warn(String.format("Failed to move replay '%s' to the replay directory '%s'.", file, replayDir), e);
 				}
@@ -107,6 +110,11 @@ public class ReplayImporter {
 
 		fileIndex = -1;
 		files = null;
+
+		if (importCount > 0) {
+			String text = String.format("Imported %d replay%s.", importCount, importCount == 1 ? "" : "s");
+			UI.getNotificationManager().bufferNotification(text);
+		}
 	}
 
 	/**

@@ -283,13 +283,8 @@ public class DownloadsMenu extends BasicGameState {
 			File[] dirs = OszUnpacker.unpackAllFiles(Options.getImportDir(), Options.getBeatmapDir());
 			if (dirs != null && dirs.length > 0) {
 				this.importedNode = BeatmapParser.parseDirectories(dirs);
-				if (importedNode != null) {
-					// send notification
-					UI.getNotificationManager().sendNotification((dirs.length == 1) ?
-						"Imported 1 new song." : String.format("Imported %d new songs.", dirs.length));
-				} else {
+				if (importedNode == null)
 					UI.getNotificationManager().sendNotification("No Standard beatmaps could be loaded.", Color.red);
-				}
 			}
 
 			DownloadList.get().clearDownloads(Download.Status.COMPLETE);
