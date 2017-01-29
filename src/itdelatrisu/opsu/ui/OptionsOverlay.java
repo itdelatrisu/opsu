@@ -607,12 +607,8 @@ public class OptionsOverlay extends AbstractComponent {
 		int sliderEndX = optionStartX + optionWidth;
 
 		if (hoverOption == option) {
-			if (!isAdjustingSlider) {
-				sliderOptionWidth = sliderLen;
-				sliderOptionStartX = sliderStartX;
-			} else {
-				sliderLen = sliderOptionWidth;
-			}
+			sliderOptionWidth = sliderLen;
+			sliderOptionStartX = sliderStartX;
 		}
 
 		// draw slider
@@ -705,6 +701,7 @@ public class OptionsOverlay extends AbstractComponent {
 		if (!active)
 			return;
 
+
 		// update the search field key repeat
 		searchField.performKeyRepeat();
 
@@ -752,7 +749,7 @@ public class OptionsOverlay extends AbstractComponent {
 		}
 
 		// update open list animation progress
-		if (isListOptionOpen || listAnimationTime >= 0) {
+		if (isListOptionOpen || listAnimationTime > 0) {
 			if (isListOptionOpen) {
 				listAnimationTime = Math.min(LISTOPENANIMATIONTIME, listAnimationTime + delta);
 			} else {
