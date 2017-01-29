@@ -314,6 +314,7 @@ public class OptionsOverlay extends AbstractComponent {
 		searchField.setFocus(true);
 
 		this.scrolling = new KineticScrolling();
+		this.scrolling.setAllowOverScroll(true);
 	}
 
 	@Override
@@ -506,9 +507,6 @@ public class OptionsOverlay extends AbstractComponent {
 		}
 		if (maxScrollOffset < 0) {
 			maxScrollOffset = 0;
-		}
-		if (scrolling.getPosition() > maxScrollOffset) {
-			scrolling.setPosition(maxScrollOffset);
 		}
 		scrolling.setMinMax(0, maxScrollOffset);
 	}
