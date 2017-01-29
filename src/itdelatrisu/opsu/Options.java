@@ -837,7 +837,7 @@ public class Options {
 				filtered = false;
 				return false;
 			}
-			filtered = !(displayName.toLowerCase().contains(searchString) || description.toLowerCase().contains(searchString));
+			filtered = !(name.toLowerCase().contains(searchString) || description.toLowerCase().contains(searchString));
 			return filtered;
 		}
 
