@@ -311,6 +311,7 @@ public class OptionsOverlay extends AbstractComponent {
 		restartButton.setHoverRotate(360);
 
 		searchField = new TextField(container, null, 0, 0, 0, 0);
+		searchField.setMaxLength(20);
 
 		this.scrolling = new KineticScrolling();
 		this.scrolling.setAllowOverScroll(true);
