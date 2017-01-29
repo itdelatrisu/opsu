@@ -727,13 +727,9 @@ public class OptionsOverlay extends AbstractComponent {
 		}
 
 		// delta updates
-		if (hoverOption != null && getOptionAtPosition(mouseX, mouseY) == hoverOption && !keyEntryLeft && !keyEntryRight) {
-			String tip = hoverOption.getDescription();
-			if (hoverOption.getType() == OptionType.NUMERIC) {
-				tip = "(" + hoverOption.getValueString() + ") " + tip;
-			}
-			UI.updateTooltip(delta, tip, false);
-		} else if (showRestartButton && restartButton.contains(mouseX, mouseY) && !keyEntryLeft && !keyEntryRight)
+		if (hoverOption != null && getOptionAtPosition(mouseX, mouseY) == hoverOption && !keyEntryLeft && !keyEntryRight)
+			UI.updateTooltip(delta, hoverOption.getDescription(), true);
+		else if (showRestartButton && restartButton.contains(mouseX, mouseY) && !keyEntryLeft && !keyEntryRight)
 			UI.updateTooltip(delta, "Click to restart the game.", false);
 		backButton.hoverUpdate(delta, backButton.contains(mouseX, mouseY) && !keyEntryLeft && !keyEntryRight);
 		if (showRestartButton)
