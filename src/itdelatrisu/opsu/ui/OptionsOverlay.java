@@ -703,10 +703,6 @@ public class OptionsOverlay extends AbstractComponent {
 		if (!active)
 			return;
 
-
-		// update the search field key repeat
-		searchField.performKeyRepeat();
-
 		// check if mouse moved
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
 		boolean mouseMoved;
