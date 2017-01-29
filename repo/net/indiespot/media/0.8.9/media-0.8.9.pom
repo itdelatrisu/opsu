@@ -1,0 +1,25 @@
+<project>
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>net.indiespot</groupId>
+	<artifactId>media</artifactId>
+	<packaging>pom</packaging>
+	<developers>
+		<developer>
+			<id>author</id>
+			<name>Riven</name>
+			<url>http://www.java-gaming.org/topics/yunpm-a-java-media-player/27100/view.html</url>
+		</developer>
+	</developers>
+	<name>YUNPM - A Java Media Player</name>
+	<version>0.8.9</version>
+	<description>core</description>
+	<url>https://github.com/riven8192/LibMedia</url>
+	<dependencies>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>media-platform</artifactId>
+			<version>${project.version}</version>
+			<classifier>natives-all</classifier>
+		</dependency>
+	</dependencies>
+</project>

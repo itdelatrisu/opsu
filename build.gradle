@@ -17,6 +17,11 @@ if (hasProperty('XDG')) {
 	useXDG = XDG
 }
 
+def excludeFFmpeg = false
+if (hasProperty('excludeFFmpeg')) {
+	excludeFFmpeg = true
+}
+
 sourceCompatibility = 1.7
 targetCompatibility = 1.7
 
@@ -30,6 +35,9 @@ sourceSets {
 
 repositories {
 	mavenCentral()
+	maven {
+		url "$rootProject.projectDir/repo"
+	}
 }
 
 dependencies {
@@ -53,9 +61,10 @@ dependencies {
 	compile 'net.java.dev.jna:jna-platform:4.2.2'
 	compile 'org.apache.maven:maven-artifact:3.3.3'
 	compile 'org.tukaani:xz:1.6'
+	compile 'net.indiespot:media:0.8.9'
 }
 
-def nativePlatforms = ['windows', 'linux', 'osx']
+def nativePlatforms = ['windows', 'linux', 'osx', 'all']
 nativePlatforms.each { platform -> //noinspection GroovyAssignabilityCheck
 	task "${platform}Natives" {
 		def outputDir = "${buildDir}/natives/"
@@ -101,6 +110,8 @@ jar {
 
 	from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
 	exclude '**/Thumbs.db'
+	if (excludeFFmpeg)
+		exclude 'ffmpeg*'
 
 	outputs.upToDateWhen { false }
 }

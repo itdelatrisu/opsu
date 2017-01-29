@@ -31,6 +31,7 @@ import itdelatrisu.opsu.states.MainMenu;
 import itdelatrisu.opsu.states.SongMenu;
 import itdelatrisu.opsu.states.Splash;
 import itdelatrisu.opsu.ui.UI;
+import itdelatrisu.opsu.video.FFmpeg;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -164,6 +165,7 @@ public class Opsu extends StateBasedGame {
 		} catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
 			Log.warn("Failed to set 'sys_paths' field.", e);
 		}
+		FFmpeg.setNativeDir(nativeDir);
 
 		// set the resource paths
 		ResourceLoader.addResourceLocation(new FileSystemLocation(new File("./res/")));

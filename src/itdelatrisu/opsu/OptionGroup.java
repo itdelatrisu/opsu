@@ -51,6 +51,7 @@ public class OptionGroup {
 		new OptionGroup("Gameplay", new GameOption[] {
 			GameOption.BACKGROUND_DIM,
 			GameOption.FORCE_DEFAULT_PLAYFIELD,
+			GameOption.ENABLE_VIDEOS,
 			GameOption.IGNORE_BEATMAP_SKINS,
 			GameOption.SNAKING_SLIDERS,
 			GameOption.SHOW_HIT_LIGHTING,

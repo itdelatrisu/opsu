@@ -198,7 +198,10 @@ public class Beatmap implements Comparable<Beatmap> {
 	public File bg;
 
 	/** Background video file. */
-//	public File video;
+	public File video;
+
+	/** Background video offset time. */
+	public int videoOffset = 0;
 
 	/** All break periods (start time, end time, ...). */
 	public ArrayList<Integer> breaks;

@@ -18,6 +18,8 @@
 
 package itdelatrisu.opsu;
 
+import itdelatrisu.opsu.video.FFmpeg;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -99,6 +101,10 @@ public class NativeLoader {
 			if (name.endsWith(".dylib") || name.endsWith(".jnilib"))
 				return true;
 		}
+
+		if (name.equals(FFmpeg.DEFAULT_NATIVE_FILENAME.toLowerCase()))
+			return true;
+
 		return false;
 	}
 }

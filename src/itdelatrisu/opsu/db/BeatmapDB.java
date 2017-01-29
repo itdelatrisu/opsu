@@ -45,7 +45,7 @@ public class BeatmapDB {
 	 * This value should be changed whenever the database format changes.
 	 * Add any update queries to the {@link #getUpdateQueries(int)} method.
 	 */
-	private static final int DATABASE_VERSION = 20161225;
+	private static final int DATABASE_VERSION = 20170128;
 
 	/**
 	 * Returns a list of SQL queries to apply, in order, to update from
@@ -65,6 +65,11 @@ public class BeatmapDB {
 		if (version < 20161225) {
 			list.add("ALTER TABLE beatmaps ADD COLUMN localOffset INTEGER");
 			list.add("UPDATE beatmaps SET localOffset = 0");
+		}
+		if (version < 20170128) {
+			list.add("ALTER TABLE beatmaps ADD COLUMN video TEXT");
+			list.add("ALTER TABLE beatmaps ADD COLUMN videoOffset INTEGER");
+			list.add("UPDATE beatmaps SET videoOffset = 0");
 		}
 
 		/* add future updates here */
@@ -151,7 +156,7 @@ public class BeatmapDB {
 				"INSERT INTO beatmaps VALUES (" +
 					"?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?," +
 					"?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?," +
-					"?, ?, ?, ?, ?, ?, ?" +
+					"?, ?, ?, ?, ?, ?, ?, ?, ?" +
 				")"
 			);
 			selectStmt = connection.prepareStatement("SELECT * FROM beatmaps WHERE dir = ? AND file = ?");
@@ -184,7 +189,8 @@ public class BeatmapDB {
 					"mode INTEGER, letterboxInBreaks BOOLEAN, widescreenStoryboard BOOLEAN, epilepsyWarning BOOLEAN, " +
 					"bg TEXT, sliderBorder TEXT, timingPoints TEXT, breaks TEXT, combo TEXT, " +
 					"md5hash TEXT, stars REAL, " +
-					"dateAdded INTEGER, favorite BOOLEAN, playCount INTEGER, lastPlayed INTEGER, localOffset INTEGER" +
+					"dateAdded INTEGER, favorite BOOLEAN, playCount INTEGER, lastPlayed INTEGER, localOffset INTEGER, " +
+					"video TEXT, videoOffset INTEGER" +
 				"); " +
 				"CREATE TABLE IF NOT EXISTS info (" +
 					"key TEXT NOT NULL UNIQUE, value TEXT" +
@@ -434,6 +440,8 @@ public class BeatmapDB {
 			stmt.setInt(45, beatmap.playCount);
 			stmt.setLong(46, beatmap.lastPlayed);
 			stmt.setInt(47, beatmap.localMusicOffset);
+			stmt.setString(48, (beatmap.video == null) ? null : beatmap.video.getName());
+			stmt.setInt(49, beatmap.videoOffset);
 		} catch (SQLException e) {
 			throw e;
 		} catch (Exception e) {
@@ -582,6 +590,10 @@ public class BeatmapDB {
 			beatmap.playCount = rs.getInt(45);
 			beatmap.lastPlayed = rs.getLong(46);
 			beatmap.localMusicOffset = rs.getInt(47);
+			String video = rs.getString(48);
+			if (video != null)
+				beatmap.video = new File(dir, BeatmapParser.getDBString(video));
+			beatmap.videoOffset = rs.getInt(49);
 		} catch (SQLException e) {
 			throw e;
 		} catch (Exception e) {

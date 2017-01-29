@@ -72,18 +72,22 @@ Maven builds are built to the `target` directory.
 * To run the project, execute the Maven goal `compile`.
 * To create a single executable jar, execute the Maven goal `package -Djar`.
   This will compile a jar to `target/opsu-${version}.jar` with the libraries,
-  resources and natives packed inside the jar.  Setting the "XDG" property
-  (`-DXDG=true`) will make the application use XDG folders under Unix-like
-  operating systems.
+  resources and natives packed inside the jar.
+  * Setting the "XDG" property (`-DXDG=true`) will make the application use XDG
+    folders under Unix-like operating systems.
+  * Setting the "exclude" property to "ffmpeg" (`-Dexclude=ffmpeg`) will exclude
+    FFmpeg shared libraries from the jar.
 
 ### Gradle
 Gradle builds are built to the `build` directory.
 * To run the project, execute the Gradle task `run`.
 * To create a single executable jar, execute the Gradle task `jar`.
   This will compile a jar to `build/libs/opsu-${version}.jar` with the libraries,
-  resources and natives packed inside the jar.  Setting the "XDG" property
-  (`-PXDG=true`) will make the application use XDG folders under Unix-like
-  operating systems.
+  resources and natives packed inside the jar.
+  * Setting the "XDG" property (`-PXDG=true`) will make the application use XDG
+    folders under Unix-like operating systems.
+  * Setting the "excludeFFmpeg" property (`-PexcludeFFmpeg`) will exclude
+    FFmpeg shared libraries from the jar.
 
 ## Credits
 This software was created by Jeffrey Han

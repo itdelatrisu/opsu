@@ -470,11 +470,17 @@ public class BeatmapParser {
 							break;
 						tokens = line.split(",");
 						switch (tokens[0]) {
-						case "0":  // background
+						case "0":  // background image
 							tokens[2] = tokens[2].replaceAll("^\"|\"$", "");
 							String ext = BeatmapParser.getExtension(tokens[2]);
 							if (ext.equals("jpg") || ext.equals("png"))
 								beatmap.bg = new File(dir, getDBString(tokens[2]));
+							break;
+						case "1":
+						case "Video":  // background video
+							tokens[2] = tokens[2].replaceAll("^\"|\"$", "");
+							beatmap.video = new File(dir, getDBString(tokens[2]));
+							beatmap.videoOffset = Integer.parseInt(tokens[1]);
 							break;
 						case "2":  // break periods
 							try {

@@ -124,6 +124,9 @@ public class Options {
 	/** The root skin directory. */
 	private static File skinRootDir;
 
+	/** The custom FFmpeg location (or null for the default). */
+	private static File FFmpegPath;
+
 	/** Port binding. */
 	private static int port = 49250;
 
@@ -249,6 +252,13 @@ public class Options {
 
 			@Override
 			public void read(String s) { skinRootDir = new File(s); }
+		},
+		FFMPEG_PATH ("FFmpegPath") {
+			@Override
+			public String write() { return (FFmpegPath == null) ? "" : FFmpegPath.getAbsolutePath(); }
+
+			@Override
+			public void read(String s) { if (!s.isEmpty()) FFmpegPath = new File(s); }
 		},
 		THEME_SONG ("ThemeSong") {
 			@Override
@@ -533,6 +543,7 @@ public class Options {
 		DISABLE_CURSOR ("Disable Cursor", "DisableCursor", "Hide the cursor sprite.", false),
 		BACKGROUND_DIM ("Background Dim", "DimLevel", "Percentage to dim the background image during gameplay.", 50, 0, 100),
 		FORCE_DEFAULT_PLAYFIELD ("Force Default Playfield", "ForceDefaultPlayfield", "Override the song background with the default playfield background.", false),
+		ENABLE_VIDEOS ("Background Video", "Video", "Enables background video playback.\nIf you get a large amount of lag on beatmaps with video, try disabling this feature.", true),
 		IGNORE_BEATMAP_SKINS ("Ignore All Beatmap Skins", "IgnoreBeatmapSkins", "Never use skin element overrides provided by beatmaps.", false),
 		SNAKING_SLIDERS ("Snaking sliders", "SnakingSliders", "Sliders gradually snake out from their starting point.", true),
 		SHOW_HIT_LIGHTING ("Show Hit Lighting", "HitLighting", "Adds an effect behind hit explosions.", true),
@@ -1068,6 +1079,12 @@ public class Options {
 	public static boolean isDefaultPlayfieldForced() { return GameOption.FORCE_DEFAULT_PLAYFIELD.getBooleanValue(); }
 
 	/**
+	 * Returns whether or not beatmap videos are enabled.
+	 * @return true if enabled
+	 */
+	public static boolean isBeatmapVideoEnabled() { return GameOption.ENABLE_VIDEOS.getBooleanValue(); }
+
+	/**
 	 * Returns whether or not beatmap skins are ignored.
 	 * @return true if ignored
 	 */
@@ -1402,6 +1419,12 @@ public class Options {
 		File dir = new File(root, skinName);
 		return (dir.isDirectory()) ? dir : null;
 	}
+
+	/**
+	 * Returns the custom FFmpeg shared library location.
+	 * @return the file, or {@code null} if the default location should be used
+	 */
+	public static File getFFmpegLocation() { return FFmpegPath; }
 
 	/**
 	 * Returns a dummy Beatmap containing the theme song.

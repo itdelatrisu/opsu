@@ -55,8 +55,11 @@ import itdelatrisu.opsu.ui.StarStream;
 import itdelatrisu.opsu.ui.UI;
 import itdelatrisu.opsu.ui.animations.AnimatedValue;
 import itdelatrisu.opsu.ui.animations.AnimationEquation;
+import itdelatrisu.opsu.video.FFmpeg;
+import itdelatrisu.opsu.video.Video;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.IdentityHashMap;
 import java.util.LinkedList;
 import java.util.Stack;
@@ -76,6 +79,7 @@ import org.newdawn.slick.state.transition.DelayedFadeOutTransition;
 import org.newdawn.slick.state.transition.EasedFadeOutTransition;
 import org.newdawn.slick.state.transition.EmptyTransition;
 import org.newdawn.slick.state.transition.FadeInTransition;
+import org.newdawn.slick.util.Log;
 
 /**
  * "Game" state.
@@ -295,6 +299,15 @@ public class Game extends BasicGameState {
 	/** The last track position. */
 	private int lastTrackPosition = 0;
 
+	/** The beatmap video (if any). */
+	private Video video;
+
+	/** The video start time (if any), otherwise -1. */
+	private int videoStartTime;
+
+	/** The video seek time (if any). */
+	private int videoSeekTime;
+
 	/** Music position bar background colors. */
 	private static final Color
 		MUSICBAR_NORMAL = new Color(12, 9, 10, 0.25f),
@@ -365,17 +378,23 @@ public class Game extends BasicGameState {
 
 		// background
 		float dimLevel = Options.getBackgroundDim();
-		if (trackPosition < firstObjectTime) {
-			if (timeDiff < approachTime)
-				dimLevel += (1f - dimLevel) * ((float) timeDiff / approachTime);
-			else
-				dimLevel = 1f;
-		}
-		if (Options.isDefaultPlayfieldForced() || !beatmap.drawBackground(width, height, 0, 0, dimLevel, false)) {
-			Image bg = GameImage.MENU_BG.getImage();
-			bg.setAlpha(dimLevel);
-			bg.drawCentered(width / 2, height / 2);
-			bg.setAlpha(1f);
+		if (video != null && video.isStarted() && !video.isFinished()) {
+			// video
+			video.render(0, 0, width, height, dimLevel);
+		} else {
+			// image
+			if (trackPosition < firstObjectTime) {
+				if (timeDiff < approachTime)
+					dimLevel += (1f - dimLevel) * ((float) timeDiff / approachTime);
+				else
+					dimLevel = 1f;
+			}
+			if (Options.isDefaultPlayfieldForced() || !beatmap.drawBackground(width, height, 0, 0, dimLevel, false)) {
+				Image bg = GameImage.MENU_BG.getImage();
+				bg.setAlpha(dimLevel);
+				bg.drawCentered(width / 2, height / 2);
+				bg.setAlpha(1f);
+			}
 		}
 
 		if (GameMod.FLASHLIGHT.isActive())
@@ -733,6 +752,8 @@ public class Game extends BasicGameState {
 				pauseTime = -1;
 				if (!isLeadIn())
 					MusicController.resume();
+				if (video != null)
+					video.resume();
 			}
 
 			// focus lost: go back to pause screen
@@ -775,7 +796,15 @@ public class Game extends BasicGameState {
 				return;
 			}
 			MusicController.resume();
+			if (video != null)
+				video.resume();
 			deathTime = -1;
+		}
+
+		// update video
+		if (video != null && !video.isFinished()) {
+			if (trackPosition >= videoStartTime)
+				video.update(trackPosition - videoStartTime - videoSeekTime);
 		}
 
 		// normal game update
@@ -787,6 +816,8 @@ public class Game extends BasicGameState {
 			// out of frames, use previous data
 			if (replayIndex >= replay.frames.length)
 				updateGame(replayX, replayY, delta, MusicController.getPosition(true), lastKeysPressed);
+
+			boolean hasVideo = (video != null);
 
 			// seeking to a position earlier than original track position
 			if (isSeeking && replayIndex - 1 >= 1 && replayIndex < replay.frames.length &&
@@ -827,6 +858,8 @@ public class Game extends BasicGameState {
 			if (isSeeking) {
 				isSeeking = false;
 				SoundController.mute(false);
+				if (hasVideo)
+					loadVideo(trackPosition);
 			}
 		}
 
@@ -946,6 +979,8 @@ public class Game extends BasicGameState {
 			}
 			if (MusicController.isPlaying() || isLeadIn())
 				pauseTime = trackPosition;
+			if (video != null)
+				video.pause();
 			game.enterState(Opsu.STATE_GAMEPAUSEMENU, new EmptyTransition(), new FadeInTransition());
 		}
 
@@ -960,6 +995,8 @@ public class Game extends BasicGameState {
 				if (deaths < 3) {
 					deathTime = trackPosition;
 					MusicController.pause();
+					if (video != null)
+						video.pause();
 					return;
 				}
 			}
@@ -1042,6 +1079,8 @@ public class Game extends BasicGameState {
 			}
 			if (MusicController.isPlaying() || isLeadIn())
 				pauseTime = trackPosition;
+			if (video != null)
+				video.pause();
 			game.enterState(Opsu.STATE_GAMEPAUSEMENU, new EmptyTransition(), new FadeInTransition());
 			break;
 		case Input.KEY_SPACE:
@@ -1102,6 +1141,8 @@ public class Game extends BasicGameState {
 					// skip to checkpoint
 					MusicController.setPosition(checkpoint);
 					MusicController.setPitch(GameMod.getSpeedMultiplier() * playbackSpeed.getModifier());
+					if (video != null)
+						loadVideo(checkpoint);
 					while (objectIndex < gameObjects.length &&
 							beatmap.objects[objectIndex++].getTime() <= checkpoint)
 						;
@@ -1197,6 +1238,8 @@ public class Game extends BasicGameState {
 			}
 			if (MusicController.isPlaying() || isLeadIn())
 				pauseTime = trackPosition;
+			if (video != null)
+				video.pause();
 			game.enterState(Opsu.STATE_GAMEPAUSEMENU, new EmptyTransition(), new FadeInTransition());
 			return;
 		}
@@ -1229,6 +1272,8 @@ public class Game extends BasicGameState {
 				pausedMousePosition = null;
 				if (!isLeadIn())
 					MusicController.resume();
+				if (video != null)
+					video.resume();
 			}
 			return;
 		}
@@ -1477,6 +1522,12 @@ public class Game extends BasicGameState {
 			if (beatmap.localMusicOffset != 0)
 				UI.getNotificationManager().sendBarNotification(String.format("Using local beatmap offset (%dms)", beatmap.localMusicOffset));
 
+			// load video
+			if (beatmap.video != null) {
+				loadVideo((beatmap.videoOffset < 0) ? -beatmap.videoOffset : 0);
+				videoStartTime = Math.max(0, beatmap.videoOffset);
+			}
+
 			// needs to play before setting position to resume without lag later
 			MusicController.play(false);
 			MusicController.setPosition(0);
@@ -1676,6 +1727,13 @@ public class Game extends BasicGameState {
 		gameFinished = false;
 		gameFinishedTimer.setTime(0);
 		lastTrackPosition = 0;
+		if (video != null) {
+			try {
+				video.close();
+			} catch (IOException e) {}
+			video = null;
+		}
+		videoSeekTime = 0;
 
 		System.gc();
 	}
@@ -1736,6 +1794,37 @@ public class Game extends BasicGameState {
 		// load other images...
 		((GamePauseMenu) game.getState(Opsu.STATE_GAMEPAUSEMENU)).loadImages();
 		data.loadImages();
+	}
+
+	/**
+	 * Loads the beatmap video (if any).
+	 * @param offset the time to seek to (in milliseconds)
+	 */
+	private void loadVideo(int offset) {
+		// close previous video
+		if (video != null) {
+			try {
+				video.close();
+			} catch (IOException e) {}
+			video = null;
+		}
+
+		if (!Options.isBeatmapVideoEnabled() || beatmap.video == null || !beatmap.video.isFile() || !FFmpeg.exists())
+			return;
+
+		// load video
+		int time = Math.max(0, offset);
+		try {
+			video = new Video(beatmap.video);
+			video.seek(time);
+			video.resume();
+			videoSeekTime = time;
+		} catch (Exception e) {
+			video = null;
+			videoSeekTime = 0;
+			Log.error(e);
+			UI.getNotificationManager().sendNotification("Failed to load beatmap video.\nSee log for details.", Color.red);
+		}
 	}
 
 	/**
