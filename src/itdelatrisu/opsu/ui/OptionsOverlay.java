@@ -1132,6 +1132,9 @@ public class OptionsOverlay extends AbstractComponent {
 				continue;
 			}
 			mouseVirtualY -= optionGroupPadding;
+			if (group.getOptions() == null) {
+				continue;
+			}
 			for (int i = 0; i < group.getOptions().length; i++) {
 				if (group.getOptions()[i].isFiltered()) {
 					continue;
