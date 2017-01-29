@@ -314,7 +314,6 @@ public class OptionsOverlay extends AbstractComponent {
 		searchField.setFocus(true);
 
 		this.scrolling = new KineticScrolling();
-		scrolling.setMinMax(0f, maxScrollOffset);
 	}
 
 	@Override
@@ -456,21 +455,17 @@ public class OptionsOverlay extends AbstractComponent {
 		int y = (int) (-scrolling.getPosition() + optionStartY);
 		maxScrollOffset = optionStartY;
 		boolean render = true;
-		int lastNonSkippedSectionIndex = 0;
 		int groupIndex = 0;
-		for (; groupIndex < groups.length; groupIndex++) {
-			lastNonSkippedSectionIndex = groupIndex;
+		for (; groupIndex < groups.length && render; groupIndex++) {
 			OptionGroup section = groups[groupIndex];
 			if (section.isFiltered()) {
 				continue;
 			}
 			int lineStartY = (int) (y + Fonts.LARGE.getLineHeight() * 0.6f);
-			if (render) {
-				if (section.getOptions() == null) {
-					Utils.drawRightAligned(Fonts.XLARGE, width, -paddingRight, (int) (y + Fonts.XLARGE.getLineHeight() * 0.3f), section.getName(), COL_CYAN);
-				} else {
-					Fonts.MEDIUMBOLD.drawString(paddingTextLeft, lineStartY, section.getName(), COL_WHITE);
-				}
+			if (section.getOptions() == null) {
+				Utils.drawRightAligned(Fonts.XLARGE, width, -paddingRight, (int) (y + Fonts.XLARGE.getLineHeight() * 0.3f), section.getName(), COL_CYAN);
+			} else {
+				Fonts.MEDIUMBOLD.drawString(paddingTextLeft, lineStartY, section.getName(), COL_WHITE);
 			}
 			y += Fonts.LARGE.getLineHeight() * 1.5f;
 			maxScrollOffset += Fonts.LARGE.getLineHeight() * 1.5f;
@@ -483,7 +478,7 @@ public class OptionsOverlay extends AbstractComponent {
 				if (option.isFiltered()) {
 					continue;
 				}
-				if ((y > -optionHeight && render) || (isListOptionOpen && hoverOption == option)) {
+				if (y > -optionHeight || (isListOptionOpen && hoverOption == option)) {
 					renderOption(g, option, y);
 				}
 				y += optionHeight;
@@ -491,15 +486,15 @@ public class OptionsOverlay extends AbstractComponent {
 				lineHeight += optionHeight;
 				if (y > height) {
 					render = false;
-					groupIndex = groups.length;
 					maxScrollOffset += (section.getOptions().length - optionIndex - 1) * optionHeight;
+					break;
 				}
 			}
 			g.setColor(COL_GREY);
 			g.fillRect(paddingLeft, lineStartY, LINEWIDTH, lineHeight);
 		}
 		// iterate over skipped options to correctly calculate max scroll offset
-		for (groupIndex = lastNonSkippedSectionIndex + 1; groupIndex < groups.length; groupIndex++) {
+		for (; groupIndex < groups.length; groupIndex++) {
 			maxScrollOffset += Fonts.LARGE.getLineHeight() * 1.5f;
 			if (groups[groupIndex].getOptions() != null) {
 				maxScrollOffset += groups[groupIndex].getOptions().length * optionHeight;
