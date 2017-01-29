@@ -365,6 +365,7 @@ public class OptionsOverlay extends AbstractComponent {
 	/** Activates the component. */
 	public void activate() {
 		this.active = true;
+		scrolling.setPosition(0f);
 		resetSearch();
 	}
 
@@ -1179,7 +1180,6 @@ public class OptionsOverlay extends AbstractComponent {
 		listWidth = listHeight = 0;
 		listHoverIndex = -1;
 		sliderOptionStartX = sliderOptionWidth = 0;
-		scrolling.setPosition(0f);
 		keyEntryLeft = keyEntryRight = false;
 		mousePressY = -1;
 		prevMouseX = prevMouseY = -1;
