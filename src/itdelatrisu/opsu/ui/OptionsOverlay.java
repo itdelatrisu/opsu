@@ -1056,7 +1056,7 @@ public class OptionsOverlay extends AbstractComponent {
 	 * @return the option, or {@code null} if none
 	 */
 	private GameOption getOptionAtPosition(int cx, int cy) {
-		if (cy < y || cx < x + optionStartX || cx > x + optionStartX + optionWidth)
+		if (cy < y || cy < textSearchYOffset * 2 + Fonts.LARGE.getLineHeight() || cx < x + optionStartX || cx > x + optionStartX + optionWidth)
 			return null;  // out of bounds
 
 		int mouseVirtualY = (int) (scrolling.getPosition() + cy - y - optionStartY);
