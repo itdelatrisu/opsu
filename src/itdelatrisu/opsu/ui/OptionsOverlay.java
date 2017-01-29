@@ -311,7 +311,6 @@ public class OptionsOverlay extends AbstractComponent {
 		restartButton.setHoverRotate(360);
 
 		searchField = new TextField(container, null, 0, 0, 0, 0);
-		searchField.setFocus(true);
 
 		this.scrolling = new KineticScrolling();
 		this.scrolling.setAllowOverScroll(true);
@@ -367,10 +366,14 @@ public class OptionsOverlay extends AbstractComponent {
 		this.active = true;
 		scrolling.setPosition(0f);
 		resetSearch();
+		searchField.setFocus(true);
 	}
 
 	/** Deactivates the component. */
-	public void deactivate() { this.active = false; }
+	public void deactivate() {
+		this.active = false;
+		searchField.setFocus(false);
+	}
 
 	/**
 	 * Whether to consume all unprocessed events, and close the overlay.
