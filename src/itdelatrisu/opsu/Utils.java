@@ -64,10 +64,7 @@ import org.json.JSONObject;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
-import org.newdawn.slick.Animation;
-import org.newdawn.slick.Color;
-import org.newdawn.slick.GameContainer;
-import org.newdawn.slick.Input;
+import org.newdawn.slick.*;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.util.Log;
 
@@ -638,4 +635,33 @@ public class Utils {
 			HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
 		} catch (Exception e) {}
 	}
+
+	/**
+	 * Draw centered text
+	 * @param font the font to use
+	 * @param width the container width
+	 * @param xoffset x offset of the container
+	 * @param y y position
+	 * @param text text to draw
+	 * @param color color to use for text
+	 */
+	public static void drawCentered(Font font, int width, int xoffset, int y, String text, Color color) {
+		int x = (width - font.getWidth(text)) / 2;
+		font.drawString(x + xoffset, y, text, color);
+	}
+
+	/**
+	 * Draw right aligned text.
+	 * @param font the font to use
+	 * @param width the container width
+	 * @param xoffset x offset of the container
+	 * @param y y position
+	 * @param text text to draw
+	 * @param color color to use for text
+	 */
+	public static void drawRightAligned(Font font, int width, int xoffset, int y, String text, Color color) {
+		int x = width - font.getWidth(text);
+		font.drawString(x + xoffset, y, text, color);
+	}
+
 }

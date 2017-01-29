@@ -705,6 +705,7 @@ public class MainMenu extends BasicGameState {
 
 	@Override
 	public void keyPressed(int key, char c) {
+		UI.getNotificationManager().sendNotification("ayyyy lmao", Colors.GREEN);
 		switch (key) {
 		case Input.KEY_ESCAPE:
 		case Input.KEY_Q:

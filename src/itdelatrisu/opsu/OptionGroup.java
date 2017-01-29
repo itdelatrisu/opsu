@@ -87,6 +87,12 @@ public class OptionGroup {
 	private final GameOption[] options;
 
 	/**
+	 * If this group should not be shown in the optionsmenu because its suboptions
+	 * do not match the search string.
+	 */
+	private boolean filtered;
+
+	/**
 	 * Creates an option group with the given category name and options.
 	 * @param category the category name
 	 * @param options the related options
@@ -104,4 +110,14 @@ public class OptionGroup {
 
 	/** Returns the option at the given index. */
 	public GameOption getOption(int i) { return options[i]; }
+
+	/**
+	 * Set the filtered flag to show or hide this group.
+	 * @param filtered wether to filter this group or not
+	 */
+	public void setFiltered(boolean filtered) { this.filtered = filtered; }
+
+	/** Returns wether or not this group should be filtered. */
+	public boolean isFiltered() { return filtered; };
+
 }

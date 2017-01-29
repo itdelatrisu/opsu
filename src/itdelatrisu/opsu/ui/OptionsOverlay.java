@@ -28,14 +28,11 @@ import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
 
-import org.newdawn.slick.Color;
-import org.newdawn.slick.GameContainer;
-import org.newdawn.slick.Graphics;
-import org.newdawn.slick.Image;
-import org.newdawn.slick.Input;
-import org.newdawn.slick.SlickException;
+import itdelatrisu.opsu.ui.animations.AnimationEquation;
+import org.newdawn.slick.*;
 import org.newdawn.slick.gui.AbstractComponent;
 import org.newdawn.slick.gui.GUIContext;
+import org.newdawn.slick.gui.TextField;
 
 /**
  * Options overlay.
@@ -67,6 +64,30 @@ public class OptionsOverlay extends AbstractComponent {
 	/** Chevron images. */
 	private final Image chevronDownImg, chevronRightImg;
 
+	/** Search image. */
+	private Image searchImg;
+
+	/** Target duration, in ms, of the move animation for the indicator. */
+	private static final int INDICATORMOVEANIMATIONTIME = 166;
+
+	/**  Selected option indicator virtual position. */
+	private int indicatorPos;
+
+	/**  Selected option indicator render position. */
+	private int indicatorRenderPos;
+
+	/** Selected option indicator offset to next position. */
+	private int indicatorOffsetToNextPos;
+
+	/** Selected option indicator move to next position animation time past. */
+	private int indicatorMoveAnimationTime;
+
+	/** Target duration, in ms, of the fadeout animation for the indicator. */
+	private static final int INDICATORHIDEANIMATIONTIME = 500;
+
+	/** Selected option indicator hide animation time past. */
+	private int indicatorHideAnimationTime;
+
 	/** Buttons. */
 	private final MenuButton backButton, restartButton;
 
@@ -74,7 +95,10 @@ public class OptionsOverlay extends AbstractComponent {
 	private float x, y;
 
 	/** The width and height of the overlay. */
-	private final int width, height;
+	private final int targetWidth, height;
+
+	/** The real width of the overlay, altered by the hide/show animation */
+	private int width;
 
 	/** The current hovered option. */
 	private GameOption hoverOption;
@@ -82,11 +106,47 @@ public class OptionsOverlay extends AbstractComponent {
 	/** The current selected option (between a mouse press and release). */
 	private GameOption selectedOption;
 
+	/** The current selected list option. */
+	private GameOption selectedListOption;
+
 	/** The relative offsets of the start of the options section. */
 	private final int optionStartX, optionStartY;
 
 	/** The dimensions of an option. */
-	private final int optionWidth, optionHeight;
+	private int optionWidth, optionHeight;
+
+	/** Y offset from the option position to the option text position. */
+	private int optionTextOffsetY;
+
+	/** The size of the control images (sliderball, checkbox). */
+	private int controlImageSize;
+
+	/** The vertical padding for the control images to vertical align them. */
+	private int controlImagePadding;
+
+	/** The width of the grey line next to groups. */
+	private static final int LINEWIDTH = 3;
+
+	/** Right padding. */
+	private int paddingRight;
+
+	/** Left padding to the grey line. */
+	private int paddingLeft;
+
+	/** Left padding to the option text. */
+	private int paddingTextLeft;
+
+	/** Y position of the options text. */
+	private int textOptionsY;
+
+	/** Y position of the change text. */
+	private int textChangeY;
+
+	/** Y position of the search block. */
+	private int posSearchY;
+
+	/** Y offset from the search block to the search text. */
+	private int textSearchYOffset;
 
 	/** The padding for an option group title. */
 	private final int optionGroupPadding;
@@ -100,6 +160,15 @@ public class OptionsOverlay extends AbstractComponent {
 	/** The current width of the selected slider. */
 	private int sliderOptionWidth;
 
+	/** Target duration, in ms, of the list opening animation. */
+	private static final int LISTOPENANIMATIONTIME = 200;
+
+	/** Target duration, in ms, of the list closing animation. */
+	private static final int LISTCLOSEANIMATIONTIME = 175;
+
+	/** List open/close animation time past. */
+	private int listAnimationTime;
+
 	/** Whether or not a list option is open. */
 	private boolean isListOptionOpen;
 
@@ -112,6 +181,9 @@ public class OptionsOverlay extends AbstractComponent {
 	/** The current list dimensions. */
 	private int listWidth, listHeight;
 
+	/** The opening/closing progress of the current list. */
+	private float listOpenProgress;
+
 	/** The hover index in the current list. */
 	private int listHoverIndex = -1;
 
@@ -119,7 +191,7 @@ public class OptionsOverlay extends AbstractComponent {
 	private final KineticScrolling scrolling;
 
 	/** The maximum scroll offset. */
-	private final int maxScrollOffset;
+	private int maxScrollOffset;
 
 	/**
 	 * The y coordinate of a mouse press, recorded in {@link #mousePressed(int, int, int)}.
@@ -145,10 +217,29 @@ public class OptionsOverlay extends AbstractComponent {
 	/** Whether to show the restart button. */
 	private boolean showRestartButton = false;
 
+	/** Textfield used for searching options. */
+	private TextField searchField;
+
+	/** Last search text. */
+	private String lastSearchText;
+
+	/** Desired alpha values for specific colors. */
+	private static final float
+		BG_ALPHA = 0.7f,
+		LINEALPHA = 0.8f,
+		INDICATOR_ALPHA = 0.8f;
+
 	/** Colors. */
-	private static final Color
-		BLACK_ALPHA_75 = new Color(0, 0, 0, 0.75f),
-		BLACK_ALPHA_85 = new Color(0, 0, 0, 0.85f);
+	private static final
+		Color COL_BG = new Color(Color.black),
+		COL_WHITE = new Color(1f, 1f, 1f),
+		COL_PINK = new Color(235, 117, 139),
+		COL_CYAN = new Color(88, 218, 254),
+		COL_GREY = new Color(55, 55, 57),
+		COL_BLUE = new Color(Colors.BLUE_BACKGROUND),
+		COL_COMBOBOX_HOVER = new Color(185, 19, 121),
+		COL_INDICATOR = new Color(Color.black),
+		COL_BLACK_ALPHA_85 = new Color(0f, 0f, 0f, 0.85f);
 
 	// game-related variables
 	private GameContainer container;
@@ -179,21 +270,33 @@ public class OptionsOverlay extends AbstractComponent {
 		int chevronSize = iconSize - 4;
 		this.chevronDownImg = GameImage.CHEVRON_DOWN.getImage().getScaledCopy(chevronSize, chevronSize);
 		this.chevronRightImg = GameImage.CHEVRON_RIGHT.getImage().getScaledCopy(chevronSize, chevronSize);
+		int searchImgSize = (int) (Fonts.LARGE.getLineHeight() * 0.75f);
+		searchImg = GameImage.SEARCH.getImage().getScaledCopy(searchImgSize, searchImgSize);
 
 		// overlay positions
 		this.x = 0;
 		this.y = 0;
-		this.width = (int) (containerWidth * 0.42f);
+		this.targetWidth = (int) (containerWidth * 0.42f);
 		this.height = containerHeight;
 
 		// option positions
+		this.paddingRight = (int) (containerWidth * 0.009375f); // not so accurate
+		this.paddingLeft = (int) (containerWidth * 0.0180f); // not so accurate
+		this.paddingTextLeft = paddingLeft + LINEWIDTH + (int) (containerWidth * 0.00625f); // not so accurate
+		this.optionStartX = paddingTextLeft;
+		this.textOptionsY = Fonts.LARGE.getLineHeight() * 2;
+		this.textChangeY = textOptionsY + Fonts.LARGE.getLineHeight();
+		this.posSearchY = textChangeY + Fonts.MEDIUM.getLineHeight() * 2;
+		this.textSearchYOffset = Fonts.MEDIUM.getLineHeight() / 2;
+		this.optionStartY = posSearchY + Fonts.MEDIUM.getLineHeight() + Fonts.LARGE.getLineHeight();
 		int paddingX = 24;
-		this.optionStartX = paddingX;
-		this.optionStartY = (int) (containerHeight * 0.036f) + Fonts.XLARGE.getLineHeight() + Fonts.DEFAULT.getLineHeight() + 4;
-		this.optionWidth = width - paddingX * 2;
-		this.optionHeight = (int) (Fonts.MEDIUM.getLineHeight() * 1.1f);
-		this.optionGroupPadding = Fonts.MEDIUM.getLineHeight() * 2 + 4;
+		this.optionWidth = targetWidth - paddingX * 2;
+		this.optionHeight = (int) (Fonts.MEDIUM.getLineHeight() * 1.3f);
+		this.optionGroupPadding = (int) (Fonts.LARGE.getLineHeight() * 1.5f);
+		this.optionTextOffsetY = (int) ((optionHeight - Fonts.MEDIUM.getLineHeight()) / 2f);
 		this.listItemHeight = (int) (optionHeight * 4f / 5f);
+		this.controlImageSize = (int) (Fonts.MEDIUM.getLineHeight() * 0.7f);
+		this.controlImagePadding = (optionHeight - controlImageSize) / 2;
 
 		// back button
 		int backSize = Fonts.XLARGE.getLineHeight() * 2 / 3;
@@ -207,12 +310,9 @@ public class OptionsOverlay extends AbstractComponent {
 		restartButton.setHoverAnimationDuration(2000);
 		restartButton.setHoverRotate(360);
 
-		// calculate scroll offsets
-		int maxScrollOffset = optionGroupPadding * groups.length;
-		for (OptionGroup group : groups)
-			maxScrollOffset += group.getOptions().length * optionHeight;
-		maxScrollOffset -= (int) (height * 0.97f - optionStartY);
-		this.maxScrollOffset = maxScrollOffset;
+		searchField = new TextField(container, null, 0, 0, 0, 0);
+		searchField.setFocus(true);
+
 		this.scrolling = new KineticScrolling();
 		scrolling.setMinMax(0f, maxScrollOffset);
 	}
@@ -232,6 +332,24 @@ public class OptionsOverlay extends AbstractComponent {
 	@Override
 	public int getWidth() { return width; }
 
+	public void setWidth(int width) {
+		this.width = width;
+		this.optionWidth = width - optionStartX - paddingRight;
+	}
+
+	public int getTargetWidth() { return targetWidth; }
+
+	public void setAlpha(float alpha) {
+		COL_BG.a = BG_ALPHA * alpha;
+		COL_WHITE.a = alpha;
+		COL_PINK.a = alpha;
+		COL_CYAN.a = alpha;
+		COL_GREY.a = alpha * LINEALPHA;
+		COL_BLUE.a = alpha;
+		COL_COMBOBOX_HOVER.a = alpha;
+		COL_INDICATOR.a = alpha * (1f - (float) indicatorHideAnimationTime / INDICATORHIDEANIMATIONTIME) * INDICATOR_ALPHA;
+	}
+
 	@Override
 	public int getHeight() { return height; }
 
@@ -245,7 +363,10 @@ public class OptionsOverlay extends AbstractComponent {
 	}
 
 	/** Activates the component. */
-	public void activate() { this.active = true; }
+	public void activate() {
+		this.active = true;
+		resetSearch();
+	}
 
 	/** Deactivates the component. */
 	public void deactivate() { this.active = false; }
@@ -259,51 +380,64 @@ public class OptionsOverlay extends AbstractComponent {
 	@Override
 	public void render(GUIContext container, Graphics g) throws SlickException {
 		// background
-		g.setColor(BLACK_ALPHA_75);
+		g.setColor(COL_BG);
 		g.fillRect(x, y, width, height);
 
 		// title
 		String title = "Options";
 		String subtitle = String.format("Change the way %s behaves", OpsuConstants.PROJECT_NAME);
-		float titleX = x + width / 2 - Fonts.XLARGE.getWidth(title) / 2;
-		float titleY = y + height * 0.03f;
-		float subtitleX = x + width / 2 - Fonts.DEFAULT.getWidth(subtitle) / 2;
-		float subtitleY = titleY + Fonts.XLARGE.getLineHeight() + 4;
-		Fonts.XLARGE.drawString(titleX, titleY, title, Color.white);
-		Fonts.DEFAULT.drawString(subtitleX, subtitleY, subtitle, Colors.PINK_OPTION);
+		Utils.drawCentered(Fonts.LARGE, width, 0, (int) (textOptionsY - scrolling.getPosition()), title, COL_WHITE);
+		Utils.drawCentered(Fonts.MEDIUM, width, 0, (int) (textChangeY - scrolling.getPosition()), subtitle, COL_PINK);
+
+		// selected option indicator
+		g.setColor(COL_INDICATOR);
+		g.fillRect(0, indicatorRenderPos - scrolling.getPosition(), width, optionHeight);
+
+		// options
+		g.setClip((int) x, (int) y, width, containerHeight);
+		renderOptions(g);
+		renderOpenList(g);
+
+		// search
+		int ypos = (int) (posSearchY + textSearchYOffset - scrolling.getPosition());
+		if (scrolling.getPosition() > posSearchY) {
+			ypos = textSearchYOffset;
+			g.setColor(COL_BG);
+			g.fillRect(0, 0, width, textSearchYOffset * 2 + Fonts.LARGE.getLineHeight());
+		}
+		String searchText = "Type to search!";
+		if (lastSearchText.length() > 0) {
+			searchText = lastSearchText;
+		}
+		Utils.drawCentered(Fonts.LARGE, width, 0, ypos, searchText, COL_WHITE);
+		int imgPosX = (width - Fonts.LARGE.getWidth(searchText)) / 2 - searchImg.getWidth() - 10;
+		searchImg.draw(imgPosX, ypos + Fonts.LARGE.getLineHeight() * 0.25f, COL_WHITE);
 
 		// back arrow
-		backButton.setX(x + backButton.getImage().getWidth() * 2);
-		backButton.setY(titleY + Fonts.XLARGE.getLineHeight() * 0.6f);
-		backButton.draw();
+		backButton.setX(x + backButton.getImage().getWidth());
+		backButton.setY(textSearchYOffset + backButton.getImage().getHeight() / 2);
+		backButton.draw(COL_WHITE);
 
 		// restart button
 		if (showRestartButton) {
-			restartButton.setX(x + width - restartButton.getImage().getWidth() * 2);
-			restartButton.setY(titleY + Fonts.XLARGE.getLineHeight() * 0.6f);
-			restartButton.draw();
-		}
-
-		// options
-		g.setClip((int) x, (int) y + optionStartY, width, containerHeight - optionStartY);
-		renderOptions(g);
-		if (isListOptionOpen) {
-			renderOpenList(g);
+			restartButton.setX(x + width - restartButton.getImage().getWidth() * 1.5f);
+			restartButton.setY(textSearchYOffset + restartButton.getImage().getHeight() / 2);
+			restartButton.draw(COL_WHITE);
 		}
 
 		// scrollbar
 		int scrollbarWidth = 10, scrollbarHeight = 45;
 		float scrollbarX = x + width - scrollbarWidth;
-		float scrollbarY = y + optionStartY + (scrolling.getPosition() / maxScrollOffset) * (containerHeight - optionStartY - scrollbarHeight);
-		g.setColor(Color.white);
+		float scrollbarY = y + (scrolling.getPosition() / maxScrollOffset) * (containerHeight - scrollbarHeight);
+		g.setColor(COL_WHITE);
 		g.fillRect(scrollbarX, scrollbarY, scrollbarWidth, scrollbarHeight);
 		g.clearClip();
 
 		// key entry state
 		if (keyEntryLeft || keyEntryRight) {
-			g.setColor(BLACK_ALPHA_75);
+			g.setColor(COL_BG);
 			g.fillRect(0, 0, containerWidth, containerHeight);
-			g.setColor(Color.white);
+			g.setColor(COL_WHITE);
 			String prompt = keyEntryLeft ?
 				"Press the new left-click key." : "Press the new right-click key.";
 			String subtext = "Click anywhere or hit ESC to cancel.";
@@ -319,27 +453,66 @@ public class OptionsOverlay extends AbstractComponent {
 	 * @param g the graphics context
 	 */
 	private void renderOptions(Graphics g) {
-		listStartX = listStartY = listWidth = listHeight = 0; // render out of the screen
-		int cy = (int) (y + optionStartY - scrolling.getPosition());
+		int y = (int) (-scrolling.getPosition() + optionStartY);
+		maxScrollOffset = optionStartY;
 		boolean render = true;
-		for (int groupIdx = 0; groupIdx < groups.length; groupIdx++) {
-			OptionGroup group = groups[groupIdx];
-			if (cy > 0 && render) {
-				int cx = (int) x + optionStartX + (optionWidth - Fonts.LARGE.getWidth(group.getName())) / 2;
-				Fonts.LARGE.drawString(cx, cy + Fonts.LARGE.getLineHeight() * 0.6f, group.getName(), Colors.BLUE_OPTION);
+		int lastNonSkippedSectionIndex = 0;
+		int groupIndex = 0;
+		for (; groupIndex < groups.length; groupIndex++) {
+			lastNonSkippedSectionIndex = groupIndex;
+			OptionGroup section = groups[groupIndex];
+			if (section.isFiltered()) {
+				continue;
 			}
-			cy += optionGroupPadding;
-			for (int optionIdx = 0; optionIdx < group.getOptions().length; optionIdx++) {
-				GameOption option = group.getOption(optionIdx);
-				if ((cy > 0 && render) || (isListOptionOpen && hoverOption == option))
-					renderOption(g, option, cy, option == hoverOption);
-				cy += optionHeight;
-				if (cy > containerHeight) {
-					render = false;
-					groupIdx = groups.length;
+			int lineStartY = (int) (y + Fonts.LARGE.getLineHeight() * 0.6f);
+			if (render) {
+				if (section.getOptions() == null) {
+					Utils.drawRightAligned(Fonts.XLARGE, width, -paddingRight, (int) (y + Fonts.XLARGE.getLineHeight() * 0.3f), section.getName(), COL_CYAN);
+				} else {
+					Fonts.MEDIUMBOLD.drawString(paddingTextLeft, lineStartY, section.getName(), COL_WHITE);
 				}
 			}
+			y += Fonts.LARGE.getLineHeight() * 1.5f;
+			maxScrollOffset += Fonts.LARGE.getLineHeight() * 1.5f;
+			if (section.getOptions() == null) {
+				continue;
+			}
+			int lineHeight = (int) (Fonts.LARGE.getLineHeight() * 0.9f);
+			for (int optionIndex = 0; optionIndex < section.getOptions().length; optionIndex++) {
+				GameOption option = section.getOptions()[optionIndex];
+				if (option.isFiltered()) {
+					continue;
+				}
+				if ((y > -optionHeight && render) || (isListOptionOpen && hoverOption == option)) {
+					renderOption(g, option, y);
+				}
+				y += optionHeight;
+				maxScrollOffset += optionHeight;
+				lineHeight += optionHeight;
+				if (y > height) {
+					render = false;
+					groupIndex = groups.length;
+					maxScrollOffset += (section.getOptions().length - optionIndex - 1) * optionHeight;
+				}
+			}
+			g.setColor(COL_GREY);
+			g.fillRect(paddingLeft, lineStartY, LINEWIDTH, lineHeight);
 		}
+		// iterate over skipped options to correctly calculate max scroll offset
+		for (groupIndex = lastNonSkippedSectionIndex + 1; groupIndex < groups.length; groupIndex++) {
+			maxScrollOffset += Fonts.LARGE.getLineHeight() * 1.5f;
+			if (groups[groupIndex].getOptions() != null) {
+				maxScrollOffset += groups[groupIndex].getOptions().length * optionHeight;
+			}
+		}
+		maxScrollOffset -= height * 2 / 3;
+		if (maxScrollOffset < 0) {
+			maxScrollOffset = 0;
+		}
+		if (scrolling.getPosition() > maxScrollOffset) {
+			scrolling.setPosition(maxScrollOffset);
+		}
+		scrolling.setMinMax(0, maxScrollOffset);
 	}
 
 	/**
@@ -347,121 +520,133 @@ public class OptionsOverlay extends AbstractComponent {
 	 * @param g the graphics context
 	 * @param option the game option
 	 * @param cy the y coordinate
-	 * @param focus whether this option is focused
 	 */
-	private void renderOption(Graphics g, GameOption option, int cy, boolean focus) {
-		Color color = focus ? Colors.GREEN : Colors.WHITE_FADE;
+	private void renderOption(Graphics g, GameOption option, int cy) {
 		OptionType type = option.getType();
 		Object[] items = option.getItemList();
 		if (items != null)
-			renderListOption(g, option, cy, color, items);
+			renderListOption(g, option, cy, items);
 		else if (type == OptionType.BOOLEAN)
-			renderCheckOption(g, option, cy, color);
+			renderCheckOption(option, cy);
 		else if (type == OptionType.NUMERIC)
-			renderSliderOption(g, option, cy, color);
+			renderSliderOption(g, option, cy);
 		else
-			renderGenericOption(g, option, cy, color);
+			renderGenericOption(option, cy);
 	}
 
 	/**
 	 * Renders a list option.
 	 * @param g the graphics context
 	 * @param option the game option
-	 * @param cy the y coordinate
-	 * @param textColor the text color
+	 * @param y the y coordinate
 	 * @param listItems the items in the list
 	 */
-	private void renderListOption(Graphics g, GameOption option, int cy, Color textColor, Object[] listItems) {
+	private void renderListOption(Graphics g, GameOption option, int y, Object[] listItems) {
 		// draw option name
-		int nameWidth = Fonts.MEDIUM.getWidth(option.getName());
-		Fonts.MEDIUM.drawString(x + optionStartX, cy, option.getName(), textColor);
+		int nameLen = Fonts.MEDIUM.getWidth(option.getName());
+		Fonts.MEDIUM.drawString(optionStartX, y + optionTextOffsetY, option.getName(), COL_WHITE);
 
 		// draw list box and value
-		int padding = (int) (optionHeight / 10f);
-		nameWidth += 20;
-		int itemStart = (int) x + optionStartX + nameWidth;
-		int itemWidth = optionWidth - nameWidth;
-		Color backColor = BLACK_ALPHA_85;
-		if (hoverOption == option && listHoverIndex == -1)
-			backColor = Colors.PINK_OPTION;
+		final int padding = (int) (optionHeight / 10f);
+		nameLen += 15;
+		final int comboboxStartX = optionStartX + nameLen;
+		final int comboboxWidth = optionWidth - nameLen;
+		final int borderRadius = 6;
+		if (comboboxWidth <= controlImageSize) {
+			return;
+		}
+		Color backColor = COL_BG;
+		if (hoverOption == option
+			&& comboboxStartX <= prevMouseX && prevMouseX < comboboxStartX + comboboxWidth
+			&& y + padding <= prevMouseY && prevMouseY < y + padding + listItemHeight) {
+			backColor = COL_COMBOBOX_HOVER;
+		}
 		g.setColor(backColor);
-		g.fillRect(itemStart, cy + padding, itemWidth, listItemHeight);
-		g.setColor(Color.white);
-		g.setLineWidth(1f);
-		g.drawRect(itemStart, cy + padding, itemWidth, listItemHeight);
-		chevronDownImg.draw(itemStart + itemWidth - chevronDownImg.getWidth() - 4, cy + padding + 2);
-		Fonts.MEDIUM.drawString(itemStart + 20, cy, option.getValueString(), Color.white);
+		g.fillRoundRect(comboboxStartX, y + padding, comboboxWidth, listItemHeight, borderRadius, 15);
+		Fonts.MEDIUM.drawString(comboboxStartX + 4, y + optionTextOffsetY, option.getValueString(), COL_WHITE);
+		chevronDownImg.draw(width - paddingRight - controlImageSize / 3 - controlImageSize, y + controlImagePadding, COL_WHITE);
 		if (isListOptionOpen && hoverOption == option) {
-			listStartX = (int) x + optionStartX + nameWidth;
-			listStartY = cy + padding + listItemHeight;
-			listWidth = itemWidth;
+			listStartX = comboboxStartX;
+			listStartY = y + optionHeight;
+			listWidth = comboboxWidth;
 			listHeight = listItems.length * listItemHeight;
 		}
 	}
 
 	/**
 	 * Renders a boolean option.
-	 * @param g the graphics context
 	 * @param option the game option
-	 * @param cy the y coordinate
-	 * @param textColor the text color
+	 * @param y the y coordinate
 	 */
-	private void renderCheckOption(Graphics g, GameOption option, int cy, Color textColor) {
+	private void renderCheckOption(GameOption option, int y) {
 		// draw checkbox
-		Image img = option.getBooleanValue() ? checkOnImg : checkOffImg;
-		img.draw(x + optionStartX, cy + optionHeight / 2 - iconSize / 2, Colors.PINK_OPTION);
+		if (option.getBooleanValue()) {
+			checkOnImg.draw(optionStartX, y + controlImagePadding, COL_PINK);
+		} else {
+			checkOffImg.draw(optionStartX, y + controlImagePadding, COL_PINK);
+		}
 
 		// draw option name
-		Fonts.MEDIUM.drawString(x + optionStartX + iconSize * 1.5f, cy, option.getName(), textColor);
+		Fonts.MEDIUM.drawString(optionStartX + 30, y + optionTextOffsetY, option.getName(), COL_WHITE);
 	}
 
 	/**
 	 * Renders a slider option.
 	 * @param g the graphics context
 	 * @param option the game option
-	 * @param cy the y coordinate
-	 * @param textColor the text color
+	 * @param y the y coordinate
 	 */
-	private void renderSliderOption(Graphics g, GameOption option, int cy, Color textColor) {
-		// draw option name and value
-		String value = option.getValueString();
-		int nameWidth = Fonts.MEDIUM.getWidth(option.getName());
-		int valueWidth = Fonts.MEDIUM.getWidth(value);
-		Fonts.MEDIUM.drawString(x + optionStartX, cy, option.getName(), textColor);
-		Fonts.MEDIUM.drawString(x + optionStartX + optionWidth - valueWidth, cy, value, Colors.BLUE_OPTION);
+	private void renderSliderOption(Graphics g, GameOption option, int y) {
+		// draw option name
+		final int padding = 10;
+		int nameLen = Fonts.MEDIUM.getWidth(option.getName());
+		Fonts.MEDIUM.drawString(optionStartX, y + optionTextOffsetY, option.getName(), COL_WHITE);
+		int sliderLen = optionWidth - nameLen - padding;
+		if (sliderLen <= 1) {
+			return;
+		}
+		int sliderStartX = optionStartX + nameLen + padding;
+		int sliderEndX = optionStartX + optionWidth;
 
-		// draw slider
-		int sliderWidth = optionWidth - nameWidth - valueWidth - 50;
 		if (hoverOption == option) {
 			if (!isAdjustingSlider) {
-				sliderOptionWidth = sliderWidth;
-				sliderOptionStartX = (int) x + optionStartX + nameWidth + 25;
+				sliderOptionWidth = sliderLen;
+				sliderOptionStartX = sliderStartX;
 			} else {
-				sliderWidth = sliderOptionWidth;
+				sliderLen = sliderOptionWidth;
 			}
 		}
-		g.setColor(Colors.PINK_OPTION);
+
+		// draw slider
+		float sliderValue = (float) (option.getIntegerValue() - option.getMinValue()) / (option.getMaxValue() - option.getMinValue());
+		float sliderBallPos = sliderStartX + (int) ((sliderLen - controlImageSize) * sliderValue);
+
 		g.setLineWidth(3f);
-		float sliderStartX = x + optionStartX + nameWidth + 25;
-		float sliderY = cy + optionHeight / 2;
-		g.drawLine(sliderStartX, sliderY, sliderStartX + sliderWidth, sliderY);
-		float sliderValue = (float) (sliderWidth + 10) * (option.getIntegerValue() - option.getMinValue()) / (option.getMaxValue() - option.getMinValue());
-		sliderBallImg.draw((int) (sliderStartX + sliderValue - iconSize / 2f), (int) (sliderY - iconSize / 2f), Colors.PINK_OPTION);
+		g.setColor(COL_PINK);
+		if (sliderValue > 0.0001f) {
+			g.drawLine(sliderStartX, y + optionHeight / 2, sliderBallPos, y + optionHeight / 2);
+		}
+		sliderBallImg.draw(sliderBallPos, y + controlImagePadding, COL_PINK);
+		if (sliderValue < 0.999f) {
+			float a = COL_PINK.a;
+			COL_PINK.a *= 0.45f;
+			g.setColor(COL_PINK);
+			g.drawLine(sliderBallPos + controlImageSize + 1, y + optionHeight / 2, sliderEndX, y + optionHeight / 2);
+			COL_PINK.a = a;
+		}
 	}
 
 	/**
 	 * Renders a generic option.
-	 * @param g the graphics context
 	 * @param option the game option
-	 * @param cy the y coordinate
-	 * @param textColor the text color
+	 * @param y the y coordinate
 	 */
-	private void renderGenericOption(Graphics g, GameOption option, int cy, Color textColor) {
+	private void renderGenericOption(GameOption option, int y) {
 		// draw option name and value
 		String value = option.getValueString();
-		int valueWidth = Fonts.MEDIUM.getWidth(value);
-		Fonts.MEDIUM.drawString(x + optionStartX, cy, option.getName(), textColor);
-		Fonts.MEDIUM.drawString(x + optionStartX + optionWidth - valueWidth, cy, value, Colors.BLUE_OPTION);
+		int valueLen = Fonts.MEDIUM.getWidth(value);
+		Fonts.MEDIUM.drawString(optionStartX, y + optionTextOffsetY, option.getName(), COL_WHITE);
+		Fonts.MEDIUM.drawString(optionStartX + optionWidth - valueLen, y + optionTextOffsetY, value, COL_BLUE);
 	}
 
 	/**
@@ -469,26 +654,49 @@ public class OptionsOverlay extends AbstractComponent {
 	 * @param g the graphics context
 	 */
 	private void renderOpenList(Graphics g) {
-		// draw list rectangles
-		g.setColor(BLACK_ALPHA_85);
-		g.fillRect(listStartX, listStartY, listWidth, listHeight);
+		if (!isListOptionOpen && listAnimationTime == 0) {
+			return;
+		}
+		Object[] listItems = selectedListOption.getItemList();
+		int listItemHeight = (int) (this.listItemHeight * listOpenProgress);
+		final int borderRadius = 6;
+		float whiteA = COL_WHITE.a;
+		float bgA = COL_BG.a;
+		float blackAlphaA = COL_BLACK_ALPHA_85.a;
+		COL_WHITE.a *= listOpenProgress;
+		COL_BG.a *= listOpenProgress;
+		COL_BLACK_ALPHA_85.a *= listOpenProgress;
+		g.setColor(COL_BLACK_ALPHA_85);
+		g.fillRoundRect(listStartX, listStartY, listWidth, listItemHeight * listItems.length, borderRadius, 15);
 		if (listHoverIndex != -1) {
-			int cy = listStartY + listHoverIndex * listItemHeight;
-			g.setColor(Colors.PINK_OPTION);
-			g.fillRect(listStartX, cy, listWidth, listItemHeight);
-			chevronRightImg.draw(listStartX + 3, cy + (listItemHeight - chevronRightImg.getHeight()) / 2);
+			g.setColor(COL_COMBOBOX_HOVER);
+			if (listHoverIndex == 0) {
+				g.fillRoundRect(listStartX, listStartY + listHoverIndex * listItemHeight, listWidth, listItemHeight, borderRadius, 15);
+				g.fillRect(listStartX, listStartY + listHoverIndex * listItemHeight + listItemHeight / 2, listWidth, listItemHeight / 2);
+			} else if (listHoverIndex == listItems.length - 1) {
+				g.fillRoundRect(listStartX, listStartY + listHoverIndex * listItemHeight, listWidth, listItemHeight, borderRadius, 15);
+				g.fillRect(listStartX, listStartY + listHoverIndex * listItemHeight, listWidth, listItemHeight / 2);
+			} else {
+				g.fillRect(listStartX, listStartY + listHoverIndex * listItemHeight, listWidth, listItemHeight);
+			}
+			chevronRightImg.draw(listStartX + 2, listStartY + listHoverIndex * listItemHeight + (listItemHeight - controlImageSize) / 2, COL_BG);
 		}
-		g.setLineWidth(1f);
-		g.setColor(Color.white);
-		g.drawRect(listStartX, listStartY, listWidth, listHeight);
-
-		// draw list items
-		Object[] listItems = hoverOption.getItemList();
-		int cy = listStartY;
+		int y = listStartY;
+		String selectedValue = selectedListOption.getValueString();
 		for (Object item : listItems) {
-			Fonts.MEDIUM.drawString(listStartX + iconSize, cy - Fonts.MEDIUM.getLineHeight() * 0.05f, item.toString());
-			cy += listItemHeight;
+			String text = item.toString();
+			Font font;
+			if (text.equals(selectedValue)) {
+				font = Fonts.MEDIUMBOLD;
+			} else {
+				font = Fonts.MEDIUM;
+			}
+			font.drawString(listStartX + 20, y - Fonts.MEDIUM.getLineHeight() * 0.05f, item.toString(), COL_WHITE);
+			y += listItemHeight;
 		}
+		COL_BG.a = bgA;
+		COL_WHITE.a = whiteA;
+		COL_BLACK_ALPHA_85.a = blackAlphaA;
 	}
 
 	/**
@@ -498,6 +706,9 @@ public class OptionsOverlay extends AbstractComponent {
 	public void update(int delta) {
 		if (!active)
 			return;
+
+		// update the search field key repeat
+		searchField.performKeyRepeat();
 
 		// check if mouse moved
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
@@ -512,15 +723,53 @@ public class OptionsOverlay extends AbstractComponent {
 		}
 
 		// delta updates
-		if (hoverOption != null && getOptionAtPosition(mouseX, mouseY) == hoverOption && !keyEntryLeft && !keyEntryRight)
-			UI.updateTooltip(delta, hoverOption.getDescription(), true);
-		else if (showRestartButton && restartButton.contains(mouseX, mouseY) && !keyEntryLeft && !keyEntryRight)
+		if (hoverOption != null && getOptionAtPosition(mouseX, mouseY) == hoverOption && !keyEntryLeft && !keyEntryRight) {
+			String tip = hoverOption.getDescription();
+			if (hoverOption.getType() == OptionType.NUMERIC) {
+				tip = "(" + hoverOption.getValueString() + ") " + tip;
+			}
+			UI.updateTooltip(delta, tip, false);
+		} else if (showRestartButton && restartButton.contains(mouseX, mouseY) && !keyEntryLeft && !keyEntryRight)
 			UI.updateTooltip(delta, "Click to restart the game.", false);
 		backButton.hoverUpdate(delta, backButton.contains(mouseX, mouseY) && !keyEntryLeft && !keyEntryRight);
 		if (showRestartButton)
 			restartButton.autoHoverUpdate(delta, false);
 		sliderSoundDelay = Math.max(sliderSoundDelay - delta, 0);
 		scrolling.update(delta);
+		updateIndicatorAlpha(delta);
+
+		// selected option indicator position
+		indicatorRenderPos = indicatorPos;
+		if (indicatorMoveAnimationTime > 0) {
+			indicatorMoveAnimationTime += delta;
+			if (indicatorMoveAnimationTime > INDICATORMOVEANIMATIONTIME) {
+				indicatorMoveAnimationTime = 0;
+				indicatorRenderPos += indicatorOffsetToNextPos;
+				indicatorOffsetToNextPos = 0;
+				indicatorPos = indicatorRenderPos;
+			} else {
+				float progress = (float) indicatorMoveAnimationTime / INDICATORMOVEANIMATIONTIME;
+				indicatorRenderPos += AnimationEquation.OUT_BACK.calc(progress) * indicatorOffsetToNextPos;
+			}
+		}
+
+		// update open list animation progress
+		if (isListOptionOpen || listAnimationTime >= 0) {
+			if (isListOptionOpen) {
+				listAnimationTime = Math.min(LISTOPENANIMATIONTIME, listAnimationTime + delta);
+			} else {
+				listAnimationTime -= delta;
+				if (listAnimationTime <= 0) {
+					listAnimationTime = 0;
+					return;
+				}
+			}
+			listOpenProgress = (float) listAnimationTime / LISTOPENANIMATIONTIME;
+		}
+
+		// update list option
+		if (isListOptionOpen)
+			listHoverIndex = getListIndex(mouseX, mouseY);
 
 		if (!mouseMoved)
 			return;
@@ -529,9 +778,28 @@ public class OptionsOverlay extends AbstractComponent {
 		if (isAdjustingSlider)
 			adjustSlider(mouseX, mouseY);
 
-		// update list option
-		else if (isListOptionOpen)
-			listHoverIndex = getListIndex(mouseX, mouseY);
+	}
+
+	/**
+	 * Updates the alpha value of the selected option indicator.
+	 */
+	private void updateIndicatorAlpha(int delta) {
+		if (hoverOption == null) {
+			if (indicatorHideAnimationTime < INDICATORHIDEANIMATIONTIME) {
+				indicatorHideAnimationTime += delta;
+				if (indicatorHideAnimationTime > INDICATORHIDEANIMATIONTIME) {
+					indicatorHideAnimationTime = INDICATORHIDEANIMATIONTIME;
+				}
+				float progress = AnimationEquation.IN_CUBIC.calc((float) indicatorHideAnimationTime / INDICATORHIDEANIMATIONTIME);
+				COL_INDICATOR.a = (1f - progress) * INDICATOR_ALPHA;
+			}
+		} else if (indicatorHideAnimationTime > 0) {
+			indicatorHideAnimationTime -= delta * 3;
+			if (indicatorHideAnimationTime < 0) {
+				indicatorHideAnimationTime = 0;
+			}
+			COL_INDICATOR.a = (1f - (float) indicatorHideAnimationTime / INDICATORHIDEANIMATIONTIME) * INDICATOR_ALPHA;
+		}
 	}
 
 	/**
@@ -559,7 +827,67 @@ public class OptionsOverlay extends AbstractComponent {
 			return;
 		}
 
+		if (mouseX > width) {
+			hoverOption = null;
+			return;
+		}
+
 		hoverOption = getOptionAtPosition(mouseX, mouseY);
+	}
+
+	/**
+	 * Resets the search.
+	 */
+	private void resetSearch() {
+		for (OptionGroup group : groups) {
+			group.setFiltered(false);
+			if (group.getOptions() == null) {
+				continue;
+			}
+			for (GameOption opt : group.getOptions()) {
+				opt.filter(null);
+			}
+		}
+		searchField.setText("");
+		lastSearchText = "";
+	}
+
+	/**
+	 * Update the visible options to conform to the search string.
+	 */
+	private void updateSearch() {
+		OptionGroup lastBigGroup = null;
+		boolean lastBigSectionMatches = false;
+		for (OptionGroup group : groups) {
+			boolean sectionMatches = group.getName().toLowerCase().contains(lastSearchText);
+			if (group.getOptions() == null) {
+				lastBigSectionMatches = sectionMatches;
+				lastBigGroup = group;
+				group.setFiltered(true);
+				continue;
+			}
+			boolean allOptionsHidden = true;
+			for (int optionIndex = 0; optionIndex < group.getOptions().length; optionIndex++) {
+				GameOption option = group.getOptions()[optionIndex];
+				if (lastBigSectionMatches || sectionMatches) {
+					allOptionsHidden = false;
+					option.filter(null);
+					continue;
+				}
+				if (!option.filter(lastSearchText)) {
+					allOptionsHidden = false;
+				}
+			}
+			if (allOptionsHidden) {
+				group.setFiltered(true);
+			} else {
+				if (lastBigGroup != null) {
+					lastBigGroup.setFiltered(false);
+				}
+				group.setFiltered(false);
+			}
+		}
+		updateHoverOption(prevMouseX, prevMouseY);
 	}
 
 	@Override
@@ -603,6 +931,7 @@ public class OptionsOverlay extends AbstractComponent {
 				}
 			}
 			isListOptionOpen = false;
+			listAnimationTime = LISTCLOSEANIMATIONTIME;
 			listHoverIndex = -1;
 			updateHoverOption(x, y);
 			return;
@@ -684,6 +1013,8 @@ public class OptionsOverlay extends AbstractComponent {
 			} else if (hoverOption.getItemList() != null) {
 				SoundController.playSound(SoundEffect.MENUCLICK);
 				isListOptionOpen = true;
+				selectedListOption = hoverOption;
+				listAnimationTime = 0;
 			} else if (hoverOption == GameOption.KEY_LEFT) {
 				SoundController.playSound(SoundEffect.MENUCLICK);
 				keyEntryLeft = true;
@@ -732,24 +1063,26 @@ public class OptionsOverlay extends AbstractComponent {
 		if (!active)
 			return;
 
+		consumeEvent();
+
 		// key entry state
 		if (keyEntryRight) {
 			Options.setGameKeyRight(key);
 			keyEntryRight = false;
-			consumeEvent();
 			return;
 		} else if (keyEntryLeft) {
 			Options.setGameKeyLeft(key);
 			keyEntryLeft = false;
-			consumeEvent();
 			return;
 		}
 
 		// esc: close open list option, otherwise close overlay
 		if (key == Input.KEY_ESCAPE) {
-			consumeEvent();
-			if (isListOptionOpen) {
+			if (lastSearchText.length() > 0) {
+				resetSearch();
+			} else if (isListOptionOpen) {
 				isListOptionOpen = false;
+				listAnimationTime = LISTCLOSEANIMATIONTIME;
 				listHoverIndex = -1;
 			} else {
 				listener.close();
@@ -757,12 +1090,11 @@ public class OptionsOverlay extends AbstractComponent {
 			return;
 		}
 
-		if (consumeAndClose &&
-		    key != Input.KEY_RCONTROL && key != Input.KEY_LCONTROL &&
-		    key != Input.KEY_RSHIFT && key != Input.KEY_LSHIFT &&
-		    key != Input.KEY_RALT && key != Input.KEY_LALT) {
-			consumeEvent();
-			listener.close();
+		searchField.setFocus(true);
+		searchField.keyPressed(key, c);
+		if (!searchField.getText().equals(lastSearchText)) {
+			lastSearchText = searchField.getText().toLowerCase();
+			updateSearch();
 		}
 	}
 
@@ -791,15 +1123,31 @@ public class OptionsOverlay extends AbstractComponent {
 	 * @return the option, or {@code null} if none
 	 */
 	private GameOption getOptionAtPosition(int cx, int cy) {
-		if (cy < y + optionStartY || cx < x + optionStartX || cx > x + optionStartX + optionWidth)
+		if (cy < y || cx < x + optionStartX || cx > x + optionStartX + optionWidth)
 			return null;  // out of bounds
 
 		int mouseVirtualY = (int) (scrolling.getPosition() + cy - y - optionStartY);
 		for (OptionGroup group : groups) {
+			if (group.isFiltered()) {
+				continue;
+			}
 			mouseVirtualY -= optionGroupPadding;
 			for (int i = 0; i < group.getOptions().length; i++) {
-				if (mouseVirtualY <= optionHeight)
-					return (mouseVirtualY >= 0) ? group.getOption(i) : null;
+				if (group.getOptions()[i].isFiltered()) {
+					continue;
+				}
+				if (mouseVirtualY <= optionHeight) {
+					if (mouseVirtualY >= 0) {
+						int indicatorPos = (int) (scrolling.getPosition() + cy - mouseVirtualY);
+						if (indicatorPos != this.indicatorPos + indicatorOffsetToNextPos) {
+							this.indicatorPos += indicatorOffsetToNextPos; // finish the current moving animation
+							indicatorOffsetToNextPos = indicatorPos - this.indicatorPos;
+							indicatorMoveAnimationTime = 1; // starts animation
+						}
+						return group.getOption(i);
+					}
+					return null;
+				}
 				mouseVirtualY -= optionHeight;
 			}
 		}
@@ -830,6 +1178,7 @@ public class OptionsOverlay extends AbstractComponent {
 		hoverOption = selectedOption = null;
 		isAdjustingSlider = false;
 		isListOptionOpen = false;
+		listAnimationTime = 0;
 		listStartX = listStartY = 0;
 		listWidth = listHeight = 0;
 		listHoverIndex = -1;

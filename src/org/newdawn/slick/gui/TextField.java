@@ -259,16 +259,7 @@ public class TextField extends AbstractComponent {
 	 */
 	@Override
 	public void render(GUIContext container, Graphics g) {
-		if (lastKey != -1) {
-			if (input.isKeyDown(lastKey)) {
-				if (repeatTimer < System.currentTimeMillis()) {
-					repeatTimer = System.currentTimeMillis() + KEY_REPEAT_INTERVAL;
-					keyPressed(lastKey, lastChar);
-				}
-			} else {
-				lastKey = -1;
-			}
-		}
+		performKeyRepeat();
 		Rectangle oldClip = g.getClip();
 		g.setWorldClip(x,y,width, height);
 		
@@ -306,6 +297,23 @@ public class TextField extends AbstractComponent {
 		g.setFont(temp);
 		g.clearWorldClip();
 		g.setClip(oldClip);
+	}
+
+	/**
+	 * Performs key repeat.
+	 */
+	public void performKeyRepeat() {
+		if (lastKey == -1) {
+			return;
+		}
+		if (!input.isKeyDown(lastKey)) {
+			lastKey = -1;
+			return;
+		}
+		if (repeatTimer < System.currentTimeMillis()) {
+			repeatTimer = System.currentTimeMillis() + KEY_REPEAT_INTERVAL;
+			keyPressed(lastKey, lastChar);
+		}
 	}
 
 	/**

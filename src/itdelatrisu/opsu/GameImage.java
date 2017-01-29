@@ -352,6 +352,7 @@ public enum GameImage {
 	CHEVRON_LEFT ("chevron-left", "png", false, false),
 
 	// Options menu
+	SEARCH ("search", "png", false, false),
 	CONTROL_SLIDER_BALL ("control-sliderball", "png", false, false),
 	CONTROL_CHECK_ON ("control-check-on", "png", false, false),
 	CONTROL_CHECK_OFF ("control-check-off", "png", false, false),
