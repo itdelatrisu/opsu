@@ -318,6 +318,16 @@ public class OptionsOverlay extends AbstractComponent {
 						openDropdownMenuOldValue = null;
 					}
 				};
+				// not the best way to determine the selected option AT ALL, but seems like it's the only one right now...
+				String selectedValue = option.getValueString();
+				int idx = 0;
+				for (Object item : items) {
+					if (item.toString().equals(selectedValue)) {
+						break;
+					}
+					idx++;
+				}
+				menu.setSelectedIndex(idx);
 				menu.setBackgroundColor(COL_BG);
 				menu.setBorderColor(Color.transparent);
 				menu.setChevronDownColor(COL_WHITE);
