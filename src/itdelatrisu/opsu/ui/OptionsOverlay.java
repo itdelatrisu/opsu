@@ -592,6 +592,9 @@ public class OptionsOverlay extends AbstractComponent {
 		nameWith += 15;
 		int comboboxStartX = optionStartX + nameWith;
 		int comboboxWidth = optionWidth - nameWith;
+		if (comboboxWidth < controlImageSize) {
+			return;
+		}
 		DropdownMenu<Object> dropdown = dropdownMenus.get(option);
 		if (dropdown == null) {
 			return;
