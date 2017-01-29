@@ -305,7 +305,7 @@ public class Options {
 		},
 
 		// in-game options
-		SCREEN_RESOLUTION ("Screen Resolution", "ScreenResolution", "Restart (Ctrl+Shift+F5) to apply resolution changes.") {
+		SCREEN_RESOLUTION ("Screen Resolution", "ScreenResolution", "Restart to apply resolution changes.") {
 			private Resolution[] itemList = null;
 
 			@Override
@@ -330,7 +330,6 @@ public class Options {
 			@Override
 			public void selectItem(int index, GameContainer container) {
 				resolution = itemList[index];
-				UI.getNotificationManager().sendBarNotification(getDescription());
 
 				// check if fullscreen mode is possible with this resolution
 				if (FULLSCREEN.getBooleanValue() && !resolution.hasFullscreenDisplayMode())
@@ -345,7 +344,7 @@ public class Options {
 				} catch (IllegalArgumentException e) {}
 			}
 		},
-		FULLSCREEN ("Fullscreen Mode", "Fullscreen", "Restart (Ctrl+Shift+F5) to apply changes.", false) {
+		FULLSCREEN ("Fullscreen Mode", "Fullscreen", "Restart to apply changes.", false) {
 			@Override
 			public void toggle(GameContainer container) {
 				// check if fullscreen mode is possible with this resolution
@@ -355,10 +354,9 @@ public class Options {
 				}
 
 				super.toggle(container);
-				UI.getNotificationManager().sendBarNotification(getDescription());
 			}
 		},
-		SKIN ("Skin", "Skin", "Restart (Ctrl+Shift+F5) to apply skin changes.") {
+		SKIN ("Skin", "Skin", "Restart to apply skin changes.") {
 			private String[] itemList = null;
 
 			/** Creates the list of available skins. */
@@ -385,7 +383,6 @@ public class Options {
 				if (itemList == null)
 					createSkinList();
 				skinName = itemList[index];
-				UI.getNotificationManager().sendBarNotification(getDescription());
 			}
 
 			@Override

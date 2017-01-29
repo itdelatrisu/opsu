@@ -67,8 +67,8 @@ public class OptionsOverlay extends AbstractComponent {
 	/** Chevron images. */
 	private final Image chevronDownImg, chevronRightImg;
 
-	/** Back button. */
-	private final MenuButton backButton;
+	/** Buttons. */
+	private final MenuButton backButton, restartButton;
 
 	/** The top-left coordinates. */
 	private float x, y;
@@ -142,6 +142,9 @@ public class OptionsOverlay extends AbstractComponent {
 	/** Should all unprocessed events be consumed, and the overlay closed? */
 	private boolean consumeAndClose = false;
 
+	/** Whether to show the restart button. */
+	private boolean showRestartButton = false;
+
 	/** Colors. */
 	private static final Color
 		BLACK_ALPHA_75 = new Color(0, 0, 0, 0.75f),
@@ -197,6 +200,12 @@ public class OptionsOverlay extends AbstractComponent {
 		Image backArrow = GameImage.CHEVRON_LEFT.getImage().getScaledCopy(backSize, backSize);
 		this.backButton = new MenuButton(backArrow, 0, 0);
 		backButton.setHoverExpand(1.5f);
+
+		// restart button
+		Image restartImg = GameImage.UPDATE.getImage().getScaledCopy(backSize, backSize);
+		this.restartButton = new MenuButton(restartImg, 0, 0);
+		restartButton.setHoverAnimationDuration(2000);
+		restartButton.setHoverRotate(360);
 
 		// calculate scroll offsets
 		int maxScrollOffset = optionGroupPadding * groups.length;
@@ -267,6 +276,13 @@ public class OptionsOverlay extends AbstractComponent {
 		backButton.setX(x + backButton.getImage().getWidth() * 2);
 		backButton.setY(titleY + Fonts.XLARGE.getLineHeight() * 0.6f);
 		backButton.draw();
+
+		// restart button
+		if (showRestartButton) {
+			restartButton.setX(x + width - restartButton.getImage().getWidth() * 2);
+			restartButton.setY(titleY + Fonts.XLARGE.getLineHeight() * 0.6f);
+			restartButton.draw();
+		}
 
 		// options
 		g.setClip((int) x, (int) y + optionStartY, width, containerHeight - optionStartY);
@@ -498,7 +514,11 @@ public class OptionsOverlay extends AbstractComponent {
 		// delta updates
 		if (hoverOption != null && getOptionAtPosition(mouseX, mouseY) == hoverOption && !keyEntryLeft && !keyEntryRight)
 			UI.updateTooltip(delta, hoverOption.getDescription(), true);
+		else if (showRestartButton && restartButton.contains(mouseX, mouseY) && !keyEntryLeft && !keyEntryRight)
+			UI.updateTooltip(delta, "Click to restart the game.", false);
 		backButton.hoverUpdate(delta, backButton.contains(mouseX, mouseY) && !keyEntryLeft && !keyEntryRight);
+		if (showRestartButton)
+			restartButton.autoHoverUpdate(delta, false);
 		sliderSoundDelay = Math.max(sliderSoundDelay - delta, 0);
 		scrolling.update(delta);
 
@@ -571,8 +591,17 @@ public class OptionsOverlay extends AbstractComponent {
 		if (isListOptionOpen) {
 			SoundController.playSound(SoundEffect.MENUCLICK);
 			int index = getListIndex(x, y);
-			if (y > optionStartY && index != -1)
+			if (y > optionStartY && index != -1) {
+				String oldValue = hoverOption.getValueString();
 				hoverOption.selectItem(index, container);
+
+				// show restart button?
+				if (!oldValue.equals(hoverOption.getValueString()) &&
+				    (hoverOption == GameOption.SCREEN_RESOLUTION || hoverOption == GameOption.SKIN)) {
+					showRestartButton = true;
+					UI.getNotificationManager().sendBarNotification("Restart to apply changes.");
+				}
+			}
 			isListOptionOpen = false;
 			listHoverIndex = -1;
 			updateHoverOption(x, y);
@@ -583,6 +612,13 @@ public class OptionsOverlay extends AbstractComponent {
 		if (backButton.contains(x, y)) {
 			SoundController.playSound(SoundEffect.MENUCLICK);
 			listener.close();
+			return;
+		}
+
+		// restart button: restart game
+		if (showRestartButton && restartButton.contains(x, y)) {
+			container.setForceExit(false);
+			container.exit();
 			return;
 		}
 
@@ -637,7 +673,14 @@ public class OptionsOverlay extends AbstractComponent {
 		if (hoverOption != null) {
 			if (hoverOption.getType() == OptionType.BOOLEAN) {
 				SoundController.playSound(SoundEffect.MENUCLICK);
+				boolean oldValue = hoverOption.getBooleanValue();
 				hoverOption.toggle(container);
+
+				// show restart button?
+				if (oldValue != hoverOption.getBooleanValue() && hoverOption == GameOption.FULLSCREEN) {
+					showRestartButton = true;
+					UI.getNotificationManager().sendBarNotification("Restart to apply changes.");
+				}
 			} else if (hoverOption.getItemList() != null) {
 				SoundController.playSound(SoundEffect.MENUCLICK);
 				isListOptionOpen = true;
@@ -711,16 +754,6 @@ public class OptionsOverlay extends AbstractComponent {
 			} else {
 				listener.close();
 			}
-			return;
-		}
-
-		// ctrl+shift+f5: restart application
-		if (key == Input.KEY_F5 &&
-		    (input.isKeyDown(Input.KEY_RCONTROL) || input.isKeyDown(Input.KEY_LCONTROL)) &&
-		    (input.isKeyDown(Input.KEY_RSHIFT) || input.isKeyDown(Input.KEY_LSHIFT))) {
-			consumeEvent();
-			container.setForceExit(false);
-			container.exit();
 			return;
 		}
 
@@ -807,5 +840,6 @@ public class OptionsOverlay extends AbstractComponent {
 		prevMouseX = prevMouseY = -1;
 		sliderSoundDelay = 0;
 		backButton.resetHover();
+		restartButton.resetHover();
 	}
 }
