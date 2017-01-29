@@ -494,22 +494,22 @@ public class Options {
 		},
 		DYNAMIC_BACKGROUND ("Enable Dynamic Backgrounds", "DynamicBackground", "The song background will be used as the main menu background.", true),
 		LOAD_VERBOSE ("Show Detailed Loading Progress", "LoadVerbose", "Display more specific loading information in the splash screen.", false),
-		MASTER_VOLUME ("Master Volume", "VolumeUniversal", "Global volume level.", 35, 0, 100) {
+		MASTER_VOLUME ("Master", "VolumeUniversal", "Global volume level.", 35, 0, 100) {
 			@Override
 			public void setValue(int value) {
 				super.setValue(value);
 				SoundStore.get().setMusicVolume(getMasterVolume() * getMusicVolume());
 			}
 		},
-		MUSIC_VOLUME ("Music Volume", "VolumeMusic", "Volume of music.", 80, 0, 100) {
+		MUSIC_VOLUME ("Music", "VolumeMusic", "Volume of music.", 80, 0, 100) {
 			@Override
 			public void setValue(int value) {
 				super.setValue(value);
 				SoundStore.get().setMusicVolume(getMasterVolume() * getMusicVolume());
 			}
 		},
-		EFFECT_VOLUME ("Effect Volume", "VolumeEffect", "Volume of menu and game sounds.", 70, 0, 100),
-		HITSOUND_VOLUME ("Hit Sound Volume", "VolumeHitSound", "Volume of hit sounds.", 30, 0, 100),
+		EFFECT_VOLUME ("Effects", "VolumeEffect", "Volume of menu and game sounds.", 70, 0, 100),
+		HITSOUND_VOLUME ("Hit Sounds", "VolumeHitSound", "Volume of hit sounds.", 30, 0, 100),
 		MUSIC_OFFSET ("Music Offset", "Offset", "Adjust this value if hit objects are out of sync.", -75, -500, 500) {
 			@Override
 			public String getValueString() { return String.format("%dms", val); }
