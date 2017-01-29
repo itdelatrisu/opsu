@@ -598,25 +598,35 @@ public class OptionsOverlay extends AbstractComponent {
 	 * @param y the y coordinate
 	 */
 	private void renderSliderOption(Graphics g, GameOption option, int y) {
-		// draw option name
+		// draw option name and value
 		final int padding = 10;
-		int nameLen = Fonts.MEDIUM.getWidth(option.getName());
+		String value = option.getValueString();
+		int nameWidth = Fonts.MEDIUM.getWidth(option.getName());
+		int valueWidth = Fonts.MEDIUM.getWidth(value);
 		Fonts.MEDIUM.drawString(optionStartX, y + optionTextOffsetY, option.getName(), COL_WHITE);
-		int sliderLen = optionWidth - nameLen - padding;
-		if (sliderLen <= 1) {
+		Fonts.MEDIUM.drawString(optionStartX + optionWidth - valueWidth, y + optionTextOffsetY, value, COL_BLUE);
+
+		// calculate slider positions
+		int sliderWidth = optionWidth - nameWidth - padding - padding - valueWidth;
+		if (sliderWidth <= 1) {
+			// menu hasn't slide in far enough to need to draw the slider
 			return;
 		}
-		int sliderStartX = optionStartX + nameLen + padding;
-		int sliderEndX = optionStartX + optionWidth;
 
+		int sliderStartX = optionStartX + nameWidth + padding;
 		if (hoverOption == option) {
-			sliderOptionWidth = sliderLen;
 			sliderOptionStartX = sliderStartX;
+			if (!isAdjustingSlider) {
+				sliderOptionWidth = sliderWidth;
+			} else {
+				sliderWidth = sliderOptionWidth;
+			}
 		}
+		int sliderEndX = optionStartX + nameWidth + padding + sliderWidth;
 
 		// draw slider
 		float sliderValue = (float) (option.getIntegerValue() - option.getMinValue()) / (option.getMaxValue() - option.getMinValue());
-		float sliderBallPos = sliderStartX + (int) ((sliderLen - controlImageSize) * sliderValue);
+		float sliderBallPos = sliderStartX + (int) ((sliderWidth - controlImageSize) * sliderValue);
 
 		g.setLineWidth(3f);
 		g.setColor(COL_PINK);
