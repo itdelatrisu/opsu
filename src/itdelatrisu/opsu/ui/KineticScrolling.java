@@ -227,4 +227,9 @@ public class KineticScrolling {
 			throw new IllegalArgumentException("Speed multiplier must be above zero.");
 		this.speedMultiplier = multiplier;
 	}
+
+	/**
+	 * Returns the speed multiplier.
+	 */
+	public float getSpeedMultiplier() { return speedMultiplier; }
 }

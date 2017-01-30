@@ -108,6 +108,9 @@ public class SongMenu extends BasicGameState {
 	/** Line width of the header/footer divider. */
 	private static final int DIVIDER_LINE_WIDTH = 4;
 
+	/** Fast scrolling speed multiplier. */
+	private static final float FAST_SCROLL_SPEED = 2f;
+
 	/** Song node class representing an BeatmapSetNode and file index. */
 	private static class SongNode {
 		/** Song node. */
@@ -952,6 +955,8 @@ public class SongMenu extends BasicGameState {
 			return;
 
 		if (input.isMouseButtonDown(Input.MOUSE_RIGHT_BUTTON)) {
+			songScrolling.setSpeedMultiplier(FAST_SCROLL_SPEED);
+
 			// check if anything was clicked
 			for (BeatmapGroup group : BeatmapGroup.values()) {
 				if (group.contains(x, y))
@@ -965,7 +970,6 @@ public class SongMenu extends BasicGameState {
 				return;
 
 			// scroll to the mouse position on the screen
-			songScrolling.setSpeedMultiplier(2f);
 			scrollSongsToPosition(y);
 		} else
 			songScrolling.pressed();
@@ -1306,7 +1310,7 @@ public class SongMenu extends BasicGameState {
 		else {
 			if (songScrolling.isPressed())
 				songScrolling.dragged(-diff);
-			else
+			else if (songScrolling.getSpeedMultiplier() == FAST_SCROLL_SPEED)  // make sure mousePressed() preceded this event
 				scrollSongsToPosition(newy);
 		}
 	}
@@ -1665,7 +1669,7 @@ public class SongMenu extends BasicGameState {
 				songScrolling.setPosition((node.index - 1) * buttonOffset);
 			else {
 				isScrollingToFocusNode = true;
-				songScrolling.setSpeedMultiplier(2f);
+				songScrolling.setSpeedMultiplier(FAST_SCROLL_SPEED);
 				songScrolling.released();
 			}
 		}

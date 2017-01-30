@@ -478,10 +478,10 @@ public class OptionsOverlay extends AbstractComponent {
 		String searchText = "Type to search!";
 		if (lastSearchText.length() > 0)
 			searchText = lastSearchText;
-		int searchTextX = (int) (x + (width - Fonts.LARGE.getWidth(searchText)) / 2);
-		Fonts.LARGE.drawString(searchTextX, ypos, searchText, COLOR_WHITE);
+		int searchTextX = (int) (x + (width - Fonts.LARGE.getWidth(searchText) - searchImg.getWidth() - 10) / 2);
+		Fonts.LARGE.drawString(searchTextX + searchImg.getWidth() + 10, ypos, searchText, COLOR_WHITE);
 		searchImg.draw(
-			searchTextX - searchImg.getWidth() - 10,
+			searchTextX,
 			ypos + Fonts.LARGE.getLineHeight() * 0.25f,
 			COLOR_WHITE
 		);
@@ -554,12 +554,9 @@ public class OptionsOverlay extends AbstractComponent {
 			if (group.getOptions() == null)
 				continue;  // header only
 
-			// container rectangle
-			int lineHeight = (int) (Fonts.LARGE.getLineHeight() * 0.9f);
-			g.setColor(COLOR_GREY);
-			g.fillRect(x + paddingLeft, lineStartY, LINE_WIDTH, lineHeight);
 
 			// options
+			int lineHeight = (int) (Fonts.LARGE.getLineHeight() * 0.9f);
 			boolean finished = false;
 			for (GameOption option : group.getOptions()) {
 				if (!option.isVisible())
@@ -581,6 +578,11 @@ public class OptionsOverlay extends AbstractComponent {
 					break;
 				}
 			}
+
+			// container rectangle
+			g.setColor(COLOR_GREY);
+			g.fillRect(x + paddingLeft, lineStartY, LINE_WIDTH, lineHeight);
+
 			if (finished)
 				break;
 		}
@@ -1011,7 +1013,7 @@ public class OptionsOverlay extends AbstractComponent {
 
 	@Override
 	public void mouseDragged(int oldx, int oldy, int newx, int newy) {
-		if (!active || !contains(oldx, oldy))
+		if (!active)
 			return;
 
 		if (!isAdjustingSlider) {
