@@ -1047,6 +1047,11 @@ public class Options {
 	public static boolean isFPSCounterEnabled() { return GameOption.SHOW_FPS.getBooleanValue(); }
 
 	/**
+	 * Toggles the FPS counter display.
+	 */
+	public static void toggleFPSCounter() { GameOption.SHOW_FPS.toggle(null); }
+
+	/**
 	 * Returns whether or not hit lighting effects are enabled.
 	 * @return true if enabled
 	 */

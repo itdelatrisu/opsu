@@ -624,16 +624,8 @@ public class MainMenu extends BasicGameState {
 			UI.getNotificationManager().sendBarNotification(">> Next");
 			return;
 		} else if (musicPrevious.contains(x, y)) {
-			lastMeasureProgress = 0f;
-			if (!previous.isEmpty()) {
-				SongMenu menu = (SongMenu) game.getState(Opsu.STATE_SONGMENU);
-				menu.setFocus(BeatmapSetList.get().getBaseNode(previous.pop()), -1, true, false);
-				if (Options.isDynamicBackgroundEnabled())
-					bgAlpha.setTime(0);
-			} else
-				MusicController.setPosition(0);
-			musicInfoProgress.setTime(0);
-			UI.getNotificationManager().sendBarNotification("<< Previous");
+			previousTrack();
+			UI.getNotificationManager().sendBarNotification("<< Prev");
 			return;
 		}
 
@@ -726,6 +718,34 @@ public class MainMenu extends BasicGameState {
 			SoundController.playSound(SoundEffect.MENUHIT);
 			game.enterState(Opsu.STATE_DOWNLOADSMENU, new EasedFadeOutTransition(), new FadeInTransition());
 			break;
+		case Input.KEY_F:
+			Options.toggleFPSCounter();
+			break;
+		case Input.KEY_Z:
+			previousTrack();
+			UI.getNotificationManager().sendBarNotification("<< Prev");
+			break;
+		case Input.KEY_X:
+			if (MusicController.isPlaying()) {
+				lastMeasureProgress = 0f;
+				MusicController.setPosition(0);
+			} else if (!MusicController.isTrackLoading())
+				MusicController.resume();
+			UI.getNotificationManager().sendBarNotification("Play");
+			break;
+		case Input.KEY_C:
+			if (MusicController.isPlaying()) {
+				MusicController.pause();
+				UI.getNotificationManager().sendBarNotification("Pause");
+			} else if (!MusicController.isTrackLoading()) {
+				MusicController.resume();
+				UI.getNotificationManager().sendBarNotification("Unpause");
+			}
+			break;
+		case Input.KEY_V:
+			nextTrack(true);
+			UI.getNotificationManager().sendBarNotification(">> Next");
+			break;
 		case Input.KEY_R:
 			nextTrack(true);
 			break;
@@ -807,6 +827,20 @@ public class MainMenu extends BasicGameState {
 		}
 		if (Options.isDynamicBackgroundEnabled() && !sameAudio && !MusicController.isThemePlaying())
 			bgAlpha.setTime(0);
+		musicInfoProgress.setTime(0);
+	}
+
+	/**
+	 * Plays the previous track, or does nothing if the stack is empty.
+	 */
+	private void previousTrack() {
+		if (!previous.isEmpty()) {
+			SongMenu menu = (SongMenu) game.getState(Opsu.STATE_SONGMENU);
+			menu.setFocus(BeatmapSetList.get().getBaseNode(previous.pop()), -1, true, false);
+			lastMeasureProgress = 0f;
+			if (Options.isDynamicBackgroundEnabled())
+				bgAlpha.setTime(0);
+		}
 		musicInfoProgress.setTime(0);
 	}
 
