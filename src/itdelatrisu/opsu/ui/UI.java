@@ -382,7 +382,7 @@ public class UI {
 	 * @param g the graphics context
 	 */
 	public static void drawTooltip(Graphics g) {
-		if (tooltipAlpha.getTime() == 0 || tooltip == null)
+		if (tooltipAlpha.getTime() == 0 || tooltip == null || tooltip.isEmpty())
 			return;
 
 		int containerWidth = container.getWidth(), containerHeight = container.getHeight();

@@ -27,70 +27,68 @@ public class OptionGroup {
 	/** All option groups. */
 	public static final OptionGroup[] ALL_OPTIONS = new OptionGroup[] {
 		new OptionGroup("GENERAL", null),
-		new OptionGroup("GENERAL", new GameOption[]{
-			GameOption.DISABLE_UPDATER,
-			GameOption.ENABLE_WATCH_SERVICE,
-		}),
 		new OptionGroup("LANGUAGE", new GameOption[] {
 			GameOption.SHOW_UNICODE,
 		}),
+		new OptionGroup("UPDATES", new GameOption[] {
+			GameOption.DISABLE_UPDATER,
+		}),
 		new OptionGroup("GRAPHICS", null),
-		new OptionGroup("RENDERER", new GameOption[]{
+		new OptionGroup("LAYOUT", new GameOption[] {
 			GameOption.SCREEN_RESOLUTION,
 			GameOption.FULLSCREEN,
+		}),
+		new OptionGroup("RENDERER", new GameOption[] {
 			GameOption.TARGET_FPS,
 			GameOption.SHOW_FPS,
+		}),
+		new OptionGroup("DETAIL SETTINGS", new GameOption[] {
+			GameOption.SNAKING_SLIDERS,
+			GameOption.ENABLE_VIDEOS,
+			GameOption.SHOW_COMBO_BURSTS,
+			GameOption.SHOW_HIT_LIGHTING,
+			GameOption.SHOW_PERFECT_HIT,
+			GameOption.SHOW_FOLLOW_POINTS,
 			GameOption.SCREENSHOT_FORMAT,
 		}),
-		new OptionGroup("SLIDERS", new GameOption[] {
-			GameOption.SNAKING_SLIDERS,
-		}),
-		new OptionGroup("MISC", new GameOption[] {
+		new OptionGroup("MAIN MENU", new GameOption[] {
 			GameOption.DYNAMIC_BACKGROUND,
-			GameOption.PARALLAX
-		}),
-		new OptionGroup("SKIN", null),
-		new OptionGroup("SKIN", new GameOption[]{
-			GameOption.SKIN,
-			GameOption.LOAD_HD_IMAGES,
-			GameOption.LOAD_VERBOSE,
-			GameOption.IGNORE_BEATMAP_SKINS,
-		}),
-		new OptionGroup("CURSOR", new GameOption[] {
-			GameOption.CURSOR_SIZE,
-			GameOption.DISABLE_CURSOR
-		}),
-		new OptionGroup("AUDIO", null),
-		new OptionGroup("VOLUME", new GameOption[]{
-			GameOption.MASTER_VOLUME,
-			GameOption.MUSIC_VOLUME,
-			GameOption.EFFECT_VOLUME,
-			GameOption.HITSOUND_VOLUME,
-		}),
-		new OptionGroup("MISC", new GameOption[] {
-			GameOption.MUSIC_OFFSET,
-			GameOption.DISABLE_SOUNDS,
-			GameOption.ENABLE_THEME_SONG
+			GameOption.PARALLAX,
+			GameOption.ENABLE_THEME_SONG,
 		}),
 		new OptionGroup("GAMEPLAY", null),
 		new OptionGroup("GENERAL", new GameOption[] {
 			GameOption.BACKGROUND_DIM,
 			GameOption.FORCE_DEFAULT_PLAYFIELD,
-			GameOption.ENABLE_VIDEOS,
-			GameOption.SHOW_HIT_LIGHTING,
-			GameOption.SHOW_COMBO_BURSTS,
-			GameOption.SHOW_PERFECT_HIT,
-			GameOption.SHOW_FOLLOW_POINTS,
-			GameOption.SHOW_HIT_ERROR_BAR
+			GameOption.SHOW_HIT_ERROR_BAR,
+		}),
+		new OptionGroup("AUDIO", null),
+		new OptionGroup("VOLUME", new GameOption[] {
+			GameOption.MASTER_VOLUME,
+			GameOption.MUSIC_VOLUME,
+			GameOption.EFFECT_VOLUME,
+			GameOption.HITSOUND_VOLUME,
+			GameOption.DISABLE_SOUNDS,
+		}),
+		new OptionGroup("OFFSET ADJUSTMENT", new GameOption[] {
+			GameOption.MUSIC_OFFSET,
+		}),
+		new OptionGroup("SKIN", null),
+		new OptionGroup("SKIN", new GameOption[]{
+			GameOption.SKIN,
+			GameOption.IGNORE_BEATMAP_SKINS,
+			GameOption.LOAD_HD_IMAGES,
+			GameOption.CURSOR_SIZE,
+			GameOption.DISABLE_CURSOR,
 		}),
 		new OptionGroup("INPUT", null),
-		new OptionGroup("KEY MAPPING", new GameOption[] {
-			GameOption.KEY_LEFT,
-			GameOption.KEY_RIGHT,
-		}),
 		new OptionGroup("MOUSE", new GameOption[] {
 			GameOption.DISABLE_MOUSE_WHEEL,
 			GameOption.DISABLE_MOUSE_BUTTONS,
+		}),
+		new OptionGroup("KEYBOARD", new GameOption[] {
+			GameOption.KEY_LEFT,
+			GameOption.KEY_RIGHT,
 		}),
 		new OptionGroup("CUSTOM", null),
 		new OptionGroup("DIFFICULTY", new GameOption[] {
@@ -99,9 +97,13 @@ public class OptionGroup {
 			GameOption.FIXED_AR,
 			GameOption.FIXED_OD,
 		}),
-		new OptionGroup("MISC", new GameOption[] {
+		new OptionGroup("SEEKING", new GameOption[] {
 			GameOption.CHECKPOINT,
 			GameOption.REPLAY_SEEKING,
+		}),
+		new OptionGroup("MISCELLANEOUS", new GameOption[] {
+			GameOption.ENABLE_WATCH_SERVICE,
+			GameOption.LOAD_VERBOSE,
 		}),
 	};
 
