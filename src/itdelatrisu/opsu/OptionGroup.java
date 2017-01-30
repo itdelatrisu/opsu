@@ -81,7 +81,8 @@ public class OptionGroup {
 			GameOption.SHOW_COMBO_BURSTS,
 			GameOption.SHOW_PERFECT_HIT,
 			GameOption.SHOW_FOLLOW_POINTS,
-			GameOption.SHOW_HIT_ERROR_BAR
+			GameOption.SHOW_HIT_ERROR_BAR,
+			GameOption.ANIMATE_RANKING
 		}),
 		new OptionGroup("INPUT", null),
 		new OptionGroup("KEY MAPPING", new GameOption[] {

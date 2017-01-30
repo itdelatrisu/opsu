@@ -613,6 +613,7 @@ public class Options {
 						val - TimeUnit.MINUTES.toSeconds(TimeUnit.SECONDS.toMinutes(val)));
 			}
 		},
+		ANIMATE_RANKING ("Animate Ranking Elements", "RankingElementsAnimation", "Animate the ranking details after completing a map.", true),
 		PARALLAX ("Parallax", "MenuParallax", "Add a parallax effect based on the current cursor position.", true),
 		ENABLE_THEME_SONG ("Enable Theme Song", "MenuMusic", OpsuConstants.PROJECT_NAME + " will play themed music throughout the game, instead of using random beatmaps.", true),
 		REPLAY_SEEKING ("Replay Seeking", "ReplaySeeking", "Enable a seeking bar on the left side of the screen during replays.", false),
@@ -1165,6 +1166,12 @@ public class Options {
 	 * @return true if Unicode preferred
 	 */
 	public static boolean useUnicodeMetadata() { return GameOption.SHOW_UNICODE.getBooleanValue(); }
+
+	/**
+	 * Returns whether or not to animate ranking elements
+	 * @return true if animation is enabled
+	 */
+	public static boolean isRankingElementsAnimationEnabled() { return GameOption.ANIMATE_RANKING.getBooleanValue(); }
 
 	/**
 	 * Returns whether parallax is enabled.
