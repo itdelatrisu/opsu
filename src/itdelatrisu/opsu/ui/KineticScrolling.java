@@ -61,6 +61,17 @@ public class KineticScrolling {
 	/** The speed multiplier (divides {@link #TIME_CONST}). */
 	private float speedMultiplier = 1f;
 
+	/** Whether or not to allow overscrolling. */
+	private boolean allowOverScroll;
+
+	/**
+	 * Enable or disable the overscrolling flag.
+	 * @param allowOverScroll whether or not to allow overscrolling
+	 */
+	public void setAllowOverScroll(boolean allowOverScroll) {
+		this.allowOverScroll = allowOverScroll;
+	}
+
 	/**
 	 * Returns the current position.
 	 * @return the position
@@ -106,13 +117,24 @@ public class KineticScrolling {
 			target = position;
 			deltaPosition = 0;
 		}
+		if (allowOverScroll && pressed) {
+			return;
+		}
 		if (position > max) {
-			amplitude = 0;
-			target = position = max;
+			if (allowOverScroll) {
+				scrollToPosition(max);
+			} else {
+				amplitude = 0;
+				target = position = max;
+			}
 		}
 		if (position < min) {
-			amplitude = 0;
-			target = position = min;
+			if (allowOverScroll) {
+				scrollToPosition(min);
+			} else {
+				amplitude = 0;
+				target = position = min;
+			}
 		}
 	}
 

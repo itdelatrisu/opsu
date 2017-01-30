@@ -494,22 +494,22 @@ public class Options {
 		},
 		DYNAMIC_BACKGROUND ("Enable Dynamic Backgrounds", "DynamicBackground", "The song background will be used as the main menu background.", true),
 		LOAD_VERBOSE ("Show Detailed Loading Progress", "LoadVerbose", "Display more specific loading information in the splash screen.", false),
-		MASTER_VOLUME ("Master Volume", "VolumeUniversal", "Global volume level.", 35, 0, 100) {
+		MASTER_VOLUME ("Master", "VolumeUniversal", "Global volume level.", 35, 0, 100) {
 			@Override
 			public void setValue(int value) {
 				super.setValue(value);
 				SoundStore.get().setMusicVolume(getMasterVolume() * getMusicVolume());
 			}
 		},
-		MUSIC_VOLUME ("Music Volume", "VolumeMusic", "Volume of music.", 80, 0, 100) {
+		MUSIC_VOLUME ("Music", "VolumeMusic", "Volume of music.", 80, 0, 100) {
 			@Override
 			public void setValue(int value) {
 				super.setValue(value);
 				SoundStore.get().setMusicVolume(getMasterVolume() * getMusicVolume());
 			}
 		},
-		EFFECT_VOLUME ("Effect Volume", "VolumeEffect", "Volume of menu and game sounds.", 70, 0, 100),
-		HITSOUND_VOLUME ("Hit Sound Volume", "VolumeHitSound", "Volume of hit sounds.", 30, 0, 100),
+		EFFECT_VOLUME ("Effects", "VolumeEffect", "Volume of menu and game sounds.", 70, 0, 100),
+		HITSOUND_VOLUME ("Hit Sounds", "VolumeHitSound", "Volume of hit sounds.", 30, 0, 100),
 		MUSIC_OFFSET ("Music Offset", "Offset", "Adjust this value if hit objects are out of sync.", -75, -500, 500) {
 			@Override
 			public String getValueString() { return String.format("%dms", val); }
@@ -642,6 +642,12 @@ public class Options {
 
 		/** Option type. */
 		private OptionType type = OptionType.SELECT;
+
+		/**
+		 * If this option should not be shown in the optionsmenu because it does
+		 * not match the search string.
+		 */
+		private boolean filtered;
 
 		/**
 		 * Constructor for internal options (not displayed in-game).
@@ -820,6 +826,30 @@ public class Options {
 			} else if (type == OptionType.BOOLEAN)
 				bool = Boolean.parseBoolean(s);
 		}
+
+		/**
+		 * Update the filtered flag for this option based on the given searchString.
+		 * @param searchString the searched string or null to reset the filtered flag
+		 * @return true if this option does need to be filtered
+		 */
+		public boolean filter(String searchString) {
+			if (searchString == null || searchString.length() == 0) {
+				filtered = false;
+				return false;
+			}
+			filtered = !(name.toLowerCase().contains(searchString) || description.toLowerCase().contains(searchString));
+			return filtered;
+		}
+
+		/**
+		 * Check if this option should be filtered (= not shown) because it does not
+		 * match the search string.
+		 * @return true if the option shouldn't be shown.
+		 */
+		public boolean isFiltered() {
+			return filtered;
+		}
+
 	};
 
 	/** Map of option display names to GameOptions. */
