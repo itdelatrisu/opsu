@@ -697,6 +697,9 @@ public class MainMenu extends BasicGameState {
 
 	@Override
 	public void keyPressed(int key, char c) {
+		if (UI.globalKeyPressed(key))
+			return;
+
 		switch (key) {
 		case Input.KEY_ESCAPE:
 		case Input.KEY_Q:
@@ -754,15 +757,6 @@ public class MainMenu extends BasicGameState {
 			break;
 		case Input.KEY_DOWN:
 			UI.changeVolume(-1);
-			break;
-		case Input.KEY_F7:
-			Options.setNextFPS(container);
-			break;
-		case Input.KEY_F10:
-			Options.toggleMouseDisabled();
-			break;
-		case Input.KEY_F12:
-			Utils.takeScreenShot();
 			break;
 		}
 	}

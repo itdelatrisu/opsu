@@ -1134,6 +1134,9 @@ public class SongMenu extends BasicGameState {
 		if ((reloadThread != null && !(key == Input.KEY_ESCAPE || key == Input.KEY_F12)) || beatmapMenuTimer > -1 || isScrollingToFocusNode)
 			return;
 
+		if (UI.globalKeyPressed(key))
+			return;
+
 		switch (key) {
 		case Input.KEY_ESCAPE:
 			if (reloadThread != null) {
@@ -1206,15 +1209,6 @@ public class SongMenu extends BasicGameState {
 				((ButtonMenu) game.getState(Opsu.STATE_BUTTONMENU)).setMenuState(ms, focusNode);
 				game.enterState(Opsu.STATE_BUTTONMENU);
 			}
-			break;
-		case Input.KEY_F7:
-			Options.setNextFPS(container);
-			break;
-		case Input.KEY_F10:
-			Options.toggleMouseDisabled();
-			break;
-		case Input.KEY_F12:
-			Utils.takeScreenShot();
 			break;
 		case Input.KEY_ENTER:
 			if (focusNode == null)

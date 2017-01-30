@@ -482,4 +482,26 @@ public class UI {
 				JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
 		return (n != JOptionPane.YES_OPTION);
 	}
+
+	/**
+	 * Processes global hotkey actions.
+	 * @param key the key code that was pressed
+	 * @return {@code true} if a global hotkey was pressed
+	 */
+	public static boolean globalKeyPressed(int key) {
+		switch (key) {
+		case Input.KEY_F7:
+			Options.setNextFPS(container);
+			break;
+		case Input.KEY_F10:
+			Options.toggleMouseDisabled();
+			break;
+		case Input.KEY_F12:
+			Utils.takeScreenShot();
+			break;
+		default:
+			return false;
+		}
+		return true;
+	}
 }

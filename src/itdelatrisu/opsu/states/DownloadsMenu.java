@@ -21,7 +21,6 @@ package itdelatrisu.opsu.states;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.Options;
-import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
@@ -292,7 +291,6 @@ public class DownloadsMenu extends BasicGameState {
 	}
 
 	// game-related variables
-	private GameContainer container;
 	private StateBasedGame game;
 	private Input input;
 	private final int state;
@@ -304,7 +302,6 @@ public class DownloadsMenu extends BasicGameState {
 	@Override
 	public void init(GameContainer container, StateBasedGame game)
 			throws SlickException {
-		this.container = container;
 		this.game = game;
 		this.input = container.getInput();
 
@@ -888,6 +885,9 @@ public class DownloadsMenu extends BasicGameState {
 		if (importThread != null && !(key == Input.KEY_ESCAPE || key == Input.KEY_F12))
 			return;
 
+		if (UI.globalKeyPressed(key))
+			return;
+
 		switch (key) {
 		case Input.KEY_ESCAPE:
 			if (importThread != null) {
@@ -918,15 +918,6 @@ public class DownloadsMenu extends BasicGameState {
 			if (searchQuery != null)
 				searchQuery.interrupt();
 			resetSearchTimer();
-			break;
-		case Input.KEY_F7:
-			Options.setNextFPS(container);
-			break;
-		case Input.KEY_F10:
-			Options.toggleMouseDisabled();
-			break;
-		case Input.KEY_F12:
-			Utils.takeScreenShot();
 			break;
 		default:
 			// wait for user to finish typing

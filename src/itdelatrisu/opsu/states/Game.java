@@ -1058,6 +1058,9 @@ public class Game extends BasicGameState {
 				gameKeyPressed(keys, mouseX, mouseY, trackPosition);
 		}
 
+		if (UI.globalKeyPressed(key))
+			return;
+
 		switch (key) {
 		case Input.KEY_ESCAPE:
 			// game finished: only advance the timer
@@ -1168,15 +1171,6 @@ public class Game extends BasicGameState {
 			break;
 		case Input.KEY_DOWN:
 			UI.changeVolume(-1);
-			break;
-		case Input.KEY_F7:
-			Options.setNextFPS(container);
-			break;
-		case Input.KEY_F10:
-			Options.toggleMouseDisabled();
-			break;
-		case Input.KEY_F12:
-			Utils.takeScreenShot();
 			break;
 		case Input.KEY_TAB:
 			if (!gameFinished)

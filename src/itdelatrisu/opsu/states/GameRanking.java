@@ -23,7 +23,6 @@ import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.GameMod;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.Options;
-import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
@@ -70,7 +69,6 @@ public class GameRanking extends BasicGameState {
 	private AnimatedValue animationProgress = new AnimatedValue(6000, 0f, 1f, AnimationEquation.LINEAR);
 
 	// game-related variables
-	private GameContainer container;
 	private StateBasedGame game;
 	private final int state;
 	private Input input;
@@ -82,7 +80,6 @@ public class GameRanking extends BasicGameState {
 	@Override
 	public void init(GameContainer container, StateBasedGame game)
 			throws SlickException {
-		this.container = container;
 		this.game = game;
 		this.input = container.getInput();
 
@@ -166,18 +163,12 @@ public class GameRanking extends BasicGameState {
 
 	@Override
 	public void keyPressed(int key, char c) {
+		if (UI.globalKeyPressed(key))
+			return;
+
 		switch (key) {
 		case Input.KEY_ESCAPE:
 			returnToSongMenu();
-			break;
-		case Input.KEY_F7:
-			Options.setNextFPS(container);
-			break;
-		case Input.KEY_F10:
-			Options.toggleMouseDisabled();
-			break;
-		case Input.KEY_F12:
-			Utils.takeScreenShot();
 			break;
 		}
 	}

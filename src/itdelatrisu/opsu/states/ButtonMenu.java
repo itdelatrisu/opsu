@@ -23,9 +23,7 @@ import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.GameMod;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.OpsuConstants;
-import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.ScoreData;
-import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
@@ -786,19 +784,13 @@ public class ButtonMenu extends BasicGameState {
 
 	@Override
 	public void keyPressed(int key, char c) {
+		if (UI.globalKeyPressed(key))
+			return;
+
 		switch (key) {
 		case Input.KEY_ESCAPE:
 			if (menuState != null)
 				menuState.leave(container, game);
-			break;
-		case Input.KEY_F7:
-			Options.setNextFPS(container);
-			break;
-		case Input.KEY_F10:
-			Options.toggleMouseDisabled();
-			break;
-		case Input.KEY_F12:
-			Utils.takeScreenShot();
 			break;
 		default:
 			if (menuState != null)

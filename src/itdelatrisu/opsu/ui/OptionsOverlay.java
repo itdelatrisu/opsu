@@ -1070,13 +1070,15 @@ public class OptionsOverlay extends AbstractComponent {
 
 		// esc: close open list option, otherwise close overlay
 		if (key == Input.KEY_ESCAPE) {
-			if (lastSearchText.length() > 0) {
+			if (lastSearchText.length() > 0)
 				resetSearch();
-			} else {
+			else
 				listener.close();
-			}
 			return;
 		}
+
+		if (UI.globalKeyPressed(key))
+			return;
 
 		searchField.setFocus(true);
 		searchField.keyPressed(key, c);
