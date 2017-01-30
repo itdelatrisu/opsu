@@ -542,6 +542,7 @@ public class Options {
 		FORCE_DEFAULT_PLAYFIELD ("Force default playfield", "ForceDefaultPlayfield", "Overrides the song background with the default playfield background.", false),
 		ENABLE_VIDEOS ("Background video", "Video", "Enables background video playback.\nIf you get a large amount of lag on beatmaps with video, try disabling this feature.", true),
 		IGNORE_BEATMAP_SKINS ("Ignore all beatmap skins", "IgnoreBeatmapSkins", "Defaults game settings to never use skin element overrides provided by beatmaps.", false),
+		FORCE_SKIN_CURSOR ("Always use skin cursor", "UseSkinCursor", "The selected skin's cursor will override any beatmap-specific cursor modifications.", false),
 		SNAKING_SLIDERS ("Snaking sliders", "SnakingSliders", "Sliders gradually snake out from their starting point.", true),
 		SHOW_HIT_LIGHTING ("Hit lighting", "HitLighting", "Adds a subtle glow behind hit explosions which lights the playfield.", true),
 		SHOW_COMBO_BURSTS ("Combo bursts", "ComboBurst", "A character image bursts from the side of the screen at combo milestones.", true),
@@ -1116,6 +1117,12 @@ public class Options {
 	 * @return true if ignored
 	 */
 	public static boolean isBeatmapSkinIgnored() { return GameOption.IGNORE_BEATMAP_SKINS.getBooleanValue(); }
+
+	/**
+	 * Returns whether or not to override the beatmap cursor with the current skin's cursor.
+	 * @return true if forced
+	 */
+	public static boolean isSkinCursorForced() { return GameOption.FORCE_SKIN_CURSOR.getBooleanValue(); }
 
 	/**
 	 * Returns whether or not sliders should snake in or just appear fully at once.

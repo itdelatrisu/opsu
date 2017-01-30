@@ -325,6 +325,12 @@ public class OptionsOverlay extends AbstractComponent {
 						openDropdownMenu = null;
 						openDropdownMenuOldValue = null;
 					}
+
+					@Override
+					public boolean menuClicked(int index) {
+						SoundController.playSound(SoundEffect.MENUCLICK);
+						return true;
+					}
 				};
 				menu.setBackgroundColor(COLOR_BG);
 				menu.setBorderColor(Color.transparent);

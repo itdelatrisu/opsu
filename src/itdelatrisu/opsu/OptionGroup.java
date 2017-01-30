@@ -76,8 +76,9 @@ public class OptionGroup {
 		new OptionGroup("SKIN", null),
 		new OptionGroup("SKIN", new GameOption[]{
 			GameOption.SKIN,
-			GameOption.IGNORE_BEATMAP_SKINS,
 			GameOption.LOAD_HD_IMAGES,
+			GameOption.IGNORE_BEATMAP_SKINS,
+			GameOption.FORCE_SKIN_CURSOR,
 			GameOption.CURSOR_SIZE,
 			GameOption.DISABLE_CURSOR,
 		}),

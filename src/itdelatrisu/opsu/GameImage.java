@@ -565,6 +565,15 @@ public enum GameImage {
 	}
 
 	/**
+	 * Returns the image associated with this resource.
+	 * This ignores beatmap skin images.
+	 */
+	public Image getDefaultImage() {
+		setDefaultImage();
+		return defaultImage;
+	}
+
+	/**
 	 * Returns an Animation based on the image array.
 	 * If no image array exists, returns the single image as an animation.
 	 */
@@ -600,6 +609,15 @@ public enum GameImage {
 	public Image[] getImages() {
 		setDefaultImage();
 		return (skinImages != null) ? skinImages : defaultImages;
+	}
+
+	/**
+	 * Returns the image array associated with this resource.
+	 * This ignores beatmap skin images.
+	 */
+	public Image[] getDefaultImages() {
+		setDefaultImage();
+		return defaultImages;
 	}
 
 	/**
