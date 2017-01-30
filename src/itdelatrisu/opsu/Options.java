@@ -501,15 +501,15 @@ public class Options {
 				SoundStore.get().setMusicVolume(getMasterVolume() * getMusicVolume());
 			}
 		},
-		MUSIC_VOLUME ("Music", "VolumeMusic", "Volume of music.", 80, 0, 100) {
+		MUSIC_VOLUME ("Music", "VolumeMusic", "Music volume.", 80, 0, 100) {
 			@Override
 			public void setValue(int value) {
 				super.setValue(value);
 				SoundStore.get().setMusicVolume(getMasterVolume() * getMusicVolume());
 			}
 		},
-		EFFECT_VOLUME ("Effects", "VolumeEffect", "Volume of menu and game sounds.", 70, 0, 100),
-		HITSOUND_VOLUME ("Hit Sounds", "VolumeHitSound", "Volume of hit sounds.", 30, 0, 100),
+		EFFECT_VOLUME ("Effects", "VolumeEffect", "Menu and game sound effects volume.", 70, 0, 100),
+		HITSOUND_VOLUME ("Hit Sounds", "VolumeHitSound", "Hit sounds volume.", 30, 0, 100),
 		MUSIC_OFFSET ("Music Offset", "Offset", "Adjust this value if hit objects are out of sync.", -75, -500, 500) {
 			@Override
 			public String getValueString() { return String.format("%dms", val); }
@@ -643,11 +643,8 @@ public class Options {
 		/** Option type. */
 		private OptionType type = OptionType.SELECT;
 
-		/**
-		 * If this option should not be shown in the optionsmenu because it does
-		 * not match the search string.
-		 */
-		private boolean filtered;
+		/** Whether this group should be visible (used for filtering in the options menu). */
+		private boolean visible = true;
 
 		/**
 		 * Constructor for internal options (not displayed in-game).
@@ -828,28 +825,26 @@ public class Options {
 		}
 
 		/**
-		 * Update the filtered flag for this option based on the given searchString.
-		 * @param searchString the searched string or null to reset the filtered flag
-		 * @return true if this option does need to be filtered
+		 * Checks whether the option matches a given search query.
+		 * @param query the search term
+		 * @return true if the option name or description matches the query
 		 */
-		public boolean filter(String searchString) {
-			if (searchString == null || searchString.length() == 0) {
-				filtered = false;
-				return false;
-			}
-			filtered = !(name.toLowerCase().contains(searchString) || description.toLowerCase().contains(searchString));
-			return filtered;
+		public boolean matches(String query) {
+			return !query.isEmpty() &&
+			       (name.toLowerCase().contains(query) || description.toLowerCase().contains(query));
 		}
 
 		/**
-		 * Check if this option should be filtered (= not shown) because it does not
-		 * match the search string.
-		 * @return true if the option shouldn't be shown.
+		 * Sets whether this option should be visible.
+		 * @param visible {@code true} if visible
 		 */
-		public boolean isFiltered() {
-			return filtered;
-		}
+		public void setVisible(boolean visible) { this.visible = visible; }
 
+		/**
+		 * Returns whether or not this option should be visible.
+		 * @return true if visible
+		 */
+		public boolean isVisible() { return visible; }
 	};
 
 	/** Map of option display names to GameOptions. */

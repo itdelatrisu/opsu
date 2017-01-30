@@ -111,11 +111,8 @@ public class OptionGroup {
 	/** The game options. */
 	private final GameOption[] options;
 
-	/**
-	 * If this group should not be shown in the optionsmenu because its suboptions
-	 * do not match the search string.
-	 */
-	private boolean filtered;
+	/** Whether this group should be visible (used for filtering in the options menu). */
+	private boolean visible = true;
 
 	/**
 	 * Creates an option group with the given category name and options.
@@ -136,13 +133,9 @@ public class OptionGroup {
 	/** Returns the option at the given index. */
 	public GameOption getOption(int i) { return options[i]; }
 
-	/**
-	 * Set the filtered flag to show or hide this group.
-	 * @param filtered wether to filter this group or not
-	 */
-	public void setFiltered(boolean filtered) { this.filtered = filtered; }
+	/** Sets whether this group should be visible. */
+	public void setVisible(boolean visible) { this.visible = visible; }
 
-	/** Returns wether or not this group should be filtered. */
-	public boolean isFiltered() { return filtered; };
-
+	/** Returns whether or not this group should be visible. */
+	public boolean isVisible() { return visible; };
 }

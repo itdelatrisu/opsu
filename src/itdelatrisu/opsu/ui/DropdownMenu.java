@@ -202,13 +202,8 @@ public class DropdownMenu<E> extends AbstractComponent {
 	@Override
 	public int getWidth() { return width; }
 
-	/**
-	 * Sets the width of the dropdown menu.
-	 * @param width the width to use
-	 */
-	public void setWidth(int width) {
-		this.width = width;
-	}
+	/** Sets the width of the dropdown menu. */
+	public void setWidth(int width) { this.width = width; }
 
 	@Override
 	public int getHeight() { return (expanded) ? height : baseHeight; }

@@ -796,11 +796,9 @@ public class SongMenu extends BasicGameState {
 		if (optionsOverlayProgress.update(delta)) {
 			// slide in/out
 			float t = optionsOverlayProgress.getValue();
-			if (!showOptionsOverlay) {
+			if (!showOptionsOverlay)
 				t = 1f - t;
-			}
-			int width = (int) (optionsOverlay.getTargetWidth() * t);
-			optionsOverlay.setWidth(width);
+			optionsOverlay.setWidth((int) (optionsOverlay.getTargetWidth() * t));
 			optionsOverlay.setAlpha(t);
 		} else if (showOptionsOverlay)
 			optionsOverlay.update(delta);
