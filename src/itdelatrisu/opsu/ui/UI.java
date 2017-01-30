@@ -285,8 +285,9 @@ public class UI {
 	 * Draws loading progress (OSZ unpacking, beatmap parsing, replay importing, sound loading)
 	 * at the bottom of the screen.
 	 * @param g the graphics context
+	 * @param alpha the text alpha level
 	 */
-	public static void drawLoadingProgress(Graphics g) {
+	public static void drawLoadingProgress(Graphics g, float alpha) {
 		String text, file;
 		int progress;
 
@@ -314,20 +315,25 @@ public class UI {
 		float marginX = container.getWidth() * 0.02f, marginY = container.getHeight() * 0.02f;
 		float lineY = container.getHeight() - marginY;
 		int lineOffsetY = Fonts.MEDIUM.getLineHeight();
+		float oldWhiteAlpha = Colors.WHITE_FADE.a;
+		Colors.WHITE_FADE.a = alpha;
 		if (Options.isLoadVerbose()) {
 			// verbose: display percentages and file names
 			Fonts.MEDIUM.drawString(
-					marginX, lineY - (lineOffsetY * 2),
-					String.format("%s (%d%%)", text, progress), Color.white);
-			Fonts.MEDIUM.drawString(marginX, lineY - lineOffsetY, file, Color.white);
+				marginX, lineY - (lineOffsetY * 2),
+				String.format("%s (%d%%)", text, progress), Colors.WHITE_FADE
+			);
+			Fonts.MEDIUM.drawString(marginX, lineY - lineOffsetY, file, Colors.WHITE_FADE);
 		} else {
 			// draw loading bar
-			Fonts.MEDIUM.drawString(marginX, lineY - (lineOffsetY * 2), text, Color.white);
-			g.setColor(Color.white);
-			g.fillRoundRect(marginX, lineY - (lineOffsetY / 2f),
-					(container.getWidth() - (marginX * 2f)) * progress / 100f, lineOffsetY / 4f, 4
+			Fonts.MEDIUM.drawString(marginX, lineY - (lineOffsetY * 2), text, Colors.WHITE_FADE);
+			g.setColor(Colors.WHITE_FADE);
+			g.fillRoundRect(
+				marginX, lineY - (lineOffsetY / 2f),
+				(container.getWidth() - (marginX * 2f)) * progress / 100f, lineOffsetY / 4f, 4
 			);
 		}
+		Colors.WHITE_FADE.a = oldWhiteAlpha;
 	}
 
 	/**

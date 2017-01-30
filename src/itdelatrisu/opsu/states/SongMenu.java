@@ -754,7 +754,7 @@ public class SongMenu extends BasicGameState {
 			g.setColor(Colors.BLACK_ALPHA);
 			g.fillRect(0, 0, width, height);
 
-			UI.drawLoadingProgress(g);
+			UI.drawLoadingProgress(g, 1f);
 		}
 
 		// back button
