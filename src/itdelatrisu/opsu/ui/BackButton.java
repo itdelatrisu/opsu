@@ -34,6 +34,14 @@ public class BackButton {
 		COLOR_PINK = new Color(238, 51, 153),
 		COLOR_DARKPINK = new Color(186, 19, 121);
 
+	private int textWidth;
+	private float paddingY;
+	private float paddingX;
+	private float textOffset;
+	private float chevronBaseSize;
+	private float top;
+	private float buttonSize;
+
 	// game-related variables
 	private GameContainer container;
 	private StateBasedGame game;
@@ -44,6 +52,15 @@ public class BackButton {
 		this.game = game;
 
 		if (!GameImage.MENU_BACK.hasGameSkinImage()) {
+			textWidth = Fonts.MEDIUM.getWidth("back");
+			paddingY = Fonts.MEDIUM.getHeight("back");
+			// getHeight doesn't seem to be so accurate
+			textOffset = paddingY * 0.264f;
+			paddingY *= 0.736f;
+			paddingX = paddingY / 2f;
+			chevronBaseSize = paddingY * 3f / 2f;
+			top = container.getHeight() - paddingY * 4;
+			buttonSize = (int) (paddingY * 3f);
 			return;
 		}
 
@@ -69,20 +86,12 @@ public class BackButton {
 			return;
 		}
 
-		int textWidth = Fonts.MEDIUM.getWidth("back");
-		float paddingY = Fonts.MEDIUM.getHeight("back");
-		// getHeight doesn't seem to be so accurate
-		float textOffset = paddingY * 0.264f;
-		paddingY *= 0.736f;
-		float paddingX = paddingY / 2f;
-		float chevronSize = paddingY * 3f / 2f;
 		Float beatProgress = MusicController.getBeatProgress();
 		if (beatProgress == null) {
 			beatProgress = 0f;
 		}
-		chevronSize += 3 * beatProgress;
+		int chevronSize = (int) (3f * beatProgress + chevronBaseSize);
 
-		float top = container.getHeight() - paddingY * 4;
 		int buttonSize = (int) (paddingY * 3f);
 		g.setColor(COLOR_PINK);
 		g.fillRect(0, top, buttonSize + paddingX * 2 + textWidth, buttonSize);
@@ -90,7 +99,7 @@ public class BackButton {
 		buttonPart.draw(0, top, COLOR_PINK);
 		buttonPart.draw(buttonSize + paddingX * 2 + textWidth - buttonSize * 0.722f, top, COLOR_PINK);
 
-		GameImage.MENU_BACK_CHEVRON.getImage().getScaledCopy((int) chevronSize, (int) chevronSize).drawCentered((buttonSize * 0.813f) / 2, top + paddingY * 1.5f);
+		GameImage.MENU_BACK_CHEVRON.getImage().getScaledCopy(chevronSize, chevronSize).drawCentered((buttonSize * 0.813f) / 2, top + paddingY * 1.5f);
 
 
 		float textY = container.getHeight() - paddingY * 3 - textOffset;
@@ -121,7 +130,7 @@ public class BackButton {
 		if (backButton != null) {
 			return backButton.contains(cx, cy);
 		}
-		return false;
+		return cy > top - paddingY && cx < buttonSize + paddingX * 3 + textWidth;
 	}
 
 	/**
