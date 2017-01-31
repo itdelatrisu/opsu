@@ -234,6 +234,8 @@ public enum GameImage {
 		}
 	},
 	MENU_BACK ("menu-back", "menu-back-%d", "png"),
+	MENU_BACK_CHEVRON ("menu-back-chevron", "png"),
+	MENU_BACK_BUTTON ("menu-back-button", "png"),
 	MENU_BUTTON_BG ("menu-button-background", "png", false, false),
 	MENU_TAB ("selection-tab", "png", false, false) {
 		@Override

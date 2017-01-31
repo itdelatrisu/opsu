@@ -532,7 +532,7 @@ public class DownloadsMenu extends BasicGameState {
 
 		// back button
 		else
-			UI.getBackButton().draw();
+			UI.getBackButton().draw(g);
 
 		UI.draw(g);
 	}

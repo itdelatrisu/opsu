@@ -759,7 +759,7 @@ public class SongMenu extends BasicGameState {
 
 		// back button
 		else if (!showOptionsOverlay)
-			UI.getBackButton().draw();
+			UI.getBackButton().draw(g);
 
 		// options overlay
 		if (showOptionsOverlay || !optionsOverlayProgress.isFinished())
