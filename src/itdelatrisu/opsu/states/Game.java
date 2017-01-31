@@ -55,6 +55,8 @@ import itdelatrisu.opsu.ui.StarStream;
 import itdelatrisu.opsu.ui.UI;
 import itdelatrisu.opsu.ui.animations.AnimatedValue;
 import itdelatrisu.opsu.ui.animations.AnimationEquation;
+import itdelatrisu.opsu.user.User;
+import itdelatrisu.opsu.user.UserList;
 import itdelatrisu.opsu.video.FFmpeg;
 import itdelatrisu.opsu.video.Video;
 
@@ -925,9 +927,13 @@ public class Game extends BasicGameState {
 				ScoreData score = data.getScoreData(beatmap);
 				data.setGameplay(!isReplay);
 
-				// add score to database
-				if (!unranked && !isReplay)
+				// add score to database and user stats
+				if (!unranked && !isReplay) {
 					ScoreDB.addScore(score);
+					User user = UserList.get().getCurrentUser();
+					user.add(data.getScore(), data.getScorePercent());
+					ScoreDB.updateUser(user);
+				}
 			}
 
 			// start timer
@@ -1011,6 +1017,11 @@ public class Game extends BasicGameState {
 					MusicController.pitchFadeOut(MUSIC_FADEOUT_TIME);
 					rotations = new IdentityHashMap<GameObject, Float>();
 					SoundController.playSound(SoundEffect.FAIL);
+
+					// record to stats
+					User user = UserList.get().getCurrentUser();
+					user.add(data.getScore());
+					ScoreDB.updateUser(user);
 
 					// fade to pause menu
 					game.enterState(Opsu.STATE_GAMEPAUSEMENU,

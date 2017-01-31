@@ -32,13 +32,14 @@ import itdelatrisu.opsu.replay.ReplayFrame;
 import itdelatrisu.opsu.ui.Colors;
 import itdelatrisu.opsu.ui.Fonts;
 import itdelatrisu.opsu.ui.animations.AnimationEquation;
+import itdelatrisu.opsu.user.UserList;
 
 import java.io.File;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.concurrent.LinkedBlockingDeque;
 import java.util.Random;
+import java.util.concurrent.LinkedBlockingDeque;
 
 import org.newdawn.slick.Animation;
 import org.newdawn.slick.Color;
@@ -1129,6 +1130,11 @@ public class GameData {
 	public void changeHealth(float value) { health.changeHealth(value); }
 
 	/**
+	 * Returns the raw score.
+	 */
+	public long getScore() { return score; }
+
+	/**
 	 * Changes score by a raw value (not affected by other modifiers).
 	 * @param value the score value
 	 */
@@ -1153,7 +1159,7 @@ public class GameData {
 	/**
 	 * Returns the raw score percentage.
 	 */
-	private float getScorePercent() {
+	public float getScorePercent() {
 		return getScorePercent(
 			hitResultCount[HIT_300], hitResultCount[HIT_100],
 			hitResultCount[HIT_50], hitResultCount[HIT_MISS]
@@ -1609,7 +1615,8 @@ public class GameData {
 		sd.perfect = (comboMax == fullObjectCount);
 		sd.mods = GameMod.getModState();
 		sd.replayString = (replay == null) ? null : replay.getReplayFilename();
-		sd.playerName = null;  // TODO
+		sd.playerName = GameMod.AUTO.isActive() ?
+			UserList.AUTO_USER_NAME : UserList.get().getCurrentUser().getName();
 		return sd;
 	}
 
@@ -1631,7 +1638,7 @@ public class GameData {
 		replay.mode = Beatmap.MODE_OSU;
 		replay.version = Updater.get().getBuildDate();
 		replay.beatmapHash = (beatmap == null) ? "" : beatmap.md5Hash;
-		replay.playerName = "";  // TODO
+		replay.playerName = UserList.get().getCurrentUser().getName();
 		replay.replayHash = Long.toString(System.currentTimeMillis());  // TODO
 		replay.hit300 = (short) hitResultCount[HIT_300];
 		replay.hit100 = (short) hitResultCount[HIT_100];

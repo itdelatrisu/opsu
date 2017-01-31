@@ -373,7 +373,7 @@ public class ScoreData implements Comparable<ScoreData> {
 
 		// player name
 		if (playerName != null)
-			Fonts.MEDIUMBOLD.drawString(xPaddingLeft, yPos + yPadding, playerName, white);
+			Fonts.MEDIUM.drawString(xPaddingLeft, yPos + yPadding, playerName, white);
 
 		// score
 		Fonts.DEFAULT.drawString(

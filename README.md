@@ -44,7 +44,7 @@ The following files and folders will be created by opsu! as needed:
 * `.opsu.cfg`: The configuration file.  Most (but not all) of the settings can
   be changed through the options menu.
 * `.opsu.db`: The beatmap cache database.
-* `.opsu_scores.db`: The scores database.
+* `.opsu_scores.db`: The scores and player database.
 * `.opsu.log`: The error log.  All critical errors displayed in-game are also
   logged to this file, and other warnings not shown are logged as well.
 * `Songs/`: The beatmap directory (not used if an osu! installation is detected).

@@ -27,6 +27,8 @@ import itdelatrisu.opsu.replay.PlaybackSpeed;
 import itdelatrisu.opsu.ui.Colors;
 import itdelatrisu.opsu.ui.Fonts;
 import itdelatrisu.opsu.ui.UI;
+import itdelatrisu.opsu.user.UserButton;
+import itdelatrisu.opsu.user.UserList;
 
 import java.awt.image.BufferedImage;
 import java.io.BufferedInputStream;
@@ -154,6 +156,12 @@ public class Utils {
 
 		// initialize UI components
 		UI.init(container, game);
+
+		// build user list
+		UserList.create();
+
+		// initialize user button
+		UserButton.init(width, height);
 	}
 
 	/**

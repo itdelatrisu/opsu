@@ -22,6 +22,7 @@ import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.ScoreData;
 import itdelatrisu.opsu.beatmap.Beatmap;
+import itdelatrisu.opsu.user.User;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -45,7 +46,7 @@ public class ScoreDB {
 	 * This value should be changed whenever the database format changes.
 	 * Add any update queries to the {@link #getUpdateQueries(int)} method.
 	 */
-	private static final int DATABASE_VERSION = 20150401;
+	private static final int DATABASE_VERSION = 20170131;
 
 	/**
 	 * Returns a list of SQL queries to apply, in order, to update from
@@ -76,6 +77,9 @@ public class ScoreDB {
 
 	/** Score deletion statement. */
 	private static PreparedStatement deleteSongStmt, deleteScoreStmt;
+
+	/** User-related statements. */
+	private static PreparedStatement setCurrentUserStmt, insertUserStmt, deleteUserStmt;
 
 	// This class should not be instantiated.
 	private ScoreDB() {}
@@ -123,6 +127,9 @@ public class ScoreDB {
 				"(playerName = ? OR (playerName IS NULL AND ? IS NULL))"
 				// TODO: extra playerName checks not needed if name is guaranteed not null
 			);
+			setCurrentUserStmt = connection.prepareStatement("INSERT OR REPLACE INTO info VALUES ('user', ?)");
+			insertUserStmt = connection.prepareStatement("INSERT OR REPLACE INTO users VALUES (?, ?, ?, ?, ?, ?)");
+			deleteUserStmt = connection.prepareStatement("DELETE FROM users WHERE name = ?");
 		} catch (SQLException e) {
 			ErrorHandler.error("Failed to prepare score statements.", e, true);
 		}
@@ -146,6 +153,12 @@ public class ScoreDB {
 					"mods INTEGER, " +
 					"replay TEXT, " +
 					"playerName TEXT"+
+				");" +
+				"CREATE TABLE IF NOT EXISTS users (" +
+					"name TEXT NOT NULL UNIQUE, " +
+					"score INTEGER, accuracy REAL, " +
+					"playsPassed INTEGER, playsTotal INTEGER, " +
+					"icon INTEGER" +
 				");" +
 				"CREATE TABLE IF NOT EXISTS info (" +
 					"key TEXT NOT NULL UNIQUE, value TEXT" +
@@ -391,6 +404,105 @@ public class ScoreDB {
 	}
 
 	/**
+	 * Retrieves all users.
+	 * @return a list containing all users
+	 */
+	public static List<User> getUsers() {
+		List<User> users = new ArrayList<User>();
+
+		if (connection == null)
+			return users;
+
+		try (Statement stmt = connection.createStatement()) {
+			String sql = "SELECT * FROM users";
+			ResultSet rs = stmt.executeQuery(sql);
+			while (rs.next())
+				users.add(new User(
+					rs.getString(1), rs.getLong(2), rs.getDouble(3),
+					rs.getInt(4), rs.getInt(5), rs.getInt(6)
+				));
+			rs.close();
+		} catch (SQLException e) {
+			ErrorHandler.error("Failed to read users from database.", e, true);
+		}
+		return users;
+	}
+
+	/**
+	 * Retrieves the current user.
+	 * @return the current user's name, or null if not set.
+	 */
+	public static String getCurrentUser() {
+		if (connection == null)
+			return null;
+
+		try (Statement stmt = connection.createStatement()) {
+			String sql = "SELECT value FROM info WHERE key = 'user'";
+			ResultSet rs = stmt.executeQuery(sql);
+			String name = (rs.next()) ? rs.getString(1) : null;
+			rs.close();
+			return name;
+		} catch (SQLException e) {
+			ErrorHandler.error("Failed to read current user from database.", e, true);
+			return null;
+		}
+	}
+
+	/**
+	 * Sets the current user.
+	 * @param user the user's name
+	 */
+	public static void setCurrentUser(String user) {
+		if (connection == null)
+			return;
+
+		try {
+			setCurrentUserStmt.setString(1, user);
+			setCurrentUserStmt.executeUpdate();
+		} catch (SQLException e) {
+			ErrorHandler.error("Failed to set current user in database.", e, true);
+		}
+	}
+
+	/**
+	 * Updates a user entry, or creates one if it does not exist.
+	 * @param user the user
+	 */
+	public static void updateUser(User user) {
+		if (connection == null)
+			return;
+
+		try {
+			insertUserStmt.setString(1, user.getName());
+			insertUserStmt.setLong(2, user.getScore());
+			insertUserStmt.setDouble(3, user.getAccuracy());
+			insertUserStmt.setInt(4, user.getPassedPlays());
+			insertUserStmt.setInt(5, user.getTotalPlays());
+			insertUserStmt.setInt(6, user.getIconId());
+			insertUserStmt.executeUpdate();
+		} catch (SQLException e) {
+			ErrorHandler.error("Failed to update user in database.", e, true);
+			return;
+		}
+	}
+
+	/**
+	 * Deletes a user.
+	 * @param user the user's name
+	 */
+	public static void deleteUser(String user) {
+		if (connection == null)
+			return;
+
+		try {
+			deleteUserStmt.setString(1, user);
+			deleteUserStmt.executeUpdate();
+		} catch (SQLException e) {
+			ErrorHandler.error("Failed to delete user from database.", e, true);
+		}
+	}
+
+	/**
 	 * Closes the connection to the database.
 	 */
 	public static void closeConnection() {
@@ -401,6 +513,11 @@ public class ScoreDB {
 			insertStmt.close();
 			selectMapStmt.close();
 			selectMapSetStmt.close();
+			deleteSongStmt.close();
+			deleteScoreStmt.close();
+			setCurrentUserStmt.close();
+			insertUserStmt.close();
+			deleteUserStmt.close();
 			connection.close();
 			connection = null;
 		} catch (SQLException e) {
