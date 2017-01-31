@@ -373,8 +373,10 @@ public class OptionsOverlay extends AbstractComponent {
 		this.optionWidth = width - optionStartX - paddingRight;
 	}
 
+	/** Returns the target width. */
 	public int getTargetWidth() { return targetWidth; }
 
+	/** Sets the alpha level of the overlay. */
 	public void setAlpha(float alpha) {
 		COLOR_BG.a = BG_ALPHA * alpha;
 		COLOR_WHITE.a = alpha;
