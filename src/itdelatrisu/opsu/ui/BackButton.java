@@ -22,7 +22,6 @@ import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.ui.animations.AnimationEquation;
 import org.newdawn.slick.*;
-import org.newdawn.slick.state.StateBasedGame;
 
 public class BackButton {
 
@@ -34,23 +33,24 @@ public class BackButton {
 		COLOR_PINK = new Color(238, 51, 153),
 		COLOR_DARKPINK = new Color(186, 19, 121);
 
+	private static final int  ANIMATION_TIME = 500;
+
+	private int animationTime;
+	private int firstButtonSize;
+	private int buttonSize;
+	private int buttonSlopeWidth;
+	private int secondButtonSize;
+	private boolean isHovered;
 	private int textWidth;
 	private float paddingY;
 	private float paddingX;
 	private float textOffset;
 	private float chevronBaseSize;
-	private float top;
-	private float buttonSize;
+	private int top;
+	private Image buttonPart;
+	private int realWidth;
 
-	// game-related variables
-	private GameContainer container;
-	private StateBasedGame game;
-	private Input input;
-
-	public BackButton(GameContainer container, StateBasedGame game) {
-		this.container = container;
-		this.game = game;
-
+	public BackButton(GameContainer container) {
 		if (!GameImage.MENU_BACK.hasGameSkinImage()) {
 			textWidth = Fonts.MEDIUM.getWidth("back");
 			paddingY = Fonts.MEDIUM.getHeight("back");
@@ -59,8 +59,12 @@ public class BackButton {
 			paddingY *= 0.736f;
 			paddingX = paddingY / 2f;
 			chevronBaseSize = paddingY * 3f / 2f;
-			top = container.getHeight() - paddingY * 4;
+			top = (int) (container.getHeight() - paddingY * 4f);
 			buttonSize = (int) (paddingY * 3f);
+			buttonSlopeWidth = (int) (buttonSize * 0.295f);
+			firstButtonSize = buttonSize;
+			secondButtonSize = (int) (buttonSlopeWidth + paddingX * 2 + textWidth);
+			buttonPart = GameImage.MENU_BACK_BUTTON.getImage().getScaledCopy(buttonSize, buttonSize);
 			return;
 		}
 
@@ -86,25 +90,47 @@ public class BackButton {
 			return;
 		}
 
+		// calc chevron size
 		Float beatProgress = MusicController.getBeatProgress();
 		if (beatProgress == null) {
 			beatProgress = 0f;
 		}
-		int chevronSize = (int) (3f * beatProgress + chevronBaseSize);
+		int chevronSize = (int) (chevronBaseSize - (isHovered ? 6f : 3f) * beatProgress);
 
-		int buttonSize = (int) (paddingY * 3f);
+		// calc button sizes
+		AnimationEquation anim;
+		if (isHovered) {
+			anim = AnimationEquation.OUT_ELASTIC;
+		} else {
+			anim = AnimationEquation.IN_ELASTIC;
+		}
+		float progress = anim.calc((float) animationTime / ANIMATION_TIME);
+		float firstSize = firstButtonSize + (firstButtonSize - buttonSlopeWidth * 2) * progress;
+		float secondSize = secondButtonSize + secondButtonSize * 0.25f * progress;
+		realWidth = (int) (firstSize + secondSize);
+
+		// right part
 		g.setColor(COLOR_PINK);
-		g.fillRect(0, top, buttonSize + paddingX * 2 + textWidth, buttonSize);
-		Image buttonPart = GameImage.MENU_BACK_BUTTON.getImage().getScaledCopy(buttonSize, buttonSize);
-		buttonPart.draw(0, top, COLOR_PINK);
-		buttonPart.draw(buttonSize + paddingX * 2 + textWidth - buttonSize * 0.722f, top, COLOR_PINK);
+		g.fillRect(0, top, firstSize + secondSize - buttonSlopeWidth, buttonSize);
+		buttonPart.draw(firstSize + secondSize - buttonSize, top, COLOR_PINK);
 
-		GameImage.MENU_BACK_CHEVRON.getImage().getScaledCopy(chevronSize, chevronSize).drawCentered((buttonSize * 0.813f) / 2, top + paddingY * 1.5f);
+		// left part
+		Color hoverColor = new Color(0f, 0f, 0f);
+		hoverColor.r = COLOR_PINK.r + (COLOR_DARKPINK.r - COLOR_PINK.r) * progress;
+		hoverColor.g = COLOR_PINK.g + (COLOR_DARKPINK.g - COLOR_PINK.g) * progress;
+		hoverColor.b = COLOR_PINK.b + (COLOR_DARKPINK.b - COLOR_PINK.b) * progress;
+		g.setColor(hoverColor);
+		g.fillRect(0, top, firstSize - buttonSlopeWidth, buttonSize);
+		buttonPart.draw(firstSize - buttonSize, top, hoverColor);
 
+		// chevron
+		GameImage.MENU_BACK_CHEVRON.getImage().getScaledCopy(chevronSize, chevronSize).drawCentered((firstSize - buttonSlopeWidth / 2) / 2, top + paddingY * 1.5f);
 
-		float textY = container.getHeight() - paddingY * 3 - textOffset;
-		Fonts.MEDIUM.drawString(buttonSize + paddingX, textY + 1, "back", Color.black);
-		Fonts.MEDIUM.drawString(buttonSize + paddingX, textY, "back", Color.white);
+		// text
+		float textY = top + paddingY - textOffset;
+		float textX = firstSize + (secondSize - paddingX * 2 - textWidth) / 2;
+		Fonts.MEDIUM.drawString(textX, textY + 1, "back", Color.black);
+		Fonts.MEDIUM.drawString(textX, textY, "back", Color.white);
 	}
 
 	/**
@@ -119,6 +145,25 @@ public class BackButton {
 			backButton.hoverUpdate(delta, cx, cy);
 			return;
 		}
+		boolean wasHovered = isHovered;
+		isHovered = top - paddingY < cy && cx < realWidth;
+		if (isHovered) {
+			if (!wasHovered) {
+				animationTime = 0;
+			}
+			animationTime += delta;
+			if (animationTime > ANIMATION_TIME) {
+				animationTime = ANIMATION_TIME;
+			}
+		} else {
+			if (wasHovered) {
+				animationTime = ANIMATION_TIME;
+			}
+			animationTime -= delta;
+			if (animationTime < 0) {
+				animationTime = 0;
+			}
+		}
 	}
 
 	/**
@@ -130,7 +175,7 @@ public class BackButton {
 		if (backButton != null) {
 			return backButton.contains(cx, cy);
 		}
-		return cy > top - paddingY && cx < buttonSize + paddingX * 3 + textWidth;
+		return isHovered;
 	}
 
 	/**
@@ -141,7 +186,8 @@ public class BackButton {
 			backButton.resetHover();
 			return;
 		}
-
+		isHovered = false;
+		animationTime = 0;
 	}
 
 }

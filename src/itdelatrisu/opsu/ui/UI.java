@@ -97,7 +97,7 @@ public class UI {
 		Cursor.init(container, game);
 		cursor.hide();
 
-		backButton = new BackButton(container, game);
+		backButton = new BackButton(container);
 
 		// notification manager
 		notificationManager = new NotificationManager(container);
