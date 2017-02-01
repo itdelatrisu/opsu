@@ -189,7 +189,7 @@ public class SongMenu extends BasicGameState {
 	private int searchTimer = 0;
 
 	/** Information text to display based on the search query. */
-	private String searchResultString = null;
+	private String searchResultString = null, lastSearchResultString = null;
 
 	/** Loader animation. */
 	private Animation loader;
@@ -440,7 +440,7 @@ public class SongMenu extends BasicGameState {
 
 		// search
 		int textFieldX = (int) (width * 0.7125f + Fonts.BOLD.getWidth("Search: "));
-		int textFieldY = (int) (headerY + Fonts.BOLD.getLineHeight() / 2);
+		int textFieldY = (int) (headerY + Fonts.BOLD.getLineHeight() / 3f);
 		searchFont = Fonts.BOLD;
 		search = new TextField(
 				container, searchFont, textFieldX, textFieldY,
@@ -759,10 +759,10 @@ public class SongMenu extends BasicGameState {
 		float oldAlpha = Colors.BLACK_ALPHA.a;
 		if (searchEmpty) {
 			searchRectHeight += (1f - searchProgress) * searchExtraHeight;
-			Colors.BLACK_ALPHA.a = 0.5f - searchProgress * 0.3f;
+			Colors.BLACK_ALPHA.a = 0.3f - searchProgress * 0.15f;
 		} else {
 			searchRectHeight += searchProgress * searchExtraHeight;
-			Colors.BLACK_ALPHA.a = 0.2f + searchProgress * 0.3f;
+			Colors.BLACK_ALPHA.a = 0.15f + searchProgress * 0.15f;
 		}
 		g.setColor(Colors.BLACK_ALPHA);
 		g.fillRect(searchBaseX, headerY + DIVIDER_LINE_WIDTH / 2, width - searchBaseX, searchRectHeight);
@@ -888,43 +888,7 @@ public class SongMenu extends BasicGameState {
 		searchTimer += delta;
 		if (searchTimer >= SEARCH_DELAY && reloadThread == null && beatmapMenuTimer == -1) {
 			searchTimer = 0;
-
-			// store the start/focus nodes
-			if (focusNode != null)
-				oldFocusNode = new SongNode(BeatmapSetList.get().getBaseNode(focusNode.index), focusNode.beatmapIndex);
-
-			if (BeatmapSetList.get().search(search.getText())) {
-				// reset song stack
-				randomStack = new Stack<SongNode>();
-
-				// empty search
-				if (search.getText().isEmpty())
-					searchResultString = null;
-
-				// search produced new list: re-initialize it
-				startNode = focusNode = null;
-				scoreMap = null;
-				focusScores = null;
-				if (BeatmapSetList.get().size() > 0) {
-					BeatmapSetList.get().init();
-					if (search.getText().isEmpty()) {  // cleared search
-						// use previous start/focus if possible
-						if (oldFocusNode != null) {
-							setFocus(oldFocusNode.getNode(), oldFocusNode.getIndex(), true, true);
-							songChangeTimer.setTime(songChangeTimer.getDuration());
-							musicIconBounceTimer.setTime(musicIconBounceTimer.getDuration());
-						} else
-							setFocus(BeatmapSetList.get().getRandomNode(), -1, true, true);
-					} else {
-						int size = BeatmapSetList.get().size();
-						searchResultString = String.format("%d match%s found!",
-								size, (size == 1) ? "" : "es");
-						setFocus(BeatmapSetList.get().getRandomNode(), -1, true, true);
-					}
-					oldFocusNode = null;
-				} else if (!search.getText().isEmpty())
-					searchResultString = "No matches found. Hit ESC to reset.";
-			}
+			updateSearch();
 		}
 		if (searchTransitionTimer < SEARCH_TRANSITION_TIME) {
 			searchTransitionTimer += delta;
@@ -1320,13 +1284,14 @@ public class SongMenu extends BasicGameState {
 			break;
 		default:
 			// wait for user to finish typing
-			if (Character.isLetterOrDigit(c) || key == Input.KEY_BACK) {
+			if (Character.isLetterOrDigit(c) || key == Input.KEY_BACK || key == Input.KEY_SPACE) {
 				// load glyphs
 				if (c > 255)
 					Fonts.loadGlyphs(searchFont, c);
 
 				// reset search timer
 				searchTimer = 0;
+				searchResultString = null;
 				int textLength = search.getText().length();
 				if (lastSearchTextLength != textLength) {
 					if (key == Input.KEY_BACK) {
@@ -1600,6 +1565,52 @@ public class SongMenu extends BasicGameState {
 		showOptionsOverlay = false;
 		userOverlay.deactivate();
 		showUserOverlay = false;
+	}
+
+	/** Updates the search. */
+	private void updateSearch() {
+		// store the start/focus nodes
+		if (focusNode != null)
+			oldFocusNode = new SongNode(BeatmapSetList.get().getBaseNode(focusNode.index), focusNode.beatmapIndex);
+
+		if (BeatmapSetList.get().search(search.getText())) {
+			System.out.println("Updated with text: " + search.getText());
+
+			// reset song stack
+			randomStack = new Stack<SongNode>();
+
+			// empty search
+			if (search.getText().isEmpty())
+				searchResultString = lastSearchResultString = null;
+
+			// search produced new list: re-initialize it
+			startNode = focusNode = null;
+			scoreMap = null;
+			focusScores = null;
+			int size = BeatmapSetList.get().size();
+			if (size > 0) {
+				BeatmapSetList.get().init();
+				String results = String.format("%d match%s found!", size, (size == 1) ? "" : "es");
+				if (search.getText().isEmpty()) {  // cleared search
+					// use previous start/focus if possible
+					if (oldFocusNode != null) {
+						setFocus(oldFocusNode.getNode(), oldFocusNode.getIndex(), true, true);
+						songChangeTimer.setTime(songChangeTimer.getDuration());
+						musicIconBounceTimer.setTime(musicIconBounceTimer.getDuration());
+					} else
+						setFocus(BeatmapSetList.get().getRandomNode(), -1, true, true);
+				} else {
+					searchResultString = results;
+					setFocus(BeatmapSetList.get().getRandomNode(), -1, true, true);
+				}
+				oldFocusNode = null;
+				lastSearchResultString = results;
+			} else if (!search.getText().isEmpty())
+				searchResultString = lastSearchResultString = "No matches found. Hit ESC to reset.";
+		} else {
+			System.out.println("Using last string: " + lastSearchResultString);
+			searchResultString = lastSearchResultString;
+		}
 	}
 
 	/**

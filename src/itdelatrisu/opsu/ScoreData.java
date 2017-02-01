@@ -260,11 +260,15 @@ public class ScoreData implements Comparable<ScoreData> {
 		c.a = alpha;
 
 		// rectangle outline
-		Color rectColor = (focus) ? Colors.BLACK_BG_FOCUS : Colors.BLACK_BG_NORMAL;
+		g.setLineWidth(1f);
+		Color rectColor = (focus) ? Colors.BLACK_BG_HOVER : Colors.BLACK_BG_NORMAL;
 		float oldRectAlpha = rectColor.a;
 		rectColor.a *= AnimationEquation.IN_QUAD.calc(alpha);
 		g.setColor(rectColor);
-		g.fillRect(x, y, buttonWidth, buttonHeight);
+		g.fillRect(x + 1, y + 1, buttonWidth - 1, buttonHeight - 1);
+		rectColor.a *= 1.25f;
+		g.setColor(rectColor);
+		g.drawRect(x, y, buttonWidth, buttonHeight);
 		rectColor.a = oldRectAlpha;
 
 		// rank

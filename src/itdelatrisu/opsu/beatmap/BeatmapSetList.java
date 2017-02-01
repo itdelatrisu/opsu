@@ -103,7 +103,7 @@ public class BeatmapSetList {
 		nodes = groupNodes = BeatmapGroup.current().filter(parsedNodes);
 		expandedIndex = -1;
 		expandedStartNode = expandedEndNode = null;
-		lastQuery = "";
+		lastQuery = null;
 	}
 
 	/**
