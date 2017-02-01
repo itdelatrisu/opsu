@@ -611,10 +611,8 @@ public class SongMenu extends BasicGameState {
 				if (rank < 0)
 					continue;
 				long prevScore = (rank + 1 < focusScores.length) ? focusScores[rank + 1].score : -1;
+				boolean focus = ScoreData.buttonContains(mouseX, mouseY - offset, i) && !showOptionsOverlay && !showUserOverlay;
 				float t = Utils.clamp((time - (i * (duration - segmentDuration) / scoreButtons)) / (float) segmentDuration, 0f, 1f);
-				boolean focus =
-					t >= 0.9999f && ScoreData.buttonContains(mouseX, mouseY - offset, i) &&
-					!showOptionsOverlay && !showUserOverlay;
 				focusScores[rank].draw(g, offset + i * ScoreData.getButtonOffset(), rank, prevScore, focus, t);
 			}
 			g.clearClip();
@@ -973,7 +971,7 @@ public class SongMenu extends BasicGameState {
 		else if (focusScores != null && ScoreData.areaContains(mouseX, mouseY) && !showOptionsOverlay && !showUserOverlay) {
 			int startScore = (int) (startScorePos.getPosition() / ScoreData.getButtonOffset());
 			int offset = (int) (-startScorePos.getPosition() + startScore * ScoreData.getButtonOffset());
-			int scoreButtons = Math.min(focusScores.length - startScore, MAX_SCORE_BUTTONS);
+			int scoreButtons = Math.min(focusScores.length - startScore, MAX_SCORE_BUTTONS + 1);
 			for (int i = 0, rank = startScore; i < scoreButtons; i++, rank++) {
 				if (rank < 0)
 					continue;
@@ -1169,7 +1167,7 @@ public class SongMenu extends BasicGameState {
 		if (focusScores != null && ScoreData.areaContains(x, y)) {
 			int startScore = (int) (startScorePos.getPosition() / ScoreData.getButtonOffset());
 			int offset = (int) (-startScorePos.getPosition() + startScore * ScoreData.getButtonOffset());
-			int scoreButtons = Math.min(focusScores.length - startScore, MAX_SCORE_BUTTONS);
+			int scoreButtons = Math.min(focusScores.length - startScore, MAX_SCORE_BUTTONS + 1);
 			for (int i = 0, rank = startScore; i < scoreButtons; i++, rank++) {
 				if (ScoreData.buttonContains(x, y - offset, i)) {
 					SoundController.playSound(SoundEffect.MENUHIT);
@@ -1835,9 +1833,10 @@ public class SongMenu extends BasicGameState {
 		if (beatmap.beatmapID == s.MID && beatmap.beatmapSetID == s.MSID &&
 		    beatmap.title.equals(s.title) && beatmap.artist.equals(s.artist) &&
 		    beatmap.creator.equals(s.creator)) {
-			if (setTimeSince) {
-				for (int i = 0; i < scores.length; i++)
+			for (int i = 0; i < scores.length; i++) {
+				if (setTimeSince)
 					scores[i].getTimeSince();
+				scores[i].loadGlyphs();
 			}
 			return scores;
 		} else
