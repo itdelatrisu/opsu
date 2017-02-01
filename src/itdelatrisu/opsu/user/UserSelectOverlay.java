@@ -556,8 +556,10 @@ public class UserSelectOverlay extends AbstractComponent {
 			textField.keyPressed(key, c);
 			textField.setFocus(false);
 			newUser.setName(textField.getText());
-			if (c > 255 && Character.isLetterOrDigit(c))
+			if (c > 255 && Character.isLetterOrDigit(c)) {
 				Fonts.loadGlyphs(Fonts.LARGE, c);
+				Fonts.loadGlyphs(Fonts.MEDIUM, c);
+			}
 		}
 	}
 
