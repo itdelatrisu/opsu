@@ -79,7 +79,7 @@ public class BackButton {
 	private int realButtonWidth;
 
 	public BackButton(GameContainer container) {
-		//if (GameImage.MENU_BACK.hasGameSkinImage()) {
+		//if (!GameImage.MENU_BACK.hasGameSkinImage()) {
 		if (GameImage.MENU_BACK.getImage() != null && GameImage.MENU_BACK.getImage().getWidth() < 2) {
 			backButton = null;
 			textWidth = Fonts.MEDIUM.getWidth("back");
