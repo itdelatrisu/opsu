@@ -151,14 +151,16 @@ public class UserButton {
 		Colors.WHITE_FADE.a = alpha;
 
 		// rectangle
-		bgColor.a = (0.1f + 0.4f * t) * alpha;
-		g.setColor(bgColor);
-		g.fillRoundRect(cx, cy, buttonWidth - padding * 2, buttonHeight - padding * 2, 4);
+		Color bg;
 		if (flashing) {
-			flashColor.a = t * alpha;
-			g.setColor(flashColor);
-			g.fillRoundRect(cx, cy, buttonWidth - padding * 2, buttonHeight - padding * 2, 4);
+			bg = flashColor;
+			bg.a = t * alpha;
+		} else {
+			bg = bgColor;
+			bg.a = (0.5f * t) * alpha;
 		}
+		g.setColor(bg);
+		g.fillRoundRect(cx, cy, buttonWidth - padding * 2, buttonHeight - padding * 2, 4);
 
 		// no user?
 		if (user == null) {

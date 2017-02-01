@@ -562,7 +562,6 @@ public class OptionsOverlay extends AbstractComponent {
 			if (group.getOptions() == null)
 				continue;  // header only
 
-
 			// options
 			int lineHeight = (int) (Fonts.LARGE.getLineHeight() * 0.9f);
 			boolean finished = false;

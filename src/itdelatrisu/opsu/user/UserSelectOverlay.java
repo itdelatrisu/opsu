@@ -423,7 +423,7 @@ public class UserSelectOverlay extends AbstractComponent {
 		if (state == State.USER_SELECT) {
 			scrolling.pressed();
 
-			// clicked an option?
+			// clicked a user button?
 			selectedButton = getButtonAtPosition(x, y);
 			mousePressY = y;
 		}

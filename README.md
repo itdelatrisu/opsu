@@ -1,4 +1,4 @@
-# [opsu!](http://itdelatrisu.github.io/opsu/)
+# [opsu!](https://itdelatrisu.github.io/opsu/)
 **opsu!** is an unofficial open-source client for the rhythm game
 [osu!](https://osu.ppy.sh/).  It is written in Java using
 [Slick2D](http://slick.ninjacave.com/) and  [LWJGL](http://lwjgl.org/),

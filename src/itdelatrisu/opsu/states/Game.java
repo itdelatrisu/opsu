@@ -888,8 +888,10 @@ public class Game extends BasicGameState {
 		if (gameFinished && !gameFinishedTimer.update(delta)) {
 			if (checkpointLoaded)  // if checkpoint used, skip ranking screen
 				game.closeRequested();
-			else  // go to ranking screen
+			else {  // go to ranking screen
+				MusicController.setPitch(1f);
 				game.enterState(Opsu.STATE_GAMERANKING, new EasedFadeOutTransition(), new FadeInTransition());
+			}
 		}
 	}
 
@@ -1520,7 +1522,7 @@ public class Game extends BasicGameState {
 			lastRankUpdateTime = -1000;
 			if (previousScores != null)
 				currentRank = previousScores.length;
-			scoreboardVisible = true;
+			scoreboardVisible = previousScores.length > 0;
 			currentScoreboardAlpha = 0f;
 
 			// using local offset?
