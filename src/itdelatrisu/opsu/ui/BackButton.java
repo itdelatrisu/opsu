@@ -33,22 +33,50 @@ public class BackButton {
 		COLOR_PINK = new Color(238, 51, 153),
 		COLOR_DARKPINK = new Color(186, 19, 121);
 
+	/** Target duration, in ms, of the button animations. */
 	private static final int  ANIMATION_TIME = 500;
 
+	/** How much time passed for the animations. */
 	private int animationTime;
-	private int firstButtonSize;
-	private int buttonSize;
-	private int buttonSlopeWidth;
+
+	/** The size of the slope image (square shape). */
+	private int slopeImageSize;
+
+	/** The width of the slope part in the slope image. */
+	private int slopeImageSlopeWidth;
+
+	/** The width of the first part of the button. */
+	private int firstButtonWidth;
+
+	/** The width of the second part of the button. */
 	private int secondButtonSize;
+
+	/** Variable to hold the hovered state, to not recalculate it twice per frame. */
 	private boolean isHovered;
+
+	/** The width of the "back" text to draw. */
 	private int textWidth;
+
+	/** Y padding for the text and general positioning. */
 	private float paddingY;
+
+	/** X padding for the text. */
 	private float paddingX;
+
+	/** Y text offset because getHeight is not so accurate. */
 	private float textOffset;
+
+	/** The base size of the chevron. */
 	private float chevronBaseSize;
-	private int top;
-	private Image buttonPart;
-	private int realWidth;
+
+	/** The Y position of where the button starts. */
+	private int buttonYpos;
+
+	/** Variable holding the slope image. */
+	private Image slopeImage;
+
+	/** The real button with, determined by the size and animations. */
+	private int realButtonWidth;
 
 	public BackButton(GameContainer container) {
 		//if (GameImage.MENU_BACK.hasGameSkinImage()) {
@@ -61,12 +89,12 @@ public class BackButton {
 			paddingY *= 0.736f;
 			paddingX = paddingY / 2f;
 			chevronBaseSize = paddingY * 3f / 2f;
-			top = (int) (container.getHeight() - paddingY * 4f);
-			buttonSize = (int) (paddingY * 3f);
-			buttonSlopeWidth = (int) (buttonSize * 0.295f);
-			firstButtonSize = buttonSize;
-			secondButtonSize = (int) (buttonSlopeWidth + paddingX * 2 + textWidth);
-			buttonPart = GameImage.MENU_BACK_BUTTON.getImage().getScaledCopy(buttonSize, buttonSize);
+			buttonYpos = (int) (container.getHeight() - paddingY * 4f);
+			slopeImageSize = (int) (paddingY * 3f);
+			slopeImageSlopeWidth = (int) (slopeImageSize * 0.295f);
+			firstButtonWidth = slopeImageSize;
+			secondButtonSize = (int) (slopeImageSlopeWidth + paddingX * 2 + textWidth);
+			slopeImage = GameImage.MENU_BACK_BUTTON.getImage().getScaledCopy(slopeImageSize, slopeImageSize);
 			return;
 		}
 
@@ -107,14 +135,14 @@ public class BackButton {
 			anim = AnimationEquation.IN_ELASTIC;
 		}
 		float progress = anim.calc((float) animationTime / ANIMATION_TIME);
-		float firstSize = firstButtonSize + (firstButtonSize - buttonSlopeWidth * 2) * progress;
+		float firstSize = firstButtonWidth + (firstButtonWidth - slopeImageSlopeWidth * 2) * progress;
 		float secondSize = secondButtonSize + secondButtonSize * 0.25f * progress;
-		realWidth = (int) (firstSize + secondSize);
+		realButtonWidth = (int) (firstSize + secondSize);
 
 		// right part
 		g.setColor(COLOR_PINK);
-		g.fillRect(0, top, firstSize + secondSize - buttonSlopeWidth, buttonSize);
-		buttonPart.draw(firstSize + secondSize - buttonSize, top, COLOR_PINK);
+		g.fillRect(0, buttonYpos, firstSize + secondSize - slopeImageSlopeWidth, slopeImageSize);
+		slopeImage.draw(firstSize + secondSize - slopeImageSize, buttonYpos, COLOR_PINK);
 
 		// left part
 		Color hoverColor = new Color(0f, 0f, 0f);
@@ -122,14 +150,14 @@ public class BackButton {
 		hoverColor.g = COLOR_PINK.g + (COLOR_DARKPINK.g - COLOR_PINK.g) * progress;
 		hoverColor.b = COLOR_PINK.b + (COLOR_DARKPINK.b - COLOR_PINK.b) * progress;
 		g.setColor(hoverColor);
-		g.fillRect(0, top, firstSize - buttonSlopeWidth, buttonSize);
-		buttonPart.draw(firstSize - buttonSize, top, hoverColor);
+		g.fillRect(0, buttonYpos, firstSize - slopeImageSlopeWidth, slopeImageSize);
+		slopeImage.draw(firstSize - slopeImageSize, buttonYpos, hoverColor);
 
 		// chevron
-		GameImage.MENU_BACK_CHEVRON.getImage().getScaledCopy(chevronSize, chevronSize).drawCentered((firstSize - buttonSlopeWidth / 2) / 2, top + paddingY * 1.5f);
+		GameImage.MENU_BACK_CHEVRON.getImage().getScaledCopy(chevronSize, chevronSize).drawCentered((firstSize - slopeImageSlopeWidth / 2) / 2, buttonYpos + paddingY * 1.5f);
 
 		// text
-		float textY = top + paddingY - textOffset;
+		float textY = buttonYpos + paddingY - textOffset;
 		float textX = firstSize + (secondSize - paddingX * 2 - textWidth) / 2;
 		Fonts.MEDIUM.drawString(textX, textY + 1, "back", Color.black);
 		Fonts.MEDIUM.drawString(textX, textY, "back", Color.white);
@@ -148,7 +176,7 @@ public class BackButton {
 			return;
 		}
 		boolean wasHovered = isHovered;
-		isHovered = top - paddingY < cy && cx < realWidth;
+		isHovered = buttonYpos - paddingY < cy && cx < realButtonWidth;
 		if (isHovered) {
 			if (!wasHovered) {
 				animationTime = 0;
@@ -177,7 +205,7 @@ public class BackButton {
 		if (backButton != null) {
 			return backButton.contains(cx, cy);
 		}
-		return top - paddingY < cy && cx < realWidth;
+		return buttonYpos - paddingY < cy && cx < realButtonWidth;
 	}
 
 	/**
