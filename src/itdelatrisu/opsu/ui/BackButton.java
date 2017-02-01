@@ -23,12 +23,10 @@ import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.ui.animations.AnimationEquation;
 import org.newdawn.slick.*;
 
-import java.util.Arrays;
-
 public class BackButton {
 
 	/** Skinned back button. */
-	private static MenuButton backButton;
+	private MenuButton backButton;
 
 	/** Colors. */
 	private static final Color
@@ -53,7 +51,9 @@ public class BackButton {
 	private int realWidth;
 
 	public BackButton(GameContainer container) {
+		//if (GameImage.MENU_BACK.hasGameSkinImage()) {
 		if (GameImage.MENU_BACK.getImage() != null && GameImage.MENU_BACK.getImage().getWidth() < 2) {
+			backButton = null;
 			textWidth = Fonts.MEDIUM.getWidth("back");
 			paddingY = Fonts.MEDIUM.getHeight("back");
 			// getHeight doesn't seem to be so accurate
@@ -177,7 +177,7 @@ public class BackButton {
 		if (backButton != null) {
 			return backButton.contains(cx, cy);
 		}
-		return isHovered;
+		return top - paddingY < cy && cx < realWidth;
 	}
 
 	/**
