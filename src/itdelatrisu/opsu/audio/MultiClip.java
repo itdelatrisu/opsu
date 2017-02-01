@@ -168,7 +168,7 @@ public class MultiClip {
 		// search for existing stopped clips
 		for (Iterator<Clip> iter = clips.iterator(); iter.hasNext();) {
 			Clip c = iter.next();
-			if (!c.isRunning()) {
+			if (!c.isRunning() && !c.isActive()) {
 				iter.remove();
 				clips.add(c);
 				return c;
