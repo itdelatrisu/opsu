@@ -320,7 +320,7 @@ public class OptionsOverlay extends AbstractComponent {
 						option.selectItem(index, OptionsOverlay.this.container);
 
 						// show restart button?
-						if (!openDropdownMenuOldValue.equals(hoverOption.getValueString()) &&
+						if (!openDropdownMenuOldValue.equals(option.getValueString()) &&
 							(option == GameOption.SCREEN_RESOLUTION || option == GameOption.SKIN)) {
 							showRestartButton = true;
 							UI.getNotificationManager().sendBarNotification("Restart to apply changes.");

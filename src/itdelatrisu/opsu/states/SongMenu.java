@@ -1574,8 +1574,6 @@ public class SongMenu extends BasicGameState {
 			oldFocusNode = new SongNode(BeatmapSetList.get().getBaseNode(focusNode.index), focusNode.beatmapIndex);
 
 		if (BeatmapSetList.get().search(search.getText())) {
-			System.out.println("Updated with text: " + search.getText());
-
 			// reset song stack
 			randomStack = new Stack<SongNode>();
 
@@ -1607,10 +1605,8 @@ public class SongMenu extends BasicGameState {
 				lastSearchResultString = results;
 			} else if (!search.getText().isEmpty())
 				searchResultString = lastSearchResultString = "No matches found. Hit ESC to reset.";
-		} else {
-			System.out.println("Using last string: " + lastSearchResultString);
+		} else
 			searchResultString = lastSearchResultString;
-		}
 	}
 
 	/**
