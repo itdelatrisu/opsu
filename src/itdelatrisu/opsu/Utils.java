@@ -26,10 +26,12 @@ import itdelatrisu.opsu.downloads.DownloadNode;
 import itdelatrisu.opsu.replay.PlaybackSpeed;
 import itdelatrisu.opsu.ui.Colors;
 import itdelatrisu.opsu.ui.Fonts;
+import itdelatrisu.opsu.ui.NotificationManager.NotificationListener;
 import itdelatrisu.opsu.ui.UI;
 import itdelatrisu.opsu.user.UserButton;
 import itdelatrisu.opsu.user.UserList;
 
+import java.awt.Desktop;
 import java.awt.image.BufferedImage;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
@@ -309,7 +311,17 @@ public class Utils {
 					ImageIO.write(image, Options.getScreenshotFormat(), file);
 					UI.getNotificationManager().sendNotification(
 						String.format("Saved screenshot to %s", file.getAbsolutePath()),
-						Colors.PURPLE
+						Colors.PURPLE,
+						new NotificationListener() {
+							@Override
+							public void click() {
+								try {
+									Utils.openInFileManager(file);
+								} catch (IOException e) {
+									Log.warn("Failed to open screenshot location.", e);
+								}
+							}
+						}
 					);
 				} catch (Exception e) {
 					ErrorHandler.error("Failed to take a screenshot.", e, true);
@@ -424,6 +436,36 @@ public class Utils {
 
 		// delete the directory
 		dir.delete();
+	}
+
+	/**
+	 * Opens the file manager to the given location.
+	 * If the location is a file, it will be highlighted if possible.
+	 * @param file the file or directory
+	 */
+	public static void openInFileManager(File file) throws IOException {
+		File f = file;
+
+		// try to highlight the file (platform-specific)
+		if (f.isFile()) {
+			String osName = System.getProperty("os.name");
+			if (osName.startsWith("Win")) {
+				// windows: select in Explorer
+				Runtime.getRuntime().exec("explorer.exe /select," + f.getAbsolutePath());
+				return;
+			} else if (osName.startsWith("Mac")) {
+				// mac: reveal in Finder
+				Runtime.getRuntime().exec("open -R " + f.getAbsolutePath());
+				return;
+			}
+			f = f.getParentFile();
+		}
+
+		// open directory using Desktop API
+		if (f.isDirectory()) {
+			if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.OPEN))
+				Desktop.getDesktop().open(f);
+		}
 	}
 
 	/**
