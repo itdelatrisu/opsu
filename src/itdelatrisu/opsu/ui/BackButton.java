@@ -94,7 +94,7 @@ public class BackButton {
 			slopeImageSlopeWidth = (int) (slopeImageSize * 0.295f);
 			firstButtonWidth = slopeImageSize;
 			secondButtonSize = (int) (slopeImageSlopeWidth + paddingX * 2 + textWidth);
-			slopeImage = GameImage.MENU_BACK_BUTTON.getImage().getScaledCopy(slopeImageSize, slopeImageSize);
+			slopeImage = GameImage.MENU_BACK_SLOPE.getImage().getScaledCopy(slopeImageSize, slopeImageSize);
 			return;
 		}
 
