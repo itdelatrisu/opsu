@@ -538,7 +538,6 @@ public class OptionsOverlay extends AbstractComponent {
 		// render all headers and options
 		int cy = (int) (y + -scrolling.getPosition() + optionStartY);
 		int virtualY = 0;
-		float headerHeight = Fonts.LARGE.getLineHeight() * 1.5f;
 		for (OptionGroup group : groups) {
 			if (!group.isVisible())
 				continue;
@@ -556,8 +555,8 @@ public class OptionsOverlay extends AbstractComponent {
 				// subsection header
 				Fonts.MEDIUMBOLD.drawString(x + paddingTextLeft, lineStartY, group.getName(), COLOR_WHITE);
 			}
-			cy += headerHeight;
-			virtualY += headerHeight;
+			cy += optionGroupPadding;
+			virtualY += optionGroupPadding;
 
 			if (group.getOptions() == null)
 				continue;  // header only
@@ -599,7 +598,7 @@ public class OptionsOverlay extends AbstractComponent {
 		for (OptionGroup group : groups) {
 			if (!group.isVisible())
 				continue;
-			scrollOffset += headerHeight;
+			scrollOffset += optionGroupPadding;
 			if (group.getOptions() == null)
 				continue;
 			for (GameOption option : group.getOptions()) {
