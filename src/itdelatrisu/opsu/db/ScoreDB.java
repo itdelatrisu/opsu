@@ -23,6 +23,7 @@ import itdelatrisu.opsu.ScoreData;
 import itdelatrisu.opsu.beatmap.Beatmap;
 import itdelatrisu.opsu.options.Options;
 import itdelatrisu.opsu.user.User;
+import itdelatrisu.opsu.user.UserList;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -46,7 +47,7 @@ public class ScoreDB {
 	 * This value should be changed whenever the database format changes.
 	 * Add any update queries to the {@link #getUpdateQueries(int)} method.
 	 */
-	private static final int DATABASE_VERSION = 20170131;
+	private static final int DATABASE_VERSION = 20170201;
 
 	/**
 	 * Returns a list of SQL queries to apply, in order, to update from
@@ -60,6 +61,8 @@ public class ScoreDB {
 			list.add("ALTER TABLE scores ADD COLUMN replay TEXT");
 		if (version < 20150401)
 			list.add("ALTER TABLE scores ADD COLUMN playerName TEXT");
+		if (version < 20170201)
+			list.add(String.format("UPDATE scores SET playerName = '%s' WHERE playerName IS NULL", UserList.DEFAULT_USER_NAME));
 
 		/* add future updates here */
 
