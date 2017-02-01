@@ -20,12 +20,12 @@ package itdelatrisu.opsu.downloads;
 
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.GameImage;
-import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.beatmap.BeatmapSetList;
 import itdelatrisu.opsu.downloads.Download.DownloadListener;
 import itdelatrisu.opsu.downloads.Download.Status;
 import itdelatrisu.opsu.downloads.servers.DownloadServer;
+import itdelatrisu.opsu.options.Options;
 import itdelatrisu.opsu.ui.Colors;
 import itdelatrisu.opsu.ui.Fonts;
 import itdelatrisu.opsu.ui.UI;

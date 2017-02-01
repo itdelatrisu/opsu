@@ -21,8 +21,8 @@ package itdelatrisu.opsu.ui;
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.Opsu;
-import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.Utils;
+import itdelatrisu.opsu.options.Options;
 import itdelatrisu.opsu.skins.Skin;
 import itdelatrisu.opsu.ui.animations.AnimationEquation;
 

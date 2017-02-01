@@ -23,6 +23,7 @@ import itdelatrisu.opsu.audio.SoundEffect;
 import itdelatrisu.opsu.beatmap.HitObject;
 import itdelatrisu.opsu.downloads.Download;
 import itdelatrisu.opsu.downloads.DownloadNode;
+import itdelatrisu.opsu.options.Options;
 import itdelatrisu.opsu.replay.PlaybackSpeed;
 import itdelatrisu.opsu.ui.Colors;
 import itdelatrisu.opsu.ui.Fonts;

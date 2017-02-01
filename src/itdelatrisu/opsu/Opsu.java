@@ -22,6 +22,7 @@ import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.db.DBController;
 import itdelatrisu.opsu.downloads.DownloadList;
 import itdelatrisu.opsu.downloads.Updater;
+import itdelatrisu.opsu.options.Options;
 import itdelatrisu.opsu.states.ButtonMenu;
 import itdelatrisu.opsu.states.DownloadsMenu;
 import itdelatrisu.opsu.states.Game;

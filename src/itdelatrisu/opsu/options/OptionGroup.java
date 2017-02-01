@@ -16,9 +16,9 @@
  * along with opsu!.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package itdelatrisu.opsu;
+package itdelatrisu.opsu.options;
 
-import itdelatrisu.opsu.Options.GameOption;
+import itdelatrisu.opsu.options.Options.GameOption;
 
 /**
  * Option category and related options.

@@ -16,8 +16,13 @@
  * along with opsu!.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package itdelatrisu.opsu;
+package itdelatrisu.opsu.options;
 
+import itdelatrisu.opsu.Container;
+import itdelatrisu.opsu.ErrorHandler;
+import itdelatrisu.opsu.GameImage;
+import itdelatrisu.opsu.OpsuConstants;
+import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.beatmap.Beatmap;
 import itdelatrisu.opsu.beatmap.TimingPoint;

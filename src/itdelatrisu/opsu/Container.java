@@ -27,6 +27,7 @@ import itdelatrisu.opsu.beatmap.BeatmapSortOrder;
 import itdelatrisu.opsu.beatmap.BeatmapWatchService;
 import itdelatrisu.opsu.downloads.DownloadList;
 import itdelatrisu.opsu.downloads.Updater;
+import itdelatrisu.opsu.options.Options;
 import itdelatrisu.opsu.render.CurveRenderState;
 import itdelatrisu.opsu.ui.UI;
 

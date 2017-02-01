@@ -19,9 +19,9 @@
 package itdelatrisu.opsu.db;
 
 import itdelatrisu.opsu.ErrorHandler;
-import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.ScoreData;
 import itdelatrisu.opsu.beatmap.Beatmap;
+import itdelatrisu.opsu.options.Options;
 import itdelatrisu.opsu.user.User;
 
 import java.sql.Connection;

@@ -16,17 +16,21 @@
  * along with opsu!.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package itdelatrisu.opsu.ui;
+package itdelatrisu.opsu.options;
 
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.OpsuConstants;
-import itdelatrisu.opsu.OptionGroup;
-import itdelatrisu.opsu.Options;
-import itdelatrisu.opsu.Options.GameOption;
-import itdelatrisu.opsu.Options.GameOption.OptionType;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
+import itdelatrisu.opsu.options.Options.GameOption;
+import itdelatrisu.opsu.options.Options.GameOption.OptionType;
+import itdelatrisu.opsu.ui.Colors;
+import itdelatrisu.opsu.ui.DropdownMenu;
+import itdelatrisu.opsu.ui.Fonts;
+import itdelatrisu.opsu.ui.KineticScrolling;
+import itdelatrisu.opsu.ui.MenuButton;
+import itdelatrisu.opsu.ui.UI;
 import itdelatrisu.opsu.ui.animations.AnimationEquation;
 
 import java.util.IdentityHashMap;

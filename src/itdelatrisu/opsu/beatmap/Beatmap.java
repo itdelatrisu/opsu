@@ -19,7 +19,7 @@
 package itdelatrisu.opsu.beatmap;
 
 import itdelatrisu.opsu.GameImage;
-import itdelatrisu.opsu.Options;
+import itdelatrisu.opsu.options.Options;
 
 import java.io.File;
 import java.util.ArrayList;

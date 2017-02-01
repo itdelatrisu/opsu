@@ -18,7 +18,7 @@
 
 package itdelatrisu.opsu.video;
 
-import itdelatrisu.opsu.Options;
+import itdelatrisu.opsu.options.Options;
 
 import java.io.BufferedReader;
 import java.io.File;

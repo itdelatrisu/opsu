@@ -19,10 +19,10 @@
 package itdelatrisu.opsu.beatmap;
 
 import itdelatrisu.opsu.ErrorHandler;
-import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.db.BeatmapDB;
+import itdelatrisu.opsu.options.Options;
 
 import java.io.File;
 import java.io.IOException;

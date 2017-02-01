@@ -18,6 +18,7 @@
 
 package itdelatrisu.opsu;
 
+import itdelatrisu.opsu.options.Options;
 import itdelatrisu.opsu.ui.Fonts;
 
 import java.io.File;

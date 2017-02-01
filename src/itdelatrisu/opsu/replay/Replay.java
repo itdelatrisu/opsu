@@ -19,12 +19,12 @@
 package itdelatrisu.opsu.replay;
 
 import itdelatrisu.opsu.ErrorHandler;
-import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.ScoreData;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.beatmap.Beatmap;
 import itdelatrisu.opsu.io.OsuReader;
 import itdelatrisu.opsu.io.OsuWriter;
+import itdelatrisu.opsu.options.Options;
 
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;

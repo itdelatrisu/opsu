@@ -19,11 +19,11 @@
 package itdelatrisu.opsu.audio;
 
 import itdelatrisu.opsu.ErrorHandler;
-import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.audio.HitSound.SampleSet;
 import itdelatrisu.opsu.beatmap.HitObject;
 import itdelatrisu.opsu.downloads.Download;
 import itdelatrisu.opsu.downloads.Download.DownloadListener;
+import itdelatrisu.opsu.options.Options;
 import itdelatrisu.opsu.ui.NotificationManager.NotificationListener;
 import itdelatrisu.opsu.ui.UI;
 
