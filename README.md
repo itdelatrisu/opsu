@@ -1,43 +1,41 @@
 # [opsu!](https://itdelatrisu.github.io/opsu/)
 **opsu!** is an unofficial open-source client for the rhythm game
-[osu!](https://osu.ppy.sh/).  It is written in Java using
-[Slick2D](http://slick.ninjacave.com/) and  [LWJGL](http://lwjgl.org/),
-wrappers around the OpenGL and OpenAL libraries.
+[osu!](https://osu.ppy.sh/), written in Java using
+[Slick2D](http://slick.ninjacave.com/) and  [LWJGL](http://lwjgl.org/)
+(wrappers around OpenGL and OpenAL).
 
-opsu! runs on Windows, OS X, and Linux platforms.
-A [libGDX port](https://github.com/fluddokt/opsu) additionally supports Android
-devices.
+opsu! runs on Windows, OS X, and Linux.
+A [libGDX port](https://github.com/fluddokt/opsu) also supports Android devices.
 
 ## Getting Started
-Precompiled binaries for opsu! can be found on the
-[releases](https://github.com/itdelatrisu/opsu/releases) page, with the latest
-builds at the top.  APK releases can be found
-[here](https://github.com/fluddokt/opsu/releases).
+Get a copy of opsu! from the [releases](https://github.com/itdelatrisu/opsu/releases)
+page.  APK releases can be found [here](https://github.com/fluddokt/opsu/releases).
 
 ### Java Setup
-The Java Runtime Environment (JRE) must be installed in order to run opsu!.
-The download page is located [here](https://www.java.com/en/download/).
+The Java Runtime Environment (JRE) 7 or higher must be installed in order to run
+opsu!. The download page is located [here](https://www.java.com/en/download/).
 
 ### Beatmaps
-opsu! requires beatmaps to run, which are available for download on the
-[osu! website](https://osu.ppy.sh/p/beatmaplist) and mirror sites such as
-[osu!Mirror](https://osu.yas-online.net/) and [Bloodcat](http://bloodcat.com/osu/).
-Beatmaps can also be downloaded directly through opsu! in the downloads menu.
+opsu! requires "beatmaps" to run, which contain the songs and gameplay data.
+These can be downloaded directly through opsu! in the downloads menu, or
+manually from the [osu! website](https://osu.ppy.sh/p/beatmaplist) (requires
+registration) and mirror sites like [Bloodcat](http://bloodcat.com/osu/).
+Place any manually downloaded beatmaps (in .osz format) in the `Import/`
+directory for opsu! to unpack them automatically.
 
-If osu! is already installed, this application will attempt to load beatmaps
-directly from the osu! program folder.  Otherwise, place beatmaps in the
-generated `Songs` folder or set the "BeatmapDirectory" value in the generated
-configuration file to the path of the root beatmap directory.
-
-Note that beatmaps are typically delivered as OSZ files.  These can be extracted
-with any ZIP tool, and opsu! will automatically extract them into the beatmap
-folder if placed in the `SongPacks` directory.
+If osu! is installed, opsu! will attempt to read beatmaps from the osu!
+installation location.  The beatmap directory can also be changed by setting
+the "BeatmapDirectory" value in the generated configuration file.
 
 ### First Run
-The "Music Offset" value will likely need to be adjusted when playing for the
-first time, or whenever hit objects are out of sync with the music.  This and
-other game options can be accessed by clicking the "Other Options" button in
-the song menu.
+opsu! will parse all beatmaps when launched, which can take a while for the
+first time.  If no beatmaps are found, the game will prompt you to download some
+to get started.
+
+Game settings can be changed in the options menu, accessed by clicking the
+"Other Options" button in the song menu.  The "Music Offset" value will likely
+need to be adjusted initially, or whenever hit objects are out of sync with the
+music.
 
 ### Directory Structure
 The following files and folders will be created by opsu! as needed:
