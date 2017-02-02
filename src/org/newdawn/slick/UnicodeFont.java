@@ -61,6 +61,7 @@ import org.newdawn.slick.util.ResourceLoader;
  * for display. However, it is best to load the glyphs that are known to be needed at startup.
  * @author Nathan Sweet <misc@n4te.com>
  */
+@SuppressWarnings({"rawtypes", "serial", "unchecked", "unused"})
 public class UnicodeFont implements org.newdawn.slick.Font {
 	/** The number of display lists that will be cached for strings from this font */
 	private static final int DISPLAY_LIST_CACHE_SIZE = 200;
@@ -97,6 +98,7 @@ public class UnicodeFont implements org.newdawn.slick.Font {
 	 * Sorts glyphs by height, tallest first.
 	 */
 	private static final Comparator heightComparator = new Comparator() {
+		@Override
 		public int compare (Object o1, Object o2) {
 			return ((Glyph)o1).getHeight() - ((Glyph)o2).getHeight();
 		}
@@ -151,9 +153,13 @@ public class UnicodeFont implements org.newdawn.slick.Font {
 	private int eldestDisplayListID;
 	/** The eldest display list  */
 	private DisplayList eldestDisplayList;
-	
-	/** The map fo the display list generated and cached - modified to allow removal of the oldest entry */
+
+	/** The backup font for rendering non-displayable glyphs. */
+	private UnicodeFont backup;
+
+	/** The map for the display list generated and cached - modified to allow removal of the oldest entry */
 	private final LinkedHashMap displayLists = new LinkedHashMap(DISPLAY_LIST_CACHE_SIZE, 1, true) {
+		@Override
 		protected boolean removeEldestEntry (Entry eldest) {
 			DisplayList displayList = (DisplayList)eldest.getValue();
 			if (displayList != null) eldestDisplayListID = displayList.id;
@@ -292,6 +298,15 @@ public class UnicodeFont implements org.newdawn.slick.Font {
 	}
 
 	/**
+	 * Adds a backup font to render non-displayable glyphs.
+	 * 
+	 * @param backup The backup font
+	 */
+	public void addBackupFont(UnicodeFont backup) {
+		this.backup = backup;
+	}
+
+	/**
 	 * Queues the glyphs in the specified codepoint range (inclusive) to be loaded. Note that the glyphs are not actually loaded
 	 * until {@link #loadGlyphs()} is called.
 	 * 
@@ -319,8 +334,32 @@ public class UnicodeFont implements org.newdawn.slick.Font {
 		GlyphVector vector = font.layoutGlyphVector(GlyphPage.renderContext, chars, 0, chars.length, Font.LAYOUT_LEFT_TO_RIGHT);
 		for (int i = 0, n = vector.getNumGlyphs(); i < n; i++) {
 			int codePoint = text.codePointAt(vector.getGlyphCharIndex(i));
+			if (backup != null && !font.canDisplay((char) codePoint) && backup.getFont().canDisplay((char) codePoint)) {
+				addBackupGlyphs(new String(Character.toChars(codePoint)));
+				continue;
+			}
 			Rectangle bounds = getGlyphBounds(vector, i, codePoint);
 			getGlyph(vector.getGlyphCode(i), codePoint, bounds, vector, i);
+		}
+	}
+
+	/**
+	 * Queues the backup glyphs in the specified text to be loaded. Note that
+	 * the glyphs are not actually loaded until {@link #loadGlyphs()} is called.
+	 * 
+	 * @param text The text containing the glyphs to be added
+	 */
+	private void addBackupGlyphs(String text) {
+		if (text == null) throw new IllegalArgumentException("text cannot be null.");
+		if (backup == null)
+			return;
+
+		char[] chars = text.toCharArray();
+		GlyphVector vector = backup.getFont().layoutGlyphVector(GlyphPage.renderContext, chars, 0, chars.length, Font.LAYOUT_LEFT_TO_RIGHT);
+		for (int i = 0, n = vector.getNumGlyphs(); i < n; i++) {
+			int codePoint = text.codePointAt(vector.getGlyphCharIndex(i));
+			Rectangle bounds = getGlyphBounds(vector, i, codePoint);
+			Glyph glyph = getGlyph(vector.getGlyphCode(i), codePoint, bounds, vector, i, backup);
 		}
 	}
 
@@ -506,11 +545,15 @@ public class UnicodeFont implements org.newdawn.slick.Font {
 
 		char[] chars = text.substring(0, endIndex).toCharArray();
 		GlyphVector vector = font.layoutGlyphVector(GlyphPage.renderContext, chars, 0, chars.length, Font.LAYOUT_LEFT_TO_RIGHT);
+		GlyphVector backupVector = (backup == null) ? null :
+			backup.getFont().layoutGlyphVector(GlyphPage.renderContext, chars, 0, chars.length, Font.LAYOUT_LEFT_TO_RIGHT);
 
 		int maxWidth = 0, totalHeight = 0, lines = 0;
 		int extraX = 0, extraY = ascent;
 		boolean startNewLine = false;
 		Texture lastBind = null;
+		boolean lastUsedBackup = false;
+		int defaultFontOffsetX = 0, backupFontOffsetX = 0;
 		for (int glyphIndex = 0, n = vector.getNumGlyphs(); glyphIndex < n; glyphIndex++) {
 			int charIndex = vector.getGlyphCharIndex(glyphIndex);
 			if (charIndex < startIndex) continue;
@@ -518,8 +561,26 @@ public class UnicodeFont implements org.newdawn.slick.Font {
 
 			int codePoint = text.codePointAt(charIndex);
 
-			Rectangle bounds = getGlyphBounds(vector, glyphIndex, codePoint);
-			Glyph glyph = getGlyph(vector.getGlyphCode(glyphIndex), codePoint, bounds, vector, glyphIndex);
+			GlyphVector vec = vector;
+			if (backupVector != null && !font.canDisplay(codePoint) && backup.getFont().canDisplay(codePoint))
+				vec = backupVector;
+			Rectangle bounds = getGlyphBounds(vec, glyphIndex, codePoint);
+			Glyph glyph = getGlyph(vec.getGlyphCode(glyphIndex), codePoint, bounds, vec, glyphIndex);
+
+			// mixed fonts: calculate offsets
+			boolean usingBackup = (vec == backupVector);
+			if (usingBackup == lastUsedBackup)
+				bounds.x += (usingBackup) ? backupFontOffsetX : defaultFontOffsetX;
+			else {
+				if (usingBackup)
+					backupFontOffsetX = maxWidth - bounds.x;
+				else
+					defaultFontOffsetX = maxWidth - bounds.x;
+				bounds.x = maxWidth;
+				if (glyphIndex > 0)
+					bounds.x += paddingAdvanceX;
+			}
+			lastUsedBackup = usingBackup;
 
 			if (startNewLine && codePoint != '\n') {
 				extraX = -bounds.x;
@@ -570,14 +631,17 @@ public class UnicodeFont implements org.newdawn.slick.Font {
 		return displayList;
 	}
 
+	@Override
 	public void drawString (float x, float y, String text, Color color, int startIndex, int endIndex) {
 		drawDisplayList(x, y, text, color, startIndex, endIndex);
 	}
 
+	@Override
 	public void drawString (float x, float y, String text) {
 		drawString(x, y, text, Color.white);
 	}
 
+	@Override
 	public void drawString (float x, float y, String text, Color col) {
 		drawString(x, y, text, col, 0, text.length());
 	}
@@ -594,9 +658,26 @@ public class UnicodeFont implements org.newdawn.slick.Font {
 	 * @return The glyph requested
 	 */
 	private Glyph getGlyph (int glyphCode, int codePoint, Rectangle bounds, GlyphVector vector, int index) {
+		return getGlyph(glyphCode, codePoint, bounds, vector, index, this);
+	}
+
+	/**
+	 * Returns the glyph for the specified codePoint. If the glyph does not exist yet, 
+	 * it is created and queued to be loaded.
+	 * 
+	 * @param glyphCode The code of the glyph to locate
+	 * @param codePoint The code point associated with the glyph
+	 * @param bounds The bounds of the glyph on the page
+	 * @param vector The vector the glyph is part of  
+	 * @param index The index of the glyph within the vector
+	 * @param f The font to use
+	 * @return The glyph requested
+	 */
+	private Glyph getGlyph(int glyphCode, int codePoint, Rectangle bounds, GlyphVector vector, int index, UnicodeFont f) {
 		if (glyphCode < 0 || glyphCode >= MAX_GLYPH_CODE) {
 			// GlyphVector#getGlyphCode sometimes returns negative numbers on OS X.
 			return new Glyph(codePoint, bounds, vector, index, this) {
+				@Override
 				public boolean isMissing () {
 					return true;
 				}
@@ -612,13 +693,13 @@ public class UnicodeFont implements org.newdawn.slick.Font {
 		} else
 			page = glyphs[pageIndex] = new Glyph[PAGE_SIZE];
 		// Add glyph so size information is available and queue it so its image can be loaded later.
-		glyph = page[glyphIndex] = new Glyph(codePoint, bounds, vector, index, this);
+		glyph = page[glyphIndex] = new Glyph(codePoint, bounds, vector, index, f);
 		queuedGlyphs.add(glyph);
 		return glyph;
 	}
 
 	/**
-	 * Returns the bounds of the specified glyph.\
+	 * Returns the bounds of the specified glyph.
 	 * 
 	 * @param vector The vector the glyph is part of
 	 * @param index The index of the glyph within the vector
@@ -640,6 +721,7 @@ public class UnicodeFont implements org.newdawn.slick.Font {
 	/**
 	 * @see org.newdawn.slick.Font#getWidth(java.lang.String)
 	 */
+	@Override
 	public int getWidth (String text) {
 		if (text == null) throw new IllegalArgumentException("text cannot be null.");
 		if (text.length() == 0) return 0;
@@ -674,6 +756,7 @@ public class UnicodeFont implements org.newdawn.slick.Font {
 	/**
 	 * @see org.newdawn.slick.Font#getHeight(java.lang.String)
 	 */
+	@Override
 	public int getHeight (String text) {
 		if (text == null) throw new IllegalArgumentException("text cannot be null.");
 		if (text.length() == 0) return 0;
@@ -853,6 +936,7 @@ public class UnicodeFont implements org.newdawn.slick.Font {
 	 * Returns the distance from one line of text to the next. This is the sum of the descent, ascent, leading, padding top,
 	 * padding bottom, and padding advance y. To change the line height, use {@link #setPaddingAdvanceY(int)}.
 	 */
+	@Override
 	public int getLineHeight() {
 		return descent + ascent + leading + paddingTop + paddingBottom + paddingAdvanceY;
 	}
