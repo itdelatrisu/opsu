@@ -49,7 +49,7 @@ public class BackButton {
 	private int firstButtonWidth;
 
 	/** The width of the second part of the button. */
-	private int secondButtonSize;
+	private int secondButtonWidth;
 
 	/** Variable to hold the hovered state, to not recalculate it twice per frame. */
 	private boolean isHovered;
@@ -93,7 +93,7 @@ public class BackButton {
 			slopeImageSize = (int) (paddingY * 3f);
 			slopeImageSlopeWidth = (int) (slopeImageSize * 0.295f);
 			firstButtonWidth = slopeImageSize;
-			secondButtonSize = (int) (slopeImageSlopeWidth + paddingX * 2 + textWidth);
+			secondButtonWidth = (int) (slopeImageSlopeWidth + paddingX * 2 + textWidth);
 			slopeImage = GameImage.MENU_BACK_SLOPE.getImage().getScaledCopy(slopeImageSize, slopeImageSize);
 			return;
 		}
@@ -135,14 +135,14 @@ public class BackButton {
 			anim = AnimationEquation.IN_ELASTIC;
 		}
 		float progress = anim.calc((float) animationTime / ANIMATION_TIME);
-		float firstSize = firstButtonWidth + (firstButtonWidth - slopeImageSlopeWidth * 2) * progress;
-		float secondSize = secondButtonSize + secondButtonSize * 0.25f * progress;
-		realButtonWidth = (int) (firstSize + secondSize);
+		float firstWidth = firstButtonWidth + (firstButtonWidth - slopeImageSlopeWidth * 2) * progress;
+		float secondWidth = secondButtonWidth + secondButtonWidth * 0.25f * progress;
+		realButtonWidth = (int) (firstWidth + secondWidth);
 
 		// right part
 		g.setColor(COLOR_PINK);
-		g.fillRect(0, buttonYpos, firstSize + secondSize - slopeImageSlopeWidth, slopeImageSize);
-		slopeImage.draw(firstSize + secondSize - slopeImageSize, buttonYpos, COLOR_PINK);
+		g.fillRect(0, buttonYpos, firstWidth + secondWidth - slopeImageSlopeWidth, slopeImageSize);
+		slopeImage.draw(firstWidth + secondWidth - slopeImageSize, buttonYpos, COLOR_PINK);
 
 		// left part
 		Color hoverColor = new Color(0f, 0f, 0f);
@@ -150,15 +150,15 @@ public class BackButton {
 		hoverColor.g = COLOR_PINK.g + (COLOR_DARKPINK.g - COLOR_PINK.g) * progress;
 		hoverColor.b = COLOR_PINK.b + (COLOR_DARKPINK.b - COLOR_PINK.b) * progress;
 		g.setColor(hoverColor);
-		g.fillRect(0, buttonYpos, firstSize - slopeImageSlopeWidth, slopeImageSize);
-		slopeImage.draw(firstSize - slopeImageSize, buttonYpos, hoverColor);
+		g.fillRect(0, buttonYpos, firstWidth - slopeImageSlopeWidth, slopeImageSize);
+		slopeImage.draw(firstWidth - slopeImageSize, buttonYpos, hoverColor);
 
 		// chevron
-		GameImage.MENU_BACK_CHEVRON.getImage().getScaledCopy(chevronSize, chevronSize).drawCentered((firstSize - slopeImageSlopeWidth / 2) / 2, buttonYpos + paddingY * 1.5f);
+		GameImage.MENU_BACK_CHEVRON.getImage().getScaledCopy(chevronSize, chevronSize).drawCentered((firstWidth - slopeImageSlopeWidth / 2) / 2, buttonYpos + paddingY * 1.5f);
 
 		// text
 		float textY = buttonYpos + paddingY - textOffset;
-		float textX = firstSize + (secondSize - paddingX * 2 - textWidth) / 2;
+		float textX = firstWidth + (secondWidth - paddingX * 2 - textWidth) / 2;
 		Fonts.MEDIUM.drawString(textX, textY + 1, "back", Color.black);
 		Fonts.MEDIUM.drawString(textX, textY, "back", Color.white);
 	}
