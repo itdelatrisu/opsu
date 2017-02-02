@@ -93,10 +93,11 @@ public class UI {
 		UI.game = game;
 		UI.input = container.getInput();
 
-		// initialize cursor
+		// cursor
 		Cursor.init(container, game);
 		cursor.hide();
 
+		// back button
 		backButton = new BackButton(container);
 
 		// notification manager
@@ -163,7 +164,7 @@ public class UI {
 	public static NotificationManager getNotificationManager() { return notificationManager; }
 
 	/**
-	 * Returns the 'menu-back' MenuButton.
+	 * Returns the back button instance.
 	 */
 	public static BackButton getBackButton() { return backButton; }
 

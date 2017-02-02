@@ -21,10 +21,19 @@ package itdelatrisu.opsu.ui;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.ui.animations.AnimationEquation;
-import org.newdawn.slick.*;
 
+import org.newdawn.slick.Animation;
+import org.newdawn.slick.Color;
+import org.newdawn.slick.GameContainer;
+import org.newdawn.slick.Graphics;
+import org.newdawn.slick.Image;
+
+/**
+ * Back button.
+ *
+ * @author yugecin (https://github.com/yugecin)
+ */
 public class BackButton {
-
 	/** Skinned back button. */
 	private MenuButton backButton;
 
@@ -34,7 +43,10 @@ public class BackButton {
 		COLOR_DARKPINK = new Color(186, 19, 121);
 
 	/** Target duration, in ms, of the button animations. */
-	private static final int  ANIMATION_TIME = 500;
+	private static final int ANIMATION_TIME = 500;
+
+	/** Button text. */
+	private static final String BUTTON_TEXT = "back";
 
 	/** How much time passed for the animations. */
 	private int animationTime;
@@ -54,7 +66,7 @@ public class BackButton {
 	/** Variable to hold the hovered state, to not recalculate it twice per frame. */
 	private boolean isHovered;
 
-	/** The width of the "back" text to draw. */
+	/** The width of the button text to draw. */
 	private int textWidth;
 
 	/** Y padding for the text and general positioning. */
@@ -78,11 +90,16 @@ public class BackButton {
 	/** The real button with, determined by the size and animations. */
 	private int realButtonWidth;
 
+	/**
+	 * Creates the back button.
+	 * @param container the game container
+	 */
 	public BackButton(GameContainer container) {
+		// not skinned: dynamic button
 		if (!GameImage.MENU_BACK.hasGameSkinImage()) {
 			backButton = null;
-			textWidth = Fonts.MEDIUM.getWidth("back");
-			paddingY = Fonts.MEDIUM.getHeight("back");
+			textWidth = Fonts.MEDIUM.getWidth(BUTTON_TEXT);
+			paddingY = Fonts.MEDIUM.getHeight(BUTTON_TEXT);
 			// getHeight doesn't seem to be so accurate
 			textOffset = paddingY * 0.264f;
 			paddingY *= 0.736f;
@@ -97,6 +114,7 @@ public class BackButton {
 			return;
 		}
 
+		// skinned: static image
 		if (GameImage.MENU_BACK.getImages() != null) {
 			Animation back = GameImage.MENU_BACK.getAnimation();
 			backButton = new MenuButton(back, back.getWidth() / 2f, container.getHeight() - (back.getHeight() / 2f));
@@ -113,23 +131,22 @@ public class BackButton {
 	 * Draws the backbutton.
 	 */
 	public void draw(Graphics g) {
-		// draw image if it's skinned
 		if (backButton != null) {
 			backButton.draw();
 			return;
 		}
 
-		// calc chevron size
+		// calculate chevron size
 		Float beatProgress = MusicController.getBeatProgress();
 		if (beatProgress == null)
 			beatProgress = 0f;
-		else if (beatProgress < 0.5f)
-			beatProgress = AnimationEquation.IN_QUAD.calc(beatProgress * 2f);
+		else if (beatProgress < 0.2f)
+			beatProgress = AnimationEquation.IN_QUINT.calc(beatProgress * 5f);
 		else
-			beatProgress = 1f - AnimationEquation.OUT_BACK.calc((beatProgress - 0.5f) * 2f);
+			beatProgress = 1f - AnimationEquation.OUT_QUAD.calc((beatProgress - 0.2f) * 1.25f);
 		int chevronSize = (int) (chevronBaseSize - (isHovered ? 6f : 3f) * beatProgress);
 
-		// calc button sizes
+		// calculate button sizes
 		AnimationEquation anim = isHovered ? AnimationEquation.OUT_ELASTIC : AnimationEquation.IN_ELASTIC;
 		float progress = anim.calc((float) animationTime / ANIMATION_TIME);
 		float firstWidth = firstButtonWidth + (firstButtonWidth - slopeImageSlopeWidth * 2) * progress;
@@ -151,13 +168,14 @@ public class BackButton {
 		slopeImage.draw(firstWidth - slopeImageSize, buttonYpos, hoverColor);
 
 		// chevron
-		GameImage.MENU_BACK_CHEVRON.getImage().getScaledCopy(chevronSize, chevronSize).drawCentered((firstWidth - slopeImageSlopeWidth / 2) / 2, buttonYpos + paddingY * 1.5f);
+		Image chevron = GameImage.MENU_BACK_CHEVRON.getImage().getScaledCopy(chevronSize, chevronSize);
+		chevron.drawCentered((firstWidth - slopeImageSlopeWidth / 2) / 2, buttonYpos + paddingY * 1.5f);
 
 		// text
 		float textY = buttonYpos + paddingY - textOffset;
 		float textX = firstWidth + (secondWidth - paddingX * 2 - textWidth) / 2;
-		Fonts.MEDIUM.drawString(textX, textY + 1, "back", Color.black);
-		Fonts.MEDIUM.drawString(textX, textY, "back", Color.white);
+		Fonts.MEDIUM.drawString(textX, textY + 1, BUTTON_TEXT, Color.black);
+		Fonts.MEDIUM.drawString(textX, textY, BUTTON_TEXT, Color.white);
 	}
 
 	/**
@@ -172,6 +190,7 @@ public class BackButton {
 			backButton.hoverUpdate(delta, cx, cy);
 			return;
 		}
+
 		boolean wasHovered = isHovered;
 		isHovered = buttonYpos - paddingY < cy && cx < realButtonWidth;
 		if (isHovered) {
@@ -197,6 +216,7 @@ public class BackButton {
 	public boolean contains(float cx, float cy) {
 		if (backButton != null)
 			return backButton.contains(cx, cy);
+
 		return buttonYpos - paddingY < cy && cx < realButtonWidth;
 	}
 
@@ -208,8 +228,8 @@ public class BackButton {
 			backButton.resetHover();
 			return;
 		}
+
 		isHovered = false;
 		animationTime = 0;
 	}
-
 }
