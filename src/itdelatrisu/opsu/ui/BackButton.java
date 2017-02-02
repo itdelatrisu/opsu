@@ -121,18 +121,16 @@ public class BackButton {
 
 		// calc chevron size
 		Float beatProgress = MusicController.getBeatProgress();
-		if (beatProgress == null) {
+		if (beatProgress == null)
 			beatProgress = 0f;
-		}
+		else if (beatProgress < 0.5f)
+			beatProgress = AnimationEquation.IN_QUAD.calc(beatProgress * 2f);
+		else
+			beatProgress = 1f - AnimationEquation.OUT_BACK.calc((beatProgress - 0.5f) * 2f);
 		int chevronSize = (int) (chevronBaseSize - (isHovered ? 6f : 3f) * beatProgress);
 
 		// calc button sizes
-		AnimationEquation anim;
-		if (isHovered) {
-			anim = AnimationEquation.OUT_ELASTIC;
-		} else {
-			anim = AnimationEquation.IN_ELASTIC;
-		}
+		AnimationEquation anim = isHovered ? AnimationEquation.OUT_ELASTIC : AnimationEquation.IN_ELASTIC;
 		float progress = anim.calc((float) animationTime / ANIMATION_TIME);
 		float firstWidth = firstButtonWidth + (firstButtonWidth - slopeImageSlopeWidth * 2) * progress;
 		float secondWidth = secondButtonWidth + secondButtonWidth * 0.25f * progress;
@@ -177,21 +175,17 @@ public class BackButton {
 		boolean wasHovered = isHovered;
 		isHovered = buttonYpos - paddingY < cy && cx < realButtonWidth;
 		if (isHovered) {
-			if (!wasHovered) {
+			if (!wasHovered)
 				animationTime = 0;
-			}
 			animationTime += delta;
-			if (animationTime > ANIMATION_TIME) {
+			if (animationTime > ANIMATION_TIME)
 				animationTime = ANIMATION_TIME;
-			}
 		} else {
-			if (wasHovered) {
+			if (wasHovered)
 				animationTime = ANIMATION_TIME;
-			}
 			animationTime -= delta;
-			if (animationTime < 0) {
+			if (animationTime < 0)
 				animationTime = 0;
-			}
 		}
 	}
 
@@ -201,9 +195,8 @@ public class BackButton {
 	 * @param cy the y coordinate
 	 */
 	public boolean contains(float cx, float cy) {
-		if (backButton != null) {
+		if (backButton != null)
 			return backButton.contains(cx, cy);
-		}
 		return buttonYpos - paddingY < cy && cx < realButtonWidth;
 	}
 
