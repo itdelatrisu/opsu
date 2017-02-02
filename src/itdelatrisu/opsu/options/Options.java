@@ -108,8 +108,14 @@ public class Options {
 	/** Directory where temporary files are stored (deleted on exit). */
 	public static final File TEMP_DIR = new File(CACHE_DIR, "Temp/");
 
-	/** Font file name. */
-	public static final String FONT_NAME = "DroidSansFallback.ttf";
+	/** Main font file name. */
+	public static final String FONT_MAIN = "Exo2-Regular.ttf";
+
+	/** Bold font file name. */
+	public static final String FONT_BOLD = "Exo2-Bold.ttf";
+
+	/** CJK font file name. */
+	public static final String FONT_CJK = "DroidSansFallback.ttf";
 
 	/** Version file name. */
 	public static final String VERSION_FILE = "version";

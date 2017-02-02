@@ -56,35 +56,41 @@ public class Fonts {
 	 */
 	public static void init() throws SlickException, FontFormatException, IOException {
 		float fontBase = 12f * GameImage.getUIscale();
-		Font javaFont = Font.createFont(Font.TRUETYPE_FONT, ResourceLoader.getResourceAsStream(Options.FONT_NAME));
-		Font font = javaFont.deriveFont(Font.PLAIN, (int) (fontBase * 4 / 3));
-		DEFAULT = new UnicodeFont(font);
-		BOLD = new UnicodeFont(font.deriveFont(Font.BOLD));
-		XLARGE = new UnicodeFont(font.deriveFont(fontBase * 3));
-		LARGE = new UnicodeFont(font.deriveFont(fontBase * 2));
-		MEDIUM = new UnicodeFont(font.deriveFont(fontBase * 3 / 2));
-		MEDIUMBOLD = new UnicodeFont(font.deriveFont(Font.BOLD, fontBase * 3 / 2));
-		SMALL = new UnicodeFont(font.deriveFont(fontBase));
-		SMALLBOLD = new UnicodeFont(font.deriveFont(Font.BOLD, fontBase));
+		Font javaFontMain = Font.createFont(Font.TRUETYPE_FONT, ResourceLoader.getResourceAsStream(Options.FONT_MAIN));
+		Font javaFontBold = Font.createFont(Font.TRUETYPE_FONT, ResourceLoader.getResourceAsStream(Options.FONT_BOLD));
+		Font javaFontCJK = Font.createFont(Font.TRUETYPE_FONT, ResourceLoader.getResourceAsStream(Options.FONT_CJK));
+		Font fontMain = javaFontMain.deriveFont(Font.PLAIN, (int) (fontBase * 4 / 3));
+		Font fontBold = javaFontBold.deriveFont(Font.PLAIN, (int) (fontBase * 4 / 3));
+		Font fontCJK = javaFontCJK.deriveFont(Font.PLAIN, (int) (fontBase * 4 / 3));
+		DEFAULT = new UnicodeFont(fontMain);
+		BOLD = new UnicodeFont(fontBold.deriveFont(Font.BOLD));
+		XLARGE = new UnicodeFont(fontMain.deriveFont(fontBase * 3));
+		LARGE = new UnicodeFont(fontMain.deriveFont(fontBase * 2));
+		MEDIUM = new UnicodeFont(fontMain.deriveFont(fontBase * 3 / 2));
+		MEDIUMBOLD = new UnicodeFont(fontBold.deriveFont(Font.BOLD, fontBase * 3 / 2));
+		SMALL = new UnicodeFont(fontMain.deriveFont(fontBase));
+		SMALLBOLD = new UnicodeFont(fontBold.deriveFont(Font.BOLD, fontBase));
 		ColorEffect colorEffect = new ColorEffect();
-		loadFont(DEFAULT, colorEffect);
-		loadFont(BOLD, colorEffect);
-		loadFont(XLARGE, colorEffect);
-		loadFont(LARGE, colorEffect);
-		loadFont(MEDIUM, colorEffect);
-		loadFont(MEDIUMBOLD, colorEffect);
-		loadFont(SMALL, colorEffect);
-		loadFont(SMALLBOLD, colorEffect);
+		loadFont(DEFAULT, colorEffect, new UnicodeFont(fontCJK));
+		loadFont(BOLD, colorEffect, new UnicodeFont(fontCJK.deriveFont(Font.BOLD)));
+		loadFont(XLARGE, colorEffect, new UnicodeFont(fontCJK.deriveFont(fontBase * 3)));
+		loadFont(LARGE, colorEffect, new UnicodeFont(fontCJK.deriveFont(fontBase * 2)));
+		loadFont(MEDIUM, colorEffect, new UnicodeFont(fontCJK.deriveFont(fontBase * 3 / 2)));
+		loadFont(MEDIUMBOLD, colorEffect, new UnicodeFont(fontCJK.deriveFont(Font.BOLD, fontBase * 3 / 2)));
+		loadFont(SMALL, colorEffect, new UnicodeFont(fontCJK.deriveFont(fontBase)));
+		loadFont(SMALLBOLD, colorEffect, new UnicodeFont(fontCJK.deriveFont(Font.BOLD, fontBase)));
 	}
 
 	/**
 	 * Loads a Unicode font and its ASCII glyphs.
 	 * @param font the font to load
 	 * @param effect the font effect
+	 * @param backup the backup font
 	 * @throws SlickException if the glyphs could not be loaded
 	 */
 	@SuppressWarnings("unchecked")
-	private static void loadFont(UnicodeFont font, Effect effect) throws SlickException {
+	private static void loadFont(UnicodeFont font, Effect effect, UnicodeFont backup) throws SlickException {
+		font.addBackupFont(backup);
 		font.addAsciiGlyphs();
 		font.getEffects().add(effect);
 		font.loadGlyphs();
