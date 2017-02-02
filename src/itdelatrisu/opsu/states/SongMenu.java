@@ -256,7 +256,7 @@ public class SongMenu extends BasicGameState {
 			}
 
 			// invoke parser
-			BeatmapParser.parseAllFiles(beatmapDir);
+			BeatmapParser.parseAllFiles(beatmapDir, BeatmapSetList.get());
 		}
 	}
 

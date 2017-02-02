@@ -548,4 +548,17 @@ public class Beatmap implements Comparable<Beatmap> {
 		this.playCount++;
 		this.lastPlayed = System.currentTimeMillis();
 	}
+
+	/**
+	 * Copies non-parsed fields from this beatmap into another beatmap.
+	 * @param target the target beatmap
+	 */
+	public void copyAdditionalFields(Beatmap target) {
+		target.starRating = starRating;
+		target.dateAdded = dateAdded;
+		target.favorite = favorite;
+		target.playCount = playCount;
+		target.lastPlayed = lastPlayed;
+		target.localMusicOffset = localMusicOffset;
+	}
 }
