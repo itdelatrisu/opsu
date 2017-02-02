@@ -709,7 +709,7 @@ public class SongMenu extends BasicGameState {
 			c.a = Math.min((t - 3f / (songInfo.length * 1.5f)) * songInfo.length / 1.5f, 1f);
 			if (c.a > 0)
 				Fonts.DEFAULT.drawString(marginX, headerTextY, songInfo[3], c);
-			headerTextY += Fonts.DEFAULT.getLineHeight() - 4;
+			headerTextY += Fonts.DEFAULT.getLineHeight() - 2;
 			c.a = Math.min((t - 4f / (songInfo.length * 1.5f)) * songInfo.length / 1.5f, 1f);
 			if (c.a > 0) {
 				float multiplier = GameMod.getDifficultyMultiplier();
