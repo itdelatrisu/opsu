@@ -19,7 +19,7 @@
 package itdelatrisu.opsu.ui;
 
 import itdelatrisu.opsu.GameImage;
-import itdelatrisu.opsu.Options;
+import itdelatrisu.opsu.options.Options;
 
 import java.awt.Font;
 import java.awt.FontFormatException;

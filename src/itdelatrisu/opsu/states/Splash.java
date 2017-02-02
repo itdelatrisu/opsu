@@ -20,7 +20,6 @@ package itdelatrisu.opsu.states;
 
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.Opsu;
-import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
@@ -28,6 +27,7 @@ import itdelatrisu.opsu.beatmap.BeatmapParser;
 import itdelatrisu.opsu.beatmap.BeatmapSetList;
 import itdelatrisu.opsu.beatmap.BeatmapWatchService;
 import itdelatrisu.opsu.beatmap.OszUnpacker;
+import itdelatrisu.opsu.options.Options;
 import itdelatrisu.opsu.replay.ReplayImporter;
 import itdelatrisu.opsu.skins.SkinUnpacker;
 import itdelatrisu.opsu.ui.UI;
@@ -137,6 +137,8 @@ public class Splash extends BasicGameState {
 							if (newSkin)
 								SoundController.init();
 
+							Utils.gc(true);
+
 							finished = true;
 							thread = null;
 						}
@@ -168,6 +170,8 @@ public class Splash extends BasicGameState {
 
 						// load sounds
 						SoundController.init();
+
+						Utils.gc(true);
 
 						finished = true;
 						thread = null;

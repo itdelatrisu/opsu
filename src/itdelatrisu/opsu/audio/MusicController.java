@@ -19,10 +19,11 @@
 package itdelatrisu.opsu.audio;
 
 import itdelatrisu.opsu.ErrorHandler;
-import itdelatrisu.opsu.Options;
+import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.beatmap.Beatmap;
 import itdelatrisu.opsu.beatmap.BeatmapParser;
 import itdelatrisu.opsu.beatmap.TimingPoint;
+import itdelatrisu.opsu.options.Options;
 import itdelatrisu.opsu.ui.UI;
 
 import java.io.File;
@@ -103,7 +104,7 @@ public class MusicController {
 			}
 
 			reset();
-			System.gc();
+			Utils.gc(false);
 
 			switch (BeatmapParser.getExtension(beatmap.audioFilename.getName())) {
 			case "ogg":

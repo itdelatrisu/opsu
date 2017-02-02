@@ -23,7 +23,6 @@ import itdelatrisu.opsu.GameData;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.GameMod;
 import itdelatrisu.opsu.Opsu;
-import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.ScoreData;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.HitSound;
@@ -44,6 +43,7 @@ import itdelatrisu.opsu.objects.Slider;
 import itdelatrisu.opsu.objects.Spinner;
 import itdelatrisu.opsu.objects.curves.Curve;
 import itdelatrisu.opsu.objects.curves.Vec2f;
+import itdelatrisu.opsu.options.Options;
 import itdelatrisu.opsu.render.FrameBufferCache;
 import itdelatrisu.opsu.replay.PlaybackSpeed;
 import itdelatrisu.opsu.replay.Replay;
@@ -55,6 +55,8 @@ import itdelatrisu.opsu.ui.StarStream;
 import itdelatrisu.opsu.ui.UI;
 import itdelatrisu.opsu.ui.animations.AnimatedValue;
 import itdelatrisu.opsu.ui.animations.AnimationEquation;
+import itdelatrisu.opsu.user.User;
+import itdelatrisu.opsu.user.UserList;
 import itdelatrisu.opsu.video.FFmpeg;
 import itdelatrisu.opsu.video.Video;
 
@@ -886,8 +888,10 @@ public class Game extends BasicGameState {
 		if (gameFinished && !gameFinishedTimer.update(delta)) {
 			if (checkpointLoaded)  // if checkpoint used, skip ranking screen
 				game.closeRequested();
-			else  // go to ranking screen
+			else {  // go to ranking screen
+				MusicController.setPitch(1f);
 				game.enterState(Opsu.STATE_GAMERANKING, new EasedFadeOutTransition(), new FadeInTransition());
+			}
 		}
 	}
 
@@ -925,9 +929,13 @@ public class Game extends BasicGameState {
 				ScoreData score = data.getScoreData(beatmap);
 				data.setGameplay(!isReplay);
 
-				// add score to database
-				if (!unranked && !isReplay)
+				// add score to database and user stats
+				if (!unranked && !isReplay) {
 					ScoreDB.addScore(score);
+					User user = UserList.get().getCurrentUser();
+					user.add(data.getScore(), data.getScorePercent());
+					ScoreDB.updateUser(user);
+				}
 			}
 
 			// start timer
@@ -1011,6 +1019,11 @@ public class Game extends BasicGameState {
 					MusicController.pitchFadeOut(MUSIC_FADEOUT_TIME);
 					rotations = new IdentityHashMap<GameObject, Float>();
 					SoundController.playSound(SoundEffect.FAIL);
+
+					// record to stats
+					User user = UserList.get().getCurrentUser();
+					user.add(data.getScore());
+					ScoreDB.updateUser(user);
 
 					// fade to pause menu
 					game.enterState(Opsu.STATE_GAMEPAUSEMENU,
@@ -1509,7 +1522,7 @@ public class Game extends BasicGameState {
 			lastRankUpdateTime = -1000;
 			if (previousScores != null)
 				currentRank = previousScores.length;
-			scoreboardVisible = true;
+			scoreboardVisible = previousScores.length > 0;
 			currentScoreboardAlpha = 0f;
 
 			// using local offset?
@@ -1689,6 +1702,8 @@ public class Game extends BasicGameState {
 			BeatmapDB.load(beatmap, BeatmapDB.LOAD_ARRAY);
 		BeatmapParser.parseHitObjects(beatmap);
 		HitSound.setDefaultSampleSet(beatmap.sampleSet);
+
+		Utils.gc(true);
 	}
 
 	/**
@@ -1728,8 +1743,6 @@ public class Game extends BasicGameState {
 			video = null;
 		}
 		videoSeekTime = 0;
-
-		System.gc();
 	}
 
 	/**

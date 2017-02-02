@@ -19,10 +19,10 @@
 package itdelatrisu.opsu.beatmap;
 
 import itdelatrisu.opsu.ErrorHandler;
-import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.db.BeatmapDB;
+import itdelatrisu.opsu.options.Options;
 
 import java.io.File;
 import java.io.IOException;
@@ -103,7 +103,7 @@ public class BeatmapSetList {
 		nodes = groupNodes = BeatmapGroup.current().filter(parsedNodes);
 		expandedIndex = -1;
 		expandedStartNode = expandedEndNode = null;
-		lastQuery = "";
+		lastQuery = null;
 	}
 
 	/**
@@ -201,7 +201,7 @@ public class BeatmapSetList {
 			File audioFile = MusicController.getBeatmap().audioFilename;
 			if (audioFile != null && audioFile.equals(beatmap.audioFilename)) {
 				MusicController.reset();
-				System.gc();  // TODO: why can't files be deleted without calling this?
+				Utils.gc(true);  // TODO: why can't files be deleted without calling this?
 			}
 		}
 

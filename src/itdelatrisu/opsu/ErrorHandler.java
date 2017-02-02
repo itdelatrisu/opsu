@@ -18,6 +18,8 @@
 
 package itdelatrisu.opsu;
 
+import itdelatrisu.opsu.options.Options;
+
 import java.awt.Cursor;
 import java.awt.Desktop;
 import java.io.IOException;

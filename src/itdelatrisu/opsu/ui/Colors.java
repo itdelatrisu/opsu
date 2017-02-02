@@ -50,7 +50,8 @@ public class Colors {
 		GHOST_LOGO      = new Color(1.0f, 1.0f, 1.0f, 0.25f),
 		PINK_OPTION     = new Color(235, 117, 139),
 		BLUE_OPTION     = new Color(88, 217, 253),
-		PURPLE          = new Color(138, 43, 226);
+		PURPLE          = new Color(138, 43, 226),
+		YELLOW_FILL     = new Color(255, 219, 124);
 
 	// This class should not be instantiated.
 	private Colors() {}

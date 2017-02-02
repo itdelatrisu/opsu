@@ -409,6 +409,12 @@ public class MenuButton {
 	}
 
 	/**
+	 * Returns the current alpha level from the "fade" hover effect.
+	 * @return the alpha level, or 1 if "fade" is not set
+	 */
+	public float getHoverAlpha() { return ((hoverEffect & EFFECT_FADE) > 0) ? alpha.getValue() : 1f; }
+
+	/**
 	 * Sets the "rotate" hover effect.
 	 */
 	public void setHoverRotate() { setHoverRotate(DEFAULT_ANGLE_MAX); }

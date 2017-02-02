@@ -16,17 +16,21 @@
  * along with opsu!.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package itdelatrisu.opsu.ui;
+package itdelatrisu.opsu.options;
 
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.OpsuConstants;
-import itdelatrisu.opsu.OptionGroup;
-import itdelatrisu.opsu.Options;
-import itdelatrisu.opsu.Options.GameOption;
-import itdelatrisu.opsu.Options.GameOption.OptionType;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
+import itdelatrisu.opsu.options.Options.GameOption;
+import itdelatrisu.opsu.options.Options.GameOption.OptionType;
+import itdelatrisu.opsu.ui.Colors;
+import itdelatrisu.opsu.ui.DropdownMenu;
+import itdelatrisu.opsu.ui.Fonts;
+import itdelatrisu.opsu.ui.KineticScrolling;
+import itdelatrisu.opsu.ui.MenuButton;
+import itdelatrisu.opsu.ui.UI;
 import itdelatrisu.opsu.ui.animations.AnimationEquation;
 
 import java.util.IdentityHashMap;
@@ -316,7 +320,7 @@ public class OptionsOverlay extends AbstractComponent {
 						option.selectItem(index, OptionsOverlay.this.container);
 
 						// show restart button?
-						if (!openDropdownMenuOldValue.equals(hoverOption.getValueString()) &&
+						if (!openDropdownMenuOldValue.equals(option.getValueString()) &&
 							(option == GameOption.SCREEN_RESOLUTION || option == GameOption.SKIN)) {
 							showRestartButton = true;
 							UI.getNotificationManager().sendBarNotification("Restart to apply changes.");
@@ -373,8 +377,10 @@ public class OptionsOverlay extends AbstractComponent {
 		this.optionWidth = width - optionStartX - paddingRight;
 	}
 
+	/** Returns the target width. */
 	public int getTargetWidth() { return targetWidth; }
 
+	/** Sets the alpha level of the overlay. */
 	public void setAlpha(float alpha) {
 		COLOR_BG.a = BG_ALPHA * alpha;
 		COLOR_WHITE.a = alpha;
@@ -536,7 +542,6 @@ public class OptionsOverlay extends AbstractComponent {
 		// render all headers and options
 		int cy = (int) (y + -scrolling.getPosition() + optionStartY);
 		int virtualY = 0;
-		float headerHeight = Fonts.LARGE.getLineHeight() * 1.5f;
 		for (OptionGroup group : groups) {
 			if (!group.isVisible())
 				continue;
@@ -554,12 +559,11 @@ public class OptionsOverlay extends AbstractComponent {
 				// subsection header
 				Fonts.MEDIUMBOLD.drawString(x + paddingTextLeft, lineStartY, group.getName(), COLOR_WHITE);
 			}
-			cy += headerHeight;
-			virtualY += headerHeight;
+			cy += optionGroupPadding;
+			virtualY += optionGroupPadding;
 
 			if (group.getOptions() == null)
 				continue;  // header only
-
 
 			// options
 			int lineHeight = (int) (Fonts.LARGE.getLineHeight() * 0.9f);
@@ -598,7 +602,7 @@ public class OptionsOverlay extends AbstractComponent {
 		for (OptionGroup group : groups) {
 			if (!group.isVisible())
 				continue;
-			scrollOffset += headerHeight;
+			scrollOffset += optionGroupPadding;
 			if (group.getOptions() == null)
 				continue;
 			for (GameOption option : group.getOptions()) {

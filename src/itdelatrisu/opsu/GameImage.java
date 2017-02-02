@@ -18,6 +18,7 @@
 
 package itdelatrisu.opsu;
 
+import itdelatrisu.opsu.options.Options;
 import itdelatrisu.opsu.ui.Fonts;
 
 import java.io.File;
@@ -359,6 +360,9 @@ public enum GameImage {
 	CONTROL_CHECK_ON ("control-check-on", "png", false, false),
 	CONTROL_CHECK_OFF ("control-check-off", "png", false, false),
 
+	// User selection menu
+	USER ("user", "user%d", "png", false, false),
+
 	// TODO: ensure this image hasn't been modified (checksum?)
 	ALPHA_MAP ("alpha", "png", false, false);
 
@@ -543,6 +547,19 @@ public enum GameImage {
 		this.type = getType(type);
 		this.beatmapSkinnable = beatmapSkinnable;
 		this.preload = preload;
+	}
+
+	/**
+	 * Constructor for an array of general images.
+	 * @param filename the image file name
+	 * @param filenameFormat the formatted file name string (for loading multiple images)
+	 * @param type the file types (separated by '|')
+	 * @param beatmapSkinnable whether or not the image is beatmap-skinnable
+	 * @param preload whether or not to preload the image
+	 */
+	GameImage(String filename, String filenameFormat, String type, boolean beatmapSkinnable, boolean preload) {
+		this(filename, type, beatmapSkinnable, preload);
+		this.filenameFormat = filenameFormat;
 	}
 
 	/**

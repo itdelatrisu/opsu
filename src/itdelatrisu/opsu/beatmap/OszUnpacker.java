@@ -18,8 +18,8 @@
 
 package itdelatrisu.opsu.beatmap;
 
-import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.Utils;
+import itdelatrisu.opsu.options.Options;
 import itdelatrisu.opsu.ui.UI;
 
 import java.io.File;

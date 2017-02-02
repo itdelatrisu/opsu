@@ -26,6 +26,7 @@ The images included in opsu! belong to their respective authors.
 * kouyang
 * teinecthel
 * Teddy Kelley - https://unsplash.com/photos/weuWmzv7xnU (main menu background)
+* User icons ("User", "Male User", "Female User") by To Uyen from the Noun Project
 
 Projects
 --------
