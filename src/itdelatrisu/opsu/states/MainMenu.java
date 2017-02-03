@@ -606,14 +606,14 @@ public class MainMenu extends BasicGameState {
 		UI.enter();
 		if (!enterNotification) {
 			if (Updater.get().getStatus() == Updater.Status.UPDATE_AVAILABLE) {
-				UI.getNotificationManager().sendNotification("A new update is available!");
+				UI.getNotificationManager().sendNotification("A new update is available!", Colors.GREEN);
 				enterNotification = true;
 			} else if (Updater.get().justUpdated()) {
 				String updateMessage = OpsuConstants.PROJECT_NAME + " is now up to date!";
 				final String version = Updater.get().getCurrentVersion();
 				if (version != null && Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
 					updateMessage += "\nClick to see changes.";
-					UI.getNotificationManager().sendNotification(updateMessage, Color.white, new NotificationListener() {
+					UI.getNotificationManager().sendNotification(updateMessage, Colors.GREEN, new NotificationListener() {
 						@Override
 						public void click() {
 							try {

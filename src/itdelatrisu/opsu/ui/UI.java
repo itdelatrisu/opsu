@@ -18,7 +18,6 @@
 
 package itdelatrisu.opsu.ui;
 
-import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.Utils;
@@ -40,6 +39,7 @@ import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.state.StateBasedGame;
+import org.newdawn.slick.util.Log;
 
 /**
  * Draws common UI components.
@@ -472,7 +472,7 @@ public class UI {
 		try {
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		} catch (Exception e) {
-			ErrorHandler.error("Could not set system look and feel for exit confirmation.", e, true);
+			Log.warn("Could not set system look and feel for exit confirmation.", e);
 		}
 		int n = JOptionPane.showConfirmDialog(null, message, "Warning",
 				JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
