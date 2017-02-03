@@ -777,7 +777,7 @@ public class MainMenu extends BasicGameState {
 
 	@Override
 	public void mouseWheelMoved(int newValue) {
-		UI.changeVolume((newValue < 0) ? -1 : 1);
+		UI.globalMouseWheelMoved(newValue, false);
 	}
 
 	@Override

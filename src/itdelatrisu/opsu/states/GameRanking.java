@@ -157,8 +157,7 @@ public class GameRanking extends BasicGameState {
 
 	@Override
 	public void mouseWheelMoved(int newValue) {
-		if (input.isKeyDown(Input.KEY_LALT) || input.isKeyDown(Input.KEY_RALT))
-			UI.changeVolume((newValue < 0) ? -1 : 1);
+		UI.globalMouseWheelMoved(newValue, true);
 	}
 
 	@Override

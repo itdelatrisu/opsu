@@ -1028,6 +1028,11 @@ public class OptionsOverlay extends AbstractComponent {
 
 	@Override
 	public void mouseWheelMoved(int delta) {
+		if (UI.globalMouseWheelMoved(delta, true)) {
+			consumeEvent();
+			return;
+		}
+
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
 		if (!active)
 			return;

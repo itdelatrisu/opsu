@@ -87,13 +87,6 @@ public class ButtonMenu extends BasicGameState {
 			public void leave(GameContainer container, StateBasedGame game) {
 				Button.CANCEL.click(container, game);
 			}
-
-			@Override
-			public void scroll(GameContainer container, StateBasedGame game, int newValue) {
-				Input input = container.getInput();
-				if (input.isKeyDown(Input.KEY_LALT) || input.isKeyDown(Input.KEY_RALT))
-					super.scroll(container, game, newValue);
-			}
 		},
 		/** The initial beatmap management screen (for a "favorite" beatmap). */
 		BEATMAP_FAVORITE (new Button[] { Button.CLEAR_SCORES, Button.FAVORITE_REMOVE, Button.DELETE, Button.CANCEL }) {
@@ -105,11 +98,6 @@ public class ButtonMenu extends BasicGameState {
 			@Override
 			public void leave(GameContainer container, StateBasedGame game) {
 				BEATMAP.leave(container, game);
-			}
-
-			@Override
-			public void scroll(GameContainer container, StateBasedGame game, int newValue) {
-				BEATMAP.scroll(container, game, newValue);
 			}
 		},
 		/** The beatmap deletion screen for a beatmap set with multiple beatmaps. */
@@ -125,11 +113,6 @@ public class ButtonMenu extends BasicGameState {
 			public void leave(GameContainer container, StateBasedGame game) {
 				Button.CANCEL_DELETE.click(container, game);
 			}
-
-			@Override
-			public void scroll(GameContainer container, StateBasedGame game, int newValue) {
-				MenuState.BEATMAP.scroll(container, game, newValue);
-			}
 		},
 		/** The beatmap deletion screen for a single beatmap. */
 		BEATMAP_DELETE_CONFIRM (new Button[] { Button.DELETE_CONFIRM, Button.CANCEL_DELETE }) {
@@ -141,11 +124,6 @@ public class ButtonMenu extends BasicGameState {
 			@Override
 			public void leave(GameContainer container, StateBasedGame game) {
 				Button.CANCEL_DELETE.click(container, game);
-			}
-
-			@Override
-			public void scroll(GameContainer container, StateBasedGame game, int newValue) {
-				MenuState.BEATMAP.scroll(container, game, newValue);
 			}
 		},
 		/** The beatmap reloading confirmation screen. */
@@ -163,11 +141,6 @@ public class ButtonMenu extends BasicGameState {
 			public void leave(GameContainer container, StateBasedGame game) {
 				Button.RELOAD_CANCEL.click(container, game);
 			}
-
-			@Override
-			public void scroll(GameContainer container, StateBasedGame game, int newValue) {
-				MenuState.BEATMAP.scroll(container, game, newValue);
-			}
 		},
 		/** The score management screen. */
 		SCORE (new Button[] { Button.DELETE_SCORE, Button.CLOSE }) {
@@ -179,11 +152,6 @@ public class ButtonMenu extends BasicGameState {
 			@Override
 			public void leave(GameContainer container, StateBasedGame game) {
 				Button.CLOSE.click(container, game);
-			}
-
-			@Override
-			public void scroll(GameContainer container, StateBasedGame game, int newValue) {
-				MenuState.BEATMAP.scroll(container, game, newValue);
 			}
 		},
 		/** The game mod selection screen. */
@@ -278,11 +246,6 @@ public class ButtonMenu extends BasicGameState {
 						return;
 					}
 				}
-			}
-
-			@Override
-			public void scroll(GameContainer container, StateBasedGame game, int newValue) {
-				MenuState.BEATMAP.scroll(container, game, newValue);
 			}
 		},
 		/** The "About" screen. */
@@ -440,16 +403,6 @@ public class ButtonMenu extends BasicGameState {
 		 * @param game the game
 		 */
 		public String[] getTitle(GameContainer container, StateBasedGame game) { return new String[0]; }
-
-		/**
-		 * Processes a mouse wheel movement.
-		 * @param container the game container
-		 * @param game the game
-		 * @param newValue the amount that the mouse wheel moved
-		 */
-		public void scroll(GameContainer container, StateBasedGame game, int newValue) {
-			UI.changeVolume((newValue < 0) ? -1 : 1);
-		}
 
 		/**
 		 * Processes a state enter request.
@@ -778,8 +731,7 @@ public class ButtonMenu extends BasicGameState {
 
 	@Override
 	public void mouseWheelMoved(int newValue) {
-		if (menuState != null)
-			menuState.scroll(container, game, newValue);
+		UI.globalMouseWheelMoved(newValue, true);
 	}
 
 	@Override
