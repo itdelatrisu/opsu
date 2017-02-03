@@ -1035,7 +1035,7 @@ public class Game extends BasicGameState {
 
 		// don't process hit results when already lost
 		if (restart != Restart.LOSE) {
-			// update objects (loop in unlikely event of any skipped indexes)
+			// update objects (loop over any skipped indexes)
 			boolean keyPressed = keys != ReplayFrame.KEY_NONE;
 			while (objectIndex < gameObjects.length && trackPosition > beatmap.objects[objectIndex].getTime()) {
 				// check if we've already passed the next object's start time
@@ -1589,62 +1589,8 @@ public class Game extends BasicGameState {
 			stack.add(index);
 
 			// draw follow points
-			if (!Options.isFollowPointEnabled() || loseState)
-				continue;
-			if (beatmap.objects[index].isSpinner()) {
-				lastObjectIndex = -1;
-				continue;
-			}
-			if (lastObjectIndex != -1 && !beatmap.objects[index].isNewCombo()) {
-				// calculate points
-				final int followPointInterval = container.getHeight() / 14;
-				int lastObjectEndTime = gameObjects[lastObjectIndex].getEndTime() + 1;
-				int objectStartTime = beatmap.objects[index].getTime();
-				Vec2f startPoint = gameObjects[lastObjectIndex].getPointAt(lastObjectEndTime);
-				Vec2f endPoint = gameObjects[index].getPointAt(objectStartTime);
-				float xDiff = endPoint.x - startPoint.x;
-				float yDiff = endPoint.y - startPoint.y;
-				float dist = (float) Math.hypot(xDiff, yDiff);
-				int numPoints = (int) ((dist - GameImage.HITCIRCLE.getImage().getWidth()) / followPointInterval);
-				if (numPoints > 0) {
-					// set the image angle
-					Image followPoint = GameImage.FOLLOWPOINT.getImage();
-					float angle = (float) Math.toDegrees(Math.atan2(yDiff, xDiff));
-					followPoint.setRotation(angle);
-
-					// draw points
-					float progress = 0f, alpha = 1f;
-					if (lastObjectIndex < objectIndex)
-						progress = (float) (trackPosition - lastObjectEndTime) / (objectStartTime - lastObjectEndTime);
-					else {
-						alpha = Utils.clamp((1f - ((objectStartTime - trackPosition) / (float) approachTime)) * 2f, 0, 1);
-						followPoint.setAlpha(alpha);
-					}
-
-					float step = 1f / (numPoints + 1);
-					float t = step;
-					for (int i = 0; i < numPoints; i++) {
-						float x = startPoint.x + xDiff * t;
-						float y = startPoint.y + yDiff * t;
-						float nextT = t + step;
-						if (lastObjectIndex < objectIndex) {  // fade the previous trail
-							if (progress < nextT) {
-								if (progress > t)
-									followPoint.setAlpha(1f - ((progress - t + step) / (step * 2f)));
-								else if (progress > t - step)
-									followPoint.setAlpha(1f - ((progress - (t - step)) / (step * 2f)));
-								else
-									followPoint.setAlpha(1f);
-								followPoint.drawCentered(x, y);
-							}
-						} else
-							followPoint.drawCentered(x, y);
-						t = nextT;
-					}
-					followPoint.setAlpha(1f);
-				}
-			}
-			lastObjectIndex = index;
+			if (Options.isFollowPointEnabled() && !loseState)
+				lastObjectIndex = drawFollowPointsBetween(objectIndex, lastObjectIndex, trackPosition);
 		}
 
 		// draw hit objects
@@ -1689,6 +1635,70 @@ public class Game extends BasicGameState {
 
 		// draw result objects (over)
 		data.drawHitResults(trackPosition, true);
+	}
+
+	/**
+	 * Draws follow points between two objects.
+	 * @param index the current object index
+	 * @param lastObjectIndex the last object index
+	 * @param trackPosition the current track position
+	 * @return the new lastObjectIndex value
+	 */
+	private int drawFollowPointsBetween(int index, int lastObjectIndex, int trackPosition) {
+		if (lastObjectIndex == -1)
+			return -1;
+		if (beatmap.objects[index].isSpinner() || beatmap.objects[index].isNewCombo())
+			return lastObjectIndex;
+
+		// calculate points
+		final int followPointInterval = container.getHeight() / 14;
+		int lastObjectEndTime = gameObjects[lastObjectIndex].getEndTime() + 1;
+		int objectStartTime = beatmap.objects[index].getTime();
+		Vec2f startPoint = gameObjects[lastObjectIndex].getPointAt(lastObjectEndTime);
+		Vec2f endPoint = gameObjects[index].getPointAt(objectStartTime);
+		float xDiff = endPoint.x - startPoint.x;
+		float yDiff = endPoint.y - startPoint.y;
+		float dist = (float) Math.hypot(xDiff, yDiff);
+		int numPoints = (int) ((dist - GameImage.HITCIRCLE.getImage().getWidth()) / followPointInterval);
+		if (numPoints > 0) {
+			// set the image angle
+			Image followPoint = GameImage.FOLLOWPOINT.getImage();
+			float angle = (float) Math.toDegrees(Math.atan2(yDiff, xDiff));
+			followPoint.setRotation(angle);
+
+			// draw points
+			float progress = 0f, alpha = 1f;
+			if (lastObjectIndex < objectIndex)
+				progress = (float) (trackPosition - lastObjectEndTime) / (objectStartTime - lastObjectEndTime);
+			else {
+				alpha = Utils.clamp((1f - ((objectStartTime - trackPosition) / (float) approachTime)) * 2f, 0, 1);
+				followPoint.setAlpha(alpha);
+			}
+
+			float step = 1f / (numPoints + 1);
+			float t = step;
+			for (int i = 0; i < numPoints; i++) {
+				float x = startPoint.x + xDiff * t;
+				float y = startPoint.y + yDiff * t;
+				float nextT = t + step;
+				if (lastObjectIndex < objectIndex) {  // fade the previous trail
+					if (progress < nextT) {
+						if (progress > t)
+							followPoint.setAlpha(1f - ((progress - t + step) / (step * 2f)));
+						else if (progress > t - step)
+							followPoint.setAlpha(1f - ((progress - (t - step)) / (step * 2f)));
+						else
+							followPoint.setAlpha(1f);
+						followPoint.drawCentered(x, y);
+					}
+				} else
+					followPoint.drawCentered(x, y);
+				t = nextT;
+			}
+			followPoint.setAlpha(1f);
+		}
+
+		return index;
 	}
 
 	/**
