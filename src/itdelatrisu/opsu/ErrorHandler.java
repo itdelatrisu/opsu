@@ -243,7 +243,7 @@ public class ErrorHandler {
 	 */
 	private static URI getIssueURI(String error, Throwable e, String trace) {
 		// generate report information
-		String issueTitle = (error != null) ? error : e.getMessage();
+		String issueTitle = (error != null) ? error : (e.getMessage() != null) ? e.getMessage() : "null";
 		StringBuilder sb = new StringBuilder();
 		sb.append(getEnvironmentInfoForIssue());
 		if (error != null) {
