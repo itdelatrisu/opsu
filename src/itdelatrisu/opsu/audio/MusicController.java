@@ -137,7 +137,20 @@ public class MusicController {
 	 */
 	private static void loadTrack(File file, int position, boolean loop) {
 		try {
+			// create the music player
+			// NOTE: most errors from this call are suppressed, so check
+			//       for SoundStore errors manually afterwards
 			player = new Music(file.getPath(), true);
+			if (!SoundStore.get().soundWorks()) {
+				player = null;
+				trackEnded = false;
+				ErrorHandler.error(
+					"Sound isn't working right now. Sorry!\n" +
+					"Restarting the game will probably fix this.",
+					null, false
+				);
+				return;
+			}
 			player.addListener(new MusicListener() {
 				@Override
 				public void musicEnded(Music music) {
