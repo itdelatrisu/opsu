@@ -175,9 +175,6 @@ public class OptionsOverlay extends AbstractComponent {
 	/** The dropdown menu that is currently open. */
 	private DropdownMenu<Object> openDropdownMenu;
 
-	/** The old value of the open dropdown menu. */
-	private String openDropdownMenuOldValue;
-
 	/**
 	 * The virtual Y position of the open dropdown menu.
 	 * Used to calculate the maximum scrolling offset.
@@ -320,19 +317,16 @@ public class OptionsOverlay extends AbstractComponent {
 						option.selectItem(index, OptionsOverlay.this.container);
 
 						// show restart button?
-						if (!openDropdownMenuOldValue.equals(option.getValueString()) &&
-							(option == GameOption.SCREEN_RESOLUTION || option == GameOption.SKIN)) {
+						if (option == GameOption.SCREEN_RESOLUTION || option == GameOption.SKIN) {
 							showRestartButton = true;
 							UI.getNotificationManager().sendBarNotification("Restart to apply changes.");
 						}
-
-						openDropdownMenu = null;
-						openDropdownMenuOldValue = null;
 					}
 
 					@Override
 					public boolean menuClicked(int index) {
 						SoundController.playSound(SoundEffect.MENUCLICK);
+						openDropdownMenu = null;
 						return true;
 					}
 				};
@@ -663,8 +657,6 @@ public class OptionsOverlay extends AbstractComponent {
 		dropdown.setLocation(comboboxStartX, cy + dropdownMenuPaddingY);
 		if (dropdown.isOpen()) {
 			openDropdownMenu = dropdown;
-			if (openDropdownMenuOldValue == null)
-				openDropdownMenuOldValue = option.getValueString();
 			return;
 		}
 		if (openDropdownMenu == null)
