@@ -292,9 +292,10 @@ public class NotificationManager {
 		g.setColor(Colors.BLACK_ALPHA);
 		g.fillRect(0, midY - barHeight / 2f, container.getWidth(), barHeight);
 		Fonts.LARGE.drawString(
-				midX - Fonts.LARGE.getWidth(barNotif) / 2f,
-				midY - Fonts.LARGE.getLineHeight() / 2.2f,
-				barNotif, Colors.WHITE_ALPHA);
+			midX - Fonts.LARGE.getWidth(barNotif) / 2f,
+			midY - Fonts.LARGE.getLineHeight() / 2f,
+			barNotif, Colors.WHITE_ALPHA
+		);
 		Colors.BLACK_ALPHA.a = oldAlphaB;
 		Colors.WHITE_ALPHA.a = oldAlphaW;
 	}

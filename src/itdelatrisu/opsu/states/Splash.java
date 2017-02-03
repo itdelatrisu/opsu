@@ -137,6 +137,8 @@ public class Splash extends BasicGameState {
 							if (newSkin)
 								SoundController.init();
 
+							Utils.gc(true);
+
 							finished = true;
 							thread = null;
 						}
@@ -168,6 +170,8 @@ public class Splash extends BasicGameState {
 
 						// load sounds
 						SoundController.init();
+
+						Utils.gc(true);
 
 						finished = true;
 						thread = null;

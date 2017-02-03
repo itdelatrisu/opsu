@@ -1702,6 +1702,8 @@ public class Game extends BasicGameState {
 			BeatmapDB.load(beatmap, BeatmapDB.LOAD_ARRAY);
 		BeatmapParser.parseHitObjects(beatmap);
 		HitSound.setDefaultSampleSet(beatmap.sampleSet);
+
+		Utils.gc(true);
 	}
 
 	/**
@@ -1741,8 +1743,6 @@ public class Game extends BasicGameState {
 			video = null;
 		}
 		videoSeekTime = 0;
-
-		System.gc();
 	}
 
 	/**

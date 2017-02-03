@@ -771,6 +771,11 @@ public class BeatmapDB {
 			selectStmt.close();
 			deleteMapStmt.close();
 			deleteGroupStmt.close();
+			setStarsStmt.close();
+			setStarsStmt.close();
+			updatePlayStatsStmt.close();
+			setFavoriteStmt.close();
+			setLocalOffsetStmt.close();
 			updateSizeStmt.close();
 			connection.close();
 			connection = null;

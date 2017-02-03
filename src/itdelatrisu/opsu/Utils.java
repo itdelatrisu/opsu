@@ -98,6 +98,12 @@ public class Utils {
 		Arrays.sort(illegalChars);
 	}
 
+	/** Minimum memory used by the JVM (in bytes) before running "optional" garbage collection. */
+	private static final long GC_MEMORY_THRESHOLD = 150 * 1_000_000L;  // 150MB
+
+	/** Baseline memory used by the JVM (in bytes). */
+	private static long baselineMemoryUsed = 0;
+
 	// game-related variables
 	private static Input input;
 
@@ -165,6 +171,17 @@ public class Utils {
 
 		// initialize user button
 		UserButton.init(width, height);
+
+		// warn about software mode
+		if (((Container) container).isSoftwareMode()) {
+			UI.getNotificationManager().sendNotification(
+				"WARNING:\n" +
+				"Running in OpenGL software mode.\n" +
+				"You may experience severely degraded performance.\n\n" +
+				"This can usually be resolved by updating your graphics drivers.",
+				Color.red
+			);
+		}
 	}
 
 	/**
@@ -688,5 +705,24 @@ public class Utils {
 			sc.init(null, enabled ? null : trustAllCerts, null);
 			HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
 		} catch (Exception e) {}
+	}
+
+	/**
+	 * Runs the garbage collector.
+	 * @param force if false, garbage collection will only run if current memory
+	 *              usage is above a threshold
+	 */
+	public static final void gc(boolean force) {
+		if (!force && getUsedMemory() - baselineMemoryUsed < GC_MEMORY_THRESHOLD)
+			return;
+
+		System.gc();
+		baselineMemoryUsed = getUsedMemory();
+	}
+
+	/** Returns the amount memory used by the JVM (in bytes). */
+	public static long getUsedMemory() {
+		Runtime r = Runtime.getRuntime();
+		return r.totalMemory() - r.freeMemory();
 	}
 }

@@ -19,6 +19,7 @@
 package itdelatrisu.opsu.audio;
 
 import itdelatrisu.opsu.ErrorHandler;
+import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.beatmap.Beatmap;
 import itdelatrisu.opsu.beatmap.BeatmapParser;
 import itdelatrisu.opsu.beatmap.TimingPoint;
@@ -103,7 +104,7 @@ public class MusicController {
 			}
 
 			reset();
-			System.gc();
+			Utils.gc(false);
 
 			switch (BeatmapParser.getExtension(beatmap.audioFilename.getName())) {
 			case "ogg":
@@ -537,6 +538,9 @@ public class MusicController {
 			return;
 		stop();
 
+		if (!AL.isCreated())
+			return;
+
 		try {
 			// get Music object's (private) Audio object reference
 			Field sound = player.getClass().getDeclaredField("sound");
@@ -583,7 +587,7 @@ public class MusicController {
 
 			player = null;
 		} catch (Exception e) {
-			ErrorHandler.error("Failed to destroy OpenAL.", e, true);
+			ErrorHandler.error("Failed to destroy the OpenAL context.", e, true);
 		}
 	}
 }

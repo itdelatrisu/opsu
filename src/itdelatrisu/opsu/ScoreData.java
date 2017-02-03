@@ -249,7 +249,7 @@ public class ScoreData implements Comparable<ScoreData> {
 	 */
 	public void draw(Graphics g, float position, int rank, long prevScore, boolean focus, float t) {
 		float x = baseX - buttonWidth * (1 - AnimationEquation.OUT_BACK.calc(t)) / 2.5f;
-		float textX = x + buttonWidth * 0.24f;
+		float rankX = x + buttonWidth * 0.04f;
 		float edgeX = x + buttonWidth * 0.98f;
 		float y = baseY + position;
 		float midY = y + buttonHeight / 2f;
@@ -260,37 +260,44 @@ public class ScoreData implements Comparable<ScoreData> {
 		c.a = alpha;
 
 		// rectangle outline
-		Color rectColor = (focus) ? Colors.BLACK_BG_FOCUS : Colors.BLACK_BG_NORMAL;
+		g.setLineWidth(1f);
+		Color rectColor = (focus) ? Colors.BLACK_BG_HOVER : Colors.BLACK_BG_NORMAL;
 		float oldRectAlpha = rectColor.a;
 		rectColor.a *= AnimationEquation.IN_QUAD.calc(alpha);
 		g.setColor(rectColor);
-		g.fillRect(x, y, buttonWidth, buttonHeight);
+		g.fillRect(x + 1, y + 1, buttonWidth - 1, buttonHeight - 1);
+		rectColor.a *= 1.25f;
+		g.setColor(rectColor);
+		g.drawRect(x, y, buttonWidth, buttonHeight);
 		rectColor.a = oldRectAlpha;
 
 		// rank
 		if (focus) {
 			Fonts.LARGE.drawString(
-					x + buttonWidth * 0.04f,
-					y + (buttonHeight - Fonts.LARGE.getLineHeight()) / 2f,
-					Integer.toString(rank + 1), c
+				rankX, y + (buttonHeight - Fonts.LARGE.getLineHeight()) / 2f,
+				Integer.toString(rank + 1), c
 			);
 		}
 
 		// grade image
+		float gradeX = rankX + Fonts.LARGE.getWidth("###");
 		Image img = getGrade().getMenuImage();
 		img.setAlpha(alpha);
-		img.drawCentered(x + buttonWidth * 0.15f, midY);
+		img.draw(gradeX, midY - img.getHeight() / 2f);
 		img.setAlpha(1f);
 
-		// score
-		float textOffset = (buttonHeight - Fonts.MEDIUM.getLineHeight() - Fonts.SMALL.getLineHeight()) / 2f;
-		Fonts.MEDIUM.drawString(textX, y + textOffset,
-				String.format("Score: %s (%dx)", NumberFormat.getNumberInstance().format(score), combo), c);
+		// player
+		float textX = gradeX + img.getWidth() * 1.2f;
+		float textOffset = (buttonHeight - Fonts.LARGE.getLineHeight() - Fonts.MEDIUM.getLineHeight()) / 2f;
+		if (playerName != null)
+			Fonts.LARGE.drawString(textX, y + textOffset, playerName);
+		textOffset += Fonts.LARGE.getLineHeight() - 4;
 
-		// hit counts (custom: osu! shows user instead, above score)
-		String player = (playerName == null) ? "" : String.format("  (%s)", playerName);
-		Fonts.SMALL.drawString(textX, y + textOffset + Fonts.MEDIUM.getLineHeight(),
-				String.format("300:%d  100:%d  50:%d  Miss:%d%s", hit300, hit100, hit50, miss, player), c);
+		// score
+		Fonts.MEDIUM.drawString(
+			textX, y + textOffset,
+			String.format("Score: %s (%dx)", NumberFormat.getNumberInstance().format(score), combo), c
+		);
 
 		// mods
 		StringBuilder sb = new StringBuilder();
@@ -312,7 +319,7 @@ public class ScoreData implements Comparable<ScoreData> {
 
 		// score difference
 		String diff = (prevScore < 0 || score < prevScore) ?
-				"-" : String.format("+%s", NumberFormat.getNumberInstance().format(score - prevScore));
+			"-" : String.format("+%s", NumberFormat.getNumberInstance().format(score - prevScore));
 		Fonts.DEFAULT.drawString(edgeX - Fonts.DEFAULT.getWidth(diff), y + marginY + Fonts.DEFAULT.getLineHeight() * 2, diff, c);
 
 		// time since
@@ -320,9 +327,9 @@ public class ScoreData implements Comparable<ScoreData> {
 			Image clock = GameImage.HISTORY.getImage();
 			clock.drawCentered(x + buttonWidth * 1.02f + clock.getWidth() / 2f, midY);
 			Fonts.DEFAULT.drawString(
-					x + buttonWidth * 1.03f + clock.getWidth(),
-					midY - Fonts.DEFAULT.getLineHeight() / 2f,
-					getTimeSince(), c
+				x + buttonWidth * 1.03f + clock.getWidth(),
+				midY - Fonts.DEFAULT.getLineHeight() / 2f,
+				getTimeSince(), c
 			);
 		}
 
@@ -390,6 +397,16 @@ public class ScoreData implements Comparable<ScoreData> {
 		white.a = oldAlphaWhite;
 		blue.a = oldAlphaBlue;
 		black.a = oldAlphaBlack;
+	}
+
+	/**
+	 * Loads glyphs necessary for rendering the player name.
+	 */
+	public void loadGlyphs() {
+		if (playerName != null) {
+			Fonts.loadGlyphs(Fonts.LARGE, playerName);
+			Fonts.loadGlyphs(Fonts.MEDIUM, playerName);
+		}
 	}
 
 	/**

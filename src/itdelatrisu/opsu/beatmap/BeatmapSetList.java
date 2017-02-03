@@ -103,7 +103,7 @@ public class BeatmapSetList {
 		nodes = groupNodes = BeatmapGroup.current().filter(parsedNodes);
 		expandedIndex = -1;
 		expandedStartNode = expandedEndNode = null;
-		lastQuery = "";
+		lastQuery = null;
 	}
 
 	/**
@@ -201,7 +201,7 @@ public class BeatmapSetList {
 			File audioFile = MusicController.getBeatmap().audioFilename;
 			if (audioFile != null && audioFile.equals(beatmap.audioFilename)) {
 				MusicController.reset();
-				System.gc();  // TODO: why can't files be deleted without calling this?
+				Utils.gc(true);  // TODO: why can't files be deleted without calling this?
 			}
 		}
 

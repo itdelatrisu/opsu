@@ -133,7 +133,7 @@ public class GameRanking extends BasicGameState {
 		replayButton.draw();
 		if (data.isGameplay() && !GameMod.AUTO.isActive())
 			retryButton.draw();
-		UI.getBackButton().draw();
+		UI.getBackButton().draw(g);
 
 		UI.draw(g);
 	}

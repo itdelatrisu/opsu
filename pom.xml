@@ -93,6 +93,7 @@
 								<exclude>org/newdawn/slick/Music.*</exclude>
 								<exclude>org/newdawn/slick/Input.*</exclude>
 								<exclude>org/newdawn/slick/Input$NullOutputStream.*</exclude>
+								<exclude>org/newdawn/slick/UnicodeFont*</exclude>
 								<exclude>org/newdawn/slick/gui/TextField.*</exclude>
 								<exclude>org/newdawn/slick/openal/AudioInputStream*</exclude>
 								<exclude>org/newdawn/slick/openal/OpenALStreamPlayer*</exclude>

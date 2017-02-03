@@ -79,12 +79,13 @@ public class UserButton {
 	/** Returns the button height. */
 	public static int getHeight() { return buttonHeight; }
 
-	/** Returns the user icon image with the given identifier, or null if invalid. */
+	/**
+	 * Returns the user icon image with the given identifier,
+	 * or the default image if invalid.
+	 */
 	public static Image getIconImage(int id) {
-		if (id < 0 || id >= getIconCount())
-			return null;
-
-		return GameImage.USER.getImages()[id].getScaledCopy(iconSize, iconSize);
+		int i = (id < 0 || id >= getIconCount()) ? 0 : id;
+		return GameImage.USER.getImages()[i].getScaledCopy(iconSize, iconSize);
 	}
 
 	/** Returns the total number of user icons. */

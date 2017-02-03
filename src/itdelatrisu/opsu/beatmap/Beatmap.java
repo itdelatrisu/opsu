@@ -324,6 +324,17 @@ public class Beatmap implements Comparable<Beatmap> {
 	}
 
 	/**
+	 * Returns whether there is a loaded beatmap background image.
+	 * @return true if an image is currently available
+	 */
+	public boolean hasLoadedBackground() {
+		if (bg == null)
+			return false;
+		ImageLoader imageLoader = bgImageCache.get(bg);
+		return (imageLoader != null && imageLoader.getImage() != null);
+	}
+
+	/**
 	 * Draws the beatmap background image.
 	 * @param width the container width
 	 * @param height the container height
@@ -536,5 +547,18 @@ public class Beatmap implements Comparable<Beatmap> {
 	public void incrementPlayCounter() {
 		this.playCount++;
 		this.lastPlayed = System.currentTimeMillis();
+	}
+
+	/**
+	 * Copies non-parsed fields from this beatmap into another beatmap.
+	 * @param target the target beatmap
+	 */
+	public void copyAdditionalFields(Beatmap target) {
+		target.starRating = starRating;
+		target.dateAdded = dateAdded;
+		target.favorite = favorite;
+		target.playCount = playCount;
+		target.lastPlayed = lastPlayed;
+		target.localMusicOffset = localMusicOffset;
 	}
 }
