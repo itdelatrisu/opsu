@@ -1294,6 +1294,15 @@ public class SongMenu extends BasicGameState {
 			changeIndex(-MAX_SONG_BUTTONS);
 			break;
 		default:
+			// ctrl+O: open options overlay
+			if (key == Input.KEY_O && (input.isKeyDown(Input.KEY_RCONTROL) || input.isKeyDown(Input.KEY_LCONTROL))) {
+				SoundController.playSound(SoundEffect.MENUHIT);
+				showOptionsOverlay = true;
+				optionsOverlayProgress.setTime(0);
+				optionsOverlay.activate();
+				break;
+			}
+
 			// wait for user to finish typing
 			if (Character.isLetterOrDigit(c) || key == Input.KEY_BACK || key == Input.KEY_SPACE) {
 				// load glyphs
