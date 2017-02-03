@@ -171,6 +171,17 @@ public class Utils {
 
 		// initialize user button
 		UserButton.init(width, height);
+
+		// warn about software mode
+		if (((Container) container).isSoftwareMode()) {
+			UI.getNotificationManager().sendNotification(
+				"WARNING:\n" +
+				"Running in OpenGL software mode.\n" +
+				"You may experience severely degraded performance.\n\n" +
+				"This can usually be resolved by updating your graphics drivers.",
+				Color.red
+			);
+		}
 	}
 
 	/**

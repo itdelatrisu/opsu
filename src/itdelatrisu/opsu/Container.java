@@ -44,6 +44,9 @@ public class Container extends AppGameContainer {
 	/** Exception causing game failure. */
 	protected Exception e = null;
 
+	/** Whether the game is running with software-only OpenGL context. */
+	private boolean softwareMode = false;
+
 	/**
 	 * Create a new container wrapping a game
 	 *
@@ -70,7 +73,7 @@ public class Container extends AppGameContainer {
 	@Override
 	public void start() throws SlickException {
 		try {
-			setup();
+			runSetup();
 			getDelta();
 			while (running())
 				gameLoop();
@@ -99,6 +102,28 @@ public class Container extends AppGameContainer {
 			System.exit(0);
 		}
 	}
+
+	/**
+	 * Sets up the environment.
+	 */
+	private void runSetup() throws SlickException {
+		try {
+			setup();
+		} catch (SlickException e) {
+			if (!Display.isCreated()) {
+				// try running in software mode
+				System.setProperty("org.lwjgl.opengl.Display.allowSoftwareOpenGL", "true");
+				softwareMode = true;
+				setup();
+			} else
+				throw e;
+		}
+	}
+
+	/**
+	 * Returns whether the game is running with software-only OpenGL context.
+	 */
+	public boolean isSoftwareMode() { return softwareMode; }
 
 	@Override
 	protected void gameLoop() throws SlickException {
