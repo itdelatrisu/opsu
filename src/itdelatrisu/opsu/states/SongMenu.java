@@ -1038,13 +1038,13 @@ public class SongMenu extends BasicGameState {
 
 		// selection buttons
 		if (selectModsButton.contains(x, y)) {
-			this.keyPressed(Input.KEY_F1, '\0');
+			openModsMenu();
 			return;
 		} else if (selectRandomButton.contains(x, y)) {
-			this.keyPressed(Input.KEY_F2, '\0');
+			randomBeatmap(false);
 			return;
 		} else if (selectMapOptionsButton.contains(x, y)) {
-			this.keyPressed(Input.KEY_F3, '\0');
+			openBeatmapOptionsMenu();
 			return;
 		} else if (selectOptionsButton.contains(x, y)) {
 			SoundController.playSound(SoundEffect.MENUHIT);
@@ -1194,42 +1194,17 @@ public class SongMenu extends BasicGameState {
 			break;
 		case Input.KEY_F1:
 			// F1: Open game mods menu.
-			SoundController.playSound(SoundEffect.MENUHIT);
-			((ButtonMenu) game.getState(Opsu.STATE_BUTTONMENU)).setMenuState(MenuState.MODS);
-			game.enterState(Opsu.STATE_BUTTONMENU);
+			openModsMenu();
 			break;
 		case Input.KEY_F2:
 			// F2: Random song.
-			if (focusNode == null)
-				break;
 			if (Keyboard.isRepeatEvent())
 				break;
-			SoundController.playSound(SoundEffect.MENUHIT);
-			if (input.isKeyDown(Input.KEY_RSHIFT) || input.isKeyDown(Input.KEY_LSHIFT)) {
-				// shift key: previous random track
-				SongNode prev;
-				if (randomStack.isEmpty() || (prev = randomStack.pop()) == null)
-					break;
-				BeatmapSetNode node = prev.getNode();
-				int expandedIndex = BeatmapSetList.get().getExpandedIndex();
-				if (node.index == expandedIndex)
-					node = node.next;  // move past base node
-				setFocus(node, prev.getIndex(), true, true);
-			} else {
-				// random track, add previous to stack
-				randomStack.push(new SongNode(BeatmapSetList.get().getBaseNode(focusNode.index), focusNode.beatmapIndex));
-				setFocus(BeatmapSetList.get().getRandomNode(), 0, true, true);
-			}
+			randomBeatmap(input.isKeyDown(Input.KEY_RSHIFT) || input.isKeyDown(Input.KEY_LSHIFT));
 			break;
 		case Input.KEY_F3:
 			// F3: Open beatmap options menu.
-			if (focusNode == null)
-				break;
-			SoundController.playSound(SoundEffect.MENUHIT);
-			MenuState state = focusNode.getBeatmapSet().isFavorite() ?
-				MenuState.BEATMAP_FAVORITE : MenuState.BEATMAP;
-			((ButtonMenu) game.getState(Opsu.STATE_BUTTONMENU)).setMenuState(state, focusNode);
-			game.enterState(Opsu.STATE_BUTTONMENU);
+			openBeatmapOptionsMenu();
 			break;
 		case Input.KEY_F5:
 			// F5: Reload beatmaps.
@@ -1669,6 +1644,32 @@ public class SongMenu extends BasicGameState {
 	}
 
 	/**
+	 * Focuses a random beatmap.
+	 * @param previous if true, pops from the random track stack instead
+	 */
+	private void randomBeatmap(boolean previous) {
+		if (focusNode == null)
+			return;
+
+		SoundController.playSound(SoundEffect.MENUHIT);
+		if (previous) {
+			// shift key: previous random track
+			SongNode prev;
+			if (randomStack.isEmpty() || (prev = randomStack.pop()) == null)
+				return;
+			BeatmapSetNode node = prev.getNode();
+			int expandedIndex = BeatmapSetList.get().getExpandedIndex();
+			if (node.index == expandedIndex)
+				node = node.next;  // move past base node
+			setFocus(node, prev.getIndex(), true, true);
+		} else {
+			// random track, add previous to stack
+			randomStack.push(new SongNode(BeatmapSetList.get().getBaseNode(focusNode.index), focusNode.beatmapIndex));
+			setFocus(BeatmapSetList.get().getRandomNode(), 0, true, true);
+		}
+	}
+
+	/**
 	 * Shifts the scroll position forward (+) or backwards (-) by a given number
 	 * of nodes.
 	 * @param shift the number of nodes to shift
@@ -1973,6 +1974,25 @@ public class SongMenu extends BasicGameState {
 			BeatmapDB.setStars(beatmap);
 			beatmapsCalculated.put(beatmap, !hasTimingPoints);
 		}
+	}
+
+	/** Enters the game mods menu. */
+	private void openModsMenu() {
+		SoundController.playSound(SoundEffect.MENUHIT);
+		((ButtonMenu) game.getState(Opsu.STATE_BUTTONMENU)).setMenuState(MenuState.MODS);
+		game.enterState(Opsu.STATE_BUTTONMENU);
+	}
+
+	/** Enters the beatmap options menu. */
+	private void openBeatmapOptionsMenu() {
+		if (focusNode == null)
+			return;
+
+		SoundController.playSound(SoundEffect.MENUHIT);
+		MenuState state = focusNode.getBeatmapSet().isFavorite() ?
+			MenuState.BEATMAP_FAVORITE : MenuState.BEATMAP;
+		((ButtonMenu) game.getState(Opsu.STATE_BUTTONMENU)).setMenuState(state, focusNode);
+		game.enterState(Opsu.STATE_BUTTONMENU);
 	}
 
 	/**
