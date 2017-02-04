@@ -1007,6 +1007,7 @@ public class Game extends BasicGameState {
 		if (lastTrackPosition > 0)
 			data.changeHealth((trackPosition - lastTrackPosition) * -1 * hpDropRate);
 
+		// health ran out?
 		if (!data.isAlive()) {
 			// "Easy" mod
 			if (GameMod.EASY.isActive() && !GameMod.SUDDEN_DEATH.isActive()) {
@@ -1040,6 +1041,7 @@ public class Game extends BasicGameState {
 					game.enterState(Opsu.STATE_GAMEPAUSEMENU,
 							new DelayedFadeOutTransition(Color.black, MUSIC_FADEOUT_TIME, MUSIC_FADEOUT_TIME - LOSE_FADEOUT_TIME),
 							new FadeInTransition());
+					return;
 				}
 			}
 		}
@@ -1562,9 +1564,7 @@ public class Game extends BasicGameState {
 			}
 
 			// needs to play before setting position to resume without lag later
-			MusicController.play(false);
-			MusicController.setPosition(0);
-			MusicController.setPitch(GameMod.getSpeedMultiplier());
+			MusicController.playAt(0, false);
 			MusicController.pause();
 
 			SoundController.mute(false);
