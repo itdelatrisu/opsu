@@ -51,7 +51,7 @@ public class BloodcatServer extends DownloadServer {
 	private static final String SEARCH_URL = "http://bloodcat.com/osu/?q=%s&c=b&s=%s&m=0&p=%d&mod=json";//"?q=%s&m=b&c=%s&g=&d=0&s=date&o=0&p=%d&mod=json";
 
 	/** Maximum beatmaps displayed per page. */
-	private static final int PAGE_LIMIT = 40;
+	private static final int PAGE_LIMIT = 61;
 
 	/** Total result count from the last query. */
 	private int totalResults = -1;
