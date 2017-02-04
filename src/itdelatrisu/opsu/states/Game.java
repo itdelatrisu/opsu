@@ -2099,13 +2099,22 @@ public class Game extends BasicGameState {
 		if (!hasMoreObjects())  // nothing to do here
 			return;
 
-		HitObject hitObject = beatmap.objects[objectIndex];
+		// check missed objects first
+		Iterator<Integer> iter = passedObjects.iterator();
+		while (iter.hasNext()) {
+			int index = iter.next();
+			HitObject hitObject = beatmap.objects[index];
+			if (hitObject.isCircle() && gameObjects[index].mousePressed(x, y, trackPosition)) {
+				iter.remove();  // circle hit, remove it
+				return;
+			} else if (hitObject.isSlider() && gameObjects[index].mousePressed(x, y, trackPosition))
+				return;  // slider initial circle hit
+		}
 
-		// circles
+		// check current object
+		HitObject hitObject = beatmap.objects[objectIndex];
 		if (hitObject.isCircle() && gameObjects[objectIndex].mousePressed(x, y, trackPosition))
 			objectIndex++;  // circle hit
-
-		// sliders
 		else if (hitObject.isSlider())
 			gameObjects[objectIndex].mousePressed(x, y, trackPosition);
 	}
