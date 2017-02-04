@@ -33,13 +33,16 @@ import itdelatrisu.opsu.replay.Replay;
 import itdelatrisu.opsu.replay.ReplayFrame;
 import itdelatrisu.opsu.ui.Colors;
 import itdelatrisu.opsu.ui.Fonts;
+import itdelatrisu.opsu.ui.UI;
 import itdelatrisu.opsu.ui.animations.AnimationEquation;
 import itdelatrisu.opsu.user.UserList;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Random;
 import java.util.concurrent.LinkedBlockingDeque;
 
@@ -239,6 +242,12 @@ public class GameData {
 	/** List containing recent hit error information. */
 	private LinkedBlockingDeque<HitErrorInfo> hitErrorList;
 
+	/** List containing all hit error time differences. */
+	private List<Integer> hitErrors;
+
+	/** Performance string containing hit error averages and unstable rate. */
+	private String performanceString = null;
+
 	/** Hit object types, used for drawing results. */
 	public enum HitObjectType { CIRCLE, SLIDERTICK, SLIDER_FIRST, SLIDER_LAST, SPINNER }
 
@@ -394,6 +403,8 @@ public class GameData {
 		}
 		hitResultList = new LinkedBlockingDeque<HitObjectResult>();
 		hitErrorList = new LinkedBlockingDeque<HitErrorInfo>();
+		hitErrors = new ArrayList<Integer>();
+		performanceString = null;
 		fullObjectCount = 0;
 		combo = 0;
 		comboMax = 0;
@@ -1322,6 +1333,26 @@ public class GameData {
 	}
 
 	/**
+	 * Updates displayed ranking elements based on a delta value.
+	 * @param delta the delta interval since the last call
+	 * @param mouseX the mouse x coordinate
+	 * @param mouseY the mouse y coordinate
+	 */
+	public void updateRankingDisplays(int delta, int mouseX, int mouseY) {
+		// graph tooltip
+		Image graphImg = GameImage.RANKING_GRAPH.getImage();
+		float graphX = 416 * GameImage.getUIscale();
+		float graphY = 688 * GameImage.getUIscale();
+		if (isGameplay &&
+		    mouseX >= graphX - graphImg.getWidth() / 2f && mouseX <= graphX + graphImg.getWidth() / 2f &&
+		    mouseY >= graphY - graphImg.getHeight() / 2f && mouseY <= graphY + graphImg.getHeight() / 2f) {
+			if (performanceString == null)
+				performanceString = getPerformanceString(hitErrors);
+			UI.updateTooltip(delta, performanceString, true);
+		}
+	}
+
+	/**
 	 * Returns the current combo streak.
 	 */
 	public int getComboStreak() { return combo; }
@@ -1728,5 +1759,31 @@ public class GameData {
 	 */
 	public void addHitError(int time, int x, int y, int timeDiff) {
 		hitErrorList.addFirst(new HitErrorInfo(time, x, y, timeDiff));
+		hitErrors.add(timeDiff);
+	}
+
+	/**
+	 * Computes the error values and unstable rate for the map.
+	 * @see <a href="https://osu.ppy.sh/wiki/Accuracy#Performance_Graph">https://osu.ppy.sh/wiki/Accuracy#Performance_Graph</a>
+	 */
+	private String getPerformanceString(List<Integer> errors) {
+		int earlyCount = 0, lateCount = 0;
+		int earlySum = 0, lateSum = 0;
+		for (int diff : errors) {
+			if (diff < 0) {
+				earlyCount++;
+				earlySum += diff;
+			} else if (diff > 0) {
+				lateCount++;
+				lateSum += diff;
+			}
+		}
+		float hitErrorEarly = (earlyCount > 0) ? (float) earlySum / earlyCount : 0f;
+		float hitErrorLate = (lateCount > 0) ? (float) lateSum / lateCount : 0f;
+		float unstableRate = (!errors.isEmpty()) ? (float) (Utils.standardDeviation(errors) * 10) : 0f;
+		return String.format(
+			"Accuracy:\nError: %.2fms - %.2fms avg\nUnstable Rate: %.2f",
+			hitErrorEarly, hitErrorLate, unstableRate
+		);
 	}
 }

@@ -154,6 +154,7 @@ public class GameRanking extends BasicGameState {
 			MusicController.loopTrackIfEnded(true);
 		UI.getBackButton().hoverUpdate(delta, mouseX, mouseY);
 		animationProgress.update(delta);
+		data.updateRankingDisplays(delta, mouseX, mouseY);
 	}
 
 	@Override
