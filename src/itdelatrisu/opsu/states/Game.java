@@ -63,7 +63,9 @@ import itdelatrisu.opsu.video.Video;
 import java.io.File;
 import java.io.IOException;
 import java.util.IdentityHashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Stack;
 
 import org.lwjgl.input.Keyboard;
@@ -139,6 +141,9 @@ public class Game extends BasicGameState {
 
 	/** The map's game objects, indexed by objectIndex. */
 	private GameObject[] gameObjects;
+
+	/** Any passed, unfinished hit object indices before objectIndex. */
+	private List<Integer> passedObjects;
 
 	/** Delay time, in milliseconds, before song starts. */
 	private int leadInTime;
@@ -578,7 +583,7 @@ public class Game extends BasicGameState {
 				skipButton.draw();
 
 			// show retries
-			if (retries >= 2 && timeDiff >= -1000) {
+			if (objectIndex == 0 && retries >= 2 && timeDiff >= -1000) {
 				int retryHeight = Math.max(
 						GameImage.SCOREBAR_BG.getImage().getHeight(),
 						GameImage.SCOREBAR_KI.getImage().getHeight()
@@ -905,10 +910,16 @@ public class Game extends BasicGameState {
 	 */
 	private void updateGame(int mouseX, int mouseY, int delta, int trackPosition, int keys) {
 		// map complete!
-		if (objectIndex >= gameObjects.length || (MusicController.trackEnded() && objectIndex > 0)) {
-			// track ended before last object was processed: force a hit result
-			if (MusicController.trackEnded() && objectIndex < gameObjects.length)
-				gameObjects[objectIndex].update(true, delta, mouseX, mouseY, false, trackPosition);
+		if (!hasMoreObjects() || (MusicController.trackEnded() && objectIndex > 0)) {
+			// track ended before last object(s) was processed: force a hit result
+			if (MusicController.trackEnded() && hasMoreObjects()) {
+				for (int index : passedObjects)
+					gameObjects[index].update(delta, mouseX, mouseY, false, trackPosition);
+				passedObjects.clear();
+				for (int i = objectIndex; i < gameObjects.length; i++)
+					gameObjects[i].update(delta, mouseX, mouseY, false, trackPosition);
+				objectIndex = gameObjects.length;
+			}
 
 			// save score and replay
 			if (!checkpointLoaded) {
@@ -1035,17 +1046,32 @@ public class Game extends BasicGameState {
 
 		// don't process hit results when already lost
 		if (restart != Restart.LOSE) {
-			// update objects (loop over any skipped indexes)
 			boolean keyPressed = keys != ReplayFrame.KEY_NONE;
+
+			// update passed objects
+			Iterator<Integer> iter = passedObjects.iterator();
+			while (iter.hasNext()) {
+				int index = iter.next();
+				if (gameObjects[index].update(delta, mouseX, mouseY, keyPressed, trackPosition))
+					iter.remove();
+			}
+
+			// update objects (loop over any skipped indexes)
 			while (objectIndex < gameObjects.length && trackPosition > beatmap.objects[objectIndex].getTime()) {
 				// check if we've already passed the next object's start time
-				boolean overlap = (objectIndex + 1 < gameObjects.length &&
-						trackPosition > beatmap.objects[objectIndex + 1].getTime() - hitResultOffset[GameData.HIT_50]);
+				boolean overlap =
+					(objectIndex + 1 < gameObjects.length &&
+					trackPosition > beatmap.objects[objectIndex + 1].getTime() - hitResultOffset[GameData.HIT_50]);
 
 				// update hit object and check completion status
-				if (gameObjects[objectIndex].update(overlap, delta, mouseX, mouseY, keyPressed, trackPosition))
-					objectIndex++;  // done, so increment object index
-				else
+				if (gameObjects[objectIndex].update(delta, mouseX, mouseY, keyPressed, trackPosition)) {
+					// done, so increment object index
+					objectIndex++;
+				} else if (overlap) {
+					// overlap, so save the current object and increment object index
+					passedObjects.add(objectIndex);
+					objectIndex++;
+				} else
 					break;
 			}
 		}
@@ -1585,13 +1611,27 @@ public class Game extends BasicGameState {
 
 		// get hit objects in reverse order, or else overlapping objects are unreadable
 		Stack<Integer> stack = new Stack<Integer>();
+		int spinnerIndex = -1;  // draw spinner first (assume there can only be 1...)
+		for (int index : passedObjects) {
+			if (beatmap.objects[index].isSpinner()) {
+				if (spinnerIndex == -1)
+					spinnerIndex = index;
+			} else
+				stack.add(index);
+		}
 		for (int index = objectIndex; index < gameObjects.length && beatmap.objects[index].getTime() < trackPosition + approachTime; index++) {
-			stack.add(index);
+			if (beatmap.objects[index].isSpinner()) {
+				if (spinnerIndex == -1)
+					spinnerIndex = index;
+			} else
+				stack.add(index);
 
 			// draw follow points
 			if (Options.isFollowPointEnabled() && !loseState)
 				lastObjectIndex = drawFollowPointsBetween(objectIndex, lastObjectIndex, trackPosition);
 		}
+		if (spinnerIndex != -1)
+			stack.add(spinnerIndex);
 
 		// draw hit objects
 		while (!stack.isEmpty()){
@@ -1722,6 +1762,7 @@ public class Game extends BasicGameState {
 	public void resetGameData() {
 		data.clear();
 		objectIndex = 0;
+		passedObjects = new LinkedList<Integer>();
 		breakIndex = 0;
 		breakTime = 0;
 		breakSound = false;
@@ -2038,7 +2079,7 @@ public class Game extends BasicGameState {
 	 * @param keys the keys that are pressed
 	 */
 	private void sendGameKeyPress(int keys, int x, int y, int trackPosition) {
-		if (objectIndex >= gameObjects.length)  // nothing to do here
+		if (!hasMoreObjects())  // nothing to do here
 			return;
 
 		HitObject hitObject = beatmap.objects[objectIndex];
@@ -2215,6 +2256,11 @@ public class Game extends BasicGameState {
 			if (beatmap.objects[i].getStack() != 0)
 				gameObjects[i].updatePosition();
 		}
+	}
+
+	/** Returns whether there are any more objects remaining in the map. */
+	private boolean hasMoreObjects() {
+		return objectIndex < gameObjects.length || !passedObjects.isEmpty();
 	}
 
 	/**

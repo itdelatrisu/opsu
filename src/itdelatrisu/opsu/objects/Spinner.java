@@ -264,9 +264,9 @@ public class Spinner implements GameObject {
 	}
 
 	@Override
-	public boolean update(boolean overlap, int delta, int mouseX, int mouseY, boolean keyPressed, int trackPosition) {
+	public boolean update(int delta, int mouseX, int mouseY, boolean keyPressed, int trackPosition) {
 		// end of spinner
-		if (overlap || trackPosition > hitObject.getEndTime()) {
+		if (trackPosition > hitObject.getEndTime()) {
 			hitResult();
 			return true;
 		}

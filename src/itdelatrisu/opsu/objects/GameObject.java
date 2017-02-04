@@ -35,7 +35,6 @@ public interface GameObject {
 
 	/**
 	 * Updates the hit object.
-	 * @param overlap true if the next object's start time has already passed
 	 * @param delta the delta interval since the last call
 	 * @param mouseX the x coordinate of the mouse
 	 * @param mouseY the y coordinate of the mouse
@@ -43,7 +42,7 @@ public interface GameObject {
 	 * @param trackPosition the track position
 	 * @return true if object ended
 	 */
-	public boolean update(boolean overlap, int delta, int mouseX, int mouseY, boolean keyPressed, int trackPosition);
+	public boolean update(int delta, int mouseX, int mouseY, boolean keyPressed, int trackPosition);
 
 	/**
 	 * Processes a mouse click.
