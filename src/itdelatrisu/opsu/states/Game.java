@@ -1194,7 +1194,7 @@ public class Game extends BasicGameState {
 
 					// skip to checkpoint
 					MusicController.setPosition(checkpoint);
-					MusicController.setPitch(GameMod.getSpeedMultiplier() * playbackSpeed.getModifier());
+					MusicController.setPitch(getCurrentPitch());
 					if (video != null)
 						loadVideo(checkpoint);
 					while (objectIndex < gameObjects.length &&
@@ -1214,7 +1214,7 @@ public class Game extends BasicGameState {
 				break;
 			if (isReplay || GameMod.AUTO.isActive()) {
 				playbackSpeed = playbackSpeed.next();
-				MusicController.setPitch(GameMod.getSpeedMultiplier() * playbackSpeed.getModifier());
+				MusicController.setPitch(getCurrentPitch());
 			}
 			break;
 		case Input.KEY_UP:
@@ -1257,7 +1257,7 @@ public class Game extends BasicGameState {
 			// playback speed button
 			else if (playbackSpeed.getButton().contains(x, y)) {
 				playbackSpeed = playbackSpeed.next();
-				MusicController.setPitch(GameMod.getSpeedMultiplier() * playbackSpeed.getModifier());
+				MusicController.setPitch(getCurrentPitch());
 			}
 
 			// replay seeking
@@ -1568,6 +1568,11 @@ public class Game extends BasicGameState {
 			if (beatmap.localMusicOffset != 0)
 				UI.getNotificationManager().sendBarNotification(String.format("Using local beatmap offset (%dms)", beatmap.localMusicOffset));
 
+			// using custom difficulty settings?
+			if (Options.getFixedCS() > 0f || Options.getFixedAR() > 0f || Options.getFixedOD() > 0f ||
+				Options.getFixedHP() > 0f || Options.getFixedSpeed() > 0f)
+				UI.getNotificationManager().sendNotification("Playing with custom difficulty settings.");
+
 			// load video
 			if (beatmap.video != null) {
 				loadVideo((beatmap.videoOffset < 0) ? -beatmap.videoOffset : 0);
@@ -1584,7 +1589,7 @@ public class Game extends BasicGameState {
 		skipButton.resetHover();
 		if (isReplay || GameMod.AUTO.isActive())
 			playbackSpeed.getButton().resetHover();
-		MusicController.setPitch(GameMod.getSpeedMultiplier() * playbackSpeed.getModifier());
+		MusicController.setPitch(getCurrentPitch());
 	}
 
 	@Override
@@ -1821,7 +1826,7 @@ public class Game extends BasicGameState {
 				MusicController.resume();
 			}
 			MusicController.setPosition(firstObjectTime - SKIP_OFFSET);
-			MusicController.setPitch(GameMod.getSpeedMultiplier() * playbackSpeed.getModifier());
+			MusicController.setPitch(getCurrentPitch());
 			replaySkipTime = (isReplay) ? -1 : trackPosition;
 			if (isReplay) {
 				replayX = (int) skipButton.getX();
@@ -2288,6 +2293,12 @@ public class Game extends BasicGameState {
 	/** Returns whether there are any more objects remaining in the map. */
 	private boolean hasMoreObjects() {
 		return objectIndex < gameObjects.length || !passedObjects.isEmpty();
+	}
+
+	/** Returns the current pitch. */
+	private float getCurrentPitch() {
+		float base = (Options.getFixedSpeed() > 0f) ? Options.getFixedSpeed() : 1f;
+		return base * GameMod.getSpeedMultiplier() * playbackSpeed.getModifier();
 	}
 
 	/**
