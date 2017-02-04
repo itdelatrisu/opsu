@@ -28,6 +28,7 @@ import itdelatrisu.opsu.beatmap.HitObject;
 import itdelatrisu.opsu.downloads.Updater;
 import itdelatrisu.opsu.objects.curves.Curve;
 import itdelatrisu.opsu.options.Options;
+import itdelatrisu.opsu.replay.LifeFrame;
 import itdelatrisu.opsu.replay.Replay;
 import itdelatrisu.opsu.replay.ReplayFrame;
 import itdelatrisu.opsu.ui.Colors;
@@ -786,6 +787,7 @@ public class GameData {
 		// animation timings
 		int animationTime = 400, offsetTime = 150, gradeAnimationTime = 1000, whiteAnimationTime = 2200;
 		int rankStart = 50, comboStart = 1800, perfectStart = 2700, gradeStart = 2800, whiteStart = 3800;
+		int graphEnd = whiteStart + 100;
 
 		// ranking panel
 		GameImage.RANKING_PANEL.getImage().draw(0, (int) (102 * uiScale));
@@ -883,6 +885,44 @@ public class GameData {
 			);
 		}
 
+		// graph
+		float graphX = 416 * uiScale;
+		float graphY = 688 * uiScale;
+		Image graphImg = GameImage.RANKING_GRAPH.getImage();
+		graphImg.drawCentered(graphX, graphY);
+		if (replay != null && replay.lifeFrames != null && replay.lifeFrames.length > 0) {
+			float margin = 8 * uiScale;
+			float cx = graphX - graphImg.getWidth() / 2f + margin;
+			float cy = graphY - graphImg.getHeight() / 2f + margin;
+			float graphWidth = graphImg.getWidth() - margin * 2f;
+			float graphHeight = graphImg.getHeight() - margin * 2f;
+			g.setClip((int) cx, (int) cy, (int) (graphWidth * ((float) time / graphEnd)), (int) graphHeight);
+			float lastXt = cx;
+			float lastYt = cy + graphHeight * (1f - replay.lifeFrames[0].getHealth());
+			g.setLineWidth(2 * uiScale);
+			if (replay.lifeFrames.length == 1) {
+				g.setColor(replay.lifeFrames[0].getHealth() >= 0.5f ? Colors.GREEN : Color.red);
+				g.drawLine(lastXt, lastYt, lastXt + graphWidth, lastYt);
+			} else {
+				int minTime = replay.lifeFrames[0].getTime();
+				int maxTime = replay.lifeFrames[replay.lifeFrames.length - 1].getTime();
+				int totalTime = maxTime - minTime;
+				Color lastColor = null;
+				for (int i = 1; i < replay.lifeFrames.length; i++) {
+					float xt = cx + graphWidth * ((float) (replay.lifeFrames[i].getTime() - minTime) / totalTime);
+					float yt = cy + graphHeight * (1f - replay.lifeFrames[i].getHealth());
+					Color color = replay.lifeFrames[i].getHealth() >= 0.5f ? Colors.GREEN : Color.red;
+					if (color != lastColor)
+						g.setColor(color);
+					g.drawLine(lastXt, lastYt, xt, yt);
+					lastXt = xt;
+					lastYt = yt;
+					lastColor = color;
+				}
+			}
+			g.clearClip();
+		}
+
 		// full combo
 		if (time >= perfectStart) {
 			float t = Math.min((float) (time - perfectStart) / animationTime, 1f);
@@ -892,7 +932,7 @@ public class GameData {
 			if (comboMax == fullObjectCount) {
 				Image img = GameImage.RANKING_PERFECT.getImage().getScaledCopy(scale);
 				img.setAlpha(alpha);
-				img.drawCentered(416 * uiScale, 688 * uiScale);
+				img.drawCentered(graphX, graphY);
 			}
 		}
 
@@ -1625,10 +1665,11 @@ public class GameData {
 	 * Returns a Replay object encapsulating all game data.
 	 * If a replay already exists and frames is null, the existing object will be returned.
 	 * @param frames the replay frames
+	 * @param lifeFrames the life frames
 	 * @param beatmap the associated beatmap
 	 * @return the Replay object, or null if none exists and frames is null
 	 */
-	public Replay getReplay(ReplayFrame[] frames, Beatmap beatmap) {
+	public Replay getReplay(ReplayFrame[] frames, LifeFrame[] lifeFrames, Beatmap beatmap) {
 		if (replay != null && frames == null)
 			return replay;
 
@@ -1651,7 +1692,7 @@ public class GameData {
 		replay.combo = (short) comboMax;
 		replay.perfect = (comboMax == fullObjectCount);
 		replay.mods = GameMod.getModState();
-		replay.lifeFrames = null;  // TODO
+		replay.lifeFrames = lifeFrames;
 		replay.timestamp = new Date();
 		replay.frames = frames;
 		replay.seed = 0;  // TODO

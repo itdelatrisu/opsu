@@ -37,6 +37,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import org.lwjgl.opengl.Display;
+import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
@@ -67,6 +68,9 @@ public class GameRanking extends BasicGameState {
 
 	/** Animation progress. */
 	private AnimatedValue animationProgress = new AnimatedValue(6000, 0f, 1f, AnimationEquation.LINEAR);
+
+	/** The loaded replay, or null if it couldn't be loaded. */
+	private Replay replay = null;
 
 	// game-related variables
 	private StateBasedGame game;
@@ -189,19 +193,10 @@ public class GameRanking extends BasicGameState {
 		boolean returnToGame = false;
 		boolean replayButtonPressed = replayButton.contains(x, y);
 		if (replayButtonPressed && !(data.isGameplay() && GameMod.AUTO.isActive())) {
-			Replay r = data.getReplay(null, null);
-			if (r != null) {
-				try {
-					r.load();
-					gameState.setReplay(r);
-					gameState.setRestart((data.isGameplay()) ? Game.Restart.REPLAY : Game.Restart.NEW);
-					returnToGame = true;
-				} catch (FileNotFoundException e) {
-					UI.getNotificationManager().sendBarNotification("Replay file not found.");
-				} catch (IOException e) {
-					Log.error("Failed to load replay data.", e);
-					UI.getNotificationManager().sendBarNotification("Failed to load replay data. See log for details.");
-				}
+			if (replay != null) {
+				gameState.setReplay(replay);
+				gameState.setRestart((data.isGameplay()) ? Game.Restart.REPLAY : Game.Restart.NEW);
+				returnToGame = true;
 			} else
 				UI.getNotificationManager().sendBarNotification("Replay file not found.");
 		}
@@ -249,6 +244,7 @@ public class GameRanking extends BasicGameState {
 			}
 		}
 		replayButton.resetHover();
+		loadReplay();
 	}
 
 	@Override
@@ -271,6 +267,24 @@ public class GameRanking extends BasicGameState {
 		if (UI.getCursor().isBeatmapSkinned())
 			UI.getCursor().reset();
 		game.enterState(Opsu.STATE_SONGMENU, new EasedFadeOutTransition(), new FadeInTransition());
+	}
+
+	/** Loads the replay data. */
+	private void loadReplay() {
+		this.replay = null;
+		Replay r = data.getReplay(null, null, null);
+		if (r != null) {
+			try {
+				r.load();
+				this.replay = r;
+			} catch (FileNotFoundException e) {
+				// file not found
+			} catch (IOException e) {
+				Log.error("Failed to load replay data.", e);
+				UI.getNotificationManager().sendNotification("Failed to load replay data.\nSee log for details.", Color.red);
+			}
+		}
+		// else file not found
 	}
 
 	/**

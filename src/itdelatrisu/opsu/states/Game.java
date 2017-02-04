@@ -45,6 +45,7 @@ import itdelatrisu.opsu.objects.curves.Curve;
 import itdelatrisu.opsu.objects.curves.Vec2f;
 import itdelatrisu.opsu.options.Options;
 import itdelatrisu.opsu.render.FrameBufferCache;
+import itdelatrisu.opsu.replay.LifeFrame;
 import itdelatrisu.opsu.replay.PlaybackSpeed;
 import itdelatrisu.opsu.replay.Replay;
 import itdelatrisu.opsu.replay.ReplayFrame;
@@ -251,6 +252,9 @@ public class Game extends BasicGameState {
 
 	/** The list of current replay frames (for recording replays). */
 	private LinkedList<ReplayFrame> replayFrames;
+
+	/** The list of current life frames (for recording replays). */
+	private LinkedList<LifeFrame> lifeFrames;
 
 	/** The offscreen image rendered to. */
 	private Image offscreen;
@@ -815,8 +819,10 @@ public class Game extends BasicGameState {
 		}
 
 		// normal game update
-		if (!isReplay && !gameFinished)
+		if (!isReplay && !gameFinished) {
 			addReplayFrameAndRun(mouseX, mouseY, lastKeysPressed, trackPosition);
+			addLifeFrame(trackPosition);
+		}
 
 		// watching replay
 		else if (!gameFinished) {
@@ -933,7 +939,11 @@ public class Game extends BasicGameState {
 						replayFrames.getFirst().setTimeDiff(replaySkipTime * -1);
 					replayFrames.addFirst(ReplayFrame.getStartFrame(replaySkipTime));
 					replayFrames.addFirst(ReplayFrame.getStartFrame(0));
-					Replay r = data.getReplay(replayFrames.toArray(new ReplayFrame[replayFrames.size()]), beatmap);
+					Replay r = data.getReplay(
+						replayFrames.toArray(new ReplayFrame[replayFrames.size()]),
+						lifeFrames.toArray(new LifeFrame[lifeFrames.size()]),
+						beatmap
+					);
 					if (r != null && !unranked)
 						r.save();
 				}
@@ -1540,6 +1550,7 @@ public class Game extends BasicGameState {
 				replaySkipTime = -1;
 				replayFrames = new LinkedList<ReplayFrame>();
 				replayFrames.add(new ReplayFrame(0, 0, input.getMouseX(), input.getMouseY(), 0));
+				lifeFrames = new LinkedList<LifeFrame>();
 			}
 
 			leadInTime = beatmap.audioLeadIn + approachTime;
@@ -1779,6 +1790,7 @@ public class Game extends BasicGameState {
 		deaths = 0;
 		deathTime = -1;
 		replayFrames = null;
+		lifeFrames = null;
 		lastReplayTime = 0;
 		autoMousePosition = new Vec2f();
 		autoMousePressed = false;
@@ -2041,7 +2053,7 @@ public class Game extends BasicGameState {
 	 * @param keys the keys pressed
 	 * @param time the time of the replay Frame
 	 */
-	public synchronized void addReplayFrameAndRun(int x, int y, int keys, int time){
+	private synchronized void addReplayFrameAndRun(int x, int y, int keys, int time){
 		// "auto" and "autopilot" mods: use automatic cursor coordinates
 		if (GameMod.AUTO.isActive() || GameMod.AUTOPILOT.isActive()) {
 			x = (int) autoMousePosition.x;
@@ -2110,6 +2122,21 @@ public class Game extends BasicGameState {
 		if (replayFrames != null)
 			replayFrames.add(frame);
 		return frame;
+	}
+
+	/**
+	 * Adds a life frame to the list, if possible.
+	 * @param time the time of the life frame
+	 */
+	private void addLifeFrame(int time) {
+		if (lifeFrames == null)
+			return;
+
+		// don't record life frames before first object
+		if (time < beatmap.objects[0].getTime() - approachTime)
+			return;
+
+		lifeFrames.add(new LifeFrame(time, data.getHealthPercent() / 100f));
 	}
 
 	/**

@@ -24,34 +24,37 @@ package itdelatrisu.opsu.replay;
  * @author smoogipooo (https://github.com/smoogipooo/osu-Replay-API/)
  */
 public class LifeFrame {
-	/** Time. */
+	/** The sample interval, in milliseconds, when saving replays. */
+	public static final int SAMPLE_INTERVAL = 2000;
+
+	/** Time, in milliseconds. */
 	private final int time;
 
-	/** Percentage. */
-	private final float percentage;
+	/** Health. */
+	private final float health;
 
 	/**
 	 * Constructor.
-	 * @param time the time
-	 * @param percentage the percentage
+	 * @param time the time (in ms)
+	 * @param health the health [0,1]
 	 */
-	public LifeFrame(int time, float percentage) {
+	public LifeFrame(int time, float health) {
 		this.time = time;
-		this.percentage = percentage;
+		this.health = health;
 	}
 
 	/**
-	 * Returns the frame time.
+	 * Returns the frame time, in milliseconds.
 	 */
 	public int getTime() { return time; }
 
 	/**
-	 * Returns the frame percentage.
+	 * Returns the health.
 	 */
-	public float getPercentage() { return percentage; }
+	public float getHealth() { return health; }
 
 	@Override
 	public String toString() {
-		return String.format("(%d, %.2f)", time, percentage);
+		return String.format("(%d, %.2f)", time, health);
 	}
 }
