@@ -54,6 +54,7 @@ import java.security.cert.X509Certificate;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.Scanner;
 import java.util.jar.JarFile;
 
@@ -253,6 +254,21 @@ public class Utils {
 	 */
 	public static float lerp(float a, float b, float t) {
 		return a * (1 - t) + b * t;
+	}
+
+	/**
+	 * Calculates the standard deviation of the numbers in the list.
+	 */
+	public static double standardDeviation(List<Integer> list) {
+		float avg = 0f;
+		for (int i : list)
+			avg += i;
+		avg /= list.size();
+		float var = 0f;
+		for (int i : list)
+			var += (i - avg) * (i - avg);
+		var /= list.size();
+		return Math.sqrt(var);
 	}
 
 	/**

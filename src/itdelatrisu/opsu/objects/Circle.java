@@ -164,7 +164,7 @@ public class Circle implements GameObject {
 	}
 
 	@Override
-	public boolean update(boolean overlap, int delta, int mouseX, int mouseY, boolean keyPressed, int trackPosition) {
+	public boolean update(int delta, int mouseX, int mouseY, boolean keyPressed, int trackPosition) {
 		int time = hitObject.getTime();
 
 		int[] hitResultOffset = game.getHitResultOffsets();

@@ -39,6 +39,7 @@ import javax.sound.sampled.UnsupportedAudioFileException;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.openal.AL;
 import org.lwjgl.openal.AL10;
+import org.newdawn.slick.Color;
 import org.newdawn.slick.Music;
 import org.newdawn.slick.MusicListener;
 import org.newdawn.slick.SlickException;
@@ -137,7 +138,20 @@ public class MusicController {
 	 */
 	private static void loadTrack(File file, int position, boolean loop) {
 		try {
+			// create the music player
+			// NOTE: most errors from this call are suppressed, so check
+			//       for SoundStore errors manually afterwards
 			player = new Music(file.getPath(), true);
+			if (!SoundStore.get().soundWorks()) {
+				player = null;
+				trackEnded = false;
+				UI.getNotificationManager().sendNotification(
+					"Looks like sound isn't working right now. Sorry!\n\n" +
+					"Restarting the game will probably fix this.",
+					Color.red
+				);
+				return;
+			}
 			player.addListener(new MusicListener() {
 				@Override
 				public void musicEnded(Music music) {

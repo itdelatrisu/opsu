@@ -96,7 +96,7 @@ public class ImageLoader {
 				ByteBuffer textureBuffer = imageData.loadImage(in, false, null);
 				if (!isInterrupted())
 					data = new LoadedImageData(imageData, textureBuffer);
-			} catch (IOException e) {
+			} catch (Exception e) {
 				if (!isInterrupted())
 					Log.warn(String.format("Failed to load background image '%s'.", file), e);
 			}

@@ -218,39 +218,13 @@ public class UserSelectOverlay extends AbstractComponent {
 	/** Activates the component. */
 	public void activate() {
 		this.active = true;
-		scrolling.setPosition(0f);
-		globalAlpha = 1f;
-		selectedButton = null;
 		mousePressY = -1;
-		textField.setText("");
-		newUser.setName("");
-		newUser.setIconId(UserList.DEFAULT_ICON);
-		newUserButton.resetHover();
-		for (int i = 0; i < newUserIcons.length; i++)
-			newUserIcons[i].resetHover();
+		globalAlpha = 1f;
 
 		// set initial state
 		state = State.USER_SELECT;
 		stateChangeProgress.setTime(stateChangeProgress.getDuration());
-
-		// initialize user buttons
-		userButtons.clear();
-		UserButton defaultUser = null;
-		for (User user : UserList.get().getUsers()) {
-			UserButton button = new UserButton(0, 0, Color.white);
-			button.setUser(user);
-			if (user.getName().equals(UserList.DEFAULT_USER_NAME))
-				defaultUser = button;
-			else
-				userButtons.add(button);
-		}
-		if (defaultUser != null)
-			userButtons.add(defaultUser);  // add default user at the end
-		userButtons.add(new UserButton(0, 0, Color.white));  // create new user
-		maxScrollOffset = Math.max(0,
-			(UserButton.getHeight() + usersPaddingY) * userButtons.size() -
-			(int) ((height - usersStartY) * 0.9f));
-		scrolling.setMinMax(0, maxScrollOffset);
+		prepareUserSelect();
 	}
 
 	/** Deactivates the component. */
@@ -264,6 +238,8 @@ public class UserSelectOverlay extends AbstractComponent {
 
 	@Override
 	public void render(GUIContext container, Graphics g) throws SlickException {
+		g.setClip((int) x, (int) y, width, height);
+
 		// background
 		g.setColor(COLOR_BG);
 		g.fillRect(x, y, width, height);
@@ -280,6 +256,8 @@ public class UserSelectOverlay extends AbstractComponent {
 			renderUserSelect(g, globalAlpha);
 		else if (state == State.CREATE_USER)
 			renderUserCreate(g, globalAlpha);
+
+		g.clearClip();
 	}
 
 	/** Renders the user selection menu. */
@@ -299,7 +277,8 @@ public class UserSelectOverlay extends AbstractComponent {
 		int cy = (int) (y + -scrolling.getPosition() + usersStartY);
 		for (UserButton button : userButtons) {
 			button.setPosition(cx, cy);
-			button.draw(g, alpha);
+			if (cy < height)
+				button.draw(g, alpha);
 			cy += UserButton.getHeight() + usersPaddingY;
 		}
 
@@ -320,7 +299,7 @@ public class UserSelectOverlay extends AbstractComponent {
 		String title = "Add User";
 		Fonts.XLARGE.drawString(
 			x + (width - Fonts.XLARGE.getWidth(title)) / 2,
-			(int) (y + titleY - scrolling.getPosition()),
+			(int) (y + titleY),
 			title, COLOR_WHITE
 		);
 
@@ -359,6 +338,13 @@ public class UserSelectOverlay extends AbstractComponent {
 		int iconSize = UserButton.getIconSize();
 		int paddingX = iconSize / 4;
 		int maxPerLine = UserButton.getWidth() / (iconSize + paddingX);
+		// start scroll area here
+		g.setClip((int) x, cy, width, height - (int) (cy - y));
+		int scrollOffset = ((newUserIcons.length - 1) / maxPerLine + 1) * (iconSize + usersPaddingY);
+		scrollOffset -= height - cy;
+		scrollOffset = Math.max(scrollOffset, 0);
+		scrolling.setMinMax(0, scrollOffset);
+		cy += -scrolling.getPosition();
 		for (int i = 0; i < newUserIcons.length; i += maxPerLine) {
 			// draw line-by-line
 			int n = Math.min(maxPerLine, newUserIcons.length - i);
@@ -367,10 +353,12 @@ public class UserSelectOverlay extends AbstractComponent {
 				MenuButton button = newUserIcons[i + j];
 				button.setX(cx + iconSize / 2);
 				button.setY(cy + iconSize / 2);
-				button.getImage().setAlpha((newUser.getIconId() == i + j) ?
-					alpha : alpha * button.getHoverAlpha() * 0.9f
-				);
-				button.getImage().draw(cx, cy);
+				if (cy < height) {
+					button.getImage().setAlpha((newUser.getIconId() == i + j) ?
+						alpha : alpha * button.getHoverAlpha() * 0.9f
+					);
+					button.getImage().draw(cx, cy);
+				}
 				cx += iconSize + paddingX;
 			}
 			cy += iconSize + usersPaddingY;
@@ -420,13 +408,11 @@ public class UserSelectOverlay extends AbstractComponent {
 		if (button == Input.MOUSE_MIDDLE_BUTTON)
 			return;
 
-		if (state == State.USER_SELECT) {
-			scrolling.pressed();
+		scrolling.pressed();
+		mousePressY = y;
 
-			// clicked a user button?
+		if (state == State.USER_SELECT)
 			selectedButton = getButtonAtPosition(x, y);
-			mousePressY = y;
-		}
 	}
 
 	@Override
@@ -445,19 +431,17 @@ public class UserSelectOverlay extends AbstractComponent {
 		mousePressY = -1;
 		scrolling.released();
 
-		if (state == State.USER_SELECT) {
-			if (mouseDragged)
-				return;
+		if (mouseDragged)
+			return;
 
+		if (state == State.USER_SELECT) {
 			if (selectedButton != null) {
 				SoundController.playSound(SoundEffect.MENUCLICK);
 				if (selectedButton.getUser() == null) {
 					// new user
 					state = State.CREATE_USER;
 					stateChangeProgress.setTime(0);
-					scrolling.scrollToPosition(0f);
-					newUser.setName("");
-					newUserButton.resetHover();
+					prepareUserCreate();
 				} else {
 					// select user
 					String name = selectedButton.getUser().getName();
@@ -494,9 +478,6 @@ public class UserSelectOverlay extends AbstractComponent {
 
 		consumeEvent();
 
-		if (state == State.CREATE_USER)
-			return;
-
 		int diff = newy - oldy;
 		if (diff != 0)
 			scrolling.dragged(-diff);
@@ -504,6 +485,11 @@ public class UserSelectOverlay extends AbstractComponent {
 
 	@Override
 	public void mouseWheelMoved(int delta) {
+		if (UI.globalMouseWheelMoved(delta, true)) {
+			consumeEvent();
+			return;
+		}
+
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
 		if (!active)
 			return;
@@ -517,9 +503,6 @@ public class UserSelectOverlay extends AbstractComponent {
 		}
 
 		consumeEvent();
-
-		if (state == State.CREATE_USER)
-			return;
 
 		scrolling.scrollOffset(-delta);
 	}
@@ -564,23 +547,18 @@ public class UserSelectOverlay extends AbstractComponent {
 	}
 
 	/**
-	 * Returns the button at the given position, using the current scroll offset.
+	 * Returns the button at the given position.
 	 * @param cx the x coordinate
 	 * @param cy the y coordinate
 	 * @return the button, or {@code null} if none
 	 */
 	private UserButton getButtonAtPosition(int cx, int cy) {
-		if (cy < y + usersStartY || cx < x + usersStartX || cx > x + usersStartX + UserButton.getWidth())
+		if (cy < y || cx < x + usersStartX || cx > x + usersStartX + UserButton.getWidth())
 			return null;  // out of bounds
 
-		int mouseVirtualY = (int) (scrolling.getPosition() + cy - y - usersStartY);
 		for (UserButton button : userButtons) {
-			if (mouseVirtualY <= UserButton.getHeight()) {
-				if (mouseVirtualY >= 0)
-					return button;
-				return null;
-			}
-			mouseVirtualY -= UserButton.getHeight() + usersPaddingY;
+			if (button.contains(cx, cy))
+				return button;
 		}
 		return null;
 	}
@@ -604,6 +582,47 @@ public class UserSelectOverlay extends AbstractComponent {
 				listener.close(true);
 			}
 		}
+	}
+
+	/** Prepares the user selection state. */
+	private void prepareUserSelect() {
+		selectedButton = null;
+
+		// initialize user buttons
+		userButtons.clear();
+		UserButton defaultUser = null;
+		for (User user : UserList.get().getUsers()) {
+			UserButton button = new UserButton(0, 0, Color.white);
+			button.setUser(user);
+			if (user.getName().equals(UserList.DEFAULT_USER_NAME))
+				defaultUser = button;
+			else
+				userButtons.add(button);
+		}
+		if (defaultUser != null)
+			userButtons.add(defaultUser);  // add default user at the end
+		userButtons.add(new UserButton(0, 0, Color.white));  // create new user
+		maxScrollOffset = Math.max(0,
+			(UserButton.getHeight() + usersPaddingY) * userButtons.size() -
+			(int) ((height - usersStartY) * 0.9f));
+
+		scrolling.setPosition(0f);
+		scrolling.setAllowOverScroll(true);
+		scrolling.setMinMax(0, maxScrollOffset);
+	}
+
+	/** Prepares the user creation state. */
+	private void prepareUserCreate() {
+		newUser.setName("");
+		newUser.setIconId(UserList.DEFAULT_ICON);
+		textField.setText("");
+		newUserButton.resetHover();
+		for (int i = 0; i < newUserIcons.length; i++)
+			newUserIcons[i].resetHover();
+
+		scrolling.setPosition(0f);
+		scrolling.setAllowOverScroll(false);
+		scrolling.setMinMax(0, 0);  // real max is set in renderUserCreate()
 	}
 
 	@Override

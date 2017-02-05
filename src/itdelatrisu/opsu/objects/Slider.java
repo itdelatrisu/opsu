@@ -541,7 +541,7 @@ public class Slider implements GameObject {
 	}
 
 	@Override
-	public boolean update(boolean overlap, int delta, int mouseX, int mouseY, boolean keyPressed, int trackPosition) {
+	public boolean update(int delta, int mouseX, int mouseY, boolean keyPressed, int trackPosition) {
 		int repeatCount = hitObject.getRepeatCount();
 		int[] hitResultOffset = game.getHitResultOffsets();
 		boolean isAutoMod = GameMod.AUTO.isActive();
@@ -582,8 +582,9 @@ public class Slider implements GameObject {
 		initialExpand.update(delta);
 		releaseExpand.update(delta);
 
-		// TODO: Some ticks/repeats get missed if delta updates skip past them.
-		// The code tries to catch this, but doesn't completely work...
+		// NOTE:
+		// The loops below are used to catch any missed ticks/repeats if slower
+		// delta updates skip past them.
 
 		// repeats
 		int newRepeats = 0;

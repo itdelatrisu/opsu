@@ -172,6 +172,7 @@ public enum GameImage {
 	RANKING_TITLE ("ranking-title", "png"),
 	RANKING_MAXCOMBO ("ranking-maxcombo", "png"),
 	RANKING_ACCURACY ("ranking-accuracy", "png"),
+	RANKING_GRAPH ("ranking-graph", "png", false, false),
 	DEFAULT_0 ("default-0", "png"),
 	DEFAULT_1 ("default-1", "png"),
 	DEFAULT_2 ("default-2", "png"),

@@ -97,6 +97,7 @@ public class OptionGroup {
 			GameOption.FIXED_HP,
 			GameOption.FIXED_AR,
 			GameOption.FIXED_OD,
+			GameOption.FIXED_SPEED,
 		}),
 		new OptionGroup("SEEKING", new GameOption[] {
 			GameOption.CHECKPOINT,

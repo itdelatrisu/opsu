@@ -499,7 +499,7 @@ public class Options {
 			@Override
 			public void read(String s) {
 				int i = (int) (Float.parseFloat(s) * 100f);
-				if (i >= 50 && i <= 200)
+				if (i >= getMinValue() && i <= getMaxValue())
 					val = i;
 			}
 		},
@@ -571,7 +571,7 @@ public class Options {
 			@Override
 			public void read(String s) {
 				int i = (int) (Float.parseFloat(s) * 10f);
-				if (i >= 0 && i <= 100)
+				if (i >= getMinValue() && i <= getMaxValue())
 					val = i;
 			}
 		},
@@ -585,7 +585,7 @@ public class Options {
 			@Override
 			public void read(String s) {
 				int i = (int) (Float.parseFloat(s) * 10f);
-				if (i >= 0 && i <= 100)
+				if (i >= getMinValue() && i <= getMaxValue())
 					val = i;
 			}
 		},
@@ -599,7 +599,7 @@ public class Options {
 			@Override
 			public void read(String s) {
 				int i = (int) (Float.parseFloat(s) * 10f);
-				if (i >= 0 && i <= 100)
+				if (i >= getMinValue() && i <= getMaxValue())
 					val = i;
 			}
 		},
@@ -613,7 +613,21 @@ public class Options {
 			@Override
 			public void read(String s) {
 				int i = (int) (Float.parseFloat(s) * 10f);
-				if (i >= 0 && i <= 100)
+				if (i >= getMinValue() && i <= getMaxValue())
+					val = i;
+			}
+		},
+		FIXED_SPEED ("Fixed speed", "FixedSpeed", "Determines the speed of the music.", 0, 0, 300) {
+			@Override
+			public String getValueString() { return (val == 0) ? "Disabled" : String.format("%.2fx", val / 100f); }
+
+			@Override
+			public String write() { return String.format(Locale.US, "%.2f", val / 100f); }
+
+			@Override
+			public void read(String s) {
+				int i = (int) (Float.parseFloat(s) * 100f);
+				if (i >= getMinValue() && i <= getMaxValue())
 					val = i;
 			}
 		},
@@ -1164,6 +1178,12 @@ public class Options {
 	 * @return the OD value (0, 10], 0f if disabled
 	 */
 	public static float getFixedOD() { return GameOption.FIXED_OD.getIntegerValue() / 10f; }
+
+	/**
+	 * Returns the fixed speed override, if any.
+	 * @return the speed value (0, 3], 0f if disabled
+	 */
+	public static float getFixedSpeed() { return GameOption.FIXED_SPEED.getIntegerValue() / 100f; }
 
 	/**
 	 * Returns whether or not to render loading text in the splash screen.
