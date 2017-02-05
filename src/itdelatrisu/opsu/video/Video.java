@@ -174,6 +174,11 @@ public class Video implements Closeable {
 			initFrame = System.nanoTime();
 			if (pauseFrame != 0)
 				pauseFrame = initFrame;
+
+			// change pixel store alignment to prevent distortion
+			GL11.glPixelStorei(GL11.GL_UNPACK_ALIGNMENT, 1);
+			GL11.glPixelStorei(GL11.GL_PACK_ALIGNMENT, 1);
+
 			initialized = true;
 		}
 
