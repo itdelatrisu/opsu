@@ -532,7 +532,7 @@ public class SongMenu extends BasicGameState {
 		optionsOverlay.setConsumeAndClose(true);
 
 		// user button
-		userButton = new UserButton(width / 2, height - UserButton.getHeight(), Color.white);
+		userButton = new UserButton((int) (selectX + selectOffset * 3.5f), height - UserButton.getHeight(), Color.white);
 
 		// user selection overlay
 		userOverlay = new UserSelectOverlay(container, new UserSelectOverlay.UserSelectOverlayListener() {

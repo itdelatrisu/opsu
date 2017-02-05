@@ -240,7 +240,7 @@ public class DownloadsMenu extends BasicGameState {
 					focusResult = -1;
 					startResultPos.setPosition(0);
 					if (nodes == null)
-						searchResultString = "An error occurred. See log for details.";
+						searchResultString = "An error occurred with server "+server.getName()+". Try another server";
 					else {
 						if (query.isEmpty())
 							searchResultString = "Type to search!";
@@ -365,9 +365,9 @@ public class DownloadsMenu extends BasicGameState {
 
 		// buttons
 		float buttonMarginX = width * 0.004f;
-		float buttonHeight = Fonts.MEDIUM.getLineHeight();//height * 0.038f;
-		float resetWidth = Fonts.MEDIUM.getWidth("@@@@")+10;//width * 0.085f;
-		float rankedWidth = Fonts.MEDIUM.getWidth("@@@@@@@@@@")+10;//width * 0.15f;
+		float buttonHeight = Fonts.MEDIUM.getLineHeight()*1.2f;//height * 0.038f;
+		float resetWidth = Fonts.MEDIUM.getWidth("@@@@@")+10;//width * 0.085f;
+		float rankedWidth = Fonts.MEDIUM.getWidth("@@@@@@@@@@@")+10;//width * 0.15f;
 		float lowerWidth = width * 0.12f;
 		float topButtonY = searchY + Fonts.MEDIUM.getLineHeight() / 2f;
 		float lowerButtonY = height * 0.995f - searchY - buttonHeight / 2f;

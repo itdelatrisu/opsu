@@ -14,7 +14,8 @@ public class GameContainer extends GUIContext{
 	public boolean hasFocus = true;
 	
 	protected boolean running;
-	protected boolean forceExit;
+	protected boolean forceExit = true;
+	boolean exited = false;
 	
 	public GameContainer(StateBasedGame game) {
 		sbg =(StateBasedGame)game;
@@ -24,7 +25,7 @@ public class GameContainer extends GUIContext{
 	protected void getDelta(){}
 	
 	protected boolean running(){return false;}
-	protected void gameLoop(){}
+	protected void gameLoop() throws SlickException{}
 	
 	public int getWidth() {
 		return width;
@@ -42,14 +43,14 @@ public class GameContainer extends GUIContext{
 	}
 	public void exit() {
 		closing();
-		Gdx.app.exit();
-		System.exit(0);
+		if (forceExit) {
+			Gdx.app.exit();
+			System.exit(0);
+		}
+		exited = true;
 	}
 
-	protected void close_sub() {
-		// TODO Auto-generated method stub
-		
-	}
+	protected void close_sub() {}
 	
 
 	public boolean hasFocus() {
@@ -137,16 +138,15 @@ public class GameContainer extends GUIContext{
 		}
 	}
 	public void setForceExit(boolean b) {
-		// TODO Auto-generated method stub
-		
+		this.forceExit = b;
 	}
 	@Override
 	public void addInputListener(GInputListener listener) {
-		sbg.addKeyListener(listener);
+		sbg.addInputListener(listener);
 	}
 	@Override
 	public void removeInputListener(GInputListener listener) {
-		sbg.removeKeyListener(listener);
+		sbg.removeInputListener(listener);
 		
 	}
 	public void setUpdateOnlyWhenVisible(boolean b) {

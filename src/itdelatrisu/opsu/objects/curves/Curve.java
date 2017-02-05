@@ -141,9 +141,10 @@ public abstract class Curve {
 			int drawUpTo = (int) (curve.length * t);
 			Image hitCircle = GameImage.HITCIRCLE.getImage();
 			Image hitCircleOverlay = GameImage.HITCIRCLE_OVERLAY.getImage();
-			for (int i = 0; i < drawUpTo; i+=Options.getSliderQuality())
+			int sliderQuality = Options.getSliderQuality();
+			for (int i = 0; i < drawUpTo; i+= sliderQuality)
 				hitCircleOverlay.drawCentered(curve[i].x, curve[i].y, Colors.WHITE_FADE);
-			for (int i = 0; i < drawUpTo; i+=Options.getSliderQuality())
+			for (int i = 0; i < drawUpTo; i+= sliderQuality)
 				hitCircle.drawCentered(curve[i].x, curve[i].y, color);
 			
 			Vec2f endPoi = pointAt(t);

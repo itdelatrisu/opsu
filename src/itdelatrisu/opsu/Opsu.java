@@ -188,15 +188,11 @@ public class Opsu extends StateBasedGame {
 		} catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
 			Log.warn("Failed to set 'sys_paths' field.", e);
 		}
-		*/
 		FFmpeg.setNativeDir(nativeDir);
-
+		 */
+		
 		// set the resource paths
-		ResourceLoader.removeAllResourceLocations();
-		ResourceLoader.addResourceLocation(new FileSystemLocation(Options.getSkinDir()));
 		ResourceLoader.addResourceLocation(new FileSystemLocation(new File("res/"),true));
-		ResourceLoader.addResourceLocation(new ClasspathLocation());
-		ResourceLoader.addResourceLocation(new FileSystemLocation(new File(".")));
 		/*
 		ResourceLoader.addResourceLocation(new FileSystemLocation(new File("./res/")));
 		*/
@@ -232,7 +228,8 @@ public class Opsu extends StateBasedGame {
 		/*
 		Input.disableControllers();
 		*/
-		
+	}
+	public static Opsu start() {
 		// start the game
 		try {
 		
@@ -247,7 +244,7 @@ public class Opsu extends StateBasedGame {
 				app.setIcons(icons);
 				app.setForceExit(true);
 
-				//app.start();
+				app.start();
 
 				/*
 				// run update if available
@@ -258,9 +255,10 @@ public class Opsu extends StateBasedGame {
 				}
 				*/
 		//	}
-		} catch (SlickException e) {
+		} catch (Exception e) {
 			errorAndExit(e, "An error occurred while creating the game container.", true);
 		}
+		return opsu;
 	}
 
 	@Override

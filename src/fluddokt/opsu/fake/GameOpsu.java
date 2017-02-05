@@ -4,10 +4,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.Opsu;
-import itdelatrisu.opsu.Options;
+import itdelatrisu.opsu.options.Options;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputMultiplexer;
@@ -22,7 +23,7 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 public class GameOpsu extends com.badlogic.gdx.Game {
 
-	public final static String VERSION = "0.14.0a";
+	public final static String VERSION = "0.15.0a";
 	public StateBasedGame sbg;
 	
 	Stage stage;
@@ -70,8 +71,6 @@ public class GameOpsu extends com.badlogic.gdx.Game {
 		if(!inited)
 			return;
 		
-		sbg.gc.closing();
-		super.dispose();
 		for (GameImage img : GameImage.values()) {
 			try {
 				img.dispose();
@@ -79,6 +78,9 @@ public class GameOpsu extends com.badlogic.gdx.Game {
 				e.printStackTrace();
 			}
 		}
+		sbg.gc.closing();
+		super.dispose();
+		
 	}
 
 	int delayLoad = 0;
@@ -88,14 +90,11 @@ public class GameOpsu extends com.badlogic.gdx.Game {
 		
 		if (delayLoad>2 && dialogCnt == 0){
 		try{
-			if (!inited){
+			if (sbg == null){
 				if (Gdx.graphics.getWidth() > Gdx.graphics.getHeight()){
-					Opsu.main(new String[0]);
-					sbg = Opsu.opsu;
+					sbg = Opsu.start();
 					sbg.gc.width = Gdx.graphics.getWidth();
 					sbg.gc.height = Gdx.graphics.getHeight();
-					
-					Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 					
 					try {
 						sbg.init();
@@ -121,7 +120,13 @@ public class GameOpsu extends com.badlogic.gdx.Game {
 					Gdx.gl.glClearColor(bgcolor.r, bgcolor.g, bgcolor.b, 1);
 				Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 				try {
-					sbg.render();
+					if (sbg.gc.exited) {
+						sbg = null;
+						delayLoad = 0;
+						table.addActor(loadingLabel);
+					}
+					else
+						sbg.render();
 				} catch (SlickException e) {
 					e.printStackTrace();
 					error("SlickErrorRender", e);
@@ -198,6 +203,8 @@ public class GameOpsu extends com.badlogic.gdx.Game {
 		loadingLabel = new Label("Loading...", skin);
 		table.addActor(loadingLabel);
 		
+		Opsu.main(new String[0]);
+		
 	}
 
 	public static void error(String string, Throwable e) {
@@ -253,8 +260,5 @@ public class GameOpsu extends com.badlogic.gdx.Game {
 		table.addActor(dialog);
 		
 		table.validate();
-		
-		
 	}
-
 }

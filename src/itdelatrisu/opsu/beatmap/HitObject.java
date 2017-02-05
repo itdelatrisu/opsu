@@ -17,10 +17,9 @@
  */
 
 package itdelatrisu.opsu.beatmap;
+import itdelatrisu.opsu.options.Options;
 
-import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.Utils;
-
 import itdelatrisu.opsu.GameMod;
 import itdelatrisu.opsu.objects.curves.CatmullCurve;
 import itdelatrisu.opsu.objects.curves.CircumscribedCircle;

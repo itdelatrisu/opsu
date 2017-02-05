@@ -17,9 +17,12 @@
  */
 
 package itdelatrisu.opsu.user;
+import fluddokt.opsu.fake.*;
+import fluddokt.opsu.fake.gui.*;
 
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
+import itdelatrisu.opsu.options.Options;
 import itdelatrisu.opsu.ui.Colors;
 import itdelatrisu.opsu.ui.Fonts;
 import itdelatrisu.opsu.ui.KineticScrolling;
@@ -31,6 +34,7 @@ import itdelatrisu.opsu.ui.animations.AnimationEquation;
 import java.util.ArrayList;
 import java.util.List;
 
+/*
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
@@ -39,6 +43,7 @@ import org.newdawn.slick.SlickException;
 import org.newdawn.slick.gui.AbstractComponent;
 import org.newdawn.slick.gui.GUIContext;
 import org.newdawn.slick.gui.TextField;
+*/
 
 /**
  * User selection overlay.
@@ -144,11 +149,11 @@ public class UserSelectOverlay extends AbstractComponent {
 		this.containerHeight = container.getHeight();
 
 		// overlay positions
-		this.x = containerWidth / 3;
 		this.y = 0;
-		this.width = containerWidth / 3;
+		this.width = (int) (containerWidth*Options.getMobileUIScale(0.5f) / 3);
 		this.height = containerHeight;
-
+		this.x = (containerWidth - width) /2;
+		
 		// user positions
 		this.titleY = Fonts.LARGE.getLineHeight() * 2;
 		this.usersStartX = (width - UserButton.getWidth()) / 2;
@@ -167,8 +172,9 @@ public class UserSelectOverlay extends AbstractComponent {
 		newUserButton.setHoverAnimationEquation(AnimationEquation.LINEAR);
 
 		// new user text field
-		this.textField = new TextField(container, null, 0, 0, 0, 0);
+		this.textField = new TextField(container, Fonts.LARGE, 0, 0, 0, 0);
 		textField.setMaxLength(UserList.MAX_USER_NAME_LENGTH);
+		container.removeInputListener(textField);
 
 		// new user icons
 		this.newUserIcons = new MenuButton[UserButton.getIconCount()];
@@ -244,6 +250,7 @@ public class UserSelectOverlay extends AbstractComponent {
 		g.setColor(COLOR_BG);
 		g.fillRect(x, y, width, height);
 
+		//textField.render(container, g);
 		// render states
 		if (!stateChangeProgress.isFinished()) {
 			// blend states
@@ -324,6 +331,7 @@ public class UserSelectOverlay extends AbstractComponent {
 			textColor = COLOR_RED;
 		int textWidth = Fonts.LARGE.getWidth(name);
 		int searchTextX = (int) (x + (width - textWidth) / 2);
+		textField.setBound((int) x, cy, width, Fonts.LARGE.getLineHeight());
 		Fonts.LARGE.drawString(searchTextX, cy, name, textColor);
 		cy += Fonts.LARGE.getLineHeight();
 		g.setColor(textColor);
@@ -403,6 +411,16 @@ public class UserSelectOverlay extends AbstractComponent {
 			return;
 		}
 
+		if (state == State.CREATE_USER) {
+			textField.setFocus(true);
+			textField.resetConsume();
+			textField.mousePressed(button, x, y);
+			textField.setFocus(false);
+			if (textField.isConsumed()) {
+				consumeEvent();
+				return;
+			}
+		}
 		consumeEvent();
 
 		if (button == Input.MOUSE_MIDDLE_BUTTON)
@@ -526,6 +544,13 @@ public class UserSelectOverlay extends AbstractComponent {
 
 		if (UI.globalKeyPressed(key))
 			return;
+	}
+	@Override
+	public void keyReleased(int key, char c) {
+		if (!active)
+			return;
+
+		consumeEvent();
 
 		// key entry
 		if (state == State.CREATE_USER) {
@@ -534,15 +559,27 @@ public class UserSelectOverlay extends AbstractComponent {
 				createNewUser();
 				return;
 			}
+		}
+	}
+	@Override
+	public void keyType(char c) {
+		if (!active)
+			return;
 
+		consumeEvent();
+
+		// key entry
+		if (state == State.CREATE_USER) {
 			textField.setFocus(true);
-			textField.keyPressed(key, c);
+			textField.keyType(c);
 			textField.setFocus(false);
 			newUser.setName(textField.getText());
+			/*
 			if (c > 255 && Character.isLetterOrDigit(c)) {
 				Fonts.loadGlyphs(Fonts.LARGE, c);
 				Fonts.loadGlyphs(Fonts.MEDIUM, c);
 			}
+			*/
 		}
 	}
 

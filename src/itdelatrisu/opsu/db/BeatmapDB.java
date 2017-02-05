@@ -267,7 +267,11 @@ public class BeatmapDB {
 
 			// apply updates
 			for (String query : getUpdateQueries(version))
+			try {
 				stmt.executeUpdate(query);
+			} catch (SQLException e) {
+				Log.warn("Failed to update beatmap database.", e);
+			}
 
 			// update version
 			if (infoExists) {

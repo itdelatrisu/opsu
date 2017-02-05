@@ -1977,7 +1977,7 @@ public class Game extends BasicGameState {
 			video = null;
 		}
 
-		if (!Options.isBeatmapVideoEnabled() || beatmap.video == null || !beatmap.video.isFile() || !FFmpeg.exists())
+		if (!Options.isBeatmapVideoEnabled() || beatmap.video == null || !beatmap.video.isFile())
 			return;
 
 		// load video

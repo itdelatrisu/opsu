@@ -1,6 +1,7 @@
 package fluddokt.opsu.fake;
 
 import java.util.HashMap;
+import java.util.HashSet;
 
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Pixmap;
@@ -329,7 +330,7 @@ public class Image {
 	boolean destroyed = false;
 
 	public void destroy() throws SlickException {
-		// System.out.println("Destroy :"+name);
+		//System.out.println("Destroy :"+filename);
 		if (!destroyed){
 			if(parentImage != null)
 				parentImage.destroy();
@@ -369,7 +370,7 @@ public class Image {
 
 
 	public void drawCentered(float x, float y, Color color) {
-		draw(x - getWidth() / 2, y - getHeight() / 2, color);
+		draw(x - getWidth() / 2f, y - getHeight() / 2f, color);
 	}
 
 	public void draw(float x, float y, float w, float h) {
@@ -439,9 +440,12 @@ public class Image {
 		
 	}
 
-	Color imageColor = new Color(0xffffffff);
+	Color imageColor = Color.white;
 	public void setImageColor(float r, float g, float b, float a) {
-		imageColor.init(r, g, b, a);
+		if (imageColor == Color.white)
+			imageColor = new Color(r, g, b, a);
+		else
+			imageColor.init(r, g, b, a);
 	}
 
 	public void drawEmbedded(float x, float y, int w, int h, float r) {
@@ -463,6 +467,16 @@ public class Image {
 		      true      true  false
 		*/
 		tex.flip(x ^ tex.isFlipX(), y ^ !tex.isFlipY());
+	}
+
+	public static void clearAll() {
+		HashSet<String> nameSet = new HashSet<String>();
+		nameSet.addAll(texmap.keySet());
+		for (String t : nameSet) {
+			TextureInfo tinfo = texmap.get(t);
+			tinfo.tex.dispose();
+			texmap.remove(t);
+		}
 	}
 
 	

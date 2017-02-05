@@ -5,7 +5,6 @@ import java.util.LinkedList;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
-import com.badlogic.gdx.utils.OrderedSet;
 import com.badlogic.gdx.utils.TimeUtils;
 
 import fluddokt.newdawn.slick.state.transition.Transition;
@@ -21,7 +20,7 @@ public abstract class StateBasedGame extends Game2 implements InputProcessor {
 	HashMap<Integer, BasicGameState> bgs = new HashMap<Integer, BasicGameState>();
 	LinkedList<BasicGameState> orderedbgs = new LinkedList<BasicGameState>();
 	String title;
-	OrderedSet<GInputListener> inputListener = new OrderedSet<GInputListener>();
+	LinkedList<GInputListener> inputListener = new LinkedList<GInputListener>();
 	boolean rightIsPressed;
 	int touchX = 0;
 	int touchY = 0;
@@ -215,6 +214,8 @@ public abstract class StateBasedGame extends Game2 implements InputProcessor {
 		return false;
 	}
 	private void mousePressed(int button, int x, int y) {
+		Input.x = x;
+		Input.y = y;
 		for (GInputListener keylis : inputListener) {
 			keylis.consumeEvent = false;
 			keylis.mousePressed(button, x, y);
@@ -284,6 +285,8 @@ public abstract class StateBasedGame extends Game2 implements InputProcessor {
 	@Override
 	public boolean touchDragged(int screenX, int screenY, int pointer) {
 		if (pointer == 0) {
+			Input.x = screenX;
+			Input.y = screenY;
 			mouseDragged(oldx, oldy, screenX, screenY);
 			oldx = screenX;
 			oldy = screenY;
@@ -295,6 +298,8 @@ public abstract class StateBasedGame extends Game2 implements InputProcessor {
 
 	@Override
 	public boolean mouseMoved(int screenX, int screenY) {
+		Input.x = screenX;
+		Input.y = screenY;
 		currentState.mouseMoved(oldx, oldy, screenX, screenX);
 		oldx = screenX;
 		oldy = screenY;
@@ -328,12 +333,12 @@ public abstract class StateBasedGame extends Game2 implements InputProcessor {
 		gc = gameContainer;
 	}
 
-	public void addKeyListener(GInputListener listener) {
-		inputListener.add(listener);
-
+	public void addInputListener(GInputListener listener) {
+		if (!inputListener.contains(listener))
+			inputListener.addFirst(listener);
 	}
 
-	public void removeKeyListener(GInputListener listener) {
+	public void removeInputListener(GInputListener listener) {
 		inputListener.remove(listener);
 	}
 }

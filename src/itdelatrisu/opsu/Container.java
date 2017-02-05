@@ -73,6 +73,7 @@ public class Container extends AppGameContainer {
 		super(game, width, height, fullscreen);
 	}
 
+	/*
 	@Override
 	public void start() throws SlickException {
 		try {
@@ -105,10 +106,12 @@ public class Container extends AppGameContainer {
 			System.exit(0);
 		}
 	}
-/*
+	*/
+
 	/**
 	 * Sets up the environment.
 	 */
+	/*
 	private void runSetup() throws SlickException {
 		try {
 			setup();
@@ -122,12 +125,14 @@ public class Container extends AppGameContainer {
 				throw e;
 		}
 	}
+	*/
 
 	/**
 	 * Returns whether the game is running with software-only OpenGL context.
 	 */
 	public boolean isSoftwareMode() { return softwareMode; }
 
+	/*
 	@Override
 	protected void gameLoop() throws SlickException {
 		int delta = getDelta();
@@ -149,7 +154,8 @@ public class Container extends AppGameContainer {
 				running = false;
 		}
 	}
-/*
+	*/
+	
 	/**
 	 * Actions to perform before destroying the game container.
 	 */

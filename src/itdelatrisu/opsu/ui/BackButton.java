@@ -17,16 +17,19 @@
  */
 
 package itdelatrisu.opsu.ui;
+import fluddokt.opsu.fake.*;
 
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.ui.animations.AnimationEquation;
 
+/*
 import org.newdawn.slick.Animation;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
+*/
 
 /**
  * Back button.
@@ -101,8 +104,8 @@ public class BackButton {
 			textWidth = Fonts.MEDIUM.getWidth(BUTTON_TEXT);
 			paddingY = Fonts.MEDIUM.getHeight(BUTTON_TEXT);
 			// getHeight doesn't seem to be so accurate
-			textOffset = paddingY * 0.264f;
-			paddingY *= 0.736f;
+			textOffset = paddingY/2;//paddingY * 0.264f;
+			paddingY *= 0.65f;//0.736f;
 			paddingX = paddingY / 2f;
 			chevronBaseSize = paddingY * 3f / 2f;
 			buttonYpos = (int) (container.getHeight() - paddingY * 4f);
@@ -172,7 +175,7 @@ public class BackButton {
 		chevron.drawCentered((firstWidth - slopeImageSlopeWidth / 2) / 2, buttonYpos + paddingY * 1.5f);
 
 		// text
-		float textY = buttonYpos + paddingY - textOffset;
+		float textY = buttonYpos + paddingY * 1.5f - textOffset;
 		float textX = firstWidth + (secondWidth - paddingX * 2 - textWidth) / 2;
 		Fonts.MEDIUM.drawString(textX, textY + 1, BUTTON_TEXT, Color.black);
 		Fonts.MEDIUM.drawString(textX, textY, BUTTON_TEXT, Color.white);

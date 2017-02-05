@@ -5,6 +5,7 @@ import java.awt.event.KeyEvent;
 import com.badlogic.gdx.Gdx;
 
 import fluddokt.opsu.fake.gui.GInputAdapter;
+import fluddokt.opsu.fake.gui.GUIContext;
 
 public class TextField extends GInputAdapter {
 
@@ -24,6 +25,7 @@ public class TextField extends GInputAdapter {
 		this.h = h;
 		this.font = font;
 		this.container = container;
+		container.addInputListener(this);
 	}
 
 	public void setBackgroundColor(Color color) {
@@ -54,7 +56,7 @@ public class TextField extends GInputAdapter {
 		return x;
 	}
 
-	public void render(GameContainer container, Graphics g) {
+	public void render(GUIContext container2, Graphics g) {
 		g.setColor(bgColor);
 		g.fillRect(x, y, w, h);
 		g.setColor(borderColor);
@@ -64,12 +66,7 @@ public class TextField extends GInputAdapter {
 	}
 
 	public void setFocus(boolean b) {
-		// if(b!=hasFocus){
-		if (b) {
-			container.addInputListener(this);
-		} else
-			container.removeInputListener(this);
-		// }
+		hasFocus = b;
 	}
 
 	public String getText() {
@@ -90,18 +87,24 @@ public class TextField extends GInputAdapter {
 
 	@Override
 	public void keyType(char character) {
-		if (character == KeyEvent.VK_BACK_SPACE)
-			str.setLength(Math.max(str.length() - 1, 0));
-		else if (!Character.isISOControl(character))
-			str.append(character);
+		if (hasFocus) {
+			if (character == KeyEvent.VK_BACK_SPACE)
+				str.setLength(Math.max(str.length() - 1, 0));
+			else if (!Character.isISOControl(character))
+				str.append(character);
+			consumeEvent();
+		}
 	}
 
 	@Override
 	public void mousePressed(int button, int screenX, int screenY) {
-		if (!(screenX < x || screenX > x + w || screenY < y || screenY > y + h)) {
-			Gdx.input.setOnscreenKeyboardVisible(true);
-		} else {
-			Gdx.input.setOnscreenKeyboardVisible(false);
+		if (hasFocus) {
+			if (!(screenX < x || screenX > x + w || screenY < y || screenY > y + h)) {
+				Gdx.input.setOnscreenKeyboardVisible(true);
+				consumeEvent();
+			} else {
+				Gdx.input.setOnscreenKeyboardVisible(false);
+			}
 		}
 	}
 
@@ -109,7 +112,13 @@ public class TextField extends GInputAdapter {
 		this.x = x;
 		this.y = y;
 	}
-
 	
+	public void setBound(int x, int y, int w, int h) {
+		this.x = x;
+		this.y = y;
+		this.w = w;
+		this.h = h;
+	}
+
 
 }

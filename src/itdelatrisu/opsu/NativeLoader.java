@@ -88,6 +88,7 @@ public class NativeLoader {
 	 * @return true if the file is a native that should be loaded, false otherwise
 	 */
 	private boolean isNativeFile(String entryName) {
+		/*
 		String osName = System.getProperty("os.name");
 		String name = entryName.toLowerCase();
 
@@ -104,6 +105,7 @@ public class NativeLoader {
 
 		if (name.equals(FFmpeg.DEFAULT_NATIVE_FILENAME.toLowerCase()))
 			return true;
+		*/
 
 		return false;
 	}

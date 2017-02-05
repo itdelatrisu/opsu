@@ -21,13 +21,16 @@ import com.badlogic.gdx.utils.IntMap;
 
 public class DynamicFreeTypeFont {
 	FileHandle handle;
-	private Face face;
-	int thiscnt = 0;
-	static int cnt = 0;
+	Face face;
+	Face backupface;
 	Font fontParam;
+	Font backParam;
 	int ascent, descent, height;
 	boolean useKerning = false;
-
+	
+	int thiscnt = 0;
+	static int cnt = 0;
+	
 	public DynamicFreeTypeFont(FileHandle font, Font fontParam) {
 		this.fontParam = fontParam;
 		Library library = FreeType.initFreeType();
@@ -39,7 +42,7 @@ public class DynamicFreeTypeFont {
 			throw new GdxRuntimeException("Couldn't create face for font '"
 					+ font + "'");
 
-		if (!FreeType.setPixelSizes(face, 0, (int) fontParam.size)) {
+		if (!FreeType.setPixelSizes(face, 0, (int) Math.round(fontParam.size))) {
 			throw new GdxRuntimeException("Couldn't set size for font '" + font
 					+ "'");
 		}
@@ -133,17 +136,24 @@ public class DynamicFreeTypeFont {
 	int x, y, maxHeight;
 
 	public CharInfo addChar(char c) {
-		FreeType.loadChar(face, c,
-
+		Face tface;
+		Font tparam;
+		if (charExist(face, c)) {
+			tface = face;
+			tparam = fontParam;
+		} else {
+			tface = backupface;
+			tparam = backParam;
+		}
+		FreeType.loadChar(tface, c,
 		// FreeType.FT_LOAD_RENDER
 		// FreeType.FT_LOAD_DEFAULT
-		// FreeType.FT_LOAD_RENDER
 				fontParam.size < 16 ? FreeType.FT_LOAD_DEFAULT : 
 							FreeType.FT_LOAD_NO_HINTING
-		 |FreeType.FT_LOAD_NO_BITMAP
+							|FreeType.FT_LOAD_NO_BITMAP
 		// FreeType.FT_LOAD_NO_AUTOHINT
 		);// FT_LOAD_MONOCHROME FT_RENDER_MODE_LIGHT
-		GlyphSlot slot = face.getGlyph();
+		GlyphSlot slot = tface.getGlyph();
 		FreeType.renderGlyph(slot, FreeType.FT_RENDER_MODE_LIGHT);
 		Bitmap bitmap = slot.getBitmap();
 
@@ -228,7 +238,7 @@ public class DynamicFreeTypeFont {
 
 		Pixmap.setBlending(Blending.None);
 		curPixmap.drawPixmap(pixmap, x, y);
-		if((fontParam.style&Font.BOLD) > 0){
+		if((tparam.style&Font.BOLD) > 0){
 			Pixmap.setBlending(Blending.SourceOver);
 			curPixmap.drawPixmap(pixmap, x, y);
 			curPixmap.drawPixmap(pixmap, x, y);
@@ -294,19 +304,29 @@ public class DynamicFreeTypeFont {
 	}
 
 	private float getCharWidth(char c) {
-		FreeType.loadChar(face, c,
+		Face tface = charExist(face, c) ? face : backupface;
+		FreeType.loadChar(tface, c,
 				fontParam.size < 16 ? FreeType.FT_LOAD_DEFAULT : 
 									FreeType.FT_LOAD_NO_HINTING
 				 |FreeType.FT_LOAD_NO_BITMAP
 		);
-		GlyphSlot slot = face.getGlyph();
+		GlyphSlot slot = tface.getGlyph();
 		GlyphMetrics metrics = slot.getMetrics();
 		return to26p6float(metrics.getHoriAdvance());
+	}
+	
+	private boolean charExist(Face face, char c) {
+		return FreeType.getCharIndex(face, c) != 0;
 	}
 
 	public int getLineHeight() {
 		return ascent - descent ;
 
+	}
+
+	public void addBackupFace(Font backup) {
+		this.backParam = backup;
+		this.backupface = backup.dynFont.face;
 	}
 
 }

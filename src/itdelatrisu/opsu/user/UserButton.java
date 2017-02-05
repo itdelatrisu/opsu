@@ -17,6 +17,7 @@
  */
 
 package itdelatrisu.opsu.user;
+import fluddokt.opsu.fake.*;
 
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.ui.Colors;
@@ -24,9 +25,11 @@ import itdelatrisu.opsu.ui.Fonts;
 import itdelatrisu.opsu.ui.animations.AnimatedValue;
 import itdelatrisu.opsu.ui.animations.AnimationEquation;
 
+/*
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
+*/
 
 /**
  * User button.
@@ -69,7 +72,10 @@ public class UserButton {
 	 */
 	public static void init(int width, int height) {
 		buttonWidth = width * 5 / 18;
+		/*
 		buttonHeight = height / 9;
+		*/
+		buttonHeight = Fonts.LARGE.getLineHeight() + Fonts.MEDIUM.getLineHeight() + Fonts.SMALL.getLineHeight() * 2;
 		iconSize = buttonHeight - 4 * 4;
 	}
 

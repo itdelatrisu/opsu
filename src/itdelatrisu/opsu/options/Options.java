@@ -18,7 +18,6 @@
 
 package itdelatrisu.opsu.options;
 import fluddokt.opsu.fake.*;
-
 import itdelatrisu.opsu.Container;
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.GameImage;
@@ -659,7 +658,7 @@ public class Options {
 		ENABLE_THEME_SONG ("Theme song", "MenuMusic", OpsuConstants.PROJECT_NAME + " will play themed music throughout the game, instead of using random beatmaps.", true),
 		REPLAY_SEEKING ("Replay seeking", "ReplaySeeking", "Enable a seeking bar on the left side of the screen during replays.", false),
 		DISABLE_UPDATER ("Disable automatic updates", "DisableUpdater", "Disable checking for updates when the game starts.", false),
-		ENABLE_WATCH_SERVICE ("Watch service", "WatchService", "Watch the beatmap directory for changes. Requires a restart.", false)
+		ENABLE_WATCH_SERVICE ("Watch service", "WatchService", "Watch the beatmap directory for changes. Requires a restart.", false),
 		IN_GAME_PAUSE("Enable in-game pause button", "InGamePause", "Displays a pause button during gameplay.", false),
 		MOBILE_UI_SCALING ("UI Scale", "MobileUIScale", "Scales certain UI elements. Requires a restart.", 
 				(com.badlogic.gdx.Gdx.graphics.getWidth()/com.badlogic.gdx.Gdx.graphics.getPpiX()) <= 6.0f?//screen width less than 6 inches
@@ -681,37 +680,9 @@ public class Options {
 		},
 		NEW_SLIDER("Enable New Slider", "NewSlider", "Use the new Slider style.",true),
 		
-		SLIDER_QUALITY ("Old Slider Quality", "SliderQuality", "Lower values for better-looking sliders (in the old slider style).", 1, 1, 7) {
+		SLIDER_QUALITY ("Old Slider Quality", "SliderQuality", "Lower values for better-looking sliders (in the old slider style).", 1, 1, 7){
 			@Override
-			public String getValueString() { 
-				switch(val){
-					case 1: return "1 Best";
-					case 2: return "2 Good";
-					case 3: return "3 Ok";
-					case 4: return "4 Meh";
-					case 5: return "5 Bad";
-					case 6: return "6 Terrible";
-					case 7: return "7 Horrible";
-					default: return "No Quality?";
-				}
-			}
-
-			@Override
-			public String write() { return String.format("%d", val); }
-			
-			@Override
-			public void read(String s) {
-				int i = Integer.parseInt(s);
-				if (i >= 1 && i <= 7)
-					val = i;
-			}
-			
-			@Override
-			public void click(GameContainer container) {
-				val++;
-				if(val>7)
-					val = 1;
-			}
+			public String getValueString() { return String.format("%d", val); }
 		},
 		SCOREBOARD("Enable in-game scoreboard", "Scoreboard", "Displays the in-game scoreboard.", false),
 		DISABLE_SPINNER_UI("Remove some spinner UI elements", "DisableSpinnerUI", "Makes spinners less laggy (maybe).", false),
@@ -991,6 +962,7 @@ public class Options {
 
 		/** Returns whether this resolution is possible to use in fullscreen mode. */
 		public boolean hasFullscreenDisplayMode() {
+			/*
 			try {
 				for (DisplayMode mode : Display.getAvailableDisplayModes()) {
 					if (width == mode.getWidth() && height == mode.getHeight())
@@ -999,6 +971,7 @@ public class Options {
 			} catch (LWJGLException e) {
 				ErrorHandler.error("Failed to get available display modes.", e, true);
 			}
+			*/
 			return false;
 		}
 
@@ -1547,9 +1520,13 @@ public class Options {
 			skin = SkinLoader.loadSkin(skinDir);
 			ResourceLoader.addResourceLocation(new FileSystemLocation(skinDir));
 		}
+		ResourceLoader.addResourceLocation(new FileSystemLocation(new File("res/"),true));
+		
 		ResourceLoader.addResourceLocation(new ClasspathLocation());
 		ResourceLoader.addResourceLocation(new FileSystemLocation(new File(".")));
+		/*
 		ResourceLoader.addResourceLocation(new FileSystemLocation(new File("./res/")));
+		*/
 	}
 
 	/**

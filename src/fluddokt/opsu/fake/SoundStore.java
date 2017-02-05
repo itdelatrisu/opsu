@@ -26,4 +26,8 @@ public class SoundStore {
 		
 	}
 
+	public boolean soundWorks() {
+		return true;
+	}
+
 }

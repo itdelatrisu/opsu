@@ -17,6 +17,7 @@
  */
 
 package itdelatrisu.opsu.options;
+import com.badlogic.gdx.Application.ApplicationType;
 
 import itdelatrisu.opsu.options.Options.GameOption;
 
@@ -49,7 +50,7 @@ public class OptionGroup {
 		}),
 		new OptionGroup("DETAIL SETTINGS", new GameOption[] {
 			GameOption.SNAKING_SLIDERS,
-			GameOption.ENABLE_VIDEOS,
+			//GameOption.ENABLE_VIDEOS,
 			GameOption.SHOW_COMBO_BURSTS,
 			GameOption.SHOW_HIT_LIGHTING,
 			GameOption.SHOW_PERFECT_HIT,
@@ -109,7 +110,7 @@ public class OptionGroup {
 			GameOption.REPLAY_SEEKING,
 		}),
 		new OptionGroup("MISCELLANEOUS", new GameOption[] {
-			GameOption.ENABLE_WATCH_SERVICE,
+			//GameOption.ENABLE_WATCH_SERVICE,
 			GameOption.LOAD_VERBOSE,
 		}),
 		new OptionGroup("Extras", new GameOption[] {
@@ -154,5 +155,5 @@ public class OptionGroup {
 	public void setVisible(boolean visible) { this.visible = visible; }
 
 	/** Returns whether or not this group should be visible. */
-	public boolean isVisible() { return visible; };
+	public boolean isVisible() { return visible; }
 }

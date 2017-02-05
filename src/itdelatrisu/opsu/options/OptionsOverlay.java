@@ -17,6 +17,8 @@
  */
 
 package itdelatrisu.opsu.options;
+import fluddokt.opsu.fake.*;
+import fluddokt.opsu.fake.gui.*;
 
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.OpsuConstants;
@@ -36,6 +38,7 @@ import itdelatrisu.opsu.ui.animations.AnimationEquation;
 import java.util.IdentityHashMap;
 import java.util.Map;
 
+/*
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
@@ -45,6 +48,7 @@ import org.newdawn.slick.SlickException;
 import org.newdawn.slick.gui.AbstractComponent;
 import org.newdawn.slick.gui.GUIContext;
 import org.newdawn.slick.gui.TextField;
+*/
 
 /**
  * Options overlay.
@@ -159,6 +163,9 @@ public class OptionsOverlay extends AbstractComponent {
 
 	/** Whether or not a slider is currently being adjusted. */
 	private boolean isAdjustingSlider;
+	
+	private boolean isMaybeAdjustingSlider;
+	private int maybeAdjustx, maybeAdjusty;
 
 	/** The current absolute x-coordinate of the selected slider. */
 	private int sliderOptionStartX;
@@ -256,7 +263,7 @@ public class OptionsOverlay extends AbstractComponent {
 		this.containerHeight = container.getHeight();
 
 		// control images
-		this.iconSize = (int) (18 * GameImage.getUIscale());
+		this.iconSize = (int) (18 * GameImage.getUIscale() * Options.getMobileUIScale(0.5f));
 		this.sliderBallImg = GameImage.CONTROL_SLIDER_BALL.getImage().getScaledCopy(iconSize, iconSize);
 		this.checkOnImg = GameImage.CONTROL_CHECK_ON.getImage().getScaledCopy(iconSize, iconSize);
 		this.checkOffImg = GameImage.CONTROL_CHECK_OFF.getImage().getScaledCopy(iconSize, iconSize);
@@ -266,7 +273,7 @@ public class OptionsOverlay extends AbstractComponent {
 		// overlay positions
 		this.x = 0;
 		this.y = 0;
-		this.targetWidth = (int) (containerWidth * 0.42f);
+		this.targetWidth = (int) (containerHeight * 0.75f * Options.getMobileUIScale(0.5f));
 		this.height = containerHeight;
 
 		// option positions
@@ -284,7 +291,7 @@ public class OptionsOverlay extends AbstractComponent {
 		this.optionHeight = (int) (Fonts.MEDIUM.getLineHeight() * 1.3f);
 		this.optionGroupPadding = (int) (Fonts.LARGE.getLineHeight() * 1.5f);
 		this.optionTextOffsetY = (int) ((optionHeight - Fonts.MEDIUM.getLineHeight()) / 2f);
-		this.controlImageSize = (int) (Fonts.MEDIUM.getLineHeight() * 0.7f);
+		this.controlImageSize = sliderBallImg.getWidth();//(int) (Fonts.MEDIUM.getLineHeight() * 0.7f);
 		this.controlImagePadding = (optionHeight - controlImageSize) / 2;
 
 		// back button
@@ -345,6 +352,7 @@ public class OptionsOverlay extends AbstractComponent {
 		// search field
 		this.searchField = new TextField(container, null, 0, 0, 0, 0);
 		searchField.setMaxLength(20);
+		container.removeInputListener(searchField);
 
 		// kinetic scrolling
 		this.scrolling = new KineticScrolling();
@@ -475,6 +483,7 @@ public class OptionsOverlay extends AbstractComponent {
 		}
 
 		// search
+		//searchField.render(container, g);
 		int ypos = (int) (y + searchY + textSearchYOffset - scrolling.getPosition());
 		if (scrolling.getPosition() > searchY) {
 			ypos = (int) (y + textSearchYOffset);
@@ -491,6 +500,7 @@ public class OptionsOverlay extends AbstractComponent {
 			ypos + Fonts.LARGE.getLineHeight() * 0.25f,
 			COLOR_WHITE
 		);
+		searchField.setBound((int)x, (int)ypos - textSearchYOffset, (int) (width-restartButton.getImage().getWidth() * 2.5f), textSearchYOffset * 2 + Fonts.LARGE.getLineHeight());
 
 		// back arrow
 		backButton.setX(x + backButton.getImage().getWidth());
@@ -679,7 +689,7 @@ public class OptionsOverlay extends AbstractComponent {
 			checkOffImg.draw(x + optionStartX, cy + controlImagePadding, COLOR_PINK);
 
 		// draw option name
-		Fonts.MEDIUM.drawString(x + optionStartX + 30, cy + optionTextOffsetY, option.getName(), COLOR_WHITE);
+		Fonts.MEDIUM.drawString(x + optionStartX + 30 * GameImage.getUIscale(), cy + optionTextOffsetY, option.getName(), COLOR_WHITE);
 	}
 
 	/**
@@ -718,7 +728,7 @@ public class OptionsOverlay extends AbstractComponent {
 		g.setColor(COLOR_PINK);
 		if (sliderValue > 0.0001f)
 			g.drawLine(sliderStartX, cy + optionHeight / 2, sliderBallPos, cy + optionHeight / 2);
-		sliderBallImg.draw(sliderBallPos, cy + controlImagePadding, COLOR_PINK);
+		sliderBallImg.draw(sliderBallPos, cy + optionHeight / 2 - controlImageSize/2, COLOR_PINK);
 		if (sliderValue < 0.999f) {
 			float oldAlpha = COLOR_PINK.a;
 			COLOR_PINK.a *= 0.45f;
@@ -826,6 +836,10 @@ public class OptionsOverlay extends AbstractComponent {
 		int max = hoverOption.getMaxValue();
 		int value = min + Math.round((float) (max - min) * (mouseX - sliderOptionStartX) / sliderOptionWidth);
 		hoverOption.setValue(Utils.clamp(value, min, max));
+		// show restart button?
+		if (hoverOption == GameOption.MOBILE_UI_SCALING) {
+			showRestartButton = true;
+		}
 	}
 
 	/**
@@ -922,6 +936,8 @@ public class OptionsOverlay extends AbstractComponent {
 			}
 			return;
 		}
+		
+		searchField.mousePressed(button, x, y);
 
 		consumeEvent();
 
@@ -949,11 +965,9 @@ public class OptionsOverlay extends AbstractComponent {
 		mousePressY = y;
 		if (hoverOption != null) {
 			if (hoverOption.getType() == OptionType.NUMERIC) {
-				isAdjustingSlider = sliderOptionStartX <= x && x < sliderOptionStartX + sliderOptionWidth;
-				if (isAdjustingSlider) {
-					SoundController.playSound(SoundEffect.MENUCLICK);
-					updateSliderOption(x, y);
-				}
+				isMaybeAdjustingSlider = sliderOptionStartX <= x && x < sliderOptionStartX + sliderOptionWidth;
+				maybeAdjustx = x;
+				maybeAdjusty = y;
 			}
 		}
 	}
@@ -1012,12 +1026,38 @@ public class OptionsOverlay extends AbstractComponent {
 			}
 		}
 	}
+	
+	@Override
+	public void mouseClicked(int button, int x, int y, int clickCount) {
+		if (!active || !contains(x, y))
+			return;
+		if (isMaybeAdjustingSlider) {
+			SoundController.playSound(SoundEffect.MENUCLICK);
+			updateSliderOption(x, y);
+			isMaybeAdjustingSlider = false;
+		}
+	}
 
 	@Override
 	public void mouseDragged(int oldx, int oldy, int newx, int newy) {
 		if (!active)
 			return;
 
+		
+		if (isMaybeAdjustingSlider) {
+			if (Math.abs(newx - maybeAdjustx) > container.getHeight()/100) {
+				isAdjustingSlider = true;
+				isMaybeAdjustingSlider = false;
+			}
+			if (Math.abs(newy - maybeAdjusty) > container.getHeight()/100) {
+				isAdjustingSlider = false;
+				isMaybeAdjustingSlider = false;
+			}
+			if (isAdjustingSlider) {
+				SoundController.playSound(SoundEffect.MENUCLICK);
+				updateSliderOption(newx, newy);
+			}
+		}
 		if (!isAdjustingSlider) {
 			int diff = newy - oldy;
 			if (diff != 0)
@@ -1058,6 +1098,10 @@ public class OptionsOverlay extends AbstractComponent {
 
 		consumeEvent();
 
+		if (keyEntryRight || keyEntryLeft) {
+			keyEntry = true;
+		}
+
 		// key entry state
 		if (keyEntryRight) {
 			Options.setGameKeyRight(key);
@@ -1080,9 +1124,23 @@ public class OptionsOverlay extends AbstractComponent {
 
 		if (UI.globalKeyPressed(key))
 			return;
+	}
+	
+	boolean keyEntry = false;
+	@Override
+	public void keyType(char c){
+		if (!active)
+			return;
+		
+		consumeEvent();
+		
+		if (keyEntry) {
+			keyEntry = false;
+			return;
+		}
 
 		searchField.setFocus(true);
-		searchField.keyPressed(key, c);
+		searchField.keyType(c);
 		if (!searchField.getText().equals(lastSearchText)) {
 			lastSearchText = searchField.getText().toLowerCase();
 			updateSearch();

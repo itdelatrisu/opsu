@@ -226,7 +226,7 @@ public class MainMenu extends BasicGameState {
 		musicInfoRect = new Rectangle(0, 0, 1, musicInfoHeight);
 
 		// initialize music buttons
-		int musicInfoOffset = (int) (musicInfoHeight * 0.6f);
+		int musicInfoOffset = (int) (musicInfoHeight * 0.25f);
 		int musicWidth  = GameImage.MUSIC_PLAY.getImage().getWidth();
 		int musicHeight = GameImage.MUSIC_PLAY.getImage().getHeight();
 		musicPlay     = new MenuButton(GameImage.MUSIC_PLAY.getImage(), width - (2 * musicWidth), musicInfoOffset + musicHeight / 1.5f);
@@ -240,9 +240,9 @@ public class MainMenu extends BasicGameState {
 
 		// initialize music position bar location
 		musicBarX = width - musicWidth * 3.5f;
-		musicBarY = musicInfoOffset + musicHeight * 1.1f;
+		musicBarY = musicInfoOffset + musicHeight * 1.05f;
 		musicBarWidth = musicWidth * 3f;
-		musicBarHeight = musicHeight * 0.30f;
+		musicBarHeight = musicHeight * 0.57f;
 
 		// initialize downloads button
 		Image dlImg = GameImage.DOWNLOADS.getImage();
@@ -340,7 +340,7 @@ public class MainMenu extends BasicGameState {
 
 		// top/bottom horizontal bars
 		g.setColor(Colors.BLACK_ALPHA);
-		g.fillRect(0, 0, width, height / 9f);
+		g.fillRect(0, 0, width, height * Options.getMobileUIScale(0.5f) / 9f);
 		g.fillRect(0, height * 8 / 9f, width, height / 9f);
 
 		// draw star fountain

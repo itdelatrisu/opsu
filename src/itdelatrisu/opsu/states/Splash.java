@@ -232,7 +232,7 @@ public class Splash extends BasicGameState {
 	@Override
 	public void mouseClicked(int button, int x, int y, int clickCount) {
 		clickCnt++;
-		if (clickCnt > 10)
+		if (thread!=null && clickCnt > 10)
 			thread.interrupt();
 	}
 }

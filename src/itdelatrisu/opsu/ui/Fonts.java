@@ -62,20 +62,26 @@ public class Fonts {
 	 */
 	public static void init() throws SlickException, FontFormatException, IOException {
 		float fontBase = 12f * GameImage.getUIscale() * Options.getMobileUIScale(0.5f);;
+		/*
 		Font javaFontMain = Font.createFont(Font.TRUETYPE_FONT, ResourceLoader.getResourceAsStream(Options.FONT_MAIN));
 		Font javaFontBold = Font.createFont(Font.TRUETYPE_FONT, ResourceLoader.getResourceAsStream(Options.FONT_BOLD));
 		Font javaFontCJK = Font.createFont(Font.TRUETYPE_FONT, ResourceLoader.getResourceAsStream(Options.FONT_CJK));
+		*/
+		Font javaFontMain = new Font(Options.FONT_MAIN, 0, 12);
+		Font javaFontBold = new Font(Options.FONT_BOLD, 0, 12);
+		Font javaFontCJK = new Font(Options.FONT_CJK, 0, 12);
+		
 		Font fontMain = javaFontMain.deriveFont(Font.PLAIN, (int) (fontBase * 4 / 3));
 		Font fontBold = javaFontBold.deriveFont(Font.PLAIN, (int) (fontBase * 4 / 3));
 		Font fontCJK = javaFontCJK.deriveFont(Font.PLAIN, (int) (fontBase * 4 / 3));
 		DEFAULT = new UnicodeFont(fontMain);
-		BOLD = new UnicodeFont(fontBold.deriveFont(Font.BOLD));
+		BOLD = new UnicodeFont(fontBold.deriveFont(Font.PLAIN));
 		XLARGE = new UnicodeFont(fontMain.deriveFont(fontBase * 3));
 		LARGE = new UnicodeFont(fontMain.deriveFont(fontBase * 2));
 		MEDIUM = new UnicodeFont(fontMain.deriveFont(fontBase * 3 / 2));
-		MEDIUMBOLD = new UnicodeFont(fontBold.deriveFont(Font.BOLD, fontBase * 3 / 2));
+		MEDIUMBOLD = new UnicodeFont(fontBold.deriveFont(Font.PLAIN, fontBase * 3 / 2));
 		SMALL = new UnicodeFont(fontMain.deriveFont(fontBase));
-		SMALLBOLD = new UnicodeFont(fontBold.deriveFont(Font.BOLD, fontBase));
+		SMALLBOLD = new UnicodeFont(fontBold.deriveFont(Font.PLAIN, fontBase));
 	ColorEffect colorEffect = new ColorEffect();
 		loadFont(DEFAULT, colorEffect, new UnicodeFont(fontCJK));
 		loadFont(BOLD, colorEffect, new UnicodeFont(fontCJK.deriveFont(Font.BOLD)));

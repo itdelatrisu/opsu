@@ -130,6 +130,7 @@ public class ErrorHandler {
 		else
 			Log.error(error, e);
 
+		GameOpsu.error(error, e);
 		/*
 		// set the textArea to the error message
 		textArea.setText(null);

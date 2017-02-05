@@ -17,7 +17,6 @@
  */
 
 package itdelatrisu.opsu.objects;
-
 import fluddokt.opsu.fake.*;
 
 import itdelatrisu.opsu.GameData;
@@ -233,6 +232,9 @@ public class Spinner implements GameObject {
 		} else {
 			g.setColor(Color.white);
 			g.drawOval(width / 2-height/2, 0, height, height);
+			float radius = GameImage.getUIscale() * 5;
+			g.drawOval(width / 2 - radius, height/2 - radius, radius*2, radius*2);
+			
 		}
 		GameImage.SPINNER_SPIN.getImage().setAlpha(alpha);
 		GameImage.SPINNER_SPIN.getImage().drawCentered(width / 2, height * 3 / 4);

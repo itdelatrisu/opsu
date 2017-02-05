@@ -284,6 +284,7 @@ public class SoundController {
 		if (failedCount > 0) {
 			String text = String.format("Failed to load %d audio file%s.", failedCount, failedCount == 1 ? "" : "s");
 			NotificationListener listener = null;
+			/*
 			if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.OPEN)) {
 				text += "\nClick for details.";
 				listener = new NotificationListener() {
@@ -295,6 +296,7 @@ public class SoundController {
 					}
 				};
 			}
+			*/
 			UI.getNotificationManager().sendNotification(text, Color.red, listener);
 		}
 	}

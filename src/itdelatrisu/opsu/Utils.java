@@ -512,8 +512,10 @@ public class Utils {
 
 		// open directory using Desktop API
 		if (f.isDirectory()) {
+			/*
 			if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.OPEN))
 				Desktop.getDesktop().open(f);
+			*/
 		}
 	}
 
@@ -782,7 +784,7 @@ public class Utils {
 			SSLContext sc = SSLContext.getInstance("SSL");
 			sc.init(null, enabled ? null : trustAllCerts, null);
 			HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
-		} catch (Exception e) {}
+		} catch (Exception e) {e.printStackTrace();}
 	}
 
 	/**

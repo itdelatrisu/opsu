@@ -17,22 +17,25 @@
  */
 
 package itdelatrisu.opsu.replay;
-
 import fluddokt.opsu.fake.*;
+import itdelatrisu.opsu.Utils;
+
 import itdelatrisu.opsu.ErrorHandler;
+
 import itdelatrisu.opsu.beatmap.Beatmap;
 import itdelatrisu.opsu.beatmap.BeatmapSetList;
 import itdelatrisu.opsu.db.ScoreDB;
 import itdelatrisu.opsu.options.Options;
 import itdelatrisu.opsu.ui.UI;
+
 /*
 import java.io.File;
 */
 import java.io.FilenameFilter;
 import java.io.IOException;
+/*
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-/*
 import org.newdawn.slick.util.Log;
 */
 

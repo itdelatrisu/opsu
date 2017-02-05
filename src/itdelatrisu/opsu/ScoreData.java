@@ -17,7 +17,8 @@
  */
 
 package itdelatrisu.opsu;
-
+import fluddokt.opsu.fake.*;
+import itdelatrisu.opsu.options.Options;
 
 import itdelatrisu.opsu.GameData.Grade;
 import itdelatrisu.opsu.states.SongMenu;
@@ -38,8 +39,6 @@ import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
 */
-
-import fluddokt.opsu.fake.*;
 
 /**
  * Class encapsulating and drawing all score data.

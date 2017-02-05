@@ -75,26 +75,14 @@ public class Graphics {
 
 	public void setColor(Color ncolor) {
 		fgcolor = ncolor;
-		batch.setColor(clamp(ncolor.r, 0, 1), clamp(ncolor.g, 0, 1),
-				clamp(ncolor.b, 0, 1), clamp(ncolor.a, 0, 1));
-		shapeRender.setColor(clamp(ncolor.r, 0, 1), clamp(ncolor.g, 0, 1),
-				clamp(ncolor.b, 0, 1), clamp(ncolor.a, 0, 1));
+		batch.setColor(fgcolor.r, fgcolor.g, fgcolor.b, fgcolor.a);
+		shapeRender.setColor(fgcolor.r, fgcolor.g, fgcolor.b, fgcolor.a);
 	}
 	
 	public void setColorAlpha(Color ncolor, float alpha) {
 		fgcolor = ncolor;
-		batch.setColor(clamp(ncolor.r, 0, 1), clamp(ncolor.g, 0, 1),
-				clamp(ncolor.b, 0, 1), clamp(ncolor.a * alpha, 0, 1));
-		shapeRender.setColor(clamp(ncolor.r, 0, 1), clamp(ncolor.g, 0, 1),
-				clamp(ncolor.b, 0, 1), clamp(ncolor.a * alpha, 0, 1));
-	}
-
-	private static float clamp(float n, float min, float max) {
-		if (n > max)
-			return max;
-		if (n < min)
-			return min;
-		return n;
+		batch.setColor(fgcolor.r, fgcolor.g, fgcolor.b, fgcolor.a * alpha);
+		shapeRender.setColor(fgcolor.r, fgcolor.g, fgcolor.b, fgcolor.a * alpha);
 	}
 
 	public void setAntiAlias(boolean b) {
@@ -219,22 +207,25 @@ public class Graphics {
 		return g;
 	}
 
-	Rectangle scissor;
+	Rectangle scissor = new Rectangle();
+	Rectangle clip = new Rectangle();
+	boolean hasScissor = false;
 	public void setClip(int x, int y, int w, int h) {
 		clearClip();
-		scissor = new Rectangle();
-		Rectangle clip = new Rectangle(x, y, w, h);
+		if (w <= 0)
+			w = 1;
+		if (h <= 0)
+			h = 1;
+		clip.set(x, y, w, h);
 		ScissorStack.calculateScissors(camera, batch.getTransformMatrix(), clip, scissor);
-		if (!ScissorStack.pushScissors(scissor))
-			scissor = null;
+		hasScissor = ScissorStack.pushScissors(scissor);
 	}
 
 	public void clearClip() {
 		checkMode(0);
-		if (scissor != null){
-			scissor = null;
-			if( ScissorStack.peekScissors() != null)
-				ScissorStack.popScissors();
+		if (hasScissor){
+			hasScissor = false;
+			ScissorStack.popScissors();
 		}
 	}
 

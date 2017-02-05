@@ -98,13 +98,15 @@ public class Input {
 	public static final int KEY_SUBTRACT = 0;//todo NUMPAD
 
 	boolean isRightButtonDown = false;
+	
+	public static int x, y;
 
 	public int getMouseY() {
-		return Gdx.input.getY();
+		return y;
 	}
 
 	public int getMouseX() {
-		return Gdx.input.getX();
+		return x;
 	}
 
 	public boolean isKeyDown(int key) {
@@ -127,7 +129,7 @@ public class Input {
 	}
 
 	public void addMouseListener(MouseListener mouseListener) {
-		GameOpsu.gameOpsu.sbg.addKeyListener(mouseListener);
+		GameOpsu.gameOpsu.sbg.addInputListener(mouseListener);
 		
 	}
 

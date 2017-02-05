@@ -11,5 +11,9 @@ public class UnicodeFont extends Font {
 		
 	}
 
+	public void addBackupFont(UnicodeFont backup) {
+		dynFont.addBackupFace(backup);
+	}
+
 
 }

@@ -27,13 +27,14 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.regex.Pattern;
 
+/*
 import craterstudio.io.Streams;
 import craterstudio.streams.NullOutputStream;
 import craterstudio.text.RegexUtil;
 import craterstudio.text.TextValues;
 import net.indiespot.media.impl.Extractor;
 import net.indiespot.media.impl.VideoMetadata;
-
+*/
 /**
  * FFmpeg utilities.
  *
@@ -41,7 +42,9 @@ import net.indiespot.media.impl.VideoMetadata;
  */
 public class FFmpeg {
 	/** The default file name of the FFmpeg shared library. */
+	/*
 	public static final String DEFAULT_NATIVE_FILENAME = getDefaultNativeFilename();
+	*/
 
 	/** The FFmpeg shared library location. */
 	private static File FFMPEG_PATH = null;
@@ -53,6 +56,7 @@ public class FFmpeg {
 	 * Returns the expected file name of the FFmpeg shared library, based on
 	 * the current operating system and architecture.
 	 */
+	/*
 	private static String getDefaultNativeFilename() {
 		String resourceName = "ffmpeg";
 		if (Extractor.isMac)
@@ -64,8 +68,10 @@ public class FFmpeg {
 		}
 		return resourceName;
 	}
+	*/
 
 	/** Returns the FFmpeg shared library location. */
+	/*
 	private static File getNativeLocation() {
 		File customLocation = Options.getFFmpegLocation();
 		if (customLocation != null && customLocation.isFile())
@@ -73,22 +79,28 @@ public class FFmpeg {
 		else
 			return FFMPEG_PATH;
 	}
+	*/
 
 	/** Sets the directory in which to look for the FFmpeg shared library. */
+	/*
 	public static void setNativeDir(File dir) {
 		FFMPEG_PATH = new File(dir, DEFAULT_NATIVE_FILENAME);
 	}
+	/*
 
 	/** Returns whether the FFmpeg shared library could be found. */
+	/*
 	public static boolean exists() {
 		File location = getNativeLocation();
 		return location != null && location.isFile();
 	}
+	*/
 
 	/**
 	 * Extracts the metadata for a video file.
 	 * @param srcMovieFile the source video file
 	 */
+	/*
 	public static VideoMetadata extractMetadata(File srcMovieFile) throws IOException {
 		Process process = new ProcessBuilder().command(
 			getNativeLocation().getAbsolutePath(),
@@ -123,12 +135,14 @@ public class FFmpeg {
 			Streams.safeClose(process);
 		}
 	}
+	*/
 
 	/**
 	 * Returns an RGB24 video stream.
 	 * @param srcMovieFile the source video file
 	 * @param msec the time offset (in milliseconds)
 	 */
+	/*
 	public static InputStream extractVideoAsRGB24(File srcMovieFile, int msec) throws IOException {
 		return streamData(new ProcessBuilder().command(
 			getNativeLocation().getAbsolutePath(),
@@ -139,11 +153,14 @@ public class FFmpeg {
 			"-"
 		));
 	}
+	*/
 
 	/** Returns a stream. */
+	/*
 	private static InputStream streamData(ProcessBuilder pb) throws IOException {
 		Process process = pb.start();
 		Streams.asynchronousTransfer(process.getErrorStream(), FFMPEG_VERBOSE ? System.err : new NullOutputStream(), true, false);
 		return process.getInputStream();
 	}
+	*/
 }

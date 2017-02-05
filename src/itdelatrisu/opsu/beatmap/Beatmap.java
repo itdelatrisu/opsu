@@ -552,7 +552,6 @@ public class Beatmap implements Comparable<Beatmap> {
 		this.playCount++;
 		this.lastPlayed = System.currentTimeMillis();
 	}
-}
 
 	/**
 	 * Copies non-parsed fields from this beatmap into another beatmap.

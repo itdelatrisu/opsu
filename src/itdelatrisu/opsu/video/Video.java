@@ -17,19 +17,26 @@
  */
 
 package itdelatrisu.opsu.video;
+import fluddokt.opsu.fake.*;
 
 import java.io.Closeable;
+/*
 import java.io.File;
+*/
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 
+
+
+/*
 import org.lwjgl.opengl.GL11;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.SlickException;
 
 import net.indiespot.media.VideoStream;
 import net.indiespot.media.impl.VideoMetadata;
+*/
 
 /**
  * Video player (with no audio).
@@ -41,16 +48,22 @@ public class Video implements Closeable {
 	private final File file;
 
 	/** The video metadata. */
+	/*
 	private final VideoMetadata metadata;
+	/*
 
 	/** The frame interval. */
 	private final long frameInterval;
 
 	/** The current video frame. */
+	/*
 	private final Image image;
+	*/
 
 	/** The video stream. */
+	/*
 	private VideoStream videoStream;
+	*/
 
 	/** The initial frame time. */
 	private long initFrame;
@@ -76,6 +89,7 @@ public class Video implements Closeable {
 	 * @param file the source video file
 	 */
 	public Video(File file) throws IOException, SlickException {
+		/*
 		this.file = file;
 		this.metadata = FFmpeg.extractMetadata(file);
 		this.frameInterval = (long) (1000_000_000L / metadata.framerate);
@@ -84,6 +98,9 @@ public class Video implements Closeable {
 		this.initialized = false;
 		this.closed = false;
 		this.pauseFrame = 0;
+		*/
+		this.frameInterval = 0;
+		this.file = null;
 	}
 
 	/**
@@ -91,19 +108,26 @@ public class Video implements Closeable {
 	 * @param msec the time offset (in milliseconds)
 	 */
 	public void seek(int msec) throws IOException {
+		/*
 		if (videoStream != null && !closed)
 			videoStream.close();
 		this.videoStream = getVideoStreamAtOffset(Math.max(0, msec));
 		this.finished = false;
 		this.initialized = false;
 		this.pauseFrame = 0;
+		*/
 	}
 
 	/** Returns a video stream from the given millisecond offset. */
+	/*
 	private VideoStream getVideoStreamAtOffset(int msec) throws IOException {
+		
 		InputStream rgb24Stream = FFmpeg.extractVideoAsRGB24(file, msec);
 		return new VideoStream(rgb24Stream, metadata);
+		
+		return null;
 	}
+	*/
 
 	/** Returns whether the video has started playing. */
 	public boolean isStarted() { return initialized; }
@@ -135,8 +159,10 @@ public class Video implements Closeable {
 	 * @param alpha the alpha level to render at
 	 */
 	public void render(int x, int y, int width, int height, float alpha) {
+		/*
 		image.setAlpha(alpha);
 		image.draw(x, y, width, height);
+		*/
 	}
 
 	/** Returns whether the next frame time has passed. */
@@ -165,6 +191,7 @@ public class Video implements Closeable {
 	 * @param syncTime the nanosecond time the video should sync to (forward direction only)
 	 */
 	private void update(long syncTime) {
+		/*
 		if (finished || closed || pauseFrame > 0 || videoStream == null)
 			return;
 
@@ -210,10 +237,12 @@ public class Video implements Closeable {
 
 		videoStream.freeFrameData(texBuffer);
 		videoIndex++;
+		*/
 	}
 
 	@Override
 	public void close() throws IOException {
+		/*
 		if (!closed) {
 			closed = true;
 			videoStream.close();
@@ -221,5 +250,6 @@ public class Video implements Closeable {
 				image.destroy();
 			} catch (SlickException e) {}
 		}
+		*/
 	}
 }

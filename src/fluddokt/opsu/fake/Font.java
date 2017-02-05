@@ -118,5 +118,4 @@ public class Font {
 	public int getPaddingBottom() {
 		return padbottom;
 	}
-
 }
