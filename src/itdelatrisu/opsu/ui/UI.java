@@ -20,14 +20,13 @@ package itdelatrisu.opsu.ui;
 
 import fluddokt.opsu.fake.*;
 
-import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.Opsu;
-import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.beatmap.BeatmapParser;
 import itdelatrisu.opsu.beatmap.OszUnpacker;
+import itdelatrisu.opsu.options.Options;
 import itdelatrisu.opsu.replay.ReplayImporter;
 import itdelatrisu.opsu.skins.SkinUnpacker;
 import itdelatrisu.opsu.ui.animations.AnimatedValue;
@@ -37,13 +36,13 @@ import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 
 /*
-import org.newdawn.slick.Animation;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.state.StateBasedGame;
+import org.newdawn.slick.util.Log;
 */
 
 /**
@@ -57,7 +56,7 @@ public class UI {
 	private static Cursor cursor = new Cursor();
 
 	/** Back button. */
-	private static MenuButton backButton;
+	private static BackButton backButton;
 
 	/** Time to show volume image, in milliseconds. */
 	private static final int VOLUME_DISPLAY_TIME = 1500;
@@ -76,7 +75,7 @@ public class UI {
 
 	/** The displayed FPS. */
 	private static float fpsDisplay = 0f;
-	
+
 	/** Notification manager. */
 	private static NotificationManager notificationManager;
 
@@ -98,22 +97,13 @@ public class UI {
 		UI.game = game;
 		UI.input = container.getInput();
 
-		// initialize cursor
+		// cursor
 		Cursor.init(container, game);
 		cursor.hide();
 
 		// back button
-		if (GameImage.MENU_BACK.getImages() != null) {
-			Animation back = GameImage.MENU_BACK.getAnimation();
-			backButton = new MenuButton(back, back.getWidth() / 2f, container.getHeight() - (back.getHeight() / 2f));
-		} else {
-			Image back = GameImage.MENU_BACK.getImage();
-			backButton = new MenuButton(back, back.getWidth() / 2f, container.getHeight() - (back.getHeight() / 2f));
-		}
-		backButton.setHoverAnimationDuration(350);
-		backButton.setHoverAnimationEquation(AnimationEquation.IN_OUT_BACK);
-		backButton.setHoverExpand(MenuButton.Expand.UP_RIGHT);
-		
+		backButton = new BackButton(container);
+
 		// notification manager
 		notificationManager = new NotificationManager(container);
 	}
@@ -171,16 +161,16 @@ public class UI {
 	 * Returns the game cursor.
 	 */
 	public static Cursor getCursor() { return cursor; }
-	
+
 	/**
 	 * Returns the notification manager instance.
 	 */
 	public static NotificationManager getNotificationManager() { return notificationManager; }
 
 	/**
-	 * Returns the 'menu-back' MenuButton.
+	 * Returns the back button instance.
 	 */
-	public static MenuButton getBackButton() { return backButton; }
+	public static BackButton getBackButton() { return backButton; }
 
 	/**
 	 * Draws a tab image and text centered at a location.
@@ -289,8 +279,9 @@ public class UI {
 	 * Draws loading progress (OSZ unpacking, beatmap parsing, replay importing, sound loading)
 	 * at the bottom of the screen.
 	 * @param g the graphics context
+	 * @param alpha the text alpha level
 	 */
-	public static void drawLoadingProgress(Graphics g) {
+	public static void drawLoadingProgress(Graphics g, float alpha) {
 		String text, file;
 		int progress;
 
@@ -318,20 +309,25 @@ public class UI {
 		float marginX = container.getWidth() * 0.02f, marginY = container.getHeight() * 0.02f;
 		float lineY = container.getHeight() - marginY;
 		int lineOffsetY = Fonts.MEDIUM.getLineHeight();
+		float oldWhiteAlpha = Colors.WHITE_FADE.a;
+		Colors.WHITE_FADE.a = alpha;
 		if (Options.isLoadVerbose()) {
 			// verbose: display percentages and file names
 			Fonts.MEDIUM.drawString(
-					marginX, lineY - (lineOffsetY * 2),
-					String.format("%s (%d%%)", text, progress), Color.white);
-			Fonts.MEDIUM.drawString(marginX, lineY - lineOffsetY, file, Color.white);
+				marginX, lineY - (lineOffsetY * 2),
+				String.format("%s (%d%%)", text, progress), Colors.WHITE_FADE
+			);
+			Fonts.MEDIUM.drawString(marginX, lineY - lineOffsetY, file, Colors.WHITE_FADE);
 		} else {
 			// draw loading bar
-			Fonts.MEDIUM.drawString(marginX, lineY - (lineOffsetY * 2), text, Color.white);
-			g.setColor(Color.white);
-			g.fillRoundRect(marginX, lineY - (lineOffsetY / 2f),
-					(container.getWidth() - (marginX * 2f)) * progress / 100f, lineOffsetY / 4f, 4
+			Fonts.MEDIUM.drawString(marginX, lineY - (lineOffsetY * 2), text, Colors.WHITE_FADE);
+			g.setColor(Colors.WHITE_FADE);
+			g.fillRoundRect(
+				marginX, lineY - (lineOffsetY / 2f),
+				(container.getWidth() - (marginX * 2f)) * progress / 100f, lineOffsetY / 4f, 4
 			);
 		}
+		Colors.WHITE_FADE.a = oldWhiteAlpha;
 	}
 
 	/**
@@ -386,7 +382,7 @@ public class UI {
 	 * @param g the graphics context
 	 */
 	public static void drawTooltip(Graphics g) {
-		if (tooltipAlpha.getTime() == 0 || tooltip == null)
+		if (tooltipAlpha.getTime() == 0 || tooltip == null || tooltip.isEmpty())
 			return;
 
 		int containerWidth = container.getWidth(), containerHeight = container.getHeight();
@@ -480,11 +476,47 @@ public class UI {
 		/*try {
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		} catch (Exception e) {
-			ErrorHandler.error("Could not set system look and feel for exit confirmation.", e, true);
+			Log.warn("Could not set system look and feel for exit confirmation.", e);
 		}
 		int n = JOptionPane.showConfirmDialog(null, message, "Warning",
 				JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
 		return (n != JOptionPane.YES_OPTION);*/
+		return false;
+	}
+
+	/**
+	 * Processes global hotkey actions.
+	 * @param key the key code that was pressed
+	 * @return {@code true} if a global hotkey was pressed
+	 */
+	public static boolean globalKeyPressed(int key) {
+		switch (key) {
+		case Input.KEY_F7:
+			Options.setNextFPS(container);
+			break;
+		case Input.KEY_F10:
+			Options.toggleMouseDisabled();
+			break;
+		case Input.KEY_F12:
+			Utils.takeScreenShot();
+			break;
+		default:
+			return false;
+		}
+		return true;
+	}
+
+	/**
+	 * Processes global mouse wheel actions.
+	 * @param delta the amount the wheel has moved
+	 * @param requiresAlt if the "ALT" key must be pressed
+	 * @return {@code true} if a global mouse wheel action was processed
+	 */
+	public static boolean globalMouseWheelMoved(int delta, boolean requiresAlt) {
+		if (!requiresAlt || (input.isKeyDown(Input.KEY_LALT) || input.isKeyDown(Input.KEY_RALT))) {
+			UI.changeVolume((delta < 0) ? -1 : 1);
+			return true;
+		}
 		return false;
 	}
 }

@@ -20,21 +20,21 @@ package itdelatrisu.opsu.replay;
 
 import fluddokt.opsu.fake.*;
 import itdelatrisu.opsu.ErrorHandler;
-import itdelatrisu.opsu.Options;
-import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.beatmap.Beatmap;
 import itdelatrisu.opsu.beatmap.BeatmapSetList;
 import itdelatrisu.opsu.db.ScoreDB;
-
-
-
-//import java.io.File;
+import itdelatrisu.opsu.options.Options;
+import itdelatrisu.opsu.ui.UI;
+/*
+import java.io.File;
+*/
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-
-//import org.newdawn.slick.util.Log;
+/*
+import org.newdawn.slick.util.Log;
+*/
 
 /**
  * Importer for replay files.
@@ -80,6 +80,7 @@ public class ReplayImporter {
 		}
 
 		// import OSRs
+		int importCount = 0;
 		for (File file : files) {
 			fileIndex++;
 			Replay r = new Replay(file);
@@ -101,6 +102,7 @@ public class ReplayImporter {
 					/*
 					Files.move(file.toPath(), moveToFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
 					*/
+					importCount++;
 					Utils.moveFile(file, moveToFile);
 				} catch (IOException e) {
 					Log.warn(String.format("Failed to move replay '%s' to the replay directory '%s'.", file, replayDir), e);
@@ -114,6 +116,11 @@ public class ReplayImporter {
 
 		fileIndex = -1;
 		files = null;
+
+		if (importCount > 0) {
+			String text = String.format("Imported %d replay%s.", importCount, importCount == 1 ? "" : "s");
+			UI.getNotificationManager().sendNotification(text);
+		}
 	}
 
 	/**

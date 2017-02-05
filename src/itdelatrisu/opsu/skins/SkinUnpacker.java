@@ -21,6 +21,7 @@ package itdelatrisu.opsu.skins;
 import fluddokt.opsu.fake.File;
 
 import itdelatrisu.opsu.Utils;
+import itdelatrisu.opsu.ui.UI;
 
 //import java.io.File;
 import java.io.FilenameFilter;
@@ -76,6 +77,12 @@ public class SkinUnpacker {
 
 		fileIndex = -1;
 		files = null;
+
+		if (!dirs.isEmpty()) {
+			String text = String.format("Imported %d new skin%s.", dirs.size(), dirs.size() == 1 ? "" : "s");
+			UI.getNotificationManager().sendNotification(text);
+		}
+
 		return dirs.toArray(new File[dirs.size()]);
 	}
 

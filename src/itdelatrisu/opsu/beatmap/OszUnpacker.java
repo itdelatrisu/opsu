@@ -20,8 +20,9 @@ package itdelatrisu.opsu.beatmap;
 
 import fluddokt.opsu.fake.*;
 
-import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.Utils;
+import itdelatrisu.opsu.options.Options;
+import itdelatrisu.opsu.ui.UI;
 
 
 /*
@@ -85,6 +86,12 @@ public class OszUnpacker {
 
 		fileIndex = -1;
 		files = null;
+
+		if (!dirs.isEmpty()) {
+			String text = String.format("Imported %d new beatmap pack%s.", dirs.size(), dirs.size() == 1 ? "" : "s");
+			UI.getNotificationManager().sendNotification(text);
+		}
+
 		return dirs.toArray(new File[dirs.size()]);
 	}
 

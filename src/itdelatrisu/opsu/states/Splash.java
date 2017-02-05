@@ -22,7 +22,6 @@ import fluddokt.opsu.fake.*;
 
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.Opsu;
-import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
@@ -30,6 +29,7 @@ import itdelatrisu.opsu.beatmap.BeatmapParser;
 import itdelatrisu.opsu.beatmap.BeatmapSetList;
 import itdelatrisu.opsu.beatmap.BeatmapWatchService;
 import itdelatrisu.opsu.beatmap.OszUnpacker;
+import itdelatrisu.opsu.options.Options;
 import itdelatrisu.opsu.replay.ReplayImporter;
 import itdelatrisu.opsu.skins.SkinUnpacker;
 import itdelatrisu.opsu.ui.UI;
@@ -54,7 +54,10 @@ import org.newdawn.slick.state.StateBasedGame;
  */
 public class Splash extends BasicGameState {
 	/** Minimum time, in milliseconds, to display the splash screen (and fade in the logo). */
-	private static final int MIN_SPLASH_TIME = 400;
+	private static final int MIN_SPLASH_TIME = 350;
+
+	/** Minimum elapsed time, in milliseconds, before displaying progress information (if non-verbose). */
+	private static final int PROGRESS_START_TIME = 1000;
 
 	/** Whether or not loading has completed. */
 	private boolean finished = false;
@@ -72,7 +75,13 @@ public class Splash extends BasicGameState {
 	private boolean watchServiceChange = false;
 
 	/** Logo alpha level. */
-	private AnimatedValue logoAlpha;
+	private AnimatedValue logoAlpha = new AnimatedValue(MIN_SPLASH_TIME, 0f, 1f, AnimationEquation.LINEAR);
+
+	/** Loading progress alpha level. */
+	private AnimatedValue progressAlpha = new AnimatedValue(MIN_SPLASH_TIME, 0f, 1f, AnimationEquation.OUT_CUBIC);
+
+	/** Elapsed time. */
+	private int elapsedTime = 0;
 
 	// game-related variables
 	private final int state;
@@ -99,7 +108,6 @@ public class Splash extends BasicGameState {
 		Utils.init(container, game);
 
 		// fade in logo
-		this.logoAlpha = new AnimatedValue(MIN_SPLASH_TIME, 0f, 1f, AnimationEquation.LINEAR);
 		GameImage.MENU_LOGO.getImage().setAlpha(0f);
 	}
 
@@ -108,7 +116,7 @@ public class Splash extends BasicGameState {
 			throws SlickException {
 		g.setBackground(Color.black);
 		GameImage.MENU_LOGO.getImage().drawCentered(container.getWidth() / 2, container.getHeight() / 2);
-		UI.drawLoadingProgress(g);
+		UI.drawLoadingProgress(g, Options.isLoadVerbose() ? 1f : progressAlpha.getValue());
 	}
 
 	@Override
@@ -131,6 +139,8 @@ public class Splash extends BasicGameState {
 							// TODO: only reload each sound if actually needed?
 							if (newSkin)
 								SoundController.init();
+
+							Utils.gc(true);
 
 							finished = true;
 							thread = null;
@@ -164,6 +174,8 @@ public class Splash extends BasicGameState {
 						// load sounds
 						SoundController.init();
 
+						Utils.gc(true);
+
 						finished = true;
 						thread = null;
 					}
@@ -176,8 +188,13 @@ public class Splash extends BasicGameState {
 		if (logoAlpha.update(delta))
 			GameImage.MENU_LOGO.getImage().setAlpha(logoAlpha.getValue());
 
+		// fade in loading progress
+		elapsedTime += delta;
+		if (elapsedTime >= PROGRESS_START_TIME)
+			progressAlpha.update(delta);
+
 		// change states when loading complete
-		if (finished && logoAlpha.getValue() >= 1f) {
+		if (finished && logoAlpha.isFinished()) {
 			// initialize song list
 			if (BeatmapSetList.get().size() > 0) {
 				BeatmapSetList.get().init();

@@ -26,8 +26,6 @@ import itdelatrisu.opsu.GameData.Grade;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.GameMod;
 import itdelatrisu.opsu.Opsu;
-import itdelatrisu.opsu.OptionGroup;
-import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.ScoreData;
 import itdelatrisu.opsu.Utils;
 //import itdelatrisu.opsu.audio.MultiClip;
@@ -48,17 +46,22 @@ import itdelatrisu.opsu.beatmap.LRUCache;
 import itdelatrisu.opsu.beatmap.OszUnpacker;
 import itdelatrisu.opsu.db.BeatmapDB;
 import itdelatrisu.opsu.db.ScoreDB;
+import itdelatrisu.opsu.options.OptionGroup;
+import itdelatrisu.opsu.options.Options;
+import itdelatrisu.opsu.options.OptionsOverlay;
 import itdelatrisu.opsu.states.ButtonMenu.MenuState;
 import itdelatrisu.opsu.ui.Colors;
 import itdelatrisu.opsu.ui.DropdownMenu;
 import itdelatrisu.opsu.ui.Fonts;
 import itdelatrisu.opsu.ui.KineticScrolling;
 import itdelatrisu.opsu.ui.MenuButton;
-import itdelatrisu.opsu.ui.OptionsOverlay;
 import itdelatrisu.opsu.ui.StarStream;
 import itdelatrisu.opsu.ui.UI;
 import itdelatrisu.opsu.ui.animations.AnimatedValue;
 import itdelatrisu.opsu.ui.animations.AnimationEquation;
+import itdelatrisu.opsu.user.UserButton;
+import itdelatrisu.opsu.user.UserList;
+import itdelatrisu.opsu.user.UserSelectOverlay;
 
 /*
 import java.io.File;
@@ -70,6 +73,7 @@ import java.util.Map;
 import java.util.Stack; 
 
 /*
+import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.Display;
 import org.newdawn.slick.Animation;
 import org.newdawn.slick.Color;
@@ -113,6 +117,9 @@ public class SongMenu extends BasicGameState {
 
 	/** Line width of the header/footer divider. */
 	private static final int DIVIDER_LINE_WIDTH = 4;
+
+	/** Fast scrolling speed multiplier. */
+	private static final float FAST_SCROLL_SPEED = 2f;
 
 	/** Song node class representing an BeatmapSetNode and file index. */
 	private static class SongNode {
@@ -189,7 +196,7 @@ public class SongMenu extends BasicGameState {
 	private int searchTimer = 0;
 
 	/** Information text to display based on the search query. */
-	private String searchResultString = null;
+	private String searchResultString = null, lastSearchResultString = null;
 
 	/** Loader animation. */
 	private Animation loader;
@@ -256,7 +263,7 @@ public class SongMenu extends BasicGameState {
 			}
 
 			// invoke parser
-			BeatmapParser.parseAllFiles(beatmapDir);
+			BeatmapParser.parseAllFiles(beatmapDir, BeatmapSetList.get());
 		}
 	}
 
@@ -287,11 +294,17 @@ public class SongMenu extends BasicGameState {
 	/** Whether the song folder changed (notified via the watch service). */
 	private boolean songFolderChanged = false;
 
-	/** The last background image. */
-	private File lastBackgroundImage;
+	/** The last selected beatmap. */
+	private Beatmap lastBeatmap;
 
-	/** Background alpha level (for fade-in effect). */
-	private AnimatedValue bgAlpha = new AnimatedValue(800, 0f, 1f, AnimationEquation.OUT_QUAD);
+	/** The last beatmap for fading out. */
+	private Beatmap lastFadeBeatmap;
+
+	/** Background alpha levels (for crossfade effect). */
+	private AnimatedValue
+		bgAlpha = new AnimatedValue(600, 0f, 1f, AnimationEquation.OUT_QUAD),
+		playfieldAlpha = new AnimatedValue(600, 0f, 1f, AnimationEquation.IN_QUAD),
+		lastBgAlpha = new AnimatedValue(600, 1f, 0f, AnimationEquation.IN_QUAD);
 
 	/** Timer for animations when a new song node is selected. */
 	private AnimatedValue songChangeTimer = new AnimatedValue(900, 0f, 1f, AnimationEquation.LINEAR);
@@ -344,6 +357,18 @@ public class SongMenu extends BasicGameState {
 
 	/** The options overlay show/hide animation progress. */
 	private AnimatedValue optionsOverlayProgress = new AnimatedValue(500, 0f, 1f, AnimationEquation.OUT_CUBIC);
+
+	/** The user button. */
+	private UserButton userButton;
+
+	/** User selection overlay. */
+	private UserSelectOverlay userOverlay;
+
+	/** Whether the user overlay is being shown. */
+	private boolean showUserOverlay = false;
+
+	/** The user overlay show/hide animation progress. */
+	private AnimatedValue userOverlayProgress = new AnimatedValue(750, 0f, 1f, AnimationEquation.OUT_CUBIC);
 
 	// game-related variables
 	private GameContainer container;
@@ -435,6 +460,9 @@ public class SongMenu extends BasicGameState {
 
 		// search
 		int textFieldX = (int) (width * 0.7125f + Fonts.BOLD.getWidth("Search: "));
+		/*
+		int textFieldY = (int) (headerY + Fonts.BOLD.getLineHeight() / 3f);
+		*/
 		int textFieldY = (int) (0 + Fonts.BOLD.getLineHeight() / 2);
 		searchFont = Fonts.BOLD;
 		search = new TextField(
@@ -502,6 +530,22 @@ public class SongMenu extends BasicGameState {
 			}
 		});
 		optionsOverlay.setConsumeAndClose(true);
+
+		// user button
+		userButton = new UserButton(width / 2, height - UserButton.getHeight(), Color.white);
+
+		// user selection overlay
+		userOverlay = new UserSelectOverlay(container, new UserSelectOverlay.UserSelectOverlayListener() {
+			@Override
+			public void close(boolean userChanged) {
+				showUserOverlay = false;
+				userOverlay.deactivate();
+				userOverlayProgress.setTime(0);
+				if (userChanged)
+					userButton.flash();
+			}
+		});
+		userOverlay.setConsumeAndClose(true);
 	}
 
 	@Override
@@ -514,28 +558,29 @@ public class SongMenu extends BasicGameState {
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
 		boolean inDropdownMenu = sortMenu.contains(mouseX, mouseY);
 
-		// background
-		if (focusNode != null) {
-			Beatmap focusNodeBeatmap = focusNode.getSelectedBeatmap();
-			float parallaxX = 0, parallaxY = 0;
+		// background (crossfade)
+		float parallaxX = 0, parallaxY = 0;
+		if (Options.isParallaxEnabled()) {
+			int offset = (int) (height * (GameImage.PARALLAX_SCALE - 1f));
+			parallaxX = -offset / 2f * (mouseX - width / 2) / (width / 2);
+			parallaxY = -offset / 2f * (mouseY - height / 2) / (height / 2);
+		}
+		if (!lastBgAlpha.isFinished() && lastFadeBeatmap != null && lastFadeBeatmap.hasLoadedBackground())
+			lastFadeBeatmap.drawBackground(width, height, parallaxX, parallaxY, lastBgAlpha.getValue(), true);
+		if (playfieldAlpha.getTime() > 0) {
+			Image bg = GameImage.MENU_BG.getImage();
 			if (Options.isParallaxEnabled()) {
-				int offset = (int) (height * (GameImage.PARALLAX_SCALE - 1f));
-				parallaxX = -offset / 2f * (mouseX - width / 2) / (width / 2);
-				parallaxY = -offset / 2f * (mouseY - height / 2) / (height / 2);
-			}
-			if (!focusNodeBeatmap.drawBackground(width, height, parallaxX, parallaxY, bgAlpha.getValue(), true)) {
-				Image bg = GameImage.MENU_BG.getImage();
-				if (Options.isParallaxEnabled()) {
-					bg = bg.getScaledCopy(GameImage.PARALLAX_SCALE);
-					bg.setAlpha(bgAlpha.getValue());
-					bg.drawCentered(width / 2 + parallaxX, height / 2 + parallaxY);
-				} else {
-					bg.setAlpha(bgAlpha.getValue());
-					bg.drawCentered(width / 2, height / 2);
-					bg.setAlpha(1f);
-				}
+				bg = bg.getScaledCopy(GameImage.PARALLAX_SCALE);
+				bg.setAlpha(playfieldAlpha.getValue());
+				bg.drawCentered(width / 2 + parallaxX, height / 2 + parallaxY);
+			} else {
+				bg.setAlpha(playfieldAlpha.getValue());
+				bg.drawCentered(width / 2, height / 2);
+				bg.setAlpha(1f);
 			}
 		}
+		if (lastBeatmap != null && lastBeatmap.hasLoadedBackground())
+			lastBeatmap.drawBackground(width, height, parallaxX, parallaxY, bgAlpha.getValue(), true);
 
 		// star stream
 		starStream.draw();
@@ -593,8 +638,8 @@ public class SongMenu extends BasicGameState {
 				if (rank < 0)
 					continue;
 				long prevScore = (rank + 1 < focusScores.length) ? focusScores[rank + 1].score : -1;
+				boolean focus = ScoreData.buttonContains(mouseX, mouseY - offset, i) && !showOptionsOverlay && !showUserOverlay;
 				float t = Utils.clamp((time - (i * (duration - segmentDuration) / scoreButtons)) / (float) segmentDuration, 0f, 1f);
-				boolean focus = (t >= 0.9999f && ScoreData.buttonContains(mouseX, mouseY - offset, i) && !showOptionsOverlay);
 				focusScores[rank].draw(g, offset + i * ScoreData.getButtonOffset(), rank, prevScore, focus, t);
 			}
 			g.clearClip();
@@ -684,7 +729,7 @@ public class SongMenu extends BasicGameState {
 			c.a = Math.min((t - 3f / (songInfo.length * 1.5f)) * songInfo.length / 1.5f, 1f);
 			if (c.a > 0)
 				Fonts.DEFAULT.drawString(marginX, headerTextY, songInfo[3], c);
-			headerTextY += Fonts.DEFAULT.getLineHeight() - 4;
+			headerTextY += Fonts.DEFAULT.getLineHeight() - 2;
 			c.a = Math.min((t - 4f / (songInfo.length * 1.5f)) * songInfo.length / 1.5f, 1f);
 			if (c.a > 0) {
 				float multiplier = GameMod.getDifficultyMultiplier();
@@ -707,6 +752,10 @@ public class SongMenu extends BasicGameState {
 		selectMapOptionsButton.draw();
 		GameImage.SELECTION_OTHER_OPTIONS.getImage().drawCentered(selectOptionsButton.getX(), selectOptionsButton.getY());
 		selectOptionsButton.draw();
+
+		// user button
+		userButton.setUser(UserList.get().getCurrentUser());
+		userButton.draw(g);
 
 		// group tabs
 		BeatmapGroup currentGroup = BeatmapGroup.current();
@@ -737,10 +786,10 @@ public class SongMenu extends BasicGameState {
 		float oldAlpha = Colors.BLACK_ALPHA.a;
 		if (searchEmpty) {
 			searchRectHeight += (1f - searchProgress) * searchExtraHeight;
-			Colors.BLACK_ALPHA.a = 0.5f - searchProgress * 0.3f;
+			Colors.BLACK_ALPHA.a = 0.3f - searchProgress * 0.15f;
 		} else {
 			searchRectHeight += searchProgress * searchExtraHeight;
-			Colors.BLACK_ALPHA.a = 0.2f + searchProgress * 0.3f;
+			Colors.BLACK_ALPHA.a = 0.15f + searchProgress * 0.15f;
 		}
 		g.setColor(Colors.BLACK_ALPHA);
 		g.fillRect(searchBaseX, searchY + DIVIDER_LINE_WIDTH / 2, width - searchBaseX, searchRectHeight);
@@ -767,16 +816,20 @@ public class SongMenu extends BasicGameState {
 			g.setColor(Colors.BLACK_ALPHA);
 			g.fillRect(0, 0, width, height);
 
-			UI.drawLoadingProgress(g);
+			UI.drawLoadingProgress(g, 1f);
 		}
 
 		// back button
-		else if (!showOptionsOverlay)
-			UI.getBackButton().draw();
+		else if (!showOptionsOverlay && !showUserOverlay)
+			UI.getBackButton().draw(g);
 
 		// options overlay
 		if (showOptionsOverlay || !optionsOverlayProgress.isFinished())
 			optionsOverlay.render(container, g);
+
+		// user overlay
+		if (showUserOverlay || !userOverlayProgress.isFinished())
+			userOverlay.render(container, g);
 
 		UI.draw(g);
 	}
@@ -794,7 +847,7 @@ public class SongMenu extends BasicGameState {
 			BeatmapSetList.get().init();
 			if (BeatmapSetList.get().size() > 0) {
 				// initialize song list
-				setFocus(BeatmapSetList.get().getRandomNode(), -1, true, true);
+				setFocus(BeatmapSetList.get().getRandomNode(), 0, true, true);
 			} else
 				MusicController.playThemeSong();
 			reloadThread = null;
@@ -806,18 +859,27 @@ public class SongMenu extends BasicGameState {
 		selectRandomButton.hoverUpdate(delta, mouseX, mouseY);
 		selectMapOptionsButton.hoverUpdate(delta, mouseX, mouseY);
 		selectOptionsButton.hoverUpdate(delta, mouseX, mouseY);
+		userButton.hoverUpdate(delta, userButton.contains(mouseX, mouseY));
 		footerLogoButton.hoverUpdate(delta, mouseX, mouseY, 0.25f);
 
 		// options overlay
 		if (optionsOverlayProgress.update(delta)) {
 			// slide in/out
 			float t = optionsOverlayProgress.getValue();
-			int optionsOffset = (int) (optionsOverlay.getWidth() * t);
-			int optionsX = showOptionsOverlay ?
-				-optionsOverlay.getWidth() + optionsOffset : -optionsOffset;
-			optionsOverlay.setLocation(optionsX, 0);
+			if (!showOptionsOverlay)
+				t = 1f - t;
+			optionsOverlay.setWidth((int) (optionsOverlay.getTargetWidth() * t));
+			optionsOverlay.setAlpha(t);
 		} else if (showOptionsOverlay)
 			optionsOverlay.update(delta);
+
+		// user overlay
+		if (userOverlayProgress.update(delta)) {
+			// fade in/out
+			float t = userOverlayProgress.getValue();
+			userOverlay.setAlpha(showUserOverlay ? t : 1f - t);
+		} else if (showUserOverlay)
+			userOverlay.update(delta);
 
 		// beatmap menu timer
 		if (beatmapMenuTimer > -1) {
@@ -834,13 +896,16 @@ public class SongMenu extends BasicGameState {
 			}
 		}
 
-		if (focusNode != null) {
-			// fade in background
-			Beatmap focusNodeBeatmap = focusNode.getSelectedBeatmap();
-			if (!focusNodeBeatmap.isBackgroundLoading())
-				bgAlpha.update(delta);
+		// background (crossfade)
+		lastBgAlpha.update(delta);
+		if (lastBeatmap != null && lastBeatmap.hasLoadedBackground()) {
+			bgAlpha.update(delta);
+			playfieldAlpha.update(-delta);
+		} else
+			playfieldAlpha.update(delta);
 
-			// song change timers
+		// song change timers
+		if (focusNode != null) {
 			songChangeTimer.update(delta);
 			musicIconBounceTimer.update(delta);
 		}
@@ -853,43 +918,7 @@ public class SongMenu extends BasicGameState {
 		searchTimer += delta;
 		if (searchTimer >= SEARCH_DELAY && reloadThread == null && beatmapMenuTimer == -1) {
 			searchTimer = 0;
-
-			// store the start/focus nodes
-			if (focusNode != null)
-				oldFocusNode = new SongNode(BeatmapSetList.get().getBaseNode(focusNode.index), focusNode.beatmapIndex);
-
-			if (BeatmapSetList.get().search(search.getText())) {
-				// reset song stack
-				randomStack = new Stack<SongNode>();
-
-				// empty search
-				if (search.getText().isEmpty())
-					searchResultString = null;
-
-				// search produced new list: re-initialize it
-				startNode = focusNode = null;
-				scoreMap = null;
-				focusScores = null;
-				if (BeatmapSetList.get().size() > 0) {
-					BeatmapSetList.get().init();
-					if (search.getText().isEmpty()) {  // cleared search
-						// use previous start/focus if possible
-						if (oldFocusNode != null) {
-							setFocus(oldFocusNode.getNode(), oldFocusNode.getIndex(), true, true);
-							songChangeTimer.setTime(songChangeTimer.getDuration());
-							musicIconBounceTimer.setTime(musicIconBounceTimer.getDuration());
-						} else
-							setFocus(BeatmapSetList.get().getRandomNode(), -1, true, true);
-					} else {
-						int size = BeatmapSetList.get().size();
-						searchResultString = String.format("%d match%s found!",
-								size, (size == 1) ? "" : "es");
-						setFocus(BeatmapSetList.get().getRandomNode(), -1, true, true);
-					}
-					oldFocusNode = null;
-				} else if (!search.getText().isEmpty())
-					searchResultString = "No matches found. Hit ESC to reset.";
-			}
+			updateSearch();
 		}
 		if (searchTransitionTimer < SEARCH_TRANSITION_TIME) {
 			searchTransitionTimer += delta;
@@ -917,7 +946,7 @@ public class SongMenu extends BasicGameState {
 
 		// mouse hover
 		BeatmapSetNode node = getNodeAtPosition(mouseX, mouseY);
-		if (node != null && !inDropdownMenu) {
+		if (node != null && !inDropdownMenu && !showOptionsOverlay && !showUserOverlay) {
 			if (node == hoverIndex)
 				hoverOffset.update(delta);
 			else {
@@ -933,10 +962,10 @@ public class SongMenu extends BasicGameState {
 		// tooltips
 		if (sortMenu.baseContains(mouseX, mouseY))
 			UI.updateTooltip(delta, "Sort by...", false);
-		else if (focusScores != null && ScoreData.areaContains(mouseX, mouseY) && !showOptionsOverlay) {
+		else if (focusScores != null && ScoreData.areaContains(mouseX, mouseY) && !showOptionsOverlay && !showUserOverlay) {
 			int startScore = (int) (startScorePos.getPosition() / ScoreData.getButtonOffset());
 			int offset = (int) (-startScorePos.getPosition() + startScore * ScoreData.getButtonOffset());
-			int scoreButtons = Math.min(focusScores.length - startScore, MAX_SCORE_BUTTONS);
+			int scoreButtons = Math.min(focusScores.length - startScore, MAX_SCORE_BUTTONS + 1);
 			for (int i = 0, rank = startScore; i < scoreButtons; i++, rank++) {
 				if (rank < 0)
 					continue;
@@ -961,13 +990,16 @@ public class SongMenu extends BasicGameState {
 		if (isInputBlocked())
 			return;
 
-		if (showOptionsOverlay || !optionsOverlayProgress.isFinished())
+		if (showOptionsOverlay || !optionsOverlayProgress.isFinished() ||
+		    showUserOverlay || !userOverlayProgress.isFinished())
 			return;
 
 		if (isScrollingToFocusNode)
 			return;
 
 		if (button == Input.MOUSE_RIGHT_BUTTON) {
+			songScrolling.setSpeedMultiplier(FAST_SCROLL_SPEED);
+
 			// check if anything was clicked
 			for (BeatmapGroup group : BeatmapGroup.values()) {
 				if (group.contains(x, y))
@@ -981,7 +1013,6 @@ public class SongMenu extends BasicGameState {
 				return;
 
 			// scroll to the mouse position on the screen
-			songScrolling.setSpeedMultiplier(2f);
 			scrollSongsToPosition(y);
 			rightMouseScrolling = true;
 		} else
@@ -1017,7 +1048,8 @@ public class SongMenu extends BasicGameState {
 		if (isInputBlocked())
 			return;
 
-		if (showOptionsOverlay || !optionsOverlayProgress.isFinished())
+		if (showOptionsOverlay || !optionsOverlayProgress.isFinished() ||
+		    showUserOverlay || !userOverlayProgress.isFinished())
 			return;
 
 		// back
@@ -1030,19 +1062,28 @@ public class SongMenu extends BasicGameState {
 
 		// selection buttons
 		if (selectModsButton.contains(x, y)) {
-			this.keyPressed(Input.KEY_F1, '\0');
+			openModsMenu();
 			return;
 		} else if (selectRandomButton.contains(x, y)) {
-			this.keyPressed(Input.KEY_F2, '\0');
+			randomBeatmap(false);
 			return;
 		} else if (selectMapOptionsButton.contains(x, y)) {
-			this.keyPressed(Input.KEY_F3, '\0');
+			openBeatmapOptionsMenu();
 			return;
 		} else if (selectOptionsButton.contains(x, y)) {
 			SoundController.playSound(SoundEffect.MENUHIT);
 			showOptionsOverlay = true;
 			optionsOverlayProgress.setTime(0);
 			optionsOverlay.activate();
+			return;
+		}
+
+		// user button
+		if (userButton.contains(x, y)) {
+			SoundController.playSound(SoundEffect.MENUCLICK);
+			showUserOverlay = true;
+			userOverlayProgress.setTime(0);
+			userOverlay.activate();
 			return;
 		}
 
@@ -1062,9 +1103,10 @@ public class SongMenu extends BasicGameState {
 					searchTimer = SEARCH_DELAY;
 					searchTransitionTimer = SEARCH_TRANSITION_TIME;
 					searchResultString = null;
+					lastSearchResultString = null;
 					BeatmapSetList.get().reset();
 					BeatmapSetList.get().init();
-					setFocus(BeatmapSetList.get().getRandomNode(), -1, true, true);
+					setFocus(BeatmapSetList.get().getRandomNode(), 0, true, true);
 
 					if (BeatmapSetList.get().size() < 1 && group.getEmptyMessage() != null)
 						UI.getNotificationManager().sendBarNotification(group.getEmptyMessage());
@@ -1107,7 +1149,7 @@ public class SongMenu extends BasicGameState {
 			// clicked node is a new group
 			else {
 				SoundController.playSound(SoundEffect.MENUCLICK);
-				setFocus(node, -1, false, true);
+				setFocus(node, 0, false, true);
 			}
 
 			// restore hover data
@@ -1151,9 +1193,13 @@ public class SongMenu extends BasicGameState {
 		if ((reloadThread != null && !(key == Input.KEY_ESCAPE || key == Input.KEY_F12)) || beatmapMenuTimer > -1 || isScrollingToFocusNode)
 			return;
 
+		if (UI.globalKeyPressed(key))
+			return;
+
 		switch (key) {
 		case Input.ANDROID_BACK:
 		case Input.KEY_ESCAPE:
+			// Esc: Cancel/back.
 			if (reloadThread != null) {
 				// beatmap reloading: stop parsing beatmaps by sending interrupt to BeatmapParser
 				reloadThread.interrupt();
@@ -1172,40 +1218,21 @@ public class SongMenu extends BasicGameState {
 			}
 			break;
 		case Input.KEY_F1:
-			SoundController.playSound(SoundEffect.MENUHIT);
-			((ButtonMenu) game.getState(Opsu.STATE_BUTTONMENU)).setMenuState(MenuState.MODS);
-			game.enterState(Opsu.STATE_BUTTONMENU);
+			// F1: Open game mods menu.
+			openModsMenu();
 			break;
 		case Input.KEY_F2:
-			if (focusNode == null)
+			// F2: Random song.
+			if (Keyboard.isRepeatEvent())
 				break;
-			SoundController.playSound(SoundEffect.MENUHIT);
-			if (input.isKeyDown(Input.KEY_RSHIFT) || input.isKeyDown(Input.KEY_LSHIFT)) {
-				// shift key: previous random track
-				SongNode prev;
-				if (randomStack.isEmpty() || (prev = randomStack.pop()) == null)
-					break;
-				BeatmapSetNode node = prev.getNode();
-				int expandedIndex = BeatmapSetList.get().getExpandedIndex();
-				if (node.index == expandedIndex)
-					node = node.next;  // move past base node
-				setFocus(node, prev.getIndex(), true, true);
-			} else {
-				// random track, add previous to stack
-				randomStack.push(new SongNode(BeatmapSetList.get().getBaseNode(focusNode.index), focusNode.beatmapIndex));
-				setFocus(BeatmapSetList.get().getRandomNode(), -1, true, true);
-			}
+			randomBeatmap(input.isKeyDown(Input.KEY_RSHIFT) || input.isKeyDown(Input.KEY_LSHIFT));
 			break;
 		case Input.KEY_F3:
-			if (focusNode == null)
-				break;
-			SoundController.playSound(SoundEffect.MENUHIT);
-			MenuState state = focusNode.getBeatmapSet().isFavorite() ?
-				MenuState.BEATMAP_FAVORITE : MenuState.BEATMAP;
-			((ButtonMenu) game.getState(Opsu.STATE_BUTTONMENU)).setMenuState(state, focusNode);
-			game.enterState(Opsu.STATE_BUTTONMENU);
+			// F3: Open beatmap options menu.
+			openBeatmapOptionsMenu();
 			break;
 		case Input.KEY_F5:
+			// F5: Reload beatmaps.
 			SoundController.playSound(SoundEffect.MENUHIT);
 			if (songFolderChanged)
 				reloadBeatmaps(false);
@@ -1215,6 +1242,7 @@ public class SongMenu extends BasicGameState {
 			}
 			break;
 		case Input.KEY_DELETE:
+			// Shift+Del: Delete beatmap.
 			if (focusNode == null)
 				break;
 			if (input.isKeyDown(Input.KEY_RSHIFT) || input.isKeyDown(Input.KEY_LSHIFT)) {
@@ -1225,73 +1253,85 @@ public class SongMenu extends BasicGameState {
 				game.enterState(Opsu.STATE_BUTTONMENU);
 			}
 			break;
-		case Input.KEY_F7:
-			Options.setNextFPS(container);
-			break;
-		case Input.KEY_F10:
-			Options.toggleMouseDisabled();
-			break;
-		case Input.KEY_F12:
-			Utils.takeScreenShot();
-			break;
 		case Input.KEY_ENTER:
+			// Enter: Start game.
 			if (focusNode == null)
 				break;
 			startGame();
 			break;
 		case Input.KEY_DOWN:
-			changeIndex(1);
+			// Down arrow: Scroll down one node.
+			if (focusNode == null)
+				break;
+			if (focusNode.next != null) {
+				if (focusNode.next.index == focusNode.index)
+					moveFocus(focusNode.next);
+				else
+					changeIndex(1);
+			}
 			break;
 		case Input.KEY_UP:
-			changeIndex(-1);
+			// Up arrow: Scroll up one node.
+			if (focusNode == null)
+				break;
+			if (focusNode.prev != null) {
+				if (focusNode.prev.index == focusNode.index)
+					moveFocus(focusNode.prev);
+				else
+					changeIndex(-1);
+			}
 			break;
 		case Input.KEY_RIGHT:
+			// Right arrow: Scroll down one map set.
 			if (focusNode == null)
 				break;
-			BeatmapSetNode next = focusNode.next;
-			if (next != null) {
-				SoundController.playSound(SoundEffect.MENUCLICK);
-				BeatmapSetNode oldStartNode = startNode;
-				int oldHoverOffsetTime = hoverOffset.getTime();
-				BeatmapSetNode oldHoverIndex = hoverIndex;
-				setFocus(next, 0, false, true);
-				if (startNode == oldStartNode) {
-					hoverOffset.setTime(oldHoverOffsetTime);
-					hoverIndex = oldHoverIndex;
-				}
-			}
+			if (Keyboard.isRepeatEvent())
+				break;
+			BeatmapSetNode next = focusNode;
+			while ((next = next.next) != null && next.index == focusNode.index)
+				;
+			if (next != null)
+				moveFocus(next);
 			break;
 		case Input.KEY_LEFT:
+			// Left arrow: Scroll up one map set.
 			if (focusNode == null)
 				break;
-			BeatmapSetNode prev = focusNode.prev;
-			if (prev != null) {
-				SoundController.playSound(SoundEffect.MENUCLICK);
-				BeatmapSetNode oldStartNode = startNode;
-				int oldHoverOffsetTime = hoverOffset.getTime();
-				BeatmapSetNode oldHoverIndex = hoverIndex;
-				setFocus(prev, (prev.index == focusNode.index) ? 0 : prev.getBeatmapSet().size() - 1, false, true);
-				if (startNode == oldStartNode) {
-					hoverOffset.setTime(oldHoverOffsetTime);
-					hoverIndex = oldHoverIndex;
-				}
-			}
+			if (Keyboard.isRepeatEvent())
+				break;
+			BeatmapSetNode prev = focusNode;
+			while ((prev = prev.prev) != null && prev.index == focusNode.index)
+				;
+			if (prev != null)
+				moveFocus(prev);
 			break;
 		case Input.KEY_NEXT:
+			// PgDown: Scroll down one page.
 			changeIndex((int) MAX_SONG_BUTTONS);
 			break;
 		case Input.KEY_PRIOR:
+			// PgUp: Scroll up one page.
 			changeIndex((int) -MAX_SONG_BUTTONS);
 			break;
 		default:
+			// Ctrl+O: Open options overlay.
+			if (key == Input.KEY_O && (input.isKeyDown(Input.KEY_RCONTROL) || input.isKeyDown(Input.KEY_LCONTROL))) {
+				SoundController.playSound(SoundEffect.MENUHIT);
+				showOptionsOverlay = true;
+				optionsOverlayProgress.setTime(0);
+				optionsOverlay.activate();
+				break;
+			}
+
 			// wait for user to finish typing
-			if (Character.isLetterOrDigit(c) || key == Input.KEY_BACK) {
+			if (Character.isLetterOrDigit(c) || key == Input.KEY_BACK || key == Input.KEY_SPACE) {
 				// load glyphs
 				if (c > 255)
 					Fonts.loadGlyphs(searchFont, c);
 
 				// reset search timer
 				searchTimer = 0;
+				searchResultString = null;
 				int textLength = search.getText().length();
 				if (lastSearchTextLength != textLength) {
 					if (key == Input.KEY_BACK) {
@@ -1328,7 +1368,7 @@ public class SongMenu extends BasicGameState {
 		else {
 			if (songScrolling.isPressed())
 				songScrolling.dragged(-diff);
-			else if(rightMouseScrolling)
+			else if (songScrolling.getSpeedMultiplier() == FAST_SCROLL_SPEED)  // make sure mousePressed() preceded this event
 				scrollSongsToPosition(newy);
 		}
 	}
@@ -1336,10 +1376,8 @@ public class SongMenu extends BasicGameState {
 	@Override
 	public void mouseWheelMoved(int newValue) {
 		// change volume
-		if (input.isKeyDown(Input.KEY_LALT) || input.isKeyDown(Input.KEY_RALT)) {
-			UI.changeVolume((newValue < 0) ? -1 : 1);
+		if (UI.globalMouseWheelMoved(newValue, true))
 			return;
-		}
 
 		// block input
 		if (isInputBlocked())
@@ -1366,6 +1404,7 @@ public class SongMenu extends BasicGameState {
 		selectRandomButton.resetHover();
 		selectMapOptionsButton.resetHover();
 		selectOptionsButton.resetHover();
+		userButton.resetHover();
 		hoverOffset.setTime(0);
 		hoverIndex = null;
 		isScrollingToFocusNode = false;
@@ -1375,7 +1414,13 @@ public class SongMenu extends BasicGameState {
 		beatmapMenuTimer = -1;
 		searchTransitionTimer = SEARCH_TRANSITION_TIME;
 		songInfo = null;
-		bgAlpha.setTime(bgAlpha.getDuration());
+		lastFadeBeatmap = null;
+		if (focusNode != null && focusNode.getSelectedBeatmap().hasLoadedBackground())
+			bgAlpha.setTime(bgAlpha.getDuration());
+		else
+			bgAlpha.setTime(0);
+		playfieldAlpha.setTime(0);
+		lastBgAlpha.setTime(0);
 		songChangeTimer.setTime(songChangeTimer.getDuration());
 		musicIconBounceTimer.setTime(musicIconBounceTimer.getDuration());
 		starStream.clear();
@@ -1385,6 +1430,9 @@ public class SongMenu extends BasicGameState {
 		optionsOverlay.reset();
 		showOptionsOverlay = false;
 		optionsOverlayProgress.setTime(optionsOverlayProgress.getDuration());
+		userOverlay.deactivate();
+		showUserOverlay = false;
+		userOverlayProgress.setTime(userOverlayProgress.getDuration());
 
 		// reset song stack
 		randomStack = new Stack<SongNode>();
@@ -1479,9 +1527,9 @@ public class SongMenu extends BasicGameState {
 				BeatmapSetList.get().deleteSongGroup(stateActionNode);
 				if (oldIndex == focusNodeIndex) {
 					if (prev != null)
-						setFocus(prev, -1, true, true);
+						setFocus(prev, 0, true, true);
 					else if (next != null)
-						setFocus(next, -1, true, true);
+						setFocus(next, 0, true, true);
 					else {
 						startNode = focusNode = null;
 						oldFocusNode = null;
@@ -1508,17 +1556,10 @@ public class SongMenu extends BasicGameState {
 				BeatmapSetList.get().deleteSong(stateActionNode);
 				if (stateActionNode == focusNode) {
 					if (stateActionNode.prev != null &&
-					    !(stateActionNode.next != null && stateActionNode.next.index == index)) {
-						if (stateActionNode.prev.index == index)
-							setFocus(stateActionNode.prev, 0, true, true);
-						else
-							setFocus(stateActionNode.prev, -1, true, true);
-					} else if (stateActionNode.next != null) {
-						if (stateActionNode.next.index == index)
-							setFocus(stateActionNode.next, 0, true, true);
-						else
-							setFocus(stateActionNode.next, -1, true, true);
-					}
+					    !(stateActionNode.next != null && stateActionNode.next.index == index))
+						setFocus(stateActionNode.prev, 0, true, true);
+					else if (stateActionNode.next != null)
+						setFocus(stateActionNode.next, 0, true, true);
 				} else if (stateActionNode == startNode) {
 					if (startNode.prev != null)
 						startNode = startNode.prev;
@@ -1539,7 +1580,7 @@ public class SongMenu extends BasicGameState {
 					focusScores = null;
 					BeatmapSetList.get().reset();
 					BeatmapSetList.get().init();
-					setFocus(BeatmapSetList.get().getRandomNode(), -1, true, true);
+					setFocus(BeatmapSetList.get().getRandomNode(), 0, true, true);
 				}
 				break;
 			default:
@@ -1559,11 +1600,101 @@ public class SongMenu extends BasicGameState {
 		optionsOverlay.deactivate();
 		optionsOverlay.reset();
 		showOptionsOverlay = false;
+		userOverlay.deactivate();
+		showUserOverlay = false;
+	}
+
+	/** Updates the search. */
+	private void updateSearch() {
+		// don't initially search
+		if (lastSearchResultString == null && search.getText().isEmpty())
+			return;
+
+		// store the start/focus nodes
+		if (focusNode != null)
+			oldFocusNode = new SongNode(BeatmapSetList.get().getBaseNode(focusNode.index), focusNode.beatmapIndex);
+
+		if (BeatmapSetList.get().search(search.getText())) {
+			// reset song stack
+			randomStack = new Stack<SongNode>();
+
+			// empty search
+			if (search.getText().isEmpty())
+				searchResultString = null;
+
+			// search produced new list: re-initialize it
+			startNode = focusNode = null;
+			scoreMap = null;
+			focusScores = null;
+			int size = BeatmapSetList.get().size();
+			if (size > 0) {
+				BeatmapSetList.get().init();
+				String results = String.format("%d match%s found!", size, (size == 1) ? "" : "es");
+				if (search.getText().isEmpty()) {  // cleared search
+					// use previous start/focus if possible
+					if (oldFocusNode != null) {
+						setFocus(oldFocusNode.getNode(), oldFocusNode.getIndex(), true, true);
+						songChangeTimer.setTime(songChangeTimer.getDuration());
+						musicIconBounceTimer.setTime(musicIconBounceTimer.getDuration());
+					} else
+						setFocus(BeatmapSetList.get().getRandomNode(), 0, true, true);
+				} else {
+					searchResultString = results;
+					setFocus(BeatmapSetList.get().getRandomNode(), 0, true, true);
+				}
+				oldFocusNode = null;
+				lastSearchResultString = results;
+			} else if (!search.getText().isEmpty())
+				searchResultString = lastSearchResultString = "No matches found. Hit ESC to reset.";
+		} else
+			searchResultString = lastSearchResultString;
 	}
 
 	/**
-	 * Shifts the startNode forward (+) or backwards (-) by a given number of nodes.
-	 * Initiates sliding "animation" by shifting the button Y position.
+	 * Shifts the focus node to a new node.
+	 * @param node the new node
+	 */
+	private void moveFocus(BeatmapSetNode node) {
+		SoundController.playSound(SoundEffect.MENUCLICK);
+		BeatmapSetNode oldStartNode = startNode;
+		int oldHoverOffsetTime = hoverOffset.getTime();
+		BeatmapSetNode oldHoverIndex = hoverIndex;
+		setFocus(node, 0, false, true);
+		if (startNode == oldStartNode) {
+			hoverOffset.setTime(oldHoverOffsetTime);
+			hoverIndex = oldHoverIndex;
+		}
+	}
+
+	/**
+	 * Focuses a random beatmap.
+	 * @param previous if true, pops from the random track stack instead
+	 */
+	private void randomBeatmap(boolean previous) {
+		if (focusNode == null)
+			return;
+
+		SoundController.playSound(SoundEffect.MENUHIT);
+		if (previous) {
+			// shift key: previous random track
+			SongNode prev;
+			if (randomStack.isEmpty() || (prev = randomStack.pop()) == null)
+				return;
+			BeatmapSetNode node = prev.getNode();
+			int expandedIndex = BeatmapSetList.get().getExpandedIndex();
+			if (node.index == expandedIndex)
+				node = node.next;  // move past base node
+			setFocus(node, prev.getIndex(), true, true);
+		} else {
+			// random track, add previous to stack
+			randomStack.push(new SongNode(BeatmapSetList.get().getBaseNode(focusNode.index), focusNode.beatmapIndex));
+			setFocus(BeatmapSetList.get().getRandomNode(), 0, true, true);
+		}
+	}
+
+	/**
+	 * Shifts the scroll position forward (+) or backwards (-) by a given number
+	 * of nodes.
 	 * @param shift the number of nodes to shift
 	 */
 	private void changeIndex(int shift) {
@@ -1613,13 +1744,13 @@ public class SongMenu extends BasicGameState {
 
 	/**
 	 * Sets a new focus node.
-	 * @param node the base node; it will be expanded if it isn't already
-	 * @param beatmapIndex the beatmap element to focus; if out of bounds, it will be randomly chosen
-	 * @param changeStartNode if true, startNode will be set to the first node in the group
+	 * @param node the new node to focus
+	 * @param beatmapIndex the beatmap element to focus (if out of bounds, randomly chosen)
+	 * @param forceFastScroll if fast scroll should always be used to scroll to the new focus node
 	 * @param preview whether to start at the preview time (true) or beginning (false)
 	 * @return the old focus node
 	 */
-	public BeatmapSetNode setFocus(BeatmapSetNode node, int beatmapIndex, boolean changeStartNode, boolean preview) {
+	public BeatmapSetNode setFocus(BeatmapSetNode node, int beatmapIndex, boolean forceFastScroll, boolean preview) {
 		if (node == null)
 			return null;
 
@@ -1648,15 +1779,16 @@ public class SongMenu extends BasicGameState {
 				startNode = BeatmapSetList.get().getBaseNode(startNode.index);
 		}
 
-		// check beatmapIndex bounds
+		// check beatmap index bounds
 		int length = node.getBeatmapSet().size();
 		if (beatmapIndex < 0 || beatmapIndex > length - 1)  // set a random index
 			beatmapIndex = (int) (Math.random() * length);
 
+		// focus the node
 		focusNode = BeatmapSetList.get().getNode(node, beatmapIndex);
 		Beatmap beatmap = focusNode.getSelectedBeatmap();
 		if (beatmap.timingPoints == null) {
-			// parse timing points so we can pulse the logo
+			// load timing points so we can pulse the logo
 			BeatmapDB.load(beatmap, BeatmapDB.LOAD_ARRAY);
 		}
 		MusicController.play(beatmap, false, preview);
@@ -1666,66 +1798,33 @@ public class SongMenu extends BasicGameState {
 		focusScores = getScoreDataForNode(focusNode, true);
 		startScorePos.setPosition(0);
 
-		if (oldFocus != null && oldFocus.getBeatmapSet() != node.getBeatmapSet()) {
-			// close previous node
-			if (node.index > oldFocus.index) {
-				float offset = (oldFocus.getBeatmapSet().size() - 1) * buttonOffset;
-				songScrolling.addOffset(-offset);
-			}
-
-			if (Math.abs(node.index - oldFocus.index) > MAX_SONG_BUTTONS) {
-				// open from the middle
-				float offset = ((node.getBeatmapSet().size() - 1) * buttonOffset) / 2f;
-				songScrolling.addOffset(offset);
-			} else if (node.index > oldFocus.index) {
-				// open from the bottom
-				float offset = (node.getBeatmapSet().size() - 1) * buttonOffset;
-				songScrolling.addOffset(offset);
-			} else {
-				// open from the top
-			}
-		}
-
-		// change the focus node
-		if (changeStartNode || (startNode.index == 0 && startNode.beatmapIndex == -1 && startNode.prev == null)) {
-			if (startNode == null || game.getCurrentStateID() != Opsu.STATE_SONGMENU)
-				songScrolling.setPosition((node.index - 1) * buttonOffset);
-			else {
+		// change the scroll position
+		float position = buttonOffset *
+			(focusNode.index + focusNode.beatmapIndex - MAX_SONG_BUTTONS / 2 +
+			0.5f * ((MAX_SONG_BUTTONS + 1) % 2));
+		if (startNode == null || game.getCurrentStateID() != Opsu.STATE_SONGMENU)
+			songScrolling.setPosition(position);
+		else {
+			songScrolling.scrollToPosition(position);
+			if (forceFastScroll || (position - songScrolling.getPosition()) / buttonOffset > MAX_SONG_BUTTONS / 2f) {
 				isScrollingToFocusNode = true;
-				songScrolling.setSpeedMultiplier(2f);
+				songScrolling.setSpeedMultiplier(FAST_SCROLL_SPEED);
 				songScrolling.released();
 			}
 		}
 
 		updateDrawnSongPosition();
 
-		// make sure focusNode is on the screen
-		int val = focusNode.index + focusNode.beatmapIndex;
-		if (val * buttonOffset <= songScrolling.getPosition())
-			songScrolling.scrollToPosition(val * buttonOffset);
-		else if (val * buttonOffset - (footerY - headerY - buttonOffset) >= songScrolling.getPosition())
-			songScrolling.scrollToPosition(val * buttonOffset - (footerY - headerY - buttonOffset));
-
-		/*
-		// Centers selected node
-		int val = focusNode.index + focusNode.beatmapIndex - MAX_SONG_BUTTONS/2;
-		songScrolling.scrollToPosition(val * buttonOffset);
-		//*/
-
-		/*
-		// Attempts to make all nodes in the set at least visible
-		if( focusNode.index * buttonOffset < songScrolling.getPosition())
-			songScrolling.scrollToPosition(focusNode.index * buttonOffset);
-		if ( ( focusNode.index + focusNode.getBeatmapSet().size() ) * buttonOffset > songScrolling.getPosition() + footerY - headerY)
-			songScrolling.scrollToPosition((focusNode.index + focusNode.getBeatmapSet().size() ) * buttonOffset - (footerY - headerY));
-		//*/
-
 		// load background image
 		beatmap.loadBackground();
-		boolean isBgNull = lastBackgroundImage == null || beatmap.bg == null;
-		if ((isBgNull && lastBackgroundImage != beatmap.bg) || (!isBgNull && !beatmap.bg.equals(lastBackgroundImage))) {
+		lastFadeBeatmap = lastBeatmap;
+		lastBeatmap = beatmap;
+		boolean lastBgExists = lastFadeBeatmap != null && lastFadeBeatmap.hasLoadedBackground();
+		boolean thisBgExists = beatmap.bg != null;
+		if (lastBgExists != thisBgExists || (lastBgExists && thisBgExists && !beatmap.bg.equals(lastFadeBeatmap.bg))) {
 			bgAlpha.setTime(0);
-			lastBackgroundImage = beatmap.bg;
+			playfieldAlpha.setTime(lastBgExists ? 0 : playfieldAlpha.getDuration());
+			lastBgAlpha.setTime(0);
 		}
 
 		return oldFocus;
@@ -1797,9 +1896,10 @@ public class SongMenu extends BasicGameState {
 		if (beatmap.beatmapID == s.MID && beatmap.beatmapSetID == s.MSID &&
 		    beatmap.title.equals(s.title) && beatmap.artist.equals(s.artist) &&
 		    beatmap.creator.equals(s.creator)) {
-			if (setTimeSince) {
-				for (int i = 0; i < scores.length; i++)
+			for (int i = 0; i < scores.length; i++) {
+				if (setTimeSince)
 					scores[i].getTimeSince();
+				scores[i].loadGlyphs();
 			}
 			return scores;
 		} else
@@ -1827,7 +1927,9 @@ public class SongMenu extends BasicGameState {
 		searchTimer = SEARCH_DELAY;
 		searchTransitionTimer = SEARCH_TRANSITION_TIME;
 		searchResultString = null;
-		lastBackgroundImage = null;
+		lastSearchResultString = null;
+		lastBeatmap = null;
+		lastFadeBeatmap = null;
 		lastSearchTextLength = 0;
 
 		// reload songs in new thread
@@ -1900,6 +2002,25 @@ public class SongMenu extends BasicGameState {
 			BeatmapDB.setStars(beatmap);
 			beatmapsCalculated.put(beatmap, !hasTimingPoints);
 		}
+	}
+
+	/** Enters the game mods menu. */
+	private void openModsMenu() {
+		SoundController.playSound(SoundEffect.MENUHIT);
+		((ButtonMenu) game.getState(Opsu.STATE_BUTTONMENU)).setMenuState(MenuState.MODS);
+		game.enterState(Opsu.STATE_BUTTONMENU);
+	}
+
+	/** Enters the beatmap options menu. */
+	private void openBeatmapOptionsMenu() {
+		if (focusNode == null)
+			return;
+
+		SoundController.playSound(SoundEffect.MENUHIT);
+		MenuState state = focusNode.getBeatmapSet().isFavorite() ?
+			MenuState.BEATMAP_FAVORITE : MenuState.BEATMAP;
+		((ButtonMenu) game.getState(Opsu.STATE_BUTTONMENU)).setMenuState(state, focusNode);
+		game.enterState(Opsu.STATE_BUTTONMENU);
 	}
 
 	/**

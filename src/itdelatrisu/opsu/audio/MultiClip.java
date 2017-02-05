@@ -28,6 +28,7 @@ import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
+import javax.sound.sampled.DataLine;
 import javax.sound.sampled.FloatControl;
 import javax.sound.sampled.LineListener;
 import javax.sound.sampled.LineUnavailableException;
@@ -184,7 +185,9 @@ public class MultiClip {
 			clips.add(c);
 		} else {
 			// create a new clip
-			c = AudioSystem.getClip();
+			// NOTE: AudioSystem.getClip() doesn't work on some Linux setups.
+			DataLine.Info info = new DataLine.Info(Clip.class, format);
+			c = (Clip) AudioSystem.getLine(info);
 			if (format != null)
 				c.open(format, audioData, 0, audioData.length);
 			clips.add(c);

@@ -21,10 +21,10 @@ package itdelatrisu.opsu.beatmap;
 import fluddokt.opsu.fake.*;
 
 import itdelatrisu.opsu.ErrorHandler;
-import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.db.BeatmapDB;
 import itdelatrisu.opsu.io.MD5InputStreamWrapper;
+import itdelatrisu.opsu.options.Options;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
@@ -86,8 +86,16 @@ public class BeatmapParser {
 	 * adds the beatmaps to a new BeatmapSetList.
 	 * @param root the root directory (search has depth 1)
 	 */
-	public static void parseAllFiles(File root) {
-		// create a new BeatmapSetList
+	public static void parseAllFiles(File root) { parseAllFiles(root, null); }
+
+	/**
+	 * Invokes parser for each OSU file in a root directory and
+	 * adds the beatmaps to a new BeatmapSetList.
+	 * @param root the root directory (search has depth 1)
+	 * @param oldBeatmapList the old beatmap list to copy non-parsed fields from
+	 */
+	public static void parseAllFiles(File root, BeatmapSetList oldBeatmapList) {
+		// create a new beatmap list
 		BeatmapSetList.create();
 
 		// create a new watch service
@@ -95,7 +103,7 @@ public class BeatmapParser {
 			BeatmapWatchService.create();
 
 		// parse all directories
-		parseDirectories(root.listFiles());
+		parseDirectories(root.listFiles(), oldBeatmapList);
 	}
 
 	/**
@@ -105,6 +113,17 @@ public class BeatmapParser {
 	 * @return the last BeatmapSetNode parsed, or null if none
 	 */
 	public static BeatmapSetNode parseDirectories(File[] dirs) {
+		return parseDirectories(dirs, null);
+	}
+
+	/**
+	 * Invokes parser for each directory in the given array and
+	 * adds the beatmaps to the existing BeatmapSetList.
+	 * @param dirs the array of directories to parse
+	 * @param oldBeatmapList the old beatmap list to copy non-parsed fields from
+	 * @return the last BeatmapSetNode parsed, or null if none
+	 */
+	public static BeatmapSetNode parseDirectories(File[] dirs, BeatmapSetList oldBeatmapList) {
 		if (dirs == null)
 			return null;
 
@@ -179,9 +198,19 @@ public class BeatmapParser {
 
 				// add to parsed beatmap list
 				if (beatmap != null) {
-					beatmap.dateAdded = timestamp;
-					if (beatmap.mode == Beatmap.MODE_OSU)  // only support standard mode
+					// copy non-parsed fields
+					Beatmap oldBeatmap;
+					if (oldBeatmapList != null && (oldBeatmap = oldBeatmapList.getBeatmapFromHash(beatmap.md5Hash)) != null)
+						oldBeatmap.copyAdditionalFields(beatmap);
+
+					// add timestamp
+					if (beatmap.dateAdded < 1)
+						beatmap.dateAdded = timestamp;
+
+					// only support standard mode
+					if (beatmap.mode == Beatmap.MODE_OSU)
 						beatmaps.add(beatmap);
+
 					parsedBeatmaps.add(beatmap);
 				}
 			}
@@ -478,11 +507,17 @@ public class BeatmapParser {
 							break;
 						tokens = line.split(",");
 						switch (tokens[0]) {
-						case "0":  // background
+						case "0":  // background image
 							tokens[2] = tokens[2].replaceAll("^\"|\"$", "");
 							String ext = BeatmapParser.getExtension(tokens[2]);
 							if (ext.equals("jpg") || ext.equals("png"))
 								beatmap.bg = new File(dir, getDBString(tokens[2]));
+							break;
+						case "1":
+						case "Video":  // background video
+							tokens[2] = tokens[2].replaceAll("^\"|\"$", "");
+							beatmap.video = new File(dir, getDBString(tokens[2]));
+							beatmap.videoOffset = Integer.parseInt(tokens[1]);
 							break;
 						case "2":  // break periods
 							try {

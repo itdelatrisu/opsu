@@ -23,11 +23,10 @@ import fluddokt.newdawn.slick.state.transition.*;
 
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.Opsu;
-import itdelatrisu.opsu.Options;
-import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
+import itdelatrisu.opsu.options.Options;
 import itdelatrisu.opsu.ui.MenuButton;
 import itdelatrisu.opsu.ui.UI;
 import itdelatrisu.opsu.ui.animations.AnimationEquation;
@@ -40,8 +39,8 @@ import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
-import org.newdawn.slick.state.transition.FadeInTransition;
 import org.newdawn.slick.state.transition.EasedFadeOutTransition;
+import org.newdawn.slick.state.transition.FadeInTransition;
 */
 
 /**
@@ -115,6 +114,9 @@ public class GamePauseMenu extends BasicGameState {
 
 	@Override
 	public void keyPressed(int key, char c) {
+		if (UI.globalKeyPressed(key))
+			return;
+
 		// game keys
 		if (!Keyboard.isRepeatEvent()) {
 			if (key == Options.getGameKeyLeft())
@@ -145,15 +147,6 @@ public class GamePauseMenu extends BasicGameState {
 				gameState.setRestart(Game.Restart.MANUAL);
 				game.enterState(Opsu.STATE_GAME);
 			}
-			break;
-		case Input.KEY_F7:
-			Options.setNextFPS(container);
-			break;
-		case Input.KEY_F10:
-			Options.toggleMouseDisabled();
-			break;
-		case Input.KEY_F12:
-			Utils.takeScreenShot();
 			break;
 		case Input.KEY_EQUALS:
 		case Input.KEY_ADD:
@@ -197,7 +190,7 @@ public class GamePauseMenu extends BasicGameState {
 		if (Options.isMouseWheelDisabled())
 			return;
 
-		UI.changeVolume((newValue < 0) ? -1 : 1);
+		UI.globalMouseWheelMoved(newValue, false);
 	}
 
 	@Override

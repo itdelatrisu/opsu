@@ -1109,24 +1109,6 @@ public class Input {
 	}
 	
 	/**
-	 * Hook to allow us to translate any key character into special key 
-	 * codes for easier use.
-	 * 
-	 * @param key The original key code
-	 * @param c The character that was fired
-	 * @return The key code to fire
-	 */
-	private int resolveEventKey(int key, char c) {
-		// BUG with LWJGL - equals comes back with keycode = 0
-		// See: http://slick.javaunlimited.net/viewtopic.php?t=617
-		if ((c == 61) || (key == 0)) {
-			return KEY_EQUALS;
-		}
-		
-		return key;
-	}
-	
-	/**
 	 * Notification that the mouse has been pressed and hence we
 	 * should consider what we're doing with double clicking
 	 * 
@@ -1201,7 +1183,7 @@ public class Input {
 		while (Keyboard.next()) {
 			if (Keyboard.getEventKeyState()) {
 				char eventCh = Keyboard.getEventCharacter();
-				int eventKey = resolveEventKey(Keyboard.getEventKey(), eventCh);
+				int eventKey = Keyboard.getEventKey();
 				
 				keys[eventKey] = eventCh;
 				pressed[eventKey] = true;
@@ -1220,7 +1202,7 @@ public class Input {
 				}
 			} else {
 				char eventCh = Keyboard.getEventCharacter();
-				int eventKey = resolveEventKey(Keyboard.getEventKey(), eventCh);
+				int eventKey = Keyboard.getEventKey();
 				nextRepeat[eventKey] = 0;
 				
 				consumed = false;

@@ -25,12 +25,11 @@ import itdelatrisu.opsu.GameData;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.GameMod;
 import itdelatrisu.opsu.Opsu;
-import itdelatrisu.opsu.Options;
-import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
 import itdelatrisu.opsu.beatmap.Beatmap;
+import itdelatrisu.opsu.options.Options;
 import itdelatrisu.opsu.replay.Replay;
 import itdelatrisu.opsu.ui.MenuButton;
 import itdelatrisu.opsu.ui.UI;
@@ -42,6 +41,7 @@ import java.io.IOException;
 
 /*
 import org.lwjgl.opengl.Display;
+import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
@@ -75,8 +75,10 @@ public class GameRanking extends BasicGameState {
 	/** Animation progress. */
 	private AnimatedValue animationProgress = new AnimatedValue(6000, 0f, 1f, AnimationEquation.LINEAR);
 
+	/** The loaded replay, or null if it couldn't be loaded. */
+	private Replay replay = null;
+
 	// game-related variables
-	private GameContainer container;
 	private StateBasedGame game;
 	private final int state;
 	private Input input;
@@ -88,7 +90,6 @@ public class GameRanking extends BasicGameState {
 	@Override
 	public void init(GameContainer container, StateBasedGame game)
 			throws SlickException {
-		this.container = container;
 		this.game = game;
 		this.input = container.getInput();
 
@@ -142,7 +143,7 @@ public class GameRanking extends BasicGameState {
 		replayButton.draw();
 		if (data.isGameplay() && !GameMod.AUTO.isActive())
 			retryButton.draw();
-		UI.getBackButton().draw();
+		UI.getBackButton().draw(g);
 
 		UI.draw(g);
 	}
@@ -159,6 +160,7 @@ public class GameRanking extends BasicGameState {
 			MusicController.loopTrackIfEnded(true);
 		UI.getBackButton().hoverUpdate(delta, mouseX, mouseY);
 		animationProgress.update(delta);
+		data.updateRankingDisplays(delta, mouseX, mouseY);
 	}
 
 	@Override
@@ -166,24 +168,17 @@ public class GameRanking extends BasicGameState {
 
 	@Override
 	public void mouseWheelMoved(int newValue) {
-		if (input.isKeyDown(Input.KEY_LALT) || input.isKeyDown(Input.KEY_RALT))
-			UI.changeVolume((newValue < 0) ? -1 : 1);
+		UI.globalMouseWheelMoved(newValue, true);
 	}
 
 	@Override
 	public void keyPressed(int key, char c) {
+		if (UI.globalKeyPressed(key))
+			return;
+
 		switch (key) {
 		case Input.KEY_ESCAPE:
 			returnToSongMenu();
-			break;
-		case Input.KEY_F7:
-			Options.setNextFPS(container);
-			break;
-		case Input.KEY_F10:
-			Options.toggleMouseDisabled();
-			break;
-		case Input.KEY_F12:
-			Utils.takeScreenShot();
 			break;
 		}
 	}
@@ -205,19 +200,10 @@ public class GameRanking extends BasicGameState {
 		boolean returnToGame = false;
 		boolean replayButtonPressed = replayButton.contains(x, y);
 		if (replayButtonPressed && !(data.isGameplay() && GameMod.AUTO.isActive())) {
-			Replay r = data.getReplay(null, null);
-			if (r != null) {
-				try {
-					r.load();
-					gameState.setReplay(r);
-					gameState.setRestart((data.isGameplay()) ? Game.Restart.REPLAY : Game.Restart.NEW);
-					returnToGame = true;
-				} catch (FileNotFoundException e) {
-					UI.getNotificationManager().sendBarNotification("Replay file not found.");
-				} catch (IOException e) {
-					Log.error("Failed to load replay data.", e);
-					UI.getNotificationManager().sendBarNotification("Failed to load replay data. See log for details.");
-				}
+			if (replay != null) {
+				gameState.setReplay(replay);
+				gameState.setRestart((data.isGameplay()) ? Game.Restart.REPLAY : Game.Restart.NEW);
+				returnToGame = true;
 			} else
 				UI.getNotificationManager().sendBarNotification("Replay file not found.");
 		}
@@ -265,6 +251,7 @@ public class GameRanking extends BasicGameState {
 			}
 		}
 		replayButton.resetHover();
+		loadReplay();
 	}
 
 	@Override
@@ -287,6 +274,24 @@ public class GameRanking extends BasicGameState {
 		if (UI.getCursor().isBeatmapSkinned())
 			UI.getCursor().reset();
 		game.enterState(Opsu.STATE_SONGMENU, new EasedFadeOutTransition(), new FadeInTransition());
+	}
+
+	/** Loads the replay data. */
+	private void loadReplay() {
+		this.replay = null;
+		Replay r = data.getReplay(null, null, null);
+		if (r != null) {
+			try {
+				r.load();
+				this.replay = r;
+			} catch (FileNotFoundException e) {
+				// file not found
+			} catch (IOException e) {
+				Log.error("Failed to load replay data.", e);
+				UI.getNotificationManager().sendNotification("Failed to load replay data.\nSee log for details.", Color.red);
+			}
+		}
+		// else file not found
 	}
 
 	/**

@@ -24,12 +24,12 @@ import itdelatrisu.opsu.GameData;
 import itdelatrisu.opsu.GameData.HitObjectType;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.GameMod;
-import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.beatmap.Beatmap;
 import itdelatrisu.opsu.beatmap.HitObject;
 import itdelatrisu.opsu.objects.curves.Curve;
 import itdelatrisu.opsu.objects.curves.Vec2f;
+import itdelatrisu.opsu.options.Options;
 import itdelatrisu.opsu.states.Game;
 import itdelatrisu.opsu.ui.Colors;
 import itdelatrisu.opsu.ui.animations.AnimatedValue;
@@ -549,7 +549,7 @@ public class Slider implements GameObject {
 	}
 
 	@Override
-	public boolean update(boolean overlap, int delta, int mouseX, int mouseY, boolean keyPressed, int trackPosition) {
+	public boolean update(int delta, int mouseX, int mouseY, boolean keyPressed, int trackPosition) {
 		int repeatCount = hitObject.getRepeatCount();
 		int[] hitResultOffset = game.getHitResultOffsets();
 		boolean isAutoMod = GameMod.AUTO.isActive();
@@ -590,8 +590,9 @@ public class Slider implements GameObject {
 		initialExpand.update(delta);
 		releaseExpand.update(delta);
 
-		// TODO: Some ticks/repeats get missed if delta updates skip past them.
-		// The code tries to catch this, but doesn't completely work...
+		// NOTE:
+		// The loops below are used to catch any missed ticks/repeats if slower
+		// delta updates skip past them.
 
 		// repeats
 		int newRepeats = 0;

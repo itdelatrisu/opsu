@@ -29,18 +29,24 @@ import itdelatrisu.opsu.beatmap.Health;
 import itdelatrisu.opsu.beatmap.HitObject;
 import itdelatrisu.opsu.downloads.Updater;
 import itdelatrisu.opsu.objects.curves.Curve;
+import itdelatrisu.opsu.options.Options;
+import itdelatrisu.opsu.replay.LifeFrame;
 import itdelatrisu.opsu.replay.Replay;
 import itdelatrisu.opsu.replay.ReplayFrame;
 import itdelatrisu.opsu.ui.Colors;
 import itdelatrisu.opsu.ui.Fonts;
+import itdelatrisu.opsu.ui.UI;
 import itdelatrisu.opsu.ui.animations.AnimationEquation;
+import itdelatrisu.opsu.user.UserList;
 
 //import java.io.File;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.concurrent.LinkedBlockingDeque;
+import java.util.List;
 import java.util.Random;
+import java.util.concurrent.LinkedBlockingDeque;
 
 /*
 import org.newdawn.slick.Animation;
@@ -240,6 +246,12 @@ public class GameData {
 	/** List containing recent hit error information. */
 	private LinkedBlockingDeque<HitErrorInfo> hitErrorList;
 
+	/** List containing all hit error time differences. */
+	private List<Integer> hitErrors;
+
+	/** Performance string containing hit error averages and unstable rate. */
+	private String performanceString = null;
+
 	/** Hit object types, used for drawing results. */
 	public enum HitObjectType { CIRCLE, SLIDERTICK, SLIDER_FIRST, SLIDER_LAST, SPINNER }
 
@@ -395,6 +407,8 @@ public class GameData {
 		}
 		hitResultList = new LinkedBlockingDeque<HitObjectResult>();
 		hitErrorList = new LinkedBlockingDeque<HitErrorInfo>();
+		hitErrors = new ArrayList<Integer>();
+		performanceString = null;
 		fullObjectCount = 0;
 		combo = 0;
 		comboMax = 0;
@@ -790,6 +804,7 @@ public class GameData {
 		// animation timings
 		int animationTime = 400, offsetTime = 150, gradeAnimationTime = 1000, whiteAnimationTime = 2200;
 		int rankStart = 50, comboStart = 1800, perfectStart = 2700, gradeStart = 2800, whiteStart = 3800;
+		int graphEnd = whiteStart + 100;
 
 		// ranking panel
 		GameImage.RANKING_PANEL.getImage().draw(0, (int) (102 * uiScale));
@@ -887,6 +902,44 @@ public class GameData {
 			);
 		}
 
+		// graph
+		float graphX = 416 * uiScale;
+		float graphY = 688 * uiScale;
+		Image graphImg = GameImage.RANKING_GRAPH.getImage();
+		graphImg.drawCentered(graphX, graphY);
+		if (replay != null && replay.lifeFrames != null && replay.lifeFrames.length > 0) {
+			float margin = 8 * uiScale;
+			float cx = graphX - graphImg.getWidth() / 2f + margin;
+			float cy = graphY - graphImg.getHeight() / 2f + margin;
+			float graphWidth = graphImg.getWidth() - margin * 2f;
+			float graphHeight = graphImg.getHeight() - margin * 2f;
+			g.setClip((int) cx, (int) cy, (int) (graphWidth * ((float) time / graphEnd)), (int) graphHeight);
+			float lastXt = cx;
+			float lastYt = cy + graphHeight * (1f - replay.lifeFrames[0].getHealth());
+			g.setLineWidth(2 * uiScale);
+			if (replay.lifeFrames.length == 1) {
+				g.setColor(replay.lifeFrames[0].getHealth() >= 0.5f ? Colors.GREEN : Color.red);
+				g.drawLine(lastXt, lastYt, lastXt + graphWidth, lastYt);
+			} else {
+				int minTime = replay.lifeFrames[0].getTime();
+				int maxTime = replay.lifeFrames[replay.lifeFrames.length - 1].getTime();
+				int totalTime = maxTime - minTime;
+				Color lastColor = null;
+				for (int i = 1; i < replay.lifeFrames.length; i++) {
+					float xt = cx + graphWidth * ((float) (replay.lifeFrames[i].getTime() - minTime) / totalTime);
+					float yt = cy + graphHeight * (1f - replay.lifeFrames[i].getHealth());
+					Color color = replay.lifeFrames[i].getHealth() >= 0.5f ? Colors.GREEN : Color.red;
+					if (color != lastColor)
+						g.setColor(color);
+					g.drawLine(lastXt, lastYt, xt, yt);
+					lastXt = xt;
+					lastYt = yt;
+					lastColor = color;
+				}
+			}
+			g.clearClip();
+		}
+
 		// full combo
 		if (time >= perfectStart) {
 			float t = Math.min((float) (time - perfectStart) / animationTime, 1f);
@@ -896,7 +949,7 @@ public class GameData {
 			if (comboMax == fullObjectCount) {
 				Image img = GameImage.RANKING_PERFECT.getImage().getScaledCopy(scale);
 				img.setAlpha(alpha);
-				img.drawCentered(416 * uiScale, 688 * uiScale);
+				img.drawCentered(graphX, graphY);
 			}
 		}
 
@@ -925,10 +978,10 @@ public class GameData {
 		float marginX = width * 0.01f, marginY = height * 0.002f;
 		Fonts.LARGE.drawString(marginX, marginY,
 			String.format("%s - %s [%s]", beatmap.getArtist(), beatmap.getTitle(), beatmap.version), Color.white);
-		Fonts.MEDIUM.drawString(marginX, marginY + Fonts.LARGE.getLineHeight() - 6,
+		Fonts.MEDIUM.drawString(marginX, marginY + Fonts.LARGE.getLineHeight() - 3,
 			String.format("Beatmap by %s", beatmap.creator), Color.white);
 		String player = (scoreData.playerName == null) ? "" : String.format(" by %s", scoreData.playerName);
-		Fonts.MEDIUM.drawString(marginX, marginY + Fonts.LARGE.getLineHeight() + Fonts.MEDIUM.getLineHeight() - 10,
+		Fonts.MEDIUM.drawString(marginX, marginY + Fonts.LARGE.getLineHeight() + Fonts.MEDIUM.getLineHeight() - 5,
 			String.format("Played%s on %s.", player, scoreData.getTimeString()), Color.white);
 
 		// mod icons
@@ -1135,6 +1188,11 @@ public class GameData {
 	public void changeHealth(float value) { health.changeHealth(value); }
 
 	/**
+	 * Returns the raw score.
+	 */
+	public long getScore() { return score; }
+
+	/**
 	 * Changes score by a raw value (not affected by other modifiers).
 	 * @param value the score value
 	 */
@@ -1159,7 +1217,7 @@ public class GameData {
 	/**
 	 * Returns the raw score percentage.
 	 */
-	private float getScorePercent() {
+	public float getScorePercent() {
 		return getScorePercent(
 			hitResultCount[HIT_300], hitResultCount[HIT_100],
 			hitResultCount[HIT_50], hitResultCount[HIT_MISS]
@@ -1277,6 +1335,26 @@ public class GameData {
 				    info.time + HIT_ERROR_FADE_TIME <= trackPosition)
 					iter.remove();
 			}
+		}
+	}
+
+	/**
+	 * Updates displayed ranking elements based on a delta value.
+	 * @param delta the delta interval since the last call
+	 * @param mouseX the mouse x coordinate
+	 * @param mouseY the mouse y coordinate
+	 */
+	public void updateRankingDisplays(int delta, int mouseX, int mouseY) {
+		// graph tooltip
+		Image graphImg = GameImage.RANKING_GRAPH.getImage();
+		float graphX = 416 * GameImage.getUIscale();
+		float graphY = 688 * GameImage.getUIscale();
+		if (isGameplay &&
+		    mouseX >= graphX - graphImg.getWidth() / 2f && mouseX <= graphX + graphImg.getWidth() / 2f &&
+		    mouseY >= graphY - graphImg.getHeight() / 2f && mouseY <= graphY + graphImg.getHeight() / 2f) {
+			if (performanceString == null)
+				performanceString = getPerformanceString(hitErrors);
+			UI.updateTooltip(delta, performanceString, true);
 		}
 	}
 
@@ -1615,7 +1693,8 @@ public class GameData {
 		sd.perfect = (comboMax == fullObjectCount);
 		sd.mods = GameMod.getModState();
 		sd.replayString = (replay == null) ? null : replay.getReplayFilename();
-		sd.playerName = null;  // TODO
+		sd.playerName = GameMod.AUTO.isActive() ?
+			UserList.AUTO_USER_NAME : UserList.get().getCurrentUser().getName();
 		return sd;
 	}
 
@@ -1623,10 +1702,11 @@ public class GameData {
 	 * Returns a Replay object encapsulating all game data.
 	 * If a replay already exists and frames is null, the existing object will be returned.
 	 * @param frames the replay frames
+	 * @param lifeFrames the life frames
 	 * @param beatmap the associated beatmap
 	 * @return the Replay object, or null if none exists and frames is null
 	 */
-	public Replay getReplay(ReplayFrame[] frames, Beatmap beatmap) {
+	public Replay getReplay(ReplayFrame[] frames, LifeFrame[] lifeFrames, Beatmap beatmap) {
 		if (replay != null && frames == null)
 			return replay;
 
@@ -1637,7 +1717,7 @@ public class GameData {
 		replay.mode = Beatmap.MODE_OSU;
 		replay.version = Updater.get().getBuildDate();
 		replay.beatmapHash = (beatmap == null) ? "" : beatmap.md5Hash;
-		replay.playerName = "";  // TODO
+		replay.playerName = UserList.get().getCurrentUser().getName();
 		replay.replayHash = Long.toString(System.currentTimeMillis());  // TODO
 		replay.hit300 = (short) hitResultCount[HIT_300];
 		replay.hit100 = (short) hitResultCount[HIT_100];
@@ -1649,7 +1729,7 @@ public class GameData {
 		replay.combo = (short) comboMax;
 		replay.perfect = (comboMax == fullObjectCount);
 		replay.mods = GameMod.getModState();
-		replay.lifeFrames = null;  // TODO
+		replay.lifeFrames = lifeFrames;
 		replay.timestamp = new Date();
 		replay.frames = frames;
 		replay.seed = 0;  // TODO
@@ -1685,5 +1765,31 @@ public class GameData {
 	 */
 	public void addHitError(int time, int x, int y, int timeDiff) {
 		hitErrorList.addFirst(new HitErrorInfo(time, x, y, timeDiff));
+		hitErrors.add(timeDiff);
+	}
+
+	/**
+	 * Computes the error values and unstable rate for the map.
+	 * @see <a href="https://osu.ppy.sh/wiki/Accuracy#Performance_Graph">https://osu.ppy.sh/wiki/Accuracy#Performance_Graph</a>
+	 */
+	private String getPerformanceString(List<Integer> errors) {
+		int earlyCount = 0, lateCount = 0;
+		int earlySum = 0, lateSum = 0;
+		for (int diff : errors) {
+			if (diff < 0) {
+				earlyCount++;
+				earlySum += diff;
+			} else if (diff > 0) {
+				lateCount++;
+				lateSum += diff;
+			}
+		}
+		float hitErrorEarly = (earlyCount > 0) ? (float) earlySum / earlyCount : 0f;
+		float hitErrorLate = (lateCount > 0) ? (float) lateSum / lateCount : 0f;
+		float unstableRate = (!errors.isEmpty()) ? (float) (Utils.standardDeviation(errors) * 10) : 0f;
+		return String.format(
+			"Accuracy:\nError: %.2fms - %.2fms avg\nUnstable Rate: %.2f",
+			hitErrorEarly, hitErrorLate, unstableRate
+		);
 	}
 }

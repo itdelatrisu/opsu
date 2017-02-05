@@ -18,4 +18,4 @@ https://github.com/libgdx/libgdx/wiki/Deploying-your-application
 ## License
 **This software is licensed under GNU GPL version 3.**
 You can find the full text of the license [here](LICENSE).
- 
+

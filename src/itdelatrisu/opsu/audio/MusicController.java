@@ -20,10 +20,11 @@ package itdelatrisu.opsu.audio;
 
 import fluddokt.opsu.fake.*;
 import itdelatrisu.opsu.ErrorHandler;
-import itdelatrisu.opsu.Options;
+import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.beatmap.Beatmap;
 import itdelatrisu.opsu.beatmap.BeatmapParser;
 import itdelatrisu.opsu.beatmap.TimingPoint;
+import itdelatrisu.opsu.options.Options;
 import itdelatrisu.opsu.ui.UI;
 
 /*
@@ -40,6 +41,7 @@ import javax.sound.sampled.UnsupportedAudioFileException;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.openal.AL;
 import org.lwjgl.openal.AL10;
+import org.newdawn.slick.Color;
 import org.newdawn.slick.Music;
 import org.newdawn.slick.MusicListener;
 import org.newdawn.slick.SlickException;
@@ -106,7 +108,7 @@ public class MusicController {
 			}
 
 			reset();
-			System.gc();
+			Utils.gc(false);
 
 			switch (BeatmapParser.getExtension(beatmap.audioFilename.getName())) {
 			case "ogg":
@@ -139,7 +141,20 @@ public class MusicController {
 	 */
 	private static void loadTrack(File file, int position, boolean loop) {
 		try {
+			// create the music player
+			// NOTE: most errors from this call are suppressed, so check
+			//       for SoundStore errors manually afterwards
 			player = new Music(file.getPath(), true);
+			if (!SoundStore.get().soundWorks()) {
+				player = null;
+				trackEnded = false;
+				UI.getNotificationManager().sendNotification(
+					"Looks like sound isn't working right now. Sorry!\n\n" +
+					"Restarting the game will probably fix this.",
+					Color.red
+				);
+				return;
+			}
 			player.addListener(new MusicListener() {
 				@Override
 				public void musicEnded(Music music) {
@@ -542,6 +557,9 @@ public class MusicController {
 			return;
 		stop();
 /*
+		if (!AL.isCreated())
+			return;
+
 		try {
 			// get Music object's (private) Audio object reference
 			Field sound = player.getClass().getDeclaredField("sound");
@@ -588,7 +606,7 @@ public class MusicController {
 
 			player = null;
 		} catch (Exception e) {
-			ErrorHandler.error("Failed to destroy OpenAL.", e, true);
+			ErrorHandler.error("Failed to destroy the OpenAL context.", e, true);
 		}
 */
 	}

@@ -19,12 +19,13 @@
 package itdelatrisu.opsu.ui;
 
 import fluddokt.opsu.fake.*;
+import itdelatrisu.opsu.objects.curves.Vec2f;
+
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.Opsu;
-import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.Utils;
-import itdelatrisu.opsu.objects.curves.Vec2f;
+import itdelatrisu.opsu.options.Options;
 import itdelatrisu.opsu.skins.Skin;
 import itdelatrisu.opsu.ui.animations.AnimationEquation;
 
@@ -129,17 +130,23 @@ public class Cursor {
 		Skin skin = Options.getSkin();
 
 		// determine correct cursor image
-		Image cursor = GameImage.CURSOR.getImage();
-		Image cursorTrail = GameImage.CURSOR_TRAIL.getImage();
-		Image cursorMiddle = null;
-		if (GameImage.CURSOR.hasBeatmapSkinImage()) {
+		Image cursor, cursorTrail, cursorMiddle = null;
+		if (Options.isSkinCursorForced()) {
+			cursor = GameImage.CURSOR.getDefaultImage();
+			cursorTrail = GameImage.CURSOR_TRAIL.getDefaultImage();
+		} else {
+			cursor = GameImage.CURSOR.getImage();
+			cursorTrail = GameImage.CURSOR_TRAIL.getImage();
+		}
+
+		if (GameImage.CURSOR.hasBeatmapSkinImage() && !Options.isSkinCursorForced()) {
 			if (GameImage.CURSOR_MIDDLE.hasBeatmapSkinImage())
 				cursorMiddle = GameImage.CURSOR_MIDDLE.getImage();
 		} else if (GameImage.CURSOR.hasGameSkinImage()) {
 			if (GameImage.CURSOR_MIDDLE.hasGameSkinImage())
-				cursorMiddle = GameImage.CURSOR_MIDDLE.getImage();
+				cursorMiddle = GameImage.CURSOR_MIDDLE.getDefaultImage();
 		} else
-			cursorMiddle = GameImage.CURSOR_MIDDLE.getImage();
+			cursorMiddle = GameImage.CURSOR_MIDDLE.getDefaultImage();
 
 		// scale cursor
 		float cursorScaleAnimated = 1f;

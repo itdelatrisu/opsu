@@ -18,6 +18,7 @@
 
 package itdelatrisu.opsu;
 
+import itdelatrisu.opsu.options.Options;
 import itdelatrisu.opsu.ui.Fonts;
 
 import fluddokt.opsu.fake.*;
@@ -174,6 +175,7 @@ public enum GameImage {
 	RANKING_TITLE ("ranking-title", "png"),
 	RANKING_MAXCOMBO ("ranking-maxcombo", "png"),
 	RANKING_ACCURACY ("ranking-accuracy", "png"),
+	RANKING_GRAPH ("ranking-graph", "png", false, false),
 	DEFAULT_0 ("default-0", "png"),
 	DEFAULT_1 ("default-1", "png"),
 	DEFAULT_2 ("default-2", "png"),
@@ -276,7 +278,9 @@ public enum GameImage {
 			return img.getScaledCopy((h * 0.3f) / img.getHeight());
 		}
 	},
-	MENU_BACK ("menu-back", "menu-back-%d", "png"),
+	MENU_BACK ("menu-back", "menu-back-%d", "png", false, true),
+	MENU_BACK_CHEVRON ("menu-back-chevron", "png"),
+	MENU_BACK_SLOPE("menu-back-slope", "png"),
 	MENU_BUTTON_BG ("menu-button-background", "png", false, false){
 		@Override
 		protected Image process_sub(Image img, int w, int h) {
@@ -425,9 +429,13 @@ public enum GameImage {
 	CHEVRON_LEFT ("chevron-left", "png", false, false),
 
 	// Options menu
+	SEARCH ("search", "png", false, false),
 	CONTROL_SLIDER_BALL ("control-sliderball", "png", false, false),
 	CONTROL_CHECK_ON ("control-check-on", "png", false, false),
 	CONTROL_CHECK_OFF ("control-check-off", "png", false, false),
+
+	// User selection menu
+	USER ("user", "user%d", "png", false, false),
 
 	// TODO: ensure this image hasn't been modified (checksum?)
 	ALPHA_MAP ("alphaInvert", "png", false, false);
@@ -616,6 +624,19 @@ public enum GameImage {
 	}
 
 	/**
+	 * Constructor for an array of general images.
+	 * @param filename the image file name
+	 * @param filenameFormat the formatted file name string (for loading multiple images)
+	 * @param type the file types (separated by '|')
+	 * @param beatmapSkinnable whether or not the image is beatmap-skinnable
+	 * @param preload whether or not to preload the image
+	 */
+	GameImage(String filename, String filenameFormat, String type, boolean beatmapSkinnable, boolean preload) {
+		this(filename, type, beatmapSkinnable, preload);
+		this.filenameFormat = filenameFormat;
+	}
+
+	/**
 	 * Returns whether or not the image is beatmap-skinnable.
 	 * @return true if beatmap-skinnable
 	 */
@@ -634,6 +655,15 @@ public enum GameImage {
 	public Image getImage() {
 		setDefaultImage();
 		return (skinImage != null) ? skinImage : defaultImage;
+	}
+
+	/**
+	 * Returns the image associated with this resource.
+	 * This ignores beatmap skin images.
+	 */
+	public Image getDefaultImage() {
+		setDefaultImage();
+		return defaultImage;
 	}
 
 	/**
@@ -672,6 +702,15 @@ public enum GameImage {
 	public Image[] getImages() {
 		setDefaultImage();
 		return (skinImages != null) ? skinImages : defaultImages;
+	}
+
+	/**
+	 * Returns the image array associated with this resource.
+	 * This ignores beatmap skin images.
+	 */
+	public Image[] getDefaultImages() {
+		setDefaultImage();
+		return defaultImages;
 	}
 
 	/**

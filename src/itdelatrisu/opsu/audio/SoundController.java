@@ -22,14 +22,16 @@ import fluddokt.opsu.fake.MultiClip;
 import fluddokt.opsu.fake.*;
 
 import itdelatrisu.opsu.ErrorHandler;
-import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.audio.HitSound.SampleSet;
 import itdelatrisu.opsu.beatmap.HitObject;
 import itdelatrisu.opsu.downloads.Download;
 import itdelatrisu.opsu.downloads.Download.DownloadListener;
+import itdelatrisu.opsu.options.Options;
+import itdelatrisu.opsu.ui.NotificationManager.NotificationListener;
 import itdelatrisu.opsu.ui.UI;
 
 /*
+import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -47,7 +49,9 @@ import javax.sound.sampled.LineUnavailableException;
 */
 
 /*
+import org.newdawn.slick.Color;
 import org.newdawn.slick.SlickException;
+import org.newdawn.slick.util.Log;
 import org.newdawn.slick.util.ResourceLoader;
 */
 
@@ -120,7 +124,7 @@ public class SoundController {
 	 */
 	/*
 	private static MultiClip loadClip(String ref, AudioInputStream audioIn)
-			throws IOException, LineUnavailableException {
+		throws IOException, LineUnavailableException {
 		AudioFormat format = audioIn.getFormat();
 		String encoding = format.getEncoding().toString();
 		if (encoding.startsWith("MPEG")) {
@@ -134,12 +138,10 @@ public class SoundController {
 		} else if (encoding.startsWith("GSM")) {
 			// Currently there's no way to decode GSM in WAV containers in Java.
 			// http://www.jsresources.org/faq_audio.html#gsm_in_wav
-			ErrorHandler.error(
+			Log.warn(
 				"Failed to load audio file.\n" +
 				"Java cannot decode GSM in WAV containers; " +
-				"please re-encode this file to PCM format or remove it:\n" + ref,
-				null,
-				false
+				"please re-encode this file to PCM format or remove it:\n" + ref
 			);
 			return null;
 		}
@@ -232,6 +234,7 @@ public class SoundController {
 			return;
 
 		currentFileIndex = 0;
+		int failedCount = 0;
 
 		// menu and game sounds
 		for (SoundEffect s : SoundEffect.values()) {
@@ -240,6 +243,8 @@ public class SoundController {
 				continue;
 			}
 			MultiClip newClip = loadClip(currentFileName);
+			if (newClip == null)
+				failedCount++;
 			if (s.getClip() != null) {  // clip previously loaded (e.g. program restart)
 				if (newClip != null) {
 					s.getClip().destroy();  // destroy previous clip
@@ -259,6 +264,8 @@ public class SoundController {
 					continue;
 				}
 				MultiClip newClip = loadClip(currentFileName);
+				if (newClip == null)
+					failedCount++;
 				if (s.getClip(ss) != null) {  // clip previously loaded (e.g. program restart)
 					if (newClip != null) {
 						s.getClip(ss).destroy();  // destroy previous clip
@@ -272,6 +279,24 @@ public class SoundController {
 
 		currentFileName = null;
 		currentFileIndex = -1;
+
+		// show a notification if any files failed to load
+		if (failedCount > 0) {
+			String text = String.format("Failed to load %d audio file%s.", failedCount, failedCount == 1 ? "" : "s");
+			NotificationListener listener = null;
+			if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.OPEN)) {
+				text += "\nClick for details.";
+				listener = new NotificationListener() {
+					@Override
+					public void click() {
+						try {
+							Desktop.getDesktop().open(Options.LOG_FILE);
+						} catch (Exception e) {}
+					}
+				};
+			}
+			UI.getNotificationManager().sendNotification(text, Color.red, listener);
+		}
 	}
 
 	/**

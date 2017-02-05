@@ -20,12 +20,12 @@ package itdelatrisu.opsu.replay;
 
 import fluddokt.opsu.fake.*;
 import itdelatrisu.opsu.ErrorHandler;
-import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.ScoreData;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.beatmap.Beatmap;
 import itdelatrisu.opsu.io.OsuReader;
 import itdelatrisu.opsu.io.OsuWriter;
+import itdelatrisu.opsu.options.Options;
 
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
@@ -307,12 +307,16 @@ public class Replay {
 
 					// life data
 					StringBuilder sb = new StringBuilder();
-					if (lifeFrames != null) {
+					if (lifeFrames != null && lifeFrames.length > 0) {
 						NumberFormat nf = new DecimalFormat("##.##");
+						int lastFrameTime = 0;
 						for (int i = 0; i < lifeFrames.length; i++) {
 							LifeFrame frame = lifeFrames[i];
-							sb.append(String.format("%d|%s,",
-									frame.getTime(), nf.format(frame.getPercentage())));
+							if (i > 0 && frame.getTime() - lastFrameTime < LifeFrame.SAMPLE_INTERVAL)
+								continue;
+
+							sb.append(String.format("%d|%s,", frame.getTime(), nf.format(frame.getHealth())));
+							lastFrameTime = frame.getTime();
 						}
 					}
 					writer.write(sb.toString());

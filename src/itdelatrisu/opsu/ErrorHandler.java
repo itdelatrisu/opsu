@@ -26,6 +26,8 @@ import fluddokt.opsu.fake.gl.GL11;
 
 
 /*
+import itdelatrisu.opsu.options.Options;
+
 import java.awt.Cursor;
 import java.awt.Desktop;
 import java.io.IOException;
@@ -254,6 +256,7 @@ public class ErrorHandler {
 			sb.append('\n');
 		}
 		sb.append(DeviceInfo.info.getInfo());
+		sb.append('\n');
 		return sb.toString();
 	}
 
@@ -267,7 +270,7 @@ public class ErrorHandler {
 	 */
 	public static URI getIssueURI(String error, Throwable e, String trace) {
 		// generate report information
-		String issueTitle = (error != null) ? error : e.getMessage();
+		String issueTitle = (error != null) ? error : (e.getMessage() != null) ? e.getMessage() : "null";
 		StringBuilder sb = new StringBuilder();
 		sb.append(getEnvironmentInfoForIssue());
 		if (error != null) {

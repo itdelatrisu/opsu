@@ -24,6 +24,7 @@ import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.db.DBController;
 import itdelatrisu.opsu.downloads.DownloadList;
 import itdelatrisu.opsu.downloads.Updater;
+import itdelatrisu.opsu.options.Options;
 import itdelatrisu.opsu.states.ButtonMenu;
 import itdelatrisu.opsu.states.DownloadsMenu;
 import itdelatrisu.opsu.states.Game;
@@ -33,6 +34,7 @@ import itdelatrisu.opsu.states.MainMenu;
 import itdelatrisu.opsu.states.SongMenu;
 import itdelatrisu.opsu.states.Splash;
 import itdelatrisu.opsu.ui.UI;
+import itdelatrisu.opsu.video.FFmpeg;
 
 
 
@@ -187,6 +189,7 @@ public class Opsu extends StateBasedGame {
 			Log.warn("Failed to set 'sys_paths' field.", e);
 		}
 		*/
+		FFmpeg.setNativeDir(nativeDir);
 
 		// set the resource paths
 		ResourceLoader.removeAllResourceLocations();

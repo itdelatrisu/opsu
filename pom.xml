@@ -3,13 +3,14 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>itdelatrisu</groupId>
 	<artifactId>opsu</artifactId>
-	<version>0.14.0</version>
+	<version>0.15.0</version>
 	<properties>
 		<version>${project.version}</version>
 		<timestamp>${maven.build.timestamp}</timestamp>
 		<maven.build.timestamp.format>yyyy-MM-dd HH:mm</maven.build.timestamp.format>
 		<mainClassName>itdelatrisu.opsu.Opsu</mainClassName>
 		<XDG>false</XDG>
+		<exclude>^"..</exclude>  <!-- bogus Ant FileSet pattern to match nothing -->
 	</properties>
 	<build>
 		<sourceDirectory>src</sourceDirectory>
@@ -92,10 +93,18 @@
 								<exclude>org/newdawn/slick/Music.*</exclude>
 								<exclude>org/newdawn/slick/Input.*</exclude>
 								<exclude>org/newdawn/slick/Input$NullOutputStream.*</exclude>
+								<exclude>org/newdawn/slick/UnicodeFont*</exclude>
 								<exclude>org/newdawn/slick/gui/TextField.*</exclude>
 								<exclude>org/newdawn/slick/openal/AudioInputStream*</exclude>
 								<exclude>org/newdawn/slick/openal/OpenALStreamPlayer*</exclude>
 								<exclude>org/newdawn/slick/openal/SoundStore*</exclude>
+							</excludes>
+						</filter>
+						<filter>
+							<!-- For FFmpeg -->
+							<artifact>*:*</artifact>
+							<excludes>
+								<exclude>${exclude}*</exclude>
 							</excludes>
 						</filter>
 					</filters>
@@ -120,6 +129,20 @@
 			</plugin>
 		</plugins>
 	</build>
+
+	<repositories>
+		<repository>
+			<id>repo</id>
+			<releases>
+				<enabled>true</enabled>
+				<checksumPolicy>ignore</checksumPolicy>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<url>file://${project.basedir}/repo</url>
+		</repository>
+	</repositories>
 
 	<dependencies>
 		<dependency>
@@ -207,6 +230,11 @@
 			<groupId>org.tukaani</groupId>
 			<artifactId>xz</artifactId>
 			<version>1.6</version>
+		</dependency>
+		<dependency>
+			<groupId>net.indiespot</groupId>
+			<artifactId>media</artifactId>
+			<version>0.8.9</version>
 		</dependency>
 	</dependencies>
 </project>

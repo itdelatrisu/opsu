@@ -96,7 +96,7 @@ public class NotificationManager {
 			this.borderColor = new Color(c);
 			this.borderFocusColor = (borderColor.equals(Color.white)) ?
 				new Color(Colors.GREEN) : new Color(Color.white);
-				this.listener = listener;
+			this.listener = listener;
 			this.width = width;
 			this.height = (int) (font.getLineHeight() * (lines.size() + 0.5f));
 		}
@@ -193,6 +193,9 @@ public class NotificationManager {
 
 		/** Returns whether this notification is finished being displayed. */
 		public boolean isFinished() { return time >= NOTIFICATION_TIME; }
+
+		/** Returns whether this notification has finished animating in. */
+		public boolean isStartAnimationFinished() { return time >= NOTIFICATION_ANIMATION_TIME; }
 
 		/**
 		 * Click handler.
@@ -293,9 +296,10 @@ public class NotificationManager {
 		g.setColor(Colors.BLACK_ALPHA);
 		g.fillRect(0, midY - barHeight / 2f, container.getWidth(), barHeight);
 		Fonts.LARGE.drawString(
-				midX - Fonts.LARGE.getWidth(barNotif) / 2f,
-				midY - Fonts.LARGE.getLineHeight() / 2.2f,
-				barNotif, Colors.WHITE_ALPHA);
+			midX - Fonts.LARGE.getWidth(barNotif) / 2f,
+			midY - Fonts.LARGE.getLineHeight() / 2f,
+			barNotif, Colors.WHITE_ALPHA
+		);
 		Colors.BLACK_ALPHA.a = oldAlphaB;
 		Colors.WHITE_ALPHA.a = oldAlphaW;
 	}
@@ -306,10 +310,14 @@ public class NotificationManager {
 	 */
 	public void update(int delta) {
 		// update notifications
-		boolean allFinished = true;
+		boolean allFinished = true, startFinished = true;
 		for (BubbleNotification n : notifications) {
-			if (n.update(delta))
+			if (startFinished) {
+				if (n.update(delta))
+					allFinished = false;
+			} else if (!n.isFinished())
 				allFinished = false;
+			startFinished = n.isStartAnimationFinished();
 		}
 		if (allFinished)
 			notifications.clear();  // clear when all are finished showing

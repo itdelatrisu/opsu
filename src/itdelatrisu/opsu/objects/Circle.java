@@ -24,10 +24,10 @@ import itdelatrisu.opsu.GameData;
 import itdelatrisu.opsu.GameData.HitObjectType;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.GameMod;
-import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.beatmap.HitObject;
 import itdelatrisu.opsu.objects.curves.Vec2f;
+import itdelatrisu.opsu.options.Options;
 import itdelatrisu.opsu.states.Game;
 import itdelatrisu.opsu.ui.Colors;
 
@@ -167,7 +167,7 @@ public class Circle implements GameObject {
 	}
 
 	@Override
-	public boolean update(boolean overlap, int delta, int mouseX, int mouseY, boolean keyPressed, int trackPosition) {
+	public boolean update(int delta, int mouseX, int mouseY, boolean keyPressed, int trackPosition) {
 		int time = hitObject.getTime();
 
 		int[] hitResultOffset = game.getHitResultOffsets();

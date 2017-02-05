@@ -21,7 +21,7 @@ package itdelatrisu.opsu.beatmap;
 import fluddokt.opsu.fake.*;
 
 import itdelatrisu.opsu.GameImage;
-import itdelatrisu.opsu.Options;
+import itdelatrisu.opsu.options.Options;
 
 //import java.io.File;
 import java.util.ArrayList;
@@ -202,7 +202,10 @@ public class Beatmap implements Comparable<Beatmap> {
 	public File bg;
 
 	/** Background video file. */
-//	public File video;
+	public File video;
+
+	/** Background video offset time. */
+	public int videoOffset = 0;
 
 	/** All break periods (start time, end time, ...). */
 	public ArrayList<Integer> breaks;
@@ -322,6 +325,17 @@ public class Beatmap implements Comparable<Beatmap> {
 			return false;
 		ImageLoader imageLoader = bgImageCache.get(bg);
 		return (imageLoader != null && imageLoader.isLoading());
+	}
+
+	/**
+	 * Returns whether there is a loaded beatmap background image.
+	 * @return true if an image is currently available
+	 */
+	public boolean hasLoadedBackground() {
+		if (bg == null)
+			return false;
+		ImageLoader imageLoader = bgImageCache.get(bg);
+		return (imageLoader != null && imageLoader.getImage() != null);
 	}
 
 	/**
@@ -537,5 +551,19 @@ public class Beatmap implements Comparable<Beatmap> {
 	public void incrementPlayCounter() {
 		this.playCount++;
 		this.lastPlayed = System.currentTimeMillis();
+	}
+}
+
+	/**
+	 * Copies non-parsed fields from this beatmap into another beatmap.
+	 * @param target the target beatmap
+	 */
+	public void copyAdditionalFields(Beatmap target) {
+		target.starRating = starRating;
+		target.dateAdded = dateAdded;
+		target.favorite = favorite;
+		target.playCount = playCount;
+		target.lastPlayed = lastPlayed;
+		target.localMusicOffset = localMusicOffset;
 	}
 }

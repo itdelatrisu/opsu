@@ -50,7 +50,7 @@ public class DummyObject implements GameObject {
 	public void draw(Graphics g, int trackPosition) {}
 
 	@Override
-	public boolean update(boolean overlap, int delta, int mouseX, int mouseY, boolean keyPressed, int trackPosition) {
+	public boolean update(int delta, int mouseX, int mouseY, boolean keyPressed, int trackPosition) {
 		return (trackPosition > hitObject.getTime());
 	}
 

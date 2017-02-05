@@ -20,7 +20,7 @@ package itdelatrisu.opsu.beatmap;
 
 import fluddokt.opsu.fake.Log;
 import itdelatrisu.opsu.ErrorHandler;
-import itdelatrisu.opsu.Options;
+import itdelatrisu.opsu.options.Options;
 
 import java.io.IOException;
 /*

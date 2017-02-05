@@ -22,8 +22,6 @@ import fluddokt.newdawn.slick.state.transition.*;
 import fluddokt.opsu.fake.*;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.Opsu;
-import itdelatrisu.opsu.Options;
-import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
@@ -36,9 +34,11 @@ import itdelatrisu.opsu.downloads.DownloadList;
 import itdelatrisu.opsu.downloads.DownloadNode;
 import itdelatrisu.opsu.downloads.servers.BloodcatServer;
 import itdelatrisu.opsu.downloads.servers.DownloadServer;
+import itdelatrisu.opsu.downloads.servers.HexideServer;
 import itdelatrisu.opsu.downloads.servers.MengSkyServer;
 import itdelatrisu.opsu.downloads.servers.MnetworkServer;
 import itdelatrisu.opsu.downloads.servers.YaSOnlineServer;
+import itdelatrisu.opsu.options.Options;
 import itdelatrisu.opsu.ui.Colors;
 import itdelatrisu.opsu.ui.DropdownMenu;
 import itdelatrisu.opsu.ui.Fonts;
@@ -90,9 +90,10 @@ public class DownloadsMenu extends BasicGameState {
 	/** Available beatmap download servers. */
 	private static final DownloadServer[] SERVERS = {
 		new BloodcatServer(),
+		new MengSkyServer(),
 		new YaSOnlineServer(),
 		new MnetworkServer(),
-		new MengSkyServer()
+		new HexideServer()
 	};
 
 	/** The current list of search results. */
@@ -288,13 +289,8 @@ public class DownloadsMenu extends BasicGameState {
 			File[] dirs = OszUnpacker.unpackAllFiles(Options.getImportDir(), Options.getBeatmapDir());
 			if (dirs != null && dirs.length > 0) {
 				this.importedNode = BeatmapParser.parseDirectories(dirs);
-				if (importedNode != null) {
-					// send notification
-					UI.getNotificationManager().sendNotification((dirs.length == 1) ?
-						"Imported 1 new song." : String.format("Imported %d new songs.", dirs.length));
-				} else {
+				if (importedNode == null)
 					UI.getNotificationManager().sendNotification("No Standard beatmaps could be loaded.", Color.red);
-				}
 			}
 
 			DownloadList.get().clearDownloads(Download.Status.COMPLETE);
@@ -302,7 +298,6 @@ public class DownloadsMenu extends BasicGameState {
 	}
 
 	// game-related variables
-	private GameContainer container;
 	private StateBasedGame game;
 	private Input input;
 	private final int state;
@@ -326,7 +321,6 @@ public class DownloadsMenu extends BasicGameState {
 		 << Page # >> <FONT_BOLD>
 		 
 		 */
-		this.container = container;
 		this.game = game;
 		this.input = container.getInput();
 
@@ -560,12 +554,12 @@ public class DownloadsMenu extends BasicGameState {
 			g.setColor(Colors.BLACK_ALPHA);
 			g.fillRect(0, 0, width, height);
 
-			UI.drawLoadingProgress(g);
+			UI.drawLoadingProgress(g, 1f);
 		}
 
 		// back button
 		else
-			UI.getBackButton().draw();
+			UI.getBackButton().draw(g);
 
 		UI.draw(g);
 	}
@@ -718,10 +712,8 @@ public class DownloadsMenu extends BasicGameState {
 													@Override
 													public void update(LineEvent event) {
 														if (event.getType() == LineEvent.Type.STOP) {
-															if (previewID != -1) {
-																SoundController.stopTrack();
+															if (previewID != -1)
 																previewID = -1;
-															}
 														}
 													}
 												}
@@ -881,11 +873,8 @@ public class DownloadsMenu extends BasicGameState {
 
 	@Override
 	public void mouseWheelMoved(int newValue) {
-		// change volume
-		if (input.isKeyDown(Input.KEY_LALT) || input.isKeyDown(Input.KEY_RALT)) {
-			UI.changeVolume((newValue < 0) ? -1 : 1);
+		if (UI.globalMouseWheelMoved(newValue, true))
 			return;
-		}
 
 		// block input during beatmap importing
 		if (importThread != null)
@@ -920,6 +909,9 @@ public class DownloadsMenu extends BasicGameState {
 		if (importThread != null && !(key == Input.KEY_ESCAPE || key == Input.KEY_F12))
 			return;
 
+		if (UI.globalKeyPressed(key))
+			return;
+
 		switch (key) {
 		case Input.KEY_ESCAPE:
 			if (importThread != null) {
@@ -951,18 +943,9 @@ public class DownloadsMenu extends BasicGameState {
 				searchQuery.interrupt();
 			resetSearchTimer();
 			break;
-		case Input.KEY_F7:
-			Options.setNextFPS(container);
-			break;
-		case Input.KEY_F10:
-			Options.toggleMouseDisabled();
-			break;
-		case Input.KEY_F12:
-			Utils.takeScreenShot();
-			break;
 		default:
 			// wait for user to finish typing
-			if (Character.isLetterOrDigit(c) || key == Input.KEY_BACK) {
+			if (Character.isLetterOrDigit(c) || key == Input.KEY_BACK || key == Input.KEY_SPACE) {
 				// load glyphs
 				if (c > 255)
 					Fonts.loadGlyphs(searchFont, c);

@@ -97,17 +97,19 @@ public class ImageLoader {
 
 		@Override
 		public void run() {
-//			// load image data into a ByteBuffer to use constructor Image(ImageData)
-//			LoadableImageData imageData = ImageDataFactory.getImageDataFor(file.getAbsolutePath());
-//			try (BufferedInputStream in = this.in = new BufferedInputStream(new FileInputStream(file))) {
-//				ByteBuffer textureBuffer = imageData.loadImage(in, false, null);
-//				if (!isInterrupted())
-//					data = new LoadedImageData(imageData, textureBuffer);
-//			} catch (IOException e) {
-//				if (!isInterrupted())
-//					Log.warn(String.format("Failed to load background image '%s'.", file), e);
-//			}
-//			this.in = null;
+			/*
+			// load image data into a ByteBuffer to use constructor Image(ImageData)
+			LoadableImageData imageData = ImageDataFactory.getImageDataFor(file.getAbsolutePath());
+			try (BufferedInputStream in = this.in = new BufferedInputStream(new FileInputStream(file))) {
+				ByteBuffer textureBuffer = imageData.loadImage(in, false, null);
+				if (!isInterrupted())
+					data = new LoadedImageData(imageData, textureBuffer);
+			} catch (Exception e) {
+				if (!isInterrupted())
+					Log.warn(String.format("Failed to load background image '%s'.", file), e);
+			}
+			this.in = null;
+			*/
 		}
 	}
 

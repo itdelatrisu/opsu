@@ -21,9 +21,9 @@ package itdelatrisu.opsu.objects.curves;
 import fluddokt.opsu.fake.*;
 
 import itdelatrisu.opsu.GameImage;
-import itdelatrisu.opsu.Options;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.beatmap.HitObject;
+import itdelatrisu.opsu.options.Options;
 import itdelatrisu.opsu.render.CurveRenderState;
 import itdelatrisu.opsu.skins.Skin;
 import itdelatrisu.opsu.ui.Colors;
