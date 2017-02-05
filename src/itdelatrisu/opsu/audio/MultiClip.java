@@ -33,6 +33,8 @@ import javax.sound.sampled.FloatControl;
 import javax.sound.sampled.LineListener;
 import javax.sound.sampled.LineUnavailableException;
 
+import org.newdawn.slick.util.Log;
+
 /**
  * Extension of Clip that allows playing multiple copies of a Clip simultaneously.
  * http://stackoverflow.com/questions/1854616/
@@ -183,6 +185,7 @@ public class MultiClip {
 
 		Clip c = null;
 		if (extraClips >= MAX_CLIPS) {
+			Log.debug("Stopping an existing clip");
 			// use an existing clip
 			if (clips.isEmpty())
 				return null;
@@ -192,10 +195,17 @@ public class MultiClip {
 		} else {
 			// create a new clip
 			// NOTE: AudioSystem.getClip() doesn't work on some Linux setups.
+			Log.debug("creating a new clip");
 			DataLine.Info info = new DataLine.Info(Clip.class, format);
 			c = (Clip) AudioSystem.getLine(info);
 			if (format != null)
 				c.open(format, audioData, 0, audioData.length);
+			// This is a little hacky, but we can't do an instanceof check and
+			// there's no reason to add the listener unless the system is using
+			// PulseAudioClip et al.
+			if (c.getClass().getSimpleName().equals("PulseAudioClip")) {
+				c.addLineListener(new PulseAudioFixerListener(c));
+			}
 			clips.add(c);
 			if (clips.size() != 1)
 				extraClips++;
@@ -244,7 +254,6 @@ public class MultiClip {
 				}
 			}
 		}
-
 		// close clips in a new thread
 		new Thread() {
 			@Override
