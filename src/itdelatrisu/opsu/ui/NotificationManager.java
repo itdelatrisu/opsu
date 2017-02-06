@@ -320,9 +320,9 @@ public class NotificationManager {
 					allFinished = false;
 				startFinished = n.isStartAnimationFinished();
 			}
+			if (allFinished)
+				notifications.clear();  // clear when all are finished showing
 		}
-		if (allFinished)
-			notifications.clear();  // clear when all are finished showing
 
 		// update bar notification
 		if (barNotifTimer > -1 && barNotifTimer < BAR_NOTIFICATION_TIME) {
