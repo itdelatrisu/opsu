@@ -174,7 +174,7 @@ public class Opsu extends StateBasedGame {
 		// initialize databases
 		try {
 			DBController.init();
-		} catch (UnsatisfiedLinkError e) {
+		} catch (Exception e) {
 			errorAndExit(e, "The databases could not be initialized.", true);
 		}
 
@@ -190,7 +190,7 @@ public class Opsu extends StateBasedGame {
 				public void run() {
 					try {
 						Updater.get().checkForUpdates();
-					} catch (IOException e) {
+					} catch (Exception e) {
 						Log.warn("Check for updates failed.", e);
 					}
 				}
