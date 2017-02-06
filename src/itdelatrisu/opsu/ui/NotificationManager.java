@@ -233,10 +233,12 @@ public class NotificationManager {
 			public void mousePressed(int button, int x, int y) {
 				if (button == Input.MOUSE_MIDDLE_BUTTON)
 					return;
-				for (BubbleNotification n : notifications) {
-					if (n.contains(x, y)) {
-						n.click(button == Input.MOUSE_LEFT_BUTTON);
-						break;
+				synchronized (notifications) {
+					for (BubbleNotification n : notifications) {
+						if (n.contains(x, y)) {
+							n.click(button == Input.MOUSE_LEFT_BUTTON);
+							break;
+						}
 					}
 				}
 			}
@@ -267,9 +269,11 @@ public class NotificationManager {
 	 */
 	private void drawNotifications(Graphics g) {
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
-		for (BubbleNotification n : notifications) {
-			if (!n.isFinished())
-				n.draw(g, n.contains(mouseX, mouseY));
+		synchronized (notifications) {
+			for (BubbleNotification n : notifications) {
+				if (!n.isFinished())
+					n.draw(g, n.contains(mouseX, mouseY));
+			}
 		}
 	}
 
@@ -307,16 +311,18 @@ public class NotificationManager {
 	public void update(int delta) {
 		// update notifications
 		boolean allFinished = true, startFinished = true;
-		for (BubbleNotification n : notifications) {
-			if (startFinished) {
-				if (n.update(delta))
+		synchronized (notifications) {
+			for (BubbleNotification n : notifications) {
+				if (startFinished) {
+					if (n.update(delta))
+						allFinished = false;
+				} else if (!n.isFinished())
 					allFinished = false;
-			} else if (!n.isFinished())
-				allFinished = false;
-			startFinished = n.isStartAnimationFinished();
+				startFinished = n.isStartAnimationFinished();
+			}
+			if (allFinished)
+				notifications.clear();  // clear when all are finished showing
 		}
-		if (allFinished)
-			notifications.clear();  // clear when all are finished showing
 
 		// update bar notification
 		if (barNotifTimer > -1 && barNotifTimer < BAR_NOTIFICATION_TIME) {
