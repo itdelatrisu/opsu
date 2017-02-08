@@ -185,7 +185,6 @@ public class MultiClip {
 
 		Clip c = null;
 		if (extraClips >= MAX_CLIPS) {
-			Log.debug("Stopping an existing clip");
 			// use an existing clip
 			if (clips.isEmpty())
 				return null;
@@ -195,14 +194,13 @@ public class MultiClip {
 		} else {
 			// create a new clip
 			// NOTE: AudioSystem.getClip() doesn't work on some Linux setups.
-			Log.debug("creating a new clip");
 			DataLine.Info info = new DataLine.Info(Clip.class, format);
 			c = (Clip) AudioSystem.getLine(info);
 			if (format != null)
 				c.open(format, audioData, 0, audioData.length);
 			// This is a little hacky, but we can't do an instanceof check and
 			// there's no reason to add the listener unless the system is using
-			// PulseAudioClip et al.
+			// PulseAudio.
 			if (c.getClass().getSimpleName().equals("PulseAudioClip")) {
 				c.addLineListener(new PulseAudioFixerListener(c));
 			}
