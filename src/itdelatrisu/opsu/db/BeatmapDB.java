@@ -17,15 +17,15 @@
  */
 
 package itdelatrisu.opsu.db;
+import fluddokt.opsu.fake.*;
+import itdelatrisu.opsu.Utils;
+import java.io.IOException;
 
 import itdelatrisu.opsu.ErrorHandler;
-import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.beatmap.Beatmap;
 import itdelatrisu.opsu.beatmap.BeatmapParser;
 import itdelatrisu.opsu.options.Options;
 
-
-import java.io.IOException;
 //import java.io.File;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -37,10 +37,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-//import org.newdawn.slick.util.Log;
-
-
-import fluddokt.opsu.fake.*;
+/*
+import org.newdawn.slick.util.Log;
+*/
 
 /**
  * Handles connections and queries with the cached beatmap database.
@@ -208,16 +207,16 @@ public class BeatmapDB {
 					"md5hash TEXT, stars REAL, " +
 					"dateAdded INTEGER, favorite BOOLEAN, playCount INTEGER, lastPlayed INTEGER, localOffset INTEGER, " +
 					"video TEXT, videoOffset INTEGER" +
-				");\n" +
+				"); " +
 				"CREATE TABLE IF NOT EXISTS info (" +
 					"key TEXT NOT NULL UNIQUE, value TEXT" +
-				");\n" +
-				"CREATE INDEX IF NOT EXISTS idx ON beatmaps (dir, file);\n" +
+				"); " +
+				"CREATE INDEX IF NOT EXISTS idx ON beatmaps (dir, file); " +
 
 				// extra optimizations
-				"PRAGMA locking_mode = EXCLUSIVE;\n" +
+				"PRAGMA locking_mode = EXCLUSIVE; " +
 				"PRAGMA journal_mode = WAL;";
-			for (String sqlStmt : sql.split(";\n")){
+			for (String sqlStmt : sql.split(";")){
 				System.out.println("OsuDB SQLExec :"+sqlStmt+" "+stmt.execute(sqlStmt));
 			}
 

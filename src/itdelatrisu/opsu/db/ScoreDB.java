@@ -17,21 +17,21 @@
  */
 
 package itdelatrisu.opsu.db;
+import fluddokt.opsu.fake.Log;
+import itdelatrisu.opsu.Utils;
+import java.io.IOException;
 
 import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.ScoreData;
-import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.beatmap.Beatmap;
 import itdelatrisu.opsu.options.Options;
 import itdelatrisu.opsu.user.User;
 import itdelatrisu.opsu.user.UserList;
 
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.SQLWarning;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -107,7 +107,6 @@ public class ScoreDB {
 		if (connection == null)
 			return;
 
-		
 		// run any database updates
 		updateDatabase();
 
@@ -168,7 +167,7 @@ public class ScoreDB {
 					"mods INTEGER, " +
 					"replay TEXT, " +
 					"playerName TEXT"+
-				");\n" +
+				");" +
 				"CREATE TABLE IF NOT EXISTS users (" +
 					"name TEXT NOT NULL UNIQUE, " +
 					"score INTEGER, accuracy REAL, " +
@@ -177,9 +176,9 @@ public class ScoreDB {
 				");" +
 				"CREATE TABLE IF NOT EXISTS info (" +
 					"key TEXT NOT NULL UNIQUE, value TEXT" +
-				");\n " +
+				"); " +
 				"CREATE INDEX IF NOT EXISTS idx ON scores (MID, MSID, title, artist, creator, version);";
-			for (String sqlStmt : sql.split(";\n")){
+			for (String sqlStmt : sql.split(";")){
 				System.out.println("ScoreDB SQLExec :"+sqlStmt+" "+stmt.execute(sqlStmt));
 				//stmt.e
 			} 
@@ -231,7 +230,11 @@ public class ScoreDB {
 
 			// apply updates
 			for (String query : getUpdateQueries(version))
+			try {
 				stmt.executeUpdate(query);
+			} catch (SQLException e) {
+				Log.warn("Failed to update score database.", e);
+			}
 
 			// update version
 			if (infoExists) {
