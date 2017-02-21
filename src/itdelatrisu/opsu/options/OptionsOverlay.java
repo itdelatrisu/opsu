@@ -428,10 +428,7 @@ public class OptionsOverlay extends AbstractComponent {
 		searchField.setFocus(false);
 		for (DropdownMenu<Object> menu : dropdownMenus.values())
 			menu.deactivate();
-		if (openDropdownMenu != null) {
-			openDropdownMenu.reset();
-			openDropdownMenu = null;
-		}
+		resetOpenDropdownMenu();
 	}
 
 	/**
@@ -849,6 +846,27 @@ public class OptionsOverlay extends AbstractComponent {
 		hoverOption = getOptionAtPosition(mouseX, mouseY);
 	}
 
+	/** Resets the open dropdown menu, if any. */
+	private void resetOpenDropdownMenu() {
+		if (openDropdownMenu != null) {
+			openDropdownMenu.reset();
+			openDropdownMenu = null;
+		}
+	}
+
+	/** Shows or hides an option. */
+	private void toggleOption(GameOption option, boolean visible) {
+		option.setVisible(visible);
+
+		DropdownMenu<Object> menu = dropdownMenus.get(option);
+		if (menu != null) {
+			if (visible)
+				menu.activate();
+			else
+				menu.deactivate();
+		}
+	}
+
 	/**
 	 * Resets the search.
 	 */
@@ -858,10 +876,11 @@ public class OptionsOverlay extends AbstractComponent {
 			if (group.getOptions() == null)
 				continue;
 			for (GameOption option : group.getOptions())
-				option.setVisible(true);
+				toggleOption(option, true);
 		}
 		searchField.setText("");
 		lastSearchText = "";
+		resetOpenDropdownMenu();
 	}
 
 	/**
@@ -883,14 +902,14 @@ public class OptionsOverlay extends AbstractComponent {
 			for (GameOption option : group.getOptions()) {
 				if (lastHeaderMatches || groupMatches) {
 					allOptionsHidden = false;
-					option.setVisible(true);
+					toggleOption(option, true);
 					continue;
 				}
 				if (option.matches(lastSearchText)) {
 					allOptionsHidden = false;
-					option.setVisible(true);
+					toggleOption(option, true);
 				} else
-					option.setVisible(false);
+					toggleOption(option, false);
 			}
 			if (allOptionsHidden)
 				group.setVisible(false);
@@ -900,6 +919,7 @@ public class OptionsOverlay extends AbstractComponent {
 				group.setVisible(true);
 			}
 		}
+		resetOpenDropdownMenu();
 		updateHoverOption(prevMouseX, prevMouseY);
 	}
 
@@ -1157,7 +1177,7 @@ public class OptionsOverlay extends AbstractComponent {
 	public void reset() {
 		hoverOption = selectedOption = null;
 		isAdjustingSlider = false;
-		openDropdownMenu = null;
+		resetOpenDropdownMenu();
 		sliderOptionStartX = sliderOptionWidth = 0;
 		keyEntryLeft = keyEntryRight = false;
 		mousePressY = -1;
