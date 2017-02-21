@@ -45,7 +45,7 @@ public class BeatmapDB {
 	 * This value should be changed whenever the database format changes.
 	 * Add any update queries to the {@link #getUpdateQueries(int)} method.
 	 */
-	private static final int DATABASE_VERSION = 20170128;
+	private static final int DATABASE_VERSION = 20170221;
 
 	/**
 	 * Returns a list of SQL queries to apply, in order, to update from
@@ -70,6 +70,9 @@ public class BeatmapDB {
 			list.add("ALTER TABLE beatmaps ADD COLUMN video TEXT");
 			list.add("ALTER TABLE beatmaps ADD COLUMN videoOffset INTEGER");
 			list.add("UPDATE beatmaps SET videoOffset = 0");
+		}
+		if (version < 20170221) {
+			list.add("UPDATE beatmaps SET stars = -1");
 		}
 
 		/* add future updates here */
