@@ -1496,6 +1496,8 @@ public class Game extends BasicGameState {
 						gameObjects[i] = new Slider(hitObject, this, data, color, comboEnd);
 					else if (hitObject.isSpinner())
 						gameObjects[i] = new Spinner(hitObject, this, data);
+					else  // invalid hit object, use a dummy GameObject
+						gameObjects[i] = new DummyObject(hitObject);
 				} catch (Exception e) {
 					// try to handle the error gracefully: substitute in a dummy GameObject
 					ErrorHandler.error(String.format("Failed to create %s at index %d:\n%s",
