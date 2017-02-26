@@ -1113,7 +1113,7 @@ public class GameData {
 		}
 
 		// slider follow circle
-		if (hitResult.expand && (
+		if (hitResult.expand && hitResult.result != HIT_SLIDER_REPEAT && (
 		    hitResult.hitResultType == HitObjectType.SLIDER_FIRST ||
 		    hitResult.hitResultType == HitObjectType.SLIDER_LAST)) {
 			float progress = AnimationEquation.OUT_CUBIC.calc(
@@ -1130,8 +1130,15 @@ public class GameData {
 			(float) Utils.clamp(trackPosition - hitResult.time, 0, HITCIRCLE_FADE_TIME) / HITCIRCLE_FADE_TIME);
 		float scale = (!hitResult.expand) ? 1f : 1f + (HITCIRCLE_ANIM_SCALE - 1f) * progress;
 		float alpha = 1f - progress;
+		Image scaledHitCircle = GameImage.HITCIRCLE.getImage().getScaledCopy(scale);
+		Image scaledHitCircleOverlay = GameImage.HITCIRCLE_OVERLAY.getImage().getScaledCopy(scale);
+		scaledHitCircle.setAlpha(alpha);
+		scaledHitCircleOverlay.setAlpha(alpha);
+		scaledHitCircle.drawCentered(hitResult.x, hitResult.y, hitResult.color);
+		scaledHitCircleOverlay.drawCentered(hitResult.x, hitResult.y);
+
+		// repeat arrow
 		if (hitResult.result == HIT_SLIDER_REPEAT) {
-			// repeats
 			Image scaledRepeat = GameImage.REVERSEARROW.getImage().getScaledCopy(scale);
 			scaledRepeat.setAlpha(alpha);
 			float ang;
@@ -1143,12 +1150,6 @@ public class GameData {
 			scaledRepeat.rotate(ang);
 			scaledRepeat.drawCentered(hitResult.x, hitResult.y, hitResult.color);
 		}
-		Image scaledHitCircle = GameImage.HITCIRCLE.getImage().getScaledCopy(scale);
-		Image scaledHitCircleOverlay = GameImage.HITCIRCLE_OVERLAY.getImage().getScaledCopy(scale);
-		scaledHitCircle.setAlpha(alpha);
-		scaledHitCircleOverlay.setAlpha(alpha);
-		scaledHitCircle.drawCentered(hitResult.x, hitResult.y, hitResult.color);
-		scaledHitCircleOverlay.drawCentered(hitResult.x, hitResult.y);
 	}
 
 	/**
