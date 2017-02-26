@@ -33,6 +33,8 @@ import javax.sound.sampled.FloatControl;
 import javax.sound.sampled.LineListener;
 import javax.sound.sampled.LineUnavailableException;
 
+import org.newdawn.slick.util.Log;
+
 /**
  * Extension of Clip that allows playing multiple copies of a Clip simultaneously.
  * http://stackoverflow.com/questions/1854616/
@@ -141,6 +143,12 @@ public class MultiClip {
 			FloatControl gainControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
 			float dB = (float) (Math.log(volume) / Math.log(10.0) * 20.0);
 			gainControl.setValue(dB);
+		} else if (clip.isControlSupported(FloatControl.Type.VOLUME)) {
+			// The docs don't mention what unit "volume" is supposed to be, but
+			// for PulseAudio it seems to be amplitude
+			FloatControl volumeControl = (FloatControl) clip.getControl(FloatControl.Type.VOLUME);
+			float amplitude = (float) Math.sqrt(volume) * volumeControl.getMaximum();
+			volumeControl.setValue(amplitude);
 		}
 
 		if (listener != null)
@@ -168,7 +176,7 @@ public class MultiClip {
 		// search for existing stopped clips
 		for (Iterator<Clip> iter = clips.iterator(); iter.hasNext();) {
 			Clip c = iter.next();
-			if (!c.isRunning()) {
+			if (!c.isRunning() && !c.isActive()) {
 				iter.remove();
 				clips.add(c);
 				return c;
@@ -190,6 +198,12 @@ public class MultiClip {
 			c = (Clip) AudioSystem.getLine(info);
 			if (format != null)
 				c.open(format, audioData, 0, audioData.length);
+			// This is a little hacky, but we can't do an instanceof check and
+			// there's no reason to add the listener unless the system is using
+			// PulseAudio.
+			if (c.getClass().getSimpleName().equals("PulseAudioClip")) {
+				c.addLineListener(new PulseAudioFixerListener(c));
+			}
 			clips.add(c);
 			if (clips.size() != 1)
 				extraClips++;
@@ -238,7 +252,6 @@ public class MultiClip {
 				}
 			}
 		}
-
 		// close clips in a new thread
 		new Thread() {
 			@Override
