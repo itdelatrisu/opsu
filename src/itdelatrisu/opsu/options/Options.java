@@ -319,8 +319,8 @@ public class Options {
 		SCREEN_RESOLUTION ("Resolution", "ScreenResolution", "") {
 			private Resolution[] itemList = null;
 
-		        @Override
-		        public boolean isRestartRequired() { return true; }
+			@Override
+			public boolean isRestartRequired() { return true; }
 
 			@Override
 			public String getValueString() { return resolution.toString(); }
@@ -359,8 +359,8 @@ public class Options {
 			}
 		},
 		FULLSCREEN ("Fullscreen mode", "Fullscreen", "Switches to dedicated fullscreen mode.", false) {
-		        @Override
-		        public boolean isRestartRequired() { return true; }
+			@Override
+			public boolean isRestartRequired() { return true; }
 
 			@Override
 			public void toggle(GameContainer container) {
@@ -377,7 +377,7 @@ public class Options {
 			private String[] itemList = null;
 
 			@Override
-                        public boolean isRestartRequired() { return true; }
+			public boolean isRestartRequired() { return true; }
 
 			/** Creates the list of available skins. */
 			private void createSkinList() {
@@ -535,8 +535,8 @@ public class Options {
 			public String getValueString() { return String.format("%dms", val); }
 		},
 		DISABLE_SOUNDS ("Disable all sound effects", "DisableSound", "May resolve Linux sound driver issues.\nRequires a restart.", false) {
-		        @Override
-		        public boolean isRestartRequired() { return true; }
+			@Override
+			public boolean isRestartRequired() { return true; }
 		},
 		KEY_LEFT ("Left game key", "keyOsuLeft", "Select this option to input a key.") {
 			@Override
@@ -657,7 +657,7 @@ public class Options {
 		DISABLE_UPDATER ("Disable automatic updates", "DisableUpdater", "Disable checking for updates when the game starts.", false),
 		ENABLE_WATCH_SERVICE ("Watch service", "WatchService", "Watch the beatmap directory for changes. Requires a restart.", false) {
 			@Override
-                        public boolean isRestartRequired() { return true; }
+			public boolean isRestartRequired() { return true; }
 		};
 
 		/** Option name. */
