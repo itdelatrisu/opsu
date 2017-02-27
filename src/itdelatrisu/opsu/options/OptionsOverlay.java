@@ -317,7 +317,7 @@ public class OptionsOverlay extends AbstractComponent {
 						option.selectItem(index, OptionsOverlay.this.container);
 
 						// show restart button?
-						if (option == GameOption.SCREEN_RESOLUTION || option == GameOption.SKIN) {
+						if (option.isRestartRequired()) {
 							showRestartButton = true;
 							UI.getNotificationManager().sendBarNotification("Restart to apply changes.");
 						}
@@ -1017,7 +1017,7 @@ public class OptionsOverlay extends AbstractComponent {
 				hoverOption.toggle(container);
 
 				// show restart button?
-				if (oldValue != hoverOption.getBooleanValue() && hoverOption == GameOption.FULLSCREEN) {
+				if (oldValue != hoverOption.getBooleanValue() && hoverOption.isRestartRequired()) {
 					showRestartButton = true;
 					UI.getNotificationManager().sendBarNotification("Restart to apply changes.");
 				}
