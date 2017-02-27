@@ -1334,7 +1334,7 @@ public class Game extends BasicGameState {
 			return;
 
 		// send a game key press
-		if (!isReplay && keys != ReplayFrame.KEY_NONE) {
+		if (!isReplay && !gameFinished && keys != ReplayFrame.KEY_NONE) {
 			lastKeysPressed |= keys;  // set keys bits
 			addReplayFrameAndRun(x, y, lastKeysPressed, trackPosition);
 		}
@@ -2098,7 +2098,7 @@ public class Game extends BasicGameState {
 	 * @param keys the keys that are pressed
 	 */
 	private void sendGameKeyPress(int keys, int x, int y, int trackPosition) {
-		if (!hasMoreObjects())  // nothing to do here
+		if (!hasMoreObjects() || gameFinished)  // nothing to do here
 			return;
 
 		// check missed objects first
@@ -2114,6 +2114,8 @@ public class Game extends BasicGameState {
 		}
 
 		// check current object
+		if (objectIndex >= gameObjects.length)
+			return;
 		HitObject hitObject = beatmap.objects[objectIndex];
 		if (hitObject.isCircle() && gameObjects[objectIndex].mousePressed(x, y, trackPosition))
 			objectIndex++;  // circle hit
