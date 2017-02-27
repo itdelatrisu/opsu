@@ -319,6 +319,9 @@ public class Options {
 		SCREEN_RESOLUTION ("Resolution", "ScreenResolution", "") {
 			private Resolution[] itemList = null;
 
+		        @Override
+		        public boolean isRestartRequired() { return true; }
+
 			@Override
 			public String getValueString() { return resolution.toString(); }
 
@@ -356,6 +359,9 @@ public class Options {
 			}
 		},
 		FULLSCREEN ("Fullscreen mode", "Fullscreen", "Switches to dedicated fullscreen mode.", false) {
+		        @Override
+		        public boolean isRestartRequired() { return true; }
+
 			@Override
 			public void toggle(GameContainer container) {
 				// check if fullscreen mode is possible with this resolution
@@ -369,6 +375,9 @@ public class Options {
 		},
 		SKIN ("Skin", "Skin", "") {
 			private String[] itemList = null;
+
+			@Override
+                        public boolean isRestartRequired() { return true; }
 
 			/** Creates the list of available skins. */
 			private void createSkinList() {
@@ -525,7 +534,10 @@ public class Options {
 			@Override
 			public String getValueString() { return String.format("%dms", val); }
 		},
-		DISABLE_SOUNDS ("Disable all sound effects", "DisableSound", "May resolve Linux sound driver issues.\nRequires a restart.", false),
+		DISABLE_SOUNDS ("Disable all sound effects", "DisableSound", "May resolve Linux sound driver issues.\nRequires a restart.", false) {
+		        @Override
+		        public boolean isRestartRequired() { return true; }
+		},
 		KEY_LEFT ("Left game key", "keyOsuLeft", "Select this option to input a key.") {
 			@Override
 			public String getValueString() { return Keyboard.getKeyName(getGameKeyLeft()); }
@@ -643,7 +655,10 @@ public class Options {
 		ENABLE_THEME_SONG ("Theme song", "MenuMusic", OpsuConstants.PROJECT_NAME + " will play themed music throughout the game, instead of using random beatmaps.", true),
 		REPLAY_SEEKING ("Replay seeking", "ReplaySeeking", "Enable a seeking bar on the left side of the screen during replays.", false),
 		DISABLE_UPDATER ("Disable automatic updates", "DisableUpdater", "Disable checking for updates when the game starts.", false),
-		ENABLE_WATCH_SERVICE ("Watch service", "WatchService", "Watch the beatmap directory for changes. Requires a restart.", false);
+		ENABLE_WATCH_SERVICE ("Watch service", "WatchService", "Watch the beatmap directory for changes. Requires a restart.", false) {
+			@Override
+                        public boolean isRestartRequired() { return true; }
+		};
 
 		/** Option name. */
 		private final String name;
@@ -743,6 +758,12 @@ public class Options {
 		 * @return the type
 		 */
 		public OptionType getType() { return type; }
+
+		/**
+		 * Returns whether a restart is required for the option to take effect.
+		 * @return true if a restart is required, false otherwise
+		 */
+		public boolean isRestartRequired() { return false; }
 
 		/**
 		 * Returns the boolean value for the option, if applicable.
