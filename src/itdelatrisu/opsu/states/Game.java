@@ -42,6 +42,7 @@ import itdelatrisu.opsu.objects.GameObject;
 import itdelatrisu.opsu.objects.Slider;
 import itdelatrisu.opsu.objects.Spinner;
 import itdelatrisu.opsu.objects.curves.Curve;
+import itdelatrisu.opsu.objects.curves.FakeCombinedCurve;
 import itdelatrisu.opsu.objects.curves.Vec2f;
 import itdelatrisu.opsu.options.Options;
 import itdelatrisu.opsu.render.FrameBufferCache;
@@ -63,11 +64,7 @@ import itdelatrisu.opsu.video.Video;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.IdentityHashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Stack;
+import java.util.*;
 
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.Display;
@@ -318,6 +315,9 @@ public class Game extends BasicGameState {
 
 	/** The video seek time (if any). */
 	private int videoSeekTime;
+
+	/** The merged slider. */
+	private FakeCombinedCurve mergedslider;
 
 	/** Music position bar background colors. */
 	private static final Color
@@ -1201,6 +1201,19 @@ public class Game extends BasicGameState {
 							beatmap.objects[objectIndex++].getTime() <= checkpoint)
 						;
 					objectIndex--;
+
+					if (Options.isExperimentalSliderStyle() && Options.isMergingSliders()) {
+						int obj = objectIndex;
+						while (obj < gameObjects.length) {
+							if (gameObjects[obj] instanceof Slider) {
+								slidercurveFrom = slidercurveTo = ((Slider) gameObjects[obj]).baseSliderFrom;
+								break;
+							}
+							obj++;
+						}
+						spliceSliderCurve(-1, -1);
+					}
+
 					lastReplayTime = beatmap.objects[objectIndex].getTime();
 					lastTrackPosition = checkpoint;
 				} catch (SlickException e) {
@@ -1586,7 +1599,36 @@ public class Game extends BasicGameState {
 			MusicController.pause();
 
 			SoundController.mute(false);
+
+			if (Options.isMergingSliders()) {
+				if (!Options.isShrinkingSliders()) {
+					mergedslider = null; // workaround for yugecin/opsu-dance#130
+				}
+				if (mergedslider == null) {
+					List<Vec2f> curvepoints = new ArrayList<>();
+					for (GameObject gameObject : gameObjects) {
+						if (gameObject instanceof Slider) {
+							((Slider) gameObject).baseSliderFrom = curvepoints.size();
+							curvepoints.addAll(Arrays.asList(((Slider) gameObject).getCurve().getCurvePoints()));
+						}
+					}
+					if (curvepoints.size() > 0) {
+						mergedslider = new FakeCombinedCurve(curvepoints.toArray(new Vec2f[curvepoints.size()]));
+					}
+				} else {
+					int base = 0;
+					for (GameObject gameObject : gameObjects) {
+						if (gameObject instanceof Slider) {
+							((Slider) gameObject).baseSliderFrom = base;
+							base += ((Slider) gameObject).getCurve().getCurvePoints().length;
+						}
+					}
+				}
+			}
 		}
+
+		slidercurveFrom = 0;
+		slidercurveTo = 0;
 
 		skipButton.resetHover();
 		if (isReplay || GameMod.AUTO.isActive())
@@ -1603,9 +1645,29 @@ public class Game extends BasicGameState {
 		if (GameMod.AUTO.isActive() || isReplay)
 			UI.getCursor().hide();
 
+		mergedslider = null;
+
 		// replays
 		if (isReplay)
 			GameMod.loadModState(previousMods);
+	}
+
+	/** Index from which to draw the experminental merged slider. */
+	private int slidercurveFrom;
+
+	/** Index to draw the experminental merged slider. */
+	private int slidercurveTo;
+
+	public void setSlidercurveFrom(int slidercurveFrom) {
+		this.slidercurveFrom = Math.max(slidercurveFrom, this.slidercurveFrom);
+	}
+
+	public void setSlidercurveTo(int slidercurveTo) {
+		this.slidercurveTo = Math.max(slidercurveTo, this.slidercurveTo);
+	}
+
+	public void spliceSliderCurve(int from, int to) {
+		this.mergedslider.splice(from, to);
 	}
 
 	/**
@@ -1616,6 +1678,10 @@ public class Game extends BasicGameState {
 	private void drawHitObjects(Graphics g, int trackPosition) {
 		// draw result objects (under)
 		data.drawHitResults(trackPosition, false);
+
+		if (Options.isMergingSliders() && mergedslider != null) {
+			mergedslider.draw(Color.white, this.slidercurveFrom, this.slidercurveTo);
+		}
 
 		// include previous object in follow points
 		int lastObjectIndex = -1;

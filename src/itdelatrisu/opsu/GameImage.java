@@ -105,6 +105,7 @@ public enum GameImage {
 
 	// Slider
 	SLIDER_GRADIENT ("slidergradient", "png"),
+	SLIDER_GRADIENT_EX ("slidergradient_ex", "png"),
 	SLIDER_BALL ("sliderb", "sliderb%d", "png"),
 	SLIDER_FOLLOWCIRCLE ("sliderfollowcircle", "png"),
 	REVERSEARROW ("reversearrow", "png"),

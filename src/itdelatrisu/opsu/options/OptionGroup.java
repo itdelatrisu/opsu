@@ -51,6 +51,12 @@ public class OptionGroup {
 			GameOption.SHOW_FOLLOW_POINTS,
 			GameOption.SCREENSHOT_FORMAT,
 		}),
+		new OptionGroup("EXPERIMENTAL SLIDERS", new GameOption[] {
+			GameOption.EXPERIMENTAL_SLIDERS,
+			GameOption.EXPERIMENTAL_SLIDERS_MERGE,
+			GameOption.EXPERIMENTAL_SLIDERS_SHRINK,
+			GameOption.EXPERIMENTAL_SLIDERS_DRAW_ENDCIRCLES,
+		}),
 		new OptionGroup("MAIN MENU", new GameOption[] {
 			GameOption.DYNAMIC_BACKGROUND,
 			GameOption.PARALLAX,

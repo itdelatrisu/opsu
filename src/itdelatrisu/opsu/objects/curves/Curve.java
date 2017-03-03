@@ -23,6 +23,7 @@ import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.beatmap.HitObject;
 import itdelatrisu.opsu.options.Options;
 import itdelatrisu.opsu.render.CurveRenderState;
+import itdelatrisu.opsu.render.LegacyCurveRenderState;
 import itdelatrisu.opsu.skins.Skin;
 import itdelatrisu.opsu.ui.Colors;
 
@@ -59,8 +60,19 @@ public abstract class Curve {
 	/** Per-curve render-state used for the new style curve renders. */
 	private CurveRenderState renderState;
 
+	/** Per-curve render-state used for the legacy style curve renders. */
+	private LegacyCurveRenderState legacyRenderState;
+
 	/** Points along the curve (set by inherited classes). */
 	protected Vec2f[] curve;
+
+	/**
+	 * Get the curve points
+	 * @return curve points
+	 */
+	public Vec2f[] getCurvePoints() {
+		return curve;
+	}
 
 	/**
 	 * Constructor.
@@ -96,9 +108,10 @@ public abstract class Curve {
 
 		ContextCapabilities capabilities = GLContext.getCapabilities();
 		mmsliderSupported = capabilities.OpenGL30;
-		if (mmsliderSupported)
+		if (mmsliderSupported) {
 			CurveRenderState.init(width, height, circleDiameter);
-		else {
+			LegacyCurveRenderState.init(width, height, circleDiameter);
+		} else {
 			if (Options.getSkin().getSliderStyle() != Skin.STYLE_PEPPYSLIDER)
 				Log.warn("New slider style requires OpenGL 3.0.");
 		}
@@ -147,6 +160,25 @@ public abstract class Curve {
 		}
 	}
 
+	public void draw(Color color, int from, int to) {
+		if (curve == null)
+			return;
+		if (legacyRenderState == null)
+			legacyRenderState = new LegacyCurveRenderState(hitObject, curve);
+		legacyRenderState.draw(color, borderColor, from, to);
+	}
+
+	/**
+	 * Splice the curve to draw (= flag a part of it as 'do not draw'). Bases on the curve point indices.
+	 * @param from start index to splice
+	 * @param to end index to splice
+	 */
+	public void splice(int from, int to) {
+		if (legacyRenderState == null)
+			return;
+		legacyRenderState.splice(from, to);
+	}
+
 	/**
 	 * Returns the angle of the first control point.
 	 */
@@ -175,5 +207,7 @@ public abstract class Curve {
 	public void discardGeometry() {
 		if (renderState != null)
 			renderState.discardGeometry();
+		if (legacyRenderState != null)
+			legacyRenderState.discardGeometry();
 	}
 }
