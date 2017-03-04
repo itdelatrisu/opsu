@@ -295,8 +295,10 @@ public class Slider implements GameObject {
 				Image arrow = GameImage.REVERSEARROW.getImage();
 				// bouncing animation
 				//arrow = arrow.getScaledCopy((float) (1 + 0.2d * ((trackPosition + sliderTime * tcurRepeat) % 292) / 292));
-				float colorLuminance = Utils.getLuminance(color);
-				Color arrowColor = colorLuminance < 0.8f ? Color.white : Color.black;
+				Color arrowColor = Color.white;
+				if (!Options.isExperimentalSliderStyle() && Utils.getLuminance(color) >= 0.8f) {
+					arrowColor = Color.black;
+				}
 				if (tcurRepeat == 0) {
 					arrow.setAlpha(Options.isSliderSnaking() ? decorationsAlpha : 1f);
 				} else {
