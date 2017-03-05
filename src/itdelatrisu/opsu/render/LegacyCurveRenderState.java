@@ -31,7 +31,8 @@ import org.newdawn.slick.util.Log;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
-import java.util.LinkedList;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * Hold the temporary render state that needs to be restored again after the new
@@ -69,7 +70,8 @@ public class LegacyCurveRenderState {
 	/** Index of the curve array that indicates the end position of the slider part that should not be drawn. */
 	private int spliceTo;
 
-	protected LinkedList<Utils.Pair<Integer, Integer>> pointsToRender;
+	/** List holding pairs of 2 numbers in a sequential order, indicating the start- and endindex of the curvearray to render. */
+	protected List<Integer> pointsToRender;
 
 	/**
 	 * Set the width and height of the container that Curves get drawn into.
@@ -138,7 +140,7 @@ public class LegacyCurveRenderState {
 		lastPointDrawn = -1; // force redraw
 	}
 
-	public void draw(Color color, Color borderColor, LinkedList<Utils.Pair<Integer, Integer>> pointsToRender) {
+	public void draw(Color color, Color borderColor, List<Integer> pointsToRender) {
 		lastPointDrawn = -1;
 		firstPointDrawn = -1;
 		this.pointsToRender = pointsToRender;
@@ -369,8 +371,9 @@ public class LegacyCurveRenderState {
 	}
 
 	private void renderCurve() {
-		for (Utils.Pair<Integer, Integer> point : pointsToRender) {
-			for (int i = point.first * 2; i < point.second * 2 - 1; ++i) {
+		Iterator<Integer> iter = pointsToRender.iterator();
+		while (iter.hasNext()) {
+			for (int i = iter.next() * 2, end = iter.next() * 2 - 1; i < end; ++i) {
 				GL11.glDrawArrays(GL11.GL_TRIANGLE_FAN, i * (NewCurveStyleState.DIVIDES + 2), NewCurveStyleState.DIVIDES + 2);
 			}
 		}
