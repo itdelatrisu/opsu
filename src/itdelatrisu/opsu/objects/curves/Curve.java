@@ -43,7 +43,7 @@ public abstract class Curve {
 	protected static float CURVE_POINTS_SEPERATION = 5;
 
 	/** The curve border color. */
-	private static Color borderColor;
+	protected static Color borderColor;
 
 	/** Whether mmsliders are supported. */
 	private static boolean mmsliderSupported = false;
@@ -61,7 +61,7 @@ public abstract class Curve {
 	private CurveRenderState renderState;
 
 	/** Per-curve render-state used for the legacy style curve renders. */
-	private LegacyCurveRenderState legacyRenderState;
+	protected LegacyCurveRenderState legacyRenderState;
 
 	/** Points along the curve (set by inherited classes). */
 	protected Vec2f[] curve;

@@ -440,12 +440,13 @@ public class Slider implements GameObject {
 		if (Options.isMergingSliders()) {
 			if (Options.isShrinkingSliders() && curveIntervalFrom > 0) {
 				if (hitObject.getRepeatCount() % 2 == 0) {
-					game.spliceSliderCurve(baseSliderFrom + (int) ((1d - curveIntervalFrom) * curvelen) - 1, baseSliderFrom + curvelen);
+					game.addMergedSliderPointsToRender(baseSliderFrom, baseSliderFrom + (int) ((1d - curveIntervalFrom) * curvelen));
 				} else {
-					game.setSlidercurveFrom(baseSliderFrom + (int) (curveIntervalFrom * curvelen) + 1);
+					game.addMergedSliderPointsToRender(baseSliderFrom + (int) (curveIntervalFrom * curvelen) + 1, baseSliderFrom + (int) (curveIntervalTo * curve.getCurvePoints().length));
 				}
+			} else {
+				game.addMergedSliderPointsToRender(baseSliderFrom, baseSliderFrom + (int) (curveIntervalTo * curve.getCurvePoints().length));
 			}
-			game.setSlidercurveTo(baseSliderFrom + (int) (curveIntervalTo * curve.getCurvePoints().length));
 		} else {
 			if (Options.isShrinkingSliders() && curveIntervalFrom > 0 && hitObject.getRepeatCount() % 2 == 0) {
 				curve.splice((int) ((1d - curveIntervalFrom) * curvelen), curvelen);
@@ -757,10 +758,6 @@ public class Slider implements GameObject {
 
 			// calculate and send slider result
 			hitResult();
-			if (Options.isMergingSliders()) {
-				game.setSlidercurveFrom(baseSliderFrom + curve.getCurvePoints().length + 1);
-			}
-
 			return true;
 		}
 

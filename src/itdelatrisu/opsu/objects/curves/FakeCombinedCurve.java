@@ -17,13 +17,36 @@
  */
 package itdelatrisu.opsu.objects.curves;
 
+import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.beatmap.HitObject;
+import itdelatrisu.opsu.render.LegacyCurveRenderState;
+import org.newdawn.slick.Color;
+
+import java.util.LinkedList;
 
 public class FakeCombinedCurve extends Curve {
+
+	private LinkedList<Utils.Pair<Integer, Integer>> pointsToRender;
 
 	public FakeCombinedCurve(Vec2f[] points) {
 		super(new HitObject(0, 0, 0), false);
 		this.curve = points;
+		pointsToRender = new LinkedList<>();
+	}
+
+	public void initForFrame() {
+		pointsToRender.clear();
+	}
+
+	public void addRange(int from, int to) {
+		pointsToRender.add(new Utils.Pair<>(from, to));
+	}
+
+	@Override
+	public void draw(Color color) {
+		if (legacyRenderState == null)
+			legacyRenderState = new LegacyCurveRenderState(hitObject, curve);
+		legacyRenderState.draw(color, borderColor, pointsToRender);
 	}
 
 	@Override

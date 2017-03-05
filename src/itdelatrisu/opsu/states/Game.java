@@ -1202,18 +1202,6 @@ public class Game extends BasicGameState {
 						;
 					objectIndex--;
 
-					if (Options.isExperimentalSliderStyle() && Options.isMergingSliders()) {
-						int obj = objectIndex;
-						while (obj < gameObjects.length) {
-							if (gameObjects[obj] instanceof Slider) {
-								slidercurveFrom = slidercurveTo = ((Slider) gameObjects[obj]).baseSliderFrom;
-								break;
-							}
-							obj++;
-						}
-						spliceSliderCurve(-1, -1);
-					}
-
 					lastReplayTime = beatmap.objects[objectIndex].getTime();
 					lastTrackPosition = checkpoint;
 				} catch (SlickException e) {
@@ -1627,9 +1615,6 @@ public class Game extends BasicGameState {
 			}
 		}
 
-		slidercurveFrom = 0;
-		slidercurveTo = 0;
-
 		skipButton.resetHover();
 		if (isReplay || GameMod.AUTO.isActive())
 			playbackSpeed.getButton().resetHover();
@@ -1652,22 +1637,8 @@ public class Game extends BasicGameState {
 			GameMod.loadModState(previousMods);
 	}
 
-	/** Index from which to draw the experminental merged slider. */
-	private int slidercurveFrom;
-
-	/** Index to draw the experminental merged slider. */
-	private int slidercurveTo;
-
-	public void setSlidercurveFrom(int slidercurveFrom) {
-		this.slidercurveFrom = Math.max(slidercurveFrom, this.slidercurveFrom);
-	}
-
-	public void setSlidercurveTo(int slidercurveTo) {
-		this.slidercurveTo = Math.max(slidercurveTo, this.slidercurveTo);
-	}
-
-	public void spliceSliderCurve(int from, int to) {
-		this.mergedslider.splice(from, to);
+	public void addMergedSliderPointsToRender(int from, int to) {
+		mergedslider.addRange(from, to);
 	}
 
 	/**
@@ -1680,7 +1651,8 @@ public class Game extends BasicGameState {
 		data.drawHitResults(trackPosition, false);
 
 		if (Options.isMergingSliders() && mergedslider != null) {
-			mergedslider.draw(Color.white, this.slidercurveFrom, this.slidercurveTo);
+			mergedslider.draw(Color.white);
+			mergedslider.initForFrame();
 		}
 
 		// include previous object in follow points
