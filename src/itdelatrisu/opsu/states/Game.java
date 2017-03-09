@@ -848,7 +848,9 @@ public class Game extends BasicGameState {
 				}
 
 				// reset game data
+				FakeCombinedCurve oldMergedSlider = mergedSlider;
 				resetGameData();
+				mergedSlider = oldMergedSlider;
 
 				// load the first timingPoint
 				if (!beatmap.timingPoints.isEmpty()) {
