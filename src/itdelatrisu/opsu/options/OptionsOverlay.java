@@ -167,7 +167,7 @@ public class OptionsOverlay extends AbstractComponent {
 	private int sliderOptionWidth;
 
 	/** HashMap which contains dropdown menus corresponding to options. */
-	private final Map<GameOption, DropdownMenu<Object>> dropdownMenus;
+	private Map<GameOption, DropdownMenu<Object>> dropdownMenus;
 
 	/** The vertical padding to use when rendering a dropdown menu. */
 	private int dropdownMenuPaddingY;
@@ -299,49 +299,6 @@ public class OptionsOverlay extends AbstractComponent {
 		restartButton.setHoverAnimationDuration(2000);
 		restartButton.setHoverRotate(360);
 
-		// initialize dropdown menus
-		this.dropdownMenus = new IdentityHashMap<GameOption, DropdownMenu<Object>>();
-		for (OptionGroup group : groups) {
-			if (group.getOptions() == null)
-				continue;
-
-			for (final GameOption option : group.getOptions()) {
-				Object[] items = option.getItemList();
-				if (items == null)
-					continue;
-
-				// build dropdown menu
-				DropdownMenu<Object> menu = new DropdownMenu<Object>(container, items, 0, 0) {
-					@Override
-					public void itemSelected(int index, Object item) {
-						option.selectItem(index, OptionsOverlay.this.container);
-
-						// show restart button?
-						if (option.isRestartRequired()) {
-							showRestartButton = true;
-							UI.getNotificationManager().sendBarNotification("Restart to apply changes.");
-						}
-					}
-
-					@Override
-					public boolean menuClicked(int index) {
-						SoundController.playSound(SoundEffect.MENUCLICK);
-						openDropdownMenu = null;
-						return true;
-					}
-				};
-				menu.setBackgroundColor(COLOR_BG);
-				menu.setBorderColor(Color.transparent);
-				menu.setChevronDownColor(COLOR_WHITE);
-				menu.setChevronRightColor(COLOR_BG);
-				menu.setHighlightColor(COLOR_COMBOBOX_HOVER);
-				menu.setTextColor(COLOR_WHITE);
-
-				dropdownMenuPaddingY = (optionHeight - menu.getHeight()) / 2;
-				dropdownMenus.put(option, menu);
-			}
-		}
-
 		// search field
 		this.searchField = new TextField(container, null, 0, 0, 0, 0);
 		searchField.setMaxLength(20);
@@ -400,8 +357,13 @@ public class OptionsOverlay extends AbstractComponent {
 
 	/** Activates the component. */
 	public void activate() {
+		if (active)
+			return;
+
 		this.active = true;
 		scrolling.setPosition(0f);
+		if (dropdownMenus == null)
+			createDropdownMenus();
 		resetSearch();
 		searchField.setFocus(true);
 		for (Map.Entry<GameOption, DropdownMenu<Object>> entry : dropdownMenus.entrySet()) {
@@ -424,6 +386,9 @@ public class OptionsOverlay extends AbstractComponent {
 
 	/** Deactivates the component. */
 	public void deactivate() {
+		if (!active)
+			return;
+
 		this.active = false;
 		searchField.setFocus(false);
 		for (DropdownMenu<Object> menu : dropdownMenus.values())
@@ -1170,6 +1135,51 @@ public class OptionsOverlay extends AbstractComponent {
 
 	@Override
 	public void setFocus(boolean focus) { /* does not currently use the "focus" concept */ }
+
+	/** Creates the dropdown menus. */
+	private void createDropdownMenus() {
+		this.dropdownMenus = new IdentityHashMap<GameOption, DropdownMenu<Object>>();
+		for (OptionGroup group : groups) {
+			if (group.getOptions() == null)
+				continue;
+
+			for (final GameOption option : group.getOptions()) {
+				Object[] items = option.getItemList();
+				if (items == null)
+					continue;
+
+				// build dropdown menu
+				DropdownMenu<Object> menu = new DropdownMenu<Object>(container, items, 0, 0) {
+					@Override
+					public void itemSelected(int index, Object item) {
+						option.selectItem(index, OptionsOverlay.this.container);
+
+						// show restart button?
+						if (option.isRestartRequired()) {
+							showRestartButton = true;
+							UI.getNotificationManager().sendBarNotification("Restart to apply changes.");
+						}
+					}
+
+					@Override
+					public boolean menuClicked(int index) {
+						SoundController.playSound(SoundEffect.MENUCLICK);
+						openDropdownMenu = null;
+						return true;
+					}
+				};
+				menu.setBackgroundColor(COLOR_BG);
+				menu.setBorderColor(Color.transparent);
+				menu.setChevronDownColor(COLOR_WHITE);
+				menu.setChevronRightColor(COLOR_BG);
+				menu.setHighlightColor(COLOR_COMBOBOX_HOVER);
+				menu.setTextColor(COLOR_WHITE);
+
+				dropdownMenuPaddingY = (optionHeight - menu.getHeight()) / 2;
+				dropdownMenus.put(option, menu);
+			}
+		}
+	}
 
 	/**
 	 * Resets all state.
