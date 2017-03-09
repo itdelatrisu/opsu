@@ -64,7 +64,13 @@ import itdelatrisu.opsu.video.Video;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.IdentityHashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Stack;
 
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.Display;
@@ -316,8 +322,8 @@ public class Game extends BasicGameState {
 	/** The video seek time (if any). */
 	private int videoSeekTime;
 
-	/** The merged slider. */
-	private FakeCombinedCurve mergedslider;
+	/** The single merged slider (if enabled). */
+	private FakeCombinedCurve mergedSlider;
 
 	/** Music position bar background colors. */
 	private static final Color
@@ -1201,7 +1207,6 @@ public class Game extends BasicGameState {
 							beatmap.objects[objectIndex++].getTime() <= checkpoint)
 						;
 					objectIndex--;
-
 					lastReplayTime = beatmap.objects[objectIndex].getTime();
 					lastTrackPosition = checkpoint;
 				} catch (SlickException e) {
@@ -1522,6 +1527,10 @@ public class Game extends BasicGameState {
 				}
 			}
 
+			// experimental merged slider
+			if (Options.isExperimentalSliderMerging())
+				createMergedSlider();
+
 			// unhide cursor for "auto" mod and replays
 			if (GameMod.AUTO.isActive() || isReplay)
 				UI.getCursor().show();
@@ -1587,32 +1596,6 @@ public class Game extends BasicGameState {
 			MusicController.pause();
 
 			SoundController.mute(false);
-
-			if (Options.isMergingSliders()) {
-				if (!Options.isShrinkingSliders()) {
-					mergedslider = null; // workaround for yugecin/opsu-dance#130
-				}
-				if (mergedslider == null) {
-					List<Vec2f> curvepoints = new ArrayList<>();
-					for (GameObject gameObject : gameObjects) {
-						if (gameObject instanceof Slider) {
-							((Slider) gameObject).baseSliderFrom = curvepoints.size();
-							curvepoints.addAll(Arrays.asList(((Slider) gameObject).getCurve().getCurvePoints()));
-						}
-					}
-					if (curvepoints.size() > 0) {
-						mergedslider = new FakeCombinedCurve(curvepoints.toArray(new Vec2f[curvepoints.size()]));
-					}
-				} else {
-					int base = 0;
-					for (GameObject gameObject : gameObjects) {
-						if (gameObject instanceof Slider) {
-							((Slider) gameObject).baseSliderFrom = base;
-							base += ((Slider) gameObject).getCurve().getCurvePoints().length;
-						}
-					}
-				}
-			}
 		}
 
 		skipButton.resetHover();
@@ -1630,15 +1613,9 @@ public class Game extends BasicGameState {
 		if (GameMod.AUTO.isActive() || isReplay)
 			UI.getCursor().hide();
 
-		mergedslider = null;
-
 		// replays
 		if (isReplay)
 			GameMod.loadModState(previousMods);
-	}
-
-	public void addMergedSliderPointsToRender(int from, int to) {
-		mergedslider.addRange(from, to);
 	}
 
 	/**
@@ -1650,9 +1627,10 @@ public class Game extends BasicGameState {
 		// draw result objects (under)
 		data.drawHitResults(trackPosition, false);
 
-		if (Options.isMergingSliders() && mergedslider != null) {
-			mergedslider.draw(Color.white);
-			mergedslider.initForFrame();
+		// draw merged slider
+		if (mergedSlider != null && Options.isExperimentalSliderMerging()) {
+			mergedSlider.draw(Color.white);
+			mergedSlider.clearPoints();
 		}
 
 		// include previous object in follow points
@@ -1851,6 +1829,7 @@ public class Game extends BasicGameState {
 			video = null;
 		}
 		videoSeekTime = 0;
+		mergedSlider = null;
 	}
 
 	/**
@@ -2339,6 +2318,46 @@ public class Game extends BasicGameState {
 			if (beatmap.objects[i].getStack() != 0)
 				gameObjects[i].updatePosition();
 		}
+	}
+
+	/** Creates the single merged slider. */
+	private void createMergedSlider() {
+		// workaround for sliders not appearing after loading a checkpoint
+		// https://github.com/yugecin/opsu-dance/issues/130
+		if (!Options.isExperimentalSliderShrinking())
+			mergedSlider = null;
+
+		// initialize merged slider structures
+		if (mergedSlider == null) {
+			List<Vec2f> curvePoints = new ArrayList<Vec2f>();
+			for (GameObject gameObject : gameObjects) {
+				if (gameObject instanceof Slider) {
+					Slider slider = (Slider) gameObject;
+					slider.baseSliderFrom = curvePoints.size();
+					curvePoints.addAll(Arrays.asList(slider.getCurve().getCurvePoints()));
+				}
+			}
+			if (!curvePoints.isEmpty())
+				this.mergedSlider = new FakeCombinedCurve(curvePoints.toArray(new Vec2f[curvePoints.size()]));
+		} else {
+			int base = 0;
+			for (GameObject gameObject : gameObjects) {
+				if (gameObject instanceof Slider) {
+					Slider slider = (Slider) gameObject;
+					slider.baseSliderFrom = base;
+					base += slider.getCurve().getCurvePoints().length;
+				}
+			}
+		}
+	}
+
+	/**
+	 * Adds points in the merged slider to render.
+	 * @param from the start index to render
+	 * @param to the end index to render
+	 */
+	public void addMergedSliderPointsToRender(int from, int to) {
+		mergedSlider.addRange(from, to);
 	}
 
 	/** Returns whether there are any more objects remaining in the map. */

@@ -67,14 +67,6 @@ public abstract class Curve {
 	protected Vec2f[] curve;
 
 	/**
-	 * Get the curve points
-	 * @return curve points
-	 */
-	public Vec2f[] getCurvePoints() {
-		return curve;
-	}
-
-	/**
 	 * Constructor.
 	 * @param hitObject the associated HitObject
 	 * @param scaled whether to use scaled coordinates
@@ -116,6 +108,11 @@ public abstract class Curve {
 				Log.warn("New slider style requires OpenGL 3.0.");
 		}
 	}
+
+	/**
+	 * Returns the points along the curve.
+	 */
+	public Vec2f[] getCurvePoints() { return curve; }
 
 	/**
 	 * Returns the point on the curve at a value t.
@@ -160,6 +157,12 @@ public abstract class Curve {
 		}
 	}
 
+	/**
+	 * Draws a section of the curve to the graphics context.
+	 * @param color the color filter
+	 * @param from the start index to draw from
+	 * @param to end the index to draw to (exclusive)
+	 */
 	public void draw(Color color, int from, int to) {
 		if (curve == null)
 			return;
@@ -169,9 +172,9 @@ public abstract class Curve {
 	}
 
 	/**
-	 * Splice the curve to draw (= flag a part of it as 'do not draw'). Bases on the curve point indices.
-	 * @param from start index to splice
-	 * @param to end index to splice
+	 * Splices a section of the curve for drawing, based on the given curve point indices.
+	 * @param from the start index to splice
+	 * @param to the end index to splice
 	 */
 	public void splice(int from, int to) {
 		if (legacyRenderState == null)

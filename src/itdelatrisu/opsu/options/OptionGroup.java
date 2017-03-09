@@ -55,7 +55,7 @@ public class OptionGroup {
 			GameOption.EXPERIMENTAL_SLIDERS,
 			GameOption.EXPERIMENTAL_SLIDERS_MERGE,
 			GameOption.EXPERIMENTAL_SLIDERS_SHRINK,
-			GameOption.EXPERIMENTAL_SLIDERS_DRAW_ENDCIRCLES,
+			GameOption.EXPERIMENTAL_SLIDERS_CAPS,
 		}),
 		new OptionGroup("MAIN MENU", new GameOption[] {
 			GameOption.DYNAMIC_BACKGROUND,

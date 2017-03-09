@@ -1,38 +1,43 @@
 /*
- *  opsu! - an open-source osu! client
- *  Copyright (C) 2014, 2015 Jeffrey Han
+ * opsu! - an open-source osu! client
+ * Copyright (C) 2014-2017 Jeffrey Han
  *
- *  opsu! is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
+ * opsu! is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *  opsu! is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * opsu! is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with opsu!.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License
+ * along with opsu!.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package itdelatrisu.opsu.render;
 
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.beatmap.HitObject;
-import itdelatrisu.opsu.objects.Circle;
 import itdelatrisu.opsu.objects.curves.Vec2f;
-import org.lwjgl.BufferUtils;
-import org.lwjgl.opengl.*;
-import org.newdawn.slick.Color;
-import org.newdawn.slick.Image;
-import org.newdawn.slick.util.Log;
 
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.Iterator;
 import java.util.List;
+
+import org.lwjgl.BufferUtils;
+import org.lwjgl.opengl.EXTFramebufferObject;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL13;
+import org.lwjgl.opengl.GL15;
+import org.lwjgl.opengl.GL20;
+import org.newdawn.slick.Color;
+import org.newdawn.slick.Image;
+import org.newdawn.slick.util.Log;
 
 /**
  * Hold the temporary render state that needs to be restored again after the new
@@ -56,6 +61,7 @@ public class LegacyCurveRenderState {
 	/** The HitObject associated with the curve to be drawn. */
 	protected HitObject hitObject;
 
+	/** The points along the curve to be drawn. */
 	protected Vec2f[] curve;
 
 	/** The point to which the curve has last been rendered into the texture (as an index into {@code curve}). */
@@ -70,7 +76,7 @@ public class LegacyCurveRenderState {
 	/** Index of the curve array that indicates the end position of the slider part that should not be drawn. */
 	private int spliceTo;
 
-	/** List holding pairs of 2 numbers in a sequential order, indicating the start- and endindex of the curvearray to render. */
+	/** List holding pairs of 2 numbers in a sequential order, indicating the start and end index of the curve array to render. */
 	protected List<Integer> pointsToRender;
 
 	/**
@@ -112,34 +118,39 @@ public class LegacyCurveRenderState {
 		initFBO();
 	}
 
-
+	/** Initializes the FBO. */
 	private void initFBO() {
 		FrameBufferCache cache = FrameBufferCache.getInstance();
 		Rendertarget mapping = cache.get(hitObject);
-		if(mapping == null)
+		if (mapping == null)
 			mapping = cache.insert(hitObject);
 		fbo = mapping;
-
-		createVertexBuffer(fbo.getVbo()
-
-		);
-		//write impossible value to make sure the fbo is cleared
-		lastPointDrawn=-1;
-		spliceFrom=spliceTo=-1;
+		createVertexBuffer(fbo.getVbo());
+		// write impossible value to make sure the fbo is cleared
+		lastPointDrawn = -1;
+		spliceFrom = spliceTo = -1;
 	}
 
 	/**
-	 * Splice the curve
-	 * @param from start index to splice
-	 * @param to end index to splice
+	 * Splices the curve.
+	 * @param from the start index to splice
+	 * @param to the end index to splice
 	 */
 	public void splice(int from, int to) {
 		spliceFrom = from * 2;
 		spliceTo = to * 2;
-		firstPointDrawn = -1; // force redraw
-		lastPointDrawn = -1; // force redraw
+		firstPointDrawn = -1;  // force redraw
+		lastPointDrawn = -1;   // force redraw
 	}
 
+	/**
+	 * Draw a curve to the screen that's tinted with `color`. The first time
+	 * this is called this caches the image result of the curve and on subsequent
+	 * runs it just draws the cached copy to the screen.
+	 * @param color tint of the curve
+	 * @param borderColor the curve border color
+	 * @param pointsToRender the points to render (pairs of indices: from, to)
+	 */
 	public void draw(Color color, Color borderColor, List<Integer> pointsToRender) {
 		lastPointDrawn = -1;
 		firstPointDrawn = -1;
@@ -160,11 +171,8 @@ public class LegacyCurveRenderState {
 	public void draw(Color color, Color borderColor, int from, int to) {
 		float alpha = color.a;
 
-		if (fbo == null) {
-			// this should not be null, but issue #106 claims it is possible, at least 3 people had this...
-			// debugging shows that the draw was called after discardGeometry was, which does not really make sense
+		if (fbo == null)
 			initFBO();
-		}
 
 		if (lastPointDrawn != to || firstPointDrawn != from) {
 			int oldFb = GL11.glGetInteger(EXTFramebufferObject.GL_FRAMEBUFFER_BINDING_EXT);
@@ -298,10 +306,8 @@ public class LegacyCurveRenderState {
 	private void createVertexBuffer(int bufferID) {
 		int arrayBufferBinding = GL11.glGetInteger(GL15.GL_ARRAY_BUFFER_BINDING);
 		FloatBuffer buff = BufferUtils.createByteBuffer(4 * (4 + 2) * (2 * curve.length - 1) * (NewCurveStyleState.DIVIDES + 2)).asFloatBuffer();
-		if (curve.length > 0) {
+		if (curve.length > 0)
 			fillCone(buff, curve[0].x, curve[0].y);
-		}
-
 		for (int i = 1; i < curve.length; ++i) {
 			float x = curve[i].x;
 			float y = curve[i].y;
@@ -311,7 +317,7 @@ public class LegacyCurveRenderState {
 			double diff_x = x - last_x;
 			double diff_y = y - last_y;
 			float dist = Utils.distance(x, y, last_x, last_y);
-			if (dist < Circle.diameter / 8) {
+			if (dist < scale / 8f) {
 				x = (float) (x - diff_x / 2);
 				y = (float) (y - diff_y / 2);
 			} else {
@@ -326,7 +332,7 @@ public class LegacyCurveRenderState {
 		GL15.glBufferData(GL15.GL_ARRAY_BUFFER, buff, GL15.GL_STATIC_DRAW);
 		GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, arrayBufferBinding);
 	}
-	
+
 	/**
 	 * Do the actual drawing of the curve into the currently bound framebuffer.
 	 * @param color the color of the curve
@@ -347,36 +353,25 @@ public class LegacyCurveRenderState {
 		//2*4 is for skipping the first 2 floats (u,v)
 		GL20.glVertexAttribPointer(staticState.attribLoc, 4, GL11.GL_FLOAT, false, 6 * 4, 2 * 4);
 		GL20.glVertexAttribPointer(staticState.texCoordLoc, 2, GL11.GL_FLOAT, false, 6 * 4, 0);
-		if (clearFirst) {
+		if (clearFirst)
 			GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
-		}
 		if (pointsToRender == null) {
-			renderCurve(from, to);
+			for (int i = from * 2; i < to * 2 - 1; ++i) {
+				if (spliceFrom <= i && i <= spliceTo)
+					continue;
+				GL11.glDrawArrays(GL11.GL_TRIANGLE_FAN, i * (NewCurveStyleState.DIVIDES + 2), NewCurveStyleState.DIVIDES + 2);
+			}
 		} else {
-			renderCurve();
+			Iterator<Integer> iter = pointsToRender.iterator();
+			while (iter.hasNext()) {
+				for (int i = iter.next() * 2, end = iter.next() * 2 - 1; i < end; ++i)
+					GL11.glDrawArrays(GL11.GL_TRIANGLE_FAN, i * (NewCurveStyleState.DIVIDES + 2), NewCurveStyleState.DIVIDES + 2);
+			}
 		}
 		GL11.glFlush();
 		GL20.glDisableVertexAttribArray(staticState.texCoordLoc);
 		GL20.glDisableVertexAttribArray(staticState.attribLoc);
 		restoreRenderState(state);
-	}
-
-	private void renderCurve(int from, int to) {
-		for (int i = from * 2; i < to * 2 - 1; ++i) {
-			if (spliceFrom <= i && i <= spliceTo) {
-				continue;
-			}
-			GL11.glDrawArrays(GL11.GL_TRIANGLE_FAN, i * (NewCurveStyleState.DIVIDES + 2), NewCurveStyleState.DIVIDES + 2);
-		}
-	}
-
-	private void renderCurve() {
-		Iterator<Integer> iter = pointsToRender.iterator();
-		while (iter.hasNext()) {
-			for (int i = iter.next() * 2, end = iter.next() * 2 - 1; i < end; ++i) {
-				GL11.glDrawArrays(GL11.GL_TRIANGLE_FAN, i * (NewCurveStyleState.DIVIDES + 2), NewCurveStyleState.DIVIDES + 2);
-			}
-		}
 	}
 
 	/**
@@ -422,7 +417,7 @@ public class LegacyCurveRenderState {
 		 * (0,0) and has a radius of 1 (so that it can be translated and scaled easily).
 		 */
 		protected static float[] unitCone = new float[(DIVIDES + 2) * 6];
-		
+
 		/** OpenGL shader program ID used to draw and recolor the curve. */
 		protected int program = 0;
 
@@ -450,7 +445,7 @@ public class LegacyCurveRenderState {
 		 */
 		public void initGradient() {
 			if (gradientTexture == 0) {
-				Image slider = GameImage.SLIDER_GRADIENT_EX.getImage().getScaledCopy(1.0f / GameImage.getUIscale());
+				Image slider = GameImage.SLIDER_GRADIENT_EXPERIMENTAL.getImage().getScaledCopy(1.0f / GameImage.getUIscale());
 				staticState.gradientTexture = GL11.glGenTextures();
 				ByteBuffer buff = BufferUtils.createByteBuffer(slider.getWidth() * 4);
 				for (int i = 0; i < slider.getWidth(); ++i) {
@@ -468,7 +463,7 @@ public class LegacyCurveRenderState {
 		}
 
 		/**
-		 * Write the data into {@code unitCone} if it hasn't already been initialized. 
+		 * Write the data into {@code unitCone} if it hasn't already been initialized.
 		 */
 		public static void initUnitCone() {
 			int index = 0;

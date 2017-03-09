@@ -1088,33 +1088,31 @@ public class GameData {
 	 */
 	private void drawHitAnimations(HitObjectResult hitResult, int trackPosition) {
 		// fade out slider curve
-		if (hitResult.result != HIT_SLIDER_REPEAT && hitResult.curve != null && !(Options.isExperimentalSliderStyle() && Options.isShrinkingSliders())) {
+		if (hitResult.result != HIT_SLIDER_REPEAT && hitResult.curve != null &&
+		    !(Options.isExperimentalSliderStyle() && Options.isExperimentalSliderShrinking())) {
 			float progress = AnimationEquation.OUT_CUBIC.calc(
 				(float) Utils.clamp(trackPosition - hitResult.time, 0, HITCIRCLE_FADE_TIME) / HITCIRCLE_FADE_TIME);
 			float alpha = 1f - progress;
 			float oldWhiteAlpha = Colors.WHITE_FADE.a;
 			float oldColorAlpha = hitResult.color.a;
 			Colors.WHITE_FADE.a = hitResult.color.a = alpha;
-			if (Options.isExperimentalSliderStyle()) {
-				hitResult.curve.draw(hitResult.color, Options.isMergingSliders() ? 1 : 0, hitResult.curve.getCurvePoints().length);
-			} else {
+			if (Options.isExperimentalSliderStyle())
+				hitResult.curve.draw(hitResult.color, Options.isExperimentalSliderMerging() ? 1 : 0, hitResult.curve.getCurvePoints().length);
+			else
 				hitResult.curve.draw(hitResult.color);
-			}
 			Colors.WHITE_FADE.a = oldWhiteAlpha;
 			hitResult.color.a = oldColorAlpha;
 		}
 
 		// miss, don't draw an animation
-		if (hitResult.result == HIT_MISS) {
+		if (hitResult.result == HIT_MISS)
 			return;
-		}
 
 		// not a circle?
 		if (hitResult.hitResultType != HitObjectType.CIRCLE &&
 		    hitResult.hitResultType != HitObjectType.SLIDER_FIRST &&
-		    hitResult.hitResultType != HitObjectType.SLIDER_LAST) {
+		    hitResult.hitResultType != HitObjectType.SLIDER_LAST)
 			return;
-		}
 
 		// slider follow circle
 		if (hitResult.expand && hitResult.result != HIT_SLIDER_REPEAT && (
@@ -1129,9 +1127,10 @@ public class GameData {
 			fc.drawCentered(hitResult.x, hitResult.y);
 		}
 
-		if (hitResult.result != HIT_SLIDER_REPEAT && hitResult.curve != null && !Options.isDrawSliderEndCircles()) {
+		// hide end circles?
+		if (Options.isExperimentalSliderStyle() && !Options.isExperimentalSliderCapsDrawn() &&
+		    hitResult.result != HIT_SLIDER_REPEAT && hitResult.curve != null)
 			return;
-		}
 
 		// hit circles
 		float progress = AnimationEquation.OUT_CUBIC.calc(

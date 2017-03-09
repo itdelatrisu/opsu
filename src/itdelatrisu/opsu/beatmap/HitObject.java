@@ -272,19 +272,6 @@ public class HitObject {
 	}
 
 	/**
-	 * Constructor to make fake/temp hitobj
-	 * @param x xpos
-	 * @param y ypos
-	 * @param time time
-	 */
-	public HitObject( float x, float y, int time) {
-		this.x = x;
-		this.y = y;
-		this.time = time;
-		this.type = HitObject.TYPE_CIRCLE;
-	}
-
-	/**
 	 * Returns the raw starting x coordinate.
 	 */
 	public float getX() { return x; }

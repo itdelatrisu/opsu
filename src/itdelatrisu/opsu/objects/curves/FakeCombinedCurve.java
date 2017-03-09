@@ -15,29 +15,43 @@
  * You should have received a copy of the GNU General Public License
  * along with opsu!.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package itdelatrisu.opsu.objects.curves;
 
 import itdelatrisu.opsu.beatmap.HitObject;
 import itdelatrisu.opsu.render.LegacyCurveRenderState;
-import org.newdawn.slick.Color;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import org.newdawn.slick.Color;
+
+/**
+ * Combined curve (for merging sliders).
+ *
+ * @author yugecin (https://github.com/yugecin)
+ */
 public class FakeCombinedCurve extends Curve {
+	/** The current points to render (pairs of indices: from, to). */
+	private List<Integer> pointsToRender = new ArrayList<Integer>();
 
-	private List<Integer> pointsToRender;
-
+	/**
+	 * Constructor.
+	 * @param points the list of curve points
+	 */
 	public FakeCombinedCurve(Vec2f[] points) {
-		super(new HitObject(0, 0, 0), false);
+		super(new HitObject("0,0,0,1,2"), false);
 		this.curve = points;
-		pointsToRender = new ArrayList<>();
 	}
 
-	public void initForFrame() {
-		pointsToRender.clear();
-	}
+	/** Clears the list of points to render. */
+	public void clearPoints() { pointsToRender.clear(); }
 
+	/**
+	 * Adds a range of points to render.
+	 * @param from the start index to render
+	 * @param to the end point index to render
+	 */
 	public void addRange(int from, int to) {
 		pointsToRender.add(from);
 		pointsToRender.add(to);
@@ -51,18 +65,11 @@ public class FakeCombinedCurve extends Curve {
 	}
 
 	@Override
-	public Vec2f pointAt(float t) {
-		return null;
-	}
+	public Vec2f pointAt(float t) { return null; }
 
 	@Override
-	public float getEndAngle() {
-		return 0;
-	}
+	public float getEndAngle() { return 0; }
 
 	@Override
-	public float getStartAngle() {
-		return 0;
-	}
-
+	public float getStartAngle() { return 0; }
 }

@@ -567,10 +567,10 @@ public class Options {
 		IGNORE_BEATMAP_SKINS ("Ignore all beatmap skins", "IgnoreBeatmapSkins", "Defaults game settings to never use skin element overrides provided by beatmaps.", false),
 		FORCE_SKIN_CURSOR ("Always use skin cursor", "UseSkinCursor", "The selected skin's cursor will override any beatmap-specific cursor modifications.", false),
 		SNAKING_SLIDERS ("Snaking sliders", "SnakingSliders", "Sliders gradually snake out from their starting point.", true),
-		EXPERIMENTAL_SLIDERS ("Enable", "ExperimentalSliders", "Enable experimental slider style", false),
-		EXPERIMENTAL_SLIDERS_DRAW_ENDCIRCLES ("Draw slider endcircles", "ExSlDrawEnd", "Only for experimental sliders", false),
-		EXPERIMENTAL_SLIDERS_SHRINK ("Shrinking sliders", "ExSlShrink", "Sliders shrink toward their ending point when the ball passes.", true),
-		EXPERIMENTAL_SLIDERS_MERGE ("Merging sliders", "ExSlMerge", "Don't draw edges and combine slider tracks where sliders overlap.", true),
+		EXPERIMENTAL_SLIDERS ("Use experimental sliders", "ExperimentalSliders", "Render sliders using the experimental slider style.", false),
+		EXPERIMENTAL_SLIDERS_CAPS ("Draw slider caps", "ExperimentalSliderCaps", "Draw caps (end circles) on sliders.\nOnly applies to experimental sliders.", false),
+		EXPERIMENTAL_SLIDERS_SHRINK ("Shrinking sliders", "ExperimentalSliderShrink", "Sliders shrink toward their ending point when the ball passes.\nOnly applies to experimental sliders.", true),
+		EXPERIMENTAL_SLIDERS_MERGE ("Merging sliders", "ExperimentalSliderMerge", "For overlapping sliders, don't draw the edges and combine the slider tracks where they cross.\nOnly applies to experimental sliders.", true),
 		SHOW_HIT_LIGHTING ("Hit lighting", "HitLighting", "Adds a subtle glow behind hit explosions which lights the playfield.", true),
 		SHOW_COMBO_BURSTS ("Combo bursts", "ComboBurst", "A character image bursts from the side of the screen at combo milestones.", true),
 		SHOW_PERFECT_HIT ("Perfect hits", "PerfectHit", "Shows perfect hit result bursts (300s, slider ticks).", true),
@@ -1180,10 +1180,32 @@ public class Options {
 	 */
 	public static boolean isSliderSnaking() { return GameOption.SNAKING_SLIDERS.getBooleanValue(); }
 
+	/**
+	 * Returns whether or not to use the experimental slider style.
+	 * @return true if enabled
+	 */
 	public static boolean isExperimentalSliderStyle() { return GameOption.EXPERIMENTAL_SLIDERS.getBooleanValue(); }
-	public static boolean isDrawSliderEndCircles() { return GameOption.EXPERIMENTAL_SLIDERS_DRAW_ENDCIRCLES.getBooleanValue(); }
-	public static boolean isShrinkingSliders() { return GameOption.EXPERIMENTAL_SLIDERS_SHRINK.getBooleanValue(); }
-	public static boolean isMergingSliders() { return GameOption.EXPERIMENTAL_SLIDERS_MERGE.getBooleanValue(); }
+
+	/**
+	 * Returns whether or not slider caps (end circles) should be drawn.
+	 * Only applies to experimental sliders.
+	 * @return true if slider caps should be drawn
+	 */
+	public static boolean isExperimentalSliderCapsDrawn() { return GameOption.EXPERIMENTAL_SLIDERS_CAPS.getBooleanValue(); }
+
+	/**
+	 * Returns whether or not sliders should shrink toward their ending point.
+	 * Only applies to experimental sliders.
+	 * @return true if sliders should shrink
+	 */
+	public static boolean isExperimentalSliderShrinking() { return GameOption.EXPERIMENTAL_SLIDERS_SHRINK.getBooleanValue(); }
+
+	/**
+	 * Returns whether or not to merge overlapping sliders together when drawing.
+	 * Only applies to experimental sliders.
+	 * @return true if sliders should be merged
+	 */
+	public static boolean isExperimentalSliderMerging() { return GameOption.EXPERIMENTAL_SLIDERS_MERGE.getBooleanValue(); }
 
 	/**
 	 * Returns the fixed circle size override, if any.

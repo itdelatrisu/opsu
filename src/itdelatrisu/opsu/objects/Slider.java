@@ -114,14 +114,11 @@ public class Slider implements GameObject {
 	/** The animation progress for the release of the follow circle. */
 	private AnimatedValue releaseExpand = new AnimatedValue(100, 0f, 1f, AnimationEquation.IN_QUAD);
 
-	/** Container dimensions. */
-	private static int containerWidth, containerHeight;
-
-	/** Curve color for experimental style sliders. */
-	private static Color curveColor = new Color(0, 0, 0, 20);
-
 	/** Start index of this slider in the merged slider. */
 	public int baseSliderFrom;
+
+	/** Container dimensions. */
+	private static int containerWidth, containerHeight;
 
 	/**
 	 * Initializes the Slider data type with images and dimensions.
@@ -223,13 +220,13 @@ public class Slider implements GameObject {
 			isCurveCompletelyDrawn = Options.isSliderSnaking() || alpha == 1f;
 			curve.draw(color, isCurveCompletelyDrawn ? 1f : alpha);
 		} else {
-			curveColor.a = sliderAlpha;
-			isCurveCompletelyDrawn = drawSliderTrack(trackPosition, Utils.clamp(1d - (double) (timeDiff - approachTime + fadeInTime) / fadeInTime, 0d, 1d));
+			isCurveCompletelyDrawn = drawExperimentalSliderTrack(trackPosition, Utils.clamp(1d - (double) (timeDiff - approachTime + fadeInTime) / fadeInTime, 0d, 1d), sliderAlpha);
 			color.a = alpha;
 		}
 
 		// end circle (only draw if ball still has to go there)
-		if (isCurveCompletelyDrawn && (!Options.isExperimentalSliderStyle() || Options.isDrawSliderEndCircles()) && currentRepeats < repeatCount - (repeatCount % 2 == 0 ? 1 : 0)) {
+		if (isCurveCompletelyDrawn && currentRepeats < repeatCount - (repeatCount % 2 == 0 ? 1 : 0) &&
+		    (!Options.isExperimentalSliderStyle() || Options.isExperimentalSliderCapsDrawn())) {
 			Color circleColor = new Color(color);
 			Color overlayColor = new Color(Colors.WHITE_FADE);
 			if (currentRepeats == 0) {
@@ -295,10 +292,8 @@ public class Slider implements GameObject {
 				Image arrow = GameImage.REVERSEARROW.getImage();
 				// bouncing animation
 				//arrow = arrow.getScaledCopy((float) (1 + 0.2d * ((trackPosition + sliderTime * tcurRepeat) % 292) / 292));
-				Color arrowColor = Color.white;
-				if (!Options.isExperimentalSliderStyle() && Utils.getLuminance(color) >= 0.8f) {
-					arrowColor = Color.black;
-				}
+				Color arrowColor = (Utils.getLuminance(color) < 0.8f || Options.isExperimentalSliderStyle()) ?
+					Color.white : Color.black;
 				if (tcurRepeat == 0) {
 					arrow.setAlpha(Options.isSliderSnaking() ? decorationsAlpha : 1f);
 				} else {
@@ -423,37 +418,55 @@ public class Slider implements GameObject {
 
 	/**
 	 * Draws the slider track for the experimental style sliders.
-	 * @param trackPosition position of the song
-	 * @param snakingSliderProgress progress of the snaking sliders [0, 1]
+	 * @param trackPosition the current track position
+	 * @param snakingSliderProgress the progress of the snaking sliders [0,1]
+	 * @param sliderAlpha the slider alpha level
 	 * @return true if the track was completely drawn
 	 */
-	private boolean drawSliderTrack(int trackPosition, double snakingSliderProgress) {
+	private boolean drawExperimentalSliderTrack(int trackPosition, double snakingSliderProgress, float sliderAlpha) {
 		double curveIntervalTo = Options.isSliderSnaking() ? snakingSliderProgress : 1d;
 		double curveIntervalFrom = 0d;
-		if (Options.isShrinkingSliders()) {
-			double sliderprogress = (trackPosition - hitObject.getTime() - ((double) sliderTime * (hitObject.getRepeatCount() - 1))) / (double) sliderTime;
-			if (sliderprogress > 0) {
-				curveIntervalFrom = sliderprogress;
-			}
+		if (Options.isExperimentalSliderShrinking()) {
+			double sliderProgress = (trackPosition - hitObject.getTime() - ((double) sliderTime * (hitObject.getRepeatCount() - 1))) / sliderTime;
+			if (sliderProgress > 0)
+				curveIntervalFrom = sliderProgress;
 		}
-		int curvelen = curve.getCurvePoints().length;
-		if (Options.isMergingSliders()) {
-			if (Options.isShrinkingSliders() && curveIntervalFrom > 0) {
+		int curveLength = curve.getCurvePoints().length;
+
+		// merging sliders
+		if (Options.isExperimentalSliderMerging()) {
+			if (Options.isExperimentalSliderShrinking() && curveIntervalFrom > 0) {
 				if (hitObject.getRepeatCount() % 2 == 0) {
-					game.addMergedSliderPointsToRender(baseSliderFrom, baseSliderFrom + (int) ((1d - curveIntervalFrom) * curvelen));
+					game.addMergedSliderPointsToRender(
+						baseSliderFrom,
+						baseSliderFrom + (int) ((1d - curveIntervalFrom) * curveLength)
+					);
 				} else {
-					game.addMergedSliderPointsToRender(baseSliderFrom + (int) (curveIntervalFrom * curvelen) + 1, baseSliderFrom + (int) (curveIntervalTo * curve.getCurvePoints().length));
+					game.addMergedSliderPointsToRender(
+						baseSliderFrom + (int) (curveIntervalFrom * curveLength) + 1,
+						baseSliderFrom + (int) (curveIntervalTo * curve.getCurvePoints().length)
+					);
 				}
 			} else {
-				game.addMergedSliderPointsToRender(baseSliderFrom, baseSliderFrom + (int) (curveIntervalTo * curve.getCurvePoints().length));
+				game.addMergedSliderPointsToRender(
+					baseSliderFrom,
+					baseSliderFrom + (int) (curveIntervalTo * curve.getCurvePoints().length)
+				);
 			}
-		} else {
-			if (Options.isShrinkingSliders() && curveIntervalFrom > 0 && hitObject.getRepeatCount() % 2 == 0) {
-				curve.splice((int) ((1d - curveIntervalFrom) * curvelen), curvelen);
+		}
+
+		// non-merging sliders
+		else {
+			if (Options.isExperimentalSliderShrinking() && curveIntervalFrom > 0 && hitObject.getRepeatCount() % 2 == 0) {
+				curve.splice((int) ((1d - curveIntervalFrom) * curveLength), curveLength);
 				curveIntervalFrom = 0d;
 			}
-			curve.draw(curveColor, (int) (curveIntervalFrom * curvelen), (int) (curveIntervalTo * curvelen));
+			float oldBlackAlpha = Colors.BLACK_ALPHA.a;
+			Colors.BLACK_ALPHA.a = sliderAlpha;
+			curve.draw(Colors.BLACK_ALPHA, (int) (curveIntervalFrom * curveLength), (int) (curveIntervalTo * curveLength));
+			Colors.BLACK_ALPHA.a = oldBlackAlpha;
 		}
+
 		return curveIntervalTo == 1d;
 	}
 
@@ -758,6 +771,7 @@ public class Slider implements GameObject {
 
 			// calculate and send slider result
 			hitResult();
+
 			return true;
 		}
 
@@ -803,9 +817,10 @@ public class Slider implements GameObject {
 		}
 	}
 
-	public Curve getCurve() {
-		return curve;
-	}
+	/**
+	 * Returns the underlying curve.
+	 */
+	public Curve getCurve() { return curve; }
 
 	@Override
 	public void reset() {
