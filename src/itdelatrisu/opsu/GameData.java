@@ -1088,14 +1088,18 @@ public class GameData {
 	 */
 	private void drawHitAnimations(HitObjectResult hitResult, int trackPosition) {
 		// fade out slider curve
-		if (hitResult.result != HIT_SLIDER_REPEAT && hitResult.curve != null) {
+		if (hitResult.result != HIT_SLIDER_REPEAT && hitResult.curve != null && !(Options.isExperimentalSliderStyle() && Options.isShrinkingSliders())) {
 			float progress = AnimationEquation.OUT_CUBIC.calc(
 				(float) Utils.clamp(trackPosition - hitResult.time, 0, HITCIRCLE_FADE_TIME) / HITCIRCLE_FADE_TIME);
 			float alpha = 1f - progress;
 			float oldWhiteAlpha = Colors.WHITE_FADE.a;
 			float oldColorAlpha = hitResult.color.a;
 			Colors.WHITE_FADE.a = hitResult.color.a = alpha;
-			hitResult.curve.draw(hitResult.color);
+			if (Options.isExperimentalSliderStyle()) {
+				hitResult.curve.draw(hitResult.color, Options.isMergingSliders() ? 1 : 0, hitResult.curve.getCurvePoints().length);
+			} else {
+				hitResult.curve.draw(hitResult.color);
+			}
 			Colors.WHITE_FADE.a = oldWhiteAlpha;
 			hitResult.color.a = oldColorAlpha;
 		}
@@ -1123,6 +1127,10 @@ public class GameData {
 			Image fc = GameImage.SLIDER_FOLLOWCIRCLE.getImage().getScaledCopy(scale);
 			fc.setAlpha(alpha);
 			fc.drawCentered(hitResult.x, hitResult.y);
+		}
+
+		if (hitResult.result != HIT_SLIDER_REPEAT && hitResult.curve != null && !Options.isDrawSliderEndCircles()) {
+			return;
 		}
 
 		// hit circles
