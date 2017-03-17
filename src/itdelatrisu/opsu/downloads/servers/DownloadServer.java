@@ -21,6 +21,7 @@ package itdelatrisu.opsu.downloads.servers;
 import itdelatrisu.opsu.downloads.DownloadNode;
 
 import java.io.IOException;
+import java.util.Map;
 
 /**
  * Abstract class for beatmap download servers.
@@ -75,6 +76,12 @@ public abstract class DownloadServer {
 	public String getPreviewURL(int beatmapSetID) {
 		return String.format(PREVIEW_URL, beatmapSetID);
 	}
+
+	/**
+	 * Returns any HTTP request headers that should be set in the download request.
+	 * @return the map of headers (key -> value), or null if none
+	 */
+	public Map<String, String> getDownloadRequestHeaders() { return null; }
 
 	@Override
 	public String toString() { return getName(); }

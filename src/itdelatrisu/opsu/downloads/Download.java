@@ -33,6 +33,7 @@ import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.Map;
 
 import org.newdawn.slick.util.Log;
 
@@ -98,6 +99,9 @@ public class Download {
 	/** The download listener. */
 	private DownloadListener listener;
 
+	/** The additional HTTP request headers. */
+	private Map<String, String> requestHeaders;
+
 	/** The readable byte channel. */
 	private ReadableByteChannelWrapper rbc;
 
@@ -121,6 +125,12 @@ public class Download {
 
 	/** Last calculated ETA string. */
 	private String lastTimeRemaining;
+
+	/** EWMA download speed. */
+	private long avgDownloadSpeed = 0;
+
+	/** EWMA smoothing factor (alpha) for computing average download speed. */
+	private static final double DOWNLOAD_SPEED_SMOOTHING = 0.25;
 
 	/**
 	 * Constructor.
@@ -166,6 +176,12 @@ public class Download {
 	public void setListener(DownloadListener listener) { this.listener = listener; }
 
 	/**
+	 * Sets additional HTTP headers to use in the download request.
+	 * @param headers the map of headers (key -> value)
+	 */
+	public void setRequestHeaders(Map<String, String> headers) { this.requestHeaders = headers; }
+
+	/**
 	 * Starts the download from the "waiting" status.
 	 * @return the started download thread, or {@code null} if none started
 	 */
@@ -194,6 +210,10 @@ public class Download {
 						// http://download.java.net/jdk7u2/docs/technotes/guides/deployment/deployment-guide/upgrade-guide/article-17.html
 						conn.setInstanceFollowRedirects(false);
 						conn.setRequestProperty("User-Agent", "Mozilla/5.0...");
+						if (requestHeaders != null) {
+							for (Map.Entry<String, String> entry : requestHeaders.entrySet())
+								conn.setRequestProperty(entry.getKey(), entry.getValue());
+						}
 
 						// check for redirect
 						int status = conn.getResponseCode();
@@ -369,6 +389,7 @@ public class Download {
 		if (status != Status.DOWNLOADING) {
 			this.lastDownloadSpeed = null;
 			this.lastTimeRemaining = null;
+			this.avgDownloadSpeed = 0;
 			return;
 		}
 
@@ -378,13 +399,16 @@ public class Download {
 			long readSoFarTime = System.currentTimeMillis();
 			long dlspeed = (readSoFar - lastReadSoFar) * 1000 / (readSoFarTime - lastReadSoFarTime);
 			if (dlspeed > 0) {
-				this.lastDownloadSpeed = String.format("%s/s", Utils.bytesToString(dlspeed));
-				long t = (contentLength - readSoFar) / dlspeed;
+				this.avgDownloadSpeed = (avgDownloadSpeed == 0) ? dlspeed :
+					(long) (DOWNLOAD_SPEED_SMOOTHING * dlspeed + (1 - DOWNLOAD_SPEED_SMOOTHING) * avgDownloadSpeed);
+				this.lastDownloadSpeed = String.format("%s/s", Utils.bytesToString(avgDownloadSpeed));
+				long t = (contentLength - readSoFar) / avgDownloadSpeed;
 				if (t >= 3600)
 					this.lastTimeRemaining = String.format("%dh%dm%ds", t / 3600, (t / 60) % 60, t % 60);
 				else
 					this.lastTimeRemaining = String.format("%dm%ds", t / 60, t % 60);
 			} else {
+				this.avgDownloadSpeed = 0;
 				this.lastDownloadSpeed = String.format("%s/s", Utils.bytesToString(0));
 				this.lastTimeRemaining = "?";
 			}

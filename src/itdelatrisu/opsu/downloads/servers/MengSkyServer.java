@@ -27,6 +27,8 @@ import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -45,6 +47,9 @@ public class MengSkyServer extends DownloadServer {
 
 	/** Formatted search URL: {@code query,page,unranked,approved,qualified} */
 	private static final String SEARCH_URL = "http://osu.mengsky.net/api/beatmapinfo?query=%s&page=%d&ranked=1&unrank=%d&approved=%d&qualified=%d";
+
+	/** Referer URL. */
+	private static final String REFERER_URL = "http://osu.mengsky.net/";
 
 	/** Maximum beatmaps displayed per page. */
 	private static final int PAGE_LIMIT = 20;
@@ -119,4 +124,11 @@ public class MengSkyServer extends DownloadServer {
 
 	@Override
 	public int totalResults() { return totalResults; }
+
+	@Override
+	public Map<String, String> getDownloadRequestHeaders() {
+		Map<String, String> headers = new HashMap<String, String>();
+		headers.put("Referer", REFERER_URL);
+		return headers;
+	}
 }
