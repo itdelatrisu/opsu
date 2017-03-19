@@ -2403,6 +2403,9 @@ public class Game extends BasicGameState {
 		}
 	}
 
+	/**
+	 * Returns whether or not the game is in losing state.
+	 */
 	public boolean isInLosingState() {
 		return restart == Restart.LOSE;
 	}
