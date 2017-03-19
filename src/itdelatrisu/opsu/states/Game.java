@@ -1629,12 +1629,6 @@ public class Game extends BasicGameState {
 		// draw result objects (under)
 		data.drawHitResults(trackPosition, false);
 
-		// draw merged slider
-		if (mergedSlider != null && Options.isExperimentalSliderMerging()) {
-			mergedSlider.draw(Color.white);
-			mergedSlider.clearPoints();
-		}
-
 		// include previous object in follow points
 		int lastObjectIndex = -1;
 		if (objectIndex > 0 && objectIndex < beatmap.objects.length &&
@@ -1644,6 +1638,12 @@ public class Game extends BasicGameState {
 		boolean loseState = (restart == Restart.LOSE);
 		if (loseState)
 			trackPosition = failTrackTime + (int) (System.currentTimeMillis() - failTime);
+
+		// draw merged slider
+		if (!loseState && mergedSlider != null && Options.isExperimentalSliderMerging()) {
+			mergedSlider.draw(Color.white);
+			mergedSlider.clearPoints();
+		}
 
 		// get hit objects in reverse order, or else overlapping objects are unreadable
 		Stack<Integer> stack = new Stack<Integer>();
@@ -2402,4 +2402,12 @@ public class Game extends BasicGameState {
 			BeatmapDB.updateLocalOffset(beatmap);
 		}
 	}
+
+	/**
+	 * Returns whether or not the game is in losing state.
+	 */
+	public boolean isInLosingState() {
+		return restart == Restart.LOSE;
+	}
+
 }
