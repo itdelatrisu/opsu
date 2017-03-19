@@ -439,7 +439,7 @@ public class Slider implements GameObject {
 		int curveLength = curve.getCurvePoints().length;
 
 		// merging sliders
-		if (Options.isExperimentalSliderMerging() && !game.isInLosingState()) {
+		if (Options.isExperimentalSliderMerging() && game.getPlayState() != Game.PlayState.LOSE) {
 			if (Options.isExperimentalSliderShrinking() && curveIntervalFrom > 0) {
 				if (hitObject.getRepeatCount() % 2 == 0) {
 					game.addMergedSliderPointsToRender(

@@ -196,7 +196,7 @@ public class GameRanking extends BasicGameState {
 		if (replayButtonPressed && !(data.isGameplay() && GameMod.AUTO.isActive())) {
 			if (replay != null) {
 				gameState.setReplay(replay);
-				gameState.setRestart((data.isGameplay()) ? Game.Restart.REPLAY : Game.Restart.NEW);
+				gameState.setPlayState((data.isGameplay()) ? Game.PlayState.REPLAY : Game.PlayState.FIRST_LOAD);
 				returnToGame = true;
 			} else
 				UI.getNotificationManager().sendBarNotification("Replay file not found.");
@@ -207,7 +207,7 @@ public class GameRanking extends BasicGameState {
 		         (!GameMod.AUTO.isActive() && retryButton.contains(x, y)) ||
 		         (GameMod.AUTO.isActive() && replayButtonPressed)) {
 			gameState.setReplay(null);
-			gameState.setRestart(Game.Restart.MANUAL);
+			gameState.setPlayState(Game.PlayState.RETRY);
 			returnToGame = true;
 		}
 

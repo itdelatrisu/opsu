@@ -2016,7 +2016,7 @@ public class SongMenu extends BasicGameState {
 		MultiClip.destroyExtraClips();
 		Game gameState = (Game) game.getState(Opsu.STATE_GAME);
 		gameState.loadBeatmap(beatmap);
-		gameState.setRestart(Game.Restart.NEW);
+		gameState.setPlayState(Game.PlayState.FIRST_LOAD);
 		gameState.setReplay(null);
 		game.enterState(Opsu.STATE_GAME, new EasedFadeOutTransition(), new FadeInTransition());
 	}

@@ -93,14 +93,14 @@ import org.newdawn.slick.util.Log;
  * "Game" state.
  */
 public class Game extends BasicGameState {
-	/** Game restart states. */
-	public enum Restart {
-		/** No restart (i.e. returning from pause screen). */
-		FALSE,
+	/** Game play states. */
+	public enum PlayState {
+		/** Normal play. */
+		NORMAL,
 		/** First time loading the song. */
-		NEW,
+		FIRST_LOAD,
 		/** Manual retry. */
-		MANUAL,
+		RETRY,
 		/** Replay. */
 		REPLAY,
 		/** Health is zero: no-continue/force restart. */
@@ -167,8 +167,8 @@ public class Game extends BasicGameState {
 	/** Time offsets for obtaining each hit result (indexed by HIT_* constants). */
 	private int[] hitResultOffset;
 
-	/** Current restart state. */
-	private Restart restart;
+	/** Current play state. */
+	private PlayState playState;
 
 	/** Current break index in breaks ArrayList. */
 	private int breakIndex;
@@ -1041,8 +1041,8 @@ public class Game extends BasicGameState {
 
 			// game over, force a restart
 			if (!isReplay) {
-				if (restart != Restart.LOSE) {
-					restart = Restart.LOSE;
+				if (playState != PlayState.LOSE) {
+					playState = PlayState.LOSE;
 					failTime = System.currentTimeMillis();
 					failTrackTime = MusicController.getPosition(true);
 					MusicController.fadeOut(MUSIC_FADEOUT_TIME);
@@ -1065,7 +1065,7 @@ public class Game extends BasicGameState {
 		}
 
 		// don't process hit results when already lost
-		if (restart != Restart.LOSE) {
+		if (playState != PlayState.LOSE) {
 			boolean keyPressed = keys != ReplayFrame.KEY_NONE;
 
 			// update passed objects
@@ -1158,7 +1158,7 @@ public class Game extends BasicGameState {
 				try {
 					if (trackPosition < beatmap.objects[0].getTime())
 						retries--;  // don't count this retry (cancel out later increment)
-					restart = Restart.MANUAL;
+					playState = PlayState.RETRY;
 					enter(container, game);
 					skipIntro();
 				} catch (SlickException e) {
@@ -1190,7 +1190,7 @@ public class Game extends BasicGameState {
 				if (checkpoint == 0 || checkpoint > beatmap.endTime)
 					break;  // invalid checkpoint
 				try {
-					restart = Restart.MANUAL;
+					playState = PlayState.RETRY;
 					enter(container, game);
 					checkpointLoaded = true;
 					if (isLeadIn()) {
@@ -1419,9 +1419,9 @@ public class Game extends BasicGameState {
 //		container.setMouseGrabbed(true);
 
 		// restart the game
-		if (restart != Restart.FALSE) {
+		if (playState != PlayState.NORMAL) {
 			// update play stats
-			if (restart == Restart.NEW) {
+			if (playState == PlayState.FIRST_LOAD) {
 				beatmap.incrementPlayCounter();
 				BeatmapDB.updatePlayStatistics(beatmap);
 			}
@@ -1434,17 +1434,14 @@ public class Game extends BasicGameState {
 
 			data.setGameplay(true);
 
-			// check restart state
-			if (restart == Restart.NEW) {
-				// new game
+			// check play state
+			if (playState == PlayState.FIRST_LOAD) {
 				loadImages();
 				setMapModifiers();
 				retries = 0;
-			} else if (restart == Restart.MANUAL && !GameMod.AUTO.isActive()) {
-				// retry
+			} else if (playState == PlayState.RETRY && !GameMod.AUTO.isActive()) {
 				retries++;
-			} else if (restart == Restart.REPLAY || GameMod.AUTO.isActive()) {
-				// replay
+			} else if (playState == PlayState.REPLAY || GameMod.AUTO.isActive()) {
 				retries = 0;
 			}
 
@@ -1568,7 +1565,7 @@ public class Game extends BasicGameState {
 			}
 
 			leadInTime = beatmap.audioLeadIn + approachTime;
-			restart = Restart.FALSE;
+			playState = PlayState.NORMAL;
 
 			// fetch previous scores
 			previousScores = ScoreDB.getMapScoresExcluding(beatmap, replay == null ? null : replay.getReplayFilename());
@@ -1635,7 +1632,7 @@ public class Game extends BasicGameState {
 		    trackPosition < beatmap.objects[objectIndex].getTime() && !beatmap.objects[objectIndex - 1].isSpinner())
 			lastObjectIndex = objectIndex - 1;
 
-		boolean loseState = (restart == Restart.LOSE);
+		boolean loseState = (playState == PlayState.LOSE);
 		if (loseState)
 			trackPosition = failTrackTime + (int) (System.currentTimeMillis() - failTime);
 
@@ -1987,15 +1984,15 @@ public class Game extends BasicGameState {
 	}
 
 	/**
-	 * Sets the restart state.
-	 * @param restart the new restart state
+	 * Sets the play state.
+	 * @param state the new play state
 	 */
-	public void setRestart(Restart restart) { this.restart = restart; }
+	public void setPlayState(PlayState state) { this.playState = state; }
 
 	/**
-	 * Returns the current restart state.
+	 * Returns the current play state.
 	 */
-	public Restart getRestart() { return restart; }
+	public PlayState getPlayState() { return playState; }
 
 	/**
 	 * Returns whether or not the track is in the lead-in time state.
@@ -2402,12 +2399,4 @@ public class Game extends BasicGameState {
 			BeatmapDB.updateLocalOffset(beatmap);
 		}
 	}
-
-	/**
-	 * Returns whether or not the game is in losing state.
-	 */
-	public boolean isInLosingState() {
-		return restart == Restart.LOSE;
-	}
-
 }
