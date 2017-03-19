@@ -730,6 +730,19 @@ public class Game extends BasicGameState {
 			g.setColor(Colors.BLACK_ALPHA);
 			g.fillRect(0, 0, width, height);
 
+			// draw overlay text
+			String overlayText = "Click on the pulsing cursor to continue play!";
+			int textWidth = Fonts.LARGE.getWidth(overlayText), textHeight = Fonts.LARGE.getLineHeight();
+			int textX = (width - textWidth) / 2, textY = (height - textHeight) / 2;
+			int paddingX = 8, paddingY = 4;
+			g.setLineWidth(1f);
+			g.setColor(Color.black);
+			g.fillRect(textX - paddingX, textY - paddingY, textWidth + paddingX * 2, textHeight + paddingY * 2);
+			g.setColor(Colors.LIGHT_BLUE);
+			g.drawRect(textX - paddingX, textY - paddingY, textWidth + paddingX * 2, textHeight + paddingY * 2);
+			g.setColor(Color.white);
+			Fonts.LARGE.drawString(textX, textY, overlayText);
+
 			// draw glowing hit select circle and pulse effect
 			int circleDiameter = GameImage.HITCIRCLE.getImage().getWidth();
 			Image cursorCircle = GameImage.HITCIRCLE_SELECT.getImage().getScaledCopy(circleDiameter, circleDiameter);
@@ -784,6 +797,12 @@ public class Game extends BasicGameState {
 				pausePulse += delta / 750f;
 				if (pausePulse > 1f)
 					pausePulse = 0f;
+
+				// is mouse within the circle?
+				double distance = Math.hypot(pausedMousePosition.x - mouseX, pausedMousePosition.y - mouseY);
+				int circleRadius = GameImage.HITCIRCLE.getImage().getWidth() / 2;
+				if (distance < circleRadius)
+					UI.updateTooltip(delta, "Click to resume gameplay.", false);
 			}
 			return;
 		}
