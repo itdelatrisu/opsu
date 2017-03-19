@@ -377,6 +377,11 @@ public class Slider implements GameObject {
 	 * @param decorationsAlpha the decorations alpha level
 	 */
 	private void drawSliderTicks(int trackPosition, float curveAlpha, float decorationsAlpha) {
+		// don't draw if the slider would be completely finished (occurs when game is in losing state)
+		if (trackPosition > hitObject.getTime() + sliderTimeTotal) {
+			return;
+		}
+
 		float tickScale = 0.5f + 0.5f * AnimationEquation.OUT_BACK.calc(decorationsAlpha);
 		Image tick = GameImage.SLIDER_TICK.getImage().getScaledCopy(tickScale);
 
