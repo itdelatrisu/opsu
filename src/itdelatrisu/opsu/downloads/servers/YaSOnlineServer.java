@@ -39,6 +39,8 @@ import org.newdawn.slick.util.Log;
 
 /**
  * Download server: http://osu.yas-online.net/
+ * <p>
+ * <i>This server no longer hosts downloads as of March 2017.</i>
  */
 public class YaSOnlineServer extends DownloadServer {
 	/** Server name. */
