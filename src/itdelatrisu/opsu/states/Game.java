@@ -1171,18 +1171,21 @@ public class Game extends BasicGameState {
 			break;
 		case Input.KEY_R:
 			// restart
+			if (!input.isKeyDown(Input.KEY_RCONTROL) && !input.isKeyDown(Input.KEY_LCONTROL))
+				break;
+			// fall through
+		case Input.KEY_GRAVE:
+			// restart
 			if (gameFinished)
 				break;
-			if (input.isKeyDown(Input.KEY_RCONTROL) || input.isKeyDown(Input.KEY_LCONTROL)) {
-				try {
-					if (trackPosition < beatmap.objects[0].getTime())
-						retries--;  // don't count this retry (cancel out later increment)
-					playState = PlayState.RETRY;
-					enter(container, game);
-					skipIntro();
-				} catch (SlickException e) {
-					ErrorHandler.error("Failed to restart game.", e, false);
-				}
+			try {
+				if (trackPosition < beatmap.objects[0].getTime())
+					retries--;  // don't count this retry (cancel out later increment)
+				playState = PlayState.RETRY;
+				enter(container, game);
+				skipIntro();
+			} catch (SlickException e) {
+				ErrorHandler.error("Failed to restart game.", e, false);
 			}
 			break;
 		case Input.KEY_S:
