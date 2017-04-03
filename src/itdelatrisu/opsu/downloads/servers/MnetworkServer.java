@@ -29,6 +29,7 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -38,7 +39,7 @@ import org.newdawn.slick.util.Log;
 /**
  * Download server: http://osu.uu.gl/
  */
-public class MnetworkServer extends DownloadServer {
+public class MnetworkServer implements DownloadServer, SearchServer{
 	/** Server name. */
 	private static final String SERVER_NAME = "Mnetwork";
 
@@ -58,7 +59,7 @@ public class MnetworkServer extends DownloadServer {
 	public MnetworkServer() {}
 
 	@Override
-	public String getName() { return SERVER_NAME; }
+	public String toString() { return SERVER_NAME; }
 
 	@Override
 	public String getDownloadURL(int beatmapSetID) {
@@ -135,4 +136,14 @@ public class MnetworkServer extends DownloadServer {
 
 	@Override
 	public int totalResults() { return totalResults; }
+
+	@Override
+	public Map<String, String> getDownloadRequestHeaders() {
+		return null;
+	}
+
+	@Override
+	public boolean isOpenInBrowser() {
+		return false;
+	}
 }

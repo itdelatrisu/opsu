@@ -30,8 +30,10 @@ import itdelatrisu.opsu.ui.Colors;
 import itdelatrisu.opsu.ui.Fonts;
 import itdelatrisu.opsu.ui.UI;
 
+import java.awt.Desktop;
 import java.io.File;
-
+import java.io.IOException;
+import java.net.URI;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
@@ -263,29 +265,49 @@ public class DownloadNode {
 	 * @param server the server to download from
 	 * @see #getDownload()
 	 */
-	public void createDownload(DownloadServer server) {
+	public void createDownload(DownloadServer dlserver) {
 		if (download != null)
 			return;
 
-		String url = server.getDownloadURL(beatmapSetID);
+		String url = dlserver.getDownloadURL(beatmapSetID);
 		if (url == null)
 			return;
-		String path = String.format("%s%c%d", Options.getImportDir(), File.separatorChar, beatmapSetID);
-		String rename = String.format("%d %s - %s.osz", beatmapSetID, artist, title);
-		Download download = new Download(url, path, rename);
-		download.setListener(new DownloadListener() {
-			@Override
-			public void completed() {
-				UI.getNotificationManager().sendNotification(String.format("Download complete: %s", getTitle()), Colors.GREEN);
+		if(dlserver.isOpenInBrowser()) {
+			try {
+				//do once / ? - {
+				//	Show instructions
+				//	open file chooser  for user to choose import directory
+				// or have a button in downloadMenu to select import directory
+				//}
+				
+				Desktop.getDesktop().browse(URI.create(url));
+				Download download = new Download(url);
+				this.download = download;
+				//create a new "download" object that just checks file size?
+				// no way to find end filesize....
+			} catch (IOException e) {
+				e.printStackTrace();
 			}
-
-			@Override
-			public void error() {
-				UI.getNotificationManager().sendNotification("Download failed due to a connection error.", Color.red);
-			}
-		});
-		download.setRequestHeaders(server.getDownloadRequestHeaders());
-		this.download = download;
+		} else {
+		
+			String path = String.format("%s%c%d", Options.getImportDir(), File.separatorChar, beatmapSetID);
+			String rename = String.format("%d %s - %s.osz", beatmapSetID, artist, title);
+			Download download = new Download(url, path, rename);
+			download.setListener(new DownloadListener() {
+				@Override
+				public void completed() {
+					UI.getNotificationManager().sendNotification(String.format("Download complete: %s", getTitle()), Colors.GREEN);
+				}
+	
+				@Override
+				public void error() {
+					UI.getNotificationManager().sendNotification("Download failed due to a connection error.", Color.red);
+				}
+			});
+			download.setRequestHeaders(dlserver.getDownloadRequestHeaders());
+			this.download = download;
+		}
+	
 		if (Options.useUnicodeMetadata())  // load glyphs
 			Fonts.loadGlyphs(Fonts.LARGE, getTitle());
 	}

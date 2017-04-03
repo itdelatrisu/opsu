@@ -30,7 +30,11 @@ import itdelatrisu.opsu.beatmap.OszUnpacker;
 import itdelatrisu.opsu.downloads.Download;
 import itdelatrisu.opsu.downloads.DownloadList;
 import itdelatrisu.opsu.downloads.DownloadNode;
+import itdelatrisu.opsu.downloads.servers.BloodcatServer;
 import itdelatrisu.opsu.downloads.servers.DownloadServer;
+import itdelatrisu.opsu.downloads.servers.OsuPpyLinkTo;
+import itdelatrisu.opsu.downloads.servers.OsuPpyLinkToNoVid;
+import itdelatrisu.opsu.downloads.servers.SearchServer;
 import itdelatrisu.opsu.downloads.servers.MengSkyServer;
 import itdelatrisu.opsu.downloads.servers.MnetworkServer;
 import itdelatrisu.opsu.options.Options;
@@ -41,8 +45,10 @@ import itdelatrisu.opsu.ui.KineticScrolling;
 import itdelatrisu.opsu.ui.MenuButton;
 import itdelatrisu.opsu.ui.UI;
 
+import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 
 import javax.sound.sampled.LineEvent;
 import javax.sound.sampled.LineListener;
@@ -68,6 +74,8 @@ import org.newdawn.slick.util.Log;
  * from this state.
  */
 public class DownloadsMenu extends BasicGameState {
+	private static final String PREVIEW_URL = "http://b.ppy.sh/preview/%d.mp3";
+	
 	/** Delay time, in milliseconds, between each search. */
 	private static final int SEARCH_DELAY = 700;
 
@@ -78,11 +86,19 @@ public class DownloadsMenu extends BasicGameState {
 	private static final int MIN_REQUEST_INTERVAL = 300;
 
 	/** Available beatmap download servers. */
-	private static final DownloadServer[] SERVERS = {
+	private static final SearchServer[] SERVERS = {
 		new MengSkyServer(),
-		new MnetworkServer()
+		new MnetworkServer(),
+		new BloodcatServer()
 	};
 
+	private static final DownloadServer[] DLSERVERS = {
+		new MengSkyServer(),
+		new MnetworkServer(),
+		new BloodcatServer(),
+		new OsuPpyLinkTo(),
+		new OsuPpyLinkToNoVid(),
+	};
 	/** The current list of search results. */
 	private DownloadNode[] resultList;
 
@@ -150,7 +166,8 @@ public class DownloadsMenu extends BasicGameState {
 	private MenuButton clearButton, importButton, resetButton, rankedButton;
 
 	/** Dropdown menu. */
-	private DropdownMenu<DownloadServer> serverMenu;
+	private DropdownMenu<SearchServer> serverMenu;
+	private DropdownMenu<DownloadServer> dlserverMenu;
 
 	/** Beatmap importing thread. */
 	private BeatmapImportThread importThread;
@@ -170,7 +187,7 @@ public class DownloadsMenu extends BasicGameState {
 		private final String query;
 
 		/** The download server. */
-		private final DownloadServer server;
+		private final SearchServer server;
 
 		/** Whether the query was interrupted. */
 		private boolean interrupted = false;
@@ -183,7 +200,7 @@ public class DownloadsMenu extends BasicGameState {
 		 * @param query the search query
 		 * @param server the download server
 		 */
-		public SearchQuery(String query, DownloadServer server) {
+		public SearchQuery(String query, SearchServer server) {
 			this.query = query;
 			this.server = server;
 		}
@@ -281,6 +298,7 @@ public class DownloadsMenu extends BasicGameState {
 			}
 
 			DownloadList.get().clearDownloads(Download.Status.COMPLETE);
+			DownloadList.get().clearBeatmapExistDownloads();
 		}
 	}
 
@@ -369,10 +387,10 @@ public class DownloadsMenu extends BasicGameState {
 
 		// dropdown menu
 		int serverWidth = (int) (width * 0.12f);
-		serverMenu = new DropdownMenu<DownloadServer>(container, SERVERS,
+		serverMenu = new DropdownMenu<SearchServer>(container, SERVERS,
 				baseX + searchWidth + buttonMarginX * 3f + resetButtonWidth + rankedButtonWidth, searchY, serverWidth) {
 			@Override
-			public void itemSelected(int index, DownloadServer item) {
+			public void itemSelected(int index, SearchServer item) {
 				resultList = null;
 				startResultPos.setPosition(0);
 				focusResult = -1;
@@ -386,6 +404,7 @@ public class DownloadsMenu extends BasicGameState {
 				if (searchQuery != null)
 					searchQuery.interrupt();
 				resetSearchTimer();
+				dlserverMenu.setSelectedIndex(index);
 			}
 
 			@Override
@@ -401,6 +420,26 @@ public class DownloadsMenu extends BasicGameState {
 		serverMenu.setBackgroundColor(Colors.BLACK_BG_HOVER);
 		serverMenu.setBorderColor(Color.black);
 		serverMenu.setChevronRightColor(Color.white);
+		
+		dlserverMenu = new DropdownMenu<DownloadServer>(container, DLSERVERS,
+				serverMenu.getX() + serverMenu.getWidth() + buttonMarginX , searchY, serverWidth) {
+			@Override
+			public void itemSelected(int index, DownloadServer item) {
+			}
+
+			@Override
+			public boolean menuClicked(int index) {
+				// block input during beatmap importing
+				if (importThread != null)
+					return false;
+
+				SoundController.playSound(SoundEffect.MENUCLICK);
+				return true;
+			}
+		};
+		dlserverMenu.setBackgroundColor(Colors.BLACK_BG_HOVER);
+		dlserverMenu.setBorderColor(Color.black);
+		dlserverMenu.setChevronRightColor(Color.white);
 	}
 
 	@Override
@@ -409,7 +448,7 @@ public class DownloadsMenu extends BasicGameState {
 		int width = container.getWidth();
 		int height = container.getHeight();
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
-		boolean inDropdownMenu = serverMenu.contains(mouseX, mouseY);
+		boolean inDropdownMenu = serverMenu.contains(mouseX, mouseY) || dlserverMenu.contains(mouseX, mouseY);
 
 		// background
 		Image bg = GameImage.SEARCH_BG.getImage();
@@ -514,6 +553,7 @@ public class DownloadsMenu extends BasicGameState {
 
 		// dropdown menu
 		serverMenu.render(container, g);
+		dlserverMenu.render(container, g);
 
 		// importing beatmaps
 		if (importThread != null) {
@@ -582,7 +622,7 @@ public class DownloadsMenu extends BasicGameState {
 			searchTimerReset = false;
 
 			String query = search.getText().trim().toLowerCase();
-			DownloadServer server = serverMenu.getSelectedItem();
+			SearchServer server = serverMenu.getSelectedItem();
 			if ((lastQuery == null || !query.equals(lastQuery)) &&
 			    (query.length() == 0 || query.length() >= server.minQueryLength())) {
 				lastQuery = query;
@@ -607,6 +647,8 @@ public class DownloadsMenu extends BasicGameState {
 		else if (rankedButton.contains(mouseX, mouseY))
 			UI.updateTooltip(delta, "Toggle the display of unranked maps.\nSome download servers may not support this option.", true);
 		else if (serverMenu.baseContains(mouseX, mouseY))
+			UI.updateTooltip(delta, "Select a search server.", false);
+		else if (dlserverMenu.baseContains(mouseX, mouseY))
 			UI.updateTooltip(delta, "Select a download server.", false);
 	}
 
@@ -665,7 +707,7 @@ public class DownloadsMenu extends BasicGameState {
 								SoundController.stopTrack();
 							} else {
 								// play preview
-								final String url = serverMenu.getSelectedItem().getPreviewURL(node.getID());
+								final String url = getPreviewURL(node.getID());
 								MusicController.pause();
 								new Thread() {
 									@Override
@@ -707,13 +749,16 @@ public class DownloadsMenu extends BasicGameState {
 								focusTimer = 0;
 							} else {
 								// start download
+								DownloadServer dlserver = dlserverMenu.getSelectedItem();
 								if (!DownloadList.get().contains(node.getID())) {
-									node.createDownload(serverMenu.getSelectedItem());
+									node.createDownload(dlserver);
 									if (node.getDownload() == null)
 										UI.getNotificationManager().sendBarNotification("The download could not be started.");
 									else {
 										DownloadList.get().addNode(node);
-										node.getDownload().start();
+										if(!dlserver.isOpenInBrowser()) {
+											node.getDownload().start();
+										}
 									}
 								}
 							}
@@ -814,6 +859,7 @@ public class DownloadsMenu extends BasicGameState {
 					case CANCELLED:
 					case COMPLETE:
 					case ERROR:
+					case OPENBROWSER:
 						node.clearDownload();
 						DownloadList.get().remove(index);
 						break;
@@ -826,6 +872,10 @@ public class DownloadsMenu extends BasicGameState {
 				}
 			}
 		}
+	}
+
+	public String getPreviewURL(int beatmapSetID) {
+		return String.format(PREVIEW_URL, beatmapSetID);
 	}
 
 	@Override
@@ -937,6 +987,8 @@ public class DownloadsMenu extends BasicGameState {
 		rankedButton.resetHover();
 		serverMenu.activate();
 		serverMenu.reset();
+		dlserverMenu.activate();
+		dlserverMenu.reset();
 		focusResult = -1;
 		startResultPos.setPosition(0);
 		startDownloadIndexPos.setPosition(0);
@@ -953,6 +1005,7 @@ public class DownloadsMenu extends BasicGameState {
 			throws SlickException {
 		search.setFocus(false);
 		serverMenu.deactivate();
+		dlserverMenu.deactivate();
 		SoundController.stopTrack();
 		MusicController.resume();
 	}

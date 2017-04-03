@@ -31,6 +31,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Map;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -42,7 +43,7 @@ import org.newdawn.slick.util.Log;
  * <p>
  * <i>This server uses captchas as of March 2017.</i>
  */
-public class BloodcatServer extends DownloadServer {
+public class BloodcatServer implements DownloadServer, SearchServer {
 	/** Server name. */
 	private static final String SERVER_NAME = "Bloodcat";
 
@@ -62,8 +63,8 @@ public class BloodcatServer extends DownloadServer {
 	public BloodcatServer() {}
 
 	@Override
-	public String getName() { return SERVER_NAME; }
-
+	public String toString() { return SERVER_NAME; }
+	
 	@Override
 	public String getDownloadURL(int beatmapSetID) {
 		return String.format(DOWNLOAD_URL, beatmapSetID);
@@ -135,5 +136,15 @@ public class BloodcatServer extends DownloadServer {
 		} catch (StringIndexOutOfBoundsException | ParseException e) {
 			return s;
 		}
+	}
+
+	@Override
+	public Map<String, String> getDownloadRequestHeaders() {
+		return null;
+	}
+
+	@Override
+	public boolean isOpenInBrowser() {
+		return true;
 	}
 }

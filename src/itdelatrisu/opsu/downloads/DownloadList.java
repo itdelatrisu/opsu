@@ -19,6 +19,7 @@
 package itdelatrisu.opsu.downloads;
 
 import itdelatrisu.opsu.OpsuConstants;
+import itdelatrisu.opsu.beatmap.BeatmapSetList;
 import itdelatrisu.opsu.downloads.Download.Status;
 
 import java.util.ArrayList;
@@ -165,6 +166,21 @@ public class DownloadList {
 			DownloadNode node = iter.next();
 			Download dl = node.getDownload();
 			if (dl != null && dl.getStatus() == status) {
+				node.clearDownload();
+				iter.remove();
+				map.remove(node.getID());
+			}
+		}
+	}
+
+	/**
+	 * Removes all downloads whose beatmapID exist in the database.
+	 */
+	public void clearBeatmapExistDownloads() {
+		Iterator<DownloadNode> iter = nodes.iterator();
+		while (iter.hasNext()) {
+			DownloadNode node = iter.next();
+			if (BeatmapSetList.get().containsBeatmapSetID(node.getID())) {
 				node.clearDownload();
 				iter.remove();
 				map.remove(node.getID());

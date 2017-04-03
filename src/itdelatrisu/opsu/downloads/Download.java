@@ -59,7 +59,8 @@ public class Download {
 		DOWNLOADING ("Downloading"),
 		COMPLETE ("Complete"),
 		CANCELLED ("Cancelled"),
-		ERROR ("Error");
+		ERROR ("Error"),
+		OPENBROWSER ("Opened in browser"),;
 
 		/** The status name. */
 		private final String name;
@@ -157,6 +158,10 @@ public class Download {
 		}
 		this.localPath = localPath;
 		this.rename = Utils.cleanFileName(rename, '-');
+	}
+
+	public Download(String url) {
+		status = Status.OPENBROWSER;
 	}
 
 	/**
