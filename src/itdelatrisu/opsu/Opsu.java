@@ -40,9 +40,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.reflect.Field;
-import java.net.InetAddress;
-import java.net.ServerSocket;
-import java.net.UnknownHostException;
 
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Input;
@@ -54,6 +51,8 @@ import org.newdawn.slick.util.DefaultLogSystem;
 import org.newdawn.slick.util.FileSystemLocation;
 import org.newdawn.slick.util.Log;
 import org.newdawn.slick.util.ResourceLoader;
+import org.sqlite.SQLiteErrorCode;
+import org.sqlite.SQLiteException;
 
 /**
  * Main class.
@@ -71,9 +70,6 @@ public class Opsu extends StateBasedGame {
 		STATE_GAMEPAUSEMENU = 5,
 		STATE_GAMERANKING   = 6,
 		STATE_DOWNLOADSMENU = 7;
-
-	/** Server socket for restricting the program to a single instance. */
-	private static ServerSocket SERVER_SOCKET;
 
 	/**
 	 * Constructor.
@@ -119,26 +115,28 @@ public class Opsu extends StateBasedGame {
 		// parse configuration file
 		Options.parseOptions();
 
-		// only allow a single instance
+		// initialize databases
 		try {
-			SERVER_SOCKET = new ServerSocket(Options.getPort(), 1, InetAddress.getLocalHost());
-		} catch (UnknownHostException e) {
-			// shouldn't happen
-		} catch (IOException e) {
-			errorAndExit(
-				null,
-				String.format(
-					"%s could not be launched for one of these reasons:\n" +
-					"- An instance of %s is already running.\n" +
-					"- Another program is bound to port %d. " +
-					"You can change the port %s uses by editing the \"Port\" field in the configuration file.",
-					OpsuConstants.PROJECT_NAME,
-					OpsuConstants.PROJECT_NAME,
-					Options.getPort(),
-					OpsuConstants.PROJECT_NAME
-				),
-				false
-			);
+			DBController.init();
+		} catch (SQLiteException e) {
+			// probably locked by another instance
+			if (e.getErrorCode() == SQLiteErrorCode.SQLITE_BUSY.code) {
+				Log.error(e);
+				errorAndExit(
+					null,
+					String.format(
+						"%s could not be launched for one of these reasons:\n" +
+						"- An instance of %s is already running.\n" +
+						"- A database is locked for another reason (unlikely). ",
+						OpsuConstants.PROJECT_NAME,
+						OpsuConstants.PROJECT_NAME
+					),
+					false
+				);
+			} else
+				errorAndExit(e, "The databases could not be initialized.", true);
+		} catch (Exception e) {
+			errorAndExit(e, "The databases could not be initialized.", true);
 		}
 
 		// load natives
@@ -170,13 +168,6 @@ public class Opsu extends StateBasedGame {
 
 		// set the resource paths
 		ResourceLoader.addResourceLocation(new FileSystemLocation(new File("./res/")));
-
-		// initialize databases
-		try {
-			DBController.init();
-		} catch (Exception e) {
-			errorAndExit(e, "The databases could not be initialized.", true);
-		}
 
 		// check if just updated
 		if (args.length >= 2)
@@ -277,15 +268,6 @@ public class Opsu extends StateBasedGame {
 
 		// cancel all downloads
 		DownloadList.get().cancelAllDownloads();
-
-		// close server socket
-		if (SERVER_SOCKET != null) {
-			try {
-				SERVER_SOCKET.close();
-			} catch (IOException e) {
-				ErrorHandler.error("Failed to close server socket.", e, false);
-			}
-		}
 	}
 
 	/**

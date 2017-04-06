@@ -138,9 +138,6 @@ public class Options {
 	/** The custom FFmpeg location (or null for the default). */
 	private static File FFmpegPath;
 
-	/** Port binding. */
-	private static int port = 49250;
-
 	/** The theme song string: {@code filename,title,artist,length(ms)} */
 	private static String themeString = "theme.mp3,Rainbows,Kevin MacLeod,219350";
 
@@ -301,17 +298,6 @@ public class Options {
 				} catch (Exception e) {
 					Log.warn(String.format("The theme song timing point [%s] is malformed.", s));
 				}
-			}
-		},
-		PORT ("Port") {
-			@Override
-			public String write() { return Integer.toString(port); }
-
-			@Override
-			public void read(String s) {
-				int i = Integer.parseInt(s);
-				if (i > 0 && i <= 65535)
-					port = i;
 			}
 		},
 
@@ -1113,12 +1099,6 @@ public class Options {
 	 * @return true if enabled
 	 */
 	public static boolean isComboBurstEnabled() { return GameOption.SHOW_COMBO_BURSTS.getBooleanValue(); }
-
-	/**
-	 * Returns the port number to bind to.
-	 * @return the port
-	 */
-	public static int getPort() { return port; }
 
 	/**
 	 * Returns the cursor scale.

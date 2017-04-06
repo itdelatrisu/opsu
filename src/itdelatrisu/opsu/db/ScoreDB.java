@@ -90,7 +90,7 @@ public class ScoreDB {
 	/**
 	 * Initializes the database connection.
 	 */
-	public static void init() {
+	public static void init() throws SQLException {
 		// create a database connection
 		connection = DBController.createConnection(Options.SCORE_DB.getPath());
 		if (connection == null)
@@ -103,45 +103,41 @@ public class ScoreDB {
 		createDatabase();
 
 		// prepare sql statements
-		try {
-			insertStmt = connection.prepareStatement(
-				// TODO: There will be problems if multiple replays have the same
-				// timestamp (e.g. when imported) due to timestamp being the primary key.
-				"INSERT OR IGNORE INTO scores VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-			);
-			selectMapStmt = connection.prepareStatement(
-				"SELECT * FROM scores WHERE " +
-				"MID = ? AND title = ? AND artist = ? AND creator = ? AND version = ?"
-			);
-			selectMapSetStmt = connection.prepareStatement(
-				"SELECT * FROM scores WHERE " +
-				"MSID = ? AND title = ? AND artist = ? AND creator = ? ORDER BY version DESC"
-			);
-			deleteSongStmt = connection.prepareStatement(
-				"DELETE FROM scores WHERE " +
-				"MID = ? AND title = ? AND artist = ? AND creator = ? AND version = ?"
-			);
-			deleteScoreStmt = connection.prepareStatement(
-				"DELETE FROM scores WHERE " +
-				"timestamp = ? AND MID = ? AND MSID = ? AND title = ? AND artist = ? AND " +
-				"creator = ? AND version = ? AND hit300 = ? AND hit100 = ? AND hit50 = ? AND " +
-				"geki = ? AND katu = ? AND miss = ? AND score = ? AND combo = ? AND perfect = ? AND mods = ? AND " +
-				"(replay = ? OR (replay IS NULL AND ? IS NULL)) AND " +
-				"(playerName = ? OR (playerName IS NULL AND ? IS NULL))"
-				// TODO: extra playerName checks not needed if name is guaranteed not null
-			);
-			setCurrentUserStmt = connection.prepareStatement("INSERT OR REPLACE INTO info VALUES ('user', ?)");
-			insertUserStmt = connection.prepareStatement("INSERT OR REPLACE INTO users VALUES (?, ?, ?, ?, ?, ?)");
-			deleteUserStmt = connection.prepareStatement("DELETE FROM users WHERE name = ?");
-		} catch (SQLException e) {
-			ErrorHandler.error("Failed to prepare score statements.", e, true);
-		}
+		insertStmt = connection.prepareStatement(
+			// TODO: There will be problems if multiple replays have the same
+			// timestamp (e.g. when imported) due to timestamp being the primary key.
+			"INSERT OR IGNORE INTO scores VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+		);
+		selectMapStmt = connection.prepareStatement(
+			"SELECT * FROM scores WHERE " +
+			"MID = ? AND title = ? AND artist = ? AND creator = ? AND version = ?"
+		);
+		selectMapSetStmt = connection.prepareStatement(
+			"SELECT * FROM scores WHERE " +
+			"MSID = ? AND title = ? AND artist = ? AND creator = ? ORDER BY version DESC"
+		);
+		deleteSongStmt = connection.prepareStatement(
+			"DELETE FROM scores WHERE " +
+			"MID = ? AND title = ? AND artist = ? AND creator = ? AND version = ?"
+		);
+		deleteScoreStmt = connection.prepareStatement(
+			"DELETE FROM scores WHERE " +
+			"timestamp = ? AND MID = ? AND MSID = ? AND title = ? AND artist = ? AND " +
+			"creator = ? AND version = ? AND hit300 = ? AND hit100 = ? AND hit50 = ? AND " +
+			"geki = ? AND katu = ? AND miss = ? AND score = ? AND combo = ? AND perfect = ? AND mods = ? AND " +
+			"(replay = ? OR (replay IS NULL AND ? IS NULL)) AND " +
+			"(playerName = ? OR (playerName IS NULL AND ? IS NULL))"
+			// TODO: extra playerName checks not needed if name is guaranteed not null
+		);
+		setCurrentUserStmt = connection.prepareStatement("INSERT OR REPLACE INTO info VALUES ('user', ?)");
+		insertUserStmt = connection.prepareStatement("INSERT OR REPLACE INTO users VALUES (?, ?, ?, ?, ?, ?)");
+		deleteUserStmt = connection.prepareStatement("DELETE FROM users WHERE name = ?");
 	}
 
 	/**
 	 * Creates the database, if it does not exist.
 	 */
-	private static void createDatabase() {
+	private static void createDatabase() throws SQLException {
 		try (Statement stmt = connection.createStatement()) {
 			String sql =
 				"CREATE TABLE IF NOT EXISTS scores (" +
@@ -172,8 +168,6 @@ public class ScoreDB {
 			// set the version key, if empty
 			sql = String.format("INSERT OR IGNORE INTO info(key, value) VALUES('version', %d)", DATABASE_VERSION);
 			stmt.executeUpdate(sql);
-		} catch (SQLException e) {
-			ErrorHandler.error("Could not create score database.", e, true);
 		}
 	}
 
@@ -181,7 +175,7 @@ public class ScoreDB {
 	 * Applies any database updates by comparing the current version to the
 	 * stored version.  Does nothing if tables have not been created.
 	 */
-	private static void updateDatabase() {
+	private static void updateDatabase() throws SQLException {
 		try (Statement stmt = connection.createStatement()) {
 			int version = 0;
 
@@ -224,8 +218,6 @@ public class ScoreDB {
 				ps.executeUpdate();
 				ps.close();
 			}
-		} catch (SQLException e) {
-			ErrorHandler.error("Failed to update score database.", e, true);
 		}
 	}
 

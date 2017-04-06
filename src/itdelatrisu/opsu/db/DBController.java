@@ -34,7 +34,7 @@ public class DBController {
 	/**
 	 * Initializes all databases.
 	 */
-	public static void init() {
+	public static void init() throws SQLException {
 		// load the sqlite-JDBC driver using the current class loader
 		try {
 			Class.forName("org.sqlite.JDBC");
