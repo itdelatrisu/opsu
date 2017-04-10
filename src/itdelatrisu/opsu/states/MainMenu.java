@@ -925,6 +925,12 @@ public class MainMenu extends BasicGameState {
 		case Input.KEY_DOWN:
 			UI.changeVolume(-1);
 			break;
+		case Input.KEY_O:
+			SoundController.playSound(SoundEffect.MENUHIT);
+			showOptionsOverlay = true;
+			optionsOverlayProgress.setTime(0);
+			optionsOverlay.activate();
+			break;
 		}
 	}
 
