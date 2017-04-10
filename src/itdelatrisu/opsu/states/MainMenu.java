@@ -733,6 +733,25 @@ public class MainMenu extends BasicGameState {
 	}
 
 	@Override
+	public void mouseClicked(int button, int x, int y, int clickCount) {
+		// check mouse button
+		if (button == Input.MOUSE_MIDDLE_BUTTON)
+			return;
+
+		if (showOptionsOverlay || !optionsOverlayProgress.isFinished())
+			return;
+
+		// options button
+		if (selectOptionsButton.contains(x, y)) {
+			SoundController.playSound(SoundEffect.MENUHIT);
+			showOptionsOverlay = true;
+			optionsOverlayProgress.setTime(0);
+			optionsOverlay.activate();
+			return;
+		}
+	}
+
+	@Override
 	public void mousePressed(int button, int x, int y) {
 		// check mouse button
 		if (button == Input.MOUSE_MIDDLE_BUTTON)
@@ -780,15 +799,6 @@ public class MainMenu extends BasicGameState {
 			SoundController.playSound(SoundEffect.MENUHIT);
 			((ButtonMenu) game.getState(Opsu.STATE_BUTTONMENU)).setMenuState(MenuState.ABOUT);
 			game.enterState(Opsu.STATE_BUTTONMENU);
-			return;
-		}
-
-		// options button actions
-		if (selectOptionsButton.contains(x, y)) {
-			SoundController.playSound(SoundEffect.MENUHIT);
-			showOptionsOverlay = true;
-			optionsOverlayProgress.setTime(0);
-			optionsOverlay.activate();
 			return;
 		}
 
