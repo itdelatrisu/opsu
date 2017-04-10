@@ -29,7 +29,9 @@ import itdelatrisu.opsu.beatmap.Beatmap;
 import itdelatrisu.opsu.beatmap.BeatmapSetList;
 import itdelatrisu.opsu.beatmap.BeatmapSetNode;
 import itdelatrisu.opsu.downloads.Updater;
+import itdelatrisu.opsu.options.OptionGroup;
 import itdelatrisu.opsu.options.Options;
+import itdelatrisu.opsu.options.OptionsOverlay;
 import itdelatrisu.opsu.states.ButtonMenu.MenuState;
 import itdelatrisu.opsu.ui.Colors;
 import itdelatrisu.opsu.ui.Fonts;
@@ -104,6 +106,18 @@ public class MainMenu extends BasicGameState {
 
 	/** Button linking to repository. */
 	private MenuButton repoButton;
+
+	/** Button to select options. */
+	private MenuButton selectOptionsButton;
+
+	/** Options overlay. */
+	private OptionsOverlay optionsOverlay;
+
+	/** Whether the options overlay is being shown. */
+	private boolean showOptionsOverlay = false;
+
+	/** The options overlay show/hide animation progress. */
+	private AnimatedValue optionsOverlayProgress = new AnimatedValue(500, 0f, 1f, AnimationEquation.OUT_CUBIC);
 
 	/** Buttons for installing updates. */
 	private MenuButton updateButton, restartButton;
@@ -241,6 +255,11 @@ public class MainMenu extends BasicGameState {
 		downloadsButton.setHoverAnimationEquation(AnimationEquation.IN_OUT_BACK);
 		downloadsButton.setHoverExpand(1.03f, Expand.LEFT);
 
+		Image selectOptionsImg = GameImage.SELECTION_OTHER_OPTIONS_OVERLAY.getImage();
+		float selectOptionsButtonX = selectOptionsImg.getWidth() / 2f;
+		float selectOptionsButtonY = height - selectOptionsImg.getHeight() / 2f;
+		float selectOptionsButtonOffset = height - selectOptionsButtonY;
+
 		// initialize repository button
 		if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {  // only if a webpage can be opened
 			Image repoImg = GameImage.REPOSITORY.getImage();
@@ -253,7 +272,26 @@ public class MainMenu extends BasicGameState {
 			repoButton.setHoverAnimationDuration(350);
 			repoButton.setHoverAnimationEquation(AnimationEquation.IN_OUT_BACK);
 			repoButton.setHoverExpand(repoScale);
+
+			selectOptionsButtonOffset += repoImg.getWidth() * repoScale * 1.05f;
 		}
+
+		// initialize options button
+		selectOptionsButton = new MenuButton(selectOptionsImg,
+				selectOptionsButtonX + selectOptionsButtonOffset, selectOptionsButtonY);
+		selectOptionsButton.setHoverFade(0f);
+
+		// initialize options overlay
+		optionsOverlay = new OptionsOverlay(container, OptionGroup.ALL_OPTIONS, new OptionsOverlay.OptionsOverlayListener() {
+			@Override
+			public void close() {
+				showOptionsOverlay = false;
+				optionsOverlay.deactivate();
+				optionsOverlay.reset();
+				optionsOverlayProgress.setTime(0);
+			}
+		});
+		optionsOverlay.setConsumeAndClose(true);
 
 		// initialize update buttons
 		float updateX = width / 2f, updateY = height * 17 / 18f;
@@ -413,6 +451,10 @@ public class MainMenu extends BasicGameState {
 		if (repoButton != null)
 			repoButton.draw();
 
+		// draw options button
+		GameImage.SELECTION_OTHER_OPTIONS.getImage().drawCentered(selectOptionsButton.getX(), selectOptionsButton.getY());
+		selectOptionsButton.draw();
+
 		// draw update button
 		if (Updater.get().showButton()) {
 			Updater.Status status = Updater.get().getStatus();
@@ -458,6 +500,10 @@ public class MainMenu extends BasicGameState {
 		);
 		Colors.WHITE_FADE.a = oldWhiteAlpha;
 
+		// options overlay
+		if (showOptionsOverlay || !optionsOverlayProgress.isFinished())
+			optionsOverlay.render(container, g);
+
 		// user overlay
 		if (showUserOverlay || !userOverlayProgress.isFinished())
 			userOverlay.render(container, g);
@@ -472,7 +518,7 @@ public class MainMenu extends BasicGameState {
 		if (MusicController.trackEnded())
 			nextTrack(false);  // end of track: go to next track
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
-		if (showUserOverlay) {
+		if (showOptionsOverlay || showUserOverlay) {
 			logo.hoverUpdate(delta, false);
 			playButton.hoverUpdate(delta, false);
 			exitButton.hoverUpdate(delta, false);
@@ -483,6 +529,7 @@ public class MainMenu extends BasicGameState {
 		}
 		if (repoButton != null)
 			repoButton.hoverUpdate(delta, mouseX, mouseY);
+		selectOptionsButton.hoverUpdate(delta, mouseX, mouseY);
 		if (Updater.get().showButton()) {
 			updateButton.autoHoverUpdate(delta, true);
 			restartButton.autoHoverUpdate(delta, false);
@@ -522,6 +569,17 @@ public class MainMenu extends BasicGameState {
 				starFountain.burst(true);
 			lastMeasureProgress = measureProgress;
 		}
+
+		// options overlay
+		if (optionsOverlayProgress.update(delta)) {
+			// slide in/out
+			float t = optionsOverlayProgress.getValue();
+			if (!showOptionsOverlay)
+				t = 1f - t;
+			optionsOverlay.setWidth((int) (optionsOverlay.getTargetWidth() * t));
+			optionsOverlay.setAlpha(t);
+		} else if (showOptionsOverlay)
+			optionsOverlay.update(delta);
 
 		// user overlay
 		if (userOverlayProgress.update(delta)) {
@@ -651,6 +709,8 @@ public class MainMenu extends BasicGameState {
 			musicPrevious.resetHover();
 		if (repoButton != null && !repoButton.contains(mouseX, mouseY))
 			repoButton.resetHover();
+		if (!selectOptionsButton.contains(mouseX, mouseY))
+			selectOptionsButton.resetHover();
 		updateButton.resetHover();
 		restartButton.resetHover();
 		if (!downloadsButton.contains(mouseX, mouseY))
@@ -664,6 +724,9 @@ public class MainMenu extends BasicGameState {
 			throws SlickException {
 		if (MusicController.isTrackDimmed())
 			MusicController.toggleTrackDimmed(1f);
+		optionsOverlay.deactivate();
+		showOptionsOverlay = false;
+		optionsOverlayProgress.setTime(optionsOverlayProgress.getDuration());
 		userOverlay.deactivate();
 		showUserOverlay = false;
 		userOverlayProgress.setTime(userOverlayProgress.getDuration());
@@ -717,6 +780,15 @@ public class MainMenu extends BasicGameState {
 			SoundController.playSound(SoundEffect.MENUHIT);
 			((ButtonMenu) game.getState(Opsu.STATE_BUTTONMENU)).setMenuState(MenuState.ABOUT);
 			game.enterState(Opsu.STATE_BUTTONMENU);
+			return;
+		}
+
+		// options button actions
+		if (selectOptionsButton.contains(x, y)) {
+			SoundController.playSound(SoundEffect.MENUHIT);
+			showOptionsOverlay = true;
+			optionsOverlayProgress.setTime(0);
+			optionsOverlay.activate();
 			return;
 		}
 
@@ -869,6 +941,9 @@ public class MainMenu extends BasicGameState {
 		logoState = LogoState.DEFAULT;
 
 		musicInfoProgress.setTime(musicInfoProgress.getDuration());
+		optionsOverlay.deactivate();
+		showOptionsOverlay = false;
+		optionsOverlayProgress.setTime(optionsOverlayProgress.getDuration());
 		userOverlay.deactivate();
 		showUserOverlay = false;
 		userOverlayProgress.setTime(userOverlayProgress.getDuration());
@@ -885,6 +960,7 @@ public class MainMenu extends BasicGameState {
 		updateButton.resetHover();
 		restartButton.resetHover();
 		downloadsButton.resetHover();
+		selectOptionsButton.resetHover();
 		userButton.resetHover();
 	}
 
