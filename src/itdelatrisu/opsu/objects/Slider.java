@@ -217,7 +217,7 @@ public class Slider implements GameObject {
 
 		boolean isCurveCompletelyDrawn;
 		if (!Options.isExperimentalSliderStyle()) {
-			isCurveCompletelyDrawn = Options.isSliderSnaking() || alpha == 1f;
+			isCurveCompletelyDrawn = !Options.isSliderSnaking() || alpha == 1f;
 			curve.draw(color, isCurveCompletelyDrawn ? 1f : alpha);
 		} else {
 			isCurveCompletelyDrawn = drawExperimentalSliderTrack(trackPosition, Utils.clamp(1d - (double) (timeDiff - approachTime + fadeInTime) / fadeInTime, 0d, 1d), sliderAlpha);
