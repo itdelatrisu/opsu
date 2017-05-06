@@ -29,7 +29,9 @@ import itdelatrisu.opsu.beatmap.Beatmap;
 import itdelatrisu.opsu.beatmap.BeatmapSetList;
 import itdelatrisu.opsu.beatmap.BeatmapSetNode;
 import itdelatrisu.opsu.downloads.Updater;
+import itdelatrisu.opsu.options.OptionGroup;
 import itdelatrisu.opsu.options.Options;
+import itdelatrisu.opsu.options.OptionsOverlay;
 import itdelatrisu.opsu.states.ButtonMenu.MenuState;
 import itdelatrisu.opsu.ui.Colors;
 import itdelatrisu.opsu.ui.Fonts;
@@ -141,6 +143,15 @@ public class MainMenu extends BasicGameState {
 	/** Music info bar animation progress. */
 	private AnimatedValue musicInfoProgress = new AnimatedValue(600, 0f, 1f, AnimationEquation.OUT_CUBIC);
 
+	/** Options overlay. */
+	private OptionsOverlay optionsOverlay;
+
+	/** Whether the options overlay is being shown. */
+	private boolean showOptionsOverlay = false;
+
+	/** The options overlay show/hide animation progress. */
+	private AnimatedValue optionsOverlayProgress = new AnimatedValue(500, 0f, 1f, AnimationEquation.OUT_CUBIC);
+
 	/** The user button. */
 	private UserButton userButton;
 
@@ -186,10 +197,10 @@ public class MainMenu extends BasicGameState {
 		float exitOffset = (playImg.getWidth() - exitImg.getWidth()) / 3f;
 		logo = new MenuButton(logoImg, width / 2f, height / 2f);
 		playButton = new MenuButton(playImg,
-				width * 0.75f, (height / 2) - (logoImg.getHeight() / 5f)
+			width * 0.75f, (height / 2) - (logoImg.getHeight() / 5f)
 		);
 		exitButton = new MenuButton(exitImg,
-				width * 0.75f - exitOffset, (height / 2) + (exitImg.getHeight() / 2f)
+			width * 0.75f - exitOffset, (height / 2) + (exitImg.getHeight() / 2f)
 		);
 		final int logoAnimationDuration = 350;
 		logo.setHoverAnimationDuration(logoAnimationDuration);
@@ -276,6 +287,18 @@ public class MainMenu extends BasicGameState {
 		logoOpen = new AnimatedValue(400, 0, centerOffsetX, AnimationEquation.OUT_QUAD);
 		logoClose = new AnimatedValue(2200, centerOffsetX, 0, AnimationEquation.OUT_QUAD);
 		logoButtonAlpha = new AnimatedValue(200, 0f, 1f, AnimationEquation.LINEAR);
+
+		// options overlay
+		optionsOverlay = new OptionsOverlay(container, OptionGroup.ALL_OPTIONS, new OptionsOverlay.OptionsOverlayListener() {
+			@Override
+			public void close() {
+				showOptionsOverlay = false;
+				optionsOverlay.deactivate();
+				optionsOverlay.reset();
+				optionsOverlayProgress.setTime(0);
+			}
+		});
+		optionsOverlay.setConsumeAndClose(true);
 
 		// initialize user button
 		userButton = new UserButton(0, 0, Color.white);
@@ -458,6 +481,10 @@ public class MainMenu extends BasicGameState {
 		);
 		Colors.WHITE_FADE.a = oldWhiteAlpha;
 
+		// options overlay
+		if (showOptionsOverlay || !optionsOverlayProgress.isFinished())
+			optionsOverlay.render(container, g);
+
 		// user overlay
 		if (showUserOverlay || !userOverlayProgress.isFinished())
 			userOverlay.render(container, g);
@@ -472,7 +499,7 @@ public class MainMenu extends BasicGameState {
 		if (MusicController.trackEnded())
 			nextTrack(false);  // end of track: go to next track
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
-		if (showUserOverlay) {
+		if (showOptionsOverlay || showUserOverlay) {
 			logo.hoverUpdate(delta, false);
 			playButton.hoverUpdate(delta, false);
 			exitButton.hoverUpdate(delta, false);
@@ -522,6 +549,17 @@ public class MainMenu extends BasicGameState {
 				starFountain.burst(true);
 			lastMeasureProgress = measureProgress;
 		}
+
+		// options overlay
+		if (optionsOverlayProgress.update(delta)) {
+			// slide in/out
+			float t = optionsOverlayProgress.getValue();
+			if (!showOptionsOverlay)
+				t = 1f - t;
+			optionsOverlay.setWidth((int) (optionsOverlay.getTargetWidth() * t));
+			optionsOverlay.setAlpha(t);
+		} else if (showOptionsOverlay)
+			optionsOverlay.update(delta);
 
 		// user overlay
 		if (userOverlayProgress.update(delta)) {
@@ -612,7 +650,7 @@ public class MainMenu extends BasicGameState {
 				String updateMessage = OpsuConstants.PROJECT_NAME + " is now up to date!";
 				final String version = Updater.get().getCurrentVersion();
 				if (version != null && Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-					updateMessage += "\nClick to see changes.";
+					updateMessage += "\nClick to see what changed!";
 					UI.getNotificationManager().sendNotification(updateMessage, Colors.GREEN, new NotificationListener() {
 						@Override
 						public void click() {
@@ -657,6 +695,15 @@ public class MainMenu extends BasicGameState {
 			downloadsButton.resetHover();
 		if (!userButton.contains(mouseX, mouseY))
 			userButton.resetHover();
+
+		// reset overlays
+		optionsOverlay.deactivate();
+		optionsOverlay.reset();
+		showOptionsOverlay = false;
+		optionsOverlayProgress.setTime(optionsOverlayProgress.getDuration());
+		userOverlay.deactivate();
+		showUserOverlay = false;
+		userOverlayProgress.setTime(userOverlayProgress.getDuration());
 	}
 
 	@Override
@@ -664,15 +711,23 @@ public class MainMenu extends BasicGameState {
 			throws SlickException {
 		if (MusicController.isTrackDimmed())
 			MusicController.toggleTrackDimmed(1f);
+
+		// reset overlays
+		optionsOverlay.deactivate();
+		optionsOverlay.reset();
+		showOptionsOverlay = false;
 		userOverlay.deactivate();
 		showUserOverlay = false;
-		userOverlayProgress.setTime(userOverlayProgress.getDuration());
 	}
 
 	@Override
 	public void mousePressed(int button, int x, int y) {
 		// check mouse button
 		if (button == Input.MOUSE_MIDDLE_BUTTON)
+			return;
+
+		if (showOptionsOverlay || !optionsOverlayProgress.isFinished() ||
+		    showUserOverlay || !userOverlayProgress.isFinished())
 			return;
 
 		// music position bar
@@ -752,12 +807,8 @@ public class MainMenu extends BasicGameState {
 		// start moving logo (if clicked)
 		if (logoState == LogoState.DEFAULT || logoState == LogoState.CLOSING) {
 			if (logo.contains(x, y, 0.25f)) {
-				logoState = LogoState.OPENING;
-				logoOpen.setTime(0);
-				logoTimer = 0;
-				playButton.getImage().setAlpha(0f);
-				exitButton.getImage().setAlpha(0f);
 				SoundController.playSound(SoundEffect.MENUHIT);
+				openLogoMenu();
 				return;
 			}
 		}
@@ -793,18 +844,26 @@ public class MainMenu extends BasicGameState {
 			break;
 		case Input.KEY_P:
 			SoundController.playSound(SoundEffect.MENUHIT);
-			if (logoState == LogoState.DEFAULT || logoState == LogoState.CLOSING) {
-				logoState = LogoState.OPENING;
-				logoOpen.setTime(0);
-				logoTimer = 0;
-				playButton.getImage().setAlpha(0f);
-				exitButton.getImage().setAlpha(0f);
-			} else
+			if (logoState == LogoState.DEFAULT || logoState == LogoState.CLOSING)
+				openLogoMenu();
+			else
 				enterSongMenu();
 			break;
 		case Input.KEY_D:
 			SoundController.playSound(SoundEffect.MENUHIT);
 			game.enterState(Opsu.STATE_DOWNLOADSMENU, new EasedFadeOutTransition(), new FadeInTransition());
+			break;
+		case Input.KEY_O:
+			SoundController.playSound(SoundEffect.MENUHIT);
+			if ((logoState == LogoState.DEFAULT || logoState == LogoState.CLOSING) &&
+			    !(input.isKeyDown(Input.KEY_RCONTROL) || input.isKeyDown(Input.KEY_LCONTROL)))
+				openLogoMenu();
+			else {
+				showOptionsOverlay = true;
+				optionsOverlayProgress.setTime(0);
+				optionsOverlay.activate();
+				input.consumeEvent();  // don't let options overlay consume this keypress
+			}
 			break;
 		case Input.KEY_F:
 			Options.toggleFPSCounter();
@@ -869,6 +928,10 @@ public class MainMenu extends BasicGameState {
 		logoState = LogoState.DEFAULT;
 
 		musicInfoProgress.setTime(musicInfoProgress.getDuration());
+		optionsOverlay.deactivate();
+		optionsOverlay.reset();
+		showOptionsOverlay = false;
+		optionsOverlayProgress.setTime(optionsOverlayProgress.getDuration());
 		userOverlay.deactivate();
 		showUserOverlay = false;
 		userOverlayProgress.setTime(userOverlayProgress.getDuration());
@@ -886,6 +949,17 @@ public class MainMenu extends BasicGameState {
 		restartButton.resetHover();
 		downloadsButton.resetHover();
 		userButton.resetHover();
+	}
+
+	/**
+	 * Opens the logo menu.
+	 */
+	private void openLogoMenu() {
+		logoState = LogoState.OPENING;
+		logoOpen.setTime(0);
+		logoTimer = 0;
+		playButton.getImage().setAlpha(0f);
+		exitButton.getImage().setAlpha(0f);
 	}
 
 	/**
