@@ -224,9 +224,10 @@ public class Slider implements GameObject {
 			color.a = alpha;
 		}
 
+		boolean drawSliderCaps = !Options.isExperimentalSliderStyle() || Options.isExperimentalSliderCapsDrawn();
+
 		// end circle (only draw if ball still has to go there)
-		if (isCurveCompletelyDrawn && currentRepeats < repeatCount - (repeatCount % 2 == 0 ? 1 : 0) &&
-		    (!Options.isExperimentalSliderStyle() || Options.isExperimentalSliderCapsDrawn())) {
+		if (drawSliderCaps && isCurveCompletelyDrawn && currentRepeats < repeatCount - (repeatCount % 2 == 0 ? 1 : 0)) {
 			Color circleColor = new Color(color);
 			Color overlayColor = new Color(Colors.WHITE_FADE);
 			if (currentRepeats == 0) {
@@ -252,7 +253,7 @@ public class Slider implements GameObject {
 		}
 
 		// start circle, only draw if ball still has to go there
-		if (!sliderClickedInitial || currentRepeats < repeatCount - (repeatCount % 2 == 1 ? 1 : 0)) {
+		if (!sliderClickedInitial || (drawSliderCaps && currentRepeats < repeatCount - (repeatCount % 2 == 1 ? 1 : 0))) {
 			hitCircle.drawCentered(x, y, firstCircleColor);
 			if (!overlayAboveNumber || sliderClickedInitial)
 				hitCircleOverlay.drawCentered(x, y, startCircleOverlayColor);
