@@ -365,7 +365,6 @@ public class OptionsOverlay extends AbstractComponent {
 		if (dropdownMenus == null)
 			createDropdownMenus();
 		resetSearch();
-		searchField.setFocus(true);
 		for (Map.Entry<GameOption, DropdownMenu<Object>> entry : dropdownMenus.entrySet()) {
 			GameOption option = entry.getKey();
 			DropdownMenu<Object> menu = entry.getValue();
@@ -1068,6 +1067,7 @@ public class OptionsOverlay extends AbstractComponent {
 
 		searchField.setFocus(true);
 		searchField.keyPressed(key, c);
+		searchField.setFocus(false);
 		if (!searchField.getText().equals(lastSearchText)) {
 			lastSearchText = searchField.getText().toLowerCase();
 			updateSearch();
