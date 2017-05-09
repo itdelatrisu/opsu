@@ -743,7 +743,7 @@ public class Utils {
 	 * @param force if false, garbage collection will only run if current memory
 	 *              usage is above a threshold
 	 */
-	public static final void gc(boolean force) {
+	public static void gc(boolean force) {
 		if (!force && getUsedMemory() - baselineMemoryUsed < GC_MEMORY_THRESHOLD)
 			return;
 
