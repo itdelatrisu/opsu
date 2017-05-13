@@ -113,7 +113,11 @@ public class Opsu extends StateBasedGame {
 		});
 
 		// parse configuration file
-		Options.parseOptions();
+		try {
+			Options.parseOptions();
+		} catch (UnsatisfiedLinkError e) {
+			Log.error(e);
+		}
 
 		// initialize databases
 		try {
@@ -135,6 +139,8 @@ public class Opsu extends StateBasedGame {
 				);
 			} else
 				errorAndExit(e, "The databases could not be initialized.", true);
+		} catch (ClassNotFoundException e) {
+			errorAndExit(e, "Could not load sqlite-JDBC driver.", true);
 		} catch (Exception e) {
 			errorAndExit(e, "The databases could not be initialized.", true);
 		}
@@ -281,7 +287,13 @@ public class Opsu extends StateBasedGame {
 		// http://bugs.java.com/view_bug.do?bug_id=4523159
 		if (Utils.isJarRunning() && Utils.getRunningDirectory() != null &&
 			Utils.getRunningDirectory().getAbsolutePath().indexOf('!') != -1)
-			ErrorHandler.error("JARs cannot be run from some paths containing '!'. Please move or rename the file and try again.", null, false);
+			ErrorHandler.error(
+				"JARs cannot be run from some paths containing the '!' character. " +
+				"Please rename the file/directories and try again.\n\n" +
+				"Path: " + Utils.getRunningDirectory().getAbsolutePath(),
+				null,
+				false
+			);
 		else
 			ErrorHandler.error(message, e, report);
 		System.exit(1);

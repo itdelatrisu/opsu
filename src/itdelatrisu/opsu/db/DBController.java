@@ -18,8 +18,6 @@
 
 package itdelatrisu.opsu.db;
 
-import itdelatrisu.opsu.ErrorHandler;
-
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -34,13 +32,9 @@ public class DBController {
 	/**
 	 * Initializes all databases.
 	 */
-	public static void init() throws SQLException {
+	public static void init() throws SQLException, ClassNotFoundException {
 		// load the sqlite-JDBC driver using the current class loader
-		try {
-			Class.forName("org.sqlite.JDBC");
-		} catch (ClassNotFoundException e) {
-			ErrorHandler.error("Could not load sqlite-JDBC driver.", e, true);
-		}
+		Class.forName("org.sqlite.JDBC");
 
 		// initialize the databases
 		BeatmapDB.init();
@@ -58,15 +52,13 @@ public class DBController {
 	/**
 	 * Establishes a connection to the database given by the path string.
 	 * @param path the database path
-	 * @return the Connection, or null if a connection could not be established
+	 * @return the database connection
 	 */
-	public static Connection createConnection(String path) {
+	public static Connection createConnection(String path) throws SQLException {
 		try {
 			return DriverManager.getConnection(String.format("jdbc:sqlite:%s", path));
 		} catch (SQLException e) {
-			// if the error message is "out of memory", it probably means no database file is found
-			ErrorHandler.error(String.format("Could not connect to database: '%s'.", path), e, true);
-			return null;
+			throw new SQLException(String.format("Could not connect to database: '%s'.", path), e);
 		}
 	}
 }
