@@ -1,0 +1,35 @@
+# UI
+ui.button.back=Mo-do-ru
+ui.button.play=Immersion
+ui.button.exit=See ya
+
+ui.button.yes=Ya
+ui.button.no=Nope
+ui.button.scores.clear=Clear scores pls
+ui.button.favorites.add=Add to Favorites
+ui.button.favorites.remove=Remove from Favorites
+ui.button.delete=Delete...
+ui.button.cancel=Oh nvm
+ui.button.delete.confirm=Ya, delete this beatmap!
+ui.button.delete.group=Ya, delete all diffs!
+ui.button.delete.song=Ya, but this one only!
+ui.button.delete.cancel=Nooooo! I didn't mean to!
+ui.button.reload.confirm=Let's do it!
+ui.button.reload.cancel=Oh nvm
+ui.button.delete.score=Delete score
+ui.button.close=Close
+ui.button.mods.reset=Reset Me Mods
+ui.button.about.web=Visit the maker!
+ui.button.about.repo=Visit the source!
+ui.button.about.issue=Report bugs here!
+#ui.button.about.issue.desc=[Type your description here. Feel free to delete the info below if it's not relevant.]
+ui.button.about.credits=Credits
+#duplicate Close?
+ui.button.about.close=Close
+
+# Notifications
+
+# Options
+options.name=Options
+options.desc=Change the way opsu! behaves
+options.search=Type to search!

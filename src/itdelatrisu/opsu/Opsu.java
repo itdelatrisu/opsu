@@ -104,7 +104,7 @@ public class Opsu extends StateBasedGame {
 		//	Log.error(e);
 		//}
 		
-		LanguageManager.setup();
+		LanguageManager.loadAssets();
 
 		// set default exception handler
 		Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {

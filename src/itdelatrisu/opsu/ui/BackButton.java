@@ -20,6 +20,7 @@ package itdelatrisu.opsu.ui;
 
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.audio.MusicController;
+import itdelatrisu.opsu.translations.LanguageManager;
 import itdelatrisu.opsu.ui.animations.AnimationEquation;
 
 import org.newdawn.slick.Animation;
@@ -44,10 +45,12 @@ public class BackButton {
 
 	/** Target duration, in ms, of the button animations. */
 	private static final int ANIMATION_TIME = 500;
+	
+	private final GameContainer ownerObject;
 
-	/** Button text. */
-	private static final String BUTTON_TEXT = "back";
-
+	/** Button texts. */
+	private String previousText = "back", currentText = "back";
+	
 	/** How much time passed for the animations. */
 	private int animationTime;
 
@@ -95,11 +98,16 @@ public class BackButton {
 	 * @param container the game container
 	 */
 	public BackButton(GameContainer container) {
+		ownerObject = container;
+		
 		// not skinned: dynamic button
 		if (!GameImage.MENU_BACK.hasGameSkinImage()) {
+			currentText = LanguageManager.currentLocale.translateKey("ui.button.back");
+			previousText = currentText;
+			
 			backButton = null;
-			textWidth = Fonts.MEDIUM.getWidth(BUTTON_TEXT);
-			paddingY = Fonts.MEDIUM.getHeight(BUTTON_TEXT);
+			textWidth = Fonts.MEDIUM.getWidth(currentText);
+			paddingY = Fonts.MEDIUM.getHeight(currentText);
 			// getHeight doesn't seem to be so accurate
 			textOffset = paddingY * 0.264f;
 			paddingY *= 0.736f;
@@ -172,10 +180,29 @@ public class BackButton {
 		chevron.drawCentered((firstWidth - slopeImageSlopeWidth / 2) / 2, buttonYpos + paddingY * 1.5f);
 
 		// text
+		currentText = LanguageManager.currentLocale.translateKey("ui.button.back");
+		if(currentText != previousText){
+			textWidth = Fonts.MEDIUM.getWidth(currentText);
+			paddingY = Fonts.MEDIUM.getHeight(currentText);
+			// getHeight doesn't seem to be so accurate
+			textOffset = paddingY * 0.264f;
+			paddingY *= 0.736f;
+			paddingX = paddingY / 2f;
+			chevronBaseSize = paddingY * 3f / 2f;
+			buttonYpos = (int) (ownerObject.getHeight() - paddingY * 4f);
+			slopeImageSize = (int) (paddingY * 3f);
+			slopeImageSlopeWidth = (int) (slopeImageSize * 0.295f);
+			firstButtonWidth = slopeImageSize;
+			secondButtonWidth = (int) (slopeImageSlopeWidth + paddingX * 2 + textWidth);
+			slopeImage = GameImage.MENU_BACK_SLOPE.getImage().getScaledCopy(slopeImageSize, slopeImageSize);
+			
+			previousText = currentText;
+		}
+		
 		float textY = buttonYpos + paddingY - textOffset;
 		float textX = firstWidth + (secondWidth - paddingX * 2 - textWidth) / 2;
-		Fonts.MEDIUM.drawString(textX, textY + 1, BUTTON_TEXT, Color.black);
-		Fonts.MEDIUM.drawString(textX, textY, BUTTON_TEXT, Color.white);
+		Fonts.MEDIUM.drawString(textX, textY + 1, currentText, Color.black);
+		Fonts.MEDIUM.drawString(textX, textY, currentText, Color.white);
 	}
 
 	/**

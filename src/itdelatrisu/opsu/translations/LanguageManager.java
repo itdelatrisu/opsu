@@ -25,6 +25,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -146,8 +147,8 @@ public final class LanguageManager {
     			resourceLocation.substring(resourceLocation.lastIndexOf('/'), resourceLocation.length() - 5));
     }
     
-    public static void setup(){
-    	if(translationIndices != null || translationIds != null || defaultInstance != null) return;
+    public static void loadAssets(){
+    	if(translationIndices != null && translationIds != null && defaultInstance != null) return;
     	
     	List<LanguageManager> indexed = new ArrayList<>();
     	if(Utils.isJarRunning()){
@@ -176,6 +177,19 @@ public final class LanguageManager {
     			//ignore
     		}
     	}
+    	//compensate for running in extracted mode
+    	else
+    	{
+    		try {
+    			defaultInstance = new LanguageManager(LanguageManager.class.getResourceAsStream("/itdelatrisu/opsu/translations/English US.lang"),"English US");
+    			currentLocale = defaultInstance;
+    			indexed.add(defaultInstance);
+    			currentLocaleIndex = indexed.indexOf(defaultInstance);
+    		} catch (Exception e) {
+    			Log.error("Could not find resources for translation",e);
+    			return;
+    		}
+    	}
     	
     	translationIndices = Collections.unmodifiableList(indexed);
     	translationIds = new String[translationIndices.size()];
@@ -183,6 +197,8 @@ public final class LanguageManager {
     	for(int a = 0; a < translationIds.length; a++){
     		translationIds[a] = translationIndices.get(a).toString();
     	}
+    	
+    	Log.info("Loaded translations");
     }
     
     /**
@@ -191,6 +207,7 @@ public final class LanguageManager {
      */
     public static void setLocaleFrom(String identifier){
     	if(identifier == null) return;
+    	if(translationIds == null) loadAssets();
     	
     	for(int a = 0; a < translationIds.length; a++){
     		if(translationIds[a].equals(identifier)){
@@ -210,6 +227,7 @@ public final class LanguageManager {
      */
     public static void updateLocale(int index){
     	if(index < 0) return;
+    	if(translationIndices == null) loadAssets();
     	
     	currentLocaleIndex = index;
     	currentLocale = translationIndices.get(currentLocaleIndex);
