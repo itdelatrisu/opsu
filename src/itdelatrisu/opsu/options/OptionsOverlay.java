@@ -238,6 +238,7 @@ public class OptionsOverlay extends AbstractComponent {
 	private GameContainer container;
 	private Input input;
 	private int containerWidth, containerHeight;
+	
 
 	/**
 	 * Creates the options overlay.

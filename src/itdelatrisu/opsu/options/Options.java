@@ -18,19 +18,6 @@
 
 package itdelatrisu.opsu.options;
 
-import itdelatrisu.opsu.Container;
-import itdelatrisu.opsu.ErrorHandler;
-import itdelatrisu.opsu.GameImage;
-import itdelatrisu.opsu.OpsuConstants;
-import itdelatrisu.opsu.Utils;
-import itdelatrisu.opsu.audio.MusicController;
-import itdelatrisu.opsu.beatmap.Beatmap;
-import itdelatrisu.opsu.beatmap.TimingPoint;
-import itdelatrisu.opsu.skins.Skin;
-import itdelatrisu.opsu.skins.SkinLoader;
-import itdelatrisu.opsu.ui.Fonts;
-import itdelatrisu.opsu.ui.UI;
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -40,6 +27,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -67,6 +55,20 @@ import org.newdawn.slick.util.ResourceLoader;
 import com.sun.jna.platform.win32.Advapi32Util;
 import com.sun.jna.platform.win32.Win32Exception;
 import com.sun.jna.platform.win32.WinReg;
+
+import itdelatrisu.opsu.Container;
+import itdelatrisu.opsu.ErrorHandler;
+import itdelatrisu.opsu.GameImage;
+import itdelatrisu.opsu.OpsuConstants;
+import itdelatrisu.opsu.Utils;
+import itdelatrisu.opsu.audio.MusicController;
+import itdelatrisu.opsu.beatmap.Beatmap;
+import itdelatrisu.opsu.beatmap.TimingPoint;
+import itdelatrisu.opsu.skins.Skin;
+import itdelatrisu.opsu.skins.SkinLoader;
+import itdelatrisu.opsu.translations.LanguageManager;
+import itdelatrisu.opsu.ui.Fonts;
+import itdelatrisu.opsu.ui.UI;
 
 /**
  * Handles all user options.
@@ -196,7 +198,7 @@ public class Options {
 	}
 
 	/**
-	 * Returns the osu! installation directory.
+	 * Returns the osu! installation directory (currently supports Windows only)
 	 * @return the directory, or null if not found
 	 */
 	private static File getOsuInstallationDirectory() {
@@ -224,7 +226,7 @@ public class Options {
 	}
 
 	/** Game options. */
-	public enum GameOption {
+	public static enum GameOption {
 		// internal options (not displayed in-game)
 		BEATMAP_DIRECTORY ("BeatmapDirectory") {
 			@Override
@@ -438,6 +440,35 @@ public class Options {
 			public void toggle(GameContainer container) {
 				super.toggle(container);
 				UI.resetFPSDisplay();
+			}
+		},
+		
+		DISPLAY_LANGUAGE("Current Language", "CurrentLanguage", "Choose the language to show opsu! in"){
+			
+			@Override
+			public String getValueString() {
+				return LanguageManager.translationIndices.get(LanguageManager.currentLocaleIndex).toString();
+			}
+			
+			
+			@Override
+			public Object[] getItemList() {
+				return LanguageManager.translationIds;
+			}
+			
+			@Override
+			public void selectItem(int index, GameContainer container) {
+				LanguageManager.updateLocale(index);
+			}
+			
+			@Override
+			public String write() {
+				return LanguageManager.currentLocale.toString();
+			}
+			
+			@Override
+			public void read(String s) {
+				LanguageManager.setLocaleFrom(s);
 			}
 		},
 		SHOW_UNICODE ("Prefer metadata in original language", "ShowUnicode", "Where available, song titles will be shown in their native language (and character-set).", false) {
@@ -729,7 +760,8 @@ public class Options {
 		 * Returns the option name.
 		 * @return the name string
 		 */
-		public String getName() { return name; }
+		//public String getName() { return name; }
+		public String getName() { return LanguageManager.currentLocale.translateKey(name); }
 
 		/**
 		 * Returns the option name, as displayed in the configuration file.
@@ -882,7 +914,7 @@ public class Options {
 		 * @return true if visible
 		 */
 		public boolean isVisible() { return visible; }
-	};
+	}
 
 	/** Map of option display names to GameOptions. */
 	private static HashMap<String, GameOption> optionMap;

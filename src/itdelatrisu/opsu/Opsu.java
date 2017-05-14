@@ -31,6 +31,7 @@ import itdelatrisu.opsu.states.GameRanking;
 import itdelatrisu.opsu.states.MainMenu;
 import itdelatrisu.opsu.states.SongMenu;
 import itdelatrisu.opsu.states.Splash;
+import itdelatrisu.opsu.translations.LanguageManager;
 import itdelatrisu.opsu.ui.UI;
 import itdelatrisu.opsu.video.FFmpeg;
 
@@ -96,12 +97,14 @@ public class Opsu extends StateBasedGame {
 	 */
 	public static void main(String[] args) {
 		// log all errors to a file
-		Log.setVerbose(false);
-		try {
-			DefaultLogSystem.out = new PrintStream(new FileOutputStream(Options.LOG_FILE, true));
-		} catch (FileNotFoundException e) {
-			Log.error(e);
-		}
+		Log.setVerbose(true);
+		//try {
+		//	DefaultLogSystem.out = new PrintStream(new FileOutputStream(Options.LOG_FILE, true));
+		//} catch (FileNotFoundException e) {
+		//	Log.error(e);
+		//}
+		
+		LanguageManager.setup();
 
 		// set default exception handler
 		Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
