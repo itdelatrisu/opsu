@@ -93,8 +93,6 @@ public class ScoreDB {
 	public static void init() throws SQLException {
 		// create a database connection
 		connection = DBController.createConnection(Options.SCORE_DB.getPath());
-		if (connection == null)
-			return;
 
 		// run any database updates
 		updateDatabase();
