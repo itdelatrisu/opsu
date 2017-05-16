@@ -1150,6 +1150,7 @@ public class Game extends BasicGameState {
 			// "auto" mod or watching replay: go back to song menu
 			if (GameMod.AUTO.isActive() || isReplay) {
 				game.closeRequested();
+				MusicController.playAt(MusicController.getBeatmap().previewTime, true);
 				break;
 			}
 
