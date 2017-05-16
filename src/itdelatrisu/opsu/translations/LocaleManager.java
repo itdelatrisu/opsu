@@ -25,9 +25,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.URL;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.IllegalFormatException;
@@ -47,41 +45,52 @@ import itdelatrisu.opsu.options.Options.GameOption;
  * 
  * @author Lyonlancer5
  */
-public final class LanguageManager {
+public final class LocaleManager {
 	
 	// TODO: Bidirectional language support
 
-	/**
-	 * A list of languages that can be used to translate opsu!
-	 */
-	public static List<LanguageManager> translationIndices;
 	
+	/**
+     * Pattern that matches numeric variable placeholders in a resource string, such as "<code>%d</code>", "<code>%3$d</code>" and "<code>%.2f</code>"
+     */
+    private static final Pattern NUMERIC_VARIABLE_PATTERN = Pattern.compile("%(\\d+\\$)?[\\d\\.]*[df]");
+    
+    private static final Pattern MULTILINE_PATTERN = Pattern.compile("\\\\", Pattern.LITERAL);
+
+	
+	//List variables used by Options
 	/**
 	 * An array of String values that represent the identifiers of each LanguageManager,
 	 * used in {@link GameOption#getValueString()}
 	 */
 	public static String[] translationIds;
 	
-    
+	///**
+	// * An array of String values that represent the LCID code of each LanguageManager
+	// */
+	//private static String[] internalIds;
+	
+	/**
+	 * A list of languages that can be used to translate opsu!
+	 */
+	private static List<LocaleManager> translationIndices;
+	
+	
+	//Variables that define the current locale
     /**
      * The active locale being used to translate opsu!<br>
      */
-    public static LanguageManager currentLocale;
+	private static LocaleManager currentLocale;
     
     /**
      * The index selected in the configuration panel, used in conjunction with {@link #currentLocale} 
      */
-    public static int currentLocaleIndex;
+	private static int currentLocaleIndex;
     
-	/**
-     * Pattern that matches numeric variable placeholders in a resource string, such as "<code>%d</code>", "<code>%3$d</code>" and "<code>%.2f</code>"
-     */
-    private static final Pattern NUMERIC_VARIABLE_PATTERN = Pattern.compile("%(\\d+\\$)?[\\d\\.]*[df]");
-
 	/**
 	 * The hardcoded instance of the translation framework that uses English (en_US)
 	 */
-    private static LanguageManager defaultInstance;
+    private static LocaleManager defaultLocale;
     
     /**
      * A mapping of all available translations <code>(key -> value)</code>
@@ -92,18 +101,18 @@ public final class LanguageManager {
      * The identifier used by this instance of LanguageManager
      */
     private final String identifier;
+    
+    private final String fallbackId;
 
     
     /**
      * Generalized constructor for the translator using input streams
      * 
      * @param stream A stream that provides data regarding the translation keys
-     * @param identifier An ID to identify this language manager
+     * @param fallbackId An ID to identify this language manager
      */
-    private LanguageManager(InputStream stream, String identifier){
+    private LocaleManager(InputStream stream, String fallbackId){
     	this.keys = new HashMap<>();
-    	this.identifier = identifier;
-    	
     	BufferedReader reader = null;
         try
         {
@@ -114,6 +123,7 @@ public final class LanguageManager {
                 if(!line.isEmpty() && line.charAt(0) != 35){
                 	String[] values = line.split("=", 2);
                 	this.keys.put(values[0], NUMERIC_VARIABLE_PATTERN.matcher(values[1]).replaceAll("%$1s"));
+                	Log.debug("Translation " + fallbackId + ": " + values[0] + "=" + translateKeyImpl(values[0]));
                 }
             }
         }
@@ -125,6 +135,10 @@ public final class LanguageManager {
         {
         	Streams.safeClose(reader);
         }
+        
+        String v0 = this.keys.get("language.name");
+        this.identifier = v0 == null ? fallbackId : v0;
+        this.fallbackId = fallbackId;
     }
     
     /**
@@ -132,8 +146,8 @@ public final class LanguageManager {
      * 
      * @param langFile The reference to the external language file
      */
-    public LanguageManager(File langFile) throws FileNotFoundException {
-    	this(new FileInputStream(langFile), langFile.getName());
+    public LocaleManager(File langFile) throws FileNotFoundException {
+    	this(new FileInputStream(langFile), langFile.getName().substring(0, langFile.getName().length() - 5));
     }
     
     /**
@@ -141,18 +155,33 @@ public final class LanguageManager {
      * 
      * @param resourceLocation A textual representation of the location of the JAR resource
      */
-    public LanguageManager(String resourceLocation)
+    public LocaleManager(String resourceLocation)
     {
-    	this(LanguageManager.class.getResourceAsStream(resourceLocation),
+    	this(LocaleManager.class.getResourceAsStream(resourceLocation),
     			resourceLocation.substring(resourceLocation.lastIndexOf('/'), resourceLocation.length() - 5));
     }
     
+    /**
+     * Loads the language manager's assets
+     */
     public static void loadAssets(){
-    	if(translationIndices != null && translationIds != null && defaultInstance != null) return;
+    	if(translationIndices != null && translationIds != null 
+    			&& defaultLocale != null ) {
+    		
+    		Log.info("Reloading languages");
+    		translationIndices.clear();
+    		translationIds = null;
+    		defaultLocale = null;
+    		currentLocale = null;
+    		currentLocaleIndex = -1;
+    		
+    		
+    	};
+
+		final Pattern langFileExtension = Pattern.compile("(.+).(LANG|lang)$");
+    	translationIndices = new ArrayList<>();
     	
-    	List<LanguageManager> indexed = new ArrayList<>();
     	if(Utils.isJarRunning()){
-    		final Pattern langFileExtension = Pattern.compile("(.+).(LANG|lang)$");
     		
     		JarFile opsu = Utils.getJarFile();
     		Enumeration<JarEntry> entries = opsu.entries();
@@ -161,11 +190,12 @@ public final class LanguageManager {
     			String entryName = entry.getName();
     			
     			if(langFileExtension.matcher(entryName).matches()){
-    				indexed.add(new LanguageManager(entryName));
-    				if(entryName.contains("English US.lang")){
-    					currentLocaleIndex = indexed.size() - 1;
-    					defaultInstance = indexed.get(currentLocaleIndex);
-    					currentLocale = defaultInstance;
+    				translationIndices.add(new LocaleManager(entryName));
+    				if(entryName.contains("en_US")){
+    					currentLocaleIndex = translationIndices.size() - 1;
+    					defaultLocale = translationIndices.get(currentLocaleIndex);
+    					currentLocale = defaultLocale;
+    					Log.info("Found fallback language");
     				}
     				Log.info("Added language file: " + entryName);
     			}
@@ -177,33 +207,40 @@ public final class LanguageManager {
     			//ignore
     		}
     	}
-    	//compensate for running in extracted mode
+    	//compensate for running in developer mode
     	else
-    	{
+    	{    		
     		try {
-    			defaultInstance = new LanguageManager(LanguageManager.class.getResourceAsStream("/itdelatrisu/opsu/translations/English US.lang"),"English US");
-    			currentLocale = defaultInstance;
-    			indexed.add(defaultInstance);
-    			currentLocaleIndex = indexed.indexOf(defaultInstance);
+        		File codeSource = new File(LocaleManager.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+        		for(File langFile : Utils.findFilesRecursively(codeSource, langFileExtension)){
+        			translationIndices.add(new LocaleManager(langFile));
+        			if(langFile.getName().contains("en_US")){
+        				currentLocaleIndex = translationIndices.size() - 1;
+        				defaultLocale = translationIndices.get(currentLocaleIndex);
+        				currentLocale = defaultLocale;
+    					Log.info("Found fallback language");
+        			}
+        			Log.info("Added language file: " + langFile.getName());
+        		}
     		} catch (Exception e) {
-    			Log.error("Could not find resources for translation",e);
-    			return;
+    			Log.error("Could not find resources for translation", e);
     		}
     	}
     	
-    	translationIndices = Collections.unmodifiableList(indexed);
     	translationIds = new String[translationIndices.size()];
     	
     	for(int a = 0; a < translationIds.length; a++){
     		translationIds[a] = translationIndices.get(a).toString();
     	}
     	
+    	
     	Log.info("Loaded translations");
     }
     
     /**
-     * Set the current locale as another LanguageManager instance based on the identifier
-     * @param identifier The name of the language
+     * Set the current locale as another one based on the given identifier.
+     * If the identifier does not match any, this method does nothing and returns.
+     * @param identifier The name of the language (e.g. English US, Japanese, Chinese)
      */
     public static void setLocaleFrom(String identifier){
     	if(identifier == null) return;
@@ -216,39 +253,31 @@ public final class LanguageManager {
     		}
     	}
     	
-    	currentLocale = defaultInstance;
+    	currentLocale = defaultLocale;
     	currentLocaleIndex = translationIndices.indexOf(currentLocale);
     }
     
     /**
-     * Convenience method for updating the locale with the given index
+     * Convenience method for updating the locale with the given index.
+     * If the index is out-of-bounds from the translations, this method does nothing and returns.
      * 
      * @param index The index that denotes the position of the translation in the options
      */
     public static void updateLocale(int index){
-    	if(index < 0) return;
+    	if(index < 0 || index >= translationIndices.size()) return;
     	if(translationIndices == null) loadAssets();
     	
     	currentLocaleIndex = index;
     	currentLocale = translationIndices.get(currentLocaleIndex);
     }
-
+    
     /**
      * Translate a key to the current language without formatting
      * @param key The ID of the translation string
-     * 
      * @return A translation of the given key or the key itself when a translation does not exist.
      */
-    public String translateKey(String key)
-    {
-        String s = this.keys.get(key);
-        
-        //Always fall back to English if no translation key is found in another language
-        if(s == null && this != defaultInstance){
-        	return defaultInstance.translateKey(key);
-        }
-        
-        return s == null ? key : s;
+    public static String translateKey(String key){
+    	return currentLocale.translateKeyImpl(key);
     }
 
     /**
@@ -261,9 +290,9 @@ public final class LanguageManager {
      * 
      * @see String#format(String, Object...)
      */
-    public String translateKeyFormatted(String key, Object... format)
+    public static String translateKeyFormatted(String key, Object... format)
     {
-        String s = this.translateKey(key);
+        String s = translateKey(key);
         
         //This means the translation does not exist
         if(s.equals(key)) return key;
@@ -278,31 +307,51 @@ public final class LanguageManager {
             return key;
         }
     }
-
-    /**
-     * Checks whether the given key has a translation that can be found
-     * 
-     * @return True if a translation exists, false otherwise
-     */
-    public boolean canTranslate(String key)
-    {
-        return this.keys.containsKey(key);
-    }
     
+    /**
+     * Does the actual translation using the given key
+     * @param key The ID of the translation string
+     * @return A translation of the given key or the key itself when a translation does not exist
+     */
+    private String translateKeyImpl(String key)
+    {
+        String s = this.keys.get(key);
+        
+        //Always fall back to English if no translation key is found in another language
+        if(s == null) {
+        	if(this != defaultLocale) return defaultLocale.translateKeyImpl(key);
+        	return key;
+        }
+        
+        String textStr[] = s.split("\\\\r\\\\n|\\\\n|\\\\r");
+        s = "";
+        for(int a = 0; a < textStr.length; a++){
+    		s = s + textStr[a] + (!(a + 1 == textStr.length) ? "\n" : "");
+        }
+        return s;
+    }
     
     /**
      * Return the identifier of the current translator
-     * @return The name of the language "file"
+     * @return The name of the language 
      */
     public String toString(){
     	return identifier;
     }
     
+    /**
+     * Return the LCID name of the current translator
+     * @return The LCID name of the language (<code>en_US</code>, <code>ja_JP</code>)
+     */
+    public String getInternalID(){
+    	return fallbackId;
+    }
+    
+    //Special cases
     @Override
     public boolean equals(Object obj) {
-    	if(obj instanceof LanguageManager){
-    		return ((LanguageManager) obj).identifier.equals(identifier)
-    				&& obj.hashCode() == this.hashCode();
+    	if(obj instanceof LocaleManager){
+    		return ((LocaleManager) obj).identifier.equals(identifier);
     	}
     	
     	return false;
@@ -311,6 +360,14 @@ public final class LanguageManager {
     @Override
     public int hashCode() {
     	return identifier.hashCode() + keys.hashCode();
+    }
+    
+    /**
+     * Get the currently active locale being used to translate strings.
+     * Only useful for providing information, use the static methods to get translations for keys.
+     */
+    public static LocaleManager getCurrentLocale(){
+    	return currentLocale;
     }
     
 }

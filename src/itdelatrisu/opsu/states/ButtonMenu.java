@@ -30,7 +30,7 @@ import itdelatrisu.opsu.audio.SoundEffect;
 import itdelatrisu.opsu.beatmap.BeatmapSetList;
 import itdelatrisu.opsu.beatmap.BeatmapSetNode;
 import itdelatrisu.opsu.downloads.Updater;
-import itdelatrisu.opsu.translations.LanguageManager;
+import itdelatrisu.opsu.translations.LocaleManager;
 import itdelatrisu.opsu.ui.Fonts;
 import itdelatrisu.opsu.ui.MenuButton;
 import itdelatrisu.opsu.ui.UI;
@@ -66,7 +66,7 @@ public class ButtonMenu extends BasicGameState {
 			@Override
 			public String[] getTitle(GameContainer container, StateBasedGame game) {
 				return new String[] {
-					LanguageManager.currentLocale.translateKeyFormatted("ui.menu.exit", OpsuConstants.PROJECT_NAME)
+					LocaleManager.translateKeyFormatted("ui.menu.exit", OpsuConstants.PROJECT_NAME)
 				};
 			}
 
@@ -81,7 +81,7 @@ public class ButtonMenu extends BasicGameState {
 			public String[] getTitle(GameContainer container, StateBasedGame game) {
 				BeatmapSetNode node = ((ButtonMenu) game.getState(Opsu.STATE_BUTTONMENU)).getNode();
 				String beatmapString = (node != null) ? BeatmapSetList.get().getBaseNode(node.index).toString() : "";
-				return new String[] { beatmapString, LanguageManager.currentLocale.translateKey("ui.menu.beatmap.manage") };
+				return new String[] { beatmapString, LocaleManager.translateKey("ui.menu.beatmap.manage") };
 			}
 
 			@Override
@@ -107,7 +107,7 @@ public class ButtonMenu extends BasicGameState {
 			public String[] getTitle(GameContainer container, StateBasedGame game) {
 				BeatmapSetNode node = ((ButtonMenu) game.getState(Opsu.STATE_BUTTONMENU)).getNode();
 				String beatmapString = (node != null) ? node.toString() : "";
-				return new String[] { LanguageManager.currentLocale.translateKeyFormatted("ui.menu.delete", beatmapString) };
+				return new String[] { LocaleManager.translateKeyFormatted("ui.menu.delete", beatmapString) };
 			}
 
 			@Override
@@ -147,7 +147,7 @@ public class ButtonMenu extends BasicGameState {
 		SCORE (new Button[] { Button.DELETE_SCORE, Button.CLOSE }) {
 			@Override
 			public String[] getTitle(GameContainer container, StateBasedGame game) {
-				return new String[] { LanguageManager.currentLocale.translateKey("ui.menu.scores.manage") };
+				return new String[] { LocaleManager.translateKey("ui.menu.scores.manage") };
 			}
 
 			@Override
@@ -160,7 +160,7 @@ public class ButtonMenu extends BasicGameState {
 			@Override
 			public String[] getTitle(GameContainer container, StateBasedGame game) {
 				return new String[] {
-					LanguageManager.currentLocale.translateKey("ui.menu.mods")
+					LocaleManager.translateKey("ui.menu.mods")
 				};
 			}
 
@@ -540,7 +540,7 @@ public class ButtonMenu extends BasicGameState {
 				game.enterState(Opsu.STATE_SONGMENU, new EmptyTransition(), new FadeInTransition());
 			}
 		},
-		RELOAD_CANCEL ("ui.button.reload.cancel", Color.red) {
+		RELOAD_CANCEL ("ui.button.cancel", Color.red) {
 			@Override
 			public void click(GameContainer container, StateBasedGame game) {
 				CANCEL.click(container, game);
@@ -624,7 +624,7 @@ public class ButtonMenu extends BasicGameState {
 				game.enterState(Opsu.STATE_MAINMENU, new EmptyTransition(), new FadeInTransition());
 			}
 		},
-		ABOUT_CLOSE ("ui.button.about.close", Color.gray) {
+		ABOUT_CLOSE ("ui.button.close", Color.gray) {
 			@Override
 			public void click(GameContainer container, StateBasedGame game) {
 				NO.click(container, game);
@@ -650,7 +650,7 @@ public class ButtonMenu extends BasicGameState {
 		/**
 		 * Returns the button text.
 		 */
-		public String getText() { return LanguageManager.currentLocale.translateKey(text); }
+		public String getText() { return LocaleManager.translateKey(text); }
 
 		/**
 		 * Returns the button color.

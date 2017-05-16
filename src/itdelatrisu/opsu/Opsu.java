@@ -18,6 +18,22 @@
 
 package itdelatrisu.opsu;
 
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.Field;
+
+import org.newdawn.slick.GameContainer;
+import org.newdawn.slick.Input;
+import org.newdawn.slick.SlickException;
+import org.newdawn.slick.state.StateBasedGame;
+import org.newdawn.slick.state.transition.EasedFadeOutTransition;
+import org.newdawn.slick.state.transition.FadeInTransition;
+import org.newdawn.slick.util.FileSystemLocation;
+import org.newdawn.slick.util.Log;
+import org.newdawn.slick.util.ResourceLoader;
+import org.sqlite.SQLiteErrorCode;
+import org.sqlite.SQLiteException;
+
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.db.DBController;
 import itdelatrisu.opsu.downloads.DownloadList;
@@ -31,29 +47,10 @@ import itdelatrisu.opsu.states.GameRanking;
 import itdelatrisu.opsu.states.MainMenu;
 import itdelatrisu.opsu.states.SongMenu;
 import itdelatrisu.opsu.states.Splash;
-import itdelatrisu.opsu.translations.LanguageManager;
+import itdelatrisu.opsu.translations.LocaleManager;
 import itdelatrisu.opsu.ui.UI;
+import itdelatrisu.opsu.util.ExtendedLogSystem;
 import itdelatrisu.opsu.video.FFmpeg;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.PrintStream;
-import java.lang.reflect.Field;
-
-import org.newdawn.slick.GameContainer;
-import org.newdawn.slick.Input;
-import org.newdawn.slick.SlickException;
-import org.newdawn.slick.state.StateBasedGame;
-import org.newdawn.slick.state.transition.EasedFadeOutTransition;
-import org.newdawn.slick.state.transition.FadeInTransition;
-import org.newdawn.slick.util.DefaultLogSystem;
-import org.newdawn.slick.util.FileSystemLocation;
-import org.newdawn.slick.util.Log;
-import org.newdawn.slick.util.ResourceLoader;
-import org.sqlite.SQLiteErrorCode;
-import org.sqlite.SQLiteException;
 
 /**
  * Main class.
@@ -96,15 +93,11 @@ public class Opsu extends StateBasedGame {
 	 * Launches opsu!.
 	 */
 	public static void main(String[] args) {
-		// log all errors to a file
 		Log.setVerbose(true);
-		//try {
-		//	DefaultLogSystem.out = new PrintStream(new FileOutputStream(Options.LOG_FILE, true));
-		//} catch (FileNotFoundException e) {
-		//	Log.error(e);
-		//}
+		Log.setLogSystem(new ExtendedLogSystem("Opsu"));
 		
-		LanguageManager.loadAssets();
+		Log.info("Initializing opsu!");
+		LocaleManager.loadAssets();
 
 		// set default exception handler
 		Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
@@ -225,6 +218,7 @@ public class Opsu extends StateBasedGame {
 		} catch (SlickException e) {
 			errorAndExit(e, "An error occurred while creating the game container.", true);
 		}
+		
 	}
 
 	@Override

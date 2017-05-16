@@ -1,7 +1,11 @@
+#Identifier
+language.name=English (US)
+
 # UI
 ui.button.back=Back
 ui.button.play=Play
 ui.button.exit=Exit
+ui.button.cancel=Cancel
 
 ui.menu.exit=Are you sure you want to exit %s?
 ui.menu.beatmap.manage=What do you want to do with this beatmap?
@@ -17,22 +21,18 @@ ui.button.favorites.remove=Remove from Favorites
 ui.button.delete=Delete...
 ui.button.cancel=Cancel
 ui.button.delete.confirm=Yes, delete this beatmap!
-ui.button.delete.group=Yes, delete all diffs!
+ui.button.delete.group=Yes, delete all difficulties!
 ui.button.delete.song=Yes, but this one only!
 ui.button.delete.cancel=Nooooo! I didn't mean to!
 ui.button.reload.confirm=Let's do it!
-#duplicate Cancel?
-ui.button.reload.cancel=Cancel
 ui.button.scores.delete=Delete score
 ui.button.close=Close
-ui.button.mods.resetAll=Reset Me Mods
+ui.button.mods.resetAll=Reset All Mods
 ui.button.about.web=Visit Website
 ui.button.about.repo=Browse the Source
 ui.button.about.issue=Report bugs here
 #ui.button.about.issue.desc=[Type your description here. Feel free to delete the info below if it's not relevant.]
 ui.button.about.credits=Credits
-#duplicate Close?
-ui.button.about.close=Close
 
 # Notifications - 
 
@@ -42,3 +42,26 @@ options.desc=Change the way opsu! behaves
 options.search=Type to search!
 
 # Mods - 
+mod.easy=Easy
+mod.easy.desc=Reduces overall difficulty - larger circles, more forgiving HP drain, less accuracy required.
+mod.noFail=NoFail
+mod.noFail.desc=You can't fail. No matter what.
+mod.halfTime=HalfTime
+mod.halfTime.desc=Less zoom.
+mod.hardRock=HardRock
+mod.hardRock.desc=Everything just got a bit harder...
+mod.suddenDeath=SuddenDeath
+mod.suddenDeath.desc=Miss a note and fail.
+mod.perfect=Perfect
+mod.perfect.desc=SS or quit.
+mod.doubleTime=DoubleTime
+mod.doubleTime.desc=Zoooooooooom.
+mod.nightcore=Nightcore
+mod.nightcore.desc=uguuuuuuuu
+mod.hidden=Hidden
+mod.hidden.desc=Play with no approach circles and fading notes for a slight score advantage.
+mod.flashlight=Flashlight
+mod.flashlight.desc=Restricted view area.
+mod.relax=Relax
+mod.relax.desc=You don't need to click.\nGive your clicking/tapping finger a break from the heat of things.\n**UNRANKED**
+

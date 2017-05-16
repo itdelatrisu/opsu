@@ -20,7 +20,7 @@ package itdelatrisu.opsu.ui;
 
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.audio.MusicController;
-import itdelatrisu.opsu.translations.LanguageManager;
+import itdelatrisu.opsu.translations.LocaleManager;
 import itdelatrisu.opsu.ui.animations.AnimationEquation;
 
 import org.newdawn.slick.Animation;
@@ -102,7 +102,8 @@ public class BackButton {
 		
 		// not skinned: dynamic button
 		if (!GameImage.MENU_BACK.hasGameSkinImage()) {
-			currentText = LanguageManager.currentLocale.translateKey("ui.button.back");
+			LocaleManager.getCurrentLocale();
+			currentText = LocaleManager.translateKey("ui.button.back");
 			previousText = currentText;
 			
 			backButton = null;
@@ -179,12 +180,15 @@ public class BackButton {
 		Image chevron = GameImage.MENU_BACK_CHEVRON.getImage().getScaledCopy(chevronSize, chevronSize);
 		chevron.drawCentered((firstWidth - slopeImageSlopeWidth / 2) / 2, buttonYpos + paddingY * 1.5f);
 
+		LocaleManager.getCurrentLocale();
 		// text
-		currentText = LanguageManager.currentLocale.translateKey("ui.button.back");
+		//TODO: check for changes
+		currentText = LocaleManager.translateKey("ui.button.back");
 		if(currentText != previousText){
+			Fonts.loadGlyphs(Fonts.MEDIUM, currentText);
+			
 			textWidth = Fonts.MEDIUM.getWidth(currentText);
 			paddingY = Fonts.MEDIUM.getHeight(currentText);
-			// getHeight doesn't seem to be so accurate
 			textOffset = paddingY * 0.264f;
 			paddingY *= 0.736f;
 			paddingX = paddingY / 2f;

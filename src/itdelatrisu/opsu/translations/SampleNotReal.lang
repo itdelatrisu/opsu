@@ -1,5 +1,8 @@
+#Identifier
+language.name=Eh
+
 # UI
-ui.button.back=Mo-do-ru
+ui.button.back=戻る
 ui.button.play=Immersion
 ui.button.exit=See ya
 

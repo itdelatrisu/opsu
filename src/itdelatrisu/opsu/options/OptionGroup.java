@@ -28,6 +28,8 @@ public class OptionGroup {
 	public static final OptionGroup[] ALL_OPTIONS = new OptionGroup[] {
 		new OptionGroup("GENERAL", null),
 		new OptionGroup("LANGUAGE", new GameOption[] {
+			GameOption.DISPLAY_LANGUAGE,
+			GameOption.REFRESH_LANGS,
 			GameOption.SHOW_UNICODE,
 		}),
 		new OptionGroup("UPDATES", new GameOption[] {

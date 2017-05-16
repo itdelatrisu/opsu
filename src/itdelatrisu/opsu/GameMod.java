@@ -18,6 +18,7 @@
 
 package itdelatrisu.opsu;
 
+import itdelatrisu.opsu.translations.LocaleManager;
 import itdelatrisu.opsu.ui.Fonts;
 import itdelatrisu.opsu.ui.MenuButton;
 import itdelatrisu.opsu.ui.animations.AnimationEquation;
@@ -34,27 +35,27 @@ import org.newdawn.slick.Input;
  */
 public enum GameMod {
 	EASY          (Category.EASY, 0, GameImage.MOD_EASY, "EZ", 2, Input.KEY_Q, 0.5f,
-	              "Easy", "Reduces overall difficulty - larger circles, more forgiving HP drain, less accuracy required."),
+	              "mod.easy", "mod.easy.desc"),
 	NO_FAIL       (Category.EASY, 1, GameImage.MOD_NO_FAIL, "NF", 1, Input.KEY_W, 0.5f,
-	              "NoFail", "You can't fail.  No matter what."),
+	              "mod.noFail", "mod.noFail.desc"),
 	HALF_TIME     (Category.EASY, 2, GameImage.MOD_HALF_TIME, "HT", 256, Input.KEY_E, 0.3f,
-	              "HalfTime", "Less zoom."),
+	              "mod.halfTime", "mod.halfTime.desc"),
 	HARD_ROCK     (Category.HARD, 0, GameImage.MOD_HARD_ROCK, "HR", 16, Input.KEY_A, 1.06f,
-	              "HardRock", "Everything just got a bit harder..."),
+	              "mod.hardRock", "mod.hardRock.desc"),
 	SUDDEN_DEATH  (Category.HARD, 1, GameImage.MOD_SUDDEN_DEATH, "SD", 32, Input.KEY_S, 1f,
-	              "SuddenDeath", "Miss a note and fail."),
+	              "mod.suddenDeath", "mod.suddenDeath.desc"),
 //	PERFECT       (Category.HARD, 1, GameImage.MOD_PERFECT, "PF", 64, Input.KEY_S, 1f,
-//	              "Perfect", "SS or quit."),
+//	              "mod.perfect", "mod.perfect.desc"),
 	DOUBLE_TIME   (Category.HARD, 2, GameImage.MOD_DOUBLE_TIME, "DT", 64, Input.KEY_D, 1.12f,
-	              "DoubleTime", "Zoooooooooom."),
-//	NIGHTCORE     (Category.HARD, 2, GameImage.MOD_NIGHTCORE, "NT", 64, Input.KEY_D, 1.12f,
-//	              "Nightcore", "uguuuuuuuu"),
+	              "mod.doubleTime", "mod.doubleTime.desc"),
+//	NIGHTCORE     (Category.HARD, 2, GameImage.MOD_NIGHTCORE, "NC", 64, Input.KEY_D, 1.12f,
+//	              "mod.nightcore", "mod.nightcore.desc"),
 	HIDDEN        (Category.HARD, 3, GameImage.MOD_HIDDEN, "HD", 8, Input.KEY_F, 1.06f,
-	              "Hidden", "Play with no approach circles and fading notes for a slight score advantage."),
+	              "mod.hidden", "mod.hidden.desc"),
 	FLASHLIGHT    (Category.HARD, 4, GameImage.MOD_FLASHLIGHT, "FL", 1024, Input.KEY_G, 1.12f,
-	              "Flashlight", "Restricted view area."),
+	              "mod.flashlight", "mod.flashlight.desc"),
 	RELAX         (Category.SPECIAL, 0, GameImage.MOD_RELAX, "RL", 128, Input.KEY_Z, 0f,
-	              "Relax", "You don't need to click.\nGive your clicking/tapping finger a break from the heat of things.\n**UNRANKED**"),
+	              "mod.relax", "mod.relax.desc"),
 	AUTOPILOT     (Category.SPECIAL, 1, GameImage.MOD_AUTOPILOT, "AP", 8192, Input.KEY_X, 0f,
 	              "Relax2", "Automatic cursor movement - just follow the rhythm.\n**UNRANKED**"),
 	SPUN_OUT      (Category.SPECIAL, 2, GameImage.MOD_SPUN_OUT, "SO", 4096, Input.KEY_C, 0.9f,
@@ -63,7 +64,7 @@ public enum GameMod {
 	              "Autoplay", "Watch a perfect automated play through the song.");
 
 	/** Mod categories. */
-	public enum Category {
+	public static enum Category {
 		EASY    (0, "Difficulty Reduction", Color.green),
 		HARD    (1, "Difficulty Increase", Color.red),
 		SPECIAL (2, "Special", Color.white);
@@ -107,7 +108,7 @@ public enum GameMod {
 		/**
 		 * Returns the category name.
 		 */
-		public String getName() { return name; }
+		public String getName() { return LocaleManager.translateKey(name); }
 
 		/**
 		 * Returns the text color.
@@ -350,13 +351,13 @@ public enum GameMod {
 	 * Returns the name of the mod.
 	 * @return the name
 	 */
-	public String getName() { return name; }
+	public String getName() { return LocaleManager.translateKey(name); }
 
 	/**
 	 * Returns a description of the mod.
 	 * @return the description
 	 */
-	public String getDescription() { return description; }
+	public String getDescription() { return LocaleManager.translateKey(description); }
 
 	/**
 	 * Toggles the active status of the mod.

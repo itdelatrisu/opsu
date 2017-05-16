@@ -18,20 +18,6 @@
 
 package itdelatrisu.opsu;
 
-import itdelatrisu.opsu.audio.SoundController;
-import itdelatrisu.opsu.audio.SoundEffect;
-import itdelatrisu.opsu.beatmap.HitObject;
-import itdelatrisu.opsu.downloads.Download;
-import itdelatrisu.opsu.downloads.DownloadNode;
-import itdelatrisu.opsu.options.Options;
-import itdelatrisu.opsu.replay.PlaybackSpeed;
-import itdelatrisu.opsu.ui.Colors;
-import itdelatrisu.opsu.ui.Fonts;
-import itdelatrisu.opsu.ui.NotificationManager.NotificationListener;
-import itdelatrisu.opsu.ui.UI;
-import itdelatrisu.opsu.user.UserButton;
-import itdelatrisu.opsu.user.UserList;
-
 import java.awt.Desktop;
 import java.awt.image.BufferedImage;
 import java.io.BufferedInputStream;
@@ -52,11 +38,13 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Scanner;
 import java.util.jar.JarFile;
+import java.util.regex.Pattern;
 
 import javax.imageio.ImageIO;
 import javax.net.ssl.HttpsURLConnection;
@@ -79,6 +67,19 @@ import org.newdawn.slick.util.Log;
 
 import com.sun.jna.platform.FileUtils;
 
+import itdelatrisu.opsu.audio.SoundController;
+import itdelatrisu.opsu.audio.SoundEffect;
+import itdelatrisu.opsu.beatmap.HitObject;
+import itdelatrisu.opsu.downloads.Download;
+import itdelatrisu.opsu.downloads.DownloadNode;
+import itdelatrisu.opsu.options.Options;
+import itdelatrisu.opsu.replay.PlaybackSpeed;
+import itdelatrisu.opsu.ui.Colors;
+import itdelatrisu.opsu.ui.Fonts;
+import itdelatrisu.opsu.ui.NotificationManager.NotificationListener;
+import itdelatrisu.opsu.ui.UI;
+import itdelatrisu.opsu.user.UserButton;
+import itdelatrisu.opsu.user.UserList;
 import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
 
@@ -755,5 +756,36 @@ public class Utils {
 	public static long getUsedMemory() {
 		Runtime r = Runtime.getRuntime();
 		return r.totalMemory() - r.freeMemory();
+	}
+	
+	/**
+	 * Finds files with names that match the given pattern,
+	 * starting from the given directory to all subdirectories
+	 * 
+	 * @param source A directory to look for files in (if this is a file, it will instead use the parent directory of the file)
+	 * @param regex The pattern used to accept files based on their names, null if accept all files
+	 * @return A list containing the files that match the given pattern
+	 */
+	public static List<File> findFilesRecursively(File source, Pattern regex){
+		final List<File> list = new ArrayList<>();
+		if(source.isDirectory()){
+			File[] var0 = source.listFiles();
+			if(var0 != null){
+				for(File fl : var0){
+					if(fl.isDirectory() && !(fl.getName().equals(".") || fl.getName().equals(".."))){
+						list.addAll(findFilesRecursively(fl, regex));
+					}else if(regex == null){
+						list.add(fl);
+					}else if(regex != null){
+						if(regex.matcher(fl.getName()).matches()){
+							list.add(fl);
+						}
+					}
+				}
+			}
+		}else{
+			return findFilesRecursively(source.getParentFile(), regex);
+		}
+		return list;
 	}
 }

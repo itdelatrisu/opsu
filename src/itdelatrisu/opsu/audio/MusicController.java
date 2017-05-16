@@ -595,7 +595,7 @@ public class MusicController {
 			}
 
 			// clear OpenAL
-			AL.destroy();
+			 AL.destroy();
 
 			// reset SoundStore so that next time we create a Sound/Music, it will reinit
 			SoundStore.get().clear();

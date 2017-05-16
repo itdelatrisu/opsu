@@ -66,7 +66,7 @@ import itdelatrisu.opsu.beatmap.Beatmap;
 import itdelatrisu.opsu.beatmap.TimingPoint;
 import itdelatrisu.opsu.skins.Skin;
 import itdelatrisu.opsu.skins.SkinLoader;
-import itdelatrisu.opsu.translations.LanguageManager;
+import itdelatrisu.opsu.translations.LocaleManager;
 import itdelatrisu.opsu.ui.Fonts;
 import itdelatrisu.opsu.ui.UI;
 
@@ -447,28 +447,31 @@ public class Options {
 			
 			@Override
 			public String getValueString() {
-				return LanguageManager.translationIndices.get(LanguageManager.currentLocaleIndex).toString();
+				return LocaleManager.getCurrentLocale().toString();
 			}
 			
 			
 			@Override
 			public Object[] getItemList() {
-				return LanguageManager.translationIds;
+				return LocaleManager.translationIds;
 			}
 			
 			@Override
 			public void selectItem(int index, GameContainer container) {
-				LanguageManager.updateLocale(index);
-			}
-			
-			@Override
-			public String write() {
-				return LanguageManager.currentLocale.toString();
+				LocaleManager.updateLocale(index);
 			}
 			
 			@Override
 			public void read(String s) {
-				LanguageManager.setLocaleFrom(s);
+				LocaleManager.setLocaleFrom(s);
+			}
+		},
+		
+		//Workaround for no buttons (yet!)
+		REFRESH_LANGS("Refresh Languages", "RefreshLangs", "Reloads all languages", false){
+			@Override
+			public void toggle(GameContainer container) {
+				LocaleManager.loadAssets();
 			}
 		},
 		SHOW_UNICODE ("Prefer metadata in original language", "ShowUnicode", "Where available, song titles will be shown in their native language (and character-set).", false) {
@@ -761,7 +764,7 @@ public class Options {
 		 * @return the name string
 		 */
 		//public String getName() { return name; }
-		public String getName() { return LanguageManager.currentLocale.translateKey(name); }
+		public String getName() { return LocaleManager.translateKey(name); }
 
 		/**
 		 * Returns the option name, as displayed in the configuration file.
