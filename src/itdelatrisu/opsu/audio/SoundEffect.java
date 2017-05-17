@@ -22,6 +22,11 @@ package itdelatrisu.opsu.audio;
  * Sound effects.
  */
 public enum SoundEffect implements SoundController.SoundComponent {
+	//opsu! only (commented, causes errors if file not found)
+	// START ("loadsplash"), //Welcome to oss
+	// EXIT ("goodbye"), //See you next time
+	//
+	
 	APPLAUSE ("applause"),
 	COMBOBREAK ("combobreak"),
 //	COUNT ("count"),  // ?

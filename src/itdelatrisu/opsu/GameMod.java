@@ -35,39 +35,40 @@ import org.newdawn.slick.Input;
  */
 public enum GameMod {
 	EASY          (Category.EASY, 0, GameImage.MOD_EASY, "EZ", 2, Input.KEY_Q, 0.5f,
-	              "mod.easy", "mod.easy.desc"),
+	              "mod.easy"),
 	NO_FAIL       (Category.EASY, 1, GameImage.MOD_NO_FAIL, "NF", 1, Input.KEY_W, 0.5f,
-	              "mod.noFail", "mod.noFail.desc"),
+	              "mod.noFail"),
 	HALF_TIME     (Category.EASY, 2, GameImage.MOD_HALF_TIME, "HT", 256, Input.KEY_E, 0.3f,
-	              "mod.halfTime", "mod.halfTime.desc"),
+	              "mod.halfTime"),
 	HARD_ROCK     (Category.HARD, 0, GameImage.MOD_HARD_ROCK, "HR", 16, Input.KEY_A, 1.06f,
-	              "mod.hardRock", "mod.hardRock.desc"),
+	              "mod.hardRock"),
 	SUDDEN_DEATH  (Category.HARD, 1, GameImage.MOD_SUDDEN_DEATH, "SD", 32, Input.KEY_S, 1f,
-	              "mod.suddenDeath", "mod.suddenDeath.desc"),
+	              "mod.suddenDeath"),
 //	PERFECT       (Category.HARD, 1, GameImage.MOD_PERFECT, "PF", 64, Input.KEY_S, 1f,
-//	              "mod.perfect", "mod.perfect.desc"),
+//	              "mod.perfect"),
 	DOUBLE_TIME   (Category.HARD, 2, GameImage.MOD_DOUBLE_TIME, "DT", 64, Input.KEY_D, 1.12f,
-	              "mod.doubleTime", "mod.doubleTime.desc"),
+	              "mod.doubleTime"),
+//	TODO support pitch-shifting??? (1.5x pitch, this is linked to speed multiplier)
 //	NIGHTCORE     (Category.HARD, 2, GameImage.MOD_NIGHTCORE, "NC", 64, Input.KEY_D, 1.12f,
-//	              "mod.nightcore", "mod.nightcore.desc"),
+//	              "mod.nightcore"),
 	HIDDEN        (Category.HARD, 3, GameImage.MOD_HIDDEN, "HD", 8, Input.KEY_F, 1.06f,
-	              "mod.hidden", "mod.hidden.desc"),
+	              "mod.hidden"),
 	FLASHLIGHT    (Category.HARD, 4, GameImage.MOD_FLASHLIGHT, "FL", 1024, Input.KEY_G, 1.12f,
-	              "mod.flashlight", "mod.flashlight.desc"),
+	              "mod.flashlight"),
 	RELAX         (Category.SPECIAL, 0, GameImage.MOD_RELAX, "RL", 128, Input.KEY_Z, 0f,
-	              "mod.relax", "mod.relax.desc"),
+	              "mod.relax"),
 	AUTOPILOT     (Category.SPECIAL, 1, GameImage.MOD_AUTOPILOT, "AP", 8192, Input.KEY_X, 0f,
-	              "Relax2", "Automatic cursor movement - just follow the rhythm.\n**UNRANKED**"),
+	              "mod.autopilot"),
 	SPUN_OUT      (Category.SPECIAL, 2, GameImage.MOD_SPUN_OUT, "SO", 4096, Input.KEY_C, 0.9f,
-	              "SpunOut", "Spinners will be automatically completed."),
-	AUTO          (Category.SPECIAL, 3, GameImage.MOD_AUTO, "", 2048, Input.KEY_V, 1f,
-	              "Autoplay", "Watch a perfect automated play through the song.");
+	              "mod.spunout"),
+	AUTO          (Category.SPECIAL, 3, GameImage.MOD_AUTO, "AT", 2048, Input.KEY_V, 1f,
+	              "mod.autoplay");
 
 	/** Mod categories. */
 	public static enum Category {
-		EASY    (0, "Difficulty Reduction", Color.green),
-		HARD    (1, "Difficulty Increase", Color.red),
-		SPECIAL (2, "Special", Color.white);
+		EASY    (0, "mod.category.easy", Color.green),
+		HARD    (1, "mod.category.hard", Color.red),
+		SPECIAL (2, "mod.category.special", Color.white);
 
 		/** Drawing index. */
 		private final int index;
@@ -152,9 +153,6 @@ public enum GameMod {
 
 	/** The name of the mod. */
 	private final String name;
-
-	/** The description of the mod. */
-	private final String description;
 
 	/** Whether or not this mod is active. */
 	private boolean active = false;
@@ -293,8 +291,8 @@ public enum GameMod {
 		if (sb.length() > 0) {
 			sb.setLength(sb.length() - 1);
 			return sb.toString();
-		} else
-			return "None";
+		}
+		return "None";
 	}
 
 	/**
@@ -310,7 +308,7 @@ public enum GameMod {
 	 * @param description the description
 	 */
 	GameMod(Category category, int categoryIndex, GameImage image, String abbrev,
-			int bit, int key, float multiplier, String name, String description) {
+			int bit, int key, float multiplier, String name) {
 		this.category = category;
 		this.categoryIndex = categoryIndex;
 		this.image = image;
@@ -319,7 +317,6 @@ public enum GameMod {
 		this.key = key;
 		this.multiplier = multiplier;
 		this.name = name;
-		this.description = description;
 	}
 
 	/**
@@ -357,7 +354,7 @@ public enum GameMod {
 	 * Returns a description of the mod.
 	 * @return the description
 	 */
-	public String getDescription() { return LocaleManager.translateKey(description); }
+	public String getDescription() { return LocaleManager.translateKey(name + ".desc"); }
 
 	/**
 	 * Toggles the active status of the mod.

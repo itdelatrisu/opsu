@@ -44,7 +44,7 @@ public class MultiClip {
 	private static final int MAX_CLIPS = 20;
 
 	/** A list of all created MultiClips. */
-	private static final LinkedList<MultiClip> ALL_MULTICLIPS = new LinkedList<MultiClip>();
+	private static final LinkedList<MultiClip> ALL_MULTICLIPS = new LinkedList<>();
 
 	/** Size of a single buffer. */
 	private static final int BUFFER_SIZE = 0x1000;
@@ -56,7 +56,7 @@ public class MultiClip {
 	private static int closingThreads = 0;
 
 	/** A list of clips used for this audio sample. */
-	private LinkedList<Clip> clips = new LinkedList<Clip>();
+	private LinkedList<Clip> clips = new LinkedList<>();
 
 	/** The audio input stream. */
 	private AudioInputStream audioIn;
@@ -84,7 +84,7 @@ public class MultiClip {
 		if (audioIn != null) {
 			format = audioIn.getFormat();
 
-			LinkedList<byte[]> allBufs = new LinkedList<byte[]>();
+			LinkedList<byte[]> allBufs = new LinkedList<>();
 
 			int totalRead = 0;
 			boolean hasData = true;
@@ -154,6 +154,20 @@ public class MultiClip {
 		clip.setFramePosition(0);
 		clip.start();
 	}
+	
+	public void stop(){
+		try {
+			Clip clip = getClip();
+			if (clip == null)
+				return;
+			
+			if(clip.isActive())
+			clip.stop();
+			
+		} catch (LineUnavailableException e) {
+			//ignore, as we are "stopping" the clip from playing
+		}
+	}
 
 	/**
 	 * Returns a Clip that is not playing from the list.
@@ -219,7 +233,7 @@ public class MultiClip {
 				c.close();
 			}
 			extraClips -= clips.size() - 1;
-			clips = new LinkedList<Clip>();
+			clips = new LinkedList<>();
 		}
 		audioData = null;
 		if (audioIn != null) {
@@ -239,7 +253,7 @@ public class MultiClip {
 			return;
 
 		// find all extra clips
-		final LinkedList<Clip> clipsToClose = new LinkedList<Clip>();
+		final LinkedList<Clip> clipsToClose = new LinkedList<>();
 		for (MultiClip mc : MultiClip.ALL_MULTICLIPS) {
 			for (Iterator<Clip> iter = mc.clips.iterator(); iter.hasNext();) {
 				Clip c = iter.next();

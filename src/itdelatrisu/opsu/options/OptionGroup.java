@@ -19,6 +19,7 @@
 package itdelatrisu.opsu.options;
 
 import itdelatrisu.opsu.options.Options.GameOption;
+import itdelatrisu.opsu.translations.LocaleManager;
 
 /**
  * Option category and related options.
@@ -26,63 +27,64 @@ import itdelatrisu.opsu.options.Options.GameOption;
 public class OptionGroup {
 	/** All option groups. */
 	public static final OptionGroup[] ALL_OPTIONS = new OptionGroup[] {
-		new OptionGroup("GENERAL", null),
-		new OptionGroup("LANGUAGE", new GameOption[] {
+		new OptionGroup("options.general.name", null),
+		new OptionGroup("options.general.language.name", new GameOption[] {
 			GameOption.DISPLAY_LANGUAGE,
 			GameOption.REFRESH_LANGS,
 			GameOption.SHOW_UNICODE,
 		}),
-		new OptionGroup("UPDATES", new GameOption[] {
+		new OptionGroup("options.general.updates.name", new GameOption[] {
 			GameOption.DISABLE_UPDATER,
 		}),
-		new OptionGroup("GRAPHICS", null),
-		new OptionGroup("LAYOUT", new GameOption[] {
+		new OptionGroup("options.graphics.name", null),
+		new OptionGroup("options.graphics.layout.name", new GameOption[] {
 			GameOption.SCREEN_RESOLUTION,
 			GameOption.FULLSCREEN,
 		}),
-		new OptionGroup("RENDERER", new GameOption[] {
+		new OptionGroup("options.graphics.renderer.name", new GameOption[] {
 			GameOption.TARGET_FPS,
 			GameOption.SHOW_FPS,
 		}),
-		new OptionGroup("DETAIL SETTINGS", new GameOption[] {
+		new OptionGroup("options.graphics.details.name", new GameOption[] {
 			GameOption.SNAKING_SLIDERS,
 			GameOption.ENABLE_VIDEOS,
+			GameOption.ENABLE_STORYBOARDS,
 			GameOption.SHOW_COMBO_BURSTS,
 			GameOption.SHOW_HIT_LIGHTING,
 			GameOption.SHOW_PERFECT_HIT,
 			GameOption.SHOW_FOLLOW_POINTS,
 			GameOption.SCREENSHOT_FORMAT,
 		}),
-		new OptionGroup("EXPERIMENTAL SLIDERS", new GameOption[] {
+		new OptionGroup("options.graphics.sliderBeta.name", new GameOption[] {
 			GameOption.EXPERIMENTAL_SLIDERS,
 			GameOption.EXPERIMENTAL_SLIDERS_MERGE,
 			GameOption.EXPERIMENTAL_SLIDERS_SHRINK,
 			GameOption.EXPERIMENTAL_SLIDERS_CAPS,
 		}),
-		new OptionGroup("MAIN MENU", new GameOption[] {
+		new OptionGroup("options.graphics.mainMenu.name", new GameOption[] {
 			GameOption.DYNAMIC_BACKGROUND,
 			GameOption.PARALLAX,
 			GameOption.ENABLE_THEME_SONG,
 		}),
-		new OptionGroup("GAMEPLAY", null),
-		new OptionGroup("GENERAL", new GameOption[] {
+		new OptionGroup("options.gameplay.name", null),
+		new OptionGroup("options.gameplay.general.name", new GameOption[] {
 			GameOption.BACKGROUND_DIM,
 			GameOption.FORCE_DEFAULT_PLAYFIELD,
 			GameOption.SHOW_HIT_ERROR_BAR,
 		}),
-		new OptionGroup("AUDIO", null),
-		new OptionGroup("VOLUME", new GameOption[] {
+		new OptionGroup("options.audio.name", null),
+		new OptionGroup("options.audio.volume.name", new GameOption[] {
 			GameOption.MASTER_VOLUME,
 			GameOption.MUSIC_VOLUME,
 			GameOption.EFFECT_VOLUME,
 			GameOption.HITSOUND_VOLUME,
 			GameOption.DISABLE_SOUNDS,
 		}),
-		new OptionGroup("OFFSET ADJUSTMENT", new GameOption[] {
+		new OptionGroup("options.audio.offset.name", new GameOption[] {
 			GameOption.MUSIC_OFFSET,
 		}),
-		new OptionGroup("SKIN", null),
-		new OptionGroup("SKIN", new GameOption[]{
+		new OptionGroup("options.visuals.skin.name", null),
+		new OptionGroup("options.visuals.skin.name", new GameOption[]{
 			GameOption.SKIN,
 			GameOption.LOAD_HD_IMAGES,
 			GameOption.IGNORE_BEATMAP_SKINS,
@@ -90,28 +92,29 @@ public class OptionGroup {
 			GameOption.CURSOR_SIZE,
 			GameOption.DISABLE_CURSOR,
 		}),
-		new OptionGroup("INPUT", null),
-		new OptionGroup("MOUSE", new GameOption[] {
+		new OptionGroup("options.input.name", null),
+		new OptionGroup("options.input.mouse.name", new GameOption[] {
+			GameOption.THREADED_INPUT,
 			GameOption.DISABLE_MOUSE_WHEEL,
 			GameOption.DISABLE_MOUSE_BUTTONS,
 		}),
-		new OptionGroup("KEYBOARD", new GameOption[] {
+		new OptionGroup("options.input.keyboard.name", new GameOption[] {
 			GameOption.KEY_LEFT,
 			GameOption.KEY_RIGHT,
 		}),
-		new OptionGroup("CUSTOM", null),
-		new OptionGroup("DIFFICULTY", new GameOption[] {
+		new OptionGroup("options.custom.name", null),
+		new OptionGroup("options.custom.difficulty.name", new GameOption[] {
 			GameOption.FIXED_CS,
 			GameOption.FIXED_HP,
 			GameOption.FIXED_AR,
 			GameOption.FIXED_OD,
 			GameOption.FIXED_SPEED,
 		}),
-		new OptionGroup("SEEKING", new GameOption[] {
+		new OptionGroup("options.custom.seeking.name", new GameOption[] {
 			GameOption.CHECKPOINT,
 			GameOption.REPLAY_SEEKING,
 		}),
-		new OptionGroup("MISCELLANEOUS", new GameOption[] {
+		new OptionGroup("options.custom.misc.name", new GameOption[] {
 			GameOption.ENABLE_WATCH_SERVICE,
 			GameOption.LOAD_VERBOSE,
 		}),
@@ -137,7 +140,7 @@ public class OptionGroup {
 	}
 
 	/** Returns the category name. */
-	public String getName() { return category; }
+	public String getName() { return LocaleManager.translateKey(category); }
 
 	/** Returns the related options. */
 	public GameOption[] getOptions() { return options; }

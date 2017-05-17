@@ -18,6 +18,17 @@
 
 package itdelatrisu.opsu.ui;
 
+import javax.swing.JOptionPane;
+import javax.swing.UIManager;
+
+import org.newdawn.slick.Color;
+import org.newdawn.slick.GameContainer;
+import org.newdawn.slick.Graphics;
+import org.newdawn.slick.Image;
+import org.newdawn.slick.Input;
+import org.newdawn.slick.state.StateBasedGame;
+import org.newdawn.slick.util.Log;
+
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.Utils;
@@ -29,17 +40,6 @@ import itdelatrisu.opsu.replay.ReplayImporter;
 import itdelatrisu.opsu.skins.SkinUnpacker;
 import itdelatrisu.opsu.ui.animations.AnimatedValue;
 import itdelatrisu.opsu.ui.animations.AnimationEquation;
-
-import javax.swing.JOptionPane;
-import javax.swing.UIManager;
-
-import org.newdawn.slick.Color;
-import org.newdawn.slick.GameContainer;
-import org.newdawn.slick.Graphics;
-import org.newdawn.slick.Image;
-import org.newdawn.slick.Input;
-import org.newdawn.slick.state.StateBasedGame;
-import org.newdawn.slick.util.Log;
 
 /**
  * Draws common UI components.
@@ -103,7 +103,7 @@ public class UI {
 		// notification manager
 		notificationManager = new NotificationManager(container);
 	}
-
+	
 	/**
 	 * Updates all UI components by a delta interval.
 	 * @param delta the delta interval since the last call.
@@ -201,16 +201,19 @@ public class UI {
 			return;
 
 		int fps = Math.round(fpsDisplay);
+		
+		Color clr = (fps >= Options.getTargetFPS() ? Color.green : (fps >= Options.getTargetFPS() / 2 ? Color.orange : Color.red));
+		
 		String s = String.format("%dFPS", fps);
 		Fonts.BOLD.drawString(
 			container.getWidth() * 0.997f - Fonts.BOLD.getWidth(s),
 			container.getHeight() * 0.997f - Fonts.BOLD.getHeight(s),
-			Integer.toString(fps), Color.white
+			Integer.toString(fps), clr
 		);
 		Fonts.DEFAULT.drawString(
 			container.getWidth() * 0.997f - Fonts.BOLD.getWidth("FPS"),
 			container.getHeight() * 0.997f - Fonts.BOLD.getHeight("FPS"),
-			"FPS", Color.white
+			"FPS", clr
 		);
 	}
 

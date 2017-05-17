@@ -267,6 +267,9 @@ public class GameRanking extends BasicGameState {
 		songMenu.resetGameDataOnLoad();
 		if (UI.getCursor().isBeatmapSkinned())
 			UI.getCursor().reset();
+		
+		//Workaround for not-stopping sfx
+		SoundController.stopSound(SoundEffect.APPLAUSE);
 		game.enterState(Opsu.STATE_SONGMENU, new EasedFadeOutTransition(), new FadeInTransition());
 	}
 

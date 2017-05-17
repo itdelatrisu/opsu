@@ -54,8 +54,6 @@ public final class LocaleManager {
      * Pattern that matches numeric variable placeholders in a resource string, such as "<code>%d</code>", "<code>%3$d</code>" and "<code>%.2f</code>"
      */
     private static final Pattern NUMERIC_VARIABLE_PATTERN = Pattern.compile("%(\\d+\\$)?[\\d\\.]*[df]");
-    
-    private static final Pattern MULTILINE_PATTERN = Pattern.compile("\\\\", Pattern.LITERAL);
 
 	
 	//List variables used by Options
@@ -123,7 +121,6 @@ public final class LocaleManager {
                 if(!line.isEmpty() && line.charAt(0) != 35){
                 	String[] values = line.split("=", 2);
                 	this.keys.put(values[0], NUMERIC_VARIABLE_PATTERN.matcher(values[1]).replaceAll("%$1s"));
-                	Log.debug("Translation " + fallbackId + ": " + values[0] + "=" + translateKeyImpl(values[0]));
                 }
             }
         }

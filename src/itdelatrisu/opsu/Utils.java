@@ -757,7 +757,7 @@ public class Utils {
 		Runtime r = Runtime.getRuntime();
 		return r.totalMemory() - r.freeMemory();
 	}
-	
+
 	/**
 	 * Finds files with names that match the given pattern,
 	 * starting from the given directory to all subdirectories
@@ -772,6 +772,7 @@ public class Utils {
 			File[] var0 = source.listFiles();
 			if(var0 != null){
 				for(File fl : var0){
+					
 					if(fl.isDirectory() && !(fl.getName().equals(".") || fl.getName().equals(".."))){
 						list.addAll(findFilesRecursively(fl, regex));
 					}else if(regex == null){
