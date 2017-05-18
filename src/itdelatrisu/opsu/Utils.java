@@ -18,6 +18,20 @@
 
 package itdelatrisu.opsu;
 
+import itdelatrisu.opsu.audio.SoundController;
+import itdelatrisu.opsu.audio.SoundEffect;
+import itdelatrisu.opsu.beatmap.HitObject;
+import itdelatrisu.opsu.downloads.Download;
+import itdelatrisu.opsu.downloads.DownloadNode;
+import itdelatrisu.opsu.options.Options;
+import itdelatrisu.opsu.replay.PlaybackSpeed;
+import itdelatrisu.opsu.ui.Colors;
+import itdelatrisu.opsu.ui.Fonts;
+import itdelatrisu.opsu.ui.NotificationManager.NotificationListener;
+import itdelatrisu.opsu.ui.UI;
+import itdelatrisu.opsu.user.UserButton;
+import itdelatrisu.opsu.user.UserList;
+
 import java.awt.Desktop;
 import java.awt.image.BufferedImage;
 import java.io.BufferedInputStream;
@@ -66,20 +80,6 @@ import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.util.Log;
 
 import com.sun.jna.platform.FileUtils;
-
-import itdelatrisu.opsu.audio.SoundController;
-import itdelatrisu.opsu.audio.SoundEffect;
-import itdelatrisu.opsu.beatmap.HitObject;
-import itdelatrisu.opsu.downloads.Download;
-import itdelatrisu.opsu.downloads.DownloadNode;
-import itdelatrisu.opsu.options.Options;
-import itdelatrisu.opsu.replay.PlaybackSpeed;
-import itdelatrisu.opsu.ui.Colors;
-import itdelatrisu.opsu.ui.Fonts;
-import itdelatrisu.opsu.ui.NotificationManager.NotificationListener;
-import itdelatrisu.opsu.ui.UI;
-import itdelatrisu.opsu.user.UserButton;
-import itdelatrisu.opsu.user.UserList;
 import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
 
@@ -101,7 +101,8 @@ public class Utils {
 	}
 
 	/** Minimum memory used by the JVM (in bytes) before running "optional" garbage collection. */
-	private static final long GC_MEMORY_THRESHOLD = 150 * 1_000_000L;  // 150MB
+	//private static final long GC_MEMORY_THRESHOLD = 150 * 1_000_000L;  // 150MB
+	private static final long GC_MEMORY_THRESHOLD = 150 * 1_048_576L; // 150MiB
 
 	/** Baseline memory used by the JVM (in bytes). */
 	private static long baselineMemoryUsed = 0;
@@ -177,11 +178,7 @@ public class Utils {
 		// warn about software mode
 		if (((Container) container).isSoftwareMode()) {
 			UI.getNotificationManager().sendNotification(
-				"WARNING:\n" +
-				"Running in OpenGL software mode.\n" +
-				"You may experience severely degraded performance.\n\n" +
-				"This can usually be resolved by updating your graphics drivers.",
-				Color.red
+				"ui.notifications.graphics.glWarning", Color.red
 			);
 		}
 	}
@@ -360,7 +357,7 @@ public class Utils {
 					}
 					ImageIO.write(image, Options.getScreenshotFormat(), file);
 					UI.getNotificationManager().sendNotification(
-						String.format("Saved screenshot to %s", file.getAbsolutePath()),
+							"ui.notifications.graphics.screenshot",
 						Colors.PURPLE,
 						new NotificationListener() {
 							@Override
@@ -371,7 +368,8 @@ public class Utils {
 									Log.warn("Failed to open screenshot location.", e);
 								}
 							}
-						}
+						},
+						file.getAbsolutePath()
 					);
 				} catch (Exception e) {
 					ErrorHandler.error("Failed to take a screenshot.", e, true);
