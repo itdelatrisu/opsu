@@ -87,7 +87,8 @@ ui.updater.state.error.connection=Connection error
 ui.updater.state.error.internal=Internal error
 ui.updater.state.upToDate=Up to date!
 ui.updater.state.update.available=Update available!\nClick to download.
-ui.updater.state.update.downloading=Downloading update...\n%.1f%% complete (%s/%s)
+ui.updater.state.update.downloading=Downloading update...
+ui.updater.state.update.downloading.progress=Downloading update...\n%.1f%% complete (%s/%s)
 ui.updater.state.update.downloaded=Download complete.\nClick to restart.
 ui.updater.state.update.queued=Update queued.
 

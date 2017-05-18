@@ -64,25 +64,25 @@ public class Updater {
 	/** Updater status. */
 	public enum Status {
 		INITIAL (""),
-		CHECKING ("Checking for updates..."),
-		CONNECTION_ERROR ("Connection error."),
-		INTERNAL_ERROR ("Internal error."),
-		UP_TO_DATE ("Up to date!"),
-		UPDATE_AVAILABLE ("Update available!\nClick to download."),
-		UPDATE_DOWNLOADING ("Downloading update...") {
+		CHECKING ("ui.updater.state.checking"),
+		CONNECTION_ERROR ("ui.updater.state.error.connection"),
+		INTERNAL_ERROR ("ui.updater.state.error.internal"),
+		UP_TO_DATE ("ui.updater.state.upToDate"),
+		UPDATE_AVAILABLE ("ui.updater.state.update.available"),
+		UPDATE_DOWNLOADING ("ui.updater.state.update.downloading") {
 			@Override
 			public String getDescription() {
 				Download d = updater.download;
 				if (d != null && d.getStatus() == Download.Status.DOWNLOADING) {
-					return LocaleManager.translateKeyFormatted("ui.updater.state.update.downloading", 
+					return LocaleManager.translateKeyFormatted("ui.updater.state.update.downloading.progress", 
 						d.getProgress(), Utils.bytesToString(d.readSoFar()), Utils.bytesToString(d.contentLength()));
 					
 				} else
 					return super.getDescription();
 			}
 		},
-		UPDATE_DOWNLOADED ("Download complete.\nClick to restart."),
-		UPDATE_FINAL ("Update queued.");
+		UPDATE_DOWNLOADED ("ui.updater.state.update.downloaded"),
+		UPDATE_FINAL ("ui.updater.state.update.queued");
 
 		/** The status description. */
 		private final String description;
