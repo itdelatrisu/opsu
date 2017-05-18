@@ -82,6 +82,15 @@ ui.notifications.audio.error=Failed to load %d audio files.
 ui.notifications.audio.error.view=Failed to load %d audio files.\nSee log for details.
 ui.notifications.graphics.screenshot=Saved screenshot to %s
 
+ui.updater.state.checking=Checking for updates...
+ui.updater.state.error.connection=Connection error
+ui.updater.state.error.internal=Internal error
+ui.updater.state.upToDate=Up to date!
+ui.updater.state.update.available=Update available!\nClick to download.
+ui.updater.state.update.downloading=Downloading update...\n%.1f%% complete (%s/%s)
+ui.updater.state.update.downloaded=Download complete.\nClick to restart.
+ui.updater.state.update.queued=Update queued.
+
 # Options
 options.name=Options
 options.desc=Change the way opsu! behaves

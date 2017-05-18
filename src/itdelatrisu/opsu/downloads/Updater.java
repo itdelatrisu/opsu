@@ -23,6 +23,7 @@ import itdelatrisu.opsu.OpsuConstants;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.downloads.Download.DownloadListener;
 import itdelatrisu.opsu.options.Options;
+import itdelatrisu.opsu.translations.LocaleManager;
 import itdelatrisu.opsu.ui.Colors;
 import itdelatrisu.opsu.ui.UI;
 
@@ -73,8 +74,9 @@ public class Updater {
 			public String getDescription() {
 				Download d = updater.download;
 				if (d != null && d.getStatus() == Download.Status.DOWNLOADING) {
-					return String.format("Downloading update...\n%.1f%% complete (%s/%s)",
-							d.getProgress(), Utils.bytesToString(d.readSoFar()), Utils.bytesToString(d.contentLength()));
+					return LocaleManager.translateKeyFormatted("ui.updater.state.update.downloading", 
+						d.getProgress(), Utils.bytesToString(d.readSoFar()), Utils.bytesToString(d.contentLength()));
+					
 				} else
 					return super.getDescription();
 			}
@@ -96,7 +98,7 @@ public class Updater {
 		/**
 		 * Returns the status description.
 		 */
-		public String getDescription() { return description; }
+		public String getDescription() { return LocaleManager.translateKey(description); }
 	};
 
 	/** The current updater status. */
