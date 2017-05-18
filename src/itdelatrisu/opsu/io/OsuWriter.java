@@ -52,7 +52,11 @@ public class OsuWriter {
 	 * @param dest the output stream to write to
 	 */
 	public OsuWriter(OutputStream dest) {
-		this.writer = new DataOutputStream(new BufferedOutputStream(dest));
+		if(dest instanceof BufferedOutputStream){
+			this.writer = new DataOutputStream(dest);
+		} else {
+			this.writer = new DataOutputStream(new BufferedOutputStream(dest));
+		}
 	}
 
 	/**

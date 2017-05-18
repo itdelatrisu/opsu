@@ -112,8 +112,8 @@ public class ReplayImporter {
 		files = null;
 
 		if (importCount > 0) {
-			String text = String.format("Imported %d replay%s.", importCount, importCount == 1 ? "" : "s");
-			UI.getNotificationManager().sendNotification(text);
+			UI.getNotificationManager().sendNotification("ui.notifications.replay.imported", 
+					importCount /*, importCount == 1 ? "" : "s"*/);
 		}
 	}
 

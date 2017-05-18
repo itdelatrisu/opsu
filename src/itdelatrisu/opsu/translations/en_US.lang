@@ -35,6 +35,53 @@ ui.button.about.credits=Credits
 
 # Notifications 
 
+ui.notifications.audio.localOffset.notChanged=Offset can only be changed while game is not paused.
+ui.notifications.audio.localOffset.changed=Local beatmap offset set to %dms
+ui.notifications.audio.localOffset.using=Using local beatmap offset (%dms)
+ui.notifications.gameplay.customDifficulty=Playing with custom difficulty settings.
+ui.notifications.update.available=A new update is available!
+ui.notifications.update.download.failed=Update failed due to a connection error.
+ui.notifications.update.download.complete=Update has finished downloading.
+ui.notifications.update.completed=opsu! is now up to date!
+ui.notifications.update.completed.view=opsu! is now up to date!\nClick here to see what's changed!
+ui.notifications.web.noView=The web page could not be opened.
+ui.notifications.user.new=Enter a name for the user.
+ui.notifications.user.new.invalidName=You can't use that name.
+ui.notifications.user.new.error=Something wrong happened.
+ui.notifications.user.new.created=New user created.\nEnjoy the game! :)
+ui.notifications.download.preview.failed=Failed to download track preview.
+ui.notifications.options.restart=Restart to apply changes.
+ui.notifications.options.checkpoint.save=Checkpoint saved.
+ui.notifications.menu.playback.previous=<< Prev
+ui.notifications.menu.playback.play=Play
+ui.notifications.menu.playback.pause=Pause
+ui.notifications.menu.playback.unpause=Unpause
+ui.notifications.menu.playback.next=>> Next
+ui.notifications.download.start.error=The download could not be started.
+ui.notifications.download.failed=Download failed due to a connection error.
+ui.notifications.download.complete=Download complete: %s
+ui.notifications.replay.notFound=Replay file not found.
+ui.notifications.replay.imported=Imported %d replays.
+ui.notifications.replay.error=Failed to load replay data.\nSee log for details.
+ui.notifications.audio.track.notFound=Could not find track '%s'.
+ui.notifications.audio.track.preview.failed=Failed to load track preview. See log for details.
+ui.notifications.graphics.framesync=Frame limiter: %s
+ui.notifications.audio.beatmap.notFound=Unable to load the beatmap audio.
+ui.notifications.graphics.fullscreen.notAvailable=Fullscreen mode is not available at resolution %s
+ui.notifications.mouse.buttons.enabled=Mouse buttons are enabled.
+ui.notifications.mouse.buttons.disabled=Mouse buttons are disabled.
+ui.notifications.beatmaps.changed=Changes in Songs folder detected.\nHit F5 to refresh.
+ui.notifications.beatmaps.imported=Imported %d new beatmap packs.
+ui.notifications.beatmaps.import.none=No Standard beatmaps could be loaded.
+ui.notifications.beatmaps.import.none.exp=No beatmaps could be loaded.
+ui.notifications.skins.imported=Imported %d new skins.
+ui.notifications.graphics.glWarning=WARNING:\nRunning in OpenGL software mode.\nYou may experience severely degraded performance.\n\nThis can usually be resolved by updating your graphics drivers.
+ui.notifications.audio.alNotLoaded=Looks like sound isn't working right now. Sorry!\n\nRestarting the game will probably fix this.
+ui.notifications.visuals.video.error=Failed to load beatmap video.\nSee log for details.
+ui.notifications.audio.error=Failed to load %d audio files.
+ui.notifications.audio.error.view=Failed to load %d audio files.\nSee log for details.
+ui.notifications.graphics.screenshot=Saved screenshot to %s
+
 # Options
 options.name=Options
 options.desc=Change the way opsu! behaves
@@ -144,6 +191,8 @@ options.misc.watchService=Watch service
 options.misc.watchService.desc=Watch the beatmap directory for changes. Requires a restart.
 options.misc.verbose=Detailed loading progress
 options.misc.verbose.desc=Display more verbose loading progress in the splash screen.
+options.misc.showUnsupportedMaps=Display maps that are designed for other game modes
+options.misc.showUnsupportedMaps.desc=Only applies to Taiko/Catch-the-Beat beatmaps
 
 options.general.name=GENERAL
 options.general.language.name=LANGUAGE

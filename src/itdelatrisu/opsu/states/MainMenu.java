@@ -644,20 +644,20 @@ public class MainMenu extends BasicGameState {
 		UI.enter();
 		if (!enterNotification) {
 			if (Updater.get().getStatus() == Updater.Status.UPDATE_AVAILABLE) {
-				UI.getNotificationManager().sendNotification("A new update is available!", Colors.GREEN);
+				UI.getNotificationManager().sendNotification("ui.notifications.update.available", Colors.GREEN);
 				enterNotification = true;
 			} else if (Updater.get().justUpdated()) {
-				String updateMessage = OpsuConstants.PROJECT_NAME + " is now up to date!";
+				String updateMessage = "ui.notifications.update.completed";
 				final String version = Updater.get().getCurrentVersion();
 				if (version != null && Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-					updateMessage += "\nClick to see what changed!";
+					updateMessage += ".view";
 					UI.getNotificationManager().sendNotification(updateMessage, Colors.GREEN, new NotificationListener() {
 						@Override
 						public void click() {
 							try {
 								Desktop.getDesktop().browse(OpsuConstants.getChangelogURI(version));
 							} catch (IOException e) {
-								UI.getNotificationManager().sendBarNotification("The web page could not be opened.");
+								UI.getNotificationManager().sendBarNotification("ui.notifications.update.completed.noView");
 							}
 						}
 					});
@@ -744,19 +744,19 @@ public class MainMenu extends BasicGameState {
 		if (musicPlay.contains(x, y)) {
 			if (MusicController.isPlaying()) {
 				MusicController.pause();
-				UI.getNotificationManager().sendBarNotification("Pause");
+				UI.getNotificationManager().sendBarNotification("ui.notifications.menu.playback.pause");
 			} else if (!MusicController.isTrackLoading()) {
 				MusicController.resume();
-				UI.getNotificationManager().sendBarNotification("Play");
+				UI.getNotificationManager().sendBarNotification("ui.notifications.menu.playback.play");
 			}
 			return;
 		} else if (musicNext.contains(x, y)) {
 			nextTrack(true);
-			UI.getNotificationManager().sendBarNotification(">> Next");
+			UI.getNotificationManager().sendBarNotification("ui.notifications.menu.playback.next");
 			return;
 		} else if (musicPrevious.contains(x, y)) {
 			previousTrack();
-			UI.getNotificationManager().sendBarNotification("<< Prev");
+			UI.getNotificationManager().sendBarNotification("ui.notifications.menu.playback.previous");
 			return;
 		}
 
@@ -870,7 +870,7 @@ public class MainMenu extends BasicGameState {
 			break;
 		case Input.KEY_Z:
 			previousTrack();
-			UI.getNotificationManager().sendBarNotification("<< Prev");
+			UI.getNotificationManager().sendBarNotification("ui.notifications.menu.playback.previous");
 			break;
 		case Input.KEY_X:
 			if (MusicController.isPlaying()) {
@@ -878,20 +878,20 @@ public class MainMenu extends BasicGameState {
 				MusicController.setPosition(0);
 			} else if (!MusicController.isTrackLoading())
 				MusicController.resume();
-			UI.getNotificationManager().sendBarNotification("Play");
+			UI.getNotificationManager().sendBarNotification("ui.notifications.menu.playback.play");
 			break;
 		case Input.KEY_C:
 			if (MusicController.isPlaying()) {
 				MusicController.pause();
-				UI.getNotificationManager().sendBarNotification("Pause");
+				UI.getNotificationManager().sendBarNotification("ui.notifications.menu.playback.pause");
 			} else if (!MusicController.isTrackLoading()) {
 				MusicController.resume();
-				UI.getNotificationManager().sendBarNotification("Unpause");
+				UI.getNotificationManager().sendBarNotification("ui.notifications.menu.playback.unpause");
 			}
 			break;
 		case Input.KEY_V:
 			nextTrack(true);
-			UI.getNotificationManager().sendBarNotification(">> Next");
+			UI.getNotificationManager().sendBarNotification("ui.notifications.menu.playback.next");
 			break;
 		case Input.KEY_R:
 			nextTrack(true);

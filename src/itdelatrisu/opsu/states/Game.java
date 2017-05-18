@@ -413,9 +413,22 @@ public class Game extends BasicGameState {
 				if (timeDiff < approachTime)
 					dimLevel += (1f - dimLevel) * ((float) timeDiff / approachTime);
 				else
+					//TODO apply gradual re-dim instead
 					dimLevel = 1f;
 			}
-			if (Options.isDefaultPlayfieldForced() || !beatmap.drawBackground(width, height, 0, 0, dimLevel, false)) {
+			
+			//Taken from different code
+			int mouseX = input.getMouseX(), mouseY = input.getMouseY();
+			float parallaxX = 0, parallaxY = 0;
+			if (Options.isParallaxEnabled()
+					// && (GameMod.AUTO.isActive() || GameMod.AUTOPILOT.isActive())
+					) {
+				int offset = (int) (height * (GameImage.PARALLAX_SCALE - 1f));
+				parallaxX = -offset / 2f * (mouseX - width / 2) / (width / 2);
+				parallaxY = -offset / 2f * (mouseY - height / 2) / (height / 2);
+			}
+			
+			if (Options.isDefaultPlayfieldForced() || !beatmap.drawBackground(width, height, parallaxX, parallaxY, dimLevel, true)) {
 				Image bg = GameImage.MENU_BG.getImage();
 				bg.setAlpha(dimLevel);
 				bg.drawCentered(width / 2, height / 2);
@@ -1207,7 +1220,7 @@ public class Game extends BasicGameState {
 				int position = (pauseTime > -1) ? pauseTime : trackPosition;
 				if (Options.setCheckpoint(position / 1000)) {
 					SoundController.playSound(SoundEffect.MENUCLICK);
-					UI.getNotificationManager().sendBarNotification("Checkpoint saved.");
+					UI.getNotificationManager().sendBarNotification("ui.notifications.options.checkpoint.save");
 				}
 			}
 			break;
@@ -1607,12 +1620,12 @@ public class Game extends BasicGameState {
 
 			// using local offset?
 			if (beatmap.localMusicOffset != 0)
-				UI.getNotificationManager().sendBarNotification(String.format("Using local beatmap offset (%dms)", beatmap.localMusicOffset));
+				UI.getNotificationManager().sendBarNotification("ui.notifications.audio.localOffset.using", beatmap.localMusicOffset);
 
 			// using custom difficulty settings?
 			if (Options.getFixedCS() > 0f || Options.getFixedAR() > 0f || Options.getFixedOD() > 0f ||
 				Options.getFixedHP() > 0f || Options.getFixedSpeed() > 0f)
-				UI.getNotificationManager().sendNotification("Playing with custom difficulty settings.");
+				UI.getNotificationManager().sendNotification("ui.notifications.gameplay.customDifficulty");
 
 			// load video
 			if (beatmap.video != null) {
@@ -1946,7 +1959,7 @@ public class Game extends BasicGameState {
 			video = null;
 			videoSeekTime = 0;
 			Log.error(e);
-			UI.getNotificationManager().sendNotification("Failed to load beatmap video.\nSee log for details.", Color.red);
+			UI.getNotificationManager().sendNotification("ui.notifications.visuals.video.error", Color.red);
 		}
 	}
 
@@ -2416,14 +2429,14 @@ public class Game extends BasicGameState {
 	 */
 	private void adjustLocalMusicOffset(int sign) {
 		if (pauseTime > -1) {
-			UI.getNotificationManager().sendBarNotification("Offset can only be changed while game is not paused.");
+			UI.getNotificationManager().sendBarNotification("ui.notifications.audio.localOffset.notChanged");
 			return;
 		}
 
 		boolean alt = input.isKeyDown(Input.KEY_LALT) || input.isKeyDown(Input.KEY_RALT);
 		int diff = sign * (alt ? 1 : 5);
 		int newOffset = Utils.clamp(beatmap.localMusicOffset + diff, -1000, 1000);
-		UI.getNotificationManager().sendBarNotification(String.format("Local beatmap offset set to %dms", newOffset));
+		UI.getNotificationManager().sendBarNotification("ui.notifications.audio.localOffset.changed", newOffset);
 		if (beatmap.localMusicOffset != newOffset) {
 			beatmap.localMusicOffset = newOffset;
 			BeatmapDB.updateLocalOffset(beatmap);

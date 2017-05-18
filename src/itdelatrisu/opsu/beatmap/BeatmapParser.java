@@ -18,6 +18,13 @@
 
 package itdelatrisu.opsu.beatmap;
 
+import itdelatrisu.opsu.ErrorHandler;
+import itdelatrisu.opsu.Utils;
+import itdelatrisu.opsu.db.BeatmapDB;
+import itdelatrisu.opsu.io.MD5InputStreamWrapper;
+import itdelatrisu.opsu.options.Options;
+import itdelatrisu.opsu.options.Options.GameOption;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
@@ -37,12 +44,6 @@ import java.util.Map;
 
 import org.newdawn.slick.Color;
 import org.newdawn.slick.util.Log;
-
-import itdelatrisu.opsu.ErrorHandler;
-import itdelatrisu.opsu.Utils;
-import itdelatrisu.opsu.db.BeatmapDB;
-import itdelatrisu.opsu.io.MD5InputStreamWrapper;
-import itdelatrisu.opsu.options.Options;
 
 /**
  * Parser for beatmaps.
@@ -169,11 +170,10 @@ public class BeatmapParser {
 						// check last modified times
 						if (entry.getLastModified() == file.lastModified()) {
 							
-							
-							//if (entry.getMode() == Beatmap.MODE_OSU) {  // only support standard mode
-							
-							//TODO -- put in experimental CtB->StD conversion MWHAHAHAHAHAH *ahem*
-							if(entry.getMode() == Beatmap.MODE_OSU || entry.getMode() == Beatmap.MODE_CTB) {
+							//TODO -- put in experimental CtB->StD conversion
+							if(entry.getMode() == Beatmap.MODE_OSU ||
+									(GameOption.SHOW_UNSUPPORTED_BEATMAPS.getBooleanValue() 
+										&& entry.getMode() == Beatmap.MODE_CTB)) {
 								// add to cached beatmap list
 								Beatmap beatmap = new Beatmap(file);
 								beatmaps.add(beatmap);
@@ -191,7 +191,7 @@ public class BeatmapParser {
 				try {
 					// Parse hit objects only when needed to save time/memory.
 					// Change boolean to 'true' to parse them immediately.
-					beatmap = parseFile(file, dir, beatmaps, true);
+					beatmap = parseFile(file, dir, beatmaps, false);
 				} catch (Exception e) {
 					ErrorHandler.error(String.format("Failed to parse beatmap file '%s'.",
 							file.getAbsolutePath()), e, true);
@@ -208,11 +208,10 @@ public class BeatmapParser {
 					if (beatmap.dateAdded < 1)
 						beatmap.dateAdded = timestamp;
 
-					// only support standard mode
-					//if (beatmap.mode == Beatmap.MODE_OSU)
-					
-					//TODO -- put in experimental CtB->StD conversion MWHAHAHAHAHAH *ahem*
-					if (beatmap.mode == Beatmap.MODE_OSU || beatmap.mode == Beatmap.MODE_CTB)
+					//TODO -- put in experimental CtB->StD conversion
+					if (beatmap.mode == Beatmap.MODE_OSU || 
+							(GameOption.SHOW_UNSUPPORTED_BEATMAPS.getBooleanValue()
+							&& beatmap.mode == Beatmap.MODE_CTB))
 						beatmaps.add(beatmap);
 
 					parsedBeatmaps.add(beatmap);

@@ -144,6 +144,13 @@ public class Container extends AppGameContainer {
 		}
 		updateFPS();
 		Display.update();
+		
+		//This boosts FPS - Mine was about a ~20 FPS gain
+		//
+		// Flushing is dependent on the graphics card drivers
+		// and may not be always visible.
+		//
+		// swapBuffers() -> flush()
 		GL11.glFlush();
 		
 		if (Display.isCloseRequested()) {
@@ -194,7 +201,6 @@ public class Container extends AppGameContainer {
 		// delete temporary directory
 		Utils.deleteDirectory(Options.TEMP_DIR);
 		
-
 		Log.info("opsu! is closing");
 	}
 

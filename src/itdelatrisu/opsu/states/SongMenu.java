@@ -160,7 +160,7 @@ public class SongMenu extends BasicGameState {
 	private SongNode oldFocusNode = null;
 
 	/** Stack of previous "random" (F2) focus nodes. */
-	private Stack<SongNode> randomStack = new Stack<SongNode>();
+	private Stack<SongNode> randomStack = new Stack<>();
 
 	/** Current focus node's song information. */
 	private String[] songInfo;
@@ -490,7 +490,7 @@ public class SongMenu extends BasicGameState {
 				if (!songFolderChanged && kind != StandardWatchEventKinds.ENTRY_MODIFY) {
 					songFolderChanged = true;
 					if (game_.getCurrentStateID() == Opsu.STATE_SONGMENU)
-						UI.getNotificationManager().sendNotification("Changes in Songs folder detected.\nHit F5 to refresh.");
+						UI.getNotificationManager().sendNotification("ui.notifications.beatmaps.changed");
 				}
 			}
 		});
@@ -935,10 +935,9 @@ public class SongMenu extends BasicGameState {
 				hoverOffset.setTime(0);
 			}
 			return;
-		} else {  // not hovered
-			hoverOffset.setTime(0);
-			hoverIndex = null;
-		}
+		} // not hovered
+		hoverOffset.setTime(0);
+		hoverIndex = null;
 
 		// tooltips
 		if (sortMenu.baseContains(mouseX, mouseY))
@@ -1071,7 +1070,7 @@ public class SongMenu extends BasicGameState {
 					SoundController.playSound(SoundEffect.MENUCLICK);
 					startNode = focusNode = null;
 					oldFocusNode = null;
-					randomStack = new Stack<SongNode>();
+					randomStack = new Stack<>();
 					songInfo = null;
 					scoreMap = null;
 					focusScores = null;
@@ -1410,7 +1409,7 @@ public class SongMenu extends BasicGameState {
 		userOverlayProgress.setTime(userOverlayProgress.getDuration());
 
 		// reset song stack
-		randomStack = new Stack<SongNode>();
+		randomStack = new Stack<>();
 
 		// reload beatmaps if song folder changed
 		if (songFolderChanged && stateAction != MenuState.RELOAD)
@@ -1508,7 +1507,7 @@ public class SongMenu extends BasicGameState {
 					else {
 						startNode = focusNode = null;
 						oldFocusNode = null;
-						randomStack = new Stack<SongNode>();
+						randomStack = new Stack<>();
 						songInfo = null;
 						scoreMap = null;
 						focusScores = null;
@@ -1549,7 +1548,7 @@ public class SongMenu extends BasicGameState {
 				if (BeatmapGroup.current() == BeatmapGroup.FAVORITE) {
 					startNode = focusNode = null;
 					oldFocusNode = null;
-					randomStack = new Stack<SongNode>();
+					randomStack = new Stack<>();
 					songInfo = null;
 					scoreMap = null;
 					focusScores = null;
@@ -1591,7 +1590,7 @@ public class SongMenu extends BasicGameState {
 
 		if (BeatmapSetList.get().search(search.getText())) {
 			// reset song stack
-			randomStack = new Stack<SongNode>();
+			randomStack = new Stack<>();
 
 			// empty search
 			if (search.getText().isEmpty())
@@ -1872,8 +1871,9 @@ public class SongMenu extends BasicGameState {
 				scores[i].loadGlyphs();
 			}
 			return scores;
-		} else
-			return null;  // incorrect map
+		}
+
+		return null;  // incorrect map
 	}
 
 	/**
@@ -1889,7 +1889,7 @@ public class SongMenu extends BasicGameState {
 		scoreMap = null;
 		focusScores = null;
 		oldFocusNode = null;
-		randomStack = new Stack<SongNode>();
+		randomStack = new Stack<>();
 		songInfo = null;
 		hoverOffset.setTime(0);
 		hoverIndex = null;
@@ -2002,7 +2002,7 @@ public class SongMenu extends BasicGameState {
 
 		Beatmap beatmap = MusicController.getBeatmap();
 		if (focusNode == null || beatmap != focusNode.getSelectedBeatmap()) {
-			UI.getNotificationManager().sendBarNotification("Unable to load the beatmap audio.");
+			UI.getNotificationManager().sendBarNotification("ui.notifications.audio.beatmap.notFound");
 			return;
 		}
 

@@ -18,22 +18,6 @@
 
 package itdelatrisu.opsu;
 
-import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.Field;
-
-import org.newdawn.slick.GameContainer;
-import org.newdawn.slick.Input;
-import org.newdawn.slick.SlickException;
-import org.newdawn.slick.state.StateBasedGame;
-import org.newdawn.slick.state.transition.EasedFadeOutTransition;
-import org.newdawn.slick.state.transition.FadeInTransition;
-import org.newdawn.slick.util.FileSystemLocation;
-import org.newdawn.slick.util.Log;
-import org.newdawn.slick.util.ResourceLoader;
-import org.sqlite.SQLiteErrorCode;
-import org.sqlite.SQLiteException;
-
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.db.DBController;
 import itdelatrisu.opsu.downloads.DownloadList;
@@ -52,6 +36,22 @@ import itdelatrisu.opsu.ui.UI;
 import itdelatrisu.opsu.util.ExtendedLogSystem;
 import itdelatrisu.opsu.video.FFmpeg;
 
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.Field;
+
+import org.newdawn.slick.GameContainer;
+import org.newdawn.slick.Input;
+import org.newdawn.slick.SlickException;
+import org.newdawn.slick.state.StateBasedGame;
+import org.newdawn.slick.state.transition.EasedFadeOutTransition;
+import org.newdawn.slick.state.transition.FadeInTransition;
+import org.newdawn.slick.util.FileSystemLocation;
+import org.newdawn.slick.util.Log;
+import org.newdawn.slick.util.ResourceLoader;
+import org.sqlite.SQLiteErrorCode;
+import org.sqlite.SQLiteException;
+
 /**
  * Main class.
  * <p>
@@ -68,7 +68,7 @@ public class Opsu extends StateBasedGame {
 		STATE_GAMEPAUSEMENU = 5,
 		STATE_GAMERANKING   = 6,
 		STATE_DOWNLOADSMENU = 7;
-
+	
 	/**
 	 * Constructor.
 	 * @param name the program name
@@ -93,11 +93,11 @@ public class Opsu extends StateBasedGame {
 	 * Launches opsu!.
 	 */
 	public static void main(String[] args) {
-		Log.setVerbose(true);
-		Log.setLogSystem(new ExtendedLogSystem("Opsu"));
 		
-		Log.info("Initializing opsu!");
-		LocaleManager.loadAssets();
+		//Log to file and console, enable verbose
+		Log.setVerbose(true);
+		Log.setLogSystem(new ExtendedLogSystem(OpsuConstants.PROJECT_NAME));
+		
 
 		// set default exception handler
 		Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
@@ -107,6 +107,9 @@ public class Opsu extends StateBasedGame {
 				System.exit(1);
 			}
 		});
+		
+		Log.info("Initializing opsu!");
+		LocaleManager.loadAssets();
 
 		// parse configuration file
 		try {
@@ -178,8 +181,7 @@ public class Opsu extends StateBasedGame {
 		// check for updates
 		Updater.get().getCurrentVersion();  // load this for the main menu
 		if (!Options.isUpdaterDisabled()) {
-			new Thread() {
-				@Override
+			new Thread(new Runnable(){
 				public void run() {
 					try {
 						Updater.get().checkForUpdates();
@@ -187,7 +189,7 @@ public class Opsu extends StateBasedGame {
 						Log.warn("Check for updates failed.", e);
 					}
 				}
-			}.start();
+			}).start();
 		}
 
 		// disable jinput

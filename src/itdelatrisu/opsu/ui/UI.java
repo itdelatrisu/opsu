@@ -18,17 +18,6 @@
 
 package itdelatrisu.opsu.ui;
 
-import javax.swing.JOptionPane;
-import javax.swing.UIManager;
-
-import org.newdawn.slick.Color;
-import org.newdawn.slick.GameContainer;
-import org.newdawn.slick.Graphics;
-import org.newdawn.slick.Image;
-import org.newdawn.slick.Input;
-import org.newdawn.slick.state.StateBasedGame;
-import org.newdawn.slick.util.Log;
-
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.Opsu;
 import itdelatrisu.opsu.Utils;
@@ -40,6 +29,17 @@ import itdelatrisu.opsu.replay.ReplayImporter;
 import itdelatrisu.opsu.skins.SkinUnpacker;
 import itdelatrisu.opsu.ui.animations.AnimatedValue;
 import itdelatrisu.opsu.ui.animations.AnimationEquation;
+
+import javax.swing.JOptionPane;
+import javax.swing.UIManager;
+
+import org.newdawn.slick.Color;
+import org.newdawn.slick.GameContainer;
+import org.newdawn.slick.Graphics;
+import org.newdawn.slick.Image;
+import org.newdawn.slick.Input;
+import org.newdawn.slick.state.StateBasedGame;
+import org.newdawn.slick.util.Log;
 
 /**
  * Draws common UI components.

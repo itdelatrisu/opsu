@@ -48,7 +48,7 @@ public class SkinLoader {
 	 * @return an array of skin directories
 	 */
 	public static File[] getSkinDirectories(File root) {
-		ArrayList<File> dirs = new ArrayList<File>();
+		ArrayList<File> dirs = new ArrayList<>();
 		for (File dir : root.listFiles()) {
 			if (dir.isDirectory())
 				dirs.add(dir);
@@ -164,7 +164,7 @@ public class SkinLoader {
 					}
 					break;
 				case "[Colours]":
-					LinkedList<Color> colors = new LinkedList<Color>();
+					LinkedList<Color> colors = new LinkedList<>();
 					while ((line = in.readLine()) != null) {
 						line = line.trim();
 						if (!isValidLine(line))

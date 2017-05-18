@@ -117,6 +117,7 @@ public class OptionGroup {
 		new OptionGroup("options.custom.misc.name", new GameOption[] {
 			GameOption.ENABLE_WATCH_SERVICE,
 			GameOption.LOAD_VERBOSE,
+			GameOption.SHOW_UNSUPPORTED_BEATMAPS,
 		}),
 	};
 

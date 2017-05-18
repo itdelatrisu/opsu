@@ -984,7 +984,7 @@ public class OptionsOverlay extends AbstractComponent {
 				// show restart button?
 				if (oldValue != hoverOption.getBooleanValue() && hoverOption.isRestartRequired()) {
 					showRestartButton = true;
-					UI.getNotificationManager().sendBarNotification("Restart to apply changes.");
+					UI.getNotificationManager().sendBarNotification("ui.notifications.options.restart");
 				}
 			} else if (hoverOption.getItemList() != null) {
 				SoundController.playSound(SoundEffect.MENUCLICK);
@@ -1158,7 +1158,7 @@ public class OptionsOverlay extends AbstractComponent {
 						// show restart button?
 						if (option.isRestartRequired()) {
 							showRestartButton = true;
-							UI.getNotificationManager().sendBarNotification("Restart to apply changes.");
+							UI.getNotificationManager().sendBarNotification("ui.notifications.options.restart");
 						}
 					}
 

@@ -18,6 +18,19 @@
 
 package itdelatrisu.opsu.options;
 
+import itdelatrisu.opsu.Container;
+import itdelatrisu.opsu.ErrorHandler;
+import itdelatrisu.opsu.OpsuConstants;
+import itdelatrisu.opsu.Utils;
+import itdelatrisu.opsu.audio.MusicController;
+import itdelatrisu.opsu.beatmap.Beatmap;
+import itdelatrisu.opsu.beatmap.TimingPoint;
+import itdelatrisu.opsu.skins.Skin;
+import itdelatrisu.opsu.skins.SkinLoader;
+import itdelatrisu.opsu.translations.LocaleManager;
+import itdelatrisu.opsu.ui.Fonts;
+import itdelatrisu.opsu.ui.UI;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -54,19 +67,6 @@ import org.newdawn.slick.util.ResourceLoader;
 import com.sun.jna.platform.win32.Advapi32Util;
 import com.sun.jna.platform.win32.Win32Exception;
 import com.sun.jna.platform.win32.WinReg;
-
-import itdelatrisu.opsu.Container;
-import itdelatrisu.opsu.ErrorHandler;
-import itdelatrisu.opsu.OpsuConstants;
-import itdelatrisu.opsu.Utils;
-import itdelatrisu.opsu.audio.MusicController;
-import itdelatrisu.opsu.beatmap.Beatmap;
-import itdelatrisu.opsu.beatmap.TimingPoint;
-import itdelatrisu.opsu.skins.Skin;
-import itdelatrisu.opsu.skins.SkinLoader;
-import itdelatrisu.opsu.translations.LocaleManager;
-import itdelatrisu.opsu.ui.Fonts;
-import itdelatrisu.opsu.ui.UI;
 
 /**
  * Handles all user options.
@@ -352,7 +352,7 @@ public class Options {
 			public void toggle(GameContainer container) {
 				// check if fullscreen mode is possible with this resolution
 				if (!getBooleanValue() && !resolution.hasFullscreenDisplayMode()) {
-					UI.getNotificationManager().sendBarNotification(String.format("Fullscreen mode is not available at resolution %s", resolution.toString()));
+					UI.getNotificationManager().sendBarNotification("ui.notifications.graphics.fullscreen.notAvailable", resolution.toString());
 					return;
 				}
 
@@ -690,6 +690,10 @@ public class Options {
 		ENABLE_WATCH_SERVICE ("options.misc.watchService", "WatchService", false) {
 			@Override
 			public boolean isRestartRequired() { return true; }
+		},
+		SHOW_UNSUPPORTED_BEATMAPS("options.misc.showUnsupportedMaps", "ShowUnsupportedMaps", false){
+			@Override
+			public boolean isRestartRequired() { return true; }
 		};
 
 		/** Option name. */
@@ -1023,7 +1027,7 @@ public class Options {
 	public static void setNextFPS(GameContainer container) {
 		int index = (targetFPSindex + 1) % targetFPS.length;
 		GameOption.TARGET_FPS.selectItem(index, container);
-		UI.getNotificationManager().sendBarNotification(String.format("Frame limiter: %s", GameOption.TARGET_FPS.getValueString()));
+		UI.getNotificationManager().sendBarNotification("ui.notifications.graphics.framesync", GameOption.TARGET_FPS.getValueString());
 	}
 
 	/**
@@ -1352,7 +1356,7 @@ public class Options {
 	public static void toggleMouseDisabled() {
 		GameOption.DISABLE_MOUSE_BUTTONS.toggle(null);
 		UI.getNotificationManager().sendBarNotification((GameOption.DISABLE_MOUSE_BUTTONS.getBooleanValue()) ?
-			"Mouse buttons are disabled." : "Mouse buttons are enabled.");
+			"ui.notifications.mouse.buttons.disabled" : "ui.notifications.mouse.buttons.enabled");
 	}
 
 	/**

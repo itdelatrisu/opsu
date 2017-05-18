@@ -18,6 +18,9 @@
 
 package itdelatrisu.opsu.translations;
 
+import itdelatrisu.opsu.Utils;
+import itdelatrisu.opsu.options.Options.GameOption;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -26,10 +29,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.IllegalFormatException;
 import java.util.List;
+import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.regex.Pattern;
@@ -37,24 +42,20 @@ import java.util.regex.Pattern;
 import org.newdawn.slick.util.Log;
 
 import craterstudio.io.Streams;
-import itdelatrisu.opsu.Utils;
-import itdelatrisu.opsu.options.Options.GameOption;
 
 /**
- * Provides basic translation capabilities to opsu!
- * 
+ * Provides translation capabilities to opsu!
  * @author Lyonlancer5
  */
 public final class LocaleManager {
-	
-	// TODO: Bidirectional language support
-
 	
 	/**
      * Pattern that matches numeric variable placeholders in a resource string, such as "<code>%d</code>", "<code>%3$d</code>" and "<code>%.2f</code>"
      */
     private static final Pattern NUMERIC_VARIABLE_PATTERN = Pattern.compile("%(\\d+\\$)?[\\d\\.]*[df]");
-
+    
+    /** Used to synchronize between threads */
+    private static final Object LOCK = new Object();
 	
 	//List variables used by Options
 	/**
@@ -62,11 +63,6 @@ public final class LocaleManager {
 	 * used in {@link GameOption#getValueString()}
 	 */
 	public static String[] translationIds;
-	
-	///**
-	// * An array of String values that represent the LCID code of each LanguageManager
-	// */
-	//private static String[] internalIds;
 	
 	/**
 	 * A list of languages that can be used to translate opsu!
@@ -99,8 +95,6 @@ public final class LocaleManager {
      * The identifier used by this instance of LanguageManager
      */
     private final String identifier;
-    
-    private final String fallbackId;
 
     
     /**
@@ -135,7 +129,6 @@ public final class LocaleManager {
         
         String v0 = this.keys.get("language.name");
         this.identifier = v0 == null ? fallbackId : v0;
-        this.fallbackId = fallbackId;
     }
     
     /**
@@ -159,79 +152,83 @@ public final class LocaleManager {
     }
     
     /**
-     * Loads the language manager's assets
+     * Loads the language manager's assets.
+     * This method can safely be called multiple times as it will simply
+     * reload the language files from disk.
      */
     public static void loadAssets(){
-    	if(translationIndices != null && translationIds != null 
-    			&& defaultLocale != null ) {
-    		
-    		Log.info("Reloading languages");
-    		translationIndices.clear();
-    		translationIds = null;
-    		defaultLocale = null;
-    		currentLocale = null;
-    		currentLocaleIndex = -1;
-    		
-    		
-    	};
+    	synchronized(LOCK){
+    		if(translationIndices != null && translationIds != null 
+        			&& defaultLocale != null ) {
+        		
+        		Log.info("Reloading languages");
+        		translationIndices.clear();
+        		translationIds = null;
+        		defaultLocale = null;
+        		currentLocale = null;
+        		currentLocaleIndex = -1;
+        		
+        		Utils.gc(false);
+        	};
 
-		final Pattern langFileExtension = Pattern.compile("(.+).(LANG|lang)$");
-    	translationIndices = new ArrayList<>();
-    	
-    	if(Utils.isJarRunning()){
-    		
-    		JarFile opsu = Utils.getJarFile();
-    		Enumeration<JarEntry> entries = opsu.entries();
-    		while(entries.hasMoreElements()){
-    			JarEntry entry = entries.nextElement();
-    			String entryName = entry.getName();
-    			
-    			if(langFileExtension.matcher(entryName).matches()){
-    				translationIndices.add(new LocaleManager(entryName));
-    				if(entryName.contains("en_US")){
-    					currentLocaleIndex = translationIndices.size() - 1;
-    					defaultLocale = translationIndices.get(currentLocaleIndex);
-    					currentLocale = defaultLocale;
-    					Log.info("Found fallback language");
-    				}
-    				Log.info("Added language file: " + entryName);
-    			}
-    		}
-    		
-    		try{
-    			opsu.close();
-    		} catch (IOException e) {
-    			//ignore
-    		}
-    	}
-    	//compensate for running in developer mode
-    	else
-    	{    		
-    		try {
-        		File codeSource = new File(LocaleManager.class.getProtectionDomain().getCodeSource().getLocation().toURI());
-        		for(File langFile : Utils.findFilesRecursively(codeSource, langFileExtension)){
-        			translationIndices.add(new LocaleManager(langFile));
-        			if(langFile.getName().contains("en_US")){
-        				currentLocaleIndex = translationIndices.size() - 1;
-        				defaultLocale = translationIndices.get(currentLocaleIndex);
-        				currentLocale = defaultLocale;
-    					Log.info("Found fallback language");
+    		final Pattern langFileExtension = Pattern.compile("(.+).(LANG|lang)$");
+        	translationIndices = new ArrayList<>();
+        	
+        	if(Utils.isJarRunning()){
+        		
+        		JarFile opsu = Utils.getJarFile();
+        		Enumeration<JarEntry> entries = opsu.entries();
+        		while(entries.hasMoreElements()){
+        			JarEntry entry = entries.nextElement();
+        			String entryName = entry.getName();
+        			
+        			if(langFileExtension.matcher(entryName).matches()){
+        				translationIndices.add(new LocaleManager(entryName));
+        				if(entryName.contains("en_US")){
+        					currentLocaleIndex = translationIndices.size() - 1;
+        					defaultLocale = translationIndices.get(currentLocaleIndex);
+        					currentLocale = defaultLocale;
+        					Log.info("Found fallback language");
+        				}
+        				Log.info("Added language file: " + entryName);
         			}
-        			Log.info("Added language file: " + langFile.getName());
         		}
-    		} catch (Exception e) {
-    			Log.error("Could not find resources for translation", e);
-    		}
+        		
+        		try{
+        			opsu.close();
+        		} catch (IOException e) {
+        			//ignore
+        		}
+        	}
+        	//compensate for running in developer mode
+        	else
+        	{    		
+        		try {
+            		File codeSource = new File(LocaleManager.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+            		for(File langFile : Utils.findFilesRecursively(codeSource, langFileExtension)){
+            			translationIndices.add(new LocaleManager(langFile));
+            			if(langFile.getName().contains("en_US")){
+            				currentLocaleIndex = translationIndices.size() - 1;
+            				defaultLocale = translationIndices.get(currentLocaleIndex);
+            				currentLocale = defaultLocale;
+        					Log.info("Found fallback language");
+            			}
+            			Log.info("Added language file: " + langFile.getName());
+            		}
+        		} catch (Exception e) {
+        			Log.error("Could not find resources for translation", e);
+        		}
+        	}
+        	
+        	translationIds = new String[translationIndices.size()];
+        	
+        	for(int a = 0; a < translationIds.length; a++){
+        		translationIds[a] = translationIndices.get(a).toString();
+        	}
+        	
+        	
+        	Log.info("Loaded translations");
     	}
-    	
-    	translationIds = new String[translationIndices.size()];
-    	
-    	for(int a = 0; a < translationIds.length; a++){
-    		translationIds[a] = translationIndices.get(a).toString();
-    	}
-    	
-    	
-    	Log.info("Loaded translations");
     }
     
     /**
@@ -240,18 +237,20 @@ public final class LocaleManager {
      * @param identifier The name of the language (e.g. English US, Japanese, Chinese)
      */
     public static void setLocaleFrom(String identifier){
-    	if(identifier == null) return;
-    	if(translationIds == null) loadAssets();
-    	
-    	for(int a = 0; a < translationIds.length; a++){
-    		if(translationIds[a].equals(identifier)){
-    			currentLocale = translationIndices.get(a);
-    			return;
-    		}
+    	synchronized(LOCK){
+    		if(identifier == null) return;
+        	if(translationIds == null) loadAssets();
+        	
+        	for(int a = 0; a < translationIds.length; a++){
+        		if(translationIds[a].equals(identifier)){
+        			currentLocale = translationIndices.get(a);
+        			return;
+        		}
+        	}
+        	
+        	currentLocale = defaultLocale;
+        	currentLocaleIndex = translationIndices.indexOf(currentLocale);
     	}
-    	
-    	currentLocale = defaultLocale;
-    	currentLocaleIndex = translationIndices.indexOf(currentLocale);
     }
     
     /**
@@ -261,11 +260,13 @@ public final class LocaleManager {
      * @param index The index that denotes the position of the translation in the options
      */
     public static void updateLocale(int index){
-    	if(index < 0 || index >= translationIndices.size()) return;
-    	if(translationIndices == null) loadAssets();
-    	
-    	currentLocaleIndex = index;
-    	currentLocale = translationIndices.get(currentLocaleIndex);
+    	synchronized (LOCK) {
+    		if(index < 0 || index >= translationIndices.size()) return;
+        	if(translationIndices == null) loadAssets();
+        	
+        	currentLocaleIndex = index;
+        	currentLocale = translationIndices.get(currentLocaleIndex);
+		}
     }
     
     /**
@@ -336,14 +337,6 @@ public final class LocaleManager {
     	return identifier;
     }
     
-    /**
-     * Return the LCID name of the current translator
-     * @return The LCID name of the language (<code>en_US</code>, <code>ja_JP</code>)
-     */
-    public String getInternalID(){
-    	return fallbackId;
-    }
-    
     //Special cases
     @Override
     public boolean equals(Object obj) {
@@ -360,8 +353,18 @@ public final class LocaleManager {
     }
     
     /**
+     * Retrieve the map containing all available translation keys for the current locale.
+     * This map is <b>unmodifiable</b> as it should only be handled by the manager. 
+     * <br><br>
+     * To add your own translations, add in <code>*.lang</code> files in the JAR or classpath.
+     */
+    public Map<String, String> getTranslations(){
+    	return Collections.unmodifiableMap(keys);
+    }
+    
+    /**
      * Get the currently active locale being used to translate strings.
-     * Only useful for providing information, use the static methods to get translations for keys.
+     * Useful for providing information about the current locale.
      */
     public static LocaleManager getCurrentLocale(){
     	return currentLocale;

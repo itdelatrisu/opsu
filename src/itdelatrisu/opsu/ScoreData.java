@@ -434,7 +434,8 @@ public class ScoreData implements Comparable<ScoreData> {
 	public int compareTo(ScoreData that) {
 		if (this.score != that.score)
 			return Long.compare(this.score, that.score);
-		else
-			return Long.compare(this.timestamp, that.timestamp);
+		
+
+		return Long.compare(this.timestamp, that.timestamp);
 	}
 }

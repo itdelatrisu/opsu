@@ -159,8 +159,8 @@ public class TimingPoint {
 			return String.format("%d,%d,%d,%d,%d,%d,%d,%d",
 				time, velocity, meter, (int) sampleType,
 				(int) sampleTypeCustom, sampleVolume, 1, (kiai) ? 1: 0);
-		else
-			return String.format("%d,%g,%d,%d,%d,%d,%d,%d",
+		
+		return String.format("%d,%g,%d,%d,%d,%d,%d,%d",
 				time, beatLength, meter, (int) sampleType,
 				(int) sampleTypeCustom, sampleVolume, 0, (kiai) ? 1: 0);
 	}

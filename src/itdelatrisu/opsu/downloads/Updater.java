@@ -274,13 +274,13 @@ public class Updater {
 				@Override
 				public void completed() {
 					status = Status.UPDATE_DOWNLOADED;
-					UI.getNotificationManager().sendNotification("Update has finished downloading.", Colors.GREEN);
+					UI.getNotificationManager().sendNotification("ui.notifications.update.download.complete", Colors.GREEN);
 				}
 
 				@Override
 				public void error() {
 					status = Status.CONNECTION_ERROR;
-					UI.getNotificationManager().sendNotification("Update failed due to a connection error.", Color.red);
+					UI.getNotificationManager().sendNotification("ui.notifications.update.download.failed", Color.red);
 				}
 			});
 		}

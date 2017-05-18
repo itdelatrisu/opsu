@@ -569,16 +569,16 @@ public class UserSelectOverlay extends AbstractComponent {
 		String name = newUser.getName();
 		int icon = newUser.getIconId();
 		if (!UserList.get().isValidUserName(name)) {
-			String error = name.isEmpty() ? "Enter a name for the user." : "You can't use that name.";
+			String error = name.isEmpty() ? "ui.notifications.user" : "ui.notifications.user.new.invalidName";
 			UI.getNotificationManager().sendBarNotification(error);
 			newUserButton.flash();
 		} else {
 			if (UserList.get().createNewUser(name, icon) == null)
-				UI.getNotificationManager().sendBarNotification("Something wrong happened.");
+				UI.getNotificationManager().sendBarNotification("ui.notifications.user.new.error");
 			else {
 				// change user
 				UserList.get().changeUser(name);
-				UI.getNotificationManager().sendNotification("New user created.\nEnjoy the game! :)", Colors.GREEN);
+				UI.getNotificationManager().sendNotification("ui.notifications.user.new.created", Colors.GREEN);
 				listener.close(true);
 			}
 		}

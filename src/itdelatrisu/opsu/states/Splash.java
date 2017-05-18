@@ -34,7 +34,8 @@ import itdelatrisu.opsu.ui.UI;
 import itdelatrisu.opsu.ui.animations.AnimatedValue;
 import itdelatrisu.opsu.ui.animations.AnimationEquation;
 
-import java.io.File;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
@@ -60,7 +61,7 @@ public class Splash extends BasicGameState {
 	private boolean finished = false;
 
 	/** Loading thread. */
-	private Thread thread;
+	private ExecutorService thread;
 
 	/** Number of times the 'Esc' key has been pressed. */
 	private int escapeCount = 0;
@@ -84,6 +85,8 @@ public class Splash extends BasicGameState {
 	private final int state;
 	private GameContainer container;
 	private boolean init = false;
+	
+	private volatile int marker = 0;
 
 	public Splash(int state) {
 		this.state = state;
@@ -122,12 +125,14 @@ public class Splash extends BasicGameState {
 		if (!init) {
 			init = true;
 
+			thread = Executors.newCachedThreadPool();
+			
 			// resources already loaded (from application restart)
 			if (BeatmapSetList.get() != null) {
 				if (newSkin || watchServiceChange) {  // need to reload resources
-					thread = new Thread() {
-						@Override
-						public void run() {
+					
+					thread.execute(new Runnable(){
+						public void run(){
 							// reload beatmaps if watch service newly enabled
 							if (watchServiceChange)
 								BeatmapParser.parseAllFiles(Options.getBeatmapDir());
@@ -140,45 +145,67 @@ public class Splash extends BasicGameState {
 							Utils.gc(true);
 
 							finished = true;
-							thread = null;
 						}
-					};
-					thread.start();
+					});
 				} else  // don't reload anything
 					finished = true;
 			}
 
 			// load all resources in a new thread
 			else {
-				thread = new Thread() {
-					@Override
-					public void run() {
-						File beatmapDir = Options.getBeatmapDir();
-						File importDir = Options.getImportDir();
+				
+				thread.submit(new Runnable(){
+					public void run(){
 
 						// unpack all OSZ archives
-						OszUnpacker.unpackAllFiles(importDir, beatmapDir);
+						OszUnpacker.unpackAllFiles(Options.getImportDir(), Options.getBeatmapDir());
 
 						// parse song directory
-						BeatmapParser.parseAllFiles(beatmapDir);
-
-						// import skins
-						SkinUnpacker.unpackAllFiles(importDir, Options.getSkinRootDir());
-
+						BeatmapParser.parseAllFiles(Options.getBeatmapDir());
+						
+						marker++;
+					}
+				});
+				
+				thread.submit(new Runnable(){
+					public void run(){
 						// import replays
-						ReplayImporter.importAllReplaysFromDir(importDir);
+						ReplayImporter.importAllReplaysFromDir(Options.getImportDir());
+						marker++;
+					}
+				});
+				
+				thread.submit(new Runnable(){
+					public void run(){
+						// import skins
+						SkinUnpacker.unpackAllFiles(Options.getImportDir(), Options.getSkinRootDir());
+						marker++;
+					}
+				});
+				
+				thread.submit(new Runnable(){
+					public void run(){
 
 						// load sounds
 						SoundController.init();
-
-						Utils.gc(true);
-
-						finished = true;
-						thread = null;
+						marker++;
 					}
-				};
-				thread.start();
+				});
+				
+				thread.submit(new Runnable(){
+					@Override
+					public void run() {
+						while(true){
+							if(marker == 4){
+								break;
+							}
+						}
+						Utils.gc(true);
+						finished = true;
+					}
+				});
 			}
+			
 		}
 
 		// fade in logo
@@ -205,6 +232,7 @@ public class Splash extends BasicGameState {
 			else
 				MusicController.playThemeSong();
 
+			thread.shutdown();
 			game.enterState(Opsu.STATE_MAINMENU);
 		}
 	}
@@ -221,7 +249,8 @@ public class Splash extends BasicGameState {
 
 			// stop parsing beatmaps by sending interrupt to BeatmapParser
 			else if (thread != null)
-				thread.interrupt();
+				//thread.interrupt();
+				thread.shutdownNow();
 		}
 	}
 }

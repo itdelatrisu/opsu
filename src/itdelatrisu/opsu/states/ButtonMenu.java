@@ -578,7 +578,7 @@ public class ButtonMenu extends BasicGameState {
 				try {
 					Desktop.getDesktop().browse(OpsuConstants.WEBSITE_URI);
 				} catch (Exception e) {
-					UI.getNotificationManager().sendNotification("The web page could not be opened.", Color.red);
+					UI.getNotificationManager().sendNotification("ui.notifications.web.noView", Color.red);
 				}
 				game.enterState(Opsu.STATE_MAINMENU, new EmptyTransition(), new FadeInTransition());
 			}
@@ -590,7 +590,7 @@ public class ButtonMenu extends BasicGameState {
 				try {
 					Desktop.getDesktop().browse(OpsuConstants.REPOSITORY_URI);
 				} catch (Exception e) {
-					UI.getNotificationManager().sendNotification("The web page could not be opened.", Color.red);
+					UI.getNotificationManager().sendNotification("ui.notifications.web.noView", Color.red);
 				}
 				game.enterState(Opsu.STATE_MAINMENU, new EmptyTransition(), new FadeInTransition());
 			}
@@ -607,7 +607,7 @@ public class ButtonMenu extends BasicGameState {
 				try {
 					Desktop.getDesktop().browse(uri);
 				} catch (Exception e) {
-					UI.getNotificationManager().sendNotification("The web page could not be opened.", Color.red);
+					UI.getNotificationManager().sendNotification("ui.notifications.web.noView", Color.red);
 				}
 				game.enterState(Opsu.STATE_MAINMENU, new EmptyTransition(), new FadeInTransition());
 			}
@@ -619,7 +619,7 @@ public class ButtonMenu extends BasicGameState {
 				try {
 					Desktop.getDesktop().browse(OpsuConstants.CREDITS_URI);
 				} catch (Exception e) {
-					UI.getNotificationManager().sendNotification("The web page could not be opened.", Color.red);
+					UI.getNotificationManager().sendNotification("ui.notifications.web.noView", Color.red);
 				}
 				game.enterState(Opsu.STATE_MAINMENU, new EmptyTransition(), new FadeInTransition());
 			}

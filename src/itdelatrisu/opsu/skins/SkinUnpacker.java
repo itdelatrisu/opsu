@@ -77,8 +77,8 @@ public class SkinUnpacker {
 		files = null;
 
 		if (!dirs.isEmpty()) {
-			String text = String.format("Imported %d new skin%s.", dirs.size(), dirs.size() == 1 ? "" : "s");
-			UI.getNotificationManager().sendNotification(text);
+			//String text = String.format("Imported %d new skin%s.", dirs.size(), dirs.size() == 1 ? "" : "s");
+			UI.getNotificationManager().sendNotification("Imported %d new skin%s.", dirs.size());
 		}
 
 		return dirs.toArray(new File[dirs.size()]);
