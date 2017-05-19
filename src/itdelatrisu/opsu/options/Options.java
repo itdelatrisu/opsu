@@ -316,7 +316,7 @@ public class Options {
 				if (itemList == null) {
 					int width = Display.getDesktopDisplayMode().getWidth();
 					int height = Display.getDesktopDisplayMode().getHeight();
-					List<Resolution> list = new ArrayList<Resolution>();
+					List<Resolution> list = new ArrayList<>();
 					for (Resolution res : Resolution.values()) {
 						// only show resolutions that fit on the screen
 						if (res == Resolution.RES_800_600 || (width >= res.getWidth() && height >= res.getHeight()))
@@ -576,6 +576,15 @@ public class Options {
 			@Override
 			public void read(String s) { setGameKeyRight(Keyboard.getKeyIndex(s)); }
 		},
+		
+		//TODO (@Lyonlancer5) see other branch, prepare here 
+		THREADED_INPUT ("options.mouse.threadedInput", "MouseThreadedInput", false){
+			@Override
+			public void toggle(GameContainer container) {
+				if(!System.getProperty("os.name").startsWith("Win")) return;
+				super.toggle(container);
+			}
+		},
 		DISABLE_MOUSE_WHEEL ("options.mouse.ignoreWheel", "MouseDisableWheel", false),
 		DISABLE_MOUSE_BUTTONS ("options.mouse.ignoreButtons", "MouseDisableButtons", false),
 		DISABLE_CURSOR ("options.mouse.noCursor", "DisableCursor", false),
@@ -679,6 +688,10 @@ public class Options {
 		REPLAY_SEEKING ("options.misc.replaySeek", "ReplaySeeking", false),
 		DISABLE_UPDATER ("options.misc.updater", "DisableUpdater", false),
 		ENABLE_WATCH_SERVICE ("options.misc.watchService", "WatchService", false) {
+			@Override
+			public boolean isRestartRequired() { return true; }
+		},
+		SHOW_UNSUPPORTED_BEATMAPS("options.misc.showUnsupportedMaps", "ShowUnsupportedMaps", false){
 			@Override
 			public boolean isRestartRequired() { return true; }
 		};
@@ -1570,7 +1583,7 @@ public class Options {
 			return null;
 		}
 		try {
-			beatmap.timingPoints = new ArrayList<TimingPoint>(1);
+			beatmap.timingPoints = new ArrayList<>(1);
 			beatmap.timingPoints.add(new TimingPoint(themeTimingPoint));
 		} catch (Exception e) {
 			return null;
@@ -1591,7 +1604,7 @@ public class Options {
 
 		// create option map
 		if (optionMap == null) {
-			optionMap = new HashMap<String, GameOption>();
+			optionMap = new HashMap<>();
 			for (GameOption option : GameOption.values())
 				optionMap.put(option.getDisplayName(), option);
 		}

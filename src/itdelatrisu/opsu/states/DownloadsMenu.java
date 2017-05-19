@@ -34,6 +34,7 @@ import itdelatrisu.opsu.downloads.servers.DownloadServer;
 import itdelatrisu.opsu.downloads.servers.MengSkyServer;
 import itdelatrisu.opsu.downloads.servers.MnetworkServer;
 import itdelatrisu.opsu.options.Options;
+import itdelatrisu.opsu.options.Options.GameOption;
 import itdelatrisu.opsu.ui.Colors;
 import itdelatrisu.opsu.ui.DropdownMenu;
 import itdelatrisu.opsu.ui.Fonts;
@@ -277,7 +278,10 @@ public class DownloadsMenu extends BasicGameState {
 			if (dirs != null && dirs.length > 0) {
 				this.importedNode = BeatmapParser.parseDirectories(dirs);
 				if (importedNode == null)
-					UI.getNotificationManager().sendNotification("ui.notifications.beatmaps.import.none", Color.red);
+					if(GameOption.SHOW_UNSUPPORTED_BEATMAPS.getBooleanValue())
+						UI.getNotificationManager().sendNotification("ui.notifications.beatmaps.import.none.exp", Color.red);
+					else
+						UI.getNotificationManager().sendNotification("ui.notifications.beatmaps.import.none", Color.red);
 			}
 
 			DownloadList.get().clearDownloads(Download.Status.COMPLETE);

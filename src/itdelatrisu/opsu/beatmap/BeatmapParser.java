@@ -23,6 +23,7 @@ import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.db.BeatmapDB;
 import itdelatrisu.opsu.io.MD5InputStreamWrapper;
 import itdelatrisu.opsu.options.Options;
+import itdelatrisu.opsu.options.Options.GameOption;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
@@ -49,7 +50,7 @@ import org.newdawn.slick.util.Log;
  */
 public class BeatmapParser {
 	/** The string lookup database. */
-	private static HashMap<String, String> stringdb = new HashMap<String, String>();
+	private static HashMap<String, String> stringdb = new HashMap<>();
 
 	/** The expected pattern for beatmap directories, used to find beatmap set IDs. */
 	private static final String DIR_MSID_PATTERN = "^\\d+ .*";
@@ -131,9 +132,9 @@ public class BeatmapParser {
 		Map<String, BeatmapDB.LastModifiedMapEntry> lastModifiedMap = BeatmapDB.getLastModifiedMap();
 
 		// beatmap lists
-		List<ArrayList<Beatmap>> allBeatmaps = new LinkedList<ArrayList<Beatmap>>();
-		List<Beatmap> cachedBeatmaps = new LinkedList<Beatmap>();  // loaded from database
-		List<Beatmap> parsedBeatmaps = new LinkedList<Beatmap>();  // loaded from parser
+		List<ArrayList<Beatmap>> allBeatmaps = new LinkedList<>();
+		List<Beatmap> cachedBeatmaps = new LinkedList<>();  // loaded from database
+		List<Beatmap> parsedBeatmaps = new LinkedList<>();  // loaded from parser
 
 		// watch service
 		BeatmapWatchService ws = (Options.isWatchServiceEnabled()) ? BeatmapWatchService.get() : null;
@@ -157,7 +158,7 @@ public class BeatmapParser {
 				continue;
 
 			// create a new group entry
-			ArrayList<Beatmap> beatmaps = new ArrayList<Beatmap>(files.length);
+			ArrayList<Beatmap> beatmaps = new ArrayList<>(files.length);
 			for (File file : files) {
 				currentFile = file;
 
@@ -169,15 +170,19 @@ public class BeatmapParser {
 						// check last modified times
 						if (entry.getLastModified() == file.lastModified()) {
 							
-							if(entry.getMode() == Beatmap.MODE_OSU) { // only support standard mode
+							//TODO -- put in experimental CtB->StD conversion
+							if(entry.getMode() == Beatmap.MODE_OSU ||
+									(GameOption.SHOW_UNSUPPORTED_BEATMAPS.getBooleanValue() 
+										&& entry.getMode() == Beatmap.MODE_CTB)) {
 								// add to cached beatmap list
 								Beatmap beatmap = new Beatmap(file);
 								beatmaps.add(beatmap);
 								cachedBeatmaps.add(beatmap);
 							}
 							continue;
-						} else // out of sync, delete cache entry and re-parse
-							BeatmapDB.delete(dir.getName(), file.getName());
+						} 
+						// out of sync, delete cache entry and re-parse
+						BeatmapDB.delete(dir.getName(), file.getName());
 					}
 				}
 
@@ -203,8 +208,10 @@ public class BeatmapParser {
 					if (beatmap.dateAdded < 1)
 						beatmap.dateAdded = timestamp;
 
-					// only support standard mode
-					if (beatmap.mode == Beatmap.MODE_OSU)
+					//TODO -- put in experimental CtB->StD conversion
+					if (beatmap.mode == Beatmap.MODE_OSU || 
+							(GameOption.SHOW_UNSUPPORTED_BEATMAPS.getBooleanValue()
+							&& beatmap.mode == Beatmap.MODE_CTB))
 						beatmaps.add(beatmap);
 
 					parsedBeatmaps.add(beatmap);
@@ -240,7 +247,7 @@ public class BeatmapParser {
 		}
 
 		// clear string DB
-		stringdb.clear();
+		stringdb = new HashMap<>();
 
 		// add beatmap entries to database
 		if (!parsedBeatmaps.isEmpty()) {
@@ -265,7 +272,7 @@ public class BeatmapParser {
 	 */
 	private static Beatmap parseFile(File file, File dir, List<Beatmap> beatmaps, boolean parseObjects) {
 		Beatmap beatmap = new Beatmap(file);
-		beatmap.timingPoints = new ArrayList<TimingPoint>();
+		beatmap.timingPoints = new ArrayList<>();
 
 		try (
 			InputStream bis = new BufferedInputStream(new FileInputStream(file));
@@ -516,7 +523,7 @@ public class BeatmapParser {
 						case "2":  // break periods
 							try {
 								if (beatmap.breaks == null)  // optional, create if needed
-									beatmap.breaks = new ArrayList<Integer>();
+									beatmap.breaks = new ArrayList<>();
 								beatmap.breaks.add(Integer.parseInt(tokens[1]));
 								beatmap.breaks.add(Integer.parseInt(tokens[2]));
 							} catch (Exception e) {
@@ -564,7 +571,7 @@ public class BeatmapParser {
 					beatmap.timingPoints.trimToSize();
 					break;
 				case "[Colours]":
-					LinkedList<Color> colors = new LinkedList<Color>();
+					LinkedList<Color> colors = new LinkedList<>();
 					while ((line = in.readLine()) != null) {
 						line = line.trim();
 						if (!isValidLine(line))
@@ -821,7 +828,8 @@ public class BeatmapParser {
 		if (DBString == null) {
 			stringdb.put(s, s);
 			return s;
-		}else 
-			return DBString;
+		}
+		
+		return DBString;
 	}
 }

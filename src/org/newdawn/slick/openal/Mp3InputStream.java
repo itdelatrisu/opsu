@@ -134,8 +134,8 @@ public class Mp3InputStream extends InputStream implements AudioInputStream {
 
 		if (bpos % 2 == 0)
 			return (buf.getBuffer()[npos] >> 8) & 0xff;
-		else
-			return (buf.getBuffer()[npos]) & 0xff;
+
+		return (buf.getBuffer()[npos]) & 0xff;
 	}
 
 	@Override

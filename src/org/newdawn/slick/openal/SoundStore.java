@@ -28,6 +28,8 @@
 
 package org.newdawn.slick.openal;
 
+import itdelatrisu.opsu.Utils;
+
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -66,7 +68,7 @@ public class SoundStore {
 	/** The number of sound sources enabled - default 8 */
 	private int sourceCount;
 	/** The map of references to IDs of previously loaded sounds */
-	private HashMap<String, Integer> loaded = new HashMap<String, Integer>();
+	private HashMap<String, Integer> loaded = new HashMap<>();
 	/** The ID of the buffer containing the music currently being played */
 	private int currentMusic = -1;
 	/** The OpenGL AL sound sources in use */

@@ -95,7 +95,7 @@ public class Opsu extends StateBasedGame {
 	public static void main(String[] args) {
 		
 		//Log to file and console, enable verbose
-		Log.setVerbose(false);
+		Log.setVerbose(true);
 		Log.setLogSystem(new ExtendedLogSystem(OpsuConstants.PROJECT_NAME));
 		
 

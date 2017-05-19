@@ -101,7 +101,8 @@ public class Utils {
 	}
 
 	/** Minimum memory used by the JVM (in bytes) before running "optional" garbage collection. */
-	private static final long GC_MEMORY_THRESHOLD = 150 * 1_000_000L;  // 150MB
+	//private static final long GC_MEMORY_THRESHOLD = 150 * 1_000_000L;  // 150MB
+	private static final long GC_MEMORY_THRESHOLD = 150 * 1_048_576L; // 150MiB
 
 	/** Baseline memory used by the JVM (in bytes). */
 	private static long baselineMemoryUsed = 0;
@@ -764,7 +765,7 @@ public class Utils {
 	 * @return A list containing the files that match the given pattern
 	 */
 	public static List<File> findFilesRecursively(File source, Pattern regex){
-		final List<File> list = new ArrayList<File>();
+		final List<File> list = new ArrayList<>();
 		if(source.isDirectory()){
 			File[] var0 = source.listFiles();
 			if(var0 != null){

@@ -482,7 +482,7 @@ public enum GameImage {
 	 * @return the full file name, or null if no file found
 	 */
 	private static String getImageFileName(String filename, File dir, byte type, boolean dirOnly) {
-		ArrayList<String> names = new ArrayList<String>(2);
+		ArrayList<String> names = new ArrayList<>(2);
 		if ((type & IMG_PNG) != 0)
 			names.add(String.format("%s.png", filename));
 		if ((type & IMG_JPG) != 0)
@@ -741,7 +741,7 @@ public enum GameImage {
 	private Image[] loadImageArray(File dir) {
 		if (filenameFormat != null) {
 			for (String suffix : getSuffixes()) {
-				List<Image> list = new ArrayList<Image>();
+				List<Image> list = new ArrayList<>();
 				int i = 0;
 				while (true) {
 					// look for next image

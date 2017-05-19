@@ -94,6 +94,7 @@ public class OptionGroup {
 		}),
 		new OptionGroup("options.input.name", null),
 		new OptionGroup("options.input.mouse.name", new GameOption[] {
+			GameOption.THREADED_INPUT,
 			GameOption.DISABLE_MOUSE_WHEEL,
 			GameOption.DISABLE_MOUSE_BUTTONS,
 		}),
@@ -116,6 +117,7 @@ public class OptionGroup {
 		new OptionGroup("options.custom.misc.name", new GameOption[] {
 			GameOption.ENABLE_WATCH_SERVICE,
 			GameOption.LOAD_VERBOSE,
+			GameOption.SHOW_UNSUPPORTED_BEATMAPS,
 		}),
 	};
 
