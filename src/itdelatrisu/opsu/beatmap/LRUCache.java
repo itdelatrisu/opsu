@@ -16,7 +16,7 @@
  * along with opsu!.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package itdelatrisu.opsu.util;
+package itdelatrisu.opsu.beatmap;
 
 import java.util.LinkedHashMap;
 import java.util.Map;

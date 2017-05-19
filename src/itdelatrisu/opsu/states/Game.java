@@ -393,8 +393,8 @@ public class Game extends BasicGameState {
 			Graphics.setCurrent(gOffscreen);
 		}
 
-		// background
-		/* TODO Insert storyboard code here from other branch
+		/* background
+		 * 
 		 * Layers: 
 		 * 
 		 * [TOP LAYER]
@@ -413,22 +413,9 @@ public class Game extends BasicGameState {
 				if (timeDiff < approachTime)
 					dimLevel += (1f - dimLevel) * ((float) timeDiff / approachTime);
 				else
-					//TODO apply gradual re-dim instead
 					dimLevel = 1f;
 			}
-			
-			//Taken from different code
-			int mouseX = input.getMouseX(), mouseY = input.getMouseY();
-			float parallaxX = 0, parallaxY = 0;
-			if (Options.isParallaxEnabled()
-					// && (GameMod.AUTO.isActive() || GameMod.AUTOPILOT.isActive())
-					) {
-				int offset = (int) (height * (GameImage.PARALLAX_SCALE - 1f));
-				parallaxX = -offset / 2f * (mouseX - width / 2) / (width / 2);
-				parallaxY = -offset / 2f * (mouseY - height / 2) / (height / 2);
-			}
-			
-			if (Options.isDefaultPlayfieldForced() || !beatmap.drawBackground(width, height, parallaxX, parallaxY, dimLevel, true)) {
+			if (Options.isDefaultPlayfieldForced() || !beatmap.drawBackground(width, height, 0, 0, dimLevel, true)) {
 				Image bg = GameImage.MENU_BG.getImage();
 				bg.setAlpha(dimLevel);
 				bg.drawCentered(width / 2, height / 2);
@@ -1035,10 +1022,11 @@ public class Game extends BasicGameState {
 				if (trackPosition < breakValue &&
 				    trackPosition < beatmap.objects[objectIndex].getTime() - approachTime)
 					return;
-				
-				// break is over
-				breakTime = 0;
-				breakIndex++;
+				else {
+					// break is over
+					breakTime = 0;
+					breakIndex++;
+				}
 			} else if (trackPosition >= breakValue) {
 				// start a break
 				breakTime = breakValue;
@@ -1087,7 +1075,7 @@ public class Game extends BasicGameState {
 					failTrackTime = MusicController.getPosition(true);
 					MusicController.fadeOut(MUSIC_FADEOUT_TIME);
 					MusicController.pitchFadeOut(MUSIC_FADEOUT_TIME);
-					rotations = new IdentityHashMap<>();
+					rotations = new IdentityHashMap<GameObject, Float>();
 					SoundController.playSound(SoundEffect.FAIL);
 
 					// record to stats
@@ -1602,9 +1590,9 @@ public class Game extends BasicGameState {
 			else {
 				lastKeysPressed = ReplayFrame.KEY_NONE;
 				replaySkipTime = -1;
-				replayFrames = new LinkedList<>();
+				replayFrames = new LinkedList<ReplayFrame>();
 				replayFrames.add(new ReplayFrame(0, 0, input.getMouseX(), input.getMouseY(), 0));
-				lifeFrames = new LinkedList<>();
+				lifeFrames = new LinkedList<LifeFrame>();
 			}
 
 			leadInTime = beatmap.audioLeadIn + approachTime;
@@ -1686,7 +1674,7 @@ public class Game extends BasicGameState {
 		}
 
 		// get hit objects in reverse order, or else overlapping objects are unreadable
-		Stack<Integer> stack = new Stack<>();
+		Stack<Integer> stack = new Stack<Integer>();
 		int spinnerIndex = -1;  // draw spinner first (assume there can only be 1...)
 		for (int index : passedObjects) {
 			if (beatmap.objects[index].isSpinner()) {
@@ -1838,7 +1826,7 @@ public class Game extends BasicGameState {
 	public void resetGameData() {
 		data.clear();
 		objectIndex = 0;
-		passedObjects = new LinkedList<>();
+		passedObjects = new LinkedList<Integer>();
 		breakIndex = 0;
 		breakTime = 0;
 		breakSound = false;
@@ -2371,7 +2359,7 @@ public class Game extends BasicGameState {
 
 		// initialize merged slider structures
 		if (mergedSlider == null) {
-			List<Vec2f> curvePoints = new ArrayList<>();
+			List<Vec2f> curvePoints = new ArrayList<Vec2f>();
 			for (GameObject gameObject : gameObjects) {
 				if (gameObject instanceof Slider) {
 					Slider slider = (Slider) gameObject;

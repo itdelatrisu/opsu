@@ -64,7 +64,7 @@ public class Cursor {
 	private static final float CURSOR_SCALE_TIME = 125;
 
 	/** Stores all previous cursor locations to display a trail. */
-	private LinkedList<Point> trail = new LinkedList<>();
+	private LinkedList<Point> trail = new LinkedList<Point>();
 
 	// game-related variables
 	private static GameContainer container;

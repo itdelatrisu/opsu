@@ -38,6 +38,7 @@ import itdelatrisu.opsu.beatmap.BeatmapSetList;
 import itdelatrisu.opsu.beatmap.BeatmapSetNode;
 import itdelatrisu.opsu.beatmap.BeatmapSortOrder;
 import itdelatrisu.opsu.beatmap.BeatmapWatchService;
+import itdelatrisu.opsu.beatmap.LRUCache;
 import itdelatrisu.opsu.beatmap.BeatmapWatchService.BeatmapWatchServiceListener;
 import itdelatrisu.opsu.beatmap.OszUnpacker;
 import itdelatrisu.opsu.db.BeatmapDB;
@@ -58,7 +59,6 @@ import itdelatrisu.opsu.ui.animations.AnimationEquation;
 import itdelatrisu.opsu.user.UserButton;
 import itdelatrisu.opsu.user.UserList;
 import itdelatrisu.opsu.user.UserSelectOverlay;
-import itdelatrisu.opsu.util.LRUCache;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -160,7 +160,7 @@ public class SongMenu extends BasicGameState {
 	private SongNode oldFocusNode = null;
 
 	/** Stack of previous "random" (F2) focus nodes. */
-	private Stack<SongNode> randomStack = new Stack<>();
+	private Stack<SongNode> randomStack = new Stack<SongNode>();
 
 	/** Current focus node's song information. */
 	private String[] songInfo;
@@ -1070,7 +1070,7 @@ public class SongMenu extends BasicGameState {
 					SoundController.playSound(SoundEffect.MENUCLICK);
 					startNode = focusNode = null;
 					oldFocusNode = null;
-					randomStack = new Stack<>();
+					randomStack = new Stack<SongNode>();
 					songInfo = null;
 					scoreMap = null;
 					focusScores = null;
@@ -1409,7 +1409,7 @@ public class SongMenu extends BasicGameState {
 		userOverlayProgress.setTime(userOverlayProgress.getDuration());
 
 		// reset song stack
-		randomStack = new Stack<>();
+		randomStack = new Stack<SongNode>();
 
 		// reload beatmaps if song folder changed
 		if (songFolderChanged && stateAction != MenuState.RELOAD)
@@ -1507,7 +1507,7 @@ public class SongMenu extends BasicGameState {
 					else {
 						startNode = focusNode = null;
 						oldFocusNode = null;
-						randomStack = new Stack<>();
+						randomStack = new Stack<SongNode>();
 						songInfo = null;
 						scoreMap = null;
 						focusScores = null;
@@ -1548,7 +1548,7 @@ public class SongMenu extends BasicGameState {
 				if (BeatmapGroup.current() == BeatmapGroup.FAVORITE) {
 					startNode = focusNode = null;
 					oldFocusNode = null;
-					randomStack = new Stack<>();
+					randomStack = new Stack<SongNode>();
 					songInfo = null;
 					scoreMap = null;
 					focusScores = null;
@@ -1590,7 +1590,7 @@ public class SongMenu extends BasicGameState {
 
 		if (BeatmapSetList.get().search(search.getText())) {
 			// reset song stack
-			randomStack = new Stack<>();
+			randomStack = new Stack<SongNode>();
 
 			// empty search
 			if (search.getText().isEmpty())
@@ -1889,7 +1889,7 @@ public class SongMenu extends BasicGameState {
 		scoreMap = null;
 		focusScores = null;
 		oldFocusNode = null;
-		randomStack = new Stack<>();
+		randomStack = new Stack<SongNode>();
 		songInfo = null;
 		hoverOffset.setTime(0);
 		hoverIndex = null;
