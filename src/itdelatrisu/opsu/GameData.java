@@ -401,9 +401,9 @@ public class GameData {
 					hitResult.curve.discardGeometry();
 			}
 		}
-		hitResultList = new LinkedBlockingDeque<>();
-		hitErrorList = new LinkedBlockingDeque<>();
-		hitErrors = new ArrayList<>();
+		hitResultList = new LinkedBlockingDeque<HitObjectResult>();
+		hitErrorList = new LinkedBlockingDeque<HitErrorInfo>();
+		hitErrors = new ArrayList<Integer>();
 		performanceString = null;
 		fullObjectCount = 0;
 		combo = 0;
@@ -447,7 +447,7 @@ public class GameData {
 		}
 
 		// score symbol images
-		scoreSymbols = new HashMap<>(14);
+		scoreSymbols = new HashMap<Character, Image>(14);
 		scoreSymbols.put('0', GameImage.SCORE_0.getImage());
 		scoreSymbols.put('1', GameImage.SCORE_1.getImage());
 		scoreSymbols.put('2', GameImage.SCORE_2.getImage());
@@ -756,7 +756,7 @@ public class GameData {
 			// combo burst
 			if (comboBurstIndex != -1 && comboBurstAlpha > 0f) {
 				Image comboBurst = comboBurstImages[comboBurstIndex];
-				//TODO flip image if drawn on the "right"
+				//TODO flip image if drawn on the right side of the screen
 				//if (comboBurstX <= width - comboBurst.getWidth()) comboBurst = comboBurst.getFlippedCopy(true, false);
 				comboBurst.setAlpha(comboBurstAlpha);
 				comboBurst.draw(comboBurstX, height - comboBurst.getHeight());

@@ -337,8 +337,8 @@ public class Download {
 		case DOWNLOADING:
 			if (rbc != null && fos != null && contentLength > 0)
 				return (float) rbc.getReadSoFar() / (float) contentLength * 100f;
-
-			return 0f;
+			else
+				return 0f;
 		case CANCELLED:
 		case ERROR:
 		default:

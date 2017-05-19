@@ -25,7 +25,7 @@ import java.net.URLEncoder;
 /**
  * Project-specific constants.
  */
-public final class OpsuConstants {
+public class OpsuConstants {
 	/** Project name. */
 	public static final String PROJECT_NAME = "opsu!";
 
