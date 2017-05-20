@@ -290,8 +290,7 @@ public enum GameMod {
 		if (sb.length() > 0) {
 			sb.setLength(sb.length() - 1);
 			return sb.toString();
-		}
-		else
+		} else
 			return "None";
 	}
 

@@ -121,6 +121,7 @@ public class Splash extends BasicGameState {
 			throws SlickException {
 		if (!init) {
 			init = true;
+
 			// resources already loaded (from application restart)
 			if (BeatmapSetList.get() != null) {
 				if (newSkin || watchServiceChange) {  // need to reload resources
@@ -155,7 +156,7 @@ public class Splash extends BasicGameState {
 					public void run() {
 						File beatmapDir = Options.getBeatmapDir();
 						File importDir = Options.getImportDir();
-						
+
 						// unpack all OSZ archives
 						OszUnpacker.unpackAllFiles(importDir, beatmapDir);
 
@@ -172,7 +173,7 @@ public class Splash extends BasicGameState {
 						SoundController.init();
 
 						Utils.gc(true);
-						
+
 						finished = true;
 						thread = null;
 					}

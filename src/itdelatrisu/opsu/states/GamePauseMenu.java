@@ -130,7 +130,6 @@ public class GamePauseMenu extends BasicGameState {
 				MusicController.playAt(MusicController.getBeatmap().previewTime, true);
 				if (UI.getCursor().isBeatmapSkinned())
 					UI.getCursor().reset();
-
 				game.enterState(Opsu.STATE_SONGMENU, new EasedFadeOutTransition(), new FadeInTransition());
 			} else {
 				SoundController.playSound(SoundEffect.MENUBACK);
@@ -171,9 +170,8 @@ public class GamePauseMenu extends BasicGameState {
 		} else if (backButton.contains(x, y)) {
 			SoundController.playSound(SoundEffect.MENUBACK);
 			((SongMenu) game.getState(Opsu.STATE_SONGMENU)).resetGameDataOnLoad();
-			if (loseState){
+			if (loseState)
 				MusicController.playAt(MusicController.getBeatmap().previewTime, true);
-			}
 			else
 				MusicController.resume();
 			if (UI.getCursor().isBeatmapSkinned())

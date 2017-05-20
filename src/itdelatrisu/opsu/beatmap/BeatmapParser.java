@@ -166,8 +166,7 @@ public class BeatmapParser {
 					BeatmapDB.LastModifiedMapEntry entry = lastModifiedMap.get(beatmapPath);
 					if (entry != null) {
 						// check last modified times
-						if (entry.getLastModified() == file.lastModified()) {
-							
+						if (entry.getLastModified() == file.lastModified()) {							
 							if (entry.getMode() == Beatmap.MODE_OSU) { // only support standard mode
 								// add to cached beatmap list
 								Beatmap beatmap = new Beatmap(file);
