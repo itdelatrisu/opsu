@@ -125,6 +125,7 @@ public class Splash extends BasicGameState {
 			// resources already loaded (from application restart)
 			if (BeatmapSetList.get() != null) {
 				if (newSkin || watchServiceChange) {  // need to reload resources
+					
 					thread = new Thread() {
 						@Override
 						public void run() {
@@ -162,11 +163,11 @@ public class Splash extends BasicGameState {
 						// parse song directory
 						BeatmapParser.parseAllFiles(beatmapDir);
 
-						// import skins
-						SkinUnpacker.unpackAllFiles(importDir, Options.getSkinRootDir());
-
 						// import replays
 						ReplayImporter.importAllReplaysFromDir(importDir);
+						
+						// import skins
+						SkinUnpacker.unpackAllFiles(importDir, Options.getSkinRootDir());
 
 						// load sounds
 						SoundController.init();

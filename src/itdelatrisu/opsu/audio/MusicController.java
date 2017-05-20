@@ -100,7 +100,7 @@ public class MusicController {
 		if (lastBeatmap == null || !beatmap.audioFilename.equals(lastBeatmap.audioFilename)) {
 			final File audioFile = beatmap.audioFilename;
 			if (!audioFile.isFile() && !ResourceLoader.resourceExists(audioFile.getPath())) {
-				UI.getNotificationManager().sendBarNotification(String.format("Could not find track '%s'.", audioFile.getName()));
+				UI.getNotificationManager().sendBarNotification("ui.notifications.audio.track.notFound", audioFile.getName());
 				return;
 			}
 
@@ -146,9 +146,7 @@ public class MusicController {
 				player = null;
 				trackEnded = false;
 				UI.getNotificationManager().sendNotification(
-					"Looks like sound isn't working right now. Sorry!\n\n" +
-					"Restarting the game will probably fix this.",
-					Color.red
+					"ui.notifications.audio.alNotLoaded", Color.red
 				);
 				return;
 			}

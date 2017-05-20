@@ -277,7 +277,7 @@ public class DownloadsMenu extends BasicGameState {
 			if (dirs != null && dirs.length > 0) {
 				this.importedNode = BeatmapParser.parseDirectories(dirs);
 				if (importedNode == null)
-					UI.getNotificationManager().sendNotification("No Standard beatmaps could be loaded.", Color.red);
+					UI.getNotificationManager().sendNotification("ui.notifications.beatmaps.import.none", Color.red);
 			}
 
 			DownloadList.get().clearDownloads(Download.Status.COMPLETE);
@@ -688,7 +688,7 @@ public class DownloadsMenu extends BasicGameState {
 											if (playing)
 												previewID = node.getID();
 										} catch (SlickException e) {
-											UI.getNotificationManager().sendBarNotification("Failed to load track preview. See log for details.");
+											UI.getNotificationManager().sendBarNotification("ui.notifications.audio.track.preview.failed");
 											Log.error(e);
 										}
 									}
@@ -710,7 +710,7 @@ public class DownloadsMenu extends BasicGameState {
 								if (!DownloadList.get().contains(node.getID())) {
 									node.createDownload(serverMenu.getSelectedItem());
 									if (node.getDownload() == null)
-										UI.getNotificationManager().sendBarNotification("The download could not be started.");
+										UI.getNotificationManager().sendBarNotification("ui.notifications.download.start.error");
 									else {
 										DownloadList.get().addNode(node);
 										node.getDownload().start();

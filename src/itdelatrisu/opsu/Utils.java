@@ -52,11 +52,13 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Scanner;
 import java.util.jar.JarFile;
+import java.util.regex.Pattern;
 
 import javax.imageio.ImageIO;
 import javax.net.ssl.HttpsURLConnection;
@@ -176,11 +178,7 @@ public class Utils {
 		// warn about software mode
 		if (((Container) container).isSoftwareMode()) {
 			UI.getNotificationManager().sendNotification(
-				"WARNING:\n" +
-				"Running in OpenGL software mode.\n" +
-				"You may experience severely degraded performance.\n\n" +
-				"This can usually be resolved by updating your graphics drivers.",
-				Color.red
+				"ui.notifications.graphics.glWarning", Color.red
 			);
 		}
 	}
@@ -359,7 +357,7 @@ public class Utils {
 					}
 					ImageIO.write(image, Options.getScreenshotFormat(), file);
 					UI.getNotificationManager().sendNotification(
-						String.format("Saved screenshot to %s", file.getAbsolutePath()),
+							"ui.notifications.graphics.screenshot",
 						Colors.PURPLE,
 						new NotificationListener() {
 							@Override
@@ -370,7 +368,8 @@ public class Utils {
 									Log.warn("Failed to open screenshot location.", e);
 								}
 							}
-						}
+						},
+						file.getAbsolutePath()
 					);
 				} catch (Exception e) {
 					ErrorHandler.error("Failed to take a screenshot.", e, true);
@@ -755,5 +754,37 @@ public class Utils {
 	public static long getUsedMemory() {
 		Runtime r = Runtime.getRuntime();
 		return r.totalMemory() - r.freeMemory();
+	}
+
+	/**
+	 * Finds files with names that match the given pattern,
+	 * starting from the given directory to all subdirectories
+	 * 
+	 * @param source A directory to look for files in (if this is a file, it will instead use the parent directory of the file)
+	 * @param regex The pattern used to accept files based on their names, null if accept all files
+	 * @return A list containing the files that match the given pattern
+	 */
+	public static List<File> findFilesRecursively(File source, Pattern regex){
+		final List<File> list = new ArrayList<File>();
+		if(source.isDirectory()){
+			File[] var0 = source.listFiles();
+			if(var0 != null){
+				for(File fl : var0){
+					
+					if(fl.isDirectory() && !(fl.getName().equals(".") || fl.getName().equals(".."))){
+						list.addAll(findFilesRecursively(fl, regex));
+					}else if(regex == null){
+						list.add(fl);
+					}else if(regex != null){
+						if(regex.matcher(fl.getName()).matches()){
+							list.add(fl);
+						}
+					}
+				}
+			}
+		}else{
+			return findFilesRecursively(source.getParentFile(), regex);
+		}
+		return list;
 	}
 }

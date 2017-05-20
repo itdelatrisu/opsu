@@ -154,6 +154,24 @@ public class MultiClip {
 		clip.setFramePosition(0);
 		clip.start();
 	}
+	
+	/**
+	 * Stops the currently active clip.
+	 * If there is no clip active, this method simply returns.
+	 */
+	public void stop(){
+		try {
+			Clip clip = getClip();
+			if (clip == null)
+				return;
+			
+			if(clip.isActive())
+			clip.stop();
+			
+		} catch (LineUnavailableException e) {
+			//ignore, as we are "stopping" the clip from playing
+		}
+	}
 
 	/**
 	 * Returns a Clip that is not playing from the list.

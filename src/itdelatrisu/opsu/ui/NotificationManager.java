@@ -18,6 +18,7 @@
 
 package itdelatrisu.opsu.ui;
 
+import itdelatrisu.opsu.translations.LocaleManager;
 import itdelatrisu.opsu.ui.animations.AnimationEquation;
 
 import java.util.ArrayList;
@@ -334,25 +335,69 @@ public class NotificationManager {
 
 	/**
 	 * Submits a bubble notification for drawing.
-	 * @param s the notification string
+	 * This method uses the default {@link Color#white} when drawing the notification borders
+	 * and does not have any associated {@link NotificationListener}s associated with it.
+	 * @param msg the notification string (without formatting)
 	 */
-	public void sendNotification(String s) { sendNotification(s, Color.white); }
+	public void sendNotification(String msg){
+		sendNotification(msg, Color.white);
+	}
 
 	/**
 	 * Submits a bubble notification for drawing.
-	 * @param s the notification string
-	 * @param c the border color
+	 * This method uses the default {@link Color#white} when drawing the notification borders
+	 * and does not have any associated {@link NotificationListener}s associated with it.
+	 * @param msg the notification string (with formatting)
+	 * @param args The formatting arguments for the notification string
 	 */
-	public void sendNotification(String s, Color c) { sendNotification(s, c, null); }
+	public void sendNotification(String msg, Object... args) {
+		sendNotification(msg, Color.white, args);
+	}
 
 	/**
 	 * Submits a bubble notification for drawing.
-	 * @param s the notification string
-	 * @param c the border color
-	 * @param listener the listener
+	 * This method uses the provided color when drawing the notification borders
+	 * but does not have any associated {@link NotificationListener}s associated with it.
+	 * @param msg the notification string (without formatting)
+	 * @param clr the border color
 	 */
-	public synchronized void sendNotification(String s, Color c, NotificationListener listener) {
-		BubbleNotification notif = new BubbleNotification(s, c, listener, container.getWidth() / 5);
+	public void sendNotification(String msg, Color clr) { 
+		sendNotification(msg, clr, (NotificationListener)null, new Object[0]);
+	}
+
+	/**
+	 * Submits a bubble notification for drawing.
+	 * This method uses the provided color when drawing the notification borders
+	 * but does not have any associated {@link NotificationListener}s associated with it.
+	 * @param msg the notification string (with formatting)
+	 * @param clr the border color
+	 * @param args The formatting for the notification string
+	 */
+	public void sendNotification(String msg, Color clr, Object... args) { 
+		sendNotification(msg, clr, (NotificationListener)null, args);
+	}
+	
+	/**
+	 * Submits a bubble notification for drawing.
+	 * @param msg The notification string (without formatting)
+	 * @param clr The border color of the notification
+	 * @param listener The listener that is to be notified when an event relating to the notification occurs
+	 * @param args The formatting for the notification string 
+	 */
+	public void sendNotification(String msg, Color clr, NotificationListener listener) {
+		sendNotification(msg, clr, listener, new Object[0]);
+	}
+
+	/**
+	 * Submits a bubble notification for drawing.
+	 * @param msg The notification string
+	 * @param clr The border color of the notification
+	 * @param listener The listener that is to be notified when an event relating to the notification occurs
+	 * @param args The formatting for the notification string, if any
+	 */
+	public synchronized void sendNotification(String msg, Color clr, NotificationListener listener, Object... args) {
+		msg = LocaleManager.translateKeyFormatted(msg, args);
+		BubbleNotification notif = new BubbleNotification(msg, clr, listener, container.getWidth() / 5);
 		int x, y;
 		int bottomY = (int) (container.getHeight() * 0.9645f);
 		int paddingX = 6;
@@ -372,14 +417,23 @@ public class NotificationManager {
 		notif.setPosition(x, y);
 		notifications.add(notif);
 	}
-
+	
 	/**
 	 * Submits a bar notification for drawing.
-	 * @param s the notification string
+	 * @param msg The notification string (without formatting)
 	 */
-	public void sendBarNotification(String s) {
-		if (s != null) {
-			barNotif = s;
+	public void sendBarNotification(String msg){
+		sendBarNotification(msg, new Object[0]);
+	}
+	
+	/**
+	 * Submits a bar notification for drawing.
+	 * @param msg The notification string (with formatting)
+	 * @param args The formatting for the notification string
+	 */
+	public void sendBarNotification(String msg, Object... args) {
+		if (msg != null) {
+			barNotif = LocaleManager.translateKeyFormatted(msg, args);
 			barNotifTimer = 0;
 		}
 	}

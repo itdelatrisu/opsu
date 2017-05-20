@@ -267,10 +267,10 @@ public class SoundController {
 
 		// show a notification if any files failed to load
 		if (failedCount > 0) {
-			String text = String.format("Failed to load %d audio file%s.", failedCount, failedCount == 1 ? "" : "s");
+			String text = "ui.notifications.audio.error";
 			NotificationListener listener = null;
 			if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.OPEN)) {
-				text += "\nClick for details.";
+				text += ".view";
 				listener = new NotificationListener() {
 					@Override
 					public void click() {
@@ -280,7 +280,7 @@ public class SoundController {
 					}
 				};
 			}
-			UI.getNotificationManager().sendNotification(text, Color.red, listener);
+			UI.getNotificationManager().sendNotification(text, Color.red, listener, failedCount);
 		}
 	}
 
@@ -310,6 +310,14 @@ public class SoundController {
 				ErrorHandler.error(String.format("Could not start a clip '%s'.", clip.getName()), e, true);
 			}
 		}
+	}
+	
+	/**
+	 * Stops playing a sound, if it is currently active
+	 * @param s The sound effect
+	 */
+	public static void stopSound(SoundComponent s) {
+		s.getClip().stop();
 	}
 
 	/**
@@ -413,7 +421,7 @@ public class SoundController {
 
 				@Override
 				public void error() {
-					UI.getNotificationManager().sendBarNotification("Failed to download track preview.");
+					UI.getNotificationManager().sendBarNotification("ui.notifications.audio.track.preview.failed");
 				}
 			});
 			try {

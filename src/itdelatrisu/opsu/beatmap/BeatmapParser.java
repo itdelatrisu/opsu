@@ -166,8 +166,8 @@ public class BeatmapParser {
 					BeatmapDB.LastModifiedMapEntry entry = lastModifiedMap.get(beatmapPath);
 					if (entry != null) {
 						// check last modified times
-						if (entry.getLastModified() == file.lastModified()) {
-							if (entry.getMode() == Beatmap.MODE_OSU) {  // only support standard mode
+						if (entry.getLastModified() == file.lastModified()) {							
+							if (entry.getMode() == Beatmap.MODE_OSU) { // only support standard mode
 								// add to cached beatmap list
 								Beatmap beatmap = new Beatmap(file);
 								beatmaps.add(beatmap);
@@ -261,7 +261,7 @@ public class BeatmapParser {
 	 * @param parseObjects if true, hit objects will be fully parsed now
 	 * @return the new beatmap
 	 */
-	private static Beatmap parseFile(File file, File dir, ArrayList<Beatmap> beatmaps, boolean parseObjects) {
+	private static Beatmap parseFile(File file, File dir, List<Beatmap> beatmaps, boolean parseObjects) {
 		Beatmap beatmap = new Beatmap(file);
 		beatmap.timingPoints = new ArrayList<TimingPoint>();
 
@@ -798,7 +798,6 @@ public class BeatmapParser {
 	public static int getParserProgress() {
 		if (currentDirectoryIndex == -1 || totalDirectories == -1)
 			return -1;
-
 		return currentDirectoryIndex * 100 / totalDirectories;
 	}
 

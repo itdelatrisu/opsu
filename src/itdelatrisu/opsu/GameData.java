@@ -757,7 +757,7 @@ public class GameData {
 			if (comboBurstIndex != -1 && comboBurstAlpha > 0f) {
 				Image comboBurst = comboBurstImages[comboBurstIndex];
 				comboBurst.setAlpha(comboBurstAlpha);
-				comboBurstImages[comboBurstIndex].draw(comboBurstX, height - comboBurst.getHeight());
+				comboBurst.draw(comboBurstX, height - comboBurst.getHeight());
 			}
 
 			// combo count

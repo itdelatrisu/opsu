@@ -201,16 +201,19 @@ public class UI {
 			return;
 
 		int fps = Math.round(fpsDisplay);
+		
+		Color clr = (fps >= Options.getTargetFPS() ? Color.green : (fps >= Options.getTargetFPS() / 2 ? Color.orange : Color.red));
+		
 		String s = String.format("%dFPS", fps);
 		Fonts.BOLD.drawString(
 			container.getWidth() * 0.997f - Fonts.BOLD.getWidth(s),
 			container.getHeight() * 0.997f - Fonts.BOLD.getHeight(s),
-			Integer.toString(fps), Color.white
+			Integer.toString(fps), clr
 		);
 		Fonts.DEFAULT.drawString(
 			container.getWidth() * 0.997f - Fonts.BOLD.getWidth("FPS"),
 			container.getHeight() * 0.997f - Fonts.BOLD.getHeight("FPS"),
-			"FPS", Color.white
+			"FPS", clr
 		);
 	}
 

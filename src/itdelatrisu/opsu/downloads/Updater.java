@@ -23,6 +23,7 @@ import itdelatrisu.opsu.OpsuConstants;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.downloads.Download.DownloadListener;
 import itdelatrisu.opsu.options.Options;
+import itdelatrisu.opsu.translations.LocaleManager;
 import itdelatrisu.opsu.ui.Colors;
 import itdelatrisu.opsu.ui.UI;
 
@@ -63,24 +64,25 @@ public class Updater {
 	/** Updater status. */
 	public enum Status {
 		INITIAL (""),
-		CHECKING ("Checking for updates..."),
-		CONNECTION_ERROR ("Connection error."),
-		INTERNAL_ERROR ("Internal error."),
-		UP_TO_DATE ("Up to date!"),
-		UPDATE_AVAILABLE ("Update available!\nClick to download."),
-		UPDATE_DOWNLOADING ("Downloading update...") {
+		CHECKING ("ui.updater.state.checking"),
+		CONNECTION_ERROR ("ui.updater.state.error.connection"),
+		INTERNAL_ERROR ("ui.updater.state.error.internal"),
+		UP_TO_DATE ("ui.updater.state.upToDate"),
+		UPDATE_AVAILABLE ("ui.updater.state.update.available"),
+		UPDATE_DOWNLOADING ("ui.updater.state.update.downloading") {
 			@Override
 			public String getDescription() {
 				Download d = updater.download;
 				if (d != null && d.getStatus() == Download.Status.DOWNLOADING) {
-					return String.format("Downloading update...\n%.1f%% complete (%s/%s)",
-							d.getProgress(), Utils.bytesToString(d.readSoFar()), Utils.bytesToString(d.contentLength()));
+					return LocaleManager.translateKeyFormatted("ui.updater.state.update.downloading.progress", 
+						d.getProgress(), Utils.bytesToString(d.readSoFar()), Utils.bytesToString(d.contentLength()));
+					
 				} else
 					return super.getDescription();
 			}
 		},
-		UPDATE_DOWNLOADED ("Download complete.\nClick to restart."),
-		UPDATE_FINAL ("Update queued.");
+		UPDATE_DOWNLOADED ("ui.updater.state.update.downloaded"),
+		UPDATE_FINAL ("ui.updater.state.update.queued");
 
 		/** The status description. */
 		private final String description;
@@ -96,7 +98,7 @@ public class Updater {
 		/**
 		 * Returns the status description.
 		 */
-		public String getDescription() { return description; }
+		public String getDescription() { return LocaleManager.translateKey(description); }
 	};
 
 	/** The current updater status. */
@@ -274,13 +276,13 @@ public class Updater {
 				@Override
 				public void completed() {
 					status = Status.UPDATE_DOWNLOADED;
-					UI.getNotificationManager().sendNotification("Update has finished downloading.", Colors.GREEN);
+					UI.getNotificationManager().sendNotification("ui.notifications.update.download.complete", Colors.GREEN);
 				}
 
 				@Override
 				public void error() {
 					status = Status.CONNECTION_ERROR;
-					UI.getNotificationManager().sendNotification("Update failed due to a connection error.", Color.red);
+					UI.getNotificationManager().sendNotification("ui.notifications.update.download.failed", Color.red);
 				}
 			});
 		}

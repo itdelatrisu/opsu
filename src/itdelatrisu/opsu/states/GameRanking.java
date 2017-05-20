@@ -199,7 +199,7 @@ public class GameRanking extends BasicGameState {
 				gameState.setPlayState((data.isGameplay()) ? Game.PlayState.REPLAY : Game.PlayState.FIRST_LOAD);
 				returnToGame = true;
 			} else
-				UI.getNotificationManager().sendBarNotification("Replay file not found.");
+				UI.getNotificationManager().sendBarNotification("ui.notifications.replay.notFound");
 		}
 
 		// retry
@@ -215,6 +215,7 @@ public class GameRanking extends BasicGameState {
 			Beatmap beatmap = MusicController.getBeatmap();
 			gameState.loadBeatmap(beatmap);
 			SoundController.playSound(SoundEffect.MENUHIT);
+			
 			game.enterState(Opsu.STATE_GAME, new EasedFadeOutTransition(), new FadeInTransition());
 			return;
 		}
@@ -254,6 +255,8 @@ public class GameRanking extends BasicGameState {
 		this.data = null;
 		if (MusicController.isTrackDimmed())
 			MusicController.toggleTrackDimmed(1f);
+
+		SoundController.stopSound(SoundEffect.APPLAUSE);
 	}
 
 	/**
@@ -282,7 +285,7 @@ public class GameRanking extends BasicGameState {
 				// file not found
 			} catch (IOException e) {
 				Log.error("Failed to load replay data.", e);
-				UI.getNotificationManager().sendNotification("Failed to load replay data.\nSee log for details.", Color.red);
+				UI.getNotificationManager().sendNotification("ui.notifications.replay.error", Color.red);
 			}
 		}
 		// else file not found
