@@ -843,11 +843,7 @@ public abstract class GameContainer implements GUIContext {
 	 */
 	public void setVSync(boolean vsync) {
 		this.vsync = vsync;
-		try{
-			Display.setVSyncEnabled(vsync);
-		} catch (Exception e) {
-			Log.error("GL error", e);
-		}
+		Display.setVSyncEnabled(vsync);
 	}
 	
 	/**

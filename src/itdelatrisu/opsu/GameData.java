@@ -756,8 +756,6 @@ public class GameData {
 			// combo burst
 			if (comboBurstIndex != -1 && comboBurstAlpha > 0f) {
 				Image comboBurst = comboBurstImages[comboBurstIndex];
-				//TODO flip image if drawn on the right side of the screen
-				//if (comboBurstX <= width - comboBurst.getWidth()) comboBurst = comboBurst.getFlippedCopy(true, false);
 				comboBurst.setAlpha(comboBurstAlpha);
 				comboBurst.draw(comboBurstX, height - comboBurst.getHeight());
 			}

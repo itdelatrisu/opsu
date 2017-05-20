@@ -53,7 +53,7 @@ public class BeatmapParser {
 
 	/** The expected pattern for beatmap directories, used to find beatmap set IDs. */
 	private static final String DIR_MSID_PATTERN = "^\\d+ .*";
-	
+
 	/** The current file being parsed. */
 	private static File currentFile;
 
@@ -71,7 +71,6 @@ public class BeatmapParser {
 
 	/** If no Provider supports a MessageDigestSpi implementation for the MD5 algorithm. */
 	private static boolean hasNoMD5Algorithm = false;
-	
 
 	// This class should not be instantiated.
 	private BeatmapParser() {}
@@ -169,14 +168,14 @@ public class BeatmapParser {
 						// check last modified times
 						if (entry.getLastModified() == file.lastModified()) {
 							
-							if(entry.getMode() == Beatmap.MODE_OSU) { // only support standard mode
+							if (entry.getMode() == Beatmap.MODE_OSU) { // only support standard mode
 								// add to cached beatmap list
 								Beatmap beatmap = new Beatmap(file);
 								beatmaps.add(beatmap);
 								cachedBeatmaps.add(beatmap);
 							}
 							continue;
-						} else // out of sync, delete cache entry and re-parse
+						} else  // out of sync, delete cache entry and re-parse
 							BeatmapDB.delete(dir.getName(), file.getName());
 					}
 				}
@@ -240,7 +239,7 @@ public class BeatmapParser {
 		}
 
 		// clear string DB
-		stringdb.clear();
+		stringdb = new HashMap<String, String>();
 
 		// add beatmap entries to database
 		if (!parsedBeatmaps.isEmpty()) {
@@ -789,9 +788,8 @@ public class BeatmapParser {
 	public static String getCurrentFileName() {
 		if (status == Status.PARSING)
 			return (currentFile != null) ? currentFile.getName() : null;
-			
-
-		return (status == Status.NONE) ? null : "";
+		else
+			return (status == Status.NONE) ? null : "";
 	}
 
 	/**
@@ -801,7 +799,6 @@ public class BeatmapParser {
 	public static int getParserProgress() {
 		if (currentDirectoryIndex == -1 || totalDirectories == -1)
 			return -1;
-		
 		return currentDirectoryIndex * 100 / totalDirectories;
 	}
 
@@ -821,7 +818,7 @@ public class BeatmapParser {
 		if (DBString == null) {
 			stringdb.put(s, s);
 			return s;
-		}else 
+		} else
 			return DBString;
 	}
 }

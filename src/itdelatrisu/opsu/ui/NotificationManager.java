@@ -51,10 +51,7 @@ public class NotificationManager {
 		public void click();
 	}
 
-	/** 
-	 * The default bubble notification,
-	 * appears in the lower-right side of the screen
-	 */
+	/** Notification. */
 	private class BubbleNotification {
 		/** The listener. */
 		private final NotificationListener listener;
@@ -90,7 +87,7 @@ public class NotificationManager {
 		 * @param listener the listener
 		 * @param width the element width
 		 */
-		private BubbleNotification(String s, Color c, NotificationListener listener, int width) {
+		public BubbleNotification(String s, Color c, NotificationListener listener, int width) {
 			this.message = s;
 			this.lines = Fonts.wrap(font, s, (int) (width * 0.96f), true);
 			this.borderColor = new Color(c);
@@ -228,7 +225,7 @@ public class NotificationManager {
 	 * Constructor.
 	 * @param container the game container
 	 */
-	NotificationManager(GameContainer container) {
+	public NotificationManager(GameContainer container) {
 		this.container = container;
 		this.input = container.getInput();
 		this.notifications = Collections.synchronizedList(new ArrayList<BubbleNotification>());
@@ -340,23 +337,55 @@ public class NotificationManager {
 	 * Submits a bubble notification for drawing.
 	 * This method uses the default {@link Color#white} when drawing the notification borders
 	 * and does not have any associated {@link NotificationListener}s associated with it.
-	 * @param msg the notification string
-	 * @param args The formatting for the notification string, if any
+	 * @param msg the notification string (without formatting)
+	 */
+	public void sendNotification(String msg){
+		sendNotification(msg, Color.white);
+	}
+
+	/**
+	 * Submits a bubble notification for drawing.
+	 * This method uses the default {@link Color#white} when drawing the notification borders
+	 * and does not have any associated {@link NotificationListener}s associated with it.
+	 * @param msg the notification string (with formatting)
+	 * @param args The formatting arguments for the notification string
 	 */
 	public void sendNotification(String msg, Object... args) {
 		sendNotification(msg, Color.white, args);
 	}
-	
+
 	/**
 	 * Submits a bubble notification for drawing.
 	 * This method uses the provided color when drawing the notification borders
 	 * but does not have any associated {@link NotificationListener}s associated with it.
-	 * @param msg the notification string
+	 * @param msg the notification string (without formatting)
 	 * @param clr the border color
-	 * @param args The formatting for the notification string, if any
+	 */
+	public void sendNotification(String msg, Color clr) { 
+		sendNotification(msg, clr, (NotificationListener)null, new Object[0]);
+	}
+
+	/**
+	 * Submits a bubble notification for drawing.
+	 * This method uses the provided color when drawing the notification borders
+	 * but does not have any associated {@link NotificationListener}s associated with it.
+	 * @param msg the notification string (with formatting)
+	 * @param clr the border color
+	 * @param args The formatting for the notification string
 	 */
 	public void sendNotification(String msg, Color clr, Object... args) { 
 		sendNotification(msg, clr, (NotificationListener)null, args);
+	}
+	
+	/**
+	 * Submits a bubble notification for drawing.
+	 * @param msg The notification string (without formatting)
+	 * @param clr The border color of the notification
+	 * @param listener The listener that is to be notified when an event relating to the notification occurs
+	 * @param args The formatting for the notification string 
+	 */
+	public void sendNotification(String msg, Color clr, NotificationListener listener) {
+		sendNotification(msg, clr, listener, new Object[0]);
 	}
 
 	/**
@@ -388,11 +417,19 @@ public class NotificationManager {
 		notif.setPosition(x, y);
 		notifications.add(notif);
 	}
-
+	
 	/**
 	 * Submits a bar notification for drawing.
-	 * @param msg The notification string
-	 * @param args The formatting for the notification string, if any
+	 * @param msg The notification string (without formatting)
+	 */
+	public void sendBarNotification(String msg){
+		sendBarNotification(msg, new Object[0]);
+	}
+	
+	/**
+	 * Submits a bar notification for drawing.
+	 * @param msg The notification string (with formatting)
+	 * @param args The formatting for the notification string
 	 */
 	public void sendBarNotification(String msg, Object... args) {
 		if (msg != null) {

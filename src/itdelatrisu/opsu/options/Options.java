@@ -196,7 +196,7 @@ public class Options {
 	}
 
 	/**
-	 * Returns the osu! installation directory (currently supports Windows only)
+	 * Returns the osu! installation directory.
 	 * @return the directory, or null if not found
 	 */
 	private static File getOsuInstallationDirectory() {
@@ -224,7 +224,7 @@ public class Options {
 	}
 
 	/** Game options. */
-	public static enum GameOption {
+	public enum GameOption {
 		// internal options (not displayed in-game)
 		BEATMAP_DIRECTORY ("BeatmapDirectory") {
 			@Override
@@ -755,7 +755,6 @@ public class Options {
 		 * Returns the option name.
 		 * @return the name string
 		 */
-		//public String getName() { return name; }
 		public String getName() { return LocaleManager.translateKey(name); }
 
 		/**
@@ -768,7 +767,6 @@ public class Options {
 		 * Returns the option description.
 		 * @return the description string
 		 */
-		//public String getDescription() { return description; }
 		public String getDescription() { return LocaleManager.translateKey(name + ".desc"); }
 
 		/**

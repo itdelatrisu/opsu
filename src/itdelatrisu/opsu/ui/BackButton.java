@@ -46,7 +46,8 @@ public class BackButton {
 	/** Target duration, in ms, of the button animations. */
 	private static final int ANIMATION_TIME = 500;
 	
-	private final GameContainer ownerObject;
+	/** The current container of this button. */
+	private final GameContainer container;
 
 	/** Button texts. */
 	private String previousText = "back", currentText = "back";
@@ -98,7 +99,7 @@ public class BackButton {
 	 * @param container the game container
 	 */
 	public BackButton(GameContainer container) {
-		ownerObject = container;
+		this.container = container;
 		
 		// not skinned: dynamic button
 		if (!GameImage.MENU_BACK.hasGameSkinImage()) {
@@ -193,7 +194,7 @@ public class BackButton {
 			paddingY *= 0.736f;
 			paddingX = paddingY / 2f;
 			chevronBaseSize = paddingY * 3f / 2f;
-			buttonYpos = (int) (ownerObject.getHeight() - paddingY * 4f);
+			buttonYpos = (int) (container.getHeight() - paddingY * 4f);
 			slopeImageSize = (int) (paddingY * 3f);
 			slopeImageSlopeWidth = (int) (slopeImageSize * 0.295f);
 			firstButtonWidth = slopeImageSize;

@@ -52,6 +52,7 @@ import org.newdawn.slick.util.ResourceLoader;
  * @author Kevin Glass
  * @author Rockstar setVolume cleanup 
  */
+@SuppressWarnings({"rawtypes", "unchecked", "unused"})
 public class SoundStore {
 	
 	/** The single instance of this class */
@@ -66,13 +67,13 @@ public class SoundStore {
 	/** The number of sound sources enabled - default 8 */
 	private int sourceCount;
 	/** The map of references to IDs of previously loaded sounds */
-	private HashMap<String, Integer> loaded = new HashMap<String, Integer>();
+	private HashMap loaded = new HashMap();
 	/** The ID of the buffer containing the music currently being played */
 	private int currentMusic = -1;
 	/** The OpenGL AL sound sources in use */
 	private IntBuffer sources;
 	/** The next source to be used for sound effects */
-	//private int nextSource;
+	private int nextSource;
 	/** True if the sound system has been initialise */
 	private boolean inited = false;
 	/** The MODSound to be updated */
@@ -317,8 +318,7 @@ public class SoundStore {
 		Log.info("Initialising sounds..");
 		inited = true;
 		
-		
-		AccessController.doPrivileged(new PrivilegedAction<Object>() {
+		AccessController.doPrivileged(new PrivilegedAction() {
 			@Override
 			public Object run() {
 				try {
@@ -667,7 +667,7 @@ public class SoundStore {
 		int buffer = -1;
 		
 		if (loaded.get(ref) != null) {
-			buffer = loaded.get(ref).intValue();
+			buffer = ((Integer) loaded.get(ref)).intValue();
 		} else {
 			try {
 				IntBuffer buf = BufferUtils.createIntBuffer(1);
@@ -740,7 +740,7 @@ public class SoundStore {
 		int buffer = -1;
 		
 		if (loaded.get(ref) != null) {
-			buffer = loaded.get(ref).intValue();
+			buffer = ((Integer) loaded.get(ref)).intValue();
 		} else {
 			try {
 				IntBuffer buf = BufferUtils.createIntBuffer(1);
@@ -861,7 +861,7 @@ public class SoundStore {
 		int buffer = -1;
 		
 		if (loaded.get(ref) != null) {
-			buffer = loaded.get(ref).intValue();
+			buffer = ((Integer) loaded.get(ref)).intValue();
 		} else {
 			try {
 				IntBuffer buf = BufferUtils.createIntBuffer(1);

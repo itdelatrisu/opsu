@@ -48,7 +48,6 @@ public enum GameMod {
 //	              "mod.perfect"),
 	DOUBLE_TIME   (Category.HARD, 2, GameImage.MOD_DOUBLE_TIME, "DT", 64, Input.KEY_D, 1.12f,
 	              "mod.doubleTime"),
-//	TODO support pitch-shifting??? (1.5x pitch, this is linked to speed multiplier)
 //	NIGHTCORE     (Category.HARD, 2, GameImage.MOD_NIGHTCORE, "NC", 64, Input.KEY_D, 1.12f,
 //	              "mod.nightcore"),
 	HIDDEN        (Category.HARD, 3, GameImage.MOD_HIDDEN, "HD", 8, Input.KEY_F, 1.06f,
@@ -61,11 +60,11 @@ public enum GameMod {
 	              "mod.autopilot"),
 	SPUN_OUT      (Category.SPECIAL, 2, GameImage.MOD_SPUN_OUT, "SO", 4096, Input.KEY_C, 0.9f,
 	              "mod.spunout"),
-	AUTO          (Category.SPECIAL, 3, GameImage.MOD_AUTO, "AT", 2048, Input.KEY_V, 1f,
+	AUTO          (Category.SPECIAL, 3, GameImage.MOD_AUTO, "", 2048, Input.KEY_V, 1f,
 	              "mod.autoplay");
 
 	/** Mod categories. */
-	public static enum Category {
+	public enum Category {
 		EASY    (0, "mod.category.easy", Color.green),
 		HARD    (1, "mod.category.hard", Color.red),
 		SPECIAL (2, "mod.category.special", Color.white);
@@ -292,7 +291,8 @@ public enum GameMod {
 			sb.setLength(sb.length() - 1);
 			return sb.toString();
 		}
-		return "None";
+		else
+			return "None";
 	}
 
 	/**

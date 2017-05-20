@@ -155,6 +155,10 @@ public class MultiClip {
 		clip.start();
 	}
 	
+	/**
+	 * Stops the currently active clip.
+	 * If there is no clip active, this method simply returns.
+	 */
 	public void stop(){
 		try {
 			Clip clip = getClip();

@@ -34,6 +34,8 @@ import itdelatrisu.opsu.ui.UI;
 import itdelatrisu.opsu.ui.animations.AnimatedValue;
 import itdelatrisu.opsu.ui.animations.AnimationEquation;
 
+import java.io.File;
+
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
@@ -119,13 +121,13 @@ public class Splash extends BasicGameState {
 			throws SlickException {
 		if (!init) {
 			init = true;
-			
 			// resources already loaded (from application restart)
 			if (BeatmapSetList.get() != null) {
 				if (newSkin || watchServiceChange) {  // need to reload resources
 					
-					thread = new Thread(){
-						public void run(){
+					thread = new Thread() {
+						@Override
+						public void run() {
 							// reload beatmaps if watch service newly enabled
 							if (watchServiceChange)
 								BeatmapParser.parseAllFiles(Options.getBeatmapDir());
@@ -138,6 +140,7 @@ public class Splash extends BasicGameState {
 							Utils.gc(true);
 
 							finished = true;
+							thread = null;
 						}
 					};
 					thread.start();
@@ -147,26 +150,31 @@ public class Splash extends BasicGameState {
 
 			// load all resources in a new thread
 			else {
-				
-				thread = new Thread(){
+				thread = new Thread() {
+					@Override
 					public void run() {
+						File beatmapDir = Options.getBeatmapDir();
+						File importDir = Options.getImportDir();
+						
 						// unpack all OSZ archives
-						OszUnpacker.unpackAllFiles(Options.getImportDir(), Options.getBeatmapDir());
+						OszUnpacker.unpackAllFiles(importDir, beatmapDir);
 
 						// parse song directory
-						BeatmapParser.parseAllFiles(Options.getBeatmapDir());
+						BeatmapParser.parseAllFiles(beatmapDir);
 
 						// import replays
-						ReplayImporter.importAllReplaysFromDir(Options.getImportDir());
+						ReplayImporter.importAllReplaysFromDir(importDir);
 						
 						// import skins
-						SkinUnpacker.unpackAllFiles(Options.getImportDir(), Options.getSkinRootDir());
+						SkinUnpacker.unpackAllFiles(importDir, Options.getSkinRootDir());
 
 						// load sounds
 						SoundController.init();
 
 						Utils.gc(true);
+						
 						finished = true;
+						thread = null;
 					}
 				};
 				thread.start();

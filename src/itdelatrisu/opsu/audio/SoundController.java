@@ -312,7 +312,6 @@ public class SoundController {
 		}
 	}
 	
-	//TODO Workaround for applause/failsound not stopping
 	/**
 	 * Stops playing a sound, if it is currently active
 	 * @param s The sound effect

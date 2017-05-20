@@ -103,7 +103,7 @@ public class UI {
 		// notification manager
 		notificationManager = new NotificationManager(container);
 	}
-	
+
 	/**
 	 * Updates all UI components by a delta interval.
 	 * @param delta the delta interval since the last call.

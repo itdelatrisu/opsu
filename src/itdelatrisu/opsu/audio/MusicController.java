@@ -116,7 +116,6 @@ public class MusicController {
 						loadTrack(audioFile, (preview) ? beatmap.previewTime : 0, loop);
 					}
 				};
-				trackLoader.setName("track-loader");
 				trackLoader.start();
 				break;
 			default:

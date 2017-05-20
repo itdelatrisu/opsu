@@ -215,8 +215,6 @@ public class GameRanking extends BasicGameState {
 			Beatmap beatmap = MusicController.getBeatmap();
 			gameState.loadBeatmap(beatmap);
 			SoundController.playSound(SoundEffect.MENUHIT);
-
-			SoundController.stopSound(SoundEffect.APPLAUSE);
 			
 			game.enterState(Opsu.STATE_GAME, new EasedFadeOutTransition(), new FadeInTransition());
 			return;
@@ -257,6 +255,8 @@ public class GameRanking extends BasicGameState {
 		this.data = null;
 		if (MusicController.isTrackDimmed())
 			MusicController.toggleTrackDimmed(1f);
+
+		SoundController.stopSound(SoundEffect.APPLAUSE);
 	}
 
 	/**
@@ -270,9 +270,6 @@ public class GameRanking extends BasicGameState {
 		songMenu.resetGameDataOnLoad();
 		if (UI.getCursor().isBeatmapSkinned())
 			UI.getCursor().reset();
-		
-		//Workaround for not-stopping sfx
-		SoundController.stopSound(SoundEffect.APPLAUSE);
 		game.enterState(Opsu.STATE_SONGMENU, new EasedFadeOutTransition(), new FadeInTransition());
 	}
 

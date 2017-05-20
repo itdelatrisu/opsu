@@ -60,7 +60,7 @@ import org.newdawn.slick.state.transition.FadeInTransition;
  */
 public class ButtonMenu extends BasicGameState {
 	/** Menu states. */
-	public static enum MenuState {
+	public enum MenuState {
 		/** The exit confirmation screen. */
 		EXIT (new Button[] { Button.YES, Button.NO }) {
 			@Override

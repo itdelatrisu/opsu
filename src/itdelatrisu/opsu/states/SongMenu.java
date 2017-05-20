@@ -935,9 +935,10 @@ public class SongMenu extends BasicGameState {
 				hoverOffset.setTime(0);
 			}
 			return;
-		} // not hovered
-		hoverOffset.setTime(0);
-		hoverIndex = null;
+		} else {  // not hovered
+			hoverOffset.setTime(0);
+			hoverIndex = null;
+		}
 
 		// tooltips
 		if (sortMenu.baseContains(mouseX, mouseY))
@@ -1871,9 +1872,8 @@ public class SongMenu extends BasicGameState {
 				scores[i].loadGlyphs();
 			}
 			return scores;
-		}
-
-		return null;  // incorrect map
+		} else
+			return null;  // incorrect map
 	}
 
 	/**

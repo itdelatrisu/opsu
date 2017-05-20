@@ -131,8 +131,6 @@ public class GamePauseMenu extends BasicGameState {
 				if (UI.getCursor().isBeatmapSkinned())
 					UI.getCursor().reset();
 
-				//Workaround for not-stopping sfx
-				SoundController.stopSound(SoundEffect.FAIL);
 				game.enterState(Opsu.STATE_SONGMENU, new EasedFadeOutTransition(), new FadeInTransition());
 			} else {
 				SoundController.playSound(SoundEffect.MENUBACK);
@@ -174,8 +172,6 @@ public class GamePauseMenu extends BasicGameState {
 			SoundController.playSound(SoundEffect.MENUBACK);
 			((SongMenu) game.getState(Opsu.STATE_SONGMENU)).resetGameDataOnLoad();
 			if (loseState){
-				//Workaround for not-stopping sfx
-				SoundController.stopSound(SoundEffect.FAIL);
 				MusicController.playAt(MusicController.getBeatmap().previewTime, true);
 			}
 			else
@@ -203,6 +199,11 @@ public class GamePauseMenu extends BasicGameState {
 		continueButton.resetHover();
 		retryButton.resetHover();
 		backButton.resetHover();
+	}
+	
+	@Override
+	public void leave(GameContainer container, StateBasedGame game) throws SlickException {
+		SoundController.stopSound(SoundEffect.FAIL);
 	}
 
 	/**

@@ -83,7 +83,7 @@ public class OszUnpacker {
 		files = null;
 
 		if (!dirs.isEmpty()) {
-			UI.getNotificationManager().sendNotification("ui.notifications.beatmaps.imported", dirs.size());
+			UI.getNotificationManager().sendNotification("ui.notifications.beatmaps.imported", dirs.size(), dirs.size() == 1 ? "" : "s");
 		}
 
 		return dirs.toArray(new File[dirs.size()]);

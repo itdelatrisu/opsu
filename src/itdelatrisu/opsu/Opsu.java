@@ -68,7 +68,6 @@ public class Opsu extends StateBasedGame {
 		STATE_GAMEPAUSEMENU = 5,
 		STATE_GAMERANKING   = 6,
 		STATE_DOWNLOADSMENU = 7;
-	
 	/**
 	 * Constructor.
 	 * @param name the program name
@@ -94,7 +93,7 @@ public class Opsu extends StateBasedGame {
 	 */
 	public static void main(String[] args) {
 		
-		//Log to file and console, enable verbose
+		//Log to file and console, verbose disabled by default
 		Log.setVerbose(false);
 		Log.setLogSystem(new ExtendedLogSystem(OpsuConstants.PROJECT_NAME));
 		
@@ -108,7 +107,6 @@ public class Opsu extends StateBasedGame {
 			}
 		});
 		
-		Log.info("Initializing opsu!");
 		LocaleManager.loadAssets();
 
 		// parse configuration file
@@ -181,7 +179,8 @@ public class Opsu extends StateBasedGame {
 		// check for updates
 		Updater.get().getCurrentVersion();  // load this for the main menu
 		if (!Options.isUpdaterDisabled()) {
-			new Thread(new Runnable(){
+			new Thread(){
+				@Override
 				public void run() {
 					try {
 						Updater.get().checkForUpdates();
@@ -189,7 +188,7 @@ public class Opsu extends StateBasedGame {
 						Log.warn("Check for updates failed.", e);
 					}
 				}
-			}).start();
+			}.start();
 		}
 
 		// disable jinput
@@ -220,7 +219,6 @@ public class Opsu extends StateBasedGame {
 		} catch (SlickException e) {
 			errorAndExit(e, "An error occurred while creating the game container.", true);
 		}
-		
 	}
 
 	@Override

@@ -393,16 +393,7 @@ public class Game extends BasicGameState {
 			Graphics.setCurrent(gOffscreen);
 		}
 
-		/* background
-		 * 
-		 * Layers: 
-		 * 
-		 * [TOP LAYER]
-		 * [HitObjects]
-		 * [Storyboard]
-		 * [Video] / [BackgroundImage]
-		 * [BOTTOM LAYER]
-		 */
+		// Background layering (top to bottom): [Hit objects] -> [storyboard] -> [background image/video]
 		float dimLevel = Options.getBackgroundDim();
 		if (video != null && video.isStarted() && !video.isFinished()) {
 			// video

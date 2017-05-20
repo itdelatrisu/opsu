@@ -113,7 +113,7 @@ public class ReplayImporter {
 
 		if (importCount > 0) {
 			UI.getNotificationManager().sendNotification("ui.notifications.replay.imported", 
-					importCount /*, importCount == 1 ? "" : "s"*/);
+					importCount , importCount == 1 ? "" : "s");
 		}
 	}
 
