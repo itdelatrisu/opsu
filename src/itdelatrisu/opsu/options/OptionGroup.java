@@ -28,14 +28,14 @@ import org.newdawn.slick.Image;
 public class OptionGroup {
 	/** All option groups. */
 	public static final OptionGroup[] ALL_OPTIONS = new OptionGroup[] {
-		new OptionGroup("General", GameImage.SEARCH),
+		new OptionGroup("General", GameImage.MENU_NAV_GENERAL),
 		new OptionGroup("LANGUAGE", new GameOption[] {
 			GameOption.SHOW_UNICODE,
 		}),
 		new OptionGroup("UPDATES", new GameOption[] {
 			GameOption.DISABLE_UPDATER,
 		}),
-		new OptionGroup("Graphics", GameImage.SEARCH),
+		new OptionGroup("Graphics", GameImage.MENU_NAV_GRAPHICS),
 		new OptionGroup("LAYOUT", new GameOption[] {
 			GameOption.SCREEN_RESOLUTION,
 			GameOption.FULLSCREEN,
@@ -64,13 +64,13 @@ public class OptionGroup {
 			GameOption.PARALLAX,
 			GameOption.ENABLE_THEME_SONG,
 		}),
-		new OptionGroup("Gameplay", GameImage.SEARCH),
+		new OptionGroup("Gameplay", GameImage.MENU_NAV_GAMEPLAY),
 		new OptionGroup("GENERAL", new GameOption[] {
 			GameOption.BACKGROUND_DIM,
 			GameOption.FORCE_DEFAULT_PLAYFIELD,
 			GameOption.SHOW_HIT_ERROR_BAR,
 		}),
-		new OptionGroup("Audio", GameImage.SEARCH),
+		new OptionGroup("Audio", GameImage.MENU_NAV_AUDIO),
 		new OptionGroup("VOLUME", new GameOption[] {
 			GameOption.MASTER_VOLUME,
 			GameOption.MUSIC_VOLUME,
@@ -81,7 +81,7 @@ public class OptionGroup {
 		new OptionGroup("OFFSET ADJUSTMENT", new GameOption[] {
 			GameOption.MUSIC_OFFSET,
 		}),
-		new OptionGroup("Skin", GameImage.SEARCH),
+		new OptionGroup("Skin", GameImage.MENU_NAV_SKIN),
 		new OptionGroup("SKIN", new GameOption[]{
 			GameOption.SKIN,
 			GameOption.LOAD_HD_IMAGES,
@@ -90,7 +90,7 @@ public class OptionGroup {
 			GameOption.CURSOR_SIZE,
 			GameOption.DISABLE_CURSOR,
 		}),
-		new OptionGroup("Input", GameImage.SEARCH),
+		new OptionGroup("Input", GameImage.MENU_NAV_INPUT),
 		new OptionGroup("MOUSE", new GameOption[] {
 			GameOption.DISABLE_MOUSE_WHEEL,
 			GameOption.DISABLE_MOUSE_BUTTONS,
@@ -99,7 +99,7 @@ public class OptionGroup {
 			GameOption.KEY_LEFT,
 			GameOption.KEY_RIGHT,
 		}),
-		new OptionGroup("Custom", GameImage.SEARCH),
+		new OptionGroup("Custom", GameImage.MENU_NAV_CUSTOM),
 		new OptionGroup("DIFFICULTY", new GameOption[] {
 			GameOption.FIXED_CS,
 			GameOption.FIXED_HP,
