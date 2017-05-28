@@ -31,10 +31,12 @@ import itdelatrisu.opsu.ui.Fonts;
 import itdelatrisu.opsu.ui.KineticScrolling;
 import itdelatrisu.opsu.ui.MenuButton;
 import itdelatrisu.opsu.ui.UI;
+import itdelatrisu.opsu.ui.animations.AnimatedValue;
 import itdelatrisu.opsu.ui.animations.AnimationEquation;
 
 import java.util.IdentityHashMap;
 import java.util.Map;
+import java.util.Random;
 
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
@@ -241,6 +243,14 @@ public class OptionsOverlay extends AbstractComponent {
 	/** Last search text. */
 	private String lastSearchText;
 
+	/** The rotation of the search text for the 'invalid search' animation. */
+	private int invalidSearchImgRotation;
+
+	/** The rotation of the search image for the 'invalid search' animation. */
+	private int invalidSearchTextRotation;
+
+	private AnimatedValue invalidSearchAnimation = new AnimatedValue(500, 1f, 0f, AnimationEquation.LINEAR);
+
 	/** Desired alpha values for specific colors. */
 	private static final float
 		BG_ALPHA = 0.7f,
@@ -418,6 +428,7 @@ public class OptionsOverlay extends AbstractComponent {
 		navHoverTime = 0;
 		activeGroup = groups[0];
 		scrolling.setPosition(0f);
+		invalidSearchAnimation.setTime(invalidSearchAnimation.getDuration());
 		if (dropdownMenus == null)
 			createDropdownMenus();
 		resetSearch();
@@ -498,16 +509,33 @@ public class OptionsOverlay extends AbstractComponent {
 			g.setColor(COLOR_BG);
 			g.fillRect(x, y, width, textSearchYOffset * 2 + Fonts.LARGE.getLineHeight());
 		}
+		Color searchColor = COLOR_WHITE;
+		float invalidProgress = 0f;
+		if (!invalidSearchAnimation.isFinished()) {
+			invalidProgress = 1f - invalidSearchAnimation.getValue();
+			searchColor = new Color(0f, 0f, 0f, searchColor.a);
+			searchColor.r = COLOR_PINK.r + (1f - COLOR_PINK.r) * invalidProgress;
+			searchColor.g = COLOR_PINK.g + (1f - COLOR_PINK.g) * invalidProgress;
+			searchColor.b = COLOR_PINK.b + (1f - COLOR_PINK.b) * invalidProgress;
+			invalidProgress = 1f - invalidProgress;
+		}
 		String searchText = "Type to search!";
 		if (lastSearchText.length() > 0)
 			searchText = lastSearchText;
+		int textWidth = width - navButtonSize;
+		if (!invalidSearchAnimation.isFinished())
+			g.rotate(navButtonSize + textWidth / 2, ypos, invalidProgress * invalidSearchTextRotation);
 		int searchTextX = (int) (x + navButtonSize + (width - navButtonSize - Fonts.LARGE.getWidth(searchText) - searchImg.getWidth() - 10) / 2);
-		Fonts.LARGE.drawString(searchTextX + searchImg.getWidth() + 10, ypos, searchText, COLOR_WHITE);
+		Fonts.LARGE.drawString(searchTextX + searchImg.getWidth() + 10, ypos, searchText, searchColor);
+		g.resetTransform();
+		if (!invalidSearchAnimation.isFinished())
+			g.rotate(searchTextX + searchImg.getWidth() / 2, ypos, invalidProgress * invalidSearchImgRotation);
 		searchImg.draw(
 			searchTextX,
 			ypos + Fonts.LARGE.getLineHeight() * 0.25f,
-			COLOR_WHITE
+			searchColor
 		);
+		g.resetTransform();
 
 		// back arrow
 		backButton.setX(x + backButton.getImage().getWidth());
@@ -548,6 +576,10 @@ public class OptionsOverlay extends AbstractComponent {
 		}
 	}
 
+	/**
+	 * Renders the navigation bar
+	 * @param g the graphics context
+	 */
 	private void renderNavigation(Graphics g) {
 		navWidth = navButtonSize;
 		if (navHoverTime >= 600)
@@ -846,6 +878,7 @@ public class OptionsOverlay extends AbstractComponent {
 			restartButton.autoHoverUpdate(delta, false);
 		sliderSoundDelay = Math.max(sliderSoundDelay - delta, 0);
 		updateIndicatorAlpha(delta);
+		invalidSearchAnimation.update(delta);
 
 		if (mouseX < navWidth) {
 			if (navHoverTime < 600)
@@ -1057,6 +1090,24 @@ public class OptionsOverlay extends AbstractComponent {
 		}
 		resetOpenDropdownMenu();
 		updateHoverOption(prevMouseX, prevMouseY);
+		updateActiveSection();
+	}
+
+	/**
+	 * Checks if the specified search filter matches one or more options.
+	 */
+	private boolean hasSearchResults(String searchText) {
+		for (OptionGroup group : groups) {
+			if (group.getName().toLowerCase().contains(searchText))
+				return true;
+			if (group.getOptions() == null)
+				continue;
+			for (GameOption option : group.getOptions()) {
+				if (option.matches(searchText))
+					return true;
+			}
+		}
+		return false;
 	}
 
 	@Override
@@ -1261,8 +1312,21 @@ public class OptionsOverlay extends AbstractComponent {
 		searchField.keyPressed(key, c);
 		searchField.setFocus(false);
 		if (!searchField.getText().equals(lastSearchText)) {
-			lastSearchText = searchField.getText().toLowerCase();
-			updateSearch();
+			String newSearchText = searchField.getText().toLowerCase();
+			if (!hasSearchResults(newSearchText)) {
+				searchField.setText(lastSearchText);
+				invalidSearchAnimation.setTime(0);
+				Random rand = new Random();
+				invalidSearchImgRotation = 10 + rand.nextInt(10);
+				invalidSearchTextRotation = 10 + rand.nextInt(10);
+				if (rand.nextBoolean())
+					invalidSearchImgRotation = -invalidSearchImgRotation;
+				if (rand.nextBoolean())
+					invalidSearchTextRotation = -invalidSearchTextRotation;
+			} else {
+				lastSearchText = newSearchText;
+				updateSearch();
+			}
 		}
 	}
 
