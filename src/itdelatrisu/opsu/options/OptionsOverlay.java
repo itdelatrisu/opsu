@@ -1236,6 +1236,7 @@ public class OptionsOverlay extends AbstractComponent {
 						sectionPosition += optionHeight;
 				}
 			}
+			sectionPosition = Utils.clamp(sectionPosition, (int) scrolling.getMin(), (int) scrolling.getMax());
 			scrolling.scrollToPosition(sectionPosition);
 		}
 	}
