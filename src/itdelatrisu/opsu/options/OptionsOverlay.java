@@ -249,6 +249,7 @@ public class OptionsOverlay extends AbstractComponent {
 	/** The rotation of the search image for the 'invalid search' animation. */
 	private int invalidSearchTextRotation;
 
+	/** The 'invalid search' animation progress. */
 	private AnimatedValue invalidSearchAnimation = new AnimatedValue(500, 1f, 0f, AnimationEquation.LINEAR);
 
 	/** Desired alpha values for specific colors. */
@@ -850,10 +851,6 @@ public class OptionsOverlay extends AbstractComponent {
 		if (!active)
 			return;
 
-		int previousScrollingPosition = (int) scrolling.getPosition();
-		scrolling.update(delta);
-		boolean scrollingMoved = (int) scrolling.getPosition() != previousScrollingPosition;
-
 		// check if mouse moved
 		int mouseX = input.getMouseX(), mouseY = input.getMouseY();
 		boolean mouseMoved;
@@ -865,9 +862,6 @@ public class OptionsOverlay extends AbstractComponent {
 			prevMouseY = mouseY;
 		}
 
-		if (mouseMoved || scrollingMoved)
-			updateHoverOption(mouseX, mouseY);
-
 		// delta updates
 		if (hoverOption != null && getOptionAtPosition(mouseX, mouseY) == hoverOption && !keyEntryLeft && !keyEntryRight)
 			UI.updateTooltip(delta, hoverOption.getDescription(), true);
@@ -878,7 +872,13 @@ public class OptionsOverlay extends AbstractComponent {
 			restartButton.autoHoverUpdate(delta, false);
 		sliderSoundDelay = Math.max(sliderSoundDelay - delta, 0);
 		updateIndicatorAlpha(delta);
+		int previousScrollingPosition = (int) scrolling.getPosition();
+		scrolling.update(delta);
+		boolean scrollingMoved = (int) scrolling.getPosition() != previousScrollingPosition;
 		invalidSearchAnimation.update(delta);
+
+		if (mouseMoved || scrollingMoved)
+			updateHoverOption(mouseX, mouseY);
 
 		if (mouseX < navWidth) {
 			if (navHoverTime < 600)
