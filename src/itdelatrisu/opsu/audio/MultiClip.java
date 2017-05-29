@@ -156,6 +156,23 @@ public class MultiClip {
 	}
 
 	/**
+	 * Stops the clip.
+	 * If the clip is not active, the method simply returns.
+	 */
+	public void stop() {
+		try {
+			Clip clip = getClip();
+			if(clip == null)
+				return;
+			
+			if(clip.isActive())
+				clip.stop();
+		} catch (LineUnavailableException e) {
+			// ignored
+		}
+	}
+
+	/**
 	 * Returns a Clip that is not playing from the list.
 	 * If no clip is available, then a new one is created if under MAX_CLIPS.
 	 * Otherwise, an existing clip will be returned.

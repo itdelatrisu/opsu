@@ -254,6 +254,8 @@ public class GameRanking extends BasicGameState {
 		this.data = null;
 		if (MusicController.isTrackDimmed())
 			MusicController.toggleTrackDimmed(1f);
+
+		SoundController.stopSound(SoundEffect.APPLAUSE);
 	}
 
 	/**
