@@ -304,14 +304,15 @@ public class OptionsOverlay extends AbstractComponent {
 		int searchImgSize = (int) (Fonts.LARGE.getLineHeight() * 0.75f);
 		this.searchImg = GameImage.SEARCH.getImage().getScaledCopy(searchImgSize, searchImgSize);
 
+		boolean isWidescreen = (int) (container.getAspectRatio() * 1000) > 1500; // 1333 = 4:3, 1777 = 16:9
+
 		// overlay positions
 		this.x = 0;
 		this.y = 0;
-		this.targetWidth = (int) (containerWidth * 0.42f);
+		this.targetWidth = (int) (containerWidth * (isWidescreen ? 0.4f : 0.5f));
 		this.height = containerHeight;
 
 		// option positions
-		boolean isWidescreen = (int) (container.getAspectRatio() * 1000) == 1777;
 		float navIconWidthRatio = isWidescreen ? 0.046875f : 0.065f; // non-widescreen ratio is not accurate
 		navButtonSize = (int) (container.getWidth() * navIconWidthRatio);
 		navIndicatorWidth = navButtonSize / 10;
@@ -384,7 +385,7 @@ public class OptionsOverlay extends AbstractComponent {
 	}
 
 	/** Returns the target width. */
-	public int getTargetWidth() { return targetWidth - navButtonSize; }
+	public int getTargetWidth() { return targetWidth; }
 
 	/**
 	 * Sets the alpha levels of the overlay.
