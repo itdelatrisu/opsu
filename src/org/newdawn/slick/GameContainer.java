@@ -213,7 +213,7 @@ public abstract class GameContainer implements GUIContext {
 	 * @return The aspect ratio of the display
 	 */
 	public float getAspectRatio() {
-		return getWidth() / getHeight();
+		return (float) getWidth() / getHeight();
 	}
 	
 	/**
