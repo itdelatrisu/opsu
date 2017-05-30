@@ -150,7 +150,7 @@ public class MainMenu extends BasicGameState {
 	private boolean showOptionsOverlay = false;
 
 	/** The options overlay show/hide animation progress. */
-	private AnimatedValue optionsOverlayProgress = new AnimatedValue(500, 0f, 1f, AnimationEquation.OUT_CUBIC);
+	private AnimatedValue optionsOverlayProgress = new AnimatedValue(500, 0f, 1f, AnimationEquation.LINEAR);
 
 	/** The user button. */
 	private UserButton userButton;
@@ -554,10 +554,15 @@ public class MainMenu extends BasicGameState {
 		if (optionsOverlayProgress.update(delta)) {
 			// slide in/out
 			float t = optionsOverlayProgress.getValue();
-			if (!showOptionsOverlay)
+			float navigationAlpha;
+			if (!showOptionsOverlay) {
+				navigationAlpha = 1f - AnimationEquation.IN_CIRC.calc(t);
 				t = 1f - t;
+			} else
+				navigationAlpha = Utils.clamp(t * 10f, 0f, 1f);
+			t = AnimationEquation.OUT_CUBIC.calc(t);
 			optionsOverlay.setWidth((int) (optionsOverlay.getTargetWidth() * t));
-			optionsOverlay.setAlpha(t);
+			optionsOverlay.setAlpha(t, navigationAlpha);
 		} else if (showOptionsOverlay)
 			optionsOverlay.update(delta);
 
