@@ -18,7 +18,9 @@
 
 package itdelatrisu.opsu.options;
 
+import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.options.Options.GameOption;
+import org.newdawn.slick.Image;
 
 /**
  * Option category and related options.
@@ -26,14 +28,14 @@ import itdelatrisu.opsu.options.Options.GameOption;
 public class OptionGroup {
 	/** All option groups. */
 	public static final OptionGroup[] ALL_OPTIONS = new OptionGroup[] {
-		new OptionGroup("GENERAL", null),
+		new OptionGroup("General", GameImage.MENU_NAV_GENERAL),
 		new OptionGroup("LANGUAGE", new GameOption[] {
 			GameOption.SHOW_UNICODE,
 		}),
 		new OptionGroup("UPDATES", new GameOption[] {
 			GameOption.DISABLE_UPDATER,
 		}),
-		new OptionGroup("GRAPHICS", null),
+		new OptionGroup("Graphics", GameImage.MENU_NAV_GRAPHICS),
 		new OptionGroup("LAYOUT", new GameOption[] {
 			GameOption.SCREEN_RESOLUTION,
 			GameOption.FULLSCREEN,
@@ -62,13 +64,13 @@ public class OptionGroup {
 			GameOption.PARALLAX,
 			GameOption.ENABLE_THEME_SONG,
 		}),
-		new OptionGroup("GAMEPLAY", null),
+		new OptionGroup("Gameplay", GameImage.MENU_NAV_GAMEPLAY),
 		new OptionGroup("GENERAL", new GameOption[] {
 			GameOption.BACKGROUND_DIM,
 			GameOption.FORCE_DEFAULT_PLAYFIELD,
 			GameOption.SHOW_HIT_ERROR_BAR,
 		}),
-		new OptionGroup("AUDIO", null),
+		new OptionGroup("Audio", GameImage.MENU_NAV_AUDIO),
 		new OptionGroup("VOLUME", new GameOption[] {
 			GameOption.MASTER_VOLUME,
 			GameOption.MUSIC_VOLUME,
@@ -79,7 +81,7 @@ public class OptionGroup {
 		new OptionGroup("OFFSET ADJUSTMENT", new GameOption[] {
 			GameOption.MUSIC_OFFSET,
 		}),
-		new OptionGroup("SKIN", null),
+		new OptionGroup("Skin", GameImage.MENU_NAV_SKIN),
 		new OptionGroup("SKIN", new GameOption[]{
 			GameOption.SKIN,
 			GameOption.LOAD_HD_IMAGES,
@@ -88,7 +90,7 @@ public class OptionGroup {
 			GameOption.CURSOR_SIZE,
 			GameOption.DISABLE_CURSOR,
 		}),
-		new OptionGroup("INPUT", null),
+		new OptionGroup("Input", GameImage.MENU_NAV_INPUT),
 		new OptionGroup("MOUSE", new GameOption[] {
 			GameOption.DISABLE_MOUSE_WHEEL,
 			GameOption.DISABLE_MOUSE_BUTTONS,
@@ -97,7 +99,7 @@ public class OptionGroup {
 			GameOption.KEY_LEFT,
 			GameOption.KEY_RIGHT,
 		}),
-		new OptionGroup("CUSTOM", null),
+		new OptionGroup("Custom", GameImage.MENU_NAV_CUSTOM),
 		new OptionGroup("DIFFICULTY", new GameOption[] {
 			GameOption.FIXED_CS,
 			GameOption.FIXED_HP,
@@ -118,6 +120,9 @@ public class OptionGroup {
 	/** The category name. */
 	private final String category;
 
+	/** The icon, if this is a section header. */
+	private final GameImage icon;
+
 	/** The game options. */
 	private final GameOption[] options;
 
@@ -132,13 +137,29 @@ public class OptionGroup {
 	public OptionGroup(String category, GameOption[] options) {
 		this.category = category;
 		this.options = options;
+		this.icon = null;
 	}
+
+	/**
+	 * Creates an option group with the given category name and icon, effectively being a section.
+	 * @param category the category name
+	 * @param icon the icon to be used for this section
+	 */
+	public OptionGroup(String category, GameImage icon) {
+		this.category = category;
+		this.options = null;
+		this.icon = icon;
+	}
+
 
 	/** Returns the category name. */
 	public String getName() { return category; }
 
 	/** Returns the related options. */
 	public GameOption[] getOptions() { return options; }
+
+	/** Returns the related icon. */
+	public Image getIcon() { return icon.getImage(); }
 
 	/** Returns the option at the given index. */
 	public GameOption getOption(int i) { return options[i]; }

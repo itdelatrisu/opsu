@@ -27,6 +27,7 @@ The images included in opsu! belong to their respective authors.
 * teinecthel
 * Teddy Kelley - https://unsplash.com/photos/weuWmzv7xnU (main menu background)
 * User icons ("User", "Male User", "Female User") by To Uyen from the Noun Project
+* Font Awesome by Dave Gandy - http://fontawesome.io
 
 Projects
 --------
