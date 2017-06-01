@@ -199,6 +199,11 @@ public class GamePauseMenu extends BasicGameState {
 		backButton.resetHover();
 	}
 
+	@Override
+	public void leave(GameContainer container, StateBasedGame game) throws SlickException {
+		SoundController.stopSound(SoundEffect.FAIL);
+	}
+
 	/**
 	 * Loads all game pause/fail menu images.
 	 */

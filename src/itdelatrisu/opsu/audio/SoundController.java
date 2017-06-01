@@ -321,6 +321,14 @@ public class SoundController {
 	}
 
 	/**
+	 * Stops playing a sound, if it is active.
+	 * @param s The sound effect
+	 */
+	public static void stopSound(SoundComponent s) {
+		s.getClip().stop();
+	}
+
+	/**
 	 * Plays hit sound(s) using a HitObject bitmask.
 	 * @param hitSound the hit sound (bitmask)
 	 * @param sampleSet the sample set
