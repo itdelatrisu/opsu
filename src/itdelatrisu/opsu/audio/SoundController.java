@@ -321,11 +321,12 @@ public class SoundController {
 	}
 
 	/**
-	 * Stops playing a sound, if it is active.
-	 * @param s The sound effect
+	 * Stops playing a sound, if active.
+	 * @param s the sound effect
 	 */
 	public static void stopSound(SoundComponent s) {
-		s.getClip().stop();
+		if (s.getClip() != null)
+			s.getClip().stop();
 	}
 
 	/**

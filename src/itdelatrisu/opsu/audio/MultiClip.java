@@ -156,20 +156,17 @@ public class MultiClip {
 	}
 
 	/**
-	 * Stops the clip.
-	 * If the clip is not active, the method simply returns.
+	 * Stops the clip, if active.
 	 */
 	public void stop() {
 		try {
 			Clip clip = getClip();
-			if(clip == null)
+			if (clip == null)
 				return;
-			
-			if(clip.isActive())
+
+			if (clip.isActive())
 				clip.stop();
-		} catch (LineUnavailableException e) {
-			// ignored
-		}
+		} catch (LineUnavailableException e) {}
 	}
 
 	/**
