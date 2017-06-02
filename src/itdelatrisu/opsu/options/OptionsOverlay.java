@@ -976,7 +976,7 @@ public class OptionsOverlay extends AbstractComponent {
 			if (!group.isVisible())
 				continue;
 			virtualY += optionGroupPadding;
-			if (virtualY > Utils.clamp(scrolling.getPosition(), 0, scrolling.getMax()) + height / 2)
+			if (virtualY > Utils.clamp(scrolling.getPosition(), scrolling.getMin(), scrolling.getMax()) + height / 2)
 				return;
 			if (group.getOptions() == null) {
 				activeGroup = group;
