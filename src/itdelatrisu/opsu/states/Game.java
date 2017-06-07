@@ -663,6 +663,7 @@ public class Game extends BasicGameState {
 
 		// in-game scoreboard
 		if (previousScores != null && trackPosition >= firstObjectTime && !GameMod.RELAX.isActive() && !GameMod.AUTOPILOT.isActive()) {
+			// NOTE: osu! uses the actual score, but we use sliding score instead
 			ScoreData currentScore = data.getCurrentScoreData(beatmap, true);
 			while (currentRank > 0 && previousScores[currentRank - 1].score < currentScore.score) {
 				currentRank--;
