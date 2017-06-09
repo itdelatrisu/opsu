@@ -18,6 +18,7 @@
 
 package itdelatrisu.opsu.ui;
 
+import itdelatrisu.opsu.translation.I18n;
 import itdelatrisu.opsu.ui.animations.AnimationEquation;
 
 import java.util.ArrayList;
@@ -333,25 +334,71 @@ public class NotificationManager {
 	}
 
 	/**
-	 * Submits a bubble notification for drawing.
+	 * Submits a bubble notification for drawing, using {@link Color#white} as the border color
+	 * and does not have any associated {@link NotificationListener}s.
 	 * @param s the notification string
 	 */
 	public void sendNotification(String s) { sendNotification(s, Color.white); }
 
 	/**
-	 * Submits a bubble notification for drawing.
+	 * Submits a bubble notification for drawing, using {@link Color#white} as the border color
+	 * and does not have any associated {@link NotificationListener}s.
 	 * @param s the notification string
-	 * @param c the border color
+	 * @param args the formatting arguments for the notification string
 	 */
-	public void sendNotification(String s, Color c) { sendNotification(s, c, null); }
+	public void sendNotificationFormatted(String s, Object... args) {
+		sendNotificationFormatted(s, Color.white, args);
+	}
 
 	/**
-	 * Submits a bubble notification for drawing.
+	 * Submits a bubble notification for drawing, using the provided border color
+	 * but does not have any associated {@link NotificationListener}s.
+	 * @param s the notification string (without formatting)
+	 * @param clr the border color
+	 */
+	public void sendNotification(String s, Color c) { sendNotification(s, c, null); }
+	
+	/**
+	 * Submits a bubble notification for drawing, using the provided color when drawing the notification borders
+	 * but does not have any associated {@link NotificationListener}s.
+	 * @param s the notification string
+	 * @param c the border color
+	 * @param args the formatting arguments for the notification string
+	 */
+	public void sendNotificationFormatted(String s, Color c, Object... args) {
+		sendNotificationFormatted(s, c, null, args);
+	}
+
+	/**
+	 * Submits a bubble notification for drawing, using the provided color and associating
+	 * a {@link NotificationListener} to listen in for events.
 	 * @param s the notification string
 	 * @param c the border color
 	 * @param listener the listener
 	 */
-	public synchronized void sendNotification(String s, Color c, NotificationListener listener) {
+	public void sendNotification(String s, Color c, NotificationListener listener) {
+		sendNotificationImpl(I18n.translate("notifications." + s), c, listener);
+	}
+
+	/**
+	 * Submits a bubble notification for drawing, using the provided color and associating
+	 * a {@link NotificationListener} to listen in for events.
+	 * @param s the notification string
+	 * @param c the border color
+	 * @param listener the listener
+	 * @param args the formatting arguments for the notification string
+	 */
+	public void sendNotificationFormatted(String s, Color c, NotificationListener listener, Object... args) {
+		sendNotificationImpl(I18n.translateFormatted("notifications." + s, args), c, listener);
+	}
+
+	/**
+	 * Does the submission of the bubble notification.
+	 * @param s the notification string
+	 * @param c the border color
+	 * @param listener the listener
+	 */
+	private synchronized void sendNotificationImpl(String s, Color c, NotificationListener listener) {
 		BubbleNotification notif = new BubbleNotification(s, c, listener, container.getWidth() / 5);
 		int x, y;
 		int bottomY = (int) (container.getHeight() * 0.9645f);
@@ -372,16 +419,24 @@ public class NotificationManager {
 		notif.setPosition(x, y);
 		notifications.add(notif);
 	}
-
+	
 	/**
 	 * Submits a bar notification for drawing.
 	 * @param s the notification string
 	 */
 	public void sendBarNotification(String s) {
-		if (s != null) {
-			barNotif = s;
-			barNotifTimer = 0;
-		}
+		barNotif = I18n.translate("notifications." + s);
+		barNotifTimer = 0;
+	}
+
+	/**
+	 * Submits a bar notification for drawing.
+	 * @param s the notification string
+	 * @param args the format arguments for the notification string
+	 */
+	public void sendBarNotificationFormatted(String s, Object... args) {
+		barNotif = I18n.translateFormatted("notifications." + s, args);
+		barNotifTimer = 0;
 	}
 
 	/**

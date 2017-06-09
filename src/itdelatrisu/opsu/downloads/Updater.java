@@ -23,6 +23,7 @@ import itdelatrisu.opsu.OpsuConstants;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.downloads.Download.DownloadListener;
 import itdelatrisu.opsu.options.Options;
+import itdelatrisu.opsu.translation.I18n;
 import itdelatrisu.opsu.ui.Colors;
 import itdelatrisu.opsu.ui.UI;
 
@@ -63,18 +64,18 @@ public class Updater {
 	/** Updater status. */
 	public enum Status {
 		INITIAL (""),
-		CHECKING ("Checking for updates..."),
-		CONNECTION_ERROR ("Connection error."),
-		INTERNAL_ERROR ("Internal error."),
-		UP_TO_DATE ("Up to date!"),
-		UPDATE_AVAILABLE ("Update available!\nClick to download."),
-		UPDATE_DOWNLOADING ("Downloading update...") {
+		CHECKING ("checking"),
+		CONNECTION_ERROR ("error.connection"),
+		INTERNAL_ERROR ("error.internal"),
+		UP_TO_DATE ("latest"),
+		UPDATE_AVAILABLE ("update.available"),
+		UPDATE_DOWNLOADING ("update.downloading") {
 			@Override
 			public String getDescription() {
 				Download d = updater.download;
 				if (d != null && d.getStatus() == Download.Status.DOWNLOADING) {
-					return String.format("Downloading update...\n%.1f%% complete (%s/%s)",
-							d.getProgress(), Utils.bytesToString(d.readSoFar()), Utils.bytesToString(d.contentLength()));
+					return I18n.translateFormatted(UPDATE_DOWNLOADING.description + ".progress", d.getProgress(),
+							Utils.bytesToString(d.readSoFar()), Utils.bytesToString(d.contentLength()));
 				} else
 					return super.getDescription();
 			}
@@ -90,13 +91,13 @@ public class Updater {
 		 * @param description the status description
 		 */
 		Status(String description) {
-			this.description = description;
+			this.description = description.isEmpty() ? "" : "ui.updater.state." + description;
 		}
 
 		/**
 		 * Returns the status description.
 		 */
-		public String getDescription() { return description; }
+		public String getDescription() { return I18n.translate(description); }
 	};
 
 	/** The current updater status. */

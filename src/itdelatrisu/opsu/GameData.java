@@ -31,6 +31,7 @@ import itdelatrisu.opsu.options.Options;
 import itdelatrisu.opsu.replay.LifeFrame;
 import itdelatrisu.opsu.replay.Replay;
 import itdelatrisu.opsu.replay.ReplayFrame;
+import itdelatrisu.opsu.translation.I18n;
 import itdelatrisu.opsu.ui.Colors;
 import itdelatrisu.opsu.ui.Fonts;
 import itdelatrisu.opsu.ui.UI;
@@ -1789,8 +1790,8 @@ public class GameData {
 		float hitErrorEarly = (earlyCount > 0) ? (float) earlySum / earlyCount : 0f;
 		float hitErrorLate = (lateCount > 0) ? (float) lateSum / lateCount : 0f;
 		float unstableRate = (!errors.isEmpty()) ? (float) (Utils.standardDeviation(errors) * 10) : 0f;
-		return String.format(
-			"Accuracy:\nError: %.2fms - %.2fms avg\nUnstable Rate: %.2f",
+		return I18n.translateFormatted(
+			"gameplay.scoreboard.results",
 			hitErrorEarly, hitErrorLate, unstableRate
 		);
 	}

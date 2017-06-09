@@ -47,6 +47,7 @@ import itdelatrisu.opsu.options.OptionGroup;
 import itdelatrisu.opsu.options.Options;
 import itdelatrisu.opsu.options.OptionsOverlay;
 import itdelatrisu.opsu.states.ButtonMenu.MenuState;
+import itdelatrisu.opsu.translation.I18n;
 import itdelatrisu.opsu.ui.Colors;
 import itdelatrisu.opsu.ui.DropdownMenu;
 import itdelatrisu.opsu.ui.Fonts;
@@ -490,7 +491,7 @@ public class SongMenu extends BasicGameState {
 				if (!songFolderChanged && kind != StandardWatchEventKinds.ENTRY_MODIFY) {
 					songFolderChanged = true;
 					if (game_.getCurrentStateID() == Opsu.STATE_SONGMENU)
-						UI.getNotificationManager().sendNotification("Changes in Songs folder detected.\nHit F5 to refresh.");
+						UI.getNotificationManager().sendNotification("beatmaps.changed");
 				}
 			}
 		});
@@ -775,9 +776,9 @@ public class SongMenu extends BasicGameState {
 		g.setColor(Colors.BLACK_ALPHA);
 		g.fillRect(searchBaseX, headerY + DIVIDER_LINE_WIDTH / 2, width - searchBaseX, searchRectHeight);
 		Colors.BLACK_ALPHA.a = oldAlpha;
-		Fonts.BOLD.drawString(searchTextX, searchY, "Search:", Colors.GREEN_SEARCH);
+		Fonts.BOLD.drawString(searchTextX, searchY, I18n.translate("ui.menu.beatmap.search"), Colors.GREEN_SEARCH);
 		if (searchEmpty)
-			Fonts.BOLD.drawString(searchX, searchY, "Type to search!", Color.white);
+			Fonts.BOLD.drawString(searchX, searchY, I18n.translate("options.search"), Color.white);
 		else {
 			g.setColor(Color.white);
 			// TODO: why is this needed to correctly position the TextField?
@@ -785,7 +786,7 @@ public class SongMenu extends BasicGameState {
 			search.render(container, g);
 			search.setLocation(searchX, searchY);
 			Fonts.DEFAULT.drawString(searchTextX, searchY + Fonts.BOLD.getLineHeight(),
-					(searchResultString == null) ? "Searching..." : searchResultString, Color.white);
+					(searchResultString == null) ? I18n.translate("ui.menu.beatmap.search.progress") : I18n.translate(searchResultString), Color.white);
 		}
 
 		// sorting options
@@ -947,7 +948,7 @@ public class SongMenu extends BasicGameState {
 
 		// tooltips
 		if (sortMenu.baseContains(mouseX, mouseY))
-			UI.updateTooltip(delta, "Sort by...", false);
+			UI.updateTooltip(delta, I18n.translate("ui.tooltip.beatmaps.sort"), false);
 		else if (focusScores != null && ScoreData.areaContains(mouseX, mouseY) && !showOptionsOverlay && !showUserOverlay) {
 			int startScore = (int) (startScorePos.getPosition() / ScoreData.getButtonOffset());
 			int offset = (int) (-startScorePos.getPosition() + startScore * ScoreData.getButtonOffset());
@@ -1089,8 +1090,8 @@ public class SongMenu extends BasicGameState {
 					BeatmapSetList.get().init();
 					setFocus(BeatmapSetList.get().getRandomNode(), 0, true, true);
 
-					if (BeatmapSetList.get().size() < 1 && group.getEmptyMessage() != null)
-						UI.getNotificationManager().sendBarNotification(group.getEmptyMessage());
+					if (BeatmapSetList.get().size() < 1)
+						UI.getNotificationManager().sendBarNotification(group.getName());
 				}
 				return;
 			}
@@ -1609,7 +1610,7 @@ public class SongMenu extends BasicGameState {
 			int size = BeatmapSetList.get().size();
 			if (size > 0) {
 				BeatmapSetList.get().init();
-				String results = String.format("%d match%s found!", size, (size == 1) ? "" : "es");
+				String results = I18n.translateFormatted("ui.menu.beatmap.search.result", size, (size == 1) ? "" : "es");
 				if (search.getText().isEmpty()) {  // cleared search
 					// use previous start/focus if possible
 					if (oldFocusNode != null) {
@@ -1625,7 +1626,7 @@ public class SongMenu extends BasicGameState {
 				oldFocusNode = null;
 				lastSearchResultString = results;
 			} else if (!search.getText().isEmpty())
-				searchResultString = lastSearchResultString = "No matches found. Hit ESC to reset.";
+				searchResultString = lastSearchResultString = "ui.menu.beatmap.search.result.none";
 		} else
 			searchResultString = lastSearchResultString;
 	}
@@ -2007,7 +2008,7 @@ public class SongMenu extends BasicGameState {
 
 		Beatmap beatmap = MusicController.getBeatmap();
 		if (focusNode == null || beatmap != focusNode.getSelectedBeatmap()) {
-			UI.getNotificationManager().sendBarNotification("Unable to load the beatmap audio.");
+			UI.getNotificationManager().sendBarNotification("beatmaps.noAudio");
 			return;
 		}
 

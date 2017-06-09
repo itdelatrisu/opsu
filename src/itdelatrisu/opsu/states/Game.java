@@ -50,6 +50,7 @@ import itdelatrisu.opsu.replay.LifeFrame;
 import itdelatrisu.opsu.replay.PlaybackSpeed;
 import itdelatrisu.opsu.replay.Replay;
 import itdelatrisu.opsu.replay.ReplayFrame;
+import itdelatrisu.opsu.translation.I18n;
 import itdelatrisu.opsu.ui.Colors;
 import itdelatrisu.opsu.ui.Fonts;
 import itdelatrisu.opsu.ui.MenuButton;
@@ -603,7 +604,7 @@ public class Game extends BasicGameState {
 					Colors.WHITE_FADE.a = (1000 + timeDiff) / 500f;
 				Fonts.MEDIUM.drawString(
 						2 + (width / 100), retryHeight,
-						String.format("%d retries and counting...", retries),
+						I18n.translateFormatted("ui.gameplay.retryCount", retries),
 						Colors.WHITE_FADE
 				);
 				Colors.WHITE_FADE.a = oldAlpha;
@@ -732,7 +733,7 @@ public class Game extends BasicGameState {
 			g.fillRect(0, 0, width, height);
 
 			// draw overlay text
-			String overlayText = "Click on the pulsing cursor to continue play!";
+			String overlayText = I18n.translate("ui.gameplay.resume.overlay");
 			int textWidth = Fonts.LARGE.getWidth(overlayText), textHeight = Fonts.LARGE.getLineHeight();
 			int textX = (width - textWidth) / 2, textY = (height - textHeight) / 2;
 			int paddingX = 8, paddingY = 4;
@@ -803,7 +804,7 @@ public class Game extends BasicGameState {
 				double distance = Math.hypot(pausedMousePosition.x - mouseX, pausedMousePosition.y - mouseY);
 				int circleRadius = GameImage.HITCIRCLE.getImage().getWidth() / 2;
 				if (distance < circleRadius)
-					UI.updateTooltip(delta, "Click to resume gameplay.", false);
+					UI.updateTooltip(delta, I18n.translate("ui.tooltip.game.resume"), false);
 			}
 			return;
 		}

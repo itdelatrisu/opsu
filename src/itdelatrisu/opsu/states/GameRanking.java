@@ -199,7 +199,7 @@ public class GameRanking extends BasicGameState {
 				gameState.setPlayState((data.isGameplay()) ? Game.PlayState.REPLAY : Game.PlayState.FIRST_LOAD);
 				returnToGame = true;
 			} else
-				UI.getNotificationManager().sendBarNotification("Replay file not found.");
+				UI.getNotificationManager().sendBarNotification("replay.notFound");
 		}
 
 		// retry
@@ -284,7 +284,7 @@ public class GameRanking extends BasicGameState {
 				// file not found
 			} catch (IOException e) {
 				Log.error("Failed to load replay data.", e);
-				UI.getNotificationManager().sendNotification("Failed to load replay data.\nSee log for details.", Color.red);
+				UI.getNotificationManager().sendNotification("replay.error", Color.red);
 			}
 		}
 		// else file not found

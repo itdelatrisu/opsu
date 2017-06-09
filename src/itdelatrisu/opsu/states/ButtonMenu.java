@@ -30,6 +30,7 @@ import itdelatrisu.opsu.audio.SoundEffect;
 import itdelatrisu.opsu.beatmap.BeatmapSetList;
 import itdelatrisu.opsu.beatmap.BeatmapSetNode;
 import itdelatrisu.opsu.downloads.Updater;
+import itdelatrisu.opsu.translation.I18n;
 import itdelatrisu.opsu.ui.Fonts;
 import itdelatrisu.opsu.ui.MenuButton;
 import itdelatrisu.opsu.ui.UI;
@@ -65,7 +66,7 @@ public class ButtonMenu extends BasicGameState {
 			@Override
 			public String[] getTitle(GameContainer container, StateBasedGame game) {
 				return new String[] {
-					String.format("Are you sure you want to exit %s?", OpsuConstants.PROJECT_NAME)
+					I18n.translateFormatted("ui.menu.exit", OpsuConstants.PROJECT_NAME)
 				};
 			}
 
@@ -80,7 +81,7 @@ public class ButtonMenu extends BasicGameState {
 			public String[] getTitle(GameContainer container, StateBasedGame game) {
 				BeatmapSetNode node = ((ButtonMenu) game.getState(Opsu.STATE_BUTTONMENU)).getNode();
 				String beatmapString = (node != null) ? BeatmapSetList.get().getBaseNode(node.index).toString() : "";
-				return new String[] { beatmapString, "What do you want to do with this beatmap?" };
+				return new String[] { beatmapString, I18n.translate("ui.menu.beatmap.manage") };
 			}
 
 			@Override
@@ -106,7 +107,7 @@ public class ButtonMenu extends BasicGameState {
 			public String[] getTitle(GameContainer container, StateBasedGame game) {
 				BeatmapSetNode node = ((ButtonMenu) game.getState(Opsu.STATE_BUTTONMENU)).getNode();
 				String beatmapString = (node != null) ? node.toString() : "";
-				return new String[] { String.format("Are you sure you wish to delete '%s' from disk?", beatmapString) };
+				return new String[] { I18n.translateFormatted("ui.menu.delete", beatmapString) };
 			}
 
 			@Override
@@ -131,9 +132,9 @@ public class ButtonMenu extends BasicGameState {
 			@Override
 			public String[] getTitle(GameContainer container, StateBasedGame game) {
 				return new String[] {
-						"You have requested a full process of your beatmaps.",
-						"This could take a few minutes.",
-						"Are you sure you wish to continue?"
+						I18n.translate("ui.menu.beatmap.reload.1"),
+						I18n.translate("ui.menu.beatmap.reload.2"),
+						I18n.translate("ui.menu.beatmap.reload.3")
 				};
 			}
 
@@ -146,7 +147,7 @@ public class ButtonMenu extends BasicGameState {
 		SCORE (new Button[] { Button.DELETE_SCORE, Button.CLOSE }) {
 			@Override
 			public String[] getTitle(GameContainer container, StateBasedGame game) {
-				return new String[] { "Score Management" };
+				return new String[] { I18n.translate("ui.menu.scores.manage") };
 			}
 
 			@Override
@@ -159,7 +160,7 @@ public class ButtonMenu extends BasicGameState {
 			@Override
 			public String[] getTitle(GameContainer container, StateBasedGame game) {
 				return new String[] {
-					"Mods provide different ways to enjoy gameplay. Some have an effect on the score you can achieve during ranked play. Others are just for fun."
+					I18n.translate("ui.menu.mods")
 				};
 			}
 
@@ -187,7 +188,7 @@ public class ButtonMenu extends BasicGameState {
 
 				// score multiplier (TODO: fade in color changes)
 				float mult = GameMod.getScoreMultiplier();
-				String multString = String.format("Score Multiplier: %.2fx", mult);
+				String multString = I18n.translateFormatted("ui.menu.mods.scoreMultiplier", mult);
 				Color multColor = (mult == 1f) ? Color.white : (mult > 1f) ? Color.green : Color.red;
 				float multY = Fonts.LARGE.getLineHeight() * 2 + height * 0.06f;
 				Fonts.LARGE.drawString(
@@ -254,13 +255,13 @@ public class ButtonMenu extends BasicGameState {
 			public String[] getTitle(GameContainer container, StateBasedGame game) {
 				String version = Updater.get().getCurrentVersion();
 				return new String[] {
-					String.format(
-						"%s %s by %s",
+					I18n.translateFormatted(
+						"ui.menu.about",
 						OpsuConstants.PROJECT_NAME,
 						(version == null) ? "(unknown version)" : "v" + version,
 						OpsuConstants.PROJECT_AUTHOR
 					),
-					"Click an option below to learn more!"
+					I18n.translate("ui.menu.about.options")
 				};
 			}
 
@@ -442,20 +443,20 @@ public class ButtonMenu extends BasicGameState {
 
 	/** Button types. */
 	private enum Button {
-		YES ("Yes", Color.green) {
+		YES ("yes", Color.green) {
 			@Override
 			public void click(GameContainer container, StateBasedGame game) {
 				container.exit();
 			}
 		},
-		NO ("No", Color.red) {
+		NO ("no", Color.red) {
 			@Override
 			public void click(GameContainer container, StateBasedGame game) {
 				SoundController.playSound(SoundEffect.MENUBACK);
 				game.enterState(Opsu.STATE_MAINMENU, new EmptyTransition(), new FadeInTransition());
 			}
 		},
-		CLEAR_SCORES ("Clear local scores", Color.magenta) {
+		CLEAR_SCORES ("scores.clear", Color.magenta) {
 			@Override
 			public void click(GameContainer container, StateBasedGame game) {
 				SoundController.playSound(SoundEffect.MENUHIT);
@@ -464,7 +465,7 @@ public class ButtonMenu extends BasicGameState {
 				game.enterState(Opsu.STATE_SONGMENU, new EmptyTransition(), new FadeInTransition());
 			}
 		},
-		FAVORITE_ADD ("Add to Favorites", Color.blue) {
+		FAVORITE_ADD ("favorites.add", Color.blue) {
 			@Override
 			public void click(GameContainer container, StateBasedGame game) {
 				SoundController.playSound(SoundEffect.MENUHIT);
@@ -473,7 +474,7 @@ public class ButtonMenu extends BasicGameState {
 				game.enterState(Opsu.STATE_SONGMENU, new EmptyTransition(), new FadeInTransition());
 			}
 		},
-		FAVORITE_REMOVE ("Remove from Favorites", Color.blue) {
+		FAVORITE_REMOVE ("favorites.remove", Color.blue) {
 			@Override
 			public void click(GameContainer container, StateBasedGame game) {
 				SoundController.playSound(SoundEffect.MENUHIT);
@@ -483,7 +484,7 @@ public class ButtonMenu extends BasicGameState {
 				game.enterState(Opsu.STATE_SONGMENU, new EmptyTransition(), new FadeInTransition());
 			}
 		},
-		DELETE ("Delete...", Color.red) {
+		DELETE ("beatmaps.delete", Color.red) {
 			@Override
 			public void click(GameContainer container, StateBasedGame game) {
 				SoundController.playSound(SoundEffect.MENUHIT);
@@ -494,14 +495,14 @@ public class ButtonMenu extends BasicGameState {
 				game.enterState(Opsu.STATE_BUTTONMENU);
 			}
 		},
-		CANCEL ("Cancel", Color.gray) {
+		CANCEL ("cancel", Color.gray) {
 			@Override
 			public void click(GameContainer container, StateBasedGame game) {
 				SoundController.playSound(SoundEffect.MENUBACK);
 				game.enterState(Opsu.STATE_SONGMENU, new EmptyTransition(), new FadeInTransition());
 			}
 		},
-		DELETE_CONFIRM ("Yes, delete this beatmap!", Color.red) {
+		DELETE_CONFIRM ("beatmaps.delete.single", Color.red) {
 			@Override
 			public void click(GameContainer container, StateBasedGame game) {
 				SoundController.playSound(SoundEffect.MENUHIT);
@@ -510,13 +511,13 @@ public class ButtonMenu extends BasicGameState {
 				game.enterState(Opsu.STATE_SONGMENU, new EmptyTransition(), new FadeInTransition());
 			}
 		},
-		DELETE_GROUP ("Yes, delete all difficulties!", Color.red) {
+		DELETE_GROUP ("beatmaps.delete.group", Color.red) {
 			@Override
 			public void click(GameContainer container, StateBasedGame game) {
 				DELETE_CONFIRM.click(container, game);
 			}
 		},
-		DELETE_SONG ("Yes, but only this difficulty", Color.red) {
+		DELETE_SONG ("beatmaps.delete.selected", Color.red) {
 			@Override
 			public void click(GameContainer container, StateBasedGame game) {
 				SoundController.playSound(SoundEffect.MENUHIT);
@@ -525,13 +526,13 @@ public class ButtonMenu extends BasicGameState {
 				game.enterState(Opsu.STATE_SONGMENU, new EmptyTransition(), new FadeInTransition());
 			}
 		},
-		CANCEL_DELETE ("Nooooo! I didn't mean to!", Color.gray) {
+		CANCEL_DELETE ("beatmaps.delete.cancel", Color.gray) {
 			@Override
 			public void click(GameContainer container, StateBasedGame game) {
 				CANCEL.click(container, game);
 			}
 		},
-		RELOAD_CONFIRM ("Let's do it!", Color.green) {
+		RELOAD_CONFIRM ("reload.confirm", Color.green) {
 			@Override
 			public void click(GameContainer container, StateBasedGame game) {
 				SoundController.playSound(SoundEffect.MENUHIT);
@@ -539,13 +540,13 @@ public class ButtonMenu extends BasicGameState {
 				game.enterState(Opsu.STATE_SONGMENU, new EmptyTransition(), new FadeInTransition());
 			}
 		},
-		RELOAD_CANCEL ("Cancel", Color.red) {
+		RELOAD_CANCEL ("cancel", Color.red) {
 			@Override
 			public void click(GameContainer container, StateBasedGame game) {
 				CANCEL.click(container, game);
 			}
 		},
-		DELETE_SCORE ("Delete score", Color.green) {
+		DELETE_SCORE ("scores.delete", Color.green) {
 			@Override
 			public void click(GameContainer container, StateBasedGame game) {
 				SoundController.playSound(SoundEffect.MENUHIT);
@@ -554,13 +555,13 @@ public class ButtonMenu extends BasicGameState {
 				game.enterState(Opsu.STATE_SONGMENU, new EmptyTransition(), new FadeInTransition());
 			}
 		},
-		CLOSE ("Close", Color.gray) {
+		CLOSE ("close", Color.gray) {
 			@Override
 			public void click(GameContainer container, StateBasedGame game) {
 				CANCEL.click(container, game);
 			}
 		},
-		RESET_MODS ("Reset All Mods", Color.red) {
+		RESET_MODS ("mods.resetAll", Color.red) {
 			@Override
 			public void click(GameContainer container, StateBasedGame game) {
 				SoundController.playSound(SoundEffect.MENUCLICK);
@@ -570,7 +571,7 @@ public class ButtonMenu extends BasicGameState {
 				}
 			}
 		},
-		ABOUT_WEBSITE ("Visit Website", Color.cyan) {
+		ABOUT_WEBSITE ("about.web", Color.cyan) {
 			@Override
 			public void click(GameContainer container, StateBasedGame game) {
 				SoundController.playSound(SoundEffect.MENUHIT);
@@ -582,7 +583,7 @@ public class ButtonMenu extends BasicGameState {
 				game.enterState(Opsu.STATE_MAINMENU, new EmptyTransition(), new FadeInTransition());
 			}
 		},
-		ABOUT_REPOSITORY ("Browse Source Code", Color.green) {
+		ABOUT_REPOSITORY ("about.repo", Color.green) {
 			@Override
 			public void click(GameContainer container, StateBasedGame game) {
 				SoundController.playSound(SoundEffect.MENUHIT);
@@ -594,36 +595,36 @@ public class ButtonMenu extends BasicGameState {
 				game.enterState(Opsu.STATE_MAINMENU, new EmptyTransition(), new FadeInTransition());
 			}
 		},
-		ABOUT_REPORT ("Report an Issue", Color.red) {
+		ABOUT_REPORT ("about.issues", Color.red) {
 			@Override
 			public void click(GameContainer container, StateBasedGame game) {
 				SoundController.playSound(SoundEffect.MENUHIT);
 				StringBuilder sb = new StringBuilder();
-				sb.append("[Type your description here. Feel free to delete the info below if it's not relevant.]\n\n");
-				sb.append("---\n");
+				sb.append(I18n.translate("ui.button.about.issues.placeholder"));
+				sb.append("\n\n---\n");
 				sb.append(ErrorHandler.getEnvironmentInfoForIssue());
 				URI uri = ErrorHandler.getIssueURI("", sb.toString());
 				try {
 					Desktop.getDesktop().browse(uri);
 				} catch (Exception e) {
-					UI.getNotificationManager().sendNotification("The web page could not be opened.", Color.red);
+					UI.getNotificationManager().sendNotification("web.noView", Color.red);
 				}
 				game.enterState(Opsu.STATE_MAINMENU, new EmptyTransition(), new FadeInTransition());
 			}
 		},
-		ABOUT_CREDITS ("View Credits", Color.magenta) {
+		ABOUT_CREDITS ("about.credits", Color.magenta) {
 			@Override
 			public void click(GameContainer container, StateBasedGame game) {
 				SoundController.playSound(SoundEffect.MENUHIT);
 				try {
 					Desktop.getDesktop().browse(OpsuConstants.CREDITS_URI);
 				} catch (Exception e) {
-					UI.getNotificationManager().sendNotification("The web page could not be opened.", Color.red);
+					UI.getNotificationManager().sendNotification("web.noView", Color.red);
 				}
 				game.enterState(Opsu.STATE_MAINMENU, new EmptyTransition(), new FadeInTransition());
 			}
 		},
-		ABOUT_CLOSE ("Close", Color.gray) {
+		ABOUT_CLOSE ("close", Color.gray) {
 			@Override
 			public void click(GameContainer container, StateBasedGame game) {
 				NO.click(container, game);
@@ -642,14 +643,14 @@ public class ButtonMenu extends BasicGameState {
 		 * @param color the button color
 		 */
 		Button(String text, Color color) {
-			this.text = text;
+			this.text = "ui.button." + text;
 			this.color = color;
 		}
 
 		/**
 		 * Returns the button text.
 		 */
-		public String getText() { return text; }
+		public String getText() { return I18n.translate(text); }
 
 		/**
 		 * Returns the button color.

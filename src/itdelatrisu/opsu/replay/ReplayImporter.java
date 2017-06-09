@@ -111,10 +111,10 @@ public class ReplayImporter {
 		fileIndex = -1;
 		files = null;
 
-		if (importCount > 0) {
-			String text = String.format("Imported %d replay%s.", importCount, importCount == 1 ? "" : "s");
-			UI.getNotificationManager().sendNotification(text);
-		}
+		if (importCount > 0)
+			UI.getNotificationManager().sendNotificationFormatted("replay.imported", importCount,
+					importCount == 1 ? "" : "s");
+
 	}
 
 	/**

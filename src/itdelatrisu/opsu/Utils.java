@@ -174,15 +174,9 @@ public class Utils {
 		UserButton.init(width, height);
 
 		// warn about software mode
-		if (((Container) container).isSoftwareMode()) {
-			UI.getNotificationManager().sendNotification(
-				"WARNING:\n" +
-				"Running in OpenGL software mode.\n" +
-				"You may experience severely degraded performance.\n\n" +
-				"This can usually be resolved by updating your graphics drivers.",
-				Color.red
-			);
-		}
+		if (((Container) container).isSoftwareMode())
+			UI.getNotificationManager().sendNotification("graphics.glWarning", Color.red);
+
 	}
 
 	/**
@@ -358,8 +352,8 @@ public class Utils {
 						}
 					}
 					ImageIO.write(image, Options.getScreenshotFormat(), file);
-					UI.getNotificationManager().sendNotification(
-						String.format("Saved screenshot to %s", file.getAbsolutePath()),
+					UI.getNotificationManager().sendNotificationFormatted(
+						"graphics.screenshot",
 						Colors.PURPLE,
 						new NotificationListener() {
 							@Override
@@ -370,7 +364,8 @@ public class Utils {
 									Log.warn("Failed to open screenshot location.", e);
 								}
 							}
-						}
+						},
+						file.getAbsolutePath()
 					);
 				} catch (Exception e) {
 					ErrorHandler.error("Failed to take a screenshot.", e, true);

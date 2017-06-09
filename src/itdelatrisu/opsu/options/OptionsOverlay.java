@@ -25,6 +25,7 @@ import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
 import itdelatrisu.opsu.options.Options.GameOption;
 import itdelatrisu.opsu.options.Options.GameOption.OptionType;
+import itdelatrisu.opsu.translation.I18n;
 import itdelatrisu.opsu.ui.Colors;
 import itdelatrisu.opsu.ui.DropdownMenu;
 import itdelatrisu.opsu.ui.Fonts;
@@ -479,8 +480,8 @@ public class OptionsOverlay extends AbstractComponent {
 		g.fillRect((int) x + navButtonSize, y, width, height);
 
 		// title
-		String title = "Options";
-		String subtitle = String.format("Change the way %s behaves", OpsuConstants.PROJECT_NAME);
+		String title = I18n.translate("options.name");
+		String subtitle = I18n.translate("options.desc");
 		Fonts.LARGE.drawString(
 			x + navButtonSize + (width - navButtonSize - Fonts.LARGE.getWidth(title)) / 2,
 			(int) (y + textOptionsY - scrolling.getPosition()),
@@ -521,7 +522,7 @@ public class OptionsOverlay extends AbstractComponent {
 			searchColor.b = COLOR_PINK.b + (1f - COLOR_PINK.b) * invalidProgress;
 			invalidProgress = 1f - invalidProgress;
 		}
-		String searchText = "Type to search!";
+		String searchText = I18n.translate("options.search");
 		if (lastSearchText.length() > 0)
 			searchText = lastSearchText;
 		int textWidth = width - navButtonSize;
@@ -867,7 +868,7 @@ public class OptionsOverlay extends AbstractComponent {
 		if (hoverOption != null && getOptionAtPosition(mouseX, mouseY) == hoverOption && !keyEntryLeft && !keyEntryRight)
 			UI.updateTooltip(delta, hoverOption.getDescription(), true);
 		else if (showRestartButton && restartButton.contains(mouseX, mouseY) && !keyEntryLeft && !keyEntryRight)
-			UI.updateTooltip(delta, "Click to restart the game.", false);
+			UI.updateTooltip(delta, I18n.translate("ui.button.restart"), false);
 		backButton.hoverUpdate(delta, backButton.contains(mouseX, mouseY) && !keyEntryLeft && !keyEntryRight);
 		if (showRestartButton)
 			restartButton.autoHoverUpdate(delta, false);
@@ -1209,7 +1210,7 @@ public class OptionsOverlay extends AbstractComponent {
 				// show restart button?
 				if (oldValue != hoverOption.getBooleanValue() && hoverOption.isRestartRequired()) {
 					showRestartButton = true;
-					UI.getNotificationManager().sendBarNotification("Restart to apply changes.");
+					UI.getNotificationManager().sendBarNotification("options.restart");
 				}
 			} else if (hoverOption.getItemList() != null) {
 				SoundController.playSound(SoundEffect.MENUCLICK);
@@ -1415,7 +1416,7 @@ public class OptionsOverlay extends AbstractComponent {
 						// show restart button?
 						if (option.isRestartRequired()) {
 							showRestartButton = true;
-							UI.getNotificationManager().sendBarNotification("Restart to apply changes.");
+							UI.getNotificationManager().sendBarNotification("options.restart");
 						}
 					}
 
