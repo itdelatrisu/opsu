@@ -343,17 +343,4 @@ public class I18n {
 		}
 		return list;
 	}
-
-	// public static void main(String[] args) {
-	// try (BufferedReader reader = new BufferedReader(
-	// new InputStreamReader(new FileInputStream("en_US.lang"), "UTF-8"))) {
-	// String line;
-	// while ((line = reader.readLine()) != null)
-	// if (!line.isEmpty() && line.charAt(0) != 35)
-	// System.out.println("\"" + line + "\",");
-	//
-	// } catch (Exception e) {
-	// e.printStackTrace();
-	// }
-	// }
 }
