@@ -1,8 +1,8 @@
 #########################################
-# Base file for the translations system	#
+# Base file for the translations system #
 #########################################
 
-#Identifier
+# Identifier
 language.name=English (US)
 
 # UI
@@ -206,10 +206,13 @@ options.audio.offset.desc=Adjust this value if hit objects are out of sync
 options.audio.disableFx=Disable all sound effects
 options.audio.disableFx.desc=May resolve Linux sound driver issues.\nRequires a restart.
 
-options.input.key.left=Left game key
-options.input.key.left.desc=Change the keybind for the "keyboard" left mouse click
-options.input.key.right=Right game key
-options.input.key.right.desc=Change the keybind for the "keyboard" right mouse click
+options.input.keyboard.left=Left game key
+options.input.keyboard.left.desc=Change the keybind for the "keyboard" left mouse click
+options.input.keyboard.left.prompt=Press the new left-click key.
+options.input.keyboard.right=Right game key
+options.input.keyboard.right.desc=Change the keybind for the "keyboard" right mouse click
+options.input.keyboard.right.prompt=Press the new right-click key.
+options.input.keyboard.subtext=Click anywhere or hit ESC to cancel.
 options.input.mouse.threadedInput=Threaded Input (Not Yet Implemented)
 options.input.mouse.threadedInput.desc=Poll mouse input in a seperate thread (Windows only)
 options.input.mouse.ignoreWheel=Disable mouse wheel in play mode

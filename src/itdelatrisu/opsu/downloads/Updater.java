@@ -25,6 +25,7 @@ import itdelatrisu.opsu.downloads.Download.DownloadListener;
 import itdelatrisu.opsu.options.Options;
 import itdelatrisu.opsu.translation.I18n;
 import itdelatrisu.opsu.ui.Colors;
+import itdelatrisu.opsu.ui.Fonts;
 import itdelatrisu.opsu.ui.UI;
 
 import java.io.File;
@@ -64,24 +65,24 @@ public class Updater {
 	/** Updater status. */
 	public enum Status {
 		INITIAL (""),
-		CHECKING ("checking"),
-		CONNECTION_ERROR ("error.connection"),
-		INTERNAL_ERROR ("error.internal"),
-		UP_TO_DATE ("latest"),
-		UPDATE_AVAILABLE ("update.available"),
-		UPDATE_DOWNLOADING ("update.downloading") {
+		CHECKING ("ui.updater.state.checking"),
+		CONNECTION_ERROR ("ui.updater.state.error.connection"),
+		INTERNAL_ERROR ("ui.updater.state.error.internal"),
+		UP_TO_DATE ("ui.updater.state.latest"),
+		UPDATE_AVAILABLE ("ui.updater.state.update.available"),
+		UPDATE_DOWNLOADING ("ui.updater.state.update.downloading") {
 			@Override
 			public String getDescription() {
 				Download d = updater.download;
 				if (d != null && d.getStatus() == Download.Status.DOWNLOADING) {
-					return I18n.translateFormatted(UPDATE_DOWNLOADING.description + ".progress", d.getProgress(),
-							Utils.bytesToString(d.readSoFar()), Utils.bytesToString(d.contentLength()));
+					return I18n.translateFormatted(UPDATE_DOWNLOADING.description + ".progress", Fonts.SMALL,
+							d.getProgress(), Utils.bytesToString(d.readSoFar()), Utils.bytesToString(d.contentLength()));
 				} else
 					return super.getDescription();
 			}
 		},
-		UPDATE_DOWNLOADED ("Download complete.\nClick to restart."),
-		UPDATE_FINAL ("Update queued.");
+		UPDATE_DOWNLOADED ("ui.updater.state.update.downloaded"),
+		UPDATE_FINAL ("ui.updater.state.update.queued");
 
 		/** The status description. */
 		private final String description;
@@ -91,13 +92,13 @@ public class Updater {
 		 * @param description the status description
 		 */
 		Status(String description) {
-			this.description = description.isEmpty() ? "" : "ui.updater.state." + description;
+			this.description = description;
 		}
 
 		/**
 		 * Returns the status description.
 		 */
-		public String getDescription() { return I18n.translate(description); }
+		public String getDescription() { return I18n.translate(description, Fonts.SMALL); }
 	};
 
 	/** The current updater status. */
@@ -275,13 +276,13 @@ public class Updater {
 				@Override
 				public void completed() {
 					status = Status.UPDATE_DOWNLOADED;
-					UI.getNotificationManager().sendNotification("Update has finished downloading.", Colors.GREEN);
+					UI.getNotificationManager().sendNotification("update.download.complete", Colors.GREEN);
 				}
 
 				@Override
 				public void error() {
 					status = Status.CONNECTION_ERROR;
-					UI.getNotificationManager().sendNotification("Update failed due to a connection error.", Color.red);
+					UI.getNotificationManager().sendNotification("update.download.failed", Color.red);
 				}
 			});
 		}

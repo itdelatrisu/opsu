@@ -166,7 +166,7 @@ public class UserButton {
 
 		// no user?
 		if (user == null) {
-			String text = I18n.translate("user.select.add");
+			String text = I18n.translate("user.select.add", Fonts.LARGE);
 			Fonts.LARGE.drawString(
 				x + (buttonWidth - Fonts.LARGE.getWidth(text)) / 2,
 				y + (buttonHeight - Fonts.LARGE.getLineHeight()) / 2,
@@ -187,11 +187,11 @@ public class UserButton {
 		int textY = cy + padding / 2;
 		Fonts.MEDIUM.drawString(textX, textY, user.getName(), Colors.WHITE_FADE);
 		textY += Fonts.MEDIUM.getLineHeight() - 3;
-		Fonts.SMALL.drawString(textX, textY, I18n.translateFormatted("user.info.score", user.getScore()), Colors.WHITE_FADE);
+		Fonts.SMALL.drawString(textX, textY, I18n.translateFormatted("user.info.score", Fonts.SMALL, user.getScore()), Colors.WHITE_FADE);
 		textY += Fonts.SMALL.getLineHeight() - 2;
-		Fonts.SMALL.drawString(textX, textY, I18n.translateFormatted("user.info.accuracy", user.getAccuracy()), Colors.WHITE_FADE);
+		Fonts.SMALL.drawString(textX, textY, I18n.translateFormatted("user.info.accuracy", Fonts.SMALL, user.getAccuracy()), Colors.WHITE_FADE);
 		textY += Fonts.SMALL.getLineHeight() - 2;
-		Fonts.SMALL.drawString(textX, textY, I18n.translateFormatted("user.info.level", user.getLevel()), Colors.WHITE_FADE);
+		Fonts.SMALL.drawString(textX, textY, I18n.translateFormatted("user.info.level", Fonts.SMALL, user.getLevel()), Colors.WHITE_FADE);
 
 		// progress bar
 		int barX = textX + Fonts.SMALL.getWidth("Lv#####");

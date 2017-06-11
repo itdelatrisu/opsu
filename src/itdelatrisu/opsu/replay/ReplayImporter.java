@@ -112,9 +112,7 @@ public class ReplayImporter {
 		files = null;
 
 		if (importCount > 0)
-			UI.getNotificationManager().sendNotificationFormatted("replay.imported", importCount,
-					importCount == 1 ? "" : "s");
-
+			UI.getNotificationManager().sendNotificationFormatted("replay.imported", importCount, importCount == 1 ? "" : "s");
 	}
 
 	/**

@@ -266,7 +266,7 @@ public class UserSelectOverlay extends AbstractComponent {
 		COLOR_WHITE.a = alpha;
 
 		// title
-		String title = I18n.translate("user.select");
+		String title = I18n.translate("user.select", Fonts.XLARGE);
 		Fonts.XLARGE.drawString(
 			x + (width - Fonts.XLARGE.getWidth(title)) / 2,
 			(int) (y + titleY - scrolling.getPosition()),
@@ -297,7 +297,7 @@ public class UserSelectOverlay extends AbstractComponent {
 		COLOR_GRAY.a = alpha * 0.8f;
 
 		// title
-		String title = I18n.translate("user.select.add.header");
+		String title = I18n.translate("user.select.add.header", Fonts.XLARGE);
 		Fonts.XLARGE.drawString(
 			x + (width - Fonts.XLARGE.getWidth(title)) / 2,
 			(int) (y + titleY),
@@ -306,20 +306,20 @@ public class UserSelectOverlay extends AbstractComponent {
 
 		// user button
 		int cy = (int) (y + usersStartY);
-		String caption = I18n.translate("user.select.add.caption");
+		String caption = I18n.translate("user.select.add.caption", Fonts.MEDIUM);
 		Fonts.MEDIUM.drawString(x + (width - Fonts.MEDIUM.getWidth(caption)) / 2, cy, caption, COLOR_WHITE);
 		cy += Fonts.MEDIUM.getLineHeight();
 		newUserButton.draw(g, alpha);
 		cy += UserButton.getHeight() + Fonts.MEDIUMBOLD.getLineHeight();
 
 		// user name
-		String nameHeader = I18n.translate("user.name");
+		String nameHeader = I18n.translate("user.name", Fonts.MEDIUMBOLD);
 		Fonts.MEDIUMBOLD.drawString(x + (width - Fonts.MEDIUMBOLD.getWidth(nameHeader)) / 2, cy, nameHeader, COLOR_WHITE);
 		cy += Fonts.MEDIUMBOLD.getLineHeight();
 		Color textColor = COLOR_WHITE;
 		String name = newUser.getName();
 		if (name.isEmpty()) {
-			name = I18n.translate("user.name.new");
+			name = I18n.translate("user.name.new", Fonts.LARGE);
 			textColor = COLOR_GRAY;
 		} else if (!UserList.get().isValidUserName(name))
 			textColor = COLOR_RED;
@@ -333,7 +333,7 @@ public class UserSelectOverlay extends AbstractComponent {
 		cy += Fonts.MEDIUMBOLD.getLineHeight();
 
 		// user icons
-		String iconHeader = I18n.translate("user.icon");
+		String iconHeader = I18n.translate("user.icon", Fonts.MEDIUMBOLD);
 		Fonts.MEDIUMBOLD.drawString(x + (width - Fonts.MEDIUMBOLD.getWidth(iconHeader)) / 2, cy, iconHeader, COLOR_WHITE);
 		cy += Fonts.MEDIUMBOLD.getLineHeight() + usersPaddingY;
 		int iconSize = UserButton.getIconSize();

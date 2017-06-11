@@ -20,6 +20,7 @@ package itdelatrisu.opsu.beatmap;
 
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.translation.I18n;
+import itdelatrisu.opsu.ui.Fonts;
 import itdelatrisu.opsu.ui.MenuButton;
 import itdelatrisu.opsu.ui.UI;
 
@@ -36,10 +37,10 @@ import org.newdawn.slick.Image;
  */
 public enum BeatmapGroup {
 	/** All beatmaps (no filter). */
-	ALL (0, "all"),
+	ALL (0, "beatmaps.groups.all"),
 
 	/** Most recently played beatmaps. */
-	RECENT (1, "recent") {
+	RECENT (1, "beatmaps.groups.recent") {
 		/** Number of elements to show. */
 		private static final int K = 20;
 
@@ -82,7 +83,7 @@ public enum BeatmapGroup {
 	},
 
 	/** "Favorite" beatmaps. */
-	FAVORITE (2, "favorites") {
+	FAVORITE (2, "beatmaps.groups.favorites") {
 		@Override
 		public ArrayList<BeatmapSetNode> filter(ArrayList<BeatmapSetNode> list) {
 			// find "favorite" beatmaps
@@ -136,7 +137,7 @@ public enum BeatmapGroup {
 	 */
 	BeatmapGroup(int id, String name) {
 		this.id = id;
-		this.name = "beatmaps.groups." + name;
+		this.name = name;
 	}
 
 	/**
@@ -188,6 +189,6 @@ public enum BeatmapGroup {
 	 * @param isHover whether to include a hover effect (unselected only)
 	 */
 	public void draw(boolean selected, boolean isHover) {
-		UI.drawTab(tab.getX(), tab.getY(), I18n.translate(getName()), selected, isHover);
+		UI.drawTab(tab.getX(), tab.getY(), I18n.translate(getName(), Fonts.MEDIUM), selected, isHover);
 	}
 }

@@ -178,10 +178,9 @@ public class BackButton {
 		chevron.drawCentered((firstWidth - slopeImageSlopeWidth / 2) / 2, buttonYpos + paddingY * 1.5f);
 
 		// text
-		String f = I18n.translate("ui.button.back");
-		if(!f.equals(buttonText)) {
-			buttonText = f;
-			Fonts.loadGlyphs(Fonts.MEDIUM, buttonText);
+		String localizedText = I18n.translate("ui.button.back", Fonts.MEDIUM);
+		if(!localizedText.equals(buttonText)) {
+			buttonText = localizedText;
 			textWidth = Fonts.MEDIUM.getWidth(buttonText);
 			paddingY = Fonts.MEDIUM.getHeight(buttonText);
 			textOffset = paddingY * 0.264f;

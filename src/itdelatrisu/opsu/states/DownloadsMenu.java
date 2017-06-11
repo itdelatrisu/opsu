@@ -228,20 +228,20 @@ public class DownloadsMenu extends BasicGameState {
 					focusResult = -1;
 					startResultPos.setPosition(0);
 					if (nodes == null)
-						searchResultString = I18n.translate("ui.menu.downloads.state.error");
+						searchResultString = I18n.translate("ui.menu.downloads.state.error", Fonts.BOLD);
 					else {
 						if (query.isEmpty())
-							searchResultString = I18n.translate("ui.menu.downloads.search");
+							searchResultString = I18n.translate("ui.menu.downloads.search", Fonts.BOLD);
 						else if (totalResults == 0 || resultList.length == 0)
-							searchResultString = I18n.translate("ui.menu.downloads.search.none");
+							searchResultString = I18n.translate("ui.menu.downloads.search.none", Fonts.BOLD);
 						else
-							searchResultString = I18n.translateFormatted("ui.menu.downloads.state.search.found",
+							searchResultString = I18n.translateFormatted("ui.menu.downloads.state.search.found", Fonts.BOLD,
 									totalResults, (totalResults == 1) ? "" : "s");
 					}
 				}
 			} catch (IOException e) {
 				if (!interrupted)
-					searchResultString = I18n.translate("ui.menu.downloads.state.error.connect");
+					searchResultString = I18n.translate("ui.menu.downloads.state.error.connect", Fonts.BOLD);
 			} finally {
 				complete = true;
 			}
@@ -308,7 +308,7 @@ public class DownloadsMenu extends BasicGameState {
 
 		// search
 		searchTimer = SEARCH_DELAY;
-		searchResultString = I18n.translate("ui.menu.downloads.state.fetch");
+		searchResultString = I18n.translate("ui.menu.downloads.state.fetch", Fonts.BOLD);
 		searchFont = Fonts.DEFAULT;
 		search = new TextField(
 				container, searchFont, (int) baseX, (int) searchY,
@@ -360,9 +360,9 @@ public class DownloadsMenu extends BasicGameState {
 				baseX + searchWidth + buttonMarginX + resetButtonWidth / 2f, topButtonY);
 		rankedButton = new MenuButton(rankedButtonImage, buttonL, buttonR,
 				baseX + searchWidth + buttonMarginX * 2f + resetButtonWidth + rankedButtonWidth / 2f, topButtonY);
-		clearButton.setText(I18n.translate("ui.button.downloads.clear"), Fonts.MEDIUM, Color.white);
-		importButton.setText(I18n.translate("ui.button.downloads.import"), Fonts.MEDIUM, Color.white);
-		resetButton.setText(I18n.translate("ui.button.downloads.search.reset"), Fonts.MEDIUM, Color.white);
+		clearButton.setText(I18n.translate("ui.button.downloads.clear", Fonts.MEDIUM), Fonts.MEDIUM, Color.white);
+		importButton.setText(I18n.translate("ui.button.downloads.import", Fonts.MEDIUM), Fonts.MEDIUM, Color.white);
+		resetButton.setText(I18n.translate("ui.button.downloads.search.reset", Fonts.MEDIUM), Fonts.MEDIUM, Color.white);
 		clearButton.setHoverFade();
 		importButton.setHoverFade();
 		resetButton.setHoverFade();
@@ -381,7 +381,7 @@ public class DownloadsMenu extends BasicGameState {
 				page = 0;
 				pageResultTotal = 1;
 				pageDir = Page.RESET;
-				searchResultString = I18n.translate("ui.menu.downloads.state.fetch");
+				searchResultString = I18n.translate("ui.menu.downloads.state.fetch", Fonts.BOLD);
 				lastQuery = null;
 				pageDir = Page.RESET;
 				if (searchQuery != null)
@@ -424,7 +424,7 @@ public class DownloadsMenu extends BasicGameState {
 			bg.drawCentered(width / 2, height / 2);
 
 		// title
-		Fonts.LARGE.drawString(width * 0.024f, height * 0.03f, I18n.translate("ui.menu.downloads.header"), Color.white);
+		Fonts.LARGE.drawString(width * 0.024f, height * 0.03f, I18n.translate("ui.menu.downloads.header", Fonts.LARGE), Color.white);
 
 		// search
 		g.setColor(Color.white);
@@ -464,7 +464,7 @@ public class DownloadsMenu extends BasicGameState {
 				float baseX = width * 0.024f;
 				float buttonY = height * 0.2f;
 				float buttonWidth = width * 0.7f;
-				String pageText = I18n.translateFormatted("ui.menu.downloads.search.page", page);
+				String pageText = I18n.translateFormatted("ui.menu.downloads.search.page", Fonts.BOLD, page);
 				Fonts.BOLD.drawString(
 						baseX + (buttonWidth - Fonts.BOLD.getWidth(pageText)) / 2f,
 						buttonY - Fonts.BOLD.getLineHeight() * 1.3f,
@@ -482,7 +482,7 @@ public class DownloadsMenu extends BasicGameState {
 		g.setColor(Colors.BLACK_BG_NORMAL);
 		g.fillRect(downloadsX, downloadsY,
 				width * 0.25f, height - downloadsY * 2f);
-		Fonts.LARGE.drawString(downloadsX + width * 0.015f, downloadsY + height * 0.015f, I18n.translate("ui.menu.downloads"), Color.white);
+		Fonts.LARGE.drawString(downloadsX + width * 0.015f, downloadsY + height * 0.015f, I18n.translate("ui.menu.downloads", Fonts.LARGE), Color.white);
 		int downloadsSize = DownloadList.get().size();
 		if (downloadsSize > 0) {
 			int maxDownloadsShown = DownloadNode.maxDownloadsShown();
@@ -511,7 +511,7 @@ public class DownloadsMenu extends BasicGameState {
 		clearButton.draw(Color.gray);
 		importButton.draw(Color.orange);
 		resetButton.draw(Color.red);
-		rankedButton.setText(I18n.translate("ui.button.downloads.unranked." + ((rankedOnly) ? "show" : "hide")), Fonts.MEDIUM, Color.white);
+		rankedButton.setText(I18n.translate("ui.button.downloads.unranked." + ((rankedOnly) ? "show" : "hide"), Fonts.MEDIUM), Fonts.MEDIUM, Color.white);
 		rankedButton.draw(Color.magenta);
 
 		// dropdown menu
@@ -605,11 +605,11 @@ public class DownloadsMenu extends BasicGameState {
 
 		// tooltips
 		if (resetButton.contains(mouseX, mouseY))
-			UI.updateTooltip(delta, I18n.translate("ui.button.downloads.search.reset.desc"), false);
+			UI.updateTooltip(delta, I18n.translate("ui.button.downloads.search.reset.desc", Fonts.SMALL), false);
 		else if (rankedButton.contains(mouseX, mouseY))
-			UI.updateTooltip(delta, I18n.translate("ui.button.downloads.unranked.desc"), true);
+			UI.updateTooltip(delta, I18n.translate("ui.button.downloads.unranked.desc", Fonts.SMALL), true);
 		else if (serverMenu.baseContains(mouseX, mouseY))
-			UI.updateTooltip(delta, I18n.translate("ui.button.downloads.server"), false);
+			UI.updateTooltip(delta, I18n.translate("ui.button.downloads.server", Fonts.SMALL), false);
 	}
 
 	@Override

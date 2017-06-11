@@ -776,9 +776,9 @@ public class SongMenu extends BasicGameState {
 		g.setColor(Colors.BLACK_ALPHA);
 		g.fillRect(searchBaseX, headerY + DIVIDER_LINE_WIDTH / 2, width - searchBaseX, searchRectHeight);
 		Colors.BLACK_ALPHA.a = oldAlpha;
-		Fonts.BOLD.drawString(searchTextX, searchY, I18n.translate("ui.menu.beatmap.search"), Colors.GREEN_SEARCH);
+		Fonts.BOLD.drawString(searchTextX, searchY, I18n.translate("ui.menu.beatmap.search", Fonts.BOLD), Colors.GREEN_SEARCH);
 		if (searchEmpty)
-			Fonts.BOLD.drawString(searchX, searchY, I18n.translate("options.search"), Color.white);
+			Fonts.BOLD.drawString(searchX, searchY, I18n.translate("options.search", Fonts.BOLD), Color.white);
 		else {
 			g.setColor(Color.white);
 			// TODO: why is this needed to correctly position the TextField?
@@ -786,7 +786,8 @@ public class SongMenu extends BasicGameState {
 			search.render(container, g);
 			search.setLocation(searchX, searchY);
 			Fonts.DEFAULT.drawString(searchTextX, searchY + Fonts.BOLD.getLineHeight(),
-					(searchResultString == null) ? I18n.translate("ui.menu.beatmap.search.progress") : I18n.translate(searchResultString), Color.white);
+					(searchResultString == null) ? I18n.translate("ui.menu.beatmap.search.progress", Fonts.DEFAULT) 
+							: I18n.translate(searchResultString, Fonts.DEFAULT), Color.white);
 		}
 
 		// sorting options
@@ -948,7 +949,7 @@ public class SongMenu extends BasicGameState {
 
 		// tooltips
 		if (sortMenu.baseContains(mouseX, mouseY))
-			UI.updateTooltip(delta, I18n.translate("ui.tooltip.beatmaps.sort"), false);
+			UI.updateTooltip(delta, I18n.translate("ui.tooltip.beatmaps.sort", Fonts.SMALL), false);
 		else if (focusScores != null && ScoreData.areaContains(mouseX, mouseY) && !showOptionsOverlay && !showUserOverlay) {
 			int startScore = (int) (startScorePos.getPosition() / ScoreData.getButtonOffset());
 			int offset = (int) (-startScorePos.getPosition() + startScore * ScoreData.getButtonOffset());
@@ -1610,7 +1611,7 @@ public class SongMenu extends BasicGameState {
 			int size = BeatmapSetList.get().size();
 			if (size > 0) {
 				BeatmapSetList.get().init();
-				String results = I18n.translateFormatted("ui.menu.beatmap.search.result", size, (size == 1) ? "" : "es");
+				String results = I18n.translateFormatted("ui.menu.beatmap.search.result", Fonts.DEFAULT, size, (size == 1) ? "" : "es");
 				if (search.getText().isEmpty()) {  // cleared search
 					// use previous start/focus if possible
 					if (oldFocusNode != null) {

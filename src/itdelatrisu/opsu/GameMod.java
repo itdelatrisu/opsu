@@ -108,7 +108,7 @@ public enum GameMod {
 		/**
 		 * Returns the category name.
 		 */
-		public String getName() { return I18n.translate(name); }
+		public String getName() { return I18n.translate(name, Fonts.LARGE); }
 
 		/**
 		 * Returns the text color.
@@ -347,13 +347,13 @@ public enum GameMod {
 	 * Returns the name of the mod.
 	 * @return the name
 	 */
-	public String getName() { return I18n.translate(name); }
+	public String getName() { return I18n.translate(name, Fonts.SMALL); }
 
 	/**
 	 * Returns a description of the mod.
 	 * @return the description
 	 */
-	public String getDescription() { return I18n.translate(name + ".desc"); }
+	public String getDescription() { return I18n.translate(name + ".desc", Fonts.SMALL); }
 
 	/**
 	 * Toggles the active status of the mod.

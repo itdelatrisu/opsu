@@ -303,7 +303,7 @@ public class Options {
 		},
 
 		// in-game options
-		SCREEN_RESOLUTION ("graphics.resolution", "ScreenResolution") {
+		SCREEN_RESOLUTION ("options.graphics.resolution", "ScreenResolution") {
 			private Resolution[] itemList = null;
 
 			@Override
@@ -345,7 +345,7 @@ public class Options {
 				} catch (IllegalArgumentException e) {}
 			}
 		},
-		FULLSCREEN ("graphics.fullscreen", "Fullscreen", false) {
+		FULLSCREEN ("options.graphics.fullscreen", "Fullscreen", false) {
 			@Override
 			public boolean isRestartRequired() { return true; }
 
@@ -360,7 +360,7 @@ public class Options {
 				super.toggle(container);
 			}
 		},
-		SKIN ("visuals.skin", "Skin") {
+		SKIN ("options.visuals.skin", "Skin") {
 			private String[] itemList = null;
 
 			@Override
@@ -395,7 +395,7 @@ public class Options {
 			@Override
 			public void read(String s) { skinName = s; }
 		},
-		TARGET_FPS ("graphics.framesync", "FrameSync") {
+		TARGET_FPS ("options.graphics.framesync", "FrameSync") {
 			private String[] itemList = null;
 
 			@Override
@@ -434,38 +434,27 @@ public class Options {
 				}
 			}
 		},
-		SHOW_FPS ("graphics.showFPS", "FpsCounter", true) {
+		SHOW_FPS ("options.graphics.showFPS", "FpsCounter", true) {
 			@Override
 			public void toggle(GameContainer container) {
 				super.toggle(container);
 				UI.resetFPSDisplay();
 			}
 		},
-		DISPLAY_LANGUAGE ("language", "DisplayLanguage") {
+		DISPLAY_LANGUAGE ("options.language", "DisplayLanguage") {
 			@Override
 			public String getValueString() { return I18n.getCurrentLocale().toString(); }
 
 			@Override
-			public Object[] getItemList() { return I18n.localeIDs; }
+			public Object[] getItemList() { return I18n.getActiveLocaleIDs(); }
 
 			@Override
-			public void selectItem(int index, GameContainer container) {
-				I18n.setLocale(index);
-
-				// load glyphs to the current language
-				try {
-					Fonts.LARGE.loadGlyphs();
-					Fonts.MEDIUM.loadGlyphs();
-					Fonts.DEFAULT.loadGlyphs();
-				} catch (SlickException e) {
-					Log.warn("Failed to load glyphs.", e);
-				}
-			}
+			public void selectItem(int index, GameContainer container) { I18n.setLocale(I18n.getActiveLocaleIDs()[index]); }
 
 			@Override
 			public void read(String s) { I18n.setLocale(s); }
 		},
-		SHOW_UNICODE ("language.unicode", "ShowUnicode", false) {
+		SHOW_UNICODE ("options.language.unicode", "ShowUnicode", false) {
 			@Override
 			public void toggle(GameContainer container) {
 				super.toggle(container);
@@ -480,7 +469,7 @@ public class Options {
 				}
 			}
 		},
-		SCREENSHOT_FORMAT ("graphics.screenshotFormat", "ScreenshotFormat") {
+		SCREENSHOT_FORMAT ("options.graphics.screenshotFormat", "ScreenshotFormat") {
 			private String[] itemList = null;
 
 			@Override
@@ -509,7 +498,7 @@ public class Options {
 					screenshotFormatIndex = i;
 			}
 		},
-		CURSOR_SIZE ("visuals.cursorSize", "CursorSize", 100, 50, 200) {
+		CURSOR_SIZE ("options.visuals.cursorSize", "CursorSize", 100, 50, 200) {
 			@Override
 			public String getValueString() { return String.format("%.2fx", val / 100f); }
 
@@ -523,33 +512,33 @@ public class Options {
 					val = i;
 			}
 		},
-		DYNAMIC_BACKGROUND ("visuals.dynamicBG", "DynamicBackground", true),
-		LOAD_VERBOSE ("misc.verbose", "LoadVerbose", false),
-		MASTER_VOLUME ("audio.volume.master", "VolumeUniversal", 35, 0, 100) {
+		DYNAMIC_BACKGROUND ("options.visuals.dynamicBG", "DynamicBackground", true),
+		LOAD_VERBOSE ("options.misc.verbose", "LoadVerbose", false),
+		MASTER_VOLUME ("options.audio.volume.master", "VolumeUniversal", 35, 0, 100) {
 			@Override
 			public void setValue(int value) {
 				super.setValue(value);
 				SoundStore.get().setMusicVolume(getMasterVolume() * getMusicVolume());
 			}
 		},
-		MUSIC_VOLUME ("audio.volume.music", "VolumeMusic", 80, 0, 100) {
+		MUSIC_VOLUME ("options.audio.volume.music", "VolumeMusic", 80, 0, 100) {
 			@Override
 			public void setValue(int value) {
 				super.setValue(value);
 				SoundStore.get().setMusicVolume(getMasterVolume() * getMusicVolume());
 			}
 		},
-		EFFECT_VOLUME ("audio.volume.fx", "VolumeEffect", 70, 0, 100),
-		HITSOUND_VOLUME ("audio.volume.hitSounds", "VolumeHitSound", 30, 0, 100),
-		MUSIC_OFFSET ("audio.offset", "Offset", -75, -500, 500) {
+		EFFECT_VOLUME ("options.audio.volume.fx", "VolumeEffect", 70, 0, 100),
+		HITSOUND_VOLUME ("options.audio.volume.hitSounds", "VolumeHitSound", 30, 0, 100),
+		MUSIC_OFFSET ("options.audio.offset", "Offset", -75, -500, 500) {
 			@Override
 			public String getValueString() { return String.format("%dms", val); }
 		},
-		DISABLE_SOUNDS ("audio.disableFx", "DisableSound", false) {
+		DISABLE_SOUNDS ("options.audio.disableFx", "DisableSound", false) {
 			@Override
 			public boolean isRestartRequired() { return true; }
 		},
-		KEY_LEFT ("input.key.left", "keyOsuLeft") {
+		KEY_LEFT ("options.input.keyboard.left", "keyOsuLeft") {
 			@Override
 			public String getValueString() { return Keyboard.getKeyName(getGameKeyLeft()); }
 
@@ -559,7 +548,7 @@ public class Options {
 			@Override
 			public void read(String s) { setGameKeyLeft(Keyboard.getKeyIndex(s)); }
 		},
-		KEY_RIGHT ("input.key.right", "keyOsuRight") {
+		KEY_RIGHT ("options.input.keyboard.right", "keyOsuRight") {
 			@Override
 			public String getValueString() { return Keyboard.getKeyName(getGameKeyRight()); }
 
@@ -569,28 +558,28 @@ public class Options {
 			@Override
 			public void read(String s) { setGameKeyRight(Keyboard.getKeyIndex(s)); }
 		},
-		DISABLE_MOUSE_WHEEL ("input.mouse.ignoreWheel", "MouseDisableWheel", false),
-		DISABLE_MOUSE_BUTTONS ("input.mouse.ignoreButtons", "MouseDisableButtons", false),
-		DISABLE_CURSOR ("input.mouse.noCursor", "DisableCursor", false),
-		BACKGROUND_DIM ("visuals.dimLevel", "DimLevel", 50, 0, 100),
-		FORCE_DEFAULT_PLAYFIELD ("visuals.playfieldOverride", "ForceDefaultPlayfield", false),
-		ENABLE_VIDEOS ("visuals.video", "Video", true),
-		IGNORE_BEATMAP_SKINS ("visuals.ignoreBeatmapSkins", "IgnoreBeatmapSkins", false),
-		FORCE_SKIN_CURSOR ("visuals.useSkinCursor", "UseSkinCursor", false),
-		SNAKING_SLIDERS ("graphics.sliders.snaking", "SnakingSliders", true),
-		EXPERIMENTAL_SLIDERS ("graphics.sliders.beta", "ExperimentalSliders", false),
-		EXPERIMENTAL_SLIDERS_CAPS ("graphics.sliders.beta.caps", "ExperimentalSliderCaps", false),
-		EXPERIMENTAL_SLIDERS_SHRINK ("graphics.sliders.beta.shrink", "ExperimentalSliderShrink", true),
-		EXPERIMENTAL_SLIDERS_MERGE ("graphics.sliders.beta.merge", "ExperimentalSliderMerge", true),
-		SHOW_HIT_LIGHTING ("gameplay.hitLighting", "HitLighting", true),
-		SHOW_COMBO_BURSTS ("gameplay.comboBurst", "ComboBurst", true),
-		SHOW_PERFECT_HIT ("gameplay.perfectHits", "PerfectHit", true),
-		SHOW_FOLLOW_POINTS ("gameplay.followPoints", "FollowPoints", true),
-		SHOW_HIT_ERROR_BAR ("gameplay.accuracyMeter", "ScoreMeter", false),
-		LOAD_HD_IMAGES ("visuals.skin.useHD", "LoadHDImages", true),
-		FIXED_CS ("gameplay.fixedCS", "FixedCS", 0, 0, 100) {
+		DISABLE_MOUSE_WHEEL ("options.input.mouse.ignoreWheel", "MouseDisableWheel", false),
+		DISABLE_MOUSE_BUTTONS ("options.input.mouse.ignoreButtons", "MouseDisableButtons", false),
+		DISABLE_CURSOR ("options.input.mouse.noCursor", "DisableCursor", false),
+		BACKGROUND_DIM ("options.visuals.dimLevel", "DimLevel", 50, 0, 100),
+		FORCE_DEFAULT_PLAYFIELD ("options.visuals.playfieldOverride", "ForceDefaultPlayfield", false),
+		ENABLE_VIDEOS ("options.visuals.video", "Video", true),
+		IGNORE_BEATMAP_SKINS ("options.visuals.ignoreBeatmapSkins", "IgnoreBeatmapSkins", false),
+		FORCE_SKIN_CURSOR ("options.visuals.useSkinCursor", "UseSkinCursor", false),
+		SNAKING_SLIDERS ("options.graphics.sliders.snaking", "SnakingSliders", true),
+		EXPERIMENTAL_SLIDERS ("options.graphics.sliders.beta", "ExperimentalSliders", false),
+		EXPERIMENTAL_SLIDERS_CAPS ("options.graphics.sliders.beta.caps", "ExperimentalSliderCaps", false),
+		EXPERIMENTAL_SLIDERS_SHRINK ("options.graphics.sliders.beta.shrink", "ExperimentalSliderShrink", true),
+		EXPERIMENTAL_SLIDERS_MERGE ("options.graphics.sliders.beta.merge", "ExperimentalSliderMerge", true),
+		SHOW_HIT_LIGHTING ("options.gameplay.hitLighting", "HitLighting", true),
+		SHOW_COMBO_BURSTS ("options.gameplay.comboBurst", "ComboBurst", true),
+		SHOW_PERFECT_HIT ("options.gameplay.perfectHits", "PerfectHit", true),
+		SHOW_FOLLOW_POINTS ("options.gameplay.followPoints", "FollowPoints", true),
+		SHOW_HIT_ERROR_BAR ("options.gameplay.accuracyMeter", "ScoreMeter", false),
+		LOAD_HD_IMAGES ("options.visuals.skin.useHD", "LoadHDImages", true),
+		FIXED_CS ("options.gameplay.fixedCS", "FixedCS", 0, 0, 100) {
 			@Override
-			public String getValueString() { return (val == 0) ? I18n.translate("options.value.disabled") : String.format("%.1f", val / 10f); }
+			public String getValueString() { return (val == 0) ? I18n.translate("options.value.disabled", Fonts.SMALL) : String.format("%.1f", val / 10f); }
 
 			@Override
 			public String write() { return String.format(Locale.US, "%.1f", val / 10f); }
@@ -602,9 +591,9 @@ public class Options {
 					val = i;
 			}
 		},
-		FIXED_HP ("gameplay.fixedHP", "FixedHP", 0, 0, 100) {
+		FIXED_HP ("options.gameplay.fixedHP", "FixedHP", 0, 0, 100) {
 			@Override
-			public String getValueString() { return (val == 0) ? I18n.translate("options.value.disabled") : String.format("%.1f", val / 10f); }
+			public String getValueString() { return (val == 0) ? I18n.translate("options.value.disabled", Fonts.SMALL) : String.format("%.1f", val / 10f); }
 
 			@Override
 			public String write() { return String.format(Locale.US, "%.1f", val / 10f); }
@@ -616,9 +605,9 @@ public class Options {
 					val = i;
 			}
 		},
-		FIXED_AR ("gameplay.fixedAR", "FixedAR", 0, 0, 100) {
+		FIXED_AR ("options.gameplay.fixedAR", "FixedAR", 0, 0, 100) {
 			@Override
-			public String getValueString() { return (val == 0) ? I18n.translate("options.value.disabled") : String.format("%.1f", val / 10f); }
+			public String getValueString() { return (val == 0) ? I18n.translate("options.value.disabled", Fonts.SMALL) : String.format("%.1f", val / 10f); }
 
 			@Override
 			public String write() { return String.format(Locale.US, "%.1f", val / 10f); }
@@ -630,9 +619,9 @@ public class Options {
 					val = i;
 			}
 		},
-		FIXED_OD ("gameplay.fixedOD", "FixedOD", 0, 0, 100) {
+		FIXED_OD ("options.gameplay.fixedOD", "FixedOD", 0, 0, 100) {
 			@Override
-			public String getValueString() { return (val == 0) ? I18n.translate("options.value.disabled") : String.format("%.1f", val / 10f); }
+			public String getValueString() { return (val == 0) ? I18n.translate("options.value.disabled", Fonts.SMALL) : String.format("%.1f", val / 10f); }
 
 			@Override
 			public String write() { return String.format(Locale.US, "%.1f", val / 10f); }
@@ -644,9 +633,9 @@ public class Options {
 					val = i;
 			}
 		},
-		FIXED_SPEED ("gameplay.fixedSpeed", "FixedSpeed", 0, 0, 300) {
+		FIXED_SPEED ("options.gameplay.fixedSpeed", "FixedSpeed", 0, 0, 300) {
 			@Override
-			public String getValueString() { return (val == 0) ? I18n.translate("options.value.disabled") : String.format("%.2fx", val / 100f); }
+			public String getValueString() { return (val == 0) ? I18n.translate("options.value.disabled", Fonts.SMALL) : String.format("%.2fx", val / 100f); }
 
 			@Override
 			public String write() { return String.format(Locale.US, "%.2f", val / 100f); }
@@ -658,19 +647,19 @@ public class Options {
 					val = i;
 			}
 		},
-		CHECKPOINT ("gameplay.checkpoint", "Checkpoint", 0, 0, 1800) {
+		CHECKPOINT ("options.gameplay.checkpoint", "Checkpoint", 0, 0, 1800) {
 			@Override
 			public String getValueString() {
-				return (val == 0) ? I18n.translate("options.value.disabled") : String.format("%02d:%02d",
+				return (val == 0) ? I18n.translate("options.value.disabled", Fonts.SMALL) : String.format("%02d:%02d",
 						TimeUnit.SECONDS.toMinutes(val),
 						val - TimeUnit.MINUTES.toSeconds(TimeUnit.SECONDS.toMinutes(val)));
 			}
 		},
-		PARALLAX ("misc.parallax", "MenuParallax", true),
-		ENABLE_THEME_SONG ("misc.themeSong", "MenuMusic", true),
-		REPLAY_SEEKING ("misc.replaySeek", "ReplaySeeking", false),
-		DISABLE_UPDATER ("misc.updater", "DisableUpdater", false),
-		ENABLE_WATCH_SERVICE ("misc.watchService", "WatchService", false) {
+		PARALLAX ("options.misc.parallax", "MenuParallax", true),
+		ENABLE_THEME_SONG ("options.misc.themeSong", "MenuMusic", true),
+		REPLAY_SEEKING ("options.misc.replaySeek", "ReplaySeeking", false),
+		DISABLE_UPDATER ("options.misc.updater", "DisableUpdater", false),
+		ENABLE_WATCH_SERVICE ("options.misc.watchService", "WatchService", false) {
 			@Override
 			public boolean isRestartRequired() { return true; }
 		};
@@ -713,7 +702,7 @@ public class Options {
 		 * @param displayName the option name, as displayed in the configuration file
 		 */
 		GameOption(String name, String displayName) {
-			this.name = "options." + name;
+			this.name = name;
 			this.displayName = displayName;
 		}
 
@@ -747,7 +736,7 @@ public class Options {
 		 * Returns the option name.
 		 * @return the name string
 		 */
-		public String getName() { return I18n.translate(name); }
+		public String getName() { return I18n.translate(name, Fonts.MEDIUM); }
 
 		/**
 		 * Returns the option name, as displayed in the configuration file.
@@ -759,7 +748,7 @@ public class Options {
 		 * Returns the option description.
 		 * @return the description string
 		 */
-		public String getDescription() { return I18n.translate(name + ".desc"); }
+		public String getDescription() { return I18n.translate(name + ".desc", Fonts.SMALL); }
 
 		/**
 		 * Returns the option type.

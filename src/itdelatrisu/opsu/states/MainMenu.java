@@ -463,22 +463,21 @@ public class MainMenu extends BasicGameState {
 		float oldWhiteAlpha = Colors.WHITE_FADE.a;
 		Colors.WHITE_FADE.a = textAlpha;
 		float marginX = UserButton.getWidth() + 8, topMarginY = 4;
-		Fonts.MEDIUM.drawString(marginX, topMarginY,
-			I18n.translateFormatted("ui.menu.main.mapcount", BeatmapSetList.get().getMapCount()),
-			Colors.WHITE_FADE
+		I18n.translateAndDrawFormatted(Fonts.MEDIUM, 
+			marginX, topMarginY, 
+			Colors.WHITE_FADE, 
+			"ui.menu.main.mapcount", BeatmapSetList.get().getMapCount()
 		);
 		float lineHeight = Fonts.MEDIUM.getLineHeight() * 0.925f;
-		Fonts.MEDIUM.drawString(marginX, topMarginY + lineHeight,
-			I18n.translateFormatted("ui.menu.main.uptime",
-				OpsuConstants.PROJECT_NAME,
-				Utils.getTimeString((int) (System.currentTimeMillis() - programStartTime) / 1000)),
-			Colors.WHITE_FADE
+		I18n.translateAndDrawFormatted(Fonts.MEDIUM, marginX, topMarginY + lineHeight, 
+			Colors.WHITE_FADE, 
+			"ui.menu.main.uptime", OpsuConstants.PROJECT_NAME,
+			Utils.getTimeString((int) (System.currentTimeMillis() - programStartTime) / 1000)
 		);
 		lineHeight += Fonts.MEDIUM.getLineHeight() * 0.925f;
-		Fonts.MEDIUM.drawString(marginX, topMarginY + lineHeight,
-			I18n.translateFormatted("ui.menu.main.rtc",
-				new SimpleDateFormat("h:mm a").format(new Date())),
-			Colors.WHITE_FADE
+		I18n.translateAndDrawFormatted(Fonts.MEDIUM, marginX, topMarginY + lineHeight, 
+			Colors.WHITE_FADE, "ui.menu.main.rtc", 
+			new SimpleDateFormat("h:mm a").format(new Date())
 		);
 		Colors.WHITE_FADE.a = oldWhiteAlpha;
 
@@ -617,18 +616,19 @@ public class MainMenu extends BasicGameState {
 
 		// tooltips
 		if (musicPositionBarContains(mouseX, mouseY))
-			UI.updateTooltip(delta, I18n.translate("ui.tooltip.menu.songs.seek"), false);
+			UI.updateTooltip(delta, I18n.translate("ui.tooltip.menu.songs.seek", Fonts.SMALL), false);
 		else if (musicPlay.contains(mouseX, mouseY))
-			UI.updateTooltip(delta, (MusicController.isPlaying()) ? I18n.translate("ui.tooltip.menu.songs.pause") 
-					: I18n.translate("ui.tooltip.menu.songs.play"), false);
+			UI.updateTooltip(delta, (MusicController.isPlaying()) ? I18n.translate("ui.tooltip.menu.songs.pause", Fonts.SMALL) 
+					: I18n.translate("ui.tooltip.menu.songs.play", Fonts.SMALL), false);
 		else if (musicNext.contains(mouseX, mouseY))
-			UI.updateTooltip(delta, I18n.translate("ui.tooltip.menu.songs.next"), false);
+			UI.updateTooltip(delta, I18n.translate("ui.tooltip.menu.songs.next", Fonts.SMALL), false);
 		else if (musicPrevious.contains(mouseX, mouseY))
-			UI.updateTooltip(delta, I18n.translate("ui.tooltip.menu.songs.previous"), false);
+			UI.updateTooltip(delta, I18n.translate("ui.tooltip.menu.songs.previous", Fonts.SMALL), false);
 		else if (repoButton != null && repoButton.contains(mouseX, mouseY)) {
 			String version = Updater.get().getCurrentVersion();
 			String tooltip = I18n.translateFormatted(
-				"ui.tooltip.about",
+				"ui.tooltip.about", 
+				Fonts.SMALL,
 				OpsuConstants.PROJECT_NAME,
 				(version == null) ? "(unknown version)" : "v" + version,
 				OpsuConstants.PROJECT_AUTHOR

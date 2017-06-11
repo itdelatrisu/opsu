@@ -377,7 +377,7 @@ public class NotificationManager {
 	 * @param listener the listener
 	 */
 	public void sendNotification(String s, Color c, NotificationListener listener) {
-		sendNotificationImpl(I18n.translate("notifications." + s), c, listener);
+		sendNotificationImpl(I18n.translate("notifications." + s, Fonts.SMALLBOLD), c, listener);
 	}
 
 	/**
@@ -389,7 +389,7 @@ public class NotificationManager {
 	 * @param args the formatting arguments for the notification string
 	 */
 	public void sendNotificationFormatted(String s, Color c, NotificationListener listener, Object... args) {
-		sendNotificationImpl(I18n.translateFormatted("notifications." + s, args), c, listener);
+		sendNotificationImpl(I18n.translateFormatted("notifications." + s, Fonts.SMALLBOLD, args), c, listener);
 	}
 
 	/**
@@ -419,13 +419,13 @@ public class NotificationManager {
 		notif.setPosition(x, y);
 		notifications.add(notif);
 	}
-	
+
 	/**
 	 * Submits a bar notification for drawing.
 	 * @param s the notification string
 	 */
 	public void sendBarNotification(String s) {
-		barNotif = I18n.translate("notifications." + s);
+		barNotif = I18n.translate("notifications." + s, Fonts.LARGE);
 		barNotifTimer = 0;
 	}
 
@@ -435,7 +435,7 @@ public class NotificationManager {
 	 * @param args the format arguments for the notification string
 	 */
 	public void sendBarNotificationFormatted(String s, Object... args) {
-		barNotif = I18n.translateFormatted("notifications." + s, args);
+		barNotif = I18n.translateFormatted("notifications." + s, Fonts.LARGE, args);
 		barNotifTimer = 0;
 	}
 

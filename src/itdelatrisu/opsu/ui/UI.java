@@ -312,12 +312,12 @@ public class UI {
 			// verbose: display percentages and file names
 			Fonts.MEDIUM.drawString(
 				marginX, lineY - (lineOffsetY * 2),
-				String.format("%s (%d%%)", I18n.translate(text), progress), Colors.WHITE_FADE
+				String.format("%s (%d%%)", I18n.translate(text, Fonts.MEDIUM), progress), Colors.WHITE_FADE
 			);
 			Fonts.MEDIUM.drawString(marginX, lineY - lineOffsetY, file, Colors.WHITE_FADE);
 		} else {
 			// draw loading bar
-			Fonts.MEDIUM.drawString(marginX, lineY - (lineOffsetY * 2), I18n.translate(text), Colors.WHITE_FADE);
+			Fonts.MEDIUM.drawString(marginX, lineY - (lineOffsetY * 2), I18n.translate(text, Fonts.MEDIUM), Colors.WHITE_FADE);
 			g.setColor(Colors.WHITE_FADE);
 			g.fillRoundRect(
 				marginX, lineY - (lineOffsetY / 2f),

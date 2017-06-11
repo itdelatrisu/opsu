@@ -1791,7 +1791,7 @@ public class GameData {
 		float hitErrorLate = (lateCount > 0) ? (float) lateSum / lateCount : 0f;
 		float unstableRate = (!errors.isEmpty()) ? (float) (Utils.standardDeviation(errors) * 10) : 0f;
 		return I18n.translateFormatted(
-			"gameplay.scoreboard.results",
+			"gameplay.scoreboard.results", Fonts.SMALL, 
 			hitErrorEarly, hitErrorLate, unstableRate
 		);
 	}

@@ -19,6 +19,7 @@
 package itdelatrisu.opsu.translation;
 
 import itdelatrisu.opsu.Utils;
+import itdelatrisu.opsu.ui.Fonts;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -33,11 +34,13 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.IllegalFormatException;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
-import java.util.regex.Pattern;
 
+import org.newdawn.slick.Color;
+import org.newdawn.slick.UnicodeFont;
 import org.newdawn.slick.util.Log;
 
 /**
@@ -45,25 +48,46 @@ import org.newdawn.slick.util.Log;
  */
 public class I18n {
 
+	/** The list of active languages used to translate opsu! */
+	public static final Map<String, I18n> LOCALES;
+
+	/** The file extension used by the localisation framework */
+	private static final String LANG_FILE_EXT = ".lang";
+
+	/** The highest codepoint in the ASCII character set */
+	private static final int ASCII_CHAR_LIMIT = 255;
+
 	/** A hardcoded instance of the translation framework */
 	private static final I18n FALLBACK;
 
-	/** The list of active languages used to translate opsu! */
-	private static final List<I18n> LOCALES;
-
-	/** An array of String values that represent the identifiers of each locale */
-	public static String[] localeIDs;
-
 	/** The current locale being used to translate opsu! */
 	private static I18n currentLocale;
+
+	/** An array of String values that represent the identifiers of each locale */
+	private static String[] localeIDs;
 
 	/** A mapping of all available translations <code>(key -> value)</code> */
 	private final Map<String, String> keys;
 
 	/**
+	 * Flag used to determine if this locale uses characters beyond the ASCII
+	 * character set. Used to determine if font loading would occur for the
+	 * translations.
+	 */
+	private boolean unicode;
+
+	static {
+		LOCALES = new HashMap<String, I18n>();
+		FALLBACK = new I18n(null, null);
+		FALLBACK.keys.put("language.name", "Fallback");
+		load();
+	}
+
+	/**
 	 * Generalized constructor for the translator using input streams
 	 * @param stream A stream that provides data regarding the translation keys
-	 * @param fallbackId A fallback ID to identify this locale if the key <code>language.name</code> is not present.
+	 * @param fallbackId A fallback ID to identify this locale if the key
+	 * <code>language.name</code> is not present.
 	 */
 	private I18n(InputStream stream, String fallbackId) {
 		this.keys = new HashMap<String, String>();
@@ -72,18 +96,26 @@ public class I18n {
 
 		try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {
 			String line;
-			while ((line = reader.readLine()) != null) 
-				if (!line.isEmpty() && line.charAt(0) != 35) {
+			while ((line = reader.readLine()) != null) {
+				if (!line.isEmpty() && line.charAt(0) != '#') {
 					String[] values = line.split("=", 2);
 					this.keys.put(values[0], values[1]);
+
+					// Unicode checking
+					if (!unicode)
+						for (char lineChar : values[1].toCharArray())
+							if (lineChar > ASCII_CHAR_LIMIT) {
+								unicode = true;
+								break;
+							}
 				}
-			
+			}
 		} catch (IOException e) {
 			Log.warn("Could not load all translation keys", e);
 		}
 
 		if (!keys.containsKey("language.name"))
-			keys.put("language.name", fallbackId);
+			keys.put("language.name", fallbackId.toLowerCase(Locale.ENGLISH));
 	}
 
 	/**
@@ -91,7 +123,8 @@ public class I18n {
 	 * @param langFile The reference to the external language file
 	 */
 	private I18n(File langFile) throws FileNotFoundException {
-		this(new FileInputStream(langFile), langFile.getName().substring(0, langFile.getName().length() - 5));
+		this(new FileInputStream(langFile),
+				langFile.getName().substring(0, langFile.getName().length() - LANG_FILE_EXT.length()));
 	}
 
 	/**
@@ -100,8 +133,8 @@ public class I18n {
 	 * JAR resource
 	 */
 	private I18n(String resourceLocation) {
-		this(I18n.class.getResourceAsStream(resourceLocation),
-				resourceLocation.substring(resourceLocation.lastIndexOf('/'), resourceLocation.length() - 5));
+		this(I18n.class.getResourceAsStream(resourceLocation), resourceLocation
+				.substring(resourceLocation.lastIndexOf('/'), resourceLocation.length() - LANG_FILE_EXT.length()));
 	}
 
 	/**
@@ -109,21 +142,14 @@ public class I18n {
 	 * Searches for and loads all locales found. Calling this method again will
 	 * clear all active locales and reload them from disk.
 	 * </p><p>
-	 * Upon calling this method on reload, it is imperative to call any of the
-	 * <code>setLocale()</code> commands for the changes to take effect.
+	 * Upon calling this method on a reload, it is imperative to call the
+	 * {@link #setLocale(String)} command for the changes to take effect.
 	 * </p>
 	 * @see #setLocale(String)
-	 * @see #setLocale(int)
 	 */
 	public static void load() {
-		if (!LOCALES.isEmpty() || localeIDs != null) {
-			LOCALES.clear();
-			localeIDs = null;
-			currentLocale = null;
-			Utils.gc(false);
-		}
-
-		final Pattern fileExt = Pattern.compile("(.+).(lang)$");
+		LOCALES.clear();
+		localeIDs = null;
 		currentLocale = FALLBACK;
 
 		try (JarFile opsu = Utils.getJarFile()) {
@@ -131,86 +157,152 @@ public class I18n {
 			while (entries.hasMoreElements()) {
 				JarEntry entry = entries.nextElement();
 				String entryName = entry.getName();
-				if (fileExt.matcher(entryName).matches())
+				if (entryName.endsWith(LANG_FILE_EXT))
 					addLocale(new I18n(entryName));
 
 			}
 		} catch (NullPointerException e) {
-			// compensate for running outside of JAR
-			for (File langFile : findRecursively(Utils.getRunningDirectory(), fileExt)) 
+			// compensate for running outside of JAR context
+			for (File langFile : findLanguagesRecursively(Utils.getWorkingDirectory()))
 				try {
 					addLocale(new I18n(langFile));
 				} catch (Exception e2) {
 					Log.error("Could not load translation: " + langFile.getName(), e2);
 				}
-			
+
 		} catch (IOException e) {
 			Log.error("Could not find resources for translation", e);
 		}
-
-		localeIDs = new String[LOCALES.size()];
-
-		for (int a = 0; a < localeIDs.length; a++)
-			localeIDs[a] = LOCALES.get(a).toString();
-
 	}
 
 	/**
 	 * <p>
 	 * Set the current locale based on the given identifier. If the identifier
-	 * does not match any active locale, this method does nothing
-	 * and returns.
+	 * does not match any active locale, this method does nothing and returns.
 	 * </p><p>
 	 * <b>Note:</b> The identifiers are based on the language files themselves.
-	 * Their identifier is either based on the key <code>language.name</code> or from
-	 * their file name if the key is not present.
+	 * These may be based on the translation key {@link #toString()
+	 * <code>language.name</code>} or from their file name if the key is not
+	 * present.
 	 * </p>
-	 * @param identifier The name of the language (e.g. English US, English UK,
-	 * Japanese...)
+	 * @param identifier The name of the language
+	 * @see #toString()
 	 */
 	public static void setLocale(String identifier) {
 		if (identifier == null || identifier.isEmpty())
 			return;
-		if (localeIDs == null)
+		if (LOCALES.isEmpty())
 			load();
 
-		for (int a = 0; a < localeIDs.length; a++)
-			if (localeIDs[a].equals(identifier)) {
-				currentLocale = LOCALES.get(a);
-				break;
+		for (Map.Entry<String, I18n> ids : LOCALES.entrySet())
+			if (ids.getKey().equals(identifier)) {
+				currentLocale = ids.getValue();
+				return;
 			}
 	}
 
 	/**
-	 * <p>
-	 * Set the current locale based on the given index. If the
-	 * index is out-of-bounds from the translations, this method does nothing
-	 * and returns.
-	 * </p><p>
-	 * <b>Note:</b> Using this method is discouraged as the indices may change
-	 * per call to {@link #load()}. This method is public to allow options
-	 * to load the localisation settings.
-	 * </p>
-	 * @param index The index that denotes the position of the locale in the
-	 * options
+	 * Translates a key to the current language and draws them to the screen.
+	 * @param font The font to draw the translation characters in
+	 * @param x The x location at which to draw the string
+	 * @param y The y location at which to draw the string
+	 * @param key The ID of the translation string
+	 * @param color The color to draw the string with
+	 * @param startIndex The index of the first character to draw
+	 * @param endIndex The index of the last character from the string to draw
+	 * @see #translate(String, UnicodeFont)
+	 * @see UnicodeFont#drawString(float, float, String, Color, int, int)
 	 */
-	public static void setLocale(int index) {
-		if (index < 0 || index >= LOCALES.size())
-			return;
-		if(LOCALES.isEmpty())
-			load();
-
-		currentLocale = LOCALES.get(index);
+	public static void translateAndDraw(UnicodeFont font, float x, float y, String key, Color color, int startIndex,
+			int endIndex) {
+		font.drawString(x, y, translate(key, font), color, startIndex, endIndex);
 	}
 
 	/**
-	 * Translates a key to the current language
+	 * Translates a key to the current language and draws them to the screen.
+	 * @param font The font to draw the translation characters in
+	 * @param x The x location at which to draw the string
+	 * @param y The y location at which to draw the string
 	 * @param key The ID of the translation string
+	 * @param color The color to draw the string with
+	 * @see #translate(String, UnicodeFont)
+	 * @see UnicodeFont#drawString(float, float, String, Color)
+	 */
+	public static void translateAndDraw(UnicodeFont font, float x, float y, String key, Color color) {
+		font.drawString(x, y, translate(key, font), color);
+	}
+
+	/**
+	 * Translates a key to the current language and draws them to the screen.
+	 * @param font The font to draw the translation characters in
+	 * @param x The x location at which to draw the string
+	 * @param y The y location at which to draw the string
+	 * @param key The ID of the translation string
+	 * @see #translate(String, UnicodeFont)
+	 * @see UnicodeFont#drawString(float, float, String)
+	 */
+	public static void translateAndDraw(UnicodeFont font, float x, float y, String key) {
+		font.drawString(x, y, translate(key, font));
+	}
+
+	/**
+	 * Translates a key to the current language, applies formatting and draws
+	 * them to the screen.
+	 * @param font The font to draw the translation characters in
+	 * @param x The x location at which to draw the string
+	 * @param y The y location at which to draw the string
+	 * @param key The ID of the translation string
+	 * @param color The color to draw the string with
+	 * @param startIndex The index of the first character to draw
+	 * @param endIndex The index of the last character from the string to draw
+	 * @see #translateFormatted(String, UnicodeFont, Object...)
+	 * @see UnicodeFont#drawString(float, float, String, Color, int, int)
+	 */
+	public static void translateAndDrawFormatted(UnicodeFont font, float x, float y, Color color, int startIndex,
+			int endIndex, String key, Object... args) {
+		font.drawString(x, y, translateFormatted(key, font, args), color, startIndex, endIndex);
+	}
+
+	/**
+	 * Translates a key to the current language, applies formatting and draws
+	 * them to the screen.
+	 * @param font The font to draw the translation characters in
+	 * @param x The x location at which to draw the string
+	 * @param y The y location at which to draw the string
+	 * @param key The ID of the translation string
+	 * @param color The color to draw the string with
+	 * @see #translateFormatted(String, UnicodeFont, Object...)
+	 * @see UnicodeFont#drawString(float, float, String, Color)
+	 */
+	public static void translateAndDrawFormatted(UnicodeFont font, float x, float y, Color color, String key,
+			Object... args) {
+		font.drawString(x, y, translateFormatted(key, font, args), color);
+	}
+
+	/**
+	 * Translates a key to the current language, applies formatting and draws
+	 * them to the screen.
+	 * @param font The font to draw the translation characters in
+	 * @param x The x location at which to draw the string
+	 * @param y The y location at which to draw the string
+	 * @param key The ID of the translation string
+	 * @see #translateFormatted(String, UnicodeFont, Object...)
+	 * @see UnicodeFont#drawString(float, float, String)
+	 */
+	public static void translateAndDrawFormatted(UnicodeFont font, float x, float y, String key, Object... args) {
+		font.drawString(x, y, translateFormatted(key, font, args));
+	}
+
+	/**
+	 * Translates a key to the current language.
+	 * @param key The ID of the translation string
+	 * @param font The font to load the translation characters in, if there are
+	 * translations containing characters outside the ASCII character set
 	 * @return A translation of the given key or the key itself when a
 	 * translation does not exist.
 	 */
-	public static String translate(String key) {
-		return getCurrentLocale().translateImpl(key);
+	public static String translate(String key, UnicodeFont font) {
+		return getCurrentLocale().translateImpl(key, font);
 	}
 
 	/**
@@ -219,69 +311,79 @@ public class I18n {
 	 * @param key The ID of the translation string
 	 * @param format Arguments to use in formatting. If there are more arguments
 	 * than format specifiers, the extra arguments are ignored.
+	 * @param font The font to load the translation characters in, if there are
+	 * translations containing characters outside the ASCII character set
 	 * @return A translation of the given key as formatted by the given objects
 	 * or the key itself when a translation does not exist.
 	 */
-	public static String translateFormatted(String key, Object... format) {
-		String s = translate(key);
+	public static String translateFormatted(String key, UnicodeFont font, Object... format) {
+		String translation = translate(key, font);
 
-		if (s.equals(key)) // no translation found
+		if (translation.equals(key)) // no translation found or key is empty
 			return key;
 
 		try {
-			return String.format(s, format);
-		} catch (IllegalFormatException var5) {
-			// TODO 'silently fail?'
-			return key;
+			return String.format(translation, format);
+		} catch (IllegalFormatException e) {
+			return "Format error: " + key;
 		}
 	}
 
 	/**
-	 * Does the actual translation using the given key
+	 * Does the actual translation using the given key.
 	 * @param key The ID of the translation string
+	 * @param font The font to load the translation characters in, if there are
+	 * translations containing characters outside the ASCII character set
 	 * @return A translation of the given key or the key itself when a
-	 * translation does not exist
+	 * translation does not exist.
 	 */
-	private String translateImpl(String key) {
+	private String translateImpl(String key, UnicodeFont font) {
 		if (key == null)
 			return "null";
+		if (key.isEmpty())
+			return key;
 
-		String s = this.keys.get(key);
+		String translation = this.keys.get(key);
 
 		// Retry using fallback if no translation key is found
-		if (s == null) {
+		if (translation == null) {
 			if (!this.equals(FALLBACK))
-				return FALLBACK.translateImpl(key);
+				return FALLBACK.translateImpl(key, null);
 			return key;
 		}
 
 		// process new lines correctly
-		String newlines[] = s.split("\\\\r\\\\n|\\\\n|\\\\r");
-		s = "";
-		for (int a = 0; a < newlines.length; a++)
-			s = s + newlines[a] + (!(a + 1 == newlines.length) ? "\n" : "");
+		String translationLines[] = translation.split("\\\\r\\\\n|\\\\n|\\\\r");
+		translation = "";
+		for (int i = 0; i < translationLines.length; i++)
+			translation += translationLines[i] + ((i + 1 != translationLines.length) ? "\n" : "");
 
-		return s;
+		if (unicode && font != null)
+			Fonts.loadGlyphs(font, translation);
+
+		return translation;
 	}
 
 	/**
-	 * Convenience method for adding in a new locale. This is the preferred way
-	 * of adding locales as it merges duplicates.
-	 * @param instance The locale to add
+	 * Convenience method for adding in a new locale. Any duplicates are merged
+	 * on top of the existing one.
+	 * @param instance The locale to add/merge
 	 */
 	private static void addLocale(I18n instance) {
-		if (!LOCALES.contains(instance))
-			LOCALES.add(instance);
+		if (!LOCALES.containsKey(instance.toString()))
+			LOCALES.put(instance.toString(), instance);
 		else
-			LOCALES.get(LOCALES.indexOf(instance)).keys.putAll(instance.keys);
+			LOCALES.get(instance.toString()).keys.putAll(instance.keys);
 
-		if (instance.toString().startsWith("English"))
+		if (instance.toString().equals("English (US)"))
 			currentLocale = instance;
 	}
 
 	/**
-	 * Return the identifier of the current translator
-	 * @return The name of the language associated with the locale
+	 * Return the identifier of the current locale, may be used to set the
+	 * current locale.
+	 * @return The name of the language associated with the locale.
+	 * @see #setLocale(String)
 	 */
 	@Override
 	public String toString() {
@@ -301,46 +403,54 @@ public class I18n {
 	}
 
 	/**
-	 * Get the currently active locale being used to translate string keys.
+	 * Gets the currently active locale being used to translate string keys.
 	 */
 	public static I18n getCurrentLocale() {
 		// null can only happen if this is called before `load()` is invoked
 		return currentLocale == null ? FALLBACK : currentLocale;
 	}
 
-	// The hardcoded fallback translator can be found below
-	static {
-		LOCALES = new ArrayList<I18n>();
-		FALLBACK = new I18n(null, null);
-		FALLBACK.keys.put("language.name", "Fallback");
-		load();
+	/**
+	 * Gets all the active locales' IDs and stores them into an array.
+	 */
+	public static String[] getActiveLocaleIDs() {
+		if(localeIDs == null) {
+			List<String> activeLocales = new ArrayList<String>(LOCALES.size());
+			for (String localeId : LOCALES.keySet()) {
+				activeLocales.add(localeId);
+				try {
+					Fonts.loadGlyphs(Fonts.MEDIUM, localeId);
+					Fonts.loadGlyphs(Fonts.MEDIUMBOLD, localeId);
+				} catch (Exception e) {
+					// GL contexts reside only on their caller thread
+				}
+			}
+
+			localeIDs = activeLocales.toArray(new String[LOCALES.size()]);
+		}
+		return localeIDs;
 	}
 
 	/**
-	 * Finds files with names that match the given pattern, starting from the
-	 * given directory to all subdirectories
-	 * 
-	 * @param source A directory to look for files in
-	 * @param regex The pattern used to accept files based on their names, null
-	 * if accept all files
-	 * @return A list containing the files that match the pattern
+	 * Finds all language files, recursing into the source's subdirectories.
+	 * @param source A directory to look for the language files in
+	 * @return The list of all language files found within the source and its
+	 * subdirectories.
 	 */
-	private static List<File> findRecursively(File source, Pattern regex) {
-		List<File> list = new ArrayList<File>();
+	private static List<File> findLanguagesRecursively(File source) {
+		List<File> langFiles = new ArrayList<File>();
 		if (source.isDirectory()) {
 			File[] var0 = source.listFiles();
-			if (var0 != null) {
-				for (File fl : var0) {
-					if (fl.isDirectory() && !(fl.getName().equals(".") || fl.getName().equals(".."))) {
-						list.addAll(findRecursively(fl, regex));
-					} else if (regex == null || regex.matcher(fl.getName()).matches()) {
-						list.add(fl);
-					}
-				}
-			}
-		} else {
-			return findRecursively(source.getParentFile(), regex);
-		}
-		return list;
+			if (var0 != null)
+				for (File candidate : var0)
+					if (candidate.isDirectory())
+						langFiles.addAll(findLanguagesRecursively(candidate));
+					else if (candidate.getName().endsWith(LANG_FILE_EXT))
+						langFiles.add(candidate);
+
+		} else
+			return findLanguagesRecursively(source.getParentFile());
+
+		return langFiles;
 	}
 }

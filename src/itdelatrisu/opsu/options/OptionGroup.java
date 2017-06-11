@@ -23,6 +23,7 @@ import itdelatrisu.opsu.options.Options.GameOption;
 import itdelatrisu.opsu.translation.I18n;
 
 import org.newdawn.slick.Image;
+import org.newdawn.slick.UnicodeFont;
 
 /**
  * Option category and related options.
@@ -155,8 +156,11 @@ public class OptionGroup {
 	}
 
 
-	/** Returns the category name. */
-	public String getName() { return I18n.translate(category); }
+	/**
+	 * Returns the category name. 
+	 * @param font The font to use in displaying the translation strings
+	 */
+	public String getName(UnicodeFont font) { return I18n.translate(category, font); }
 
 	/** Returns the related options. */
 	public GameOption[] getOptions() { return options; }
