@@ -54,9 +54,6 @@ public class I18n {
 	/** The file extension used by the localisation framework */
 	private static final String LANG_FILE_EXT = ".lang";
 
-	/** The highest codepoint in the ASCII character set */
-	private static final int ASCII_CHAR_LIMIT = 255;
-
 	/** A hardcoded instance of the translation framework */
 	private static final I18n FALLBACK;
 
@@ -68,13 +65,6 @@ public class I18n {
 
 	/** A mapping of all available translations <code>(key -> value)</code> */
 	private final Map<String, String> keys;
-
-	/**
-	 * Flag used to determine if this locale uses characters beyond the ASCII
-	 * character set. Used to determine if font loading would occur for the
-	 * translations.
-	 */
-	private boolean unicode;
 
 	static {
 		LOCALES = new HashMap<String, I18n>();
@@ -100,14 +90,6 @@ public class I18n {
 				if (!line.isEmpty() && line.charAt(0) != '#') {
 					String[] values = line.split("=", 2);
 					this.keys.put(values[0], values[1]);
-
-					// Unicode checking
-					if (!unicode)
-						for (char lineChar : values[1].toCharArray())
-							if (lineChar > ASCII_CHAR_LIMIT) {
-								unicode = true;
-								break;
-							}
 				}
 			}
 		} catch (IOException e) {
@@ -344,13 +326,8 @@ public class I18n {
 			return key;
 
 		String translation = this.keys.get(key);
-
-		// Retry using fallback if no translation key is found
-		if (translation == null) {
-			if (!this.equals(FALLBACK))
-				return FALLBACK.translateImpl(key, null);
+		if (translation == null) // Fallback depends on and duplicates this statement
 			return key;
-		}
 
 		// process new lines correctly
 		String translationLines[] = translation.split("\\\\r\\\\n|\\\\n|\\\\r");
@@ -358,7 +335,7 @@ public class I18n {
 		for (int i = 0; i < translationLines.length; i++)
 			translation += translationLines[i] + ((i + 1 != translationLines.length) ? "\n" : "");
 
-		if (unicode && font != null)
+		if (font != null)
 			Fonts.loadGlyphs(font, translation);
 
 		return translation;
@@ -419,6 +396,7 @@ public class I18n {
 			for (String localeId : LOCALES.keySet()) {
 				activeLocales.add(localeId);
 				try {
+					// Load glyphs to display in DropdownMenu
 					Fonts.loadGlyphs(Fonts.MEDIUM, localeId);
 					Fonts.loadGlyphs(Fonts.MEDIUMBOLD, localeId);
 				} catch (Exception e) {

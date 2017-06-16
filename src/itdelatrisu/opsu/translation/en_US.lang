@@ -188,7 +188,7 @@ options.graphics.sliders.beta.shrink.desc=Sliders shrink toward their ending poi
 options.graphics.sliders.beta.merge=Merging sliders
 options.graphics.sliders.beta.merge.desc=For overlapping sliders, don't draw the edges and combine the slider tracks where they cross.\nOnly applies to experimental sliders.
 
-options.language=Select language:
+options.language=Interface language
 options.language.desc=Choose the language to show opsu! in
 options.language.unicode=Prefer metadata in original language
 options.language.unicode.desc=Where available, song titles will be shown in their native language (and character-set).
