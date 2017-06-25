@@ -336,8 +336,12 @@ public class I18n {
 			translation += translationLines[i] + ((i + 1 != translationLines.length) ? "\n" : "");
 
 		if (font != null)
-			Fonts.loadGlyphs(font, translation);
-
+			try {
+				Fonts.loadGlyphs(font, translation);
+			} catch (Exception e) {
+				// GL contexts reside only on their caller thread
+			}
+ 
 		return translation;
 	}
 
@@ -352,7 +356,7 @@ public class I18n {
 		else
 			LOCALES.get(instance.toString()).keys.putAll(instance.keys);
 
-		if (instance.toString().equals("English (US)"))
+		if (instance.toString().equals("English (US)") && currentLocale != null)
 			currentLocale = instance;
 	}
 
