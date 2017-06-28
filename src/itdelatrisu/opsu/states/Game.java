@@ -1002,7 +1002,7 @@ public class Game extends BasicGameState {
 		// update key overlay
 		if (isReplay || Options.alwaysShowKeyOverlay()) {
 			for (int i = 0; i < 4; i++) {
-				inputOverlayKeys[i].update(lastKeysPressed, delta);
+				inputOverlayKeys[i].update(autoMousePressed ? 1 : lastKeysPressed, delta);
 			}
 		}
 
