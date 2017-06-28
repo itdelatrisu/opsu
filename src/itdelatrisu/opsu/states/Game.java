@@ -384,16 +384,14 @@ public class Game extends BasicGameState {
 			boolean wasdown = down;
 			down = (keystates & targetKey) == targetKey && (keystates & ignoredKey) == 0;
 			if (!wasdown && down) {
-				if (breakTime == 0 && !isLeadIn()) {
+				if (breakTime == 0 && !isLeadIn())
 					presses++;
-				}
 				text = Integer.toString(presses);
 			}
-			if (down && downtime < ANIMTIME) {
+			if (down && downtime < ANIMTIME)
 				downtime = Math.min(ANIMTIME, downtime + delta);
-			} else if (!down && downtime > 0) {
+			else if (!down && downtime > 0)
 				downtime = Math.max(0, downtime - delta);
-			}
 		}
 
 		/**
@@ -1033,9 +1031,8 @@ public class Game extends BasicGameState {
 
 		// update key overlay
 		if (isReplay || Options.alwaysShowKeyOverlay()) {
-			for (int i = 0; i < 4; i++) {
+			for (int i = 0; i < 4; i++)
 				inputOverlayKeys[i].update(autoMousePressed ? 1 : lastKeysPressed, delta);
-			}
 		}
 
 		lastTrackPosition = trackPosition;
@@ -1577,9 +1574,8 @@ public class Game extends BasicGameState {
 
 		// reset key states
 		lastKeysPressed = 0;
-		for (int i = 0; i < 4; i++) {
+		for (int i = 0; i < 4; i++)
 			inputOverlayKeys[i].reset();
-		}
 
 		// restart the game
 		if (playState != PlayState.NORMAL) {
