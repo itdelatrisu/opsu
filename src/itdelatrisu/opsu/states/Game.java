@@ -384,7 +384,7 @@ public class Game extends BasicGameState {
 			baseImage.drawCentered(x, y, down ? activeColor : Color.white);
 			x -= Fonts.MEDIUMBOLD.getWidth(text) / 2;
 			y -= Fonts.MEDIUMBOLD.getLineHeight() / 2;
-			Fonts.MEDIUMBOLD.drawString(x, y, text, Color.black);
+			Fonts.MEDIUMBOLD.drawString(x, y, text, Options.getSkin().getInputOverlayText());
 			g.popTransform();
 		}
 	}

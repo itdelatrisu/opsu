@@ -212,6 +212,9 @@ public class SkinLoader {
 							case "StarBreakAdditive":
 								skin.starBreakAdditive = color;
 								break;
+							case "InputOverlayText":
+								skin.inputOverlayText = color;
+								break;
 							default:
 								break;
 							}
