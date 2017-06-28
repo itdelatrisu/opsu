@@ -325,22 +325,39 @@ public class Game extends BasicGameState {
 	/** The single merged slider (if enabled). */
 	private FakeCombinedCurve mergedSlider;
 
+	/** The objects holding data for the input overlay. */
 	private InputOverlayKey[] inputOverlayKeys;
 
 	private class InputOverlayKey {
+		/** Time, in ms, of the shrink/expand key animation. */
 		private static final int ANIMTIME = 100;
+		/** The final scale of the input keys when the key is pressed. */
 		private static final float ACTIVESCALE = 0.75f;
 
+		/** The bits in the keystate that corresponds to this key. */
 		private final int targetKey;
+		/** The bits that may not be set for this key to be down. */
 		private final int ignoredKey;
+		/** The color of the button when the key is down. */
 		private final Color activeColor;
+		/** The initial text of the button. */
 		private final String initialText;
 
+		/** How long the key has been down, used for the scale animation. */
 		private int downtime;
+		/** Whether or not this key is currently down */
 		private boolean down;
+		/** The text that will be displayed on this button.*/
 		private String text;
+		/** The amount of times this key has been pressed. */
 		private int presses;
 
+		/**
+		 * @param initialText The initial text of the button
+		 * @param targetKey The bits in the keystate that corresponds to this key
+		 * @param ignoredKey The bits that may not be set for this key to be down
+		 * @param activeColor The color of the button when the key is down
+		 */
 		public InputOverlayKey(String initialText, int targetKey, int ignoredKey, Color activeColor) {
 			this.initialText = initialText;
 			this.targetKey = targetKey;
@@ -348,6 +365,9 @@ public class Game extends BasicGameState {
 			this.activeColor = activeColor;
 		}
 
+		/**
+		 * Resets all data
+		 */
 		public void reset() {
 			down = false;
 			downtime = 0;
@@ -355,6 +375,11 @@ public class Game extends BasicGameState {
 			text = initialText;
 		}
 
+		/**
+		 * Update this key
+		 * @param keystates the current key states
+		 * @param delta framedelta
+		 */
 		public void update(int keystates, int delta) {
 			boolean wasdown = down;
 			down = (keystates & targetKey) == targetKey && (keystates & ignoredKey) == 0;
@@ -371,6 +396,13 @@ public class Game extends BasicGameState {
 			}
 		}
 
+		/**
+		 * Render this key
+		 * @param g graphics context
+		 * @param x x position
+		 * @param y y position
+		 * @param baseImage the key image
+		 */
 		public void render(Graphics g, int x, int y, Image baseImage) {
 			g.pushTransform();
 			float scale = 1f;
