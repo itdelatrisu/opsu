@@ -40,6 +40,7 @@ public enum GameImage {
 	CURSOR_TRAIL ("cursortrail", "png"),
 
 	// Game
+	INPUTOVERLAY_KEY ("inputoverlay-key", "png"),
 	SECTION_PASS ("section-pass", "png"),
 	SECTION_FAIL ("section-fail", "png"),
 	WARNINGARROW ("play-warningarrow", "png"),

@@ -325,6 +325,70 @@ public class Game extends BasicGameState {
 	/** The single merged slider (if enabled). */
 	private FakeCombinedCurve mergedSlider;
 
+	private InputOverlayKey[] inputOverlayKeys;
+
+	private class InputOverlayKey {
+		private static final int ANIMTIME = 100;
+		private static final float ACTIVESCALE = 0.75f;
+
+		private final int targetKey;
+		private final int ignoredKey;
+		private final Color activeColor;
+		private final String initialText;
+
+		private int downtime;
+		private boolean down;
+		private String text;
+		private int presses;
+
+		public InputOverlayKey(String initialText, int targetKey, int ignoredKey, Color activeColor) {
+			this.initialText = initialText;
+			this.targetKey = targetKey;
+			this.ignoredKey = ignoredKey;
+			this.activeColor = activeColor;
+		}
+
+		public void reset() {
+			down = false;
+			downtime = 0;
+			presses = 0;
+			text = initialText;
+		}
+
+		public void update(int keystates, int delta) {
+			boolean wasdown = down;
+			down = (keystates & targetKey) == targetKey && (keystates & ignoredKey) == 0;
+			if (!wasdown && down) {
+				if (breakTime == 0 && !isLeadIn()) {
+					presses++;
+				}
+				text = Integer.toString(presses);
+			}
+			if (down && downtime < ANIMTIME) {
+				downtime = Math.min(ANIMTIME, downtime + delta);
+			} else if (!down && downtime > 0) {
+				downtime = Math.max(0, downtime - delta);
+			}
+		}
+
+		public void render(Graphics g, int x, int y, Image baseImage) {
+			g.pushTransform();
+			float scale = 1f;
+			if (downtime > 0) {
+				float progress = downtime / (float) ANIMTIME;
+				scale -= (1f - ACTIVESCALE) * progress;
+				g.scale(scale, scale);
+				x /= scale;
+				y /= scale;
+			}
+			baseImage.drawCentered(x, y, down ? activeColor : Color.white);
+			x -= Fonts.MEDIUMBOLD.getWidth(text) / 2;
+			y -= Fonts.MEDIUMBOLD.getLineHeight() / 2;
+			Fonts.MEDIUMBOLD.drawString(x, y, text, Color.black);
+			g.popTransform();
+		}
+	}
+
 	/** Music position bar background colors. */
 	private static final Color
 		MUSICBAR_NORMAL = new Color(12, 9, 10, 0.25f),
@@ -339,6 +403,12 @@ public class Game extends BasicGameState {
 
 	public Game(int state) {
 		this.state = state;
+		inputOverlayKeys = new InputOverlayKey[] {
+			new InputOverlayKey("K1", ReplayFrame.KEY_K1, 0, new Color(248, 216, 0)),
+			new InputOverlayKey("K2", ReplayFrame.KEY_K2, 0, new Color(248, 216, 0)),
+			new InputOverlayKey("M1", ReplayFrame.KEY_M1, 4, new Color(248, 0, 158)),
+			new InputOverlayKey("M2", ReplayFrame.KEY_M2, 8, new Color(248, 0, 158)),
+		};
 	}
 
 	@Override
@@ -724,6 +794,19 @@ public class Game extends BasicGameState {
 			}
 		}
 
+		// key overlay
+		if (isReplay || Options.alwaysShowKeyOverlay()) {
+			final float BTNSIZE = container.getHeight() * 0.0615f;
+			int x = (int) (container.getWidth() - BTNSIZE / 2f);
+			int y = (int) (container.getHeight() / 2f - BTNSIZE - BTNSIZE / 2f);
+			Image keyimg =
+				GameImage.INPUTOVERLAY_KEY.getImage().getScaledCopy((int) BTNSIZE, (int) BTNSIZE);
+			for (int i = 0; i < 4; i++) {
+				inputOverlayKeys[i].render(g, x, y, keyimg);
+				y += BTNSIZE;
+			}
+		}
+
 		// returning from pause screen
 		if (pauseTime > -1 && pausedMousePosition != null) {
 			// darken the screen
@@ -900,6 +983,13 @@ public class Game extends BasicGameState {
 				SoundController.mute(false);
 				if (hasVideo)
 					loadVideo(trackPosition);
+			}
+		}
+
+		// update key overlay
+		if (isReplay || Options.alwaysShowKeyOverlay()) {
+			for (int i = 0; i < 4; i++) {
+				inputOverlayKeys[i].update(lastKeysPressed, delta);
 			}
 		}
 
@@ -1439,6 +1529,12 @@ public class Game extends BasicGameState {
 
 		// grab the mouse (not working for touchscreen)
 //		container.setMouseGrabbed(true);
+
+		// reset key states
+		lastKeysPressed = 0;
+		for (int i = 0; i < 4; i++) {
+			inputOverlayKeys[i].reset();
+		}
 
 		// restart the game
 		if (playState != PlayState.NORMAL) {
