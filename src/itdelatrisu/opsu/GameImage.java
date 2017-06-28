@@ -41,6 +41,7 @@ public enum GameImage {
 
 	// Game
 	INPUTOVERLAY_KEY ("inputoverlay-key", "png"),
+	INPUTOVERLAY_BACKGROUND ("inputoverlay-background", "png"),
 	SECTION_PASS ("section-pass", "png"),
 	SECTION_FAIL ("section-fail", "png"),
 	WARNINGARROW ("play-warningarrow", "png"),

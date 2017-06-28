@@ -808,6 +808,10 @@ public class Game extends BasicGameState {
 			final float BTNSIZE = container.getHeight() * 0.0615f;
 			int x = (int) (container.getWidth() - BTNSIZE / 2f);
 			int y = (int) (container.getHeight() / 2f - BTNSIZE - BTNSIZE / 2f);
+			Image bg = GameImage.INPUTOVERLAY_BACKGROUND.getImage();
+			bg = bg.getScaledCopy(BTNSIZE * 4.3f / bg.getWidth());
+			bg.rotate(90f);
+			bg.drawCentered(container.getWidth() - bg.getHeight() / 2, container.getHeight() / 2);
 			Image keyimg =
 				GameImage.INPUTOVERLAY_KEY.getImage().getScaledCopy((int) BTNSIZE, (int) BTNSIZE);
 			for (int i = 0; i < 4; i++) {
