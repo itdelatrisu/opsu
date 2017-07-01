@@ -1472,13 +1472,13 @@ public class Game extends BasicGameState {
 		// grab the mouse (not working for touchscreen)
 //		container.setMouseGrabbed(true);
 
-		// reset key states
-		lastKeysPressed = 0;
-		for (int i = 0; i < 4; i++)
-			inputOverlayKeys[i].reset();
-
 		// restart the game
 		if (playState != PlayState.NORMAL) {
+			// reset key states
+			lastKeysPressed = 0;
+			for (int i = 0; i < 4; i++)
+				inputOverlayKeys[i].reset();
+
 			// update play stats
 			if (playState == PlayState.FIRST_LOAD) {
 				beatmap.incrementPlayCounter();
