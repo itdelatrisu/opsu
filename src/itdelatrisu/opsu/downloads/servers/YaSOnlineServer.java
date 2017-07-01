@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -42,7 +43,7 @@ import org.newdawn.slick.util.Log;
  * <p>
  * <i>This server no longer hosts downloads as of March 2017.</i>
  */
-public class YaSOnlineServer extends DownloadServer {
+public class YaSOnlineServer implements DownloadServer, SearchServer{
 	/** Server name. */
 	private static final String SERVER_NAME = "YaS Online";
 
@@ -74,7 +75,7 @@ public class YaSOnlineServer extends DownloadServer {
 	public YaSOnlineServer() {}
 
 	@Override
-	public String getName() { return SERVER_NAME; }
+	public String toString() { return SERVER_NAME; }
 
 	@Override
 	public String getDownloadURL(int beatmapSetID) {
@@ -214,5 +215,15 @@ public class YaSOnlineServer extends DownloadServer {
 		Date d = new Date(timestamp * 1000L);
 		DateFormat fmt = new SimpleDateFormat("d MMM yyyy HH:mm:ss");
 		return fmt.format(d);
+	}
+
+	@Override
+	public Map<String, String> getDownloadRequestHeaders() {
+		return null;
+	}
+
+	@Override
+	public boolean isOpenInBrowser() {
+		return false;
 	}
 }

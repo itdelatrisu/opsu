@@ -38,7 +38,7 @@ import org.newdawn.slick.util.Log;
 /**
  * Download server: http://osu.mengsky.net/
  */
-public class MengSkyServer extends DownloadServer {
+public class MengSkyServer implements DownloadServer, SearchServer {
 	/** Server name. */
 	private static final String SERVER_NAME = "MengSky";
 
@@ -61,7 +61,7 @@ public class MengSkyServer extends DownloadServer {
 	public MengSkyServer() {}
 
 	@Override
-	public String getName() { return SERVER_NAME; }
+	public String toString() { return SERVER_NAME; }
 
 	@Override
 	public String getDownloadURL(int beatmapSetID) {
@@ -130,5 +130,10 @@ public class MengSkyServer extends DownloadServer {
 		Map<String, String> headers = new HashMap<String, String>();
 		headers.put("Referer", REFERER_URL);
 		return headers;
+	}
+
+	@Override
+	public boolean isOpenInBrowser() {
+		return false;
 	}
 }

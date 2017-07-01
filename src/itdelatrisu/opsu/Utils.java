@@ -421,14 +421,16 @@ public class Utils {
 	 * @param file the ZIP archive
 	 * @param dest the destination directory
 	 */
-	public static void unzip(File file, File dest) {
+	public static boolean unzip(File file, File dest) {
 		try {
 			ZipFile zipFile = new ZipFile(file);
 			zipFile.extractAll(dest.getAbsolutePath());
 		} catch (ZipException e) {
-			ErrorHandler.error(String.format("Failed to unzip file %s to dest %s.",
-					file.getAbsolutePath(), dest.getAbsolutePath()), e, false);
+			//ErrorHandler.error(String.format("Failed to unzip file %s to dest %s.",
+			//		file.getAbsolutePath(), dest.getAbsolutePath()), e, false);
+			return false;
 		}
+		return true;
 	}
 
 	/**

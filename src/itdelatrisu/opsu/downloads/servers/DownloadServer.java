@@ -18,71 +18,25 @@
 
 package itdelatrisu.opsu.downloads.servers;
 
-import itdelatrisu.opsu.downloads.DownloadNode;
-
-import java.io.IOException;
 import java.util.Map;
 
 /**
  * Abstract class for beatmap download servers.
  */
-public abstract class DownloadServer {
-	/** Track preview URL. */
-	private static final String PREVIEW_URL = "http://b.ppy.sh/preview/%d.mp3";
-
-	/**
-	 * Returns the name of the download server.
-	 * @return the server name
-	 */
-	public abstract String getName();
-
+public interface DownloadServer {
 	/**
 	 * Returns a web address to download the given beatmap.
 	 * @param beatmapSetID the beatmap set ID
 	 * @return the URL string, or null if the address could not be determined
 	 */
 	public abstract String getDownloadURL(int beatmapSetID);
-
-	/**
-	 * Returns a list of results for a given search query, or null if the
-	 * list could not be created.
-	 * @param query the search query
-	 * @param page the result page (starting at 1)
-	 * @param rankedOnly whether to only show ranked maps
-	 * @return the result array
-	 * @throws IOException if any connection problem occurs
-	 */
-	public abstract DownloadNode[] resultList(String query, int page, boolean rankedOnly) throws IOException;
-
-	/**
-	 * Returns the minimum allowable length of a search query.
-	 * @return the minimum length, or 0 if none
-	 */
-	public abstract int minQueryLength();
-
-	/**
-	 * Returns the total number of results for the last search query.
-	 * This will differ from the the size of the array returned by
-	 * {@link #resultList(String, int, boolean)} if multiple pages exist.
-	 * @return the result count, or -1 if no query
-	 */
-	public abstract int totalResults();
-
-	/**
-	 * Returns a web address to preview the given beatmap.
-	 * @param beatmapSetID the beatmap set ID
-	 * @return the URL string
-	 */
-	public String getPreviewURL(int beatmapSetID) {
-		return String.format(PREVIEW_URL, beatmapSetID);
-	}
-
+	
 	/**
 	 * Returns any HTTP request headers that should be set in the download request.
 	 * @return the map of headers (key -> value), or null if none
 	 */
-	public Map<String, String> getDownloadRequestHeaders() { return null; }
+	public abstract  Map<String, String> getDownloadRequestHeaders();
+	
+	public abstract boolean isOpenInBrowser();
 
-	@Override
-	public String toString() { return getName(); }
 }

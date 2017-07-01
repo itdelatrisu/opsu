@@ -27,6 +27,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.Map;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -38,7 +39,7 @@ import org.newdawn.slick.util.Log;
  * <p>
  * <i>This server is offline as of March 2017.</i>
  */
-public class HexideServer extends DownloadServer {
+public class HexideServer implements DownloadServer, SearchServer {
 	/** Server name. */
 	private static final String SERVER_NAME = "Hexide";
 
@@ -64,7 +65,7 @@ public class HexideServer extends DownloadServer {
 	public HexideServer() {}
 
 	@Override
-	public String getName() { return SERVER_NAME; }
+	public String toString() { return SERVER_NAME; }
 
 	@Override
 	public String getDownloadURL(int beatmapSetID) {
@@ -146,4 +147,14 @@ public class HexideServer extends DownloadServer {
 
 	@Override
 	public int totalResults() { return totalResults; }
+
+	@Override
+	public Map<String, String> getDownloadRequestHeaders() {
+		return null;
+	}
+
+	@Override
+	public boolean isOpenInBrowser() {
+		return false;
+	}
 }

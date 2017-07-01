@@ -32,6 +32,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.TimeZone;
 
 import org.json.JSONArray;
@@ -44,7 +45,7 @@ import org.newdawn.slick.util.Log;
  * <p>
  * <i>This server went offline in August 2015.</i>
  */
-public class OsuMirrorServer extends DownloadServer {
+public class OsuMirrorServer implements DownloadServer, SearchServer{
 	/** Server name. */
 	private static final String SERVER_NAME = "osu!Mirror";
 
@@ -73,8 +74,8 @@ public class OsuMirrorServer extends DownloadServer {
 	public OsuMirrorServer() {}
 
 	@Override
-	public String getName() { return SERVER_NAME; }
-
+	public String toString() {return SERVER_NAME;}
+	
 	@Override
 	public String getDownloadURL(int beatmapSetID) {
 		return (idTable.containsKey(beatmapSetID)) ? String.format(DOWNLOAD_URL, idTable.get(beatmapSetID)) : null;
@@ -153,5 +154,15 @@ public class OsuMirrorServer extends DownloadServer {
 		} catch (ParseException e) {
 			return s;
 		}
+	}
+
+	@Override
+	public Map<String, String> getDownloadRequestHeaders() {
+		return null;
+	}
+
+	@Override
+	public boolean isOpenInBrowser() {
+		return false;
 	}
 }
