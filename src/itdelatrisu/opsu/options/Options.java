@@ -562,6 +562,7 @@ public class Options {
 		SHOW_PERFECT_HIT ("Perfect hits", "PerfectHit", "Shows perfect hit result bursts (300s, slider ticks).", true),
 		SHOW_FOLLOW_POINTS ("Follow points", "FollowPoints", "Shows follow points between hit objects.", true),
 		SHOW_HIT_ERROR_BAR ("Hit error bar", "ScoreMeter", "Shows precisely how accurate you were with each hit.", false),
+		ALWAYS_SHOW_KEY_OVERLAY ("Always show key overlay", "KeyOverlay", "Show the key overlay when playing instead of only on replays.", false),
 		LOAD_HD_IMAGES ("Load HD images", "LoadHDImages", String.format("Loads HD (%s) images when available.\nIncreases memory usage and loading times.", GameImage.HD_SUFFIX), true),
 		FIXED_CS ("Fixed CS", "FixedCS", "Determines the size of circles and sliders.", 0, 0, 100) {
 			@Override
@@ -1289,6 +1290,12 @@ public class Options {
 	 * @return true if enabled
 	 */
 	public static boolean isHitErrorBarEnabled() { return GameOption.SHOW_HIT_ERROR_BAR.getBooleanValue(); }
+
+	/**
+	 * Returns whether or not to show the key overlay on non-replay game sessions.
+	 * @return true if enabled
+	 */
+	public static boolean alwaysShowKeyOverlay() { return GameOption.ALWAYS_SHOW_KEY_OVERLAY.getBooleanValue(); }
 
 	/**
 	 * Returns whether or not to load HD (@2x) images.

@@ -52,6 +52,7 @@ import itdelatrisu.opsu.replay.Replay;
 import itdelatrisu.opsu.replay.ReplayFrame;
 import itdelatrisu.opsu.ui.Colors;
 import itdelatrisu.opsu.ui.Fonts;
+import itdelatrisu.opsu.ui.InputOverlayKey;
 import itdelatrisu.opsu.ui.MenuButton;
 import itdelatrisu.opsu.ui.StarStream;
 import itdelatrisu.opsu.ui.UI;
@@ -325,6 +326,9 @@ public class Game extends BasicGameState {
 	/** The single merged slider (if enabled). */
 	private FakeCombinedCurve mergedSlider;
 
+	/** The objects holding data for the input overlay. */
+	private InputOverlayKey[] inputOverlayKeys;
+
 	/** Music position bar background colors. */
 	private static final Color
 		MUSICBAR_NORMAL = new Color(12, 9, 10, 0.25f),
@@ -339,6 +343,12 @@ public class Game extends BasicGameState {
 
 	public Game(int state) {
 		this.state = state;
+		inputOverlayKeys = new InputOverlayKey[] {
+			new InputOverlayKey("K1", ReplayFrame.KEY_K1, 0, new Color(248, 216, 0)),
+			new InputOverlayKey("K2", ReplayFrame.KEY_K2, 0, new Color(248, 216, 0)),
+			new InputOverlayKey("M1", ReplayFrame.KEY_M1, 4, new Color(248, 0, 158)),
+			new InputOverlayKey("M2", ReplayFrame.KEY_M2, 8, new Color(248, 0, 158)),
+		};
 	}
 
 	@Override
@@ -725,6 +735,23 @@ public class Game extends BasicGameState {
 			}
 		}
 
+		// key overlay
+		if (isReplay || Options.alwaysShowKeyOverlay()) {
+			final float BTNSIZE = container.getHeight() * 0.0615f;
+			int x = (int) (container.getWidth() - BTNSIZE / 2f);
+			int y = (int) (container.getHeight() / 2f - BTNSIZE - BTNSIZE / 2f);
+			Image bg = GameImage.INPUTOVERLAY_BACKGROUND.getImage();
+			bg = bg.getScaledCopy(BTNSIZE * 4.3f / bg.getWidth());
+			bg.rotate(90f);
+			bg.drawCentered(container.getWidth() - bg.getHeight() / 2, container.getHeight() / 2);
+			Image keyimg =
+				GameImage.INPUTOVERLAY_KEY.getImage().getScaledCopy((int) BTNSIZE, (int) BTNSIZE);
+			for (int i = 0; i < 4; i++) {
+				inputOverlayKeys[i].render(g, x, y, keyimg);
+				y += BTNSIZE;
+			}
+		}
+
 		// returning from pause screen
 		if (pauseTime > -1 && pausedMousePosition != null) {
 			// darken the screen
@@ -901,6 +928,16 @@ public class Game extends BasicGameState {
 				SoundController.mute(false);
 				if (hasVideo)
 					loadVideo(trackPosition);
+			}
+		}
+
+		// update key overlay
+		if (isReplay || Options.alwaysShowKeyOverlay()) {
+			for (int i = 0; i < 4; i++) {
+				int keys = autoMousePressed ? 1 : lastKeysPressed;
+				boolean countpresses = breakTime == 0 && !isLeadIn() &&
+					trackPosition > firstObjectTime;
+				inputOverlayKeys[i].update(keys, countpresses, delta);
 			}
 		}
 
@@ -1443,6 +1480,11 @@ public class Game extends BasicGameState {
 
 		// restart the game
 		if (playState != PlayState.NORMAL) {
+			// reset key states
+			lastKeysPressed = 0;
+			for (int i = 0; i < 4; i++)
+				inputOverlayKeys[i].reset();
+
 			// update play stats
 			if (playState == PlayState.FIRST_LOAD) {
 				beatmap.incrementPlayCounter();

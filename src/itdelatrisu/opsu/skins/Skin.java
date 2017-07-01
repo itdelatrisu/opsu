@@ -73,6 +73,9 @@ public class Skin {
 	/** The default color of the stars that fall from the cursor during breaks. */
 	private static final Color DEFAULT_STAR_BREAK_ADDITIVE = new Color(255, 182, 193);
 
+	/** The default color of the text on the input overlay. */
+	private static final Color DEFAULT_INPUT_OVERLAY_TEXT = new Color(0, 0, 0);
+
 	/** The skin directory. */
 	private File dir;
 
@@ -164,6 +167,9 @@ public class Skin {
 
 	/** The color of the stars that fall from the cursor (star2 sprite) in breaks. */
 	protected Color starBreakAdditive = DEFAULT_STAR_BREAK_ADDITIVE;
+
+	/** The color of the text on the input overlay. */
+	protected Color inputOverlayText = DEFAULT_INPUT_OVERLAY_TEXT;
 
 	/**
 	 * [Fonts]
@@ -343,6 +349,11 @@ public class Skin {
 	 * Returns the color of the stars that fall from the cursor during breaks.
 	 */
 	public Color getStarBreakAdditiveColor() { return starBreakAdditive; }
+
+	/**
+	 * Returns the color of the text on the input overlay.
+	 */
+	public Color getInputOverlayText() { return inputOverlayText; }
 
 	/**
 	 * Returns the prefix for the hit circle font sprites.
