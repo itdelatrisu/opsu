@@ -83,6 +83,12 @@ public abstract class DownloadServer {
 	 */
 	public Map<String, String> getDownloadRequestHeaders() { return null; }
 
+	/**
+	 * Returns whether downloads must be made through a web browser.
+	 * @return true if downloads should launch a web browser
+	 */
+	public boolean isDownloadInBrowser() { return false; }
+
 	@Override
 	public String toString() { return getName(); }
 }

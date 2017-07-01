@@ -33,6 +33,9 @@ import itdelatrisu.opsu.user.UserButton;
 import itdelatrisu.opsu.user.UserList;
 
 import java.awt.Desktop;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.awt.image.BufferedImage;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
@@ -755,5 +758,12 @@ public class Utils {
 	public static long getUsedMemory() {
 		Runtime r = Runtime.getRuntime();
 		return r.totalMemory() - r.freeMemory();
+	}
+
+	/** Copies the text to the system clipboard. */
+	public static void copyToClipboard(String text) {
+		StringSelection selection = new StringSelection(text);
+		Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+		clipboard.setContents(selection, selection);
 	}
 }

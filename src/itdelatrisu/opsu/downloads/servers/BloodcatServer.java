@@ -114,6 +114,9 @@ public class BloodcatServer extends DownloadServer {
 	@Override
 	public int totalResults() { return totalResults; }
 
+	@Override
+	public boolean isDownloadInBrowser() { return true; /* uses captchas */ }
+
 	/**
 	 * Returns a formatted date string from a raw date.
 	 * @param s the raw date string (e.g. "2015-09-30 09:39:04.536")
