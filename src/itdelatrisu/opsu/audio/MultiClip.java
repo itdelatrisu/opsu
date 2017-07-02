@@ -19,6 +19,7 @@
 package itdelatrisu.opsu.audio;
 
 import itdelatrisu.opsu.ErrorHandler;
+import itdelatrisu.opsu.Utils;
 
 import java.io.IOException;
 import java.util.Iterator;
@@ -140,13 +141,13 @@ public class MultiClip {
 			// set volume
 			FloatControl gainControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
 			float dB = (float) (Math.log(volume) / Math.log(10.0) * 20.0);
-			gainControl.setValue(dB);
+			gainControl.setValue(Utils.clamp(dB, gainControl.getMinimum(), gainControl.getMaximum()));
 		} else if (clip.isControlSupported(FloatControl.Type.VOLUME)) {
 			// The docs don't mention what unit "volume" is supposed to be,
 			// but for PulseAudio it seems to be amplitude
 			FloatControl volumeControl = (FloatControl) clip.getControl(FloatControl.Type.VOLUME);
 			float amplitude = (float) Math.sqrt(volume) * volumeControl.getMaximum();
-			volumeControl.setValue(amplitude);
+			volumeControl.setValue(Utils.clamp(amplitude, volumeControl.getMinimum(), volumeControl.getMaximum()));
 		}
 
 		if (listener != null)
