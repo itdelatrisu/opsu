@@ -102,6 +102,9 @@ public class Download {
 	/** The additional HTTP request headers. */
 	private Map<String, String> requestHeaders;
 
+	/** Whether SSL certificate validation should be disabled. */
+	private boolean disableSSLCertValidation = false;
+
 	/** The readable byte channel. */
 	private ReadableByteChannelWrapper rbc;
 
@@ -182,6 +185,12 @@ public class Download {
 	public void setRequestHeaders(Map<String, String> headers) { this.requestHeaders = headers; }
 
 	/**
+	 * Switches validation of SSL certificates on or off.
+	 * @param enabled whether to validate SSL certificates
+	 */
+	public void setSSLCertValidation(boolean enabled) { this.disableSSLCertValidation = !enabled; }
+
+	/**
 	 * Starts the download from the "waiting" status.
 	 * @return the started download thread, or {@code null} if none started
 	 */
@@ -195,6 +204,9 @@ public class Download {
 				// open connection
 				HttpURLConnection conn = null;
 				try {
+					if (disableSSLCertValidation)
+						Utils.setSSLCertValidation(false);
+
 					URL downloadURL = url;
 					int redirectCount = 0;
 					boolean isRedirect = false;
@@ -254,6 +266,9 @@ public class Download {
 					if (listener != null)
 						listener.error();
 					return;
+				} finally {
+					if (disableSSLCertValidation)
+						Utils.setSSLCertValidation(true);
 				}
 
 				// download file

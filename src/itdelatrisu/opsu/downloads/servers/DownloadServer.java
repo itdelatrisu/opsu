@@ -89,6 +89,12 @@ public abstract class DownloadServer {
 	 */
 	public boolean isDownloadInBrowser() { return false; }
 
+	/**
+	 * Returns whether SSL certificate validation should be disabled for downloads.
+	 * @return true if validation should be disabled
+	 */
+	public boolean disableSSLInDownloads() { return false; }
+
 	@Override
 	public String toString() { return getName(); }
 }
