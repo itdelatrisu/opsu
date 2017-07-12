@@ -73,6 +73,7 @@ public class OptionGroup {
 			GameOption.BACKGROUND_DIM,
 			GameOption.FORCE_DEFAULT_PLAYFIELD,
 			GameOption.SHOW_HIT_ERROR_BAR,
+			GameOption.ALWAYS_SHOW_KEY_OVERLAY,
 		}),
 		new OptionGroup("optionGroup.audio", GameImage.MENU_NAV_AUDIO),
 		new OptionGroup("optionGroup.audio.volume", new GameOption[] {

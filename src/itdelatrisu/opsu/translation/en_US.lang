@@ -221,6 +221,8 @@ options.input.mouse.ignoreButtons=Disable mouse buttons in play mode
 options.input.mouse.ignoreButtons.desc=This option will disable all mouse buttons.\nSpecifically for people who use their keyboard to click.
 options.input.mouse.noCursor=Disable cursor
 options.input.mouse.noCursor.desc=Hides the cursor sprite.
+options.input.overlay=Always show key overlay
+options.input.overlay.desc=Show the key overlay when playing instead of only on replays.
 
 options.visuals.skin=Skin
 options.visuals.skin.desc=Change the visuals of the game

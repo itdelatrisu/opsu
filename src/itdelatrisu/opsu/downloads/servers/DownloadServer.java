@@ -83,6 +83,18 @@ public abstract class DownloadServer {
 	 */
 	public Map<String, String> getDownloadRequestHeaders() { return null; }
 
+	/**
+	 * Returns whether downloads must be made through a web browser.
+	 * @return true if downloads should launch a web browser
+	 */
+	public boolean isDownloadInBrowser() { return false; }
+
+	/**
+	 * Returns whether SSL certificate validation should be disabled for downloads.
+	 * @return true if validation should be disabled
+	 */
+	public boolean disableSSLInDownloads() { return false; }
+
 	@Override
 	public String toString() { return getName(); }
 }

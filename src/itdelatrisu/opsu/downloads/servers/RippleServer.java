@@ -38,28 +38,29 @@ import org.json.JSONObject;
 import org.newdawn.slick.util.Log;
 
 /**
- * Download server: http://bloodcat.com/osu/
- * <p>
- * <i>This server uses captchas as of March 2017.</i>
+ * Download server: https://ripple.moe/
  */
-public class BloodcatServer extends DownloadServer {
+public class RippleServer extends DownloadServer {
 	/** Server name. */
-	private static final String SERVER_NAME = "Bloodcat";
+	private static final String SERVER_NAME = "Ripple";
 
 	/** Formatted download URL: {@code beatmapSetID} */
-	private static final String DOWNLOAD_URL = "http://bloodcat.com/osu/s/%d";
+	private static final String DOWNLOAD_URL = "https://storage.ripple.moe/%d.osz";
 
-	/** Formatted search URL: {@code query,rankedOnly,page} */
-	private static final String SEARCH_URL = "http://bloodcat.com/osu/?q=%s&c=b&s=%s&m=0&p=%d&mod=json";//"?q=%s&m=b&c=%s&g=&d=0&s=date&o=0&p=%d&mod=json";
+	/** Formatted search URL: {@code query,amount,offset} */
+	private static final String SEARCH_URL = "https://storage.ripple.moe/api/search?query=%s&mode=0&amount=%d&offset=%d";
 
-	/** Maximum beatmaps displayed per page. */
-	private static final int PAGE_LIMIT = 61;
+	/**
+	 * Maximum beatmaps displayed per page.
+	 * Supports up to 100, but response sizes become very large (>100KB).
+	 */
+	private static final int PAGE_LIMIT = 20;
 
 	/** Total result count from the last query. */
 	private int totalResults = -1;
 
 	/** Constructor. */
-	public BloodcatServer() {}
+	public RippleServer() {}
 
 	@Override
 	public String getName() { return SERVER_NAME; }
@@ -73,30 +74,33 @@ public class BloodcatServer extends DownloadServer {
 	public DownloadNode[] resultList(String query, int page, boolean rankedOnly) throws IOException {
 		DownloadNode[] nodes = null;
 		try {
+			Utils.setSSLCertValidation(false);
+
 			// read JSON
-			String search = String.format(SEARCH_URL, URLEncoder.encode(query, "UTF-8"), rankedOnly ? "1" : "", page);
-			JSONArray arr = Utils.readJsonArrayFromUrl(new URL(search));
-			if (arr == null) {
+			int offset = (page - 1) * PAGE_LIMIT;
+			String search = String.format(SEARCH_URL, URLEncoder.encode(query, "UTF-8"), PAGE_LIMIT, offset);
+			if (rankedOnly)
+				search += "&status=1";
+			JSONObject json = Utils.readJsonObjectFromUrl(new URL(search));
+			if (json == null || !json.has("Ok") || !json.getBoolean("Ok") || !json.has("Sets") || json.isNull("Sets")) {
 				this.totalResults = -1;
 				return null;
 			}
 
 			// parse result list
-			//JSONArray arr = json.getJSONArray("results");
+			JSONArray arr = json.getJSONArray("Sets");
 			nodes = new DownloadNode[arr.length()];
 			for (int i = 0; i < nodes.length; i++) {
 				JSONObject item = arr.getJSONObject(i);
 				nodes[i] = new DownloadNode(
-					item.getInt("id"), formatDate(item.getString("synced")),  //"date"
-					item.getString("title"), item.isNull("titleU") ? null : item.getString("titleU"),  //"titleUnicode"
-					item.getString("artist"), item.isNull("artistU") ? null : item.getString("artistU"),  //"artistUnicode"
-					item.getString("creator")
+					item.getInt("SetID"), formatDate(item.getString("LastUpdate")),
+					item.getString("Title"), null, item.getString("Artist"), null,
+					item.getString("Creator")
 				);
 			}
 
 			// store total result count
-			//this.totalResults = arr.getInt("resultCount");
-			int resultCount = nodes.length + (page - 1) * PAGE_LIMIT;
+			int resultCount = nodes.length + offset;
 			if (nodes.length == PAGE_LIMIT)
 				resultCount++;
 			this.totalResults = resultCount;
@@ -104,34 +108,29 @@ public class BloodcatServer extends DownloadServer {
 			ErrorHandler.error(String.format("Problem loading result list for query '%s'.", query), e, true);
 		} catch (JSONException e) {
 			Log.error(e);
+		} finally {
+			Utils.setSSLCertValidation(true);
 		}
 		return nodes;
 	}
 
 	@Override
-	public int minQueryLength() { return 0; }
+	public int minQueryLength() { return 3; }
 
 	@Override
 	public int totalResults() { return totalResults; }
 
 	@Override
-	public boolean isDownloadInBrowser() { return true; /* uses captchas */ }
+	public boolean disableSSLInDownloads() { return true; }
 
 	/**
 	 * Returns a formatted date string from a raw date.
-	 * @param s the raw date string (e.g. "2015-09-30 09:39:04.536")
+	 * @param s the raw date string (e.g. "2015-09-30T09:39:04Z")
 	 * @return the formatted date, or the raw string if it could not be parsed
 	 */
 	private String formatDate(String s) {
 		try {
-			// old format: "2015-05-14T23:38:47+09:00"
-			// make string parseable by SimpleDateFormat
-//			int index = s.lastIndexOf(':');
-//			if (index == -1)
-//				return s;
-//			s = new StringBuilder(s).deleteCharAt(index).toString();
-
-			DateFormat f = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");  //"yyyy-MM-dd'T'HH:mm:ssZ"
+			DateFormat f = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
 			Date d = f.parse(s);
 			DateFormat fmt = new SimpleDateFormat("d MMM yyyy HH:mm:ss");
 			return fmt.format(d);

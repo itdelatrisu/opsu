@@ -285,6 +285,7 @@ public class DownloadNode {
 			}
 		});
 		download.setRequestHeaders(server.getDownloadRequestHeaders());
+		download.setSSLCertValidation(!server.disableSSLInDownloads());
 		this.download = download;
 		if (Options.useUnicodeMetadata())  // load glyphs
 			Fonts.loadGlyphs(Fonts.LARGE, getTitle());

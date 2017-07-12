@@ -576,6 +576,7 @@ public class Options {
 		SHOW_PERFECT_HIT ("options.gameplay.perfectHits", "PerfectHit", true),
 		SHOW_FOLLOW_POINTS ("options.gameplay.followPoints", "FollowPoints", true),
 		SHOW_HIT_ERROR_BAR ("options.gameplay.accuracyMeter", "ScoreMeter", false),
+		ALWAYS_SHOW_KEY_OVERLAY ("options.input.overlay", "KeyOverlay", false),
 		LOAD_HD_IMAGES ("options.visuals.skin.useHD", "LoadHDImages", true),
 		FIXED_CS ("options.gameplay.fixedCS", "FixedCS", 0, 0, 100) {
 			@Override
@@ -1296,6 +1297,12 @@ public class Options {
 	 * @return true if enabled
 	 */
 	public static boolean isHitErrorBarEnabled() { return GameOption.SHOW_HIT_ERROR_BAR.getBooleanValue(); }
+
+	/**
+	 * Returns whether or not to show the key overlay on non-replay game sessions.
+	 * @return true if enabled
+	 */
+	public static boolean alwaysShowKeyOverlay() { return GameOption.ALWAYS_SHOW_KEY_OVERLAY.getBooleanValue(); }
 
 	/**
 	 * Returns whether or not to load HD (@2x) images.

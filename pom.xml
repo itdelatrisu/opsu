@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>itdelatrisu</groupId>
 	<artifactId>opsu</artifactId>
-	<version>0.15.0</version>
+	<version>0.16.0</version>
 	<properties>
 		<version>${project.version}</version>
 		<timestamp>${maven.build.timestamp}</timestamp>

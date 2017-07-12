@@ -87,6 +87,9 @@ Gradle builds are built to the `build` directory.
   * Setting the "excludeFFmpeg" property (`-PexcludeFFmpeg`) will exclude
     FFmpeg shared libraries from the jar.
 
+## Contributing
+See the [contributing guidelines](CONTRIBUTING.md).
+
 ## Credits
 This software was created by Jeffrey Han
 ([@itdelatrisu](https://github.com/itdelatrisu/)).  All game concepts and
