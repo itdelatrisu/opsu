@@ -37,6 +37,8 @@ import org.newdawn.slick.util.Log;
 
 /**
  * Download server: http://osu.mengsky.net/
+ * <p>
+ * <i>This server is offline as of September 2017.</i>
  */
 public class MengSkyServer extends DownloadServer {
 	/** Server name. */
