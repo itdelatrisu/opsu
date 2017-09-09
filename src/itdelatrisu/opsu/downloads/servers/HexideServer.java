@@ -35,8 +35,6 @@ import org.newdawn.slick.util.Log;
 
 /**
  * Download server: https://osu.hexide.com/
- * <p>
- * <i>This server is offline as of March 2017.</i>
  */
 public class HexideServer extends DownloadServer {
 	/** Server name. */
@@ -146,4 +144,7 @@ public class HexideServer extends DownloadServer {
 
 	@Override
 	public int totalResults() { return totalResults; }
+
+	@Override
+	public boolean disableSSLInDownloads() { return true; }
 }
