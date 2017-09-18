@@ -71,7 +71,7 @@ public class MnetworkServer extends DownloadServer {
 		try {
 			// read HTML
 			String queryString = (query.isEmpty()) ? "-" : query;
-			String search = String.format(SEARCH_URL, URLEncoder.encode(queryString, "UTF-8"));
+			String search = String.format(SEARCH_URL, URLEncoder.encode(queryString, "UTF-8").replace("+", "%20"));
 			String html = Utils.readDataFromUrl(new URL(search));
 			if (html == null) {
 				this.totalResults = -1;
