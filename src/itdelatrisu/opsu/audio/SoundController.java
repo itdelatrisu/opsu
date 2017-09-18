@@ -267,10 +267,10 @@ public class SoundController {
 
 		// show a notification if any files failed to load
 		if (failedCount > 0) {
-			String text = String.format("Failed to load %d audio file%s.", failedCount, failedCount == 1 ? "" : "s");
+			String text = "audio.loadError";
 			NotificationListener listener = null;
 			if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.OPEN)) {
-				text += "\nClick for details.";
+				text += ".view";
 				listener = new NotificationListener() {
 					@Override
 					public void click() {
@@ -280,7 +280,7 @@ public class SoundController {
 					}
 				};
 			}
-			UI.getNotificationManager().sendNotification(text, Color.red, listener);
+			UI.getNotificationManager().sendNotificationFormatted(text, Color.red, listener, failedCount, failedCount == 1 ? "" : "s");
 		}
 	}
 
@@ -422,7 +422,7 @@ public class SoundController {
 
 				@Override
 				public void error() {
-					UI.getNotificationManager().sendBarNotification("Failed to download track preview.");
+					UI.getNotificationManager().sendBarNotification("download.preview.failed");
 				}
 			});
 			try {

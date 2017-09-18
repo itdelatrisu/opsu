@@ -18,6 +18,7 @@
 
 package itdelatrisu.opsu;
 
+import itdelatrisu.opsu.translation.I18n;
 import itdelatrisu.opsu.ui.Fonts;
 import itdelatrisu.opsu.ui.MenuButton;
 import itdelatrisu.opsu.ui.animations.AnimationEquation;
@@ -34,39 +35,39 @@ import org.newdawn.slick.Input;
  */
 public enum GameMod {
 	EASY          (Category.EASY, 0, GameImage.MOD_EASY, "EZ", 2, Input.KEY_Q, 0.5f,
-	              "Easy", "Reduces overall difficulty - larger circles, more forgiving HP drain, less accuracy required."),
+	              "mod.easy"),
 	NO_FAIL       (Category.EASY, 1, GameImage.MOD_NO_FAIL, "NF", 1, Input.KEY_W, 0.5f,
-	              "NoFail", "You can't fail.  No matter what."),
+	              "mod.noFail"),
 	HALF_TIME     (Category.EASY, 2, GameImage.MOD_HALF_TIME, "HT", 256, Input.KEY_E, 0.3f,
-	              "HalfTime", "Less zoom."),
+	              "mod.halfTime"),
 	HARD_ROCK     (Category.HARD, 0, GameImage.MOD_HARD_ROCK, "HR", 16, Input.KEY_A, 1.06f,
-	              "HardRock", "Everything just got a bit harder..."),
+	              "mod.hardRock"),
 	SUDDEN_DEATH  (Category.HARD, 1, GameImage.MOD_SUDDEN_DEATH, "SD", 32, Input.KEY_S, 1f,
-	              "SuddenDeath", "Miss a note and fail."),
+	              "mod.suddenDeath"),
 //	PERFECT       (Category.HARD, 1, GameImage.MOD_PERFECT, "PF", 64, Input.KEY_S, 1f,
-//	              "Perfect", "SS or quit."),
+//	              "mod.perfect"),
 	DOUBLE_TIME   (Category.HARD, 2, GameImage.MOD_DOUBLE_TIME, "DT", 64, Input.KEY_D, 1.12f,
-	              "DoubleTime", "Zoooooooooom."),
-//	NIGHTCORE     (Category.HARD, 2, GameImage.MOD_NIGHTCORE, "NT", 64, Input.KEY_D, 1.12f,
-//	              "Nightcore", "uguuuuuuuu"),
+	              "mod.doubleTime"),
+//	NIGHTCORE     (Category.HARD, 2, GameImage.MOD_NIGHTCORE, "NC", 64, Input.KEY_D, 1.12f,
+//	              "mod.nightcore"),
 	HIDDEN        (Category.HARD, 3, GameImage.MOD_HIDDEN, "HD", 8, Input.KEY_F, 1.06f,
-	              "Hidden", "Play with no approach circles and fading notes for a slight score advantage."),
+	              "mod.hidden"),
 	FLASHLIGHT    (Category.HARD, 4, GameImage.MOD_FLASHLIGHT, "FL", 1024, Input.KEY_G, 1.12f,
-	              "Flashlight", "Restricted view area."),
+	              "mod.flashlight"),
 	RELAX         (Category.SPECIAL, 0, GameImage.MOD_RELAX, "RL", 128, Input.KEY_Z, 0f,
-	              "Relax", "You don't need to click.\nGive your clicking/tapping finger a break from the heat of things.\n**UNRANKED**"),
+	              "mod.relax"),
 	AUTOPILOT     (Category.SPECIAL, 1, GameImage.MOD_AUTOPILOT, "AP", 8192, Input.KEY_X, 0f,
-	              "Relax2", "Automatic cursor movement - just follow the rhythm.\n**UNRANKED**"),
+	              "mod.autopilot"),
 	SPUN_OUT      (Category.SPECIAL, 2, GameImage.MOD_SPUN_OUT, "SO", 4096, Input.KEY_C, 0.9f,
-	              "SpunOut", "Spinners will be automatically completed."),
+	              "mod.spunout"),
 	AUTO          (Category.SPECIAL, 3, GameImage.MOD_AUTO, "", 2048, Input.KEY_V, 1f,
-	              "Autoplay", "Watch a perfect automated play through the song.");
+	              "mod.autoplay");
 
 	/** Mod categories. */
 	public enum Category {
-		EASY    (0, "Difficulty Reduction", Color.green),
-		HARD    (1, "Difficulty Increase", Color.red),
-		SPECIAL (2, "Special", Color.white);
+		EASY    (0, "mod.category.easy", Color.green),
+		HARD    (1, "mod.category.hard", Color.red),
+		SPECIAL (2, "mod.category.special", Color.white);
 
 		/** Drawing index. */
 		private final int index;
@@ -107,7 +108,7 @@ public enum GameMod {
 		/**
 		 * Returns the category name.
 		 */
-		public String getName() { return name; }
+		public String getName() { return I18n.translate(name, Fonts.LARGE); }
 
 		/**
 		 * Returns the text color.
@@ -151,9 +152,6 @@ public enum GameMod {
 
 	/** The name of the mod. */
 	private final String name;
-
-	/** The description of the mod. */
-	private final String description;
 
 	/** Whether or not this mod is active. */
 	private boolean active = false;
@@ -309,7 +307,7 @@ public enum GameMod {
 	 * @param description the description
 	 */
 	GameMod(Category category, int categoryIndex, GameImage image, String abbrev,
-			int bit, int key, float multiplier, String name, String description) {
+			int bit, int key, float multiplier, String name) {
 		this.category = category;
 		this.categoryIndex = categoryIndex;
 		this.image = image;
@@ -318,7 +316,6 @@ public enum GameMod {
 		this.key = key;
 		this.multiplier = multiplier;
 		this.name = name;
-		this.description = description;
 	}
 
 	/**
@@ -350,13 +347,13 @@ public enum GameMod {
 	 * Returns the name of the mod.
 	 * @return the name
 	 */
-	public String getName() { return name; }
+	public String getName() { return I18n.translate(name, Fonts.SMALL); }
 
 	/**
 	 * Returns a description of the mod.
 	 * @return the description
 	 */
-	public String getDescription() { return description; }
+	public String getDescription() { return I18n.translate(name + ".desc", Fonts.SMALL); }
 
 	/**
 	 * Toggles the active status of the mod.

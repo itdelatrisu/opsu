@@ -50,6 +50,7 @@ import itdelatrisu.opsu.replay.LifeFrame;
 import itdelatrisu.opsu.replay.PlaybackSpeed;
 import itdelatrisu.opsu.replay.Replay;
 import itdelatrisu.opsu.replay.ReplayFrame;
+import itdelatrisu.opsu.translation.I18n;
 import itdelatrisu.opsu.ui.Colors;
 import itdelatrisu.opsu.ui.Fonts;
 import itdelatrisu.opsu.ui.InputOverlayKey;
@@ -611,10 +612,12 @@ public class Game extends BasicGameState {
 				float oldAlpha = Colors.WHITE_FADE.a;
 				if (timeDiff < -500)
 					Colors.WHITE_FADE.a = (1000 + timeDiff) / 500f;
-				Fonts.MEDIUM.drawString(
+				I18n.translateAndDrawFormatted(
+						Fonts.MEDIUM, 
 						2 + (width / 100), retryHeight,
-						String.format("%d retries and counting...", retries),
-						Colors.WHITE_FADE
+						"ui.gameplay.retryCount",
+						Colors.WHITE_FADE,
+						retries
 				);
 				Colors.WHITE_FADE.a = oldAlpha;
 			}
@@ -759,7 +762,7 @@ public class Game extends BasicGameState {
 			g.fillRect(0, 0, width, height);
 
 			// draw overlay text
-			String overlayText = "Click on the pulsing cursor to continue play!";
+			String overlayText = I18n.translate("ui.gameplay.resume.overlay", Fonts.LARGE);
 			int textWidth = Fonts.LARGE.getWidth(overlayText), textHeight = Fonts.LARGE.getLineHeight();
 			int textX = (width - textWidth) / 2, textY = (height - textHeight) / 2;
 			int paddingX = 8, paddingY = 4;
@@ -830,7 +833,7 @@ public class Game extends BasicGameState {
 				double distance = Math.hypot(pausedMousePosition.x - mouseX, pausedMousePosition.y - mouseY);
 				int circleRadius = GameImage.HITCIRCLE.getImage().getWidth() / 2;
 				if (distance < circleRadius)
-					UI.updateTooltip(delta, "Click to resume gameplay.", false);
+					UI.updateTooltip(delta, I18n.translate("ui.tooltip.game.resume", Fonts.SMALL), false);
 			}
 			return;
 		}
@@ -1642,12 +1645,12 @@ public class Game extends BasicGameState {
 
 			// using local offset?
 			if (beatmap.localMusicOffset != 0)
-				UI.getNotificationManager().sendBarNotification(String.format("Using local beatmap offset (%dms)", beatmap.localMusicOffset));
+				UI.getNotificationManager().sendBarNotificationFormatted("beatmaps.offset.using", beatmap.localMusicOffset);
 
 			// using custom difficulty settings?
 			if (Options.getFixedCS() > 0f || Options.getFixedAR() > 0f || Options.getFixedOD() > 0f ||
 				Options.getFixedHP() > 0f || Options.getFixedSpeed() > 0f)
-				UI.getNotificationManager().sendNotification("Playing with custom difficulty settings.");
+				UI.getNotificationManager().sendNotification("gameplay.customDifficulty");
 
 			// load video
 			if (beatmap.video != null) {
@@ -1981,7 +1984,7 @@ public class Game extends BasicGameState {
 			video = null;
 			videoSeekTime = 0;
 			Log.error(e);
-			UI.getNotificationManager().sendNotification("Failed to load beatmap video.\nSee log for details.", Color.red);
+			UI.getNotificationManager().sendNotification("beatmaps.noVideo", Color.red);
 		}
 	}
 
@@ -2451,14 +2454,14 @@ public class Game extends BasicGameState {
 	 */
 	private void adjustLocalMusicOffset(int sign) {
 		if (pauseTime > -1) {
-			UI.getNotificationManager().sendBarNotification("Offset can only be changed while game is not paused.");
+			UI.getNotificationManager().sendBarNotification("beatmaps.offset.notChanged");
 			return;
 		}
 
 		boolean alt = input.isKeyDown(Input.KEY_LALT) || input.isKeyDown(Input.KEY_RALT);
 		int diff = sign * (alt ? 1 : 5);
 		int newOffset = Utils.clamp(beatmap.localMusicOffset + diff, -1000, 1000);
-		UI.getNotificationManager().sendBarNotification(String.format("Local beatmap offset set to %dms", newOffset));
+		UI.getNotificationManager().sendBarNotificationFormatted("beatmaps.offset.changed", newOffset);
 		if (beatmap.localMusicOffset != newOffset) {
 			beatmap.localMusicOffset = newOffset;
 			BeatmapDB.updateLocalOffset(beatmap);

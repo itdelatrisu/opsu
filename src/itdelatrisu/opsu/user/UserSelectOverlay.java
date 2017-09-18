@@ -20,6 +20,7 @@ package itdelatrisu.opsu.user;
 
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
+import itdelatrisu.opsu.translation.I18n;
 import itdelatrisu.opsu.ui.Colors;
 import itdelatrisu.opsu.ui.Fonts;
 import itdelatrisu.opsu.ui.KineticScrolling;
@@ -265,7 +266,7 @@ public class UserSelectOverlay extends AbstractComponent {
 		COLOR_WHITE.a = alpha;
 
 		// title
-		String title = "User Select";
+		String title = I18n.translate("user.select", Fonts.XLARGE);
 		Fonts.XLARGE.drawString(
 			x + (width - Fonts.XLARGE.getWidth(title)) / 2,
 			(int) (y + titleY - scrolling.getPosition()),
@@ -296,7 +297,7 @@ public class UserSelectOverlay extends AbstractComponent {
 		COLOR_GRAY.a = alpha * 0.8f;
 
 		// title
-		String title = "Add User";
+		String title = I18n.translate("user.select.add.header", Fonts.XLARGE);
 		Fonts.XLARGE.drawString(
 			x + (width - Fonts.XLARGE.getWidth(title)) / 2,
 			(int) (y + titleY),
@@ -305,20 +306,20 @@ public class UserSelectOverlay extends AbstractComponent {
 
 		// user button
 		int cy = (int) (y + usersStartY);
-		String caption = "Click the profile below to create it.";
+		String caption = I18n.translate("user.select.add.caption", Fonts.MEDIUM);
 		Fonts.MEDIUM.drawString(x + (width - Fonts.MEDIUM.getWidth(caption)) / 2, cy, caption, COLOR_WHITE);
 		cy += Fonts.MEDIUM.getLineHeight();
 		newUserButton.draw(g, alpha);
 		cy += UserButton.getHeight() + Fonts.MEDIUMBOLD.getLineHeight();
 
 		// user name
-		String nameHeader = "Name";
+		String nameHeader = I18n.translate("user.name", Fonts.MEDIUMBOLD);
 		Fonts.MEDIUMBOLD.drawString(x + (width - Fonts.MEDIUMBOLD.getWidth(nameHeader)) / 2, cy, nameHeader, COLOR_WHITE);
 		cy += Fonts.MEDIUMBOLD.getLineHeight();
 		Color textColor = COLOR_WHITE;
 		String name = newUser.getName();
 		if (name.isEmpty()) {
-			name = "Type a name...";
+			name = I18n.translate("user.name.new", Fonts.LARGE);
 			textColor = COLOR_GRAY;
 		} else if (!UserList.get().isValidUserName(name))
 			textColor = COLOR_RED;
@@ -332,7 +333,7 @@ public class UserSelectOverlay extends AbstractComponent {
 		cy += Fonts.MEDIUMBOLD.getLineHeight();
 
 		// user icons
-		String iconHeader = "Icon";
+		String iconHeader = I18n.translate("user.icon", Fonts.MEDIUMBOLD);
 		Fonts.MEDIUMBOLD.drawString(x + (width - Fonts.MEDIUMBOLD.getWidth(iconHeader)) / 2, cy, iconHeader, COLOR_WHITE);
 		cy += Fonts.MEDIUMBOLD.getLineHeight() + usersPaddingY;
 		int iconSize = UserButton.getIconSize();
@@ -569,16 +570,16 @@ public class UserSelectOverlay extends AbstractComponent {
 		String name = newUser.getName();
 		int icon = newUser.getIconId();
 		if (!UserList.get().isValidUserName(name)) {
-			String error = name.isEmpty() ? "Enter a name for the user." : "You can't use that name.";
+			String error = name.isEmpty() ? "user.new.name" : "user.new.name.invalid";
 			UI.getNotificationManager().sendBarNotification(error);
 			newUserButton.flash();
 		} else {
 			if (UserList.get().createNewUser(name, icon) == null)
-				UI.getNotificationManager().sendBarNotification("Something wrong happened.");
+				UI.getNotificationManager().sendBarNotification("user.new.error");
 			else {
 				// change user
 				UserList.get().changeUser(name);
-				UI.getNotificationManager().sendNotification("New user created.\nEnjoy the game! :)", Colors.GREEN);
+				UI.getNotificationManager().sendNotification("user.new.created", Colors.GREEN);
 				listener.close(true);
 			}
 		}

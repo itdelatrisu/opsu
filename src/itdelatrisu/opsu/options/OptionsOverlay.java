@@ -19,12 +19,12 @@
 package itdelatrisu.opsu.options;
 
 import itdelatrisu.opsu.GameImage;
-import itdelatrisu.opsu.OpsuConstants;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
 import itdelatrisu.opsu.options.Options.GameOption;
 import itdelatrisu.opsu.options.Options.GameOption.OptionType;
+import itdelatrisu.opsu.translation.I18n;
 import itdelatrisu.opsu.ui.Colors;
 import itdelatrisu.opsu.ui.DropdownMenu;
 import itdelatrisu.opsu.ui.Fonts;
@@ -479,8 +479,8 @@ public class OptionsOverlay extends AbstractComponent {
 		g.fillRect((int) x + navButtonSize, y, width, height);
 
 		// title
-		String title = "Options";
-		String subtitle = String.format("Change the way %s behaves", OpsuConstants.PROJECT_NAME);
+		String title = I18n.translate("options.name", Fonts.LARGE);
+		String subtitle = I18n.translate("options.desc", Fonts.MEDIUM);
 		Fonts.LARGE.drawString(
 			x + navButtonSize + (width - navButtonSize - Fonts.LARGE.getWidth(title)) / 2,
 			(int) (y + textOptionsY - scrolling.getPosition()),
@@ -521,7 +521,7 @@ public class OptionsOverlay extends AbstractComponent {
 			searchColor.b = COLOR_PINK.b + (1f - COLOR_PINK.b) * invalidProgress;
 			invalidProgress = 1f - invalidProgress;
 		}
-		String searchText = "Type to search!";
+		String searchText = I18n.translate("options.search", Fonts.LARGE);
 		if (lastSearchText.length() > 0)
 			searchText = lastSearchText;
 		int textWidth = width - navButtonSize;
@@ -568,9 +568,9 @@ public class OptionsOverlay extends AbstractComponent {
 			g.setColor(COLOR_BG);
 			g.fillRect(0, 0, containerWidth, containerHeight);
 			g.setColor(COLOR_WHITE);
-			String prompt = keyEntryLeft ?
-				"Press the new left-click key." : "Press the new right-click key.";
-			String subtext = "Click anywhere or hit ESC to cancel.";
+			String prompt = I18n.translate(keyEntryLeft ?
+				"options.input.keyboard.left.prompt" : "options.input.keyboard.right.prompt", Fonts.XLARGE);
+			String subtext = I18n.translate("options.input.keyboard.subtext", Fonts.DEFAULT);
 			float promptY = (containerHeight - Fonts.XLARGE.getLineHeight() - Fonts.DEFAULT.getLineHeight()) / 2 - 2;
 			float subtextY = promptY + Fonts.XLARGE.getLineHeight() + 2;
 			Fonts.XLARGE.drawString((containerWidth - Fonts.XLARGE.getWidth(prompt)) / 2, promptY, prompt);
@@ -621,7 +621,7 @@ public class OptionsOverlay extends AbstractComponent {
 			}
 			group.getIcon().draw(iconPadding, y + iconPadding, iconSize, iconSize, iconCol);
 			if (navHoverTime > 0)
-				Fonts.MEDIUM.drawString(fontOffsetX, y + fontOffsetY, group.getName(), fontCol);
+				Fonts.MEDIUM.drawString(fontOffsetX, y + fontOffsetY, group.getName(Fonts.MEDIUM), fontCol);
 			y += navButtonSize;
 		}
 		g.clearClip();
@@ -647,14 +647,14 @@ public class OptionsOverlay extends AbstractComponent {
 				if (group != activeGroup)
 					COLOR_CYAN.a *= 0.2f;
 				Fonts.XLARGE.drawString(
-					x + width - Fonts.XLARGE.getWidth(group.getName()) - paddingRight,
+					x + width - Fonts.XLARGE.getWidth(group.getName(Fonts.XLARGE)) - paddingRight,
 					(int) (cy + Fonts.XLARGE.getLineHeight() * 0.3f),
-					group.getName(), COLOR_CYAN
+					group.getName(Fonts.XLARGE), COLOR_CYAN
 				);
 				COLOR_CYAN.a = previousAlpha;
 			} else {
 				// subsection header
-				Fonts.MEDIUMBOLD.drawString(x + paddingTextLeft, lineStartY, group.getName(), COLOR_WHITE);
+				Fonts.MEDIUMBOLD.drawString(x + paddingTextLeft, lineStartY, group.getName(Fonts.MEDIUMBOLD), COLOR_WHITE);
 			}
 			cy += optionGroupPadding;
 			virtualY += optionGroupPadding;
@@ -867,7 +867,7 @@ public class OptionsOverlay extends AbstractComponent {
 		if (hoverOption != null && getOptionAtPosition(mouseX, mouseY) == hoverOption && !keyEntryLeft && !keyEntryRight)
 			UI.updateTooltip(delta, hoverOption.getDescription(), true);
 		else if (showRestartButton && restartButton.contains(mouseX, mouseY) && !keyEntryLeft && !keyEntryRight)
-			UI.updateTooltip(delta, "Click to restart the game.", false);
+			UI.updateTooltip(delta, I18n.translate("ui.button.restart", Fonts.SMALL), false);
 		backButton.hoverUpdate(delta, backButton.contains(mouseX, mouseY) && !keyEntryLeft && !keyEntryRight);
 		if (showRestartButton)
 			restartButton.autoHoverUpdate(delta, false);
@@ -1061,7 +1061,7 @@ public class OptionsOverlay extends AbstractComponent {
 		OptionGroup lastHeader = null;
 		boolean lastHeaderMatches = false;
 		for (OptionGroup group : groups) {
-			boolean groupMatches = group.getName().toLowerCase().contains(lastSearchText);
+			boolean groupMatches = group.getName(null).toLowerCase().contains(lastSearchText);
 			if (group.getOptions() == null) {
 				lastHeaderMatches = groupMatches;
 				lastHeader = group;
@@ -1099,7 +1099,7 @@ public class OptionsOverlay extends AbstractComponent {
 	 */
 	private boolean hasSearchResults(String searchText) {
 		for (OptionGroup group : groups) {
-			if (group.getName().toLowerCase().contains(searchText))
+			if (group.getName(null).toLowerCase().contains(searchText))
 				return true;
 			if (group.getOptions() == null)
 				continue;
@@ -1209,7 +1209,7 @@ public class OptionsOverlay extends AbstractComponent {
 				// show restart button?
 				if (oldValue != hoverOption.getBooleanValue() && hoverOption.isRestartRequired()) {
 					showRestartButton = true;
-					UI.getNotificationManager().sendBarNotification("Restart to apply changes.");
+					UI.getNotificationManager().sendBarNotification("options.restart");
 				}
 			} else if (hoverOption.getItemList() != null) {
 				SoundController.playSound(SoundEffect.MENUCLICK);
@@ -1415,7 +1415,7 @@ public class OptionsOverlay extends AbstractComponent {
 						// show restart button?
 						if (option.isRestartRequired()) {
 							showRestartButton = true;
-							UI.getNotificationManager().sendBarNotification("Restart to apply changes.");
+							UI.getNotificationManager().sendBarNotification("options.restart");
 						}
 					}
 

@@ -30,6 +30,7 @@ import itdelatrisu.opsu.beatmap.OszUnpacker;
 import itdelatrisu.opsu.options.Options;
 import itdelatrisu.opsu.replay.ReplayImporter;
 import itdelatrisu.opsu.skins.SkinUnpacker;
+import itdelatrisu.opsu.translation.I18n;
 import itdelatrisu.opsu.ui.UI;
 import itdelatrisu.opsu.ui.animations.AnimatedValue;
 import itdelatrisu.opsu.ui.animations.AnimationEquation;
@@ -93,6 +94,10 @@ public class Splash extends BasicGameState {
 	public void init(GameContainer container, StateBasedGame game)
 			throws SlickException {
 		this.container = container;
+
+		// (Re)load the localisation framework
+		// On a first startup, this is called twice, here and on <clinit>
+		I18n.load();
 
 		// check if skin changed
 		if (Options.getSkin() != null)

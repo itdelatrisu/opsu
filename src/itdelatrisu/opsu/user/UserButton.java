@@ -19,6 +19,7 @@
 package itdelatrisu.opsu.user;
 
 import itdelatrisu.opsu.GameImage;
+import itdelatrisu.opsu.translation.I18n;
 import itdelatrisu.opsu.ui.Colors;
 import itdelatrisu.opsu.ui.Fonts;
 import itdelatrisu.opsu.ui.animations.AnimatedValue;
@@ -165,7 +166,7 @@ public class UserButton {
 
 		// no user?
 		if (user == null) {
-			String text = "Add User";
+			String text = I18n.translate("user.select.add", Fonts.LARGE);
 			Fonts.LARGE.drawString(
 				x + (buttonWidth - Fonts.LARGE.getWidth(text)) / 2,
 				y + (buttonHeight - Fonts.LARGE.getLineHeight()) / 2,
@@ -186,11 +187,11 @@ public class UserButton {
 		int textY = cy + padding / 2;
 		Fonts.MEDIUM.drawString(textX, textY, user.getName(), Colors.WHITE_FADE);
 		textY += Fonts.MEDIUM.getLineHeight() - 3;
-		Fonts.SMALL.drawString(textX, textY, String.format("Score: %,d", user.getScore()), Colors.WHITE_FADE);
+		Fonts.SMALL.drawString(textX, textY, I18n.translateFormatted("user.info.score", Fonts.SMALL, user.getScore()), Colors.WHITE_FADE);
 		textY += Fonts.SMALL.getLineHeight() - 2;
-		Fonts.SMALL.drawString(textX, textY, String.format("Accuracy: %.2f%%", user.getAccuracy()), Colors.WHITE_FADE);
+		Fonts.SMALL.drawString(textX, textY, I18n.translateFormatted("user.info.accuracy", Fonts.SMALL, user.getAccuracy()), Colors.WHITE_FADE);
 		textY += Fonts.SMALL.getLineHeight() - 2;
-		Fonts.SMALL.drawString(textX, textY, String.format("Lv%d", user.getLevel()), Colors.WHITE_FADE);
+		Fonts.SMALL.drawString(textX, textY, I18n.translateFormatted("user.info.level", Fonts.SMALL, user.getLevel()), Colors.WHITE_FADE);
 
 		// progress bar
 		int barX = textX + Fonts.SMALL.getWidth("Lv#####");

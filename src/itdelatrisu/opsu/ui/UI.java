@@ -27,6 +27,7 @@ import itdelatrisu.opsu.beatmap.OszUnpacker;
 import itdelatrisu.opsu.options.Options;
 import itdelatrisu.opsu.replay.ReplayImporter;
 import itdelatrisu.opsu.skins.SkinUnpacker;
+import itdelatrisu.opsu.translation.I18n;
 import itdelatrisu.opsu.ui.animations.AnimatedValue;
 import itdelatrisu.opsu.ui.animations.AnimationEquation;
 
@@ -283,20 +284,20 @@ public class UI {
 
 		// determine current action
 		if ((file = OszUnpacker.getCurrentFileName()) != null) {
-			text = "Unpacking new beatmaps...";
+			text = "ui.startup.beatmaps";
 			progress = OszUnpacker.getUnpackerProgress();
 		} else if ((file = BeatmapParser.getCurrentFileName()) != null) {
 			text = (BeatmapParser.getStatus() == BeatmapParser.Status.INSERTING) ?
-					"Updating database..." : "Loading beatmaps...";
+					"ui.startup.beatmaps.db.update" : "ui.startup.beatmaps.db.load";
 			progress = BeatmapParser.getParserProgress();
 		} else if ((file = SkinUnpacker.getCurrentFileName()) != null) {
-			text = "Unpacking new skins...";
+			text = "ui.startup.skins";
 			progress = SkinUnpacker.getUnpackerProgress();
 		} else if ((file = ReplayImporter.getCurrentFileName()) != null) {
-			text = "Importing replays...";
+			text = "ui.startup.replays";
 			progress = ReplayImporter.getLoadingProgress();
 		} else if ((file = SoundController.getCurrentFileName()) != null) {
-			text = "Loading sounds...";
+			text = "ui.startup.sounds";
 			progress = SoundController.getLoadingProgress();
 		} else
 			return;
@@ -311,12 +312,12 @@ public class UI {
 			// verbose: display percentages and file names
 			Fonts.MEDIUM.drawString(
 				marginX, lineY - (lineOffsetY * 2),
-				String.format("%s (%d%%)", text, progress), Colors.WHITE_FADE
+				String.format("%s (%d%%)", I18n.translate(text, Fonts.MEDIUM), progress), Colors.WHITE_FADE
 			);
 			Fonts.MEDIUM.drawString(marginX, lineY - lineOffsetY, file, Colors.WHITE_FADE);
 		} else {
 			// draw loading bar
-			Fonts.MEDIUM.drawString(marginX, lineY - (lineOffsetY * 2), text, Colors.WHITE_FADE);
+			Fonts.MEDIUM.drawString(marginX, lineY - (lineOffsetY * 2), I18n.translate(text, Fonts.MEDIUM), Colors.WHITE_FADE);
 			g.setColor(Colors.WHITE_FADE);
 			g.fillRoundRect(
 				marginX, lineY - (lineOffsetY / 2f),

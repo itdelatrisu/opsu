@@ -19,6 +19,8 @@
 package itdelatrisu.opsu.beatmap;
 
 import itdelatrisu.opsu.GameImage;
+import itdelatrisu.opsu.translation.I18n;
+import itdelatrisu.opsu.ui.Fonts;
 import itdelatrisu.opsu.ui.MenuButton;
 import itdelatrisu.opsu.ui.UI;
 
@@ -35,10 +37,10 @@ import org.newdawn.slick.Image;
  */
 public enum BeatmapGroup {
 	/** All beatmaps (no filter). */
-	ALL (0, "All Songs", null),
+	ALL (0, "beatmaps.groups.all"),
 
 	/** Most recently played beatmaps. */
-	RECENT (1, "Last Played", "Your recently played beatmaps will appear in this list!") {
+	RECENT (1, "beatmaps.groups.recent") {
 		/** Number of elements to show. */
 		private static final int K = 20;
 
@@ -81,7 +83,7 @@ public enum BeatmapGroup {
 	},
 
 	/** "Favorite" beatmaps. */
-	FAVORITE (2, "Favorites", "Right-click a beatmap to add it to your Favorites!") {
+	FAVORITE (2, "beatmaps.groups.favorites") {
 		@Override
 		public ArrayList<BeatmapSetNode> filter(ArrayList<BeatmapSetNode> list) {
 			// find "favorite" beatmaps
@@ -99,9 +101,6 @@ public enum BeatmapGroup {
 
 	/** The name of the group. */
 	private final String name;
-
-	/** The message to display if this list is empty. */
-	private final String emptyMessage;
 
 	/** The tab associated with the group (displayed in Song Menu screen). */
 	private MenuButton tab;
@@ -135,19 +134,17 @@ public enum BeatmapGroup {
 	 * Constructor.
 	 * @param id the ID of the group (for tab positioning)
 	 * @param name the group name
-	 * @param emptyMessage the message to display if this list is empty
 	 */
-	BeatmapGroup(int id, String name, String emptyMessage) {
+	BeatmapGroup(int id, String name) {
 		this.id = id;
 		this.name = name;
-		this.emptyMessage = emptyMessage;
 	}
 
 	/**
-	 * Returns the message to display if this list is empty.
-	 * @return the message, or null if none
+	 * Returns the unlocalized name of this group.
+	 * @return the unlocalized name (<code>beatmaps.groups.*</code>)
 	 */
-	public String getEmptyMessage() { return emptyMessage; }
+	public String getName() { return name; }
 
 	/**
 	 * Returns a filtered list of beatmap set nodes.
@@ -192,6 +189,6 @@ public enum BeatmapGroup {
 	 * @param isHover whether to include a hover effect (unselected only)
 	 */
 	public void draw(boolean selected, boolean isHover) {
-		UI.drawTab(tab.getX(), tab.getY(), name, selected, isHover);
+		UI.drawTab(tab.getX(), tab.getY(), I18n.translate(getName(), Fonts.MEDIUM), selected, isHover);
 	}
 }
