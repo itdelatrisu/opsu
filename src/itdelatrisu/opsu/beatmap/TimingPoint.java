@@ -83,7 +83,7 @@ public class TimingPoint {
 
 		// tokens[1] is either beatLength (positive) or velocity (negative)
 		float beatLength = Float.parseFloat(tokens[1]);
-		if (beatLength > 0)
+		if (beatLength >= 0)
 			this.beatLength = beatLength;
 		else {
 			this.velocity = (int) beatLength;
