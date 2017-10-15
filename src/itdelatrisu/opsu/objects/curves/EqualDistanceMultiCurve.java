@@ -66,6 +66,11 @@ public abstract class EqualDistanceMultiCurve extends Curve {
 
 		float distanceAt = 0;
 		Iterator<CurveType> iter = curvesList.iterator();
+		if(!iter.hasNext()) {
+			// "unrendered" location
+			curve[0] = new Vec2f(-100, -100);
+			return;
+		}
 		int curPoint = 0;
 		CurveType curCurve = iter.next();
 		Vec2f lastCurve = curCurve.getCurvePoint()[0];
