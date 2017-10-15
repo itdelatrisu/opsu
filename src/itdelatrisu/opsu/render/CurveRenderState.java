@@ -453,8 +453,8 @@ public class CurveRenderState {
 		GL20.glUniform4f(staticState.colLoc, color.r, color.g, color.b, color.a);
 		GL20.glUniform4f(staticState.colBorderLoc, borderColor.r, borderColor.g, borderColor.b, borderColor.a);
 
-		float lastSegmentX = to == 0 ? curve[1].x - curve[0].x : curve[to].x - curve[to-1].x;
-		float lastSegmentY = to == 0 ? curve[1].y - curve[0].y : curve[to].y - curve[to-1].y;
+		float lastSegmentX = curve.length == 1 ? 0 : to == 0 ? curve[1].x - curve[0].x : curve[to].x - curve[to-1].x;
+		float lastSegmentY = curve.length == 1 ? 0 : to == 0 ? curve[1].y - curve[0].y : curve[to].y - curve[to-1].y;
 		float lastSegmentInvLen = 1.f/(float)Math.hypot(lastSegmentX, lastSegmentY);
 		GL20.glUniform4f(staticState.endPointLoc, curve[to].x, curve[to].y, lastSegmentX * lastSegmentInvLen, lastSegmentY * lastSegmentInvLen);
 		//stride is 6*4 for the floats (4 bytes) (u,v)(x,y,z,w)
