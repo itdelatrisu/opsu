@@ -36,6 +36,7 @@ import java.io.InputStreamReader;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -679,6 +680,7 @@ public class BeatmapParser {
 			return;
 
 		beatmap.objects = new HitObject[(beatmap.hitObjectCircle + beatmap.hitObjectSlider + beatmap.hitObjectSpinner)];
+		ArrayList<HitObject> objects = new ArrayList<>();
 
 		try (BufferedReader in = new BufferedReader(new FileReader(beatmap.getFile()))) {
 			String line = in.readLine();
@@ -732,12 +734,21 @@ public class BeatmapParser {
 					hitObject.setComboIndex(comboIndex);
 					hitObject.setComboNumber(comboNumber++);
 
-					beatmap.objects[objectIndex++] = hitObject;
+					objects.add(hitObject);
+					objectIndex++;
 				} catch (Exception e) {
 					Log.warn(String.format("Failed to read hit object '%s' for beatmap '%s'.",
 							line, beatmap.toString()), e);
 				}
 			}
+			objects.trimToSize();
+			Collections.sort(objects, new Comparator<HitObject>() {
+				@Override
+				public int compare(HitObject o1, HitObject o2) {
+					return o1.getTime() - o2.getTime();
+				}
+			});
+			beatmap.objects = objects.toArray(new HitObject[0]);
 
 			// check that all objects were parsed
 			if (objectIndex != beatmap.objects.length)
