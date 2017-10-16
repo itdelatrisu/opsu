@@ -45,7 +45,7 @@ public class RippleServer extends DownloadServer {
 	private static final String SERVER_NAME = "Ripple";
 
 	/** Formatted download URL: {@code beatmapSetID} */
-	private static final String DOWNLOAD_URL = "https://storage.ripple.moe/%d.osz";
+	private static final String DOWNLOAD_URL = "https://storage.ripple.moe/d/%d";
 
 	/** Formatted search URL: {@code query,amount,offset} */
 	private static final String SEARCH_URL = "https://storage.ripple.moe/api/search?query=%s&mode=0&amount=%d&offset=%d";
@@ -81,14 +81,13 @@ public class RippleServer extends DownloadServer {
 			String search = String.format(SEARCH_URL, URLEncoder.encode(query, "UTF-8"), PAGE_LIMIT, offset);
 			if (rankedOnly)
 				search += "&status=1";
-			JSONObject json = Utils.readJsonObjectFromUrl(new URL(search));
-			if (json == null || !json.has("Ok") || !json.getBoolean("Ok") || !json.has("Sets") || json.isNull("Sets")) {
+			JSONArray arr = Utils.readJsonArrayFromUrl(new URL(search));
+			if (arr == null) {
 				this.totalResults = -1;
 				return null;
 			}
 
 			// parse result list
-			JSONArray arr = json.getJSONArray("Sets");
 			nodes = new DownloadNode[arr.length()];
 			for (int i = 0; i < nodes.length; i++) {
 				JSONObject item = arr.getJSONObject(i);
