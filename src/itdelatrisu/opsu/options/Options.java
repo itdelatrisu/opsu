@@ -399,8 +399,7 @@ public class Options {
 
 			@Override
 			public String getValueString() {
-				return String.format((getTargetFPS() == -1) ? "Unlimited" : 
-					(getTargetFPS() == 60) ? "%dfps (vsync)" : "%dfps", getTargetFPS());
+				return String.format((getTargetFPS() == 60) ? "%dfps (vsync)" : "%dfps", getTargetFPS());
 			}
 
 			@Override
