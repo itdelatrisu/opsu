@@ -987,7 +987,7 @@ public class Options {
 	 * @param container the game container
 	 */
 	public static void setNextFPS(GameContainer container) {
-		int index = (targetFPSindex + 1) % (targetFPS.length - 1);
+		int index = (targetFPSindex + 1) % (targetFPS.length - 1); // Skip "Unlimited" option
 		GameOption.TARGET_FPS.selectItem(index, container);
 		UI.getNotificationManager().sendBarNotification(String.format("Frame limiter: %s", GameOption.TARGET_FPS.getValueString()));
 	}
