@@ -562,6 +562,12 @@ public class BeatmapParser {
 						}
 					}
 					beatmap.timingPoints.trimToSize();
+					Collections.sort(beatmap.timingPoints, new Comparator<TimingPoint>() {
+						@Override
+						public int compare(TimingPoint o1, TimingPoint o2) {
+							return (o1.getTime() + (o1.isInherited() ? 1 : 0)) - (o2.getTime() + (o2.isInherited() ? 1 : 0));
+						}
+					});
 					break;
 				case "[Colours]":
 					LinkedList<Color> colors = new LinkedList<Color>();
