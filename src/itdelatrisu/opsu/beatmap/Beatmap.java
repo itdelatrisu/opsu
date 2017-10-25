@@ -399,11 +399,14 @@ public class Beatmap implements Comparable<Beatmap> {
 	}
 
 	/**
-	 * Returns a formatted string: "Artist - Title [Version]"
+	 * Returns a formatted string: "Source (Artist) - Title [Version]"
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
 	public String toString() {
+		if (!source.isEmpty()) 
+			return String.format("%s (%s) - %s [%s]", source, getArtist(), getTitle(), version);
+
 		return String.format("%s - %s [%s]", getArtist(), getTitle(), version);
 	}
 

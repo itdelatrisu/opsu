@@ -380,6 +380,8 @@ public class MainMenu extends BasicGameState {
 
 		// draw music info bar
 		if (MusicController.trackExists()) {
+			if (!beatmap.source.isEmpty())
+				Fonts.loadGlyphs(Fonts.MEDIUM, beatmap.source);
 			if (Options.useUnicodeMetadata()) {  // load glyphs
 				Fonts.loadGlyphs(Fonts.MEDIUM, beatmap.titleUnicode);
 				Fonts.loadGlyphs(Fonts.MEDIUM, beatmap.artistUnicode);
