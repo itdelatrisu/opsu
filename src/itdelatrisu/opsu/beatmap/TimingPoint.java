@@ -30,7 +30,7 @@ public class TimingPoint {
 	private int time = 0;
 
 	/** Time per beat (in ms). [NON-INHERITED] */
-	private float beatLength = 0f;
+	private double beatLength = 0f;
 
 	/** Slider multiplier. [INHERITED] */
 	private int velocity = 0;
@@ -82,7 +82,7 @@ public class TimingPoint {
 		}
 
 		// tokens[1] is either beatLength (positive) or velocity (negative)
-		float beatLength = Float.parseFloat(tokens[1]);
+		double beatLength = Double.parseDouble(tokens[1]);
 		if (beatLength >= 0)
 			this.beatLength = beatLength;
 		else {
@@ -101,7 +101,7 @@ public class TimingPoint {
 	 * Returns the beat length. [NON-INHERITED]
 	 * @return the time per beat (in ms)
 	 */
-	public float getBeatLength() { return beatLength; }
+	public double getBeatLength() { return beatLength; }
 
 	/**
 	 * Returns the slider multiplier. [INHERITED]

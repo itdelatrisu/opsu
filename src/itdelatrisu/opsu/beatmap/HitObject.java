@@ -407,8 +407,8 @@ public class HitObject {
 	 * @param beatLength the beat length
 	 * @return the slider segment length
 	 */
-	public float getSliderTime(float sliderMultiplier, float beatLength) {
-		return beatLength * (pixelLength / sliderMultiplier) / 100f;
+	public double getSliderTime(double sliderMultiplier, double beatLength) {
+		return beatLength * (pixelLength / sliderMultiplier) / 100d;
 	}
 
 	/**

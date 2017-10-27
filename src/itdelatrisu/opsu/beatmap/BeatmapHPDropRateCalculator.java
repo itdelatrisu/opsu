@@ -92,7 +92,7 @@ public class BeatmapHPDropRateCalculator {
 			int comboTooLowCount = 0;
 			boolean fail = false;
 			int timingPointIndex = 0;
-			float beatLengthBase = 1f, beatLength = 1f;
+			double beatLengthBase = 1f, beatLength = 1f;
 
 			for (int i = 0; i < beatmap.objects.length; i++) {
 				HitObject hitObject = beatmap.objects[i];
@@ -128,8 +128,8 @@ public class BeatmapHPDropRateCalculator {
 				if (hitObject.isCircle())
 					endTime = hitObject.getTime();
 				else if (hitObject.isSlider()) {
-					float sliderTime = hitObject.getSliderTime(beatmap.sliderMultiplier, beatLength);
-					float sliderTimeTotal = sliderTime * hitObject.getRepeatCount();
+					double sliderTime = hitObject.getSliderTime(beatmap.sliderMultiplier, beatLength);
+					double sliderTimeTotal = sliderTime * hitObject.getRepeatCount();
 					endTime = hitObject.getTime() + (int) sliderTimeTotal;
 				} else
 					endTime = hitObject.getEndTime();
@@ -148,7 +148,7 @@ public class BeatmapHPDropRateCalculator {
 
 				// hit objects
 				if (hitObject.isSlider()) {
-					float tickLengthDiv = 100f * beatmap.sliderMultiplier / beatmap.sliderTickRate / (beatLength / beatLengthBase);
+					double tickLengthDiv = 100f * beatmap.sliderMultiplier / beatmap.sliderTickRate / (beatLength / beatLengthBase);
 					int tickCount = (int) Math.ceil(hitObject.getPixelLength() / tickLengthDiv) - 1;
 					for (int j = 0; j < hitObject.getRepeatCount(); j++)
 						health.changeHealthForHit(GameData.HIT_SLIDER30);
