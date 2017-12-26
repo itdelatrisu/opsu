@@ -19,7 +19,6 @@
 package itdelatrisu.opsu.crash;
 
 import itdelatrisu.opsu.OpsuConstants;
-import itdelatrisu.opsu.options.Options;
 
 import java.awt.Cursor;
 import java.awt.Desktop;
@@ -94,7 +93,7 @@ public class ErrorHandler {
 
 		// set the textArea to the error message
 		textArea.setText(crash.toString());
-				
+
 		// display popup
 		try {
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
@@ -112,22 +111,22 @@ public class ErrorHandler {
 								JOptionPane.DEFAULT_OPTION, JOptionPane.ERROR_MESSAGE,
 								null, optionsLogReport, optionsLogReport[2]);
 						if (n == 0)
-							desktop.browse(getIssueURI(crash.getCrashDescription(), crash));
+							desktop.browse(getIssueURI(crash));
 						else if (n == 1)
-							desktop.open(Options.LOG_FILE);
+							desktop.open(crash.writeToFile());
 					} else {  // only ask to report the error
 						int n = JOptionPane.showOptionDialog(null, message, title,
 								JOptionPane.DEFAULT_OPTION, JOptionPane.ERROR_MESSAGE,
 								null, optionsReport, optionsReport[1]);
 						if (n == 0)
-							desktop.browse(getIssueURI(crash.getCrashDescription(), crash));
+							desktop.browse(getIssueURI(crash));
 					}
 				} else {  // don't report the error
 					int n = JOptionPane.showOptionDialog(null, message, title,
 							JOptionPane.DEFAULT_OPTION, JOptionPane.ERROR_MESSAGE,
 							null, optionsLog, optionsLog[1]);
 					if (n == 0)
-						desktop.open(Options.LOG_FILE);
+						desktop.open(crash.writeToFile());
 				}
 			} else {  // display error only
 				JOptionPane.showMessageDialog(null, report ? messageReport : message,
@@ -164,10 +163,9 @@ public class ErrorHandler {
 	 * @param trace the stack trace
 	 * @return the created URI
 	 */
-	private static URI getIssueURI(String error, CrashReport report) {
+	private static URI getIssueURI(CrashReport report) {
 		// generate report information
-		String issueTitle = (error != null) ? error 
-				: (!report.getCrashDescription().isEmpty()) ? report.getCrashDescription() : "null";
+		String issueTitle = (!report.getCrashDescription().isEmpty()) ? report.getCrashDescription() : "null";
 
 		// return auto-filled URI
 		return getIssueURI(issueTitle, report.toString());

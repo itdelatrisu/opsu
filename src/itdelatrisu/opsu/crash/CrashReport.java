@@ -21,6 +21,8 @@ package itdelatrisu.opsu.crash;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.options.Options;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -33,6 +35,7 @@ import java.util.concurrent.Callable;
 
 import org.lwjgl.openal.AL10;
 import org.lwjgl.opengl.GL11;
+import org.newdawn.slick.util.Log;
 import org.newdawn.slick.util.ResourceLoader;
 
 /**
@@ -76,110 +79,111 @@ public class CrashReport {
 	 * caches it for later use.
 	 */
 	public static CrashInfo getEnvironmentInfo() {
-		// Re-cache when actually generating the information
-		environmentInfo = new CrashInfo("System Information");
+		if (environmentInfo == null) {
+			environmentInfo = new CrashInfo("System Information");
 
-		// opsu! version running
-		environmentInfo.addSectionSafe("Game Version", new Callable<String>() {
-			public String call() throws Exception {
-				StringBuilder builder = new StringBuilder();
-				Properties props = new Properties();
-				props.load(ResourceLoader.getResourceAsStream(Options.VERSION_FILE));
+			// opsu! version running
+			environmentInfo.addSectionSafe("Game Version", new Callable<String>() {
+				public String call() throws Exception {
+					StringBuilder builder = new StringBuilder();
+					Properties props = new Properties();
+					props.load(ResourceLoader.getResourceAsStream(Options.VERSION_FILE));
 
-				String version = props.getProperty("version");
-				if (version != null && !version.equals("${pom.version}")) {
-					builder.append(version);
-					String hash = Utils.getGitHash();
-					if (hash != null) {
-						builder.append(" (");
-						builder.append(hash.substring(0, 12));
-						builder.append(")");
+					String version = props.getProperty("version");
+					if (version != null && !version.equals("${pom.version}")) {
+						builder.append(version);
+						String hash = Utils.getGitHash();
+						if (hash != null) {
+							builder.append(" (");
+							builder.append(hash.substring(0, 12));
+							builder.append(")");
+						}
 					}
+
+					String timestamp = props.getProperty("build.date");
+					if (timestamp != null && !timestamp.equals("${maven.build.timestamp}")
+							&& !timestamp.equals("${timestamp}")) {
+						builder.append(" - built on ");
+						builder.append(timestamp);
+					}
+
+					return builder.toString();
 				}
+			});
 
-				String timestamp = props.getProperty("build.date");
-				if (timestamp != null && !timestamp.equals("${maven.build.timestamp}")
-						&& !timestamp.equals("${timestamp}")) {
-					builder.append(" - built on ");
-					builder.append(timestamp);
+			// Operating system details
+			environmentInfo.addSectionSafe("Operating System", new Callable<String>() {
+				public String call() {
+					return System.getProperty("os.name") + " (" + System.getProperty("os.arch") + ") version "
+							+ System.getProperty("os.version");
 				}
+			});
 
-				return builder.toString();
-			}
-		});
+			// Java Version details
+			environmentInfo.addSectionSafe("Java Version", new Callable<String>() {
+				public String call() {
+					return System.getProperty("java.version") + ", " + System.getProperty("java.vendor");
+				}
+			});
 
-		// Operating system details
-		environmentInfo.addSectionSafe("Operating System", new Callable<String>() {
-			public String call() {
-				return System.getProperty("os.name") + " (" + System.getProperty("os.arch") + ") version "
-						+ System.getProperty("os.version");
-			}
-		});
+			// Java VM details
+			environmentInfo.addSectionSafe("Java VM Details", new Callable<String>() {
+				public String call() {
+					return System.getProperty("java.vm.name") + " (" + System.getProperty("java.vm.info") + "), "
+							+ System.getProperty("java.vm.vendor");
+				}
+			});
 
-		// Java Version details
-		environmentInfo.addSectionSafe("Java Version", new Callable<String>() {
-			public String call() {
-				return System.getProperty("java.version") + ", " + System.getProperty("java.vendor");
-			}
-		});
+			// Memory usage
+			environmentInfo.addSectionSafe("Memory Usage", new Callable<String>() {
+				public String call() {
+					Runtime runtime = Runtime.getRuntime();
+					long max = runtime.maxMemory();
+					long total = runtime.totalMemory();
+					long free = runtime.freeMemory();
+					long maxMB = max / 1024L / 1024L;
+					long totalMB = total / 1024L / 1024L;
+					long freeMB = free / 1024L / 1024L;
+					return free + " bytes (" + freeMB + " MB) / " + total + " bytes (" + totalMB + " MB) up to " + max
+							+ " bytes (" + maxMB + " MB)";
+				}
+			});
 
-		// Java VM details
-		environmentInfo.addSectionSafe("Java VM Details", new Callable<String>() {
-			public String call() {
-				return System.getProperty("java.vm.name") + " (" + System.getProperty("java.vm.info") + "), "
-						+ System.getProperty("java.vm.vendor");
-			}
-		});
+			// OpenGL version
+			environmentInfo.addSectionSafe("OpenGL Version", new Callable<String>() {
+				public String call() {
+					return GL11.glGetString(GL11.GL_VERSION);
+				}
+			});
 
-		// Memory usage
-		environmentInfo.addSectionSafe("Memory Usage", new Callable<String>() {
-			public String call() {
-				Runtime runtime = Runtime.getRuntime();
-				long max = runtime.maxMemory();
-				long total = runtime.totalMemory();
-				long free = runtime.freeMemory();
-				long maxMB = max / 1024L / 1024L;
-				long totalMB = total / 1024L / 1024L;
-				long freeMB = free / 1024L / 1024L;
-				return free + " bytes (" + freeMB + " MB) / " + total + " bytes (" + totalMB + " MB) up to " + max
-						+ " bytes (" + maxMB + " MB)";
-			}
-		});
+			// OpenGL renderer
+			environmentInfo.addSectionSafe("OpenGL Renderer", new Callable<String>() {
+				public String call() {
+					return GL11.glGetString(GL11.GL_RENDERER);
+				}
+			});
 
-		// OpenGL version
-		environmentInfo.addSectionSafe("OpenGL Version", new Callable<String>() {
-			public String call() {
-				return GL11.glGetString(GL11.GL_VERSION);
-			}
-		});
+			// OpenGL vendor (manufacturer of the graphics card)
+			environmentInfo.addSectionSafe("OpenGL Vendor", new Callable<String>() {
+				public String call() {
+					return GL11.glGetString(GL11.GL_VENDOR);
+				}
+			});
 
-		// OpenGL renderer
-		environmentInfo.addSectionSafe("OpenGL Renderer", new Callable<String>() {
-			public String call() {
-				return GL11.glGetString(GL11.GL_RENDERER);
-			}
-		});
+			// OpenAL version
+			environmentInfo.addSectionSafe("OpenAL Version", new Callable<String>() {
+				public String call() throws Exception {
+					return AL10.alGetString(AL10.AL_VERSION);
+				}
+			});
 
-		// OpenGL vendor (manufacturer of the graphics card)
-		environmentInfo.addSectionSafe("OpenGL Vendor", new Callable<String>() {
-			public String call() {
-				return GL11.glGetString(GL11.GL_VENDOR);
-			}
-		});
-
-		// OpenAL version
-		environmentInfo.addSectionSafe("OpenAL Version", new Callable<String>() {
-			public String call() throws Exception {
-				return AL10.alGetString(AL10.AL_VERSION);
-			}
-		});
-
-		// OpenAL vendor
-		environmentInfo.addSectionSafe("OpenAL Vendor", new Callable<String>() {
-			public String call() throws Exception {
-				return AL10.alGetString(AL10.AL_VENDOR);
-			}
-		});
+			// OpenAL vendor
+			environmentInfo.addSectionSafe("OpenAL Vendor", new Callable<String>() {
+				public String call() throws Exception {
+					return AL10.alGetString(AL10.AL_VENDOR);
+				}
+			});
+		}
 		return environmentInfo;
 	}
 
@@ -271,7 +275,6 @@ public class CrashReport {
 		}
 
 		return "No stack trace for the cause is available";
-
 	}
 
 	/**
@@ -285,7 +288,7 @@ public class CrashReport {
 		builder.append("---- opsu! ~ Error Report ----");
 		builder.append("\n\n");
 		// Timestamp
-		builder.append("Time: ");
+		builder.append("Timestamp: ");
 		builder.append((new SimpleDateFormat()).format(new Date()));
 		builder.append("\n");
 		// Crash description
@@ -303,5 +306,24 @@ public class CrashReport {
 		builder.append("\n\n");
 		appendSections(builder);
 		return builder.toString();
+	}
+
+	/**
+	 * Writes this crash report to a separate file and returns it. If the report
+	 * was not written, return the log.
+	 */
+	public File writeToFile() {
+		File report = new File(Options.CRASH_REPORT_DIR,
+				"crash-" + (new SimpleDateFormat("yyyy-MM-dd_HH.mm.ss")).format(new Date()));
+		try {
+			FileWriter writer = new FileWriter(report);
+			writer.write(toString());
+			writer.flush();
+			writer.close();
+		} catch (IOException e) {
+			Log.error("Cannot save crash report");
+			report = Options.LOG_FILE;
+		}
+		return report;
 	}
 }
