@@ -33,7 +33,6 @@ import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.Callable;
 
-import org.lwjgl.openal.AL10;
 import org.lwjgl.opengl.GL11;
 import org.newdawn.slick.util.Log;
 import org.newdawn.slick.util.ResourceLoader;
@@ -169,20 +168,6 @@ public class CrashReport {
 					return GL11.glGetString(GL11.GL_VENDOR);
 				}
 			});
-
-			// OpenAL version
-			environmentInfo.addSectionSafe("OpenAL Version", new Callable<String>() {
-				public String call() throws Exception {
-					return AL10.alGetString(AL10.AL_VERSION);
-				}
-			});
-
-			// OpenAL vendor
-			environmentInfo.addSectionSafe("OpenAL Vendor", new Callable<String>() {
-				public String call() throws Exception {
-					return AL10.alGetString(AL10.AL_VENDOR);
-				}
-			});
 		}
 		return environmentInfo;
 	}
@@ -314,7 +299,8 @@ public class CrashReport {
 	 */
 	public File writeToFile() {
 		File report = new File(Options.CRASH_REPORT_DIR,
-				"crash-" + (new SimpleDateFormat("yyyy-MM-dd_HH.mm.ss")).format(new Date()));
+				"crash-" + (new SimpleDateFormat("yyyy-MM-dd_HH.mm.ss")).format(new Date()) + ".txt");
+		report.getParentFile().mkdirs();
 		try {
 			FileWriter writer = new FileWriter(report);
 			writer.write(toString());
