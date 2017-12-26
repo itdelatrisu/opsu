@@ -602,7 +602,7 @@ public class ButtonMenu extends BasicGameState {
 				StringBuilder sb = new StringBuilder();
 				sb.append("[Type your description here. Feel free to delete the info below if it's not relevant.]\n\n");
 				sb.append("---\n");
-				sb.append(CrashReport.getEnvironmentInfo());
+				sb.append(CrashReport.getEnvironmentInfoString());
 				URI uri = ErrorHandler.getIssueURI("", sb.toString());
 				try {
 					Desktop.getDesktop().browse(uri);

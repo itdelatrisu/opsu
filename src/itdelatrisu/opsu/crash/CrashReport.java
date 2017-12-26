@@ -21,17 +21,24 @@ package itdelatrisu.opsu.crash;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.options.Options;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.Callable;
+
+import javax.net.ssl.HttpsURLConnection;
 
 import org.lwjgl.opengl.GL11;
 import org.newdawn.slick.util.Log;
@@ -133,21 +140,6 @@ public class CrashReport {
 				}
 			});
 
-			// Memory usage
-			environmentInfo.addSectionSafe("Memory Usage", new Callable<String>() {
-				public String call() {
-					Runtime runtime = Runtime.getRuntime();
-					long max = runtime.maxMemory();
-					long total = runtime.totalMemory();
-					long free = runtime.freeMemory();
-					long maxMB = max / 1024L / 1024L;
-					long totalMB = total / 1024L / 1024L;
-					long freeMB = free / 1024L / 1024L;
-					return free + " bytes (" + freeMB + " MB) / " + total + " bytes (" + totalMB + " MB) up to " + max
-							+ " bytes (" + maxMB + " MB)";
-				}
-			});
-
 			// OpenGL version
 			environmentInfo.addSectionSafe("OpenGL Version", new Callable<String>() {
 				public String call() {
@@ -173,12 +165,30 @@ public class CrashReport {
 	}
 
 	/**
+	 * Returns the environment details as an overview, used for automatic report
+	 * generation.
+	 */
+	public static String getEnvironmentInfoString() {
+		List<CrashInfo.Section> envSections = environmentInfo.getSections();
+		StringBuilder builder = new StringBuilder();
+		builder.append("**Version:** ");
+		builder.append(envSections.get(0).value);
+		builder.append("\n**OS:** ");
+		builder.append(envSections.get(1).value);
+		builder.append("\n**JRE:** ");
+		builder.append(envSections.get(2).value);
+		builder.append("\n**GL Version:** ");
+		builder.append(envSections.get(5).value);
+		return builder.toString();
+	}
+
+	/**
 	 * Gets the description of the crash
 	 * 
 	 * @return the crash description
 	 */
 	public String getCrashDescription() {
-		return description;
+		return description != null ? description : (getCrashCause() != null ? getCrashCause().getMessage() : "null");
 	}
 
 	/**
@@ -278,7 +288,7 @@ public class CrashReport {
 		builder.append("\n");
 		// Crash description
 		builder.append("Description: ");
-		builder.append(description);
+		builder.append(getCrashDescription());
 		builder.append("\n\n");
 		// stack trace
 		builder.append(getCauseTrace());
@@ -311,5 +321,67 @@ public class CrashReport {
 			report = Options.LOG_FILE;
 		}
 		return report;
+	}
+
+	/**
+	 * Posts the entire crash report to
+	 * <a href="https://hastebin.com/about.md">hastebin</a> to avoid cluttering
+	 * the GitHub reporting system.
+	 * 
+	 * @return A formatted response for use in the crash overview.
+	 * @see #getOverview()
+	 */
+	public String haste() {
+		String reply = "";
+		try {
+			byte[] post = toString().getBytes(StandardCharsets.UTF_8);
+			HttpsURLConnection.setFollowRedirects(false);
+			HttpsURLConnection conn = (HttpsURLConnection) new URL("https://hastebin.com/documents").openConnection();
+			conn.setRequestMethod("POST");
+			conn.setRequestProperty("User-Agent", "Mozilla/5.0");
+			conn.setRequestProperty("Content-Type", "text/plain");
+			conn.setRequestProperty("Content-Length", String.valueOf(post.length));
+
+			conn.setDoOutput(true);
+			OutputStream os = conn.getOutputStream();
+			os.write(post);
+			os.flush();
+			os.close();
+
+			if (conn.getResponseCode() != 200)
+				return "Remote server responded with \'" + conn.getResponseMessage() + "\'";
+
+			BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+			reply = reader.readLine();
+
+			String[] split = reply.replaceAll("\\\"", "").split(":");
+			reply = split[1].substring(0, split[1].length() - 1);
+			return "The full report has been posted [here](https://hastebin.com/" + reply + ")";
+		} catch (IOException e) {
+			Log.error("Cannot upload crash report", e);
+			return "Cannot upload the full crash report.";
+		}
+	}
+
+	/**
+	 * Returns a URL-friendly overview of the crash report.
+	 * 
+	 * @return The crash overview with the pastebin link
+	 * @see #haste()
+	 */
+	public String getOverview() {
+		StringBuilder builder = new StringBuilder();
+		builder.append(getEnvironmentInfoString());
+		builder.append("\n**Error:** ");
+		builder.append(description);
+		if (getCrashCause() != null) {
+			builder.append("\n**Exception Message:** ");
+			builder.append(getCrashCause().getMessage());
+		}
+
+		builder.append("\n\n-----\n\n");
+		builder.append(haste());
+
+		return builder.toString();
 	}
 }

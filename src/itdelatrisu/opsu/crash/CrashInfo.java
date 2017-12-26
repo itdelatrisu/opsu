@@ -19,6 +19,7 @@
 package itdelatrisu.opsu.crash;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
 
@@ -80,6 +81,13 @@ public class CrashInfo {
 	}
 
 	/**
+	 * Returns an unmodifiable view of all the sections of this crash info.
+	 */
+	public List<Section> getSections() {
+		return Collections.unmodifiableList(crashSections);
+	}
+
+	/**
 	 * Writes the crash information held by this category
 	 * 
 	 * @param builder
@@ -100,7 +108,7 @@ public class CrashInfo {
 			}
 		}
 	}
-	
+
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		appendTo(sb);
@@ -134,9 +142,9 @@ public class CrashInfo {
 	static class Section {
 
 		/** The name of the information section */
-		private final String name;
+		final String name;
 		/** The value of the information section */
-		private final String value;
+		final String value;
 
 		/**
 		 * Constructs a new crash info section

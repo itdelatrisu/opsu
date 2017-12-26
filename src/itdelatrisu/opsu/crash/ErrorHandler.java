@@ -164,10 +164,7 @@ public class ErrorHandler {
 	 * @return the created URI
 	 */
 	private static URI getIssueURI(CrashReport report) {
-		// generate report information
-		String issueTitle = (!report.getCrashDescription().isEmpty()) ? report.getCrashDescription() : "null";
-
 		// return auto-filled URI
-		return getIssueURI(issueTitle, report.toString());
+		return getIssueURI(report.getCrashDescription(), report.getOverview());
 	}
 }
