@@ -18,9 +18,9 @@
 
 package itdelatrisu.opsu.beatmap;
 
-import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.MusicController;
+import itdelatrisu.opsu.crash.ErrorHandler;
 import itdelatrisu.opsu.db.BeatmapDB;
 import itdelatrisu.opsu.options.Options;
 

@@ -18,8 +18,8 @@
 
 package itdelatrisu.opsu.audio;
 
-import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.Utils;
+import itdelatrisu.opsu.crash.ErrorHandler;
 
 import java.io.IOException;
 import java.util.Iterator;

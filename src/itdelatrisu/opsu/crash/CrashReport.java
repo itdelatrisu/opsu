@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.Callable;
 
+import org.lwjgl.openal.AL10;
 import org.lwjgl.opengl.GL11;
 import org.newdawn.slick.util.ResourceLoader;
 
@@ -59,17 +60,20 @@ public class CrashReport {
 	/**
 	 * Constructs a new crash report.
 	 * 
-	 * @param description A short description of the crash
-	 * @param cause The cause of the crash
+	 * @param description
+	 *            A short description of the crash
+	 * @param cause
+	 *            The cause of the crash
 	 */
 	public CrashReport(String description, Throwable cause) {
 		this.description = description;
 		this.cause = cause;
 		this.crashInformation = new ArrayList<CrashInfo>();
 	}
-	
+
 	/**
-	 * Populates the information sheet with the system/environment details and caches it for later use.
+	 * Populates the information sheet with the system/environment details and
+	 * caches it for later use.
 	 */
 	public static CrashInfo getEnvironmentInfo() {
 		// Re-cache when actually generating the information
@@ -160,6 +164,20 @@ public class CrashReport {
 		environmentInfo.addSectionSafe("OpenGL Vendor", new Callable<String>() {
 			public String call() {
 				return GL11.glGetString(GL11.GL_VENDOR);
+			}
+		});
+
+		// OpenAL version
+		environmentInfo.addSectionSafe("OpenAL Version", new Callable<String>() {
+			public String call() throws Exception {
+				return AL10.alGetString(AL10.AL_VERSION);
+			}
+		});
+
+		// OpenAL vendor
+		environmentInfo.addSectionSafe("OpenAL Vendor", new Callable<String>() {
+			public String call() throws Exception {
+				return AL10.alGetString(AL10.AL_VENDOR);
 			}
 		});
 		return environmentInfo;

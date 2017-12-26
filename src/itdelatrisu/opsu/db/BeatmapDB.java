@@ -18,9 +18,9 @@
 
 package itdelatrisu.opsu.db;
 
-import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.beatmap.Beatmap;
 import itdelatrisu.opsu.beatmap.BeatmapParser;
+import itdelatrisu.opsu.crash.ErrorHandler;
 import itdelatrisu.opsu.options.Options;
 
 import java.io.File;

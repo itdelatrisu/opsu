@@ -25,6 +25,7 @@ import itdelatrisu.opsu.beatmap.BeatmapGroup;
 import itdelatrisu.opsu.beatmap.BeatmapSetList;
 import itdelatrisu.opsu.beatmap.BeatmapSortOrder;
 import itdelatrisu.opsu.beatmap.BeatmapWatchService;
+import itdelatrisu.opsu.crash.ErrorHandler;
 import itdelatrisu.opsu.downloads.DownloadList;
 import itdelatrisu.opsu.downloads.Updater;
 import itdelatrisu.opsu.options.Options;
@@ -93,14 +94,14 @@ public class Container extends AppGameContainer {
 
 		// report any critical errors
 		if (e != null) {
-			ErrorHandler.error(null, e, true);
+			ErrorHandler.error("Critical error!", e, true);
 			e = null;
 			forceExit = true;
 		}
 
 		if (forceExit) {
 			Opsu.close();
-			System.exit(0);
+			System.exit(-1);
 		}
 	}
 

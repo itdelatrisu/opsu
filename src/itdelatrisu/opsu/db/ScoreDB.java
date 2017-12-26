@@ -18,9 +18,9 @@
 
 package itdelatrisu.opsu.db;
 
-import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.ScoreData;
 import itdelatrisu.opsu.beatmap.Beatmap;
+import itdelatrisu.opsu.crash.ErrorHandler;
 import itdelatrisu.opsu.options.Options;
 import itdelatrisu.opsu.user.User;
 import itdelatrisu.opsu.user.UserList;

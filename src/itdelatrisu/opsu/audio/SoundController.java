@@ -18,12 +18,15 @@
 
 package itdelatrisu.opsu.audio;
 
-import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.audio.HitSound.SampleSet;
 import itdelatrisu.opsu.beatmap.HitObject;
+import itdelatrisu.opsu.crash.CrashInfo;
+import itdelatrisu.opsu.crash.CrashReport;
+import itdelatrisu.opsu.crash.ErrorHandler;
 import itdelatrisu.opsu.downloads.Download;
 import itdelatrisu.opsu.downloads.Download.DownloadListener;
 import itdelatrisu.opsu.options.Options;
+import itdelatrisu.opsu.options.Options.GameOption;
 import itdelatrisu.opsu.ui.NotificationManager.NotificationListener;
 import itdelatrisu.opsu.ui.UI;
 
@@ -32,6 +35,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.concurrent.Callable;
 
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
@@ -40,7 +44,9 @@ import javax.sound.sampled.Clip;
 import javax.sound.sampled.DataLine;
 import javax.sound.sampled.LineListener;
 import javax.sound.sampled.LineUnavailableException;
+import javax.sound.sampled.Mixer;
 
+import org.lwjgl.openal.AL10;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.util.Log;
@@ -84,8 +90,8 @@ public class SoundController {
 	 * @return the loaded and opened clip
 	 */
 	private static MultiClip loadClip(String ref) {
+		final URL url = ResourceLoader.getResource(ref);
 		try {
-			URL url = ResourceLoader.getResource(ref);
 
 			// check for 0 length files
 			InputStream in = url.openStream();
@@ -98,7 +104,28 @@ public class SoundController {
 			AudioInputStream audioIn = AudioSystem.getAudioInputStream(url);
 			return loadClip(ref, audioIn);
 		} catch (Exception e) {
-			ErrorHandler.error(String.format("Failed to load audio file '%s'.", ref), e, true);
+			CrashReport report = new CrashReport(String.format("Failed to load audio file '%s'.", ref), e);
+			CrashInfo info = new CrashInfo("Resource Details");
+			info.addSection("Skin Name", GameOption.SKIN.getValueString());
+			info.addSection("Audio File Name", ref);
+			info.addSection("Audio File Extension", ref.substring(ref.lastIndexOf('.')));
+			info.addSectionSafe("Audio File Header (First 16 bytes)", new Callable<String>() {
+				public String call() throws IOException {
+					byte[] header = new byte[16];
+					InputStream in = url.openStream();
+					in.read(header);
+					in.close();
+					
+					StringBuilder byteValues = new StringBuilder();
+					for (byte b : header) 
+						 byteValues.append(Integer.toHexString(b)).append(" ");
+					
+					return byteValues.toString();
+				}
+			});
+			report.addCrashInfo(info);
+			report.addCrashInfo(populateAudioDevicesInfo());
+			ErrorHandler.error(report, true);
 			return null;
 		}
 	}
@@ -453,5 +480,42 @@ public class SoundController {
 			currentTrack.destroy();
 			currentTrack = null;
 		}
+	}
+
+	private static CrashInfo populateAudioDevicesInfo() {
+		CrashInfo info = new CrashInfo("Audio System Details");
+		
+		info.addSectionSafe("OpenAL Version", new Callable<String>() {
+			public String call() throws Exception {
+				return AL10.alGetString(AL10.AL_VERSION);
+			}
+		});
+		
+		info.addSectionSafe("OpenAL Vendor", new Callable<String>() {
+			public String call() throws Exception {
+				return AL10.alGetString(AL10.AL_VENDOR);
+			}
+		});
+
+		info.addSectionSafe("Audio Devices", new Callable<String>() {
+			public String call() throws Exception {
+				StringBuilder builder = new StringBuilder();
+				if (AudioSystem.getMixerInfo().length <= 0)
+					return "No Audio Devices available";
+
+				for (Mixer.Info info : AudioSystem.getMixerInfo()) {
+					builder.append("\n\t- ");
+					builder.append(info.getName());
+					builder.append(" version ");
+					builder.append(info.getVersion());
+					builder.append(" (");
+					builder.append(info.getVendor());
+					builder.append(") ~ ");
+					builder.append(info.getDescription());
+				}
+				return builder.toString();
+			}
+		});
+		return info;
 	}
 }

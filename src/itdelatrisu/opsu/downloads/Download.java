@@ -18,8 +18,8 @@
 
 package itdelatrisu.opsu.downloads;
 
-import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.Utils;
+import itdelatrisu.opsu.crash.ErrorHandler;
 
 import java.io.File;
 import java.io.FileOutputStream;

@@ -19,13 +19,13 @@
 package itdelatrisu.opsu.options;
 
 import itdelatrisu.opsu.Container;
-import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.OpsuConstants;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.beatmap.Beatmap;
 import itdelatrisu.opsu.beatmap.TimingPoint;
+import itdelatrisu.opsu.crash.ErrorHandler;
 import itdelatrisu.opsu.skins.Skin;
 import itdelatrisu.opsu.skins.SkinLoader;
 import itdelatrisu.opsu.ui.Fonts;

@@ -18,8 +18,8 @@
 
 package itdelatrisu.opsu.beatmap;
 
-import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.Utils;
+import itdelatrisu.opsu.crash.ErrorHandler;
 import itdelatrisu.opsu.db.BeatmapDB;
 import itdelatrisu.opsu.io.MD5InputStreamWrapper;
 import itdelatrisu.opsu.options.Options;

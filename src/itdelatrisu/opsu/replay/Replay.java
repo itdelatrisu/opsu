@@ -18,10 +18,10 @@
 
 package itdelatrisu.opsu.replay;
 
-import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.ScoreData;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.beatmap.Beatmap;
+import itdelatrisu.opsu.crash.ErrorHandler;
 import itdelatrisu.opsu.io.OsuReader;
 import itdelatrisu.opsu.io.OsuWriter;
 import itdelatrisu.opsu.options.Options;

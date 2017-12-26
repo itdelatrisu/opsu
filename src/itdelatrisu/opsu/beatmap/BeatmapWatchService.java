@@ -18,7 +18,7 @@
 
 package itdelatrisu.opsu.beatmap;
 
-import itdelatrisu.opsu.ErrorHandler;
+import itdelatrisu.opsu.crash.ErrorHandler;
 import itdelatrisu.opsu.options.Options;
 
 import java.io.IOException;

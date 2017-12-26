@@ -17,8 +17,8 @@
  */
 package itdelatrisu.opsu.downloads.servers;
 
-import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.Utils;
+import itdelatrisu.opsu.crash.ErrorHandler;
 import itdelatrisu.opsu.downloads.DownloadNode;
 
 import java.io.IOException;
