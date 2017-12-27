@@ -25,8 +25,6 @@ import itdelatrisu.opsu.beatmap.BeatmapGroup;
 import itdelatrisu.opsu.beatmap.BeatmapSetList;
 import itdelatrisu.opsu.beatmap.BeatmapSortOrder;
 import itdelatrisu.opsu.beatmap.BeatmapWatchService;
-import itdelatrisu.opsu.crash.ErrorReportCategory;
-import itdelatrisu.opsu.crash.ErrorReport;
 import itdelatrisu.opsu.crash.ErrorHandler;
 import itdelatrisu.opsu.downloads.DownloadList;
 import itdelatrisu.opsu.downloads.Updater;
@@ -35,14 +33,11 @@ import itdelatrisu.opsu.render.CurveRenderState;
 import itdelatrisu.opsu.render.LegacyCurveRenderState;
 import itdelatrisu.opsu.ui.UI;
 
-import java.util.concurrent.Callable;
-
 import org.lwjgl.opengl.Display;
 import org.newdawn.slick.AppGameContainer;
 import org.newdawn.slick.Game;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.opengl.InternalTextureLoader;
-import org.newdawn.slick.state.StateBasedGame;
 
 /**
  * AppGameContainer extension that sends critical errors to ErrorHandler.
@@ -99,19 +94,7 @@ public class Container extends AppGameContainer {
 
 		// report any critical errors
 		if (e != null) {
-			ErrorReport report = new ErrorReport(null, e);
-			ErrorReportCategory info = new ErrorReportCategory("Game Engine Details");
-			info.addSection("State Info", new Callable<String>() {
-				@Override
-				public String call() throws Exception {
-					StateBasedGame sbg = (StateBasedGame)game;
-					return sbg.getCurrentStateID() + " - " + sbg.getCurrentState().getClass().getSimpleName();
-				}
-			});
-			info.addSection("OpenGL software mode", String.valueOf(isSoftwareMode()));
-			report.addInfo(info);
-			ErrorHandler.error(report, true);
-			
+			ErrorHandler.error(null, e, true);
 			e = null;
 			forceExit = true;
 		}
