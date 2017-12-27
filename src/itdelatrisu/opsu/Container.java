@@ -25,8 +25,8 @@ import itdelatrisu.opsu.beatmap.BeatmapGroup;
 import itdelatrisu.opsu.beatmap.BeatmapSetList;
 import itdelatrisu.opsu.beatmap.BeatmapSortOrder;
 import itdelatrisu.opsu.beatmap.BeatmapWatchService;
-import itdelatrisu.opsu.crash.CrashInfo;
-import itdelatrisu.opsu.crash.CrashReport;
+import itdelatrisu.opsu.crash.ErrorReportCategory;
+import itdelatrisu.opsu.crash.ErrorReport;
 import itdelatrisu.opsu.crash.ErrorHandler;
 import itdelatrisu.opsu.downloads.DownloadList;
 import itdelatrisu.opsu.downloads.Updater;
@@ -99,16 +99,17 @@ public class Container extends AppGameContainer {
 
 		// report any critical errors
 		if (e != null) {
-			CrashReport report = new CrashReport(null, e);
-			CrashInfo info = new CrashInfo("Game Engine Details");
-			info.addSectionSafe("State Info", new Callable<String>() {
+			ErrorReport report = new ErrorReport(null, e);
+			ErrorReportCategory info = new ErrorReportCategory("Game Engine Details");
+			info.addSection("State Info", new Callable<String>() {
+				@Override
 				public String call() throws Exception {
 					StateBasedGame sbg = (StateBasedGame)game;
 					return sbg.getCurrentStateID() + " - " + sbg.getCurrentState().getClass().getSimpleName();
 				}
 			});
-			info.addSection("OpenGL software mode", isSoftwareMode());
-			report.addCrashInfo(info);
+			info.addSection("OpenGL software mode", String.valueOf(isSoftwareMode()));
+			report.addInfo(info);
 			ErrorHandler.error(report, true);
 			
 			e = null;
@@ -117,7 +118,7 @@ public class Container extends AppGameContainer {
 
 		if (forceExit) {
 			Opsu.close();
-			System.exit(-1);
+			System.exit(1);
 		}
 	}
 

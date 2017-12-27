@@ -18,6 +18,7 @@
 
 package itdelatrisu.opsu.crash;
 
+import itdelatrisu.opsu.OpsuConstants;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.options.Options;
 
@@ -45,51 +46,49 @@ import org.newdawn.slick.util.Log;
 import org.newdawn.slick.util.ResourceLoader;
 
 /**
- * A more elaborate crash reporting system where technical details are provided.
- * Code sections may use this reporting system to provide more details about why
- * a certain error has occurred.
+ * An error report comprised of sections of technical details. Code sections may
+ * use this reporting system to provide more details about why a certain error
+ * has occurred.
  * 
  * @author Lyonlancer5
  */
-public class CrashReport {
+public class ErrorReport {
 
 	/** Information about the system and current running environment */
-	private static CrashInfo environmentInfo;
+	private static ErrorReportCategory environmentInfo;
 
-	/** The description of the crash */
+	/** The description of the error */
 	private final String description;
-	/** The cause of the crash */
+	/** The cause of the error */
 	private final Throwable cause;
-	/** The list of sections which detail specific parts of the crash */
-	private final List<CrashInfo> crashInformation;
-
-	/** Stack trace of the crash */
-	private StackTraceElement[] stacktrace = new StackTraceElement[0];
+	/** The list of sections which detail specific parts of the error */
+	private final List<ErrorReportCategory> errorInformation;
 
 	/**
-	 * Constructs a new crash report.
+	 * Constructs a new error report.
 	 * 
 	 * @param description
-	 *            A short description of the crash
+	 *            A short description of the error
 	 * @param cause
-	 *            The cause of the crash
+	 *            The cause of the error
 	 */
-	public CrashReport(String description, Throwable cause) {
+	public ErrorReport(String description, Throwable cause) {
 		this.description = description;
 		this.cause = cause;
-		this.crashInformation = new ArrayList<CrashInfo>();
+		this.errorInformation = new ArrayList<ErrorReportCategory>();
 	}
 
 	/**
 	 * Populates the information sheet with the system/environment details and
 	 * caches it for later use.
 	 */
-	public static CrashInfo getEnvironmentInfo() {
+	public static ErrorReportCategory getEnvironmentInfo() {
 		if (environmentInfo == null) {
-			environmentInfo = new CrashInfo("System Information");
+			environmentInfo = new ErrorReportCategory("System Information");
 
 			// opsu! version running
-			environmentInfo.addSectionSafe("Game Version", new Callable<String>() {
+			environmentInfo.addSection("Game Version", new Callable<String>() {
+				@Override
 				public String call() throws Exception {
 					StringBuilder builder = new StringBuilder();
 					Properties props = new Properties();
@@ -118,45 +117,50 @@ public class CrashReport {
 			});
 
 			// Operating system details
-			environmentInfo.addSectionSafe("Operating System", new Callable<String>() {
-				public String call() {
+			environmentInfo.addSection("Operating System", new Callable<String>() {
+				@Override
+				public String call() throws Exception {
 					return System.getProperty("os.name") + " (" + System.getProperty("os.arch") + ") version "
 							+ System.getProperty("os.version");
 				}
 			});
 
 			// Java Version details
-			environmentInfo.addSectionSafe("Java Version", new Callable<String>() {
+			environmentInfo.addSection("Java Version", new Callable<String>() {
 				public String call() {
 					return System.getProperty("java.version") + ", " + System.getProperty("java.vendor");
 				}
 			});
 
 			// Java VM details
-			environmentInfo.addSectionSafe("Java VM Details", new Callable<String>() {
-				public String call() {
+			environmentInfo.addSection("Java VM Details", new Callable<String>() {
+				@Override
+				public String call() throws Exception {
 					return System.getProperty("java.vm.name") + " (" + System.getProperty("java.vm.info") + "), "
 							+ System.getProperty("java.vm.vendor");
 				}
 			});
 
 			// OpenGL version
-			environmentInfo.addSectionSafe("OpenGL Version", new Callable<String>() {
-				public String call() {
+			environmentInfo.addSection("OpenGL Version", new Callable<String>() {
+				@Override
+				public String call() throws Exception {
 					return GL11.glGetString(GL11.GL_VERSION);
 				}
 			});
 
 			// OpenGL renderer
-			environmentInfo.addSectionSafe("OpenGL Renderer", new Callable<String>() {
-				public String call() {
+			environmentInfo.addSection("OpenGL Renderer", new Callable<String>() {
+				@Override
+				public String call() throws Exception {
 					return GL11.glGetString(GL11.GL_RENDERER);
 				}
 			});
 
 			// OpenGL vendor (manufacturer of the graphics card)
-			environmentInfo.addSectionSafe("OpenGL Vendor", new Callable<String>() {
-				public String call() {
+			environmentInfo.addSection("OpenGL Vendor", new Callable<String>() {
+				@Override
+				public String call() throws Exception {
 					return GL11.glGetString(GL11.GL_VENDOR);
 				}
 			});
@@ -169,66 +173,66 @@ public class CrashReport {
 	 * generation.
 	 */
 	public static String getEnvironmentInfoString() {
-		List<CrashInfo.Section> envSections = environmentInfo.getSections();
+		List<ErrorReportCategory.Section> envSections = environmentInfo.getSections();
 		StringBuilder builder = new StringBuilder();
 		builder.append("**Version:** ");
-		builder.append(envSections.get(0).value);
+		builder.append(envSections.get(0).getValue());
 		builder.append("\n**OS:** ");
-		builder.append(envSections.get(1).value);
+		builder.append(envSections.get(1).getValue());
 		builder.append("\n**JRE:** ");
-		builder.append(envSections.get(2).value);
+		builder.append(envSections.get(2).getValue());
 		builder.append("\n**GL Version:** ");
-		builder.append(envSections.get(5).value);
+		builder.append(envSections.get(5).getValue());
 		return builder.toString();
 	}
 
 	/**
-	 * Gets the description of the crash
+	 * Gets the description of the error
 	 * 
-	 * @return the crash description
+	 * @return the error description
 	 */
-	public String getCrashDescription() {
-		return description != null ? description : (getCrashCause() != null ? getCrashCause().getMessage() : "null");
+	public String getDescription() {
+		if (description != null)
+			return description;
+
+		if (getCause() != null)
+			return getCause().getMessage();
+
+		return "No description.";
 	}
 
 	/**
-	 * Gets the throwable which caused the crash
+	 * Gets the throwable which caused the error
 	 * 
-	 * @return the crash cause
+	 * @return the error cause
 	 */
-	public Throwable getCrashCause() {
+	public Throwable getCause() {
 		return cause;
 	}
 
-	public void addCrashInfo(CrashInfo info) {
-		crashInformation.add(info);
+	/**
+	 * Adds a category to this error report
+	 * 
+	 * @param info
+	 *            the category to add.
+	 */
+	public void addInfo(ErrorReportCategory info) {
+		errorInformation.add(info);
 	}
 
 	/**
-	 * Writes all crash information sections to the specified string builder
+	 * Writes all information sections to the specified string builder
 	 * 
 	 * @param builder
 	 *            A {@link StringBuilder} instance
 	 */
 	public void appendSections(StringBuilder builder) {
-		if ((stacktrace == null || stacktrace.length <= 0) && crashInformation.size() > 0)
-			stacktrace = crashInformation.get(0).getStackTrace();
-
-		if (stacktrace != null && stacktrace.length > 0) {
-			builder.append("-- Head --\n");
-			builder.append("Stack trace:\n");
-			for (StackTraceElement ste : stacktrace)
-				builder.append("\tat").append(ste.toString()).append("\n");
-
-			builder.append("\n");
-		}
-
-		for (CrashInfo info : crashInformation) {
-			info.appendTo(builder);
+		for (ErrorReportCategory info : errorInformation) {
+			builder.append(info);
 			builder.append("\n\n");
 		}
 
-		getEnvironmentInfo().appendTo(builder);
+		builder.append(getEnvironmentInfo());
 	}
 
 	/**
@@ -237,111 +241,85 @@ public class CrashReport {
 	 * @return a stack trace, in string form
 	 */
 	public String getCauseTrace() {
-		Throwable traced = this.cause;
-		if (traced != null) {
-			StringWriter stringwriter = null;
-			PrintWriter printwriter = null;
-			if (traced.getMessage() == null) {
-				if (traced instanceof NullPointerException)
-					traced = new NullPointerException(this.description);
-				else if (traced instanceof StackOverflowError)
-					traced = new StackOverflowError(this.description);
-				else if (traced instanceof OutOfMemoryError)
-					traced = new OutOfMemoryError(this.description);
-
-				traced.setStackTrace(this.cause.getStackTrace());
-			}
-
-			String causeTrace = traced.toString();
-
-			try {
-				stringwriter = new StringWriter();
-				printwriter = new PrintWriter(stringwriter);
-				traced.printStackTrace(printwriter);
-				causeTrace = stringwriter.toString();
-			} finally {
-				try {
-					stringwriter.close();
-				} catch (IOException e) {
-				}
-			}
-
-			return causeTrace;
+		if (cause != null) {
+			// Write the stack trace to a string writer
+			StringWriter writer = new StringWriter();
+			cause.printStackTrace(new PrintWriter(writer));
+			return writer.toString();
 		}
 
-		return "No stack trace for the cause is available";
+		return "No stack trace for the cause is available.";
 	}
 
 	/**
 	 * Compiles the report to a single string instance
 	 * 
-	 * @return The complete crash report
+	 * @return The complete error report
 	 */
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
 		// Header
-		builder.append("---- opsu! ~ Error Report ----");
+		builder.append("---- " + OpsuConstants.PROJECT_NAME + " Error Report ----");
 		builder.append("\n\n");
 		// Timestamp
 		builder.append("Timestamp: ");
 		builder.append((new SimpleDateFormat()).format(new Date()));
 		builder.append("\n");
-		// Crash description
+		// Error description
 		builder.append("Description: ");
-		builder.append(getCrashDescription());
+		builder.append(getDescription());
 		builder.append("\n\n");
 		// stack trace
 		builder.append(getCauseTrace());
 
-		// crash information
-		builder.append("\n\nRelevant details about the error is listed below:\n");
-		for (int i = 0; i < 87; i++)
-			builder.append("-");
-
+		// Additional information
+		builder.append("\n\nAdditional information:\n");
+		builder.append("----------------------------------------------------------------");
 		builder.append("\n\n");
 		appendSections(builder);
 		return builder.toString();
 	}
 
 	/**
-	 * Writes this crash report to a separate file and returns it. If the report
+	 * Writes this error report to a separate file and returns it. If the report
 	 * was not written, return the log.
 	 */
 	public File writeToFile() {
-		File report = new File(Options.CRASH_REPORT_DIR,
-				"crash-" + (new SimpleDateFormat("yyyy-MM-dd_HH.mm.ss")).format(new Date()) + ".txt");
-		report.getParentFile().mkdirs();
+		File report = new File(Options.ERROR_REPORTS_DIR,
+				"error-report-" + (new SimpleDateFormat("yyyy-MM-dd_HH.mm.ss")).format(new Date()) + ".txt");
 		try {
+			report.getParentFile().mkdirs();
 			FileWriter writer = new FileWriter(report);
 			writer.write(toString());
 			writer.flush();
 			writer.close();
-		} catch (IOException e) {
-			Log.error("Cannot save crash report");
+		} catch (Exception e) {
+			Log.error("Cannot save error report");
 			report = Options.LOG_FILE;
 		}
 		return report;
 	}
 
 	/**
-	 * Posts the entire crash report to
+	 * Posts the entire error report to
 	 * <a href="https://hastebin.com/about.md">hastebin</a> to avoid cluttering
 	 * the GitHub reporting system.
 	 * 
-	 * @return A formatted response for use in the crash overview.
+	 * @return A formatted response for use in the error overview.
 	 * @see #getOverview()
 	 */
 	public String haste() {
-		String reply = "";
 		try {
 			byte[] post = toString().getBytes(StandardCharsets.UTF_8);
 			HttpsURLConnection.setFollowRedirects(false);
+			// Open connection to hastebin's documents and POST the report
 			HttpsURLConnection conn = (HttpsURLConnection) new URL("https://hastebin.com/documents").openConnection();
 			conn.setRequestMethod("POST");
 			conn.setRequestProperty("User-Agent", "Mozilla/5.0");
 			conn.setRequestProperty("Content-Type", "text/plain");
 			conn.setRequestProperty("Content-Length", String.valueOf(post.length));
 
+			// Write the POST request
 			conn.setDoOutput(true);
 			OutputStream os = conn.getOutputStream();
 			os.write(post);
@@ -349,34 +327,38 @@ public class CrashReport {
 			os.close();
 
 			if (conn.getResponseCode() != 200)
-				return "Remote server responded with \'" + conn.getResponseMessage() + "\'";
+				return "Remote server responded with \'" + conn.getResponseMessage() + "\'.";
 
 			BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-			reply = reader.readLine();
+			String reply = reader.readLine();
 
+			// Parse the JSON response manually
+			// Sample -> {"key":"abcdefghi"}
 			String[] split = reply.replaceAll("\\\"", "").split(":");
 			reply = split[1].substring(0, split[1].length() - 1);
 			return "The full report has been posted [here](https://hastebin.com/" + reply + ")";
 		} catch (IOException e) {
-			Log.error("Cannot upload crash report", e);
-			return "Cannot upload the full crash report.";
+			Log.error("Cannot upload error report", e);
+			return "Cannot upload the full error report.";
 		}
 	}
 
 	/**
-	 * Returns a URL-friendly overview of the crash report.
+	 * Returns a URL-friendly overview of the error report.
 	 * 
-	 * @return The crash overview with the pastebin link
+	 * @return The error overview with the pastebin link
 	 * @see #haste()
 	 */
 	public String getOverview() {
 		StringBuilder builder = new StringBuilder();
 		builder.append(getEnvironmentInfoString());
 		builder.append("\n**Error:** ");
-		builder.append(description);
-		if (getCrashCause() != null) {
-			builder.append("\n**Exception Message:** ");
-			builder.append(getCrashCause().getMessage());
+		builder.append(getDescription());
+		if (getCause() != null) {
+			builder.append("\n**Stack trace:**\n ");
+			builder.append("```\n");
+			builder.append(getCauseTrace());
+			builder.append("\n```");
 		}
 
 		builder.append("\n\n-----\n\n");

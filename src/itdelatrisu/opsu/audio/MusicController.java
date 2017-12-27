@@ -23,8 +23,8 @@ import itdelatrisu.opsu.beatmap.Beatmap;
 import itdelatrisu.opsu.beatmap.BeatmapParser;
 import itdelatrisu.opsu.beatmap.TimingPoint;
 import itdelatrisu.opsu.crash.ErrorHandler;
-import itdelatrisu.opsu.crash.CrashInfo;
-import itdelatrisu.opsu.crash.CrashReport;
+import itdelatrisu.opsu.crash.ErrorReportCategory;
+import itdelatrisu.opsu.crash.ErrorReport;
 import itdelatrisu.opsu.options.Options;
 import itdelatrisu.opsu.ui.UI;
 
@@ -172,12 +172,13 @@ public class MusicController {
 			});
 			playAt(position, loop);
 		} catch (Exception e) {
-			CrashReport report = new CrashReport(String.format("Could not play track '%s'.", file.getName()), e);
-			CrashInfo info = new CrashInfo("Resource Details");
-			info.addSection("Audio File Name", file.getName());
 			final File fileSec = file;
-			info.addSectionSafe("Audio File Header (First 16 bytes)", new Callable<String>() {
-				public String call() throws IOException {
+			ErrorReport report = new ErrorReport(String.format("Could not play track '%s'.", file.getName()), e);
+			ErrorReportCategory info = new ErrorReportCategory("Resource Details");
+			info.addSection("Audio File Name", file.getName());
+			info.addSection("Audio File Header (First 16 bytes)", new Callable<String>() {
+				@Override
+				public String call() throws Exception {
 					byte[] header = new byte[16];
 					InputStream in = new FileInputStream(fileSec);
 					in.read(header);
@@ -190,8 +191,8 @@ public class MusicController {
 					return byteValues.toString();
 				}
 			});
-			report.addCrashInfo(info);
-			report.addCrashInfo(populateAudioDevicesInfo());
+			report.addInfo(info);
+			report.addInfo(populateAudioDevicesInfo());
 			ErrorHandler.error(report, false);
 		}
 	}
@@ -631,18 +632,23 @@ public class MusicController {
 			ErrorHandler.error("Failed to destroy the OpenAL context.", e, true);
 		}
 	}
-	
-	private static CrashInfo populateAudioDevicesInfo() {
-		CrashInfo info = new CrashInfo("Audio System Details");
 
-		info.addSectionSafe("Audio Devices", new Callable<String>() {
+	/**
+	 * Queries details about the current audio system being used and returns
+	 * them for use in the error report.
+	 */
+	private static ErrorReportCategory populateAudioDevicesInfo() {
+		ErrorReportCategory info = new ErrorReportCategory("Audio System Details");
+
+		info.addSection("Audio Devices", new Callable<String>() {
+			@Override
 			public String call() throws Exception {
 				StringBuilder builder = new StringBuilder();
 				if (AudioSystem.getMixerInfo().length <= 0)
 					return "No Audio Devices available";
 
 				for (Mixer.Info info : AudioSystem.getMixerInfo()) {
-					builder.append("\n\t- ");
+					builder.append("\n    - ");
 					builder.append(info.getName());
 					builder.append(" - ");
 					builder.append(info.getVersion());

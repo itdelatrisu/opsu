@@ -297,6 +297,6 @@ public class Opsu extends StateBasedGame {
 			);
 		else
 			ErrorHandler.error(message, e, report);
-		System.exit(-1);
+		System.exit(1);
 	}
 }

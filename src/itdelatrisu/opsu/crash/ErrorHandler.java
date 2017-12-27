@@ -22,6 +22,7 @@ import itdelatrisu.opsu.OpsuConstants;
 
 import java.awt.Cursor;
 import java.awt.Desktop;
+import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLEncoder;
@@ -38,7 +39,7 @@ import org.newdawn.slick.util.Log;
  */
 public class ErrorHandler {
 	/** Error popup title. */
-	private static final String title = "opsu! encountered an error";
+	private static final String title = OpsuConstants.PROJECT_NAME + " encountered an error";
 
 	/** Error popup description text. */
 	private static final String
@@ -83,11 +84,19 @@ public class ErrorHandler {
 		if (error == null && e == null)
 			return;
 
-		CrashReport crash = new CrashReport(error, e);
+		ErrorReport crash = new ErrorReport(error, e);
 		error(crash, report);
 	}
-	
-	public static void error(CrashReport crash, boolean report) {
+
+	/**
+	 * Displays an error popup and logs the given error.
+	 * @param crash the error report
+	 * @param report whether to ask to report the error
+	 */
+	public static void error(ErrorReport crash, boolean report) {
+		// write the crash report to file
+		File writtenReport = crash.writeToFile();
+
 		// log the error
 		Log.error(crash.toString());
 
@@ -113,7 +122,7 @@ public class ErrorHandler {
 						if (n == 0)
 							desktop.browse(getIssueURI(crash));
 						else if (n == 1)
-							desktop.open(crash.writeToFile());
+							desktop.open(writtenReport);
 					} else {  // only ask to report the error
 						int n = JOptionPane.showOptionDialog(null, message, title,
 								JOptionPane.DEFAULT_OPTION, JOptionPane.ERROR_MESSAGE,
@@ -126,7 +135,7 @@ public class ErrorHandler {
 							JOptionPane.DEFAULT_OPTION, JOptionPane.ERROR_MESSAGE,
 							null, optionsLog, optionsLog[1]);
 					if (n == 0)
-						desktop.open(crash.writeToFile());
+						desktop.open(writtenReport);
 				}
 			} else {  // display error only
 				JOptionPane.showMessageDialog(null, report ? messageReport : message,
@@ -163,8 +172,8 @@ public class ErrorHandler {
 	 * @param trace the stack trace
 	 * @return the created URI
 	 */
-	private static URI getIssueURI(CrashReport report) {
+	private static URI getIssueURI(ErrorReport report) {
 		// return auto-filled URI
-		return getIssueURI(report.getCrashDescription(), report.getOverview());
+		return getIssueURI(report.getDescription(), report.getOverview());
 	}
 }

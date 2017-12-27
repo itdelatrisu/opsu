@@ -19,8 +19,8 @@
 package itdelatrisu.opsu;
 
 import itdelatrisu.opsu.crash.ErrorHandler;
-import itdelatrisu.opsu.crash.CrashInfo;
-import itdelatrisu.opsu.crash.CrashReport;
+import itdelatrisu.opsu.crash.ErrorReportCategory;
+import itdelatrisu.opsu.crash.ErrorReport;
 import itdelatrisu.opsu.options.Options;
 import itdelatrisu.opsu.options.Options.GameOption;
 import itdelatrisu.opsu.ui.Fonts;
@@ -773,13 +773,13 @@ public enum GameImage {
 							img = img.getScaledCopy(0.5f);
 						list.add(img);
 					} catch (SlickException e) {
-						CrashReport report = new CrashReport(String.format("Failed to set image '%s'.", name), e);
-						CrashInfo info = new CrashInfo("Resource Details");
+						ErrorReport report = new ErrorReport(String.format("Failed to set image '%s'.", name), e);
+						ErrorReportCategory info = new ErrorReportCategory("Resource Details");
 						info.addSection("Skin Name", GameOption.SKIN.getValueString());
 						info.addSection("Image File Name", name);
-						info.addSection("Image File Extension", name.substring(name.lastIndexOf('.')));
-						info.addSectionSafe("Image File Header (First 16 bytes)", new Callable<String>() {
-							public String call() throws IOException {
+						info.addSection("Image File Header (First 16 bytes)", new Callable<String>() {
+							@Override
+							public String call() throws Exception {
 								byte[] header = new byte[16];
 								InputStream in = ResourceLoader.getResourceAsStream(name);
 								in.read(header);
@@ -792,7 +792,7 @@ public enum GameImage {
 								return byteValues.toString();
 							}
 						});
-						report.addCrashInfo(info);
+						report.addInfo(info);
 						ErrorHandler.error(report, false);
 						break;
 					}
@@ -819,13 +819,11 @@ public enum GameImage {
 						img = img.getScaledCopy(0.5f);
 					return img;
 				} catch (SlickException e) {
-					//ErrorHandler.error(String.format("Failed to set image '%s'.", filename), null, false);
-					CrashReport report = new CrashReport(String.format("Failed to set image '%s'.", filename), e);
-					CrashInfo info = new CrashInfo("Resource Details");
+					ErrorReport report = new ErrorReport(String.format("Failed to set image '%s'.", filename), e);
+					ErrorReportCategory info = new ErrorReportCategory("Resource Details");
 					info.addSection("Skin Name", GameOption.SKIN.getValueString());
 					info.addSection("Image File Name", name);
-					info.addSection("Image File Extension", name.substring(name.lastIndexOf('.')));
-					info.addSectionSafe("Image File Header (First 16 bytes)", new Callable<String>() {
+					info.addSection("Image File Header (First 16 bytes)", new Callable<String>() {
 						public String call() throws IOException {
 							byte[] header = new byte[16];
 							InputStream in = ResourceLoader.getResourceAsStream(name);
@@ -839,7 +837,7 @@ public enum GameImage {
 							return byteValues.toString();
 						}
 					});
-					report.addCrashInfo(info);
+					report.addInfo(info);
 					ErrorHandler.error(report, false);
 				}
 			}

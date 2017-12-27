@@ -28,7 +28,7 @@ import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
 import itdelatrisu.opsu.beatmap.BeatmapSetList;
 import itdelatrisu.opsu.beatmap.BeatmapSetNode;
-import itdelatrisu.opsu.crash.CrashReport;
+import itdelatrisu.opsu.crash.ErrorReport;
 import itdelatrisu.opsu.crash.ErrorHandler;
 import itdelatrisu.opsu.downloads.Updater;
 import itdelatrisu.opsu.ui.Fonts;
@@ -602,7 +602,7 @@ public class ButtonMenu extends BasicGameState {
 				StringBuilder sb = new StringBuilder();
 				sb.append("[Type your description here. Feel free to delete the info below if it's not relevant.]\n\n");
 				sb.append("---\n");
-				sb.append(CrashReport.getEnvironmentInfoString());
+				sb.append(ErrorReport.getEnvironmentInfoString());
 				URI uri = ErrorHandler.getIssueURI("", sb.toString());
 				try {
 					Desktop.getDesktop().browse(uri);

@@ -21,7 +21,7 @@ package itdelatrisu.opsu;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
 import itdelatrisu.opsu.beatmap.HitObject;
-import itdelatrisu.opsu.crash.CrashReport;
+import itdelatrisu.opsu.crash.ErrorReport;
 import itdelatrisu.opsu.crash.ErrorHandler;
 import itdelatrisu.opsu.downloads.Download;
 import itdelatrisu.opsu.downloads.DownloadNode;
@@ -135,8 +135,8 @@ public class Utils {
 		container.setAlwaysRender(true);
 		container.setUpdateOnlyWhenVisible(false);
 		
-		//populate system information (for crash reports)
-		CrashReport.getEnvironmentInfo();
+		// populate system information (for error reports)
+		ErrorReport.getEnvironmentInfo();
 
 		// calculate UI scale
 		GameImage.init(width, height);

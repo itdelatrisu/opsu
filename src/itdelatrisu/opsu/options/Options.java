@@ -84,8 +84,8 @@ public class Options {
 	/** The cache directory. */
 	private static final File CACHE_DIR = getXDGBaseDir("XDG_CACHE_HOME", ".cache");
 
-	/** File for the last generated error report. */
-	public static final File CRASH_REPORT_DIR = new File(CONFIG_DIR, "CrashReports/");
+	/** The error reports directory. */
+	public static final File ERROR_REPORTS_DIR = new File(CONFIG_DIR, "ErrorReports/");
 
 	/** File for logging errors. */
 	public static final File LOG_FILE = new File(CONFIG_DIR, ".opsu.log");
