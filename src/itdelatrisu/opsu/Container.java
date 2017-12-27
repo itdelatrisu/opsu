@@ -101,7 +101,7 @@ public class Container extends AppGameContainer {
 
 		if (forceExit) {
 			Opsu.close();
-			System.exit(1);
+			System.exit((e == null) ? 0 : 1);
 		}
 	}
 
