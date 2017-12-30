@@ -134,7 +134,7 @@ public class Utils {
 		container.getInput().enableKeyRepeat();
 		container.setAlwaysRender(true);
 		container.setUpdateOnlyWhenVisible(false);
-		
+
 		// populate system information (for error reports)
 		ErrorReport.getEnvironmentInfo();
 
