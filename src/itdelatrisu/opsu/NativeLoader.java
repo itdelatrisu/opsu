@@ -76,6 +76,9 @@ public class NativeLoader {
 
 				in.close();
 				out.close();
+
+				// Make file executable. This is required for the ffmpeg binary.
+				f.setExecutable(true);
 			}
 		}
 
