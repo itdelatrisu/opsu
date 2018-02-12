@@ -18,6 +18,7 @@
 
 package itdelatrisu.opsu.video;
 
+import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.options.Options;
 
 import java.io.BufferedReader;
@@ -90,8 +91,11 @@ public class FFmpeg {
 	 * @param srcMovieFile the source video file
 	 */
 	public static VideoMetadata extractMetadata(File srcMovieFile) throws IOException {
+		File ffmpegFile = getNativeLocation();
+		Utils.setExecutable(ffmpegFile);
+
 		Process process = new ProcessBuilder().command(
-			getNativeLocation().getAbsolutePath(),
+			ffmpegFile.getAbsolutePath(),
 			"-i", srcMovieFile.getAbsolutePath(),
 			"-f", "null"
 		).start();
@@ -130,8 +134,11 @@ public class FFmpeg {
 	 * @param msec the time offset (in milliseconds)
 	 */
 	public static InputStream extractVideoAsRGB24(File srcMovieFile, int msec) throws IOException {
+		File ffmpegFile = getNativeLocation();
+		Utils.setExecutable(ffmpegFile);
+
 		return streamData(new ProcessBuilder().command(
-			getNativeLocation().getAbsolutePath(),
+			ffmpegFile.getAbsolutePath(),
 			"-ss", String.format("%d.%d", msec / 1000, msec % 1000),
 			"-i", srcMovieFile.getAbsolutePath(),
 			"-f", "rawvideo",

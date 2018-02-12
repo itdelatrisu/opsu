@@ -50,6 +50,7 @@ import java.net.SocketTimeoutException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.ByteBuffer;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -765,5 +766,12 @@ public class Utils {
 		StringSelection selection = new StringSelection(text);
 		Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 		clipboard.setContents(selection, selection);
+	}
+
+	/** Sets the execute permission for the given file. */
+	public static void setExecutable(File file) {
+		if (!Files.isExecutable(file.toPath())) {
+			file.setExecutable(true);
+		}
 	}
 }
