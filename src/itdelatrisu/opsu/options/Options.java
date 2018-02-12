@@ -19,13 +19,13 @@
 package itdelatrisu.opsu.options;
 
 import itdelatrisu.opsu.Container;
-import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.GameImage;
 import itdelatrisu.opsu.OpsuConstants;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.audio.MusicController;
 import itdelatrisu.opsu.beatmap.Beatmap;
 import itdelatrisu.opsu.beatmap.TimingPoint;
+import itdelatrisu.opsu.crash.ErrorHandler;
 import itdelatrisu.opsu.skins.Skin;
 import itdelatrisu.opsu.skins.SkinLoader;
 import itdelatrisu.opsu.ui.Fonts;
@@ -83,6 +83,9 @@ public class Options {
 
 	/** The cache directory. */
 	private static final File CACHE_DIR = getXDGBaseDir("XDG_CACHE_HOME", ".cache");
+
+	/** The error reports directory. */
+	public static final File ERROR_REPORTS_DIR = new File(CONFIG_DIR, "ErrorReports/");
 
 	/** File for logging errors. */
 	public static final File LOG_FILE = new File(CONFIG_DIR, ".opsu.log");

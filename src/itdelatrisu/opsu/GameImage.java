@@ -18,12 +18,19 @@
 
 package itdelatrisu.opsu;
 
+import itdelatrisu.opsu.crash.ErrorHandler;
+import itdelatrisu.opsu.crash.ErrorReportCategory;
+import itdelatrisu.opsu.crash.ErrorReport;
 import itdelatrisu.opsu.options.Options;
+import itdelatrisu.opsu.options.Options.GameOption;
 import itdelatrisu.opsu.ui.Fonts;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 import org.newdawn.slick.Animation;
 import org.newdawn.slick.Image;
@@ -755,7 +762,7 @@ public enum GameImage {
 				while (true) {
 					// look for next image
 					String filenameFormatted = String.format(filenameFormat + suffix, i++);
-					String name = getImageFileName(filenameFormatted, dir, type, true);
+					final String name = getImageFileName(filenameFormatted, dir, type, true);
 					if (name == null)
 						break;
 
@@ -766,7 +773,27 @@ public enum GameImage {
 							img = img.getScaledCopy(0.5f);
 						list.add(img);
 					} catch (SlickException e) {
-						ErrorHandler.error(String.format("Failed to set image '%s'.", name), null, false);
+						ErrorReport report = new ErrorReport(String.format("Failed to set image '%s'.", name), e);
+						ErrorReportCategory info = new ErrorReportCategory("Resource Details");
+						info.addSection("Skin Name", GameOption.SKIN.getValueString());
+						info.addSection("Image File Name", name);
+						info.addSection("Image File Header (First 16 bytes)", new Callable<String>() {
+							@Override
+							public String call() throws Exception {
+								byte[] header = new byte[16];
+								InputStream in = ResourceLoader.getResourceAsStream(name);
+								in.read(header);
+								in.close();
+								
+								StringBuilder byteValues = new StringBuilder();
+								for (byte b : header) 
+									 byteValues.append(Integer.toHexString(b)).append(" ");
+								
+								return byteValues.toString();
+							}
+						});
+						report.addInfo(info);
+						ErrorHandler.error(report, false);
 						break;
 					}
 				}
@@ -784,7 +811,7 @@ public enum GameImage {
 	 */
 	private Image loadImageSingle(File dir) {
 		for (String suffix : getSuffixes()) {
-			String name = getImageFileName(filename + suffix, dir, type, true);
+			final String name = getImageFileName(filename + suffix, dir, type, true);
 			if (name != null) {
 				try {
 					Image img = new Image(name);
@@ -792,7 +819,26 @@ public enum GameImage {
 						img = img.getScaledCopy(0.5f);
 					return img;
 				} catch (SlickException e) {
-					ErrorHandler.error(String.format("Failed to set image '%s'.", filename), null, false);
+					ErrorReport report = new ErrorReport(String.format("Failed to set image '%s'.", filename), e);
+					ErrorReportCategory info = new ErrorReportCategory("Resource Details");
+					info.addSection("Skin Name", GameOption.SKIN.getValueString());
+					info.addSection("Image File Name", name);
+					info.addSection("Image File Header (First 16 bytes)", new Callable<String>() {
+						public String call() throws IOException {
+							byte[] header = new byte[16];
+							InputStream in = ResourceLoader.getResourceAsStream(name);
+							in.read(header);
+							in.close();
+							
+							StringBuilder byteValues = new StringBuilder();
+							for (byte b : header) 
+								 byteValues.append(Integer.toHexString(b)).append(" ");
+							
+							return byteValues.toString();
+						}
+					});
+					report.addInfo(info);
+					ErrorHandler.error(report, false);
 				}
 			}
 		}

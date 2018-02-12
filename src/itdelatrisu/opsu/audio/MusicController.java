@@ -18,22 +18,28 @@
 
 package itdelatrisu.opsu.audio;
 
-import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.beatmap.Beatmap;
 import itdelatrisu.opsu.beatmap.BeatmapParser;
 import itdelatrisu.opsu.beatmap.TimingPoint;
+import itdelatrisu.opsu.crash.ErrorHandler;
+import itdelatrisu.opsu.crash.ErrorReportCategory;
+import itdelatrisu.opsu.crash.ErrorReport;
 import itdelatrisu.opsu.options.Options;
 import itdelatrisu.opsu.ui.UI;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.nio.IntBuffer;
 import java.util.Map;
+import java.util.concurrent.Callable;
 
 import javax.sound.sampled.AudioFileFormat;
 import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Mixer;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
 import org.lwjgl.BufferUtils;
@@ -166,7 +172,28 @@ public class MusicController {
 			});
 			playAt(position, loop);
 		} catch (Exception e) {
-			ErrorHandler.error(String.format("Could not play track '%s'.", file.getName()), e, false);
+			final File fileSec = file;
+			ErrorReport report = new ErrorReport(String.format("Could not play track '%s'.", file.getName()), e);
+			ErrorReportCategory info = new ErrorReportCategory("Resource Details");
+			info.addSection("Audio File Name", file.getName());
+			info.addSection("Audio File Header (First 16 bytes)", new Callable<String>() {
+				@Override
+				public String call() throws Exception {
+					byte[] header = new byte[16];
+					InputStream in = new FileInputStream(fileSec);
+					in.read(header);
+					in.close();
+					
+					StringBuilder byteValues = new StringBuilder();
+					for (byte b : header) 
+						 byteValues.append(Integer.toHexString(b)).append(" ");
+					
+					return byteValues.toString();
+				}
+			});
+			report.addInfo(info);
+			report.addInfo(populateAudioDevicesInfo());
+			ErrorHandler.error(report, false);
 		}
 	}
 
@@ -604,5 +631,34 @@ public class MusicController {
 		} catch (Exception e) {
 			ErrorHandler.error("Failed to destroy the OpenAL context.", e, true);
 		}
+	}
+
+	/**
+	 * Queries details about the current audio system being used and returns
+	 * them for use in the error report.
+	 */
+	private static ErrorReportCategory populateAudioDevicesInfo() {
+		ErrorReportCategory info = new ErrorReportCategory("Audio System Details");
+
+		info.addSection("Audio Devices", new Callable<String>() {
+			@Override
+			public String call() throws Exception {
+				StringBuilder builder = new StringBuilder();
+				if (AudioSystem.getMixerInfo().length <= 0)
+					return "No Audio Devices available";
+
+				for (Mixer.Info info : AudioSystem.getMixerInfo()) {
+					builder.append("\n    - ");
+					builder.append(info.getName());
+					builder.append(" - ");
+					builder.append(info.getVersion());
+					builder.append(" (");
+					builder.append(info.getVendor());
+					builder.append(")");
+				}
+				return builder.toString();
+			}
+		});
+		return info;
 	}
 }

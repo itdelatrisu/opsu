@@ -18,8 +18,8 @@
 
 package itdelatrisu.opsu.skins;
 
-import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.Utils;
+import itdelatrisu.opsu.crash.ErrorHandler;
 
 import java.io.BufferedReader;
 import java.io.File;

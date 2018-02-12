@@ -18,9 +18,9 @@
 
 package itdelatrisu.opsu.replay;
 
-import itdelatrisu.opsu.ErrorHandler;
 import itdelatrisu.opsu.beatmap.Beatmap;
 import itdelatrisu.opsu.beatmap.BeatmapSetList;
+import itdelatrisu.opsu.crash.ErrorHandler;
 import itdelatrisu.opsu.db.ScoreDB;
 import itdelatrisu.opsu.options.Options;
 import itdelatrisu.opsu.ui.UI;

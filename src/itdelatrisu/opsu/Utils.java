@@ -21,6 +21,8 @@ package itdelatrisu.opsu;
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
 import itdelatrisu.opsu.beatmap.HitObject;
+import itdelatrisu.opsu.crash.ErrorReport;
+import itdelatrisu.opsu.crash.ErrorHandler;
 import itdelatrisu.opsu.downloads.Download;
 import itdelatrisu.opsu.downloads.DownloadNode;
 import itdelatrisu.opsu.options.Options;
@@ -134,8 +136,8 @@ public class Utils {
 		container.setAlwaysRender(true);
 		container.setUpdateOnlyWhenVisible(false);
 
-		// record OpenGL version
-		ErrorHandler.setGlString();
+		// populate system information (for error reports)
+		ErrorReport.getEnvironmentInfo();
 
 		// calculate UI scale
 		GameImage.init(width, height);
