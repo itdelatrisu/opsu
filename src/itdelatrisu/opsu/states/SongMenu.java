@@ -677,8 +677,10 @@ public class SongMenu extends BasicGameState {
 			// song info text
 			if (songInfo == null) {
 				songInfo = focusNode.getInfo();
+				Beatmap beatmap = focusNode.getBeatmapSet().get(0);
+				if (!beatmap.source.isEmpty())
+					Fonts.loadGlyphs(Fonts.LARGE, beatmap.source);
 				if (Options.useUnicodeMetadata()) {  // load glyphs
-					Beatmap beatmap = focusNode.getBeatmapSet().get(0);
 					Fonts.loadGlyphs(Fonts.LARGE, beatmap.titleUnicode);
 					Fonts.loadGlyphs(Fonts.LARGE, beatmap.artistUnicode);
 				}
