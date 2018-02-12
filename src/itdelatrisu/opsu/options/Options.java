@@ -407,7 +407,8 @@ public class Options {
 				if (itemList == null) {
 					itemList = new String[targetFPS.length];
 					for (int i = 0; i < targetFPS.length; i++)
-						itemList[i] = String.format((targetFPS[i] == 60) ? "%dfps (vsync)" : "%dfps", targetFPS[i]);
+						itemList[i] = String.format((targetFPS[i] == -1) ? "Unlimited" : 
+							(targetFPS[i] == 60) ? "%dfps (vsync)" : "%dfps", targetFPS[i]);
 				}
 				return itemList;
 			}
@@ -954,7 +955,7 @@ public class Options {
 	private static Skin skin;
 
 	/** Frame limiters. */
-	private static final int[] targetFPS = { 60, 120, 240 };
+	private static final int[] targetFPS = { 60, 120, 240, -1 };
 
 	/** Index in targetFPS[] array. */
 	private static int targetFPSindex = 0;
@@ -985,7 +986,7 @@ public class Options {
 	 * @param container the game container
 	 */
 	public static void setNextFPS(GameContainer container) {
-		int index = (targetFPSindex + 1) % targetFPS.length;
+		int index = (targetFPSindex + 1) % (targetFPS.length - 1); // Skip "Unlimited" option
 		GameOption.TARGET_FPS.selectItem(index, container);
 		UI.getNotificationManager().sendBarNotification(String.format("Frame limiter: %s", GameOption.TARGET_FPS.getValueString()));
 	}
