@@ -112,7 +112,16 @@ public class FFmpeg {
 				// "	Stream #0:0: Video: vp6f, yuv420p, 320x240, 314 kb/s, 30 tbr, 1k tbn, 1k tbc"
 				// ----------------------------------------------------------^
 				if (line.trim().startsWith("Stream #") && line.contains("Video:")) {
-					framerate = Float.parseFloat(RegexUtil.findFirst(line, Pattern.compile("\\s(\\d+(\\.\\d+)?)\\stbr,"), 1));
+					// Parse framerate
+					// Note: Can contain 'k' suffix (*1000), see dump.c#print_fps.
+					// https://www.ffmpeg.org/doxygen/3.1/dump_8c_source.html#l00119
+					String fps = RegexUtil.findFirst(line, Pattern.compile("\\s(\\d+(\\.\\d+)?k?)\\stbr,"), 1);
+					if (fps.endsWith("k"))
+						framerate = Float.parseFloat(fps.substring(0, fps.length() - 1)) * 1000f;
+					else
+						framerate = Float.parseFloat(fps);
+
+					// Parse width/height
 					int[] wh = TextValues.parseInts(RegexUtil.find(line, Pattern.compile("\\s(\\d+)x(\\d+)[\\s,]"), 1, 2));
 					width = wh[0];
 					height = wh[1];
