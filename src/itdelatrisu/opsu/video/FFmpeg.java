@@ -115,11 +115,10 @@ public class FFmpeg {
 					// Parse framerate
 					// Note: Can contain 'k' suffix (*1000), see dump.c#print_fps.
 					// https://www.ffmpeg.org/doxygen/3.1/dump_8c_source.html#l00119
-					String fps = RegexUtil.findFirst(line, Pattern.compile("\\s(\\d+(\\.\\d+)?k?)\\stbr,"), 1);
-					if (fps.endsWith("k"))
-						framerate = Float.parseFloat(fps.substring(0, fps.length() - 1)) * 1000f;
-					else
-						framerate = Float.parseFloat(fps);
+					String[] fr = RegexUtil.find(line, Pattern.compile("\\s(\\d+(\\.\\d+)?)(k?)\\stbr,"), 1, 3);
+					framerate = Float.parseFloat(fr[0]);
+					if (!fr[1].isEmpty())
+						framerate *= 1000f;
 
 					// Parse width/height
 					int[] wh = TextValues.parseInts(RegexUtil.find(line, Pattern.compile("\\s(\\d+)x(\\d+)[\\s,]"), 1, 2));

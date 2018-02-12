@@ -399,15 +399,20 @@ public class Options {
 
 			@Override
 			public String getValueString() {
-				return String.format((getTargetFPS() == 60) ? "%dfps (vsync)" : "%dfps", getTargetFPS());
+				int fps = getTargetFPS();
+				return (fps == -1) ? "Unlimited" :
+					String.format((fps == 60) ? "%dfps (vsync)" : "%dfps", fps);
 			}
 
 			@Override
 			public Object[] getItemList() {
 				if (itemList == null) {
 					itemList = new String[targetFPS.length];
-					for (int i = 0; i < targetFPS.length; i++)
-						itemList[i] = String.format((targetFPS[i] == 60) ? "%dfps (vsync)" : "%dfps", targetFPS[i]);
+					for (int i = 0; i < targetFPS.length; i++) {
+						int fps = targetFPS[i];
+						itemList[i] = (fps == -1) ? "Unlimited" :
+							String.format((fps == 60) ? "%dfps (vsync)" : "%dfps", fps);
+					}
 				}
 				return itemList;
 			}
@@ -415,8 +420,13 @@ public class Options {
 			@Override
 			public void selectItem(int index, GameContainer container) {
 				targetFPSindex = index;
-				container.setTargetFrameRate(getTargetFPS());
-				container.setVSync(getTargetFPS() == 60);
+
+				int fps = getTargetFPS();
+				boolean vsync = (fps == 60);
+				container.setTargetFrameRate(fps);
+				if (container.isVSyncRequested() != vsync) {
+					container.setVSync(vsync);
+				}
 			}
 
 			@Override
@@ -954,7 +964,7 @@ public class Options {
 	private static Skin skin;
 
 	/** Frame limiters. */
-	private static final int[] targetFPS = { 60, 120, 240 };
+	private static final int[] targetFPS = { 60, 120, 240, -1 /* Unlimited */ };
 
 	/** Index in targetFPS[] array. */
 	private static int targetFPSindex = 0;
@@ -986,6 +996,8 @@ public class Options {
 	 */
 	public static void setNextFPS(GameContainer container) {
 		int index = (targetFPSindex + 1) % targetFPS.length;
+		if (index == targetFPS.length - 1)
+			index = 0;  // Skip "Unlimited" option
 		GameOption.TARGET_FPS.selectItem(index, container);
 		UI.getNotificationManager().sendBarNotification(String.format("Frame limiter: %s", GameOption.TARGET_FPS.getValueString()));
 	}
