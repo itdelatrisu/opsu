@@ -39,7 +39,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.lang.reflect.Field;
 
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Input;
@@ -161,15 +160,6 @@ public class Opsu extends StateBasedGame {
 		}
 		System.setProperty("org.lwjgl.librarypath", nativeDir.getAbsolutePath());
 		System.setProperty("java.library.path", nativeDir.getAbsolutePath());
-		try {
-			// Workaround for "java.library.path" property being read-only.
-			// http://stackoverflow.com/a/24988095
-			Field fieldSysPath = ClassLoader.class.getDeclaredField("sys_paths");
-			fieldSysPath.setAccessible(true);
-			fieldSysPath.set(null, null);
-		} catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
-			Log.warn("Failed to set 'sys_paths' field.", e);
-		}
 		FFmpeg.setNativeDir(nativeDir);
 
 		// set the resource paths
