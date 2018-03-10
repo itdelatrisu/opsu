@@ -40,6 +40,7 @@ import javax.sound.sampled.Clip;
 import javax.sound.sampled.DataLine;
 import javax.sound.sampled.LineListener;
 import javax.sound.sampled.LineUnavailableException;
+import javax.sound.sampled.UnsupportedAudioFileException;
 
 import org.newdawn.slick.Color;
 import org.newdawn.slick.SlickException;
@@ -97,6 +98,9 @@ public class SoundController {
 
 			AudioInputStream audioIn = AudioSystem.getAudioInputStream(url);
 			return loadClip(ref, audioIn);
+		} catch (UnsupportedAudioFileException e) {
+			ErrorHandler.error(String.format("Invalid data found on audio file '%s'.", ref), e, true);
+			return null;
 		} catch (Exception e) {
 			ErrorHandler.error(String.format("Failed to load audio file '%s'.", ref), e, true);
 			return null;
