@@ -209,7 +209,7 @@ public class MultiClip {
 			// NOTE: AudioSystem.getClip() doesn't work on some Linux setups.
 			DataLine.Info info = new DataLine.Info(Clip.class, format);
 			c = (Clip) AudioSystem.getLine(info);
-			if (format != null)
+			if (format != null && !c.isOpen())
 				c.open(format, audioData, 0, audioData.length);
 
 			// fix PulseAudio issues (hacky, but can't do an instanceof check)
