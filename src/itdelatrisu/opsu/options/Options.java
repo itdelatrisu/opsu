@@ -534,6 +534,7 @@ public class Options {
 			@Override
 			public String getValueString() { return String.format("%dms", val); }
 		},
+		DISABLE_GAMEPLAY_SOUNDS ("Disable sound effects in gameplay", "DisableGameplaySound", "Mute all sound effects during gameplay only.", false),
 		DISABLE_SOUNDS ("Disable all sound effects", "DisableSound", "May resolve Linux sound driver issues.\nRequires a restart.", false) {
 			@Override
 			public boolean isRestartRequired() { return true; }
@@ -1245,6 +1246,12 @@ public class Options {
 	 * @return the checkpoint time (in ms)
 	 */
 	public static int getCheckpoint() { return GameOption.CHECKPOINT.getIntegerValue() * 1000; }
+
+	/**
+	 * Returns whether or not sound effects are disabled during gameplay.
+	 * @return true if disabled
+	 */
+	public static boolean isGameplaySoundDisabled() { return GameOption.DISABLE_GAMEPLAY_SOUNDS.getBooleanValue(); }
 
 	/**
 	 * Returns whether or not all sound effects are disabled.

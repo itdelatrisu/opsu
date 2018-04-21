@@ -244,7 +244,8 @@ public class Spinner implements GameObject {
 		float ratio = rotations / rotationsNeeded;
 		if (ratio >= 1.0f || GameMod.AUTO.isActive() || GameMod.AUTOPILOT.isActive() || GameMod.SPUN_OUT.isActive()) {
 			result = GameData.HIT_300;
-			SoundController.playSound(SoundEffect.SPINNEROSU);
+			if (!Options.isGameplaySoundDisabled())
+				SoundController.playSound(SoundEffect.SPINNEROSU);
 		} else if (ratio >= 0.9f)
 			result = GameData.HIT_100;
 		else if (ratio >= 0.75f)

@@ -132,7 +132,8 @@ public class GamePauseMenu extends BasicGameState {
 					UI.getCursor().reset();
 				game.enterState(Opsu.STATE_SONGMENU, new EasedFadeOutTransition(), new FadeInTransition());
 			} else {
-				SoundController.playSound(SoundEffect.MENUBACK);
+				if (!Options.isGameplaySoundDisabled())
+					SoundController.playSound(SoundEffect.MENUBACK);
 				gameState.setPlayState(Game.PlayState.NORMAL);
 				game.enterState(Opsu.STATE_GAME);
 			}
@@ -160,7 +161,8 @@ public class GamePauseMenu extends BasicGameState {
 
 		boolean loseState = (gameState.getPlayState() == Game.PlayState.LOSE);
 		if (continueButton.contains(x, y) && !loseState) {
-			SoundController.playSound(SoundEffect.MENUBACK);
+			if (!Options.isGameplaySoundDisabled())
+				SoundController.playSound(SoundEffect.MENUBACK);
 			gameState.setPlayState(Game.PlayState.NORMAL);
 			game.enterState(Opsu.STATE_GAME);
 		} else if (retryButton.contains(x, y)) {

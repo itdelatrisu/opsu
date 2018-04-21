@@ -1397,8 +1397,10 @@ public class GameData {
 	 * Resets the combo streak to zero.
 	 */
 	private void resetComboStreak() {
-		if (combo > 20 && !(GameMod.RELAX.isActive() || GameMod.AUTOPILOT.isActive()))
-			SoundController.playSound(SoundEffect.COMBOBREAK);
+		if (combo > 20 && !(GameMod.RELAX.isActive() || GameMod.AUTOPILOT.isActive())) {
+			if (!Options.isGameplaySoundDisabled())
+				SoundController.playSound(SoundEffect.COMBOBREAK);
+		}
 		combo = 0;
 		if (GameMod.SUDDEN_DEATH.isActive())
 			health.setHealth(0f);
@@ -1482,11 +1484,13 @@ public class GameData {
 		switch (result) {
 		case HIT_SPINNERSPIN:
 			hitValue = 100;
-			SoundController.playSound(SoundEffect.SPINNERSPIN);
+			if (!Options.isGameplaySoundDisabled())
+				SoundController.playSound(SoundEffect.SPINNERSPIN);
 			break;
 		case HIT_SPINNERBONUS:
 			hitValue = 1100;
-			SoundController.playSound(SoundEffect.SPINNERBONUS);
+			if (!Options.isGameplaySoundDisabled())
+				SoundController.playSound(SoundEffect.SPINNERBONUS);
 			break;
 		default:
 			return;

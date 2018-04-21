@@ -559,13 +559,13 @@ public class Game extends BasicGameState {
 				if (data.getHealthPercent() >= 50) {
 					GameImage.SECTION_PASS.getImage().drawCentered(width / 2f, height / 2f);
 					if (!breakSound) {
-						SoundController.playSound(SoundEffect.SECTIONPASS);
+						playSoundEffect(SoundEffect.SECTIONPASS);
 						breakSound = true;
 					}
 				} else {
 					GameImage.SECTION_FAIL.getImage().drawCentered(width / 2f, height / 2f);
 					if (!breakSound) {
-						SoundController.playSound(SoundEffect.SECTIONFAIL);
+						playSoundEffect(SoundEffect.SECTIONFAIL);
 						breakSound = true;
 					}
 				}
@@ -630,28 +630,28 @@ public class Game extends BasicGameState {
 					if (timeDiff >= 1500 * speedModifier) {
 						GameImage.COUNTDOWN_READY.getImage().drawCentered(width / 2, height / 2);
 						if (!countdownReadySound) {
-							SoundController.playSound(SoundEffect.READY);
+							playSoundEffect(SoundEffect.READY);
 							countdownReadySound = true;
 						}
 					}
 					if (timeDiff < 2000 * speedModifier) {
 						GameImage.COUNTDOWN_3.getImage().draw(0, 0);
 						if (!countdown3Sound) {
-							SoundController.playSound(SoundEffect.COUNT3);
+							playSoundEffect(SoundEffect.COUNT3);
 							countdown3Sound = true;
 						}
 					}
 					if (timeDiff < 1500 * speedModifier) {
 						GameImage.COUNTDOWN_2.getImage().draw(width - GameImage.COUNTDOWN_2.getImage().getWidth(), 0);
 						if (!countdown2Sound) {
-							SoundController.playSound(SoundEffect.COUNT2);
+							playSoundEffect(SoundEffect.COUNT2);
 							countdown2Sound = true;
 						}
 					}
 					if (timeDiff < 1000 * speedModifier) {
 						GameImage.COUNTDOWN_1.getImage().drawCentered(width / 2, height / 2);
 						if (!countdown1Sound) {
-							SoundController.playSound(SoundEffect.COUNT1);
+							playSoundEffect(SoundEffect.COUNT1);
 							countdown1Sound = true;
 						}
 					}
@@ -660,7 +660,7 @@ public class Game extends BasicGameState {
 					go.setAlpha((timeDiff < 0) ? 1 - (timeDiff / speedModifier / -500f) : 1);
 					go.drawCentered(width / 2, height / 2);
 					if (!countdownGoSound) {
-						SoundController.playSound(SoundEffect.GO);
+						playSoundEffect(SoundEffect.GO);
 						countdownGoSound = true;
 					}
 				}
@@ -1236,7 +1236,7 @@ public class Game extends BasicGameState {
 
 				int position = (pauseTime > -1) ? pauseTime : trackPosition;
 				if (Options.setCheckpoint(position / 1000)) {
-					SoundController.playSound(SoundEffect.MENUCLICK);
+					playSoundEffect(SoundEffect.MENUCLICK);
 					UI.getNotificationManager().sendBarNotification("Checkpoint saved.");
 				}
 			}
@@ -1257,7 +1257,7 @@ public class Game extends BasicGameState {
 						leadInTime = 0;
 						MusicController.resume();
 					}
-					SoundController.playSound(SoundEffect.MENUHIT);
+					playSoundEffect(SoundEffect.MENUHIT);
 					UI.getNotificationManager().sendBarNotification("Checkpoint loaded.");
 
 					// skip to checkpoint
@@ -1915,7 +1915,7 @@ public class Game extends BasicGameState {
 				replayX = (int) skipButton.getX();
 				replayY = (int) skipButton.getY();
 			}
-			SoundController.playSound(SoundEffect.MENUHIT);
+			playSoundEffect(SoundEffect.MENUHIT);
 			return true;
 		}
 		return false;
@@ -2463,5 +2463,14 @@ public class Game extends BasicGameState {
 			beatmap.localMusicOffset = newOffset;
 			BeatmapDB.updateLocalOffset(beatmap);
 		}
+	}
+
+	/**
+	 * Plays a sound, unless gameplay sounds are disabled.
+	 * @param s the sound effect
+	 */
+	private void playSoundEffect(SoundEffect s) {
+		if (!Options.isGameplaySoundDisabled())
+			SoundController.playSound(s);
 	}
 }
