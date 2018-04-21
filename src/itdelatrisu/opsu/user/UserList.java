@@ -80,6 +80,9 @@ public class UserList {
 		}
 	}
 
+	/** Returns the number of users. */
+	public int size() { return users.size(); }
+
 	/** Returns all users. */
 	public List<User> getUsers() {
 		List<User> l = new ArrayList<User>(users.values());
@@ -124,6 +127,20 @@ public class UserList {
 		ScoreDB.updateUser(user);
 		users.put(name.toLowerCase(), user);
 		return user;
+	}
+
+	/**
+	 * Deletes the given user.
+	 * @param name the user's name
+	 * @return true if the user was deleted, false otherwise
+	 */
+	public boolean deleteUser(String name) {
+		if (!userExists(name) || name.equals(currentUser.getName()))
+			return false;
+
+		ScoreDB.deleteUser(name);
+		users.remove(name.toLowerCase());
+		return true;
 	}
 
 	/** Returns whether the given name is a valid user name. */

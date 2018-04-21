@@ -62,6 +62,9 @@ public class UserButton {
 	/** The user. */
 	private User user;
 
+	/** Placeholder text to display if {@link #user} is null. */
+	private String placeholderText;
+
 	/**
 	 * Initializes the user buttons.
 	 * @param width the container width
@@ -124,6 +127,14 @@ public class UserButton {
 	/** Returns the user. */
 	public User getUser() { return user; }
 
+	/** Sets the text to display if no user is set. */
+	public void setPlaceholderText(String placeholderText) {
+		this.placeholderText = placeholderText;
+	}
+
+	/** Returns the placeholder text. */
+	public String getPlaceholderText() { return placeholderText; }
+
 	/**
 	 * Returns true if the coordinates are within the button bounds.
 	 * @param cx the x coordinate
@@ -164,12 +175,11 @@ public class UserButton {
 		g.fillRoundRect(cx, cy, buttonWidth - padding * 2, buttonHeight - padding * 2, 4);
 
 		// no user?
-		if (user == null) {
-			String text = "Add User";
+		if (user == null && placeholderText != null) {
 			Fonts.LARGE.drawString(
-				x + (buttonWidth - Fonts.LARGE.getWidth(text)) / 2,
+				x + (buttonWidth - Fonts.LARGE.getWidth(placeholderText)) / 2,
 				y + (buttonHeight - Fonts.LARGE.getLineHeight()) / 2,
-				text, Colors.WHITE_FADE
+				placeholderText, Colors.WHITE_FADE
 			);
 			Colors.WHITE_FADE.a = oldWhiteAlpha;
 			return;
@@ -246,6 +256,16 @@ public class UserButton {
 	 */
 	public void setHoverAnimationEquation(AnimationEquation eqn) {
 		bgAlpha.setEquation(eqn);
+	}
+
+	/**
+	 * Sets the hover animation base value.
+	 * @param base the base value
+	 */
+	public void setHoverAnimationBase(float base) {
+		AnimatedValue value = new AnimatedValue(bgAlpha.getDuration(), base, 1f, bgAlpha.getEquation());
+		value.setTime(bgAlpha.getTime());
+		bgAlpha = value;
 	}
 
 	/** Resets the hover fields for the button. */

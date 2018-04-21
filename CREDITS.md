@@ -26,7 +26,9 @@ The images included in opsu! belong to their respective authors.
 * kouyang
 * teinecthel
 * Teddy Kelley - https://unsplash.com/photos/weuWmzv7xnU (main menu background)
-* User icons ("User", "Male User", "Female User") by To Uyen from the Noun Project
+* User icons designed by Freepik - https://www.freepik.com/
+	* https://www.freepik.com/free-vector/flat-lovely-animal-avatar-collection_845660.htm
+	* https://www.freepik.com/free-vector/wild-and-marine-animal-collection_845661.htm
 * Font Awesome by Dave Gandy - http://fontawesome.io
 
 Projects

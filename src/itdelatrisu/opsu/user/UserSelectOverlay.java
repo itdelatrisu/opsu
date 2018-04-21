@@ -20,6 +20,7 @@ package itdelatrisu.opsu.user;
 
 import itdelatrisu.opsu.audio.SoundController;
 import itdelatrisu.opsu.audio.SoundEffect;
+import itdelatrisu.opsu.db.ScoreDB;
 import itdelatrisu.opsu.ui.Colors;
 import itdelatrisu.opsu.ui.Fonts;
 import itdelatrisu.opsu.ui.KineticScrolling;
@@ -107,14 +108,23 @@ public class UserSelectOverlay extends AbstractComponent {
 	/** New user button. */
 	private UserButton newUserButton;
 
-	/** New user icons. */
-	private MenuButton[] newUserIcons;
+	/** User icons. */
+	private MenuButton[] userIcons;
+
+	/** Edit user button. */
+	private UserButton editUserButton;
+
+	/** Delete user button. */
+	private UserButton deleteUserButton;
 
 	/** States. */
-	private enum State { USER_SELECT, CREATE_USER }
+	private enum State { USER_SELECT, CREATE_USER, EDIT_USER }
 
 	/** Current state. */
 	private State state = State.USER_SELECT;
+
+	/** Previous state. */
+	private State prevState;
 
 	/** State change progress. */
 	private AnimatedValue stateChangeProgress = new AnimatedValue(500, 0f, 1f, AnimationEquation.LINEAR);
@@ -170,12 +180,27 @@ public class UserSelectOverlay extends AbstractComponent {
 		this.textField = new TextField(container, null, 0, 0, 0, 0);
 		textField.setMaxLength(UserList.MAX_USER_NAME_LENGTH);
 
-		// new user icons
-		this.newUserIcons = new MenuButton[UserButton.getIconCount()];
-		for (int i = 0; i < newUserIcons.length; i++) {
-			newUserIcons[i] = new MenuButton(UserButton.getIconImage(i), 0, 0);
-			newUserIcons[i].setHoverFade(0.5f);
+		// user icons
+		this.userIcons = new MenuButton[UserButton.getIconCount()];
+		for (int i = 0; i < userIcons.length; i++) {
+			userIcons[i] = new MenuButton(UserButton.getIconImage(i), 0, 0);
+			userIcons[i].setHoverFade(0.5f);
 		}
+
+		// edit user
+		this.editUserButton = new UserButton(
+			(int) (this.x + usersStartX),
+			(int) (this.y + usersStartY),
+			Color.white
+		);
+
+		// delete user
+		deleteUserButton = new UserButton(
+			(int) (this.x + usersStartX),
+			(int) (this.y + usersStartY + UserButton.getHeight() + usersPaddingY),
+			Colors.RED_HOVER
+		);
+		deleteUserButton.setHoverAnimationBase(0.5f);
 
 		// kinetic scrolling
 		this.scrolling = new KineticScrolling();
@@ -223,6 +248,7 @@ public class UserSelectOverlay extends AbstractComponent {
 
 		// set initial state
 		state = State.USER_SELECT;
+		prevState = null;
 		stateChangeProgress.setTime(stateChangeProgress.getDuration());
 		prepareUserSelect();
 	}
@@ -248,14 +274,19 @@ public class UserSelectOverlay extends AbstractComponent {
 		if (!stateChangeProgress.isFinished()) {
 			// blend states
 			float t = stateChangeProgress.getValue();
-			if (state == State.CREATE_USER)
+			if (prevState == State.USER_SELECT)
 				t = 1f - t;
 			renderUserSelect(g, t);
-			renderUserCreate(g, 1f - t);
+			if (state == State.CREATE_USER || prevState == State.CREATE_USER)
+				renderUserCreate(g, 1f - t);
+			else if (state == State.EDIT_USER || prevState == State.EDIT_USER)
+				renderUserEdit(g, 1f - t);
 		} else if (state == State.USER_SELECT)
 			renderUserSelect(g, globalAlpha);
 		else if (state == State.CREATE_USER)
 			renderUserCreate(g, globalAlpha);
+		else if (state == State.EDIT_USER)
+			renderUserEdit(g, globalAlpha);
 
 		g.clearClip();
 	}
@@ -332,29 +363,56 @@ public class UserSelectOverlay extends AbstractComponent {
 		cy += Fonts.MEDIUMBOLD.getLineHeight();
 
 		// user icons
-		String iconHeader = "Icon";
-		Fonts.MEDIUMBOLD.drawString(x + (width - Fonts.MEDIUMBOLD.getWidth(iconHeader)) / 2, cy, iconHeader, COLOR_WHITE);
+		renderUserIcons(g, newUser.getIconId(), "Icon", cy, alpha);
+	}
+
+	/** Renders the user edit menu. */
+	private void renderUserEdit(Graphics g, float alpha) {
+		COLOR_WHITE.a = COLOR_RED.a = alpha;
+
+		// title
+		String title = "Edit User";
+		Fonts.XLARGE.drawString(
+			x + (width - Fonts.XLARGE.getWidth(title)) / 2,
+			(int) (y + titleY),
+			title, COLOR_WHITE
+		);
+
+		// edit user button
+		editUserButton.draw(g, alpha);
+
+		// delete button
+		deleteUserButton.draw(g, alpha);
+
+		// user icons
+		int cy = (int) (y + usersStartY + (UserButton.getHeight() + usersPaddingY) * 2);
+		renderUserIcons(g, editUserButton.getUser().getIconId(), "Change Icon", cy, alpha);
+	}
+
+	/** Renders the user icons. */
+	private void renderUserIcons(Graphics g, int iconId, String header, int cy, float alpha) {
+		Fonts.MEDIUMBOLD.drawString(x + (width - Fonts.MEDIUMBOLD.getWidth(header)) / 2, cy, header, COLOR_WHITE);
 		cy += Fonts.MEDIUMBOLD.getLineHeight() + usersPaddingY;
 		int iconSize = UserButton.getIconSize();
 		int paddingX = iconSize / 4;
 		int maxPerLine = UserButton.getWidth() / (iconSize + paddingX);
 		// start scroll area here
 		g.setClip((int) x, cy, width, height - (int) (cy - y));
-		int scrollOffset = ((newUserIcons.length - 1) / maxPerLine + 1) * (iconSize + usersPaddingY);
+		int scrollOffset = ((userIcons.length - 1) / maxPerLine + 1) * (iconSize + usersPaddingY);
 		scrollOffset -= height - cy;
 		scrollOffset = Math.max(scrollOffset, 0);
 		scrolling.setMinMax(0, scrollOffset);
 		cy += -scrolling.getPosition();
-		for (int i = 0; i < newUserIcons.length; i += maxPerLine) {
+		for (int i = 0; i < userIcons.length; i += maxPerLine) {
 			// draw line-by-line
-			int n = Math.min(maxPerLine, newUserIcons.length - i);
+			int n = Math.min(maxPerLine, userIcons.length - i);
 			int cx = (int) (x + usersStartX + (UserButton.getWidth() - iconSize * n - paddingX * (n - 1)) / 2);
 			for (int j = 0; j < n; j++) {
-				MenuButton button = newUserIcons[i + j];
+				MenuButton button = userIcons[i + j];
 				button.setX(cx + iconSize / 2);
 				button.setY(cy + iconSize / 2);
 				if (cy < height) {
-					button.getImage().setAlpha((newUser.getIconId() == i + j) ?
+					button.getImage().setAlpha((iconId == i + j) ?
 						alpha : alpha * button.getHoverAlpha() * 0.9f
 					);
 					button.getImage().draw(cx, cy);
@@ -383,10 +441,15 @@ public class UserSelectOverlay extends AbstractComponent {
 			for (UserButton button : userButtons)
 				button.hoverUpdate(delta, button == hover);
 		}
-		if (state == State.CREATE_USER || !stateChangeProgress.isFinished()) {
+		if (state == State.CREATE_USER) {
 			newUserButton.hoverUpdate(delta, UserList.get().isValidUserName(newUser.getName()));
-			for (int i = 0; i < newUserIcons.length; i++)
-				newUserIcons[i].hoverUpdate(delta, mouseX, mouseY);
+			for (int i = 0; i < userIcons.length; i++)
+				userIcons[i].hoverUpdate(delta, mouseX, mouseY);
+		}
+		if (state == State.EDIT_USER) {
+			deleteUserButton.hoverUpdate(delta, deleteUserButton.contains(mouseX, mouseY));
+			for (int i = 0; i < userIcons.length; i++)
+				userIcons[i].hoverUpdate(delta, mouseX, mouseY);
 		}
 	}
 
@@ -437,19 +500,33 @@ public class UserSelectOverlay extends AbstractComponent {
 		if (state == State.USER_SELECT) {
 			if (selectedButton != null) {
 				SoundController.playSound(SoundEffect.MENUCLICK);
-				if (selectedButton.getUser() == null) {
+				User user = selectedButton.getUser();
+				if (user == null) {
 					// new user
 					state = State.CREATE_USER;
+					prevState = State.USER_SELECT;
 					stateChangeProgress.setTime(0);
 					prepareUserCreate();
 				} else {
-					// select user
-					String name = selectedButton.getUser().getName();
-					if (!name.equals(UserList.get().getCurrentUser().getName())) {
-						UserList.get().changeUser(name);
-						listener.close(true);
-					} else
-						listener.close(false);
+					String name = user.getName();
+					if (button == Input.MOUSE_RIGHT_BUTTON) {
+						// right click: edit user
+						if (name.equals(UserList.DEFAULT_USER_NAME)) {
+							UI.getNotificationManager().sendBarNotification("This user can't be edited.");
+						} else {
+							state = State.EDIT_USER;
+							prevState = State.USER_SELECT;
+							stateChangeProgress.setTime(0);
+							prepareUserEdit(selectedButton.getUser());
+						}
+					} else {
+						// left click: select user
+						if (!name.equals(UserList.get().getCurrentUser().getName())) {
+							UserList.get().changeUser(name);
+							listener.close(true);
+						} else
+							listener.close(false);
+					}
 				}
 			}
 		} else if (state == State.CREATE_USER) {
@@ -458,10 +535,45 @@ public class UserSelectOverlay extends AbstractComponent {
 				createNewUser();
 			else {
 				// change user icons
-				for (int i = 0; i < newUserIcons.length; i++) {
-					if (newUserIcons[i].contains(x, y)) {
+				for (int i = 0; i < userIcons.length; i++) {
+					if (userIcons[i].contains(x, y)) {
 						SoundController.playSound(SoundEffect.MENUCLICK);
 						newUser.setIconId(i);
+						break;
+					}
+				}
+			}
+		} else if (state == State.EDIT_USER) {
+			if (deleteUserButton.contains(x, y)) {
+				SoundController.playSound(SoundEffect.MENUCLICK);
+				String name = editUserButton.getUser().getName();
+				if (name.equals(UserList.get().getCurrentUser().getName()))
+					UI.getNotificationManager().sendBarNotification("You can't delete the current user!");
+				else {
+					String confirmationText = "Confirm User Deletion";
+					if (!deleteUserButton.getPlaceholderText().equals(confirmationText)) {
+						// ask for confirmation first
+						deleteUserButton.setPlaceholderText(confirmationText);
+					} else {
+						// actually delete the user
+						if (UserList.get().deleteUser(name)) {
+							UI.getNotificationManager().sendNotification(String.format("User '%s' was deleted.", name), Colors.GREEN);
+						} else {
+							UI.getNotificationManager().sendNotification("The user could not be deleted.", Color.red);
+						}
+						listener.close(false);
+					}
+				}
+			} else {
+				// change user icons
+				for (int i = 0; i < userIcons.length; i++) {
+					if (userIcons[i].contains(x, y)) {
+						SoundController.playSound(SoundEffect.MENUCLICK);
+						User user = editUserButton.getUser();
+						if (i != user.getIconId()) {
+							user.setIconId(i);
+							ScoreDB.updateUser(user);
+						}
 						break;
 					}
 				}
@@ -599,9 +711,16 @@ public class UserSelectOverlay extends AbstractComponent {
 			else
 				userButtons.add(button);
 		}
+
+		// add default user at the end
 		if (defaultUser != null)
-			userButtons.add(defaultUser);  // add default user at the end
-		userButtons.add(new UserButton(0, 0, Color.white));  // create new user
+			userButtons.add(defaultUser);
+
+		// add button to create new user
+		UserButton addUserButton = new UserButton(0, 0, Color.white);
+		addUserButton.setPlaceholderText("Add User");
+		userButtons.add(addUserButton);
+
 		maxScrollOffset = Math.max(0,
 			(UserButton.getHeight() + usersPaddingY) * userButtons.size() -
 			(int) ((height - usersStartY) * 0.9f));
@@ -617,8 +736,24 @@ public class UserSelectOverlay extends AbstractComponent {
 		newUser.setIconId(UserList.DEFAULT_ICON);
 		textField.setText("");
 		newUserButton.resetHover();
-		for (int i = 0; i < newUserIcons.length; i++)
-			newUserIcons[i].resetHover();
+
+		prepareUserIcons();
+	}
+
+	/** Prepares the user edit state. */
+	private void prepareUserEdit(User user) {
+		editUserButton.setUser(user);
+		editUserButton.resetHover();
+		deleteUserButton.setPlaceholderText("Delete User");
+		deleteUserButton.resetHover();
+
+		prepareUserIcons();
+	}
+
+	/** Prepares the user icons. */
+	private void prepareUserIcons() {
+		for (int i = 0; i < userIcons.length; i++)
+			userIcons[i].resetHover();
 
 		scrolling.setPosition(0f);
 		scrolling.setAllowOverScroll(false);
