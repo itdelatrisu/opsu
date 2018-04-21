@@ -368,7 +368,7 @@ public class UserSelectOverlay extends AbstractComponent {
 
 	/** Renders the user edit menu. */
 	private void renderUserEdit(Graphics g, float alpha) {
-		COLOR_WHITE.a = COLOR_RED.a = alpha;
+		COLOR_WHITE.a = alpha;
 
 		// title
 		String title = "Edit User";
@@ -537,8 +537,10 @@ public class UserSelectOverlay extends AbstractComponent {
 				// change user icons
 				for (int i = 0; i < userIcons.length; i++) {
 					if (userIcons[i].contains(x, y)) {
-						SoundController.playSound(SoundEffect.MENUCLICK);
-						newUser.setIconId(i);
+						if (i != newUser.getIconId()) {
+							SoundController.playSound(SoundEffect.MENUCLICK);
+							newUser.setIconId(i);
+						}
 						break;
 					}
 				}
@@ -568,9 +570,9 @@ public class UserSelectOverlay extends AbstractComponent {
 				// change user icons
 				for (int i = 0; i < userIcons.length; i++) {
 					if (userIcons[i].contains(x, y)) {
-						SoundController.playSound(SoundEffect.MENUCLICK);
 						User user = editUserButton.getUser();
 						if (i != user.getIconId()) {
+							SoundController.playSound(SoundEffect.MENUCLICK);
 							user.setIconId(i);
 							ScoreDB.updateUser(user);
 						}
