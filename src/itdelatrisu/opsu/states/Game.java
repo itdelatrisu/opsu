@@ -187,7 +187,7 @@ public class Game extends BasicGameState {
 	private int timingPointIndex;
 
 	/** Current beat lengths (base value and inherited value). */
-	private float beatLengthBase, beatLength;
+	private double beatLengthBase, beatLength;
 
 	/** Whether the countdown sound has been played. */
 	private boolean
@@ -2093,7 +2093,7 @@ public class Game extends BasicGameState {
 	/**
 	 * Returns the beat length.
 	 */
-	public float getBeatLength() { return beatLength; }
+	public double getBeatLength() { return beatLength; }
 
 	/**
 	 * Sets the beat length fields based on a given timing point.
@@ -2114,7 +2114,7 @@ public class Game extends BasicGameState {
 	/**
 	 * Returns the slider multiplier given by the current timing point.
 	 */
-	public float getTimingPointMultiplier() { return beatLength / beatLengthBase; }
+	public double getTimingPointMultiplier() { return beatLength / beatLengthBase; }
 
 	/**
 	 * Sets a replay to view, or resets the replay if null.

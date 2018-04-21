@@ -119,7 +119,7 @@ public class BeatmapDifficultyCalculator {
 		this.tpHitObjects = new tpHitObject[hitObjects.length];
 		float circleRadius = (PLAYFIELD_WIDTH / 16.0f) * (1.0f - 0.7f * (beatmap.circleSize - 5.0f) / 5.0f);
 		int timingPointIndex = 0;
-		float beatLengthBase = 1, beatLength = 1;
+		double beatLengthBase = 1, beatLength = 1;
 		if (!beatmap.timingPoints.isEmpty()) {
 			TimingPoint timingPoint = beatmap.timingPoints.get(0);
 			if (!timingPoint.isInherited()) {
@@ -324,7 +324,7 @@ class tpHitObject {
 	 * @param beatmap the beatmap that contains the hit object
 	 * @param beatLength the current beat length
 	 */
-	public tpHitObject(HitObject baseHitObject, float circleRadius, Beatmap beatmap, float beatLength) {
+	public tpHitObject(HitObject baseHitObject, float circleRadius, Beatmap beatmap, double beatLength) {
 		this.baseHitObject = baseHitObject;
 
 		// We will scale everything by this factor, so we can assume a uniform CircleSize among beatmaps.
@@ -520,7 +520,7 @@ class tpSlider {
 	 * @param sliderMultiplier the slider movement speed multiplier
 	 * @param beatLength the beat length
 	 */
-	public tpSlider(HitObject hitObject, float sliderMultiplier, float beatLength) {
+	public tpSlider(HitObject hitObject, float sliderMultiplier, double beatLength) {
 		this.startTime = hitObject.getTime();
 		this.sliderTime = (int) hitObject.getSliderTime(sliderMultiplier, beatLength);
 		this.curve = hitObject.getSliderCurve(false);

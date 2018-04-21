@@ -76,10 +76,10 @@ public class Slider implements GameObject {
 	private Curve curve;
 
 	/** The time duration of the slider, in milliseconds. */
-	private float sliderTime = 0f;
+	private double sliderTime = 0f;
 
 	/** The time duration of the slider including repeats, in milliseconds. */
-	private float sliderTimeTotal = 0f;
+	private double sliderTimeTotal = 0f;
 
 	/** Whether or not the result of the initial hit circle has been processed. */
 	private boolean sliderClickedInitial = false;
@@ -173,7 +173,7 @@ public class Slider implements GameObject {
 		this.sliderTimeTotal = sliderTime * hitObject.getRepeatCount();
 
 		// ticks
-		float tickLengthDiv = 100f * sliderMultiplier / sliderTickRate / game.getTimingPointMultiplier();
+		double tickLengthDiv = 100f * sliderMultiplier / sliderTickRate / game.getTimingPointMultiplier();
 		int tickCount = (int) Math.ceil(hitObject.getPixelLength() / tickLengthDiv) - 1;
 		if (tickCount > 0) {
 			this.ticksT = new float[tickCount];
@@ -814,7 +814,7 @@ public class Slider implements GameObject {
 	 * @return the t value: raw [0, repeats] or looped [0, 1]
 	 */
 	private float getT(int trackPosition, boolean raw) {
-		float t = (trackPosition - hitObject.getTime()) / sliderTime;
+		float t = (float) ((trackPosition - hitObject.getTime()) / sliderTime);
 		if (raw)
 			return t;
 		else {

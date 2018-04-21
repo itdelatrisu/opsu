@@ -35,7 +35,9 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -545,7 +547,7 @@ public class BeatmapParser {
 
 							// calculate BPM
 							if (!timingPoint.isInherited()) {
-								int bpm = Math.round(60000 / timingPoint.getBeatLength());
+								int bpm = Math.round(60000 / (float) timingPoint.getBeatLength());
 								if (beatmap.bpmMin == 0) {
 									beatmap.bpmMin = beatmap.bpmMax = bpm;
 								} else if (bpm < beatmap.bpmMin) {
@@ -560,6 +562,12 @@ public class BeatmapParser {
 						}
 					}
 					beatmap.timingPoints.trimToSize();
+					Collections.sort(beatmap.timingPoints, new Comparator<TimingPoint>() {
+						@Override
+						public int compare(TimingPoint o1, TimingPoint o2) {
+							return (o1.getTime() + (o1.isInherited() ? 1 : 0)) - (o2.getTime() + (o2.isInherited() ? 1 : 0));
+						}
+					});
 					break;
 				case "[Colours]":
 					LinkedList<Color> colors = new LinkedList<Color>();
@@ -738,6 +746,12 @@ public class BeatmapParser {
 							line, beatmap.toString()), e);
 				}
 			}
+			Arrays.sort(beatmap.objects, new Comparator<HitObject>() {
+				@Override
+				public int compare(HitObject o1, HitObject o2) {
+					return o1.getTime() - o2.getTime();
+				}
+			});
 
 			// check that all objects were parsed
 			if (objectIndex != beatmap.objects.length)

@@ -228,7 +228,7 @@ public class HitObject {
 				this.sliderY[j - 1] = Integer.parseInt(sliderXY[1]);
 			}
 			this.repeat = Integer.parseInt(tokens[6]);
-			this.pixelLength = Float.parseFloat(tokens[7]);
+			this.pixelLength = Math.max(Float.parseFloat(tokens[7]), 0);
 			if (tokens.length > 8) {
 				String[] edgeHitSoundTokens = tokens[8].split("\\|");
 				this.edgeHitSound = new byte[edgeHitSoundTokens.length];
@@ -407,8 +407,8 @@ public class HitObject {
 	 * @param beatLength the beat length
 	 * @return the slider segment length
 	 */
-	public float getSliderTime(float sliderMultiplier, float beatLength) {
-		return beatLength * (pixelLength / sliderMultiplier) / 100f;
+	public double getSliderTime(double sliderMultiplier, double beatLength) {
+		return beatLength * (pixelLength / sliderMultiplier) / 100d;
 	}
 
 	/**
