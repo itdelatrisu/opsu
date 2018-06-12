@@ -467,7 +467,12 @@ public class Game extends BasicGameState {
 					if (autoPoint == null) {
 						Vec2f endPoint = gameObjects[objectIndex].getPointAt(trackPosition);
 						int totalTime = objectTime - startTime;
-						autoPoint = getPointAt(startPoint.x, startPoint.y, endPoint.x, endPoint.y, (float) (trackPosition - startTime) / totalTime);
+
+						if (totalTime == 0)
+							// this can happen on 2B maps, see issue 401
+							autoPoint = endPoint;
+						else
+							autoPoint = getPointAt(startPoint.x, startPoint.y, endPoint.x, endPoint.y, (float) (trackPosition - startTime) / totalTime);
 
 						// hit circles: show a mouse press
 						int offset300 = hitResultOffset[GameData.HIT_300];
