@@ -565,6 +565,7 @@ public class Options {
 		BACKGROUND_DIM ("Background dim", "DimLevel", "Percentage to dim the background image during gameplay.", 50, 0, 100),
 		FORCE_DEFAULT_PLAYFIELD ("Force default playfield", "ForceDefaultPlayfield", "Overrides the song background with the default playfield background.", false),
 		ENABLE_VIDEOS ("Background video", "Video", "Enables background video playback.\nIf you get a large amount of lag on beatmaps with video, try disabling this feature.", true),
+		ENABLE_STORYBOARDS ("Storyboards", "Storyboard", "Enables storyboard playback.\nIf you get a large amount of lag on beatmaps with storyboards, try disabling this feature.", true),
 		IGNORE_BEATMAP_SKINS ("Ignore all beatmap skins", "IgnoreBeatmapSkins", "Defaults game settings to never use skin element overrides provided by beatmaps.", false),
 		FORCE_SKIN_CURSOR ("Always use skin cursor", "UseSkinCursor", "The selected skin's cursor will override any beatmap-specific cursor modifications.", false),
 		SNAKING_SLIDERS ("Snaking sliders", "SnakingSliders", "Sliders gradually snake out from their starting point.", true),
@@ -1159,6 +1160,12 @@ public class Options {
 	 * @return true if enabled
 	 */
 	public static boolean isBeatmapVideoEnabled() { return GameOption.ENABLE_VIDEOS.getBooleanValue(); }
+	
+	/**
+	 * Returns whether or not beatmap storyboards are enabled.
+	 * @return true if enabled
+	 */
+	public static boolean isBeatmapStoryboardEnabled() { return GameOption.ENABLE_STORYBOARDS.getBooleanValue(); }
 
 	/**
 	 * Returns whether or not beatmap skins are ignored.

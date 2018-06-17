@@ -31,6 +31,7 @@ import itdelatrisu.opsu.options.Options;
 import itdelatrisu.opsu.replay.LifeFrame;
 import itdelatrisu.opsu.replay.Replay;
 import itdelatrisu.opsu.replay.ReplayFrame;
+import itdelatrisu.opsu.storyboard.Storyboard;
 import itdelatrisu.opsu.ui.Colors;
 import itdelatrisu.opsu.ui.Fonts;
 import itdelatrisu.opsu.ui.UI;
@@ -342,6 +343,9 @@ public class GameData {
 	/** Container dimensions. */
 	private int width, height;
 
+	Storyboard sbTrigListener;
+	
+	private boolean isPassing = true;
 	/**
 	 * Constructor for gameplay.
 	 * @param width container width
@@ -1449,6 +1453,13 @@ public class GameData {
 					hitObject.getEdgeHitSoundType(repeat),
 					hitObject.getSampleSet(repeat),
 					hitObject.getAdditionSampleSet(repeat));
+			byte hitSound = hitObject.getEdgeHitSoundType(repeat);
+			if ((hitSound & HitObject.SOUND_WHISTLE) > 0)
+				sbTrigListener.nowHitSoundWhistle(time);
+			if ((hitSound & HitObject.SOUND_FINISH) > 0)
+				sbTrigListener.nowHitSoundFinish(time);
+			if ((hitSound & HitObject.SOUND_CLAP) > 0)
+				sbTrigListener.nowHitSoundClap(time);
 			break;
 		case HIT_SLIDER10:
 			hitValue = 10;
@@ -1596,6 +1607,14 @@ public class GameData {
 					hitObject.getSampleSet(repeat),
 					hitObject.getAdditionSampleSet(repeat));
 
+			byte hitSound = hitObject.getEdgeHitSoundType(repeat);
+			if ((hitSound & HitObject.SOUND_WHISTLE) > 0)
+				sbTrigListener.nowHitSoundWhistle(time);
+			if ((hitSound & HitObject.SOUND_FINISH) > 0)
+				sbTrigListener.nowHitSoundFinish(time);
+			if ((hitSound & HitObject.SOUND_CLAP) > 0)
+				sbTrigListener.nowHitSoundClap(time);
+			
 			// calculate score and increment combo streak
 			changeScore(getScoreForHit(hitValue, hitObject));
 			if (!noIncrementCombo)
@@ -1607,6 +1626,8 @@ public class GameData {
 
 		// last element in combo: check for Geki/Katu
 		if (end) {
+			//System.out.println("Combo End");
+			
 			if (comboEnd == 0) {
 				result = HIT_300G;
 				health.changeHealthForHit(HIT_300G);
@@ -1621,8 +1642,10 @@ public class GameData {
 					health.changeHealthForHit(HIT_300K);
 					hitResultCount[result]++;
 				}
-			} else if (hitValue > 0)
+			} else if (hitValue > 0) {
 				health.changeHealthForHit(HIT_MU);
+			}
+			setPassFailState(comboEnd == 0, time);
 			comboEnd = 0;
 		}
 
@@ -1797,5 +1820,31 @@ public class GameData {
 			"Accuracy:\nError: %.2fms - %.2fms avg\nUnstable Rate: %.2f",
 			hitErrorEarly, hitErrorLate, unstableRate
 		);
+	}
+
+	public boolean checkPassingFailingBreaks(int trackPosition) {
+		setPassFailState(getHealthPercent() >= 50? PASSING : FAILING, trackPosition);
+		return false;
+	}
+	
+	//https://osu.ppy.sh/help/wiki/Storyboard_Scripting/General_Rules#game-state
+	boolean PASSING = true, FAILING = false;
+	int passingBreakCnt = 0; //used for states after last playtime....
+	int failingBreakCnt = 0;
+	
+	
+	public void setPassFailState(boolean newState, int trackPosition) {
+		//System.out.println("setPassFailState:"+newState);
+		if (isPassing != newState) {
+			if (newState)
+				sbTrigListener.nowPassing(trackPosition);
+			else 
+				sbTrigListener.nowFailing(trackPosition);
+		}
+		isPassing = newState;
+	}
+
+	public void setSBTrigListener(Storyboard storyboard) {
+		this.sbTrigListener = storyboard;
 	}
 }

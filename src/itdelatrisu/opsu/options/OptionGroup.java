@@ -47,6 +47,7 @@ public class OptionGroup {
 		new OptionGroup("DETAIL SETTINGS", new GameOption[] {
 			GameOption.SNAKING_SLIDERS,
 			GameOption.ENABLE_VIDEOS,
+			GameOption.ENABLE_STORYBOARDS,
 			GameOption.SHOW_COMBO_BURSTS,
 			GameOption.SHOW_HIT_LIGHTING,
 			GameOption.SHOW_PERFECT_HIT,
