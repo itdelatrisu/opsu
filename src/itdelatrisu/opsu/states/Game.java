@@ -2329,57 +2329,80 @@ public class Game extends BasicGameState {
 	private void calculateStacks() {
 		// reverse pass for stack calculation
 		for (int i = gameObjects.length - 1; i > 0; i--) {
+
 			HitObject hitObjectI = beatmap.objects[i];
 
 			// already calculated
 			if (hitObjectI.getStack() != 0 || hitObjectI.isSpinner())
 				continue;
 
-			// search for hit objects in stack
-			for (int n = i - 1; n >= 0; n--) {
-				HitObject hitObjectN = beatmap.objects[n];
-				if (hitObjectN.isSpinner())
-					continue;
+			if (hitObjectI.isCircle()) {
+				for (int n = i - 1; n >= 0; n--) {
+					HitObject hitObjectN = beatmap.objects[n];
+					if (hitObjectN.isSpinner())
+						continue;
 
-				// check if in range stack calculation
-				float timeI = hitObjectI.getTime() - (approachTime * beatmap.stackLeniency);
-				float timeN = hitObjectN.isSlider() ? gameObjects[n].getEndTime() : hitObjectN.getTime();
-				if (timeI > timeN)
-					break;
+					// check if in range stack calculation
+					float timeI = hitObjectI.getTime() - (approachTime * beatmap.stackLeniency);
+					float timeN = hitObjectN.isSlider() ? gameObjects[n].getEndTime() : hitObjectN.getTime();
+					if (timeI > timeN)
+						break;
 
-				// possible special case: if slider end in the stack,
-				// all next hit objects in stack move right down
-				if (hitObjectN.isSlider()) {
-					Vec2f p1 = gameObjects[i].getPointAt(hitObjectI.getTime());
-					Vec2f p2 = gameObjects[n].getPointAt(gameObjects[n].getEndTime());
-					float distance = Utils.distance(p1.x, p1.y, p2.x, p2.y);
+					// possible special case: if slider end in the stack,
+					// all next hit objects in stack move right down
+					if (hitObjectN.isSlider()) {
+						Vec2f p1 = gameObjects[i].getPointAt(hitObjectI.getTime());
+						Vec2f p2 = gameObjects[n].getPointAt(gameObjects[n].getEndTime());
+						float distance = Utils.distance(p1.x, p1.y, p2.x, p2.y);
 
-					// check if hit object part of this stack
-					if (distance < STACK_LENIENCE * HitObject.getXMultiplier()) {
-						int offset = hitObjectI.getStack() - hitObjectN.getStack() + 1;
-						for (int j = n + 1; j <= i; j++) {
-							HitObject hitObjectJ = beatmap.objects[j];
-							p1 = gameObjects[j].getPointAt(hitObjectJ.getTime());
-							distance = Utils.distance(p1.x, p1.y, p2.x, p2.y);
+						// check if hit object part of this stack
+						if (distance < STACK_LENIENCE * HitObject.getXMultiplier()) {
+							int offset = hitObjectI.getStack() - hitObjectN.getStack() + 1;
+							for (int j = n + 1; j <= i; j++) {
+								HitObject hitObjectJ = beatmap.objects[j];
+								p1 = gameObjects[j].getPointAt(hitObjectJ.getTime());
+								distance = Utils.distance(p1.x, p1.y, p2.x, p2.y);
 
-							// hit object below slider end
-							if (distance < STACK_LENIENCE * HitObject.getXMultiplier())
-								hitObjectJ.setStack(hitObjectJ.getStack() - offset);
+								// hit object below slider end
+								if (distance < STACK_LENIENCE * HitObject.getXMultiplier())
+									hitObjectJ.setStack(hitObjectJ.getStack() - offset);
+							}
+							break;  // slider end always start of the stack: reset calculation
 						}
-						break;  // slider end always start of the stack: reset calculation
+					}
+
+					float distance = Utils.distance(
+							hitObjectI.getX(), hitObjectI.getY(),
+							hitObjectN.getX(), hitObjectN.getY()
+					);
+					if (distance < STACK_LENIENCE * HitObject.getXMultiplier()) {
+						hitObjectN.setStack(hitObjectI.getStack() + 1);
+						hitObjectI = hitObjectN;
 					}
 				}
+			} else if (hitObjectI.isSlider()) {
+				for (int n = i - 1; n >= 0; n--) {
+					HitObject hitObjectN = beatmap.objects[n];
+					if (hitObjectN.isSpinner())
+						continue;
 
-				// not a special case: stack moves up left
-				float distance = Utils.distance(
-						hitObjectI.getX(), hitObjectI.getY(),
-						hitObjectN.getX(), hitObjectN.getY()
-				);
-				if (distance < STACK_LENIENCE) {
-					hitObjectN.setStack(hitObjectI.getStack() + 1);
-					hitObjectI = hitObjectN;
+					// check if in range stack calculation
+					float timeI = hitObjectI.getTime() - (approachTime * beatmap.stackLeniency);
+					float timeN = hitObjectN.getTime();
+					if (timeI > timeN)
+						break;
+
+					float distance = Utils.distance(
+							hitObjectI.getX(), hitObjectI.getY(),
+							hitObjectN.getX(), hitObjectN.getY()
+					);
+					if (distance < STACK_LENIENCE * HitObject.getXMultiplier()) {
+						hitObjectN.setStack(hitObjectI.getStack() + 1);
+						hitObjectI = hitObjectN;
+					}
 				}
 			}
+
 		}
 
 		// update hit object positions
