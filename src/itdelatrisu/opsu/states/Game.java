@@ -2329,7 +2329,6 @@ public class Game extends BasicGameState {
 	private void calculateStacks() {
 		// reverse pass for stack calculation
 		for (int i = gameObjects.length - 1; i > 0; i--) {
-
 			HitObject hitObjectI = beatmap.objects[i];
 
 			// already calculated
@@ -2343,7 +2342,7 @@ public class Game extends BasicGameState {
 						continue;
 
 					// check if in range stack calculation
-					float timeI = hitObjectI.getTime() - (approachTime * beatmap.stackLeniency);
+					float timeI = hitObjectI.getTime() - approachTime * beatmap.stackLeniency;
 					float timeN = hitObjectN.isSlider() ? gameObjects[n].getEndTime() : hitObjectN.getTime();
 					if (timeI > timeN)
 						break;
@@ -2387,7 +2386,7 @@ public class Game extends BasicGameState {
 						continue;
 
 					// check if in range stack calculation
-					float timeI = hitObjectI.getTime() - (approachTime * beatmap.stackLeniency);
+					float timeI = hitObjectI.getTime() - approachTime * beatmap.stackLeniency;
 					float timeN = hitObjectN.getTime();
 					if (timeI > timeN)
 						break;
@@ -2402,7 +2401,6 @@ public class Game extends BasicGameState {
 					}
 				}
 			}
-
 		}
 
 		// update hit object positions
