@@ -86,6 +86,7 @@ public class BeatmapSet implements Iterable<Beatmap> {
 		float multiplier = GameMod.getDifficultyMultiplier();
 		NumberFormat nf = new DecimalFormat("##.#");
 		String[] info = new String[5];
+		boolean asterisk = GameMod.DOUBLE_TIME.isActive() || GameMod.HALF_TIME.isActive();		
 		info[0] = beatmap.toString();
 		info[1] = String.format("Mapped by %s", beatmap.creator);
 		info[2] = String.format("Length: %d:%02d  BPM: %s  Objects: %d",
@@ -97,11 +98,11 @@ public class BeatmapSet implements Iterable<Beatmap> {
 		info[3] = String.format("Circles: %d  Sliders: %d  Spinners: %d",
 				beatmap.hitObjectCircle, beatmap.hitObjectSlider, beatmap.hitObjectSpinner);
 		info[4] = String.format("CS:%s HP:%s AR:%s OD:%s%s",
-				nf.format(Math.min(beatmap.circleSize * multiplier, 10f)),
-				nf.format(Math.min(beatmap.HPDrainRate * multiplier, 10f)),
-				nf.format(Math.min(beatmap.approachRate * multiplier, 10f)),
-				nf.format(Math.min(beatmap.overallDifficulty * multiplier, 10f)),
-				(beatmap.starRating >= 0) ? String.format(" Stars:%.2f", beatmap.starRating) : "");
+				nf.format(Math.min(beatmap.circleSize * multiplier, 10f)).concat(asterisk ? "*" : ""),
+				nf.format(Math.min(beatmap.HPDrainRate * multiplier, 10f)).concat(asterisk ? "*" : ""),
+				nf.format(Math.min(beatmap.approachRate * multiplier, 10f)).concat(asterisk ? "*" : ""),
+				nf.format(Math.min(beatmap.overallDifficulty * multiplier, 10f)).concat(asterisk ? "*" : ""),
+				(beatmap.starRatingCalculator.getStarRating() >= 0) ? String.format(" Stars:%.2f", beatmap.starRatingCalculator.getStarRating()) : "");
 		return info;
 	}
 
@@ -164,7 +165,7 @@ public class BeatmapSet implements Iterable<Beatmap> {
 				case "bpm": v = beatmap.bpmMax; break;
 				case "length": v = beatmap.endTime / 1000; break;
 				case "star":
-				case "stars": v = Math.round(beatmap.starRating * 100) / 100f; break;
+				case "stars": v = Math.round(beatmap.starRatingCalculator.getStarRating() * 100) / 100f; break;
 				default: return false;
 			}
 

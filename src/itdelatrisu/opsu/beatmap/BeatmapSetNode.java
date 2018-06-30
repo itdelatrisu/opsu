@@ -119,7 +119,7 @@ public class BeatmapSetNode {
 		// draw stars
 		// (note: in osu!, stars are also drawn for beatmap sets of size 1)
 		if (expanded) {
-			if (beatmap.starRating >= 0) {
+			if (beatmap.starRatingCalculator.getStarRating() >= 0) {
 				Image star = GameImage.STAR.getImage();
 				float starOffset = star.getWidth() * 1.25f;
 				float starX = cx + starOffset * 0.02f;
@@ -130,14 +130,14 @@ public class BeatmapSetNode {
 				final int maxStars = 10;
 				star.setAlpha(baseAlpha);
 				int i = 1;
-				for (; i < beatmap.starRating && i <= maxStars; i++) {
+				for (; i < beatmap.starRatingCalculator.getStarRating() && i <= maxStars; i++) {
 					if (focus)
 						star.drawFlash(starX + (i - 1) * starOffset, starY, star.getWidth(), star.getHeight(), textColor);
 					else
 						star.draw(starX + (i - 1) * starOffset, starY);
 				}
 				if (i <= maxStars) {
-					float partialStarScale = smallStarScale + (float) (beatmap.starRating - i + 1) * (1f - smallStarScale);
+					float partialStarScale = smallStarScale + (float) (beatmap.starRatingCalculator.getStarRating() - i + 1) * (1f - smallStarScale);
 					Image partialStar = star.getScaledCopy(partialStarScale);
 					partialStar.setAlpha(baseAlpha);
 					float partialStarY = starCenterY - partialStar.getHeight() / 2f;

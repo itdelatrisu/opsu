@@ -69,6 +69,9 @@ public class Beatmap implements Comparable<Beatmap> {
 	/** The star rating. */
 	public double starRating = -1;
 
+	/** The star rating calculator. */
+	public BeatmapDifficultyCalculator starRatingCalculator;
+
 	/** The timestamp this beatmap was first loaded. */
 	public long dateAdded = 0;
 
@@ -558,6 +561,7 @@ public class Beatmap implements Comparable<Beatmap> {
 	 */
 	public void copyAdditionalFields(Beatmap target) {
 		target.starRating = starRating;
+		target.starRatingCalculator = starRatingCalculator;
 		target.dateAdded = dateAdded;
 		target.favorite = favorite;
 		target.playCount = playCount;

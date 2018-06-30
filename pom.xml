@@ -236,5 +236,10 @@
 			<artifactId>media</artifactId>
 			<version>0.8.9</version>
 		</dependency>
+		<dependency>
+			<groupId>com.github.francesco148</groupId>
+			<artifactId>koohii</artifactId>
+			<version>1.0.15</version>
+		</dependency>
 	</dependencies>
 </project>

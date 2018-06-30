@@ -62,6 +62,7 @@ dependencies {
 	compile 'org.apache.maven:maven-artifact:3.3.3'
 	compile 'org.tukaani:xz:1.6'
 	compile 'net.indiespot:media:0.8.9'
+	compile 'com.github.francesco149:koohii:1.0.15'
 }
 
 def nativePlatforms = ['windows', 'linux', 'osx', 'all']
