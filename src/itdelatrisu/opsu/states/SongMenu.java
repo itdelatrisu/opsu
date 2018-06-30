@@ -1961,6 +1961,8 @@ public class SongMenu extends BasicGameState {
 	private void calculateStarRatings(BeatmapSet beatmapSet) {
 		for (Beatmap beatmap : beatmapSet) {
 			if (beatmap.starRating >= 0) {  // already calculated
+				if (beatmap.starRatingCalculator == null)
+					beatmap.starRatingCalculator = new BeatmapDifficultyCalculator(beatmap);
 				beatmapsCalculated.put(beatmap, beatmapsCalculated.get(beatmap));
 				continue;
 			}
