@@ -339,7 +339,7 @@ public class SoundController {
 	 * @param sampleSet the sample set
 	 * @param additionSampleSet the 'addition' sample set
 	 */
-	public static void playHitSound(byte hitSound, byte sampleSet, byte additionSampleSet) {
+	public static void playHitSound(short hitSound, byte sampleSet, byte additionSampleSet) {
 		if (hitSound < 0)
 			return;
 

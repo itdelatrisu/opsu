@@ -97,7 +97,7 @@ public class HitObject {
 	private int type;
 
 	/** Hit sound type (SOUND_* bitmask). */
-	private byte hitSound;
+	private short hitSound;
 
 	/** Hit sound addition (sampleSet, AdditionSampleSet). */
 	private byte[] addition;
@@ -127,7 +127,7 @@ public class HitObject {
 	private int endTime;
 
 	/** Slider edge hit sound type (SOUND_* bitmask). */
-	private byte[] edgeHitSound;
+	private short[] edgeHitSound;
 
 	/** Slider edge hit sound addition (sampleSet, AdditionSampleSet). */
 	private byte[][] edgeAddition;
@@ -231,9 +231,9 @@ public class HitObject {
 			this.pixelLength = Float.parseFloat(tokens[7]);
 			if (tokens.length > 8) {
 				String[] edgeHitSoundTokens = tokens[8].split("\\|");
-				this.edgeHitSound = new byte[edgeHitSoundTokens.length];
+				this.edgeHitSound = new short[edgeHitSoundTokens.length];
 				for (int j = 0; j < edgeHitSoundTokens.length; j++)
-					edgeHitSound[j] = Byte.parseByte(edgeHitSoundTokens[j]);
+					edgeHitSound[j] = Short.parseShort(edgeHitSoundTokens[j]);
 			}
 			if (tokens.length > 9) {
 				String[] edgeAdditionTokens = tokens[9].split("\\|");
@@ -326,14 +326,14 @@ public class HitObject {
 	 * Returns the hit sound type.
 	 * @return the sound type (SOUND_* bitmask)
 	 */
-	public byte getHitSoundType() { return hitSound; }
+	public short getHitSoundType() { return hitSound; }
 
 	/**
 	 * Returns the edge hit sound type.
 	 * @param index the slider edge index (ignored for non-sliders)
 	 * @return the sound type (SOUND_* bitmask)
 	 */
-	public byte getEdgeHitSoundType(int index) {
+	public short getEdgeHitSoundType(int index) {
 		if (edgeHitSound != null)
 			return edgeHitSound[index];
 		else
