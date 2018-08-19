@@ -53,6 +53,7 @@ import java.util.regex.Pattern;
 
 import org.lwjgl.LWJGLException;
 import org.lwjgl.input.Keyboard;
+import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
 import org.newdawn.slick.GameContainer;
@@ -561,6 +562,21 @@ public class Options {
 		},
 		DISABLE_MOUSE_WHEEL ("Disable mouse wheel in play mode", "MouseDisableWheel", "During play, you can use the mouse wheel to adjust the volume and pause the game.\nThis will disable that functionality.", false),
 		DISABLE_MOUSE_BUTTONS ("Disable mouse buttons in play mode", "MouseDisableButtons", "This option will disable all mouse buttons.\nSpecifically for people who use their keyboard to click.", false),
+		LOCK_CURSOR ("Lock cursor to window", "CursorLock", "Keeps the cursor within the bounds of the window.", false) {
+			@Override
+			public void toggle(GameContainer container) {
+				super.toggle(container);
+
+				int mouseX = Mouse.getX();
+				int mouseY = Mouse.getY();
+
+				Mouse.setGrabbed(bool);
+
+				// keep the cursor from jumping around
+				if (!bool)
+					Mouse.setCursorPosition(mouseX, mouseY);
+			}
+		},
 		DISABLE_CURSOR ("Disable cursor", "DisableCursor", "Hides the cursor sprite.", false),
 		BACKGROUND_DIM ("Background dim", "DimLevel", "Percentage to dim the background image during gameplay.", 50, 0, 100),
 		FORCE_DEFAULT_PLAYFIELD ("Force default playfield", "ForceDefaultPlayfield", "Overrides the song background with the default playfield background.", false),
@@ -1346,6 +1362,22 @@ public class Options {
 		GameOption.DISABLE_MOUSE_BUTTONS.toggle(null);
 		UI.getNotificationManager().sendBarNotification((GameOption.DISABLE_MOUSE_BUTTONS.getBooleanValue()) ?
 			"Mouse buttons are disabled." : "Mouse buttons are enabled.");
+	}
+
+	/**
+	 * Returns whether or not the cursor is locked to the window.
+	 * @return true if locked
+	 */
+	public static boolean isCursorLocked() { return GameOption.LOCK_CURSOR.getBooleanValue(); }
+
+	/**
+	 * Toggles the cursor locked/unlocked state during gameplay and
+	 * sends a bar notification about the action.
+	 */
+	public static void toggleCursorLocked() {
+		GameOption.LOCK_CURSOR.toggle(null);
+		UI.getNotificationManager().sendBarNotification((GameOption.LOCK_CURSOR.getBooleanValue()) ?
+			"Cursor locked to window." : "Cursor unlocked.");
 	}
 
 	/**
