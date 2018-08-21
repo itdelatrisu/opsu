@@ -53,7 +53,7 @@ public class CatmullCurve extends EqualDistanceMultiCurve {
 		// aabc abcc
 		// aabc abcd bcdd
 		if (getX(0) != getX(1) || getY(0) != getY(1))
-			points.addLast(new Vec2f(getX(0), getY(0)));
+			points.addFirst(new Vec2f(getX(0), getY(0)));
 		for (int i = 0; i < ncontrolPoints; i++) {
 			points.addLast(new Vec2f(getX(i), getY(i)));
 			if (points.size() >= 4) {
