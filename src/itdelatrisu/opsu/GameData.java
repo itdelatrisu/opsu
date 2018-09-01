@@ -1453,13 +1453,9 @@ public class GameData {
 					hitObject.getEdgeHitSoundType(repeat),
 					hitObject.getSampleSet(repeat),
 					hitObject.getAdditionSampleSet(repeat));
-			byte hitSound = hitObject.getEdgeHitSoundType(repeat);
-			if ((hitSound & HitObject.SOUND_WHISTLE) > 0)
-				sbTrigListener.nowHitSoundWhistle(time);
-			if ((hitSound & HitObject.SOUND_FINISH) > 0)
-				sbTrigListener.nowHitSoundFinish(time);
-			if ((hitSound & HitObject.SOUND_CLAP) > 0)
-				sbTrigListener.nowHitSoundClap(time);
+			
+			sendHitSoundTriggers(hitObject.getEdgeHitSoundType(repeat), time);
+			
 			break;
 		case HIT_SLIDER10:
 			hitValue = 10;
@@ -1606,14 +1602,8 @@ public class GameData {
 					hitObject.getEdgeHitSoundType(repeat),
 					hitObject.getSampleSet(repeat),
 					hitObject.getAdditionSampleSet(repeat));
-
-			byte hitSound = hitObject.getEdgeHitSoundType(repeat);
-			if ((hitSound & HitObject.SOUND_WHISTLE) > 0)
-				sbTrigListener.nowHitSoundWhistle(time);
-			if ((hitSound & HitObject.SOUND_FINISH) > 0)
-				sbTrigListener.nowHitSoundFinish(time);
-			if ((hitSound & HitObject.SOUND_CLAP) > 0)
-				sbTrigListener.nowHitSoundClap(time);
+			
+			sendHitSoundTriggers(hitObject.getEdgeHitSoundType(repeat), time);
 			
 			// calculate score and increment combo streak
 			changeScore(getScoreForHit(hitValue, hitObject));
@@ -1626,8 +1616,6 @@ public class GameData {
 
 		// last element in combo: check for Geki/Katu
 		if (end) {
-			//System.out.println("Combo End");
-			
 			if (comboEnd == 0) {
 				result = HIT_300G;
 				health.changeHealthForHit(HIT_300G);
@@ -1642,9 +1630,8 @@ public class GameData {
 					health.changeHealthForHit(HIT_300K);
 					hitResultCount[result]++;
 				}
-			} else if (hitValue > 0) {
+			} else if (hitValue > 0)
 				health.changeHealthForHit(HIT_MU);
-			}
 			setPassFailState(comboEnd == 0, time);
 			comboEnd = 0;
 		}
@@ -1822,20 +1809,26 @@ public class GameData {
 		);
 	}
 
-	public boolean checkPassingFailingBreaks(int trackPosition) {
+	
+	/**
+	 * Checks to see if passing or failing during a break.
+	 * @param trackPosition the current track position (in ms)
+	 */
+	public void checkPassingFailingBreaks(int trackPosition) {
 		setPassFailState(getHealthPercent() >= 50? PASSING : FAILING, trackPosition);
-		return false;
 	}
 	
 	//https://osu.ppy.sh/help/wiki/Storyboard_Scripting/General_Rules#game-state
 	boolean PASSING = true, FAILING = false;
-	int passingBreakCnt = 0; //used for states after last playtime....
-	int failingBreakCnt = 0;
-	
-	
+	int passingBreakCnt = 0, failingBreakCnt = 0; //used for states after last playtime....
+
+	/**
+	 * Sets the pass fail state and cause a trigger if it toggled
+	 * @param newState
+	 * @param trackPosition
+	 */
 	public void setPassFailState(boolean newState, int trackPosition) {
-		//System.out.println("setPassFailState:"+newState);
-		if (isPassing != newState) {
+		if (sbTrigListener != null && isPassing != newState) {
 			if (newState)
 				sbTrigListener.nowPassing(trackPosition);
 			else 
@@ -1843,7 +1836,28 @@ public class GameData {
 		}
 		isPassing = newState;
 	}
+	
+	
+	/**
+	 * Sends any triggers caused by this hitSound type
+	 * @param hitSound
+	 * @param time
+	 */
+	public void sendHitSoundTriggers(byte hitSound, int time) {
+		if (sbTrigListener != null) {
+			if ((hitSound & HitObject.SOUND_WHISTLE) > 0)
+				sbTrigListener.nowHitSoundWhistle(time);
+			if ((hitSound & HitObject.SOUND_FINISH) > 0)
+				sbTrigListener.nowHitSoundFinish(time);
+			if ((hitSound & HitObject.SOUND_CLAP) > 0)
+				sbTrigListener.nowHitSoundClap(time);
+		}
+	}
 
+	/**
+	 * Sets the Storyboard which is listening for trigger events
+	 * @param storyboard
+	 */
 	public void setSBTrigListener(Storyboard storyboard) {
 		this.sbTrigListener = storyboard;
 	}

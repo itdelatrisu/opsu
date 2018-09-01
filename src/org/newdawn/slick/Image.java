@@ -623,7 +623,7 @@ public class Image implements Renderable {
 	public void drawEmbedded(float x,float y,float width,float height) {
 		init();
 		
-		if (corners == null || true) {
+		if (corners == null) {
 		    GL.glTexCoord2f(textureOffsetX, textureOffsetY);
 			GL.glVertex3f(x, y, 0);
 			GL.glTexCoord2f(textureOffsetX, textureOffsetY + textureHeight);
@@ -846,7 +846,7 @@ public class Image implements Renderable {
     } 
 	
 	/**
-	 * Draw this image at a specified location and size
+	 * Draw this image at a specified location, size, and on its center of rotation 
 	 * 
 	 * @param x The x location to draw the image at
 	 * @param y The y location to draw the image at
@@ -871,19 +871,18 @@ public class Image implements Renderable {
         
         GL.glTranslatef(x, y, 0);
         if (angle != 0) {
-	        //GL.glTranslatef(centerX, centerY, 0.0f); 
-	        GL.glRotatef(angle, 0.0f, 0.0f, 1.0f); 
-	    }
-            GL.glTranslatef(-centerX, -centerY, 0.0f); 
+             GL.glRotatef(angle, 0.0f, 0.0f, 1.0f); 
+        }
+        GL.glTranslatef(-centerX, -centerY, 0.0f); 
         
         GL.glBegin(SGL.GL_QUADS); 
             drawEmbedded(0,0,width,height); 
         GL.glEnd(); 
-            GL.glTranslatef(centerX, centerY, 0.0f); 
-	    
+        
+        GL.glTranslatef(centerX, centerY, 0.0f); 
+        
         if (angle != 0) {
-	        GL.glRotatef(-angle, 0.0f, 0.0f, 1.0f); 
-	        //GL.glTranslatef(-centerX, -centerY, 0.0f); 
+            GL.glRotatef(-angle, 0.0f, 0.0f, 1.0f); 
         }
         GL.glTranslatef(-x, -y, 0);
     } 
@@ -1432,7 +1431,17 @@ public class Image implements Renderable {
 		return image;
 	}
 	
+	/**
+	 * if the current is horizontally / vertically flipped
+	 */
 	boolean hFlip, vFlip;
+	
+	/**
+	 * Sets the current image to be horizontally / vertically flipped
+	 * @param flipHorizontal 
+	 * @param flipVertical
+	 * @return itself for chaining
+	 */
 	public Image setFlipped(boolean flipHorizontal, boolean flipVertical) {
 		if (flipHorizontal != hFlip) {
 			textureOffsetX = textureOffsetX + textureWidth;

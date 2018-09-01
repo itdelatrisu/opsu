@@ -353,7 +353,6 @@ public class OptionsOverlay extends AbstractComponent {
 		// kinetic scrolling
 		this.scrolling = new KineticScrolling();
 		scrolling.setAllowOverScroll(true);
-		scrolling.setSpeedMultiplier(3.5f);
 
 		// calculate offset for navigation bar icons
 		int navTotalHeight = 0;

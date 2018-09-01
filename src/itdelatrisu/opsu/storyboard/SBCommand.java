@@ -1,11 +1,17 @@
 package itdelatrisu.opsu.storyboard;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashSet;
 
 import itdelatrisu.opsu.Utils;
 import itdelatrisu.opsu.ui.animations.AnimationEquation;
+
+/**
+ * Storyboard commands
+ * 
+ * @author fluddokt
+ *
+ */
 public abstract class SBCommand{
 	SBObject obj;
 	int easing;
@@ -26,9 +32,6 @@ public abstract class SBCommand{
 	public void start() {
 	}
 	public void end() {
-	}
-	public SBCommand cloneOffset() {
-		return null;
 	}
 	public abstract void setIntialVal(int startTime);
 	
@@ -56,21 +59,15 @@ class SBCommandMod extends SBCommand {
 		tempVals = new float[startVals.length];
 		duration = endTime - startTime;
 		isVarying = true;
-		if (easing > 2) {
-			System.err.println("Unknown Easing :"+easing+" for:"+obj.lineNumber);
-		}
 	}
 
 	@Override
 	final public void update(int trackPosition) {
-		//if (trackPosition < startTime || trackPosition > endTime)
-		//	return;
 		if (duration>0)
 			updateT(Utils.clamp((trackPosition - startTime) / duration ,0,1));
 	}
 	@Override
 	public void start() {
-		obj.isActive = true;
 		updateT(0);
 	}
 
@@ -94,19 +91,9 @@ class SBCommandMod extends SBCommand {
 		switch(easing) 
 		{
 			case 1: // ease out
-				//t = 1 - (1-t)*(1-t);
-				//t = 1 - 1 + 2t - t*t
-				//t = 2*t - t*t;
-				//t = (2-t)*t;
-				t = AnimationEquation.OUT_QUAD.calc(t);
-				break;
-				//return (1-t)*start + t*end;
+				t = AnimationEquation.OUT_QUAD.calc(t); break;
 			case 2: // ease in
-				//t = t*t;
-				t = AnimationEquation.IN_QUAD.calc(t);
-				//return (1-t)*start + t*end;
-				break;
-				
+				t = AnimationEquation.IN_QUAD.calc(t); break;
 			case 3: t = AnimationEquation.IN_QUAD.calc(t); break;
 			case 4: t = AnimationEquation.OUT_QUAD.calc(t); break;
 			case 5: t = AnimationEquation.IN_OUT_QUAD.calc(t); break;
@@ -150,6 +137,7 @@ class SBCommandMod extends SBCommand {
 				//t = AnimationEquation.LINEAR.calc(t);
 		}
 		return (1-t)*start + t*end;
+		//start + t*(end-start)
 		
 	}
 
@@ -160,272 +148,254 @@ class SBCommandMod extends SBCommand {
 	
 }
 
-abstract class SBModify {
-	public abstract int vars();
-	public abstract void set(SBObject o, float[] vals);
-	public abstract void setI(SBObject o, float[] vals, int startTime);
-	public abstract void get(SBObject o, float[] vals);
+enum SBModify {
+	SBFadeModify(){
+		@Override
+		public int vars() {
+			return 1;
+		}
+		@Override
+		public void set(SBObject o, float[] vals) {
+			o.opacity = vals[0];
+		}
+		@Override
+		public void setI(SBObject o, float[] vals, int startTime) {
+			if(startTime < o.iOpacityTime) {
+				o.iOpacityTime = startTime;
+				o.iOpacity = vals[0];
+			}
+		}
+		@Override
+		public void get(SBObject o, float[] vals) {
+			vals[0] = o.opacity;
+		}
+		public String toString(){return "F";}
+	},
+	SBMoveModify(){
+		@Override
+		public int vars() {
+			return 2;
+		}
+		@Override
+		public void set(SBObject o, float[] vals) {
+			o.x = vals[0];
+			o.y = vals[1];
+		}
+		@Override
+		public void setI(SBObject o, float[] vals, int startTime) {
+			if(startTime < o.ixTime || startTime < o.iyTime) {
+				o.ixTime = startTime;
+				o.iyTime = startTime;
+				o.ix = vals[0];
+				o.iy = vals[1];
+			}
+		}
+		@Override
+		public void get(SBObject o, float[] vals) {
+			vals[0] = o.x;
+			vals[1] = o.y;
+		}
+		@Override
+		public void init(float[] vals) {
+			vals[0] = Storyboard.scaleX(vals[0]);
+			vals[1] = Storyboard.scaleY(vals[1]);
+		}
+	},
+	SBMovexModify {
+		@Override
+		public int vars() {
+			return 1;
+		}
+		@Override
+		public void set(SBObject o, float[] vals) {
+			o.x = vals[0];
+		}
+		@Override
+		public void setI(SBObject o, float[] vals, int startTime) {
+			if(startTime < o.ixTime) {
+				o.ixTime = startTime;
+				o.ix = vals[0];
+			}
+		}
+		@Override
+		public void get(SBObject o, float[] vals) {
+			vals[0] = o.x;
+		}
+		@Override
+		public void init(float[] vals) {
+			vals[0] = Storyboard.scaleX(vals[0]);
+		}
+	},
+	SBMoveyModify{
+		@Override
+		public int vars() {
+			return 1;
+		}
+		@Override
+		public void set(SBObject o, float[] vals) {
+			o.y = vals[0];
+		}
+		@Override
+		public void setI(SBObject o, float[] vals, int startTime) {
+			if(startTime < o.iyTime) {
+				o.iyTime = startTime;
+				o.iy = vals[0];
+			}
+		}
+		@Override
+		public void get(SBObject o, float[] vals) {
+			vals[0] = o.y;
+		}
+		@Override
+		public void init(float[] vals) {
+			vals[0] = Storyboard.scaleY(vals[0]);
+		}	
+	},
+	SBScaleModify{
+		@Override
+		public int vars() {
+			return 1;
+		}
+		@Override
+		public void set(SBObject o, float[] vals) {
+			o.sx = o.sy = vals[0];
+			o.scaleAll = 1;
+		}
+		@Override
+		public void setI(SBObject o, float[] vals, int startTime) {
+			if(startTime < o.iscaleTime || startTime < o.iscaleSPTime) {
+				o.iscaleTime = o.iscaleSPTime = startTime;
+				o.isx = o.isy = vals[0];
+				o.iscaleAll = 1;
+			}
+		}
+		@Override
+		public void get(SBObject o, float[] vals) {
+			vals[0] = o.sx;
+		}
+	},
+	SBSpecialScaleModify{
+		@Override
+		public int vars() {
+			return 1;
+		}
+		@Override
+		public void set(SBObject o, float[] vals) {
+			o.sx = o.sy = 1;
+			o.scaleAll = vals[0];
+		}
+		@Override
+		public void setI(SBObject o, float[] vals, int startTime) {
+			if(startTime < o.iscaleTime || startTime < o.iscaleSPTime) {
+				o.iscaleTime = o.iscaleSPTime = startTime;
+				o.isx = o.isy = 1;
+				o.iscaleAll = vals[0];
+			}
+		}
+		@Override
+		public void get(SBObject o, float[] vals) {
+			vals[0] = o.sx;
+		}
+	},
+	SBVecScaleModify{
+		@Override
+		public int vars() {
+			return 2;
+		}
+		@Override
+		public void set(SBObject o, float[] vals) {
+			o.sx = vals[0];
+			o.sy = vals[1];
+		}
+		@Override
+		public void setI(SBObject o, float[] vals, int startTime) {
+			if(startTime < o.iscaleTime) {
+				o.iscaleTime = startTime;
+				o.isx = vals[0];
+				o.isy = vals[1];
+			}
+		}
+		@Override
+		public void get(SBObject o, float[] vals) {
+			vals[0] = o.sx;
+			vals[1] = o.sy;
+		}
+	},
+	SBRotateModify{
+		@Override
+		public int vars() {
+			return 1;
+		}
+		@Override
+		public void set(SBObject o, float[] vals) {
+			o.rotation = vals[0];
+		}
+		@Override
+		public void setI(SBObject o, float[] vals, int startTime) {
+			if(startTime < o.iRotationTime) {
+				o.iRotationTime = startTime;
+				o.iRotation = vals[0];
+			}
+		}
+		@Override
+		public void get(SBObject o, float[] vals) {
+			vals[0] = o.rotation;
+		}
+	},
+	SBColorModify{
+		@Override
+		public int vars() {
+			return 3;
+		}
+		@Override
+		public void set(SBObject o, float[] vals) {
+			o.color.r = vals[0];
+			o.color.g = vals[1];
+			o.color.b = vals[2];
+		}
+		@Override
+		public void setI(SBObject o, float[] vals, int startTime) {
+			if(startTime < o.iColorTime) {
+				o.iColorTime = startTime;
+				o.icolor.r = vals[0];
+				o.icolor.g = vals[1];
+				o.icolor.b = vals[2];
+			}
+			
+		}
+		@Override
+		public void get(SBObject o, float[] vals) {
+			vals[0] = o.color.r;
+			vals[1] = o.color.g;
+			vals[2] = o.color.b;
+		}
+		@Override
+		public void init(float[] vals) {
+			vals[0]/=255;
+			vals[1]/=255;
+			vals[2]/=255;
+		}
+	},
+	;
+	public int vars() {return 0;}
+	public void set(SBObject o, float[] vals) {}
+	public void setI(SBObject o, float[] vals, int startTime) {}
+	public void get(SBObject o, float[] vals) {}
 	public void init(float[] vals){}
-}
-class SBFadeModify extends SBModify {
-	@Override
-	public int vars() {
-		return 1;
-	}
-	@Override
-	public void set(SBObject o, float[] vals) {
-		o.opacity = vals[0];
-	}
-	@Override
-	public void setI(SBObject o, float[] vals, int startTime) {
-		if(startTime < o.iOpacityTime) {
-			o.iOpacityTime = startTime;
-			o.iOpacity = vals[0];
-		}
-	}
-	@Override
-	public void get(SBObject o, float[] vals) {
-		vals[0] = o.opacity;
-	}
-	public String toString(){return "F";}
-}
-class SBMoveModify extends SBModify {
-	@Override
-	public int vars() {
-		return 2;
-	}
-	@Override
-	public void set(SBObject o, float[] vals) {
-		o.x = vals[0];
-		o.y = vals[1];
-	}
-	@Override
-	public void setI(SBObject o, float[] vals, int startTime) {
-		if(startTime < o.ixTime || startTime < o.iyTime) {
-			o.ixTime = startTime;
-			o.iyTime = startTime;
-			o.ix = vals[0];
-			o.iy = vals[1];
-		}
-	}
-	@Override
-	public void get(SBObject o, float[] vals) {
-		vals[0] = o.x;
-		vals[1] = o.y;
-	}
-	@Override
-	public void init(float[] vals) {
-		vals[0] = Storyboard.scaleX(vals[0]);
-		vals[1] = Storyboard.scaleY(vals[1]);
-	}
-
-}
-class SBMovexModify extends SBModify {
-	@Override
-	public int vars() {
-		return 1;
-	}
-	@Override
-	public void set(SBObject o, float[] vals) {
-		o.x = vals[0];
-	}
-	@Override
-	public void setI(SBObject o, float[] vals, int startTime) {
-		if(startTime < o.ixTime) {
-			o.ixTime = startTime;
-			o.ix = vals[0];
-		}
-	}
-	@Override
-	public void get(SBObject o, float[] vals) {
-		vals[0] = o.x;
-	}
-	@Override
-	public void init(float[] vals) {
-		vals[0] = Storyboard.scaleX(vals[0]);
-	}
-}
-class SBMoveyModify extends SBModify {
-	@Override
-	public int vars() {
-		return 1;
-	}
-	@Override
-	public void set(SBObject o, float[] vals) {
-		o.y = vals[0];
-	}
-	@Override
-	public void setI(SBObject o, float[] vals, int startTime) {
-		if(startTime < o.iyTime) {
-			o.iyTime = startTime;
-			o.iy = vals[0];
-		}
-	}
-	@Override
-	public void get(SBObject o, float[] vals) {
-		vals[0] = o.y;
-	}
-	@Override
-	public void init(float[] vals) {
-		vals[0] = Storyboard.scaleY(vals[0]);
-	}	
-}
-class SBScaleModify extends SBModify {
-	@Override
-	public int vars() {
-		return 1;
-	}
-	@Override
-	public void set(SBObject o, float[] vals) {
-		o.sx = o.sy = vals[0];
-		o.scaleAll = 1;
-	}
-	@Override
-	public void setI(SBObject o, float[] vals, int startTime) {
-		if(startTime < o.iscaleTime || startTime < o.iscaleSPTime) {
-			o.iscaleTime = o.iscaleSPTime = startTime;
-			o.isx = o.isy = vals[0];
-			o.iscaleAll = 1;
-		}
-	}
-	@Override
-	public void get(SBObject o, float[] vals) {
-		vals[0] = o.sx;
-	}
-}
-class SBSpecialScaleModify extends SBModify {
-	@Override
-	public int vars() {
-		return 1;
-	}
-	@Override
-	public void set(SBObject o, float[] vals) {
-		o.sx = o.sy = 1;
-		o.scaleAll = vals[0];
-	}
-	@Override
-	public void setI(SBObject o, float[] vals, int startTime) {
-		if(startTime < o.iscaleTime || startTime < o.iscaleSPTime) {
-			o.iscaleTime = o.iscaleSPTime = startTime;
-			o.isx = o.isy = 1;
-			o.iscaleAll = vals[0];
-		}
-	}
-	@Override
-	public void get(SBObject o, float[] vals) {
-		vals[0] = o.sx;
-	}
-}
-class SBVecScaleModify extends SBModify {
-	@Override
-	public int vars() {
-		return 2;
-	}
-	@Override
-	public void set(SBObject o, float[] vals) {
-		o.sx = vals[0];
-		o.sy = vals[1];
-	}
-	@Override
-	public void setI(SBObject o, float[] vals, int startTime) {
-		if(startTime < o.iscaleTime) {
-			o.iscaleTime = startTime;
-			o.isx = vals[0];
-			o.isy = vals[1];
-		}
-	}
-	@Override
-	public void get(SBObject o, float[] vals) {
-		vals[0] = o.sx;
-		vals[1] = o.sy;
-	}
-}
-class SBRotateModify extends SBModify {
-	@Override
-	public int vars() {
-		return 1;
-	}
-	@Override
-	public void set(SBObject o, float[] vals) {
-		o.rotation = vals[0];
-	}
-	@Override
-	public void setI(SBObject o, float[] vals, int startTime) {
-		if(startTime < o.iRotationTime) {
-			o.iRotationTime = startTime;
-			o.iRotation = vals[0];
-		}
-	}
-	@Override
-	public void get(SBObject o, float[] vals) {
-		vals[0] = o.rotation;
-	}
-}
-class SBColorModify extends SBModify {
-	@Override
-	public int vars() {
-		return 3;
-	}
-	@Override
-	public void set(SBObject o, float[] vals) {
-		o.color.r = vals[0];
-		o.color.g = vals[1];
-		o.color.b = vals[2];
-	}
-	@Override
-	public void setI(SBObject o, float[] vals, int startTime) {
-		if(startTime < o.iColorTime) {
-			o.iColorTime = startTime;
-			o.icolor.r = vals[0];
-			o.icolor.g = vals[1];
-			o.icolor.b = vals[2];
-		}
-		
-	}
-	@Override
-	public void get(SBObject o, float[] vals) {
-		vals[0] = o.color.r;
-		vals[1] = o.color.g;
-		vals[2] = o.color.b;
-	}
-	@Override
-	public void init(float[] vals) {
-		vals[0]/=255;
-		vals[1]/=255;
-		vals[2]/=255;
-	}
 }
 
 abstract class SBCommandMult extends SBCommand{
 	ArrayList<SBCommand> commands;
-	//ArrayList<SBEvent> events = new ArrayList<>();
 	HashSet<SBCommand> activeCommands = new HashSet<>();
-	//int start = Integer.MAX_VALUE, end = Integer.MIN_VALUE;
 	int eventsDuration;
 	SBComEventRunner events = new SBComEventRunner();
 	public SBCommandMult(SBObject obj, int startTime, int endTime, ArrayList<SBCommand> commands) {
 		super(obj, startTime, endTime);
 		this.commands = commands;
 		
-		/*for(SBCommand c : commands) {
-			start = Math.min(start, c.startTime);
-			end = Math.max(end, c.endTime);
-			if(c.startTime == c.endTime) {
-				events.add(new EndCommandSBEvent(c.startTime, c));
-			}
-			events.add(new AttachCommandSBEvent(c.startTime, activeCommands, c));
-			events.add(new RemoveCommandSBEvent(c.endTime, activeCommands, c));
-		}*/
 		events.addCommands(commands, activeCommands);
 		eventsDuration = events.end - events.start;
-		//events.start = 0;
 		events.ready();
-		/*events.sort(new Comparator<SBEvent>() {
-			@Override
-			public int compare(SBEvent o1, SBEvent o2) {
-				return Integer.compare(o1.getTime(), o2.getTime());
-			}
-		});*/
 	}
 	@Override
 	public void start() {
@@ -455,30 +425,18 @@ class SBCommandLoop extends SBCommandMult implements SBEventRunnerListener{
 	
 	@Override
 	final public void update(int trackPosition) {
-		//if (duration>0)
-		//	updateT(Utils.clamp((trackPosition - startTime) / duration ,0,1));
-		
-		//for (SBCommand c : commands) {
-		//	if c.startTime
-		//	c.update(trackPosition - startTime);
-		//}
-		//construct event table
 		trackPosition -= startTime;
 		
-		//if (trackPosition > eventsDuration + events.start) {
-		//	trackPosition -= events.start;
-			int loopAt = trackPosition / eventsDuration;
-			if (currentloop != loopAt) {
-				events.reset();
-				currentloop = loopAt;
-				if (loopAt >= maxLoop) {
-					System.err.println("MAXED LOOP:"+loopAt+" "+maxLoop);
-				}
+		int loopAt = trackPosition / eventsDuration;
+		if (currentloop != loopAt) {
+			events.reset();
+			currentloop = loopAt;
+			if (loopAt >= maxLoop) {
+				System.err.println("MAXED LOOP:"+loopAt+" "+maxLoop);
 			}
-			trackPosition %= eventsDuration;
-			trackPosition += events.start;
-		//}
-		//System.out.println("LOOP:"+obj.lineNumber+" "+events.eventsIndex+" tp:"+trackPosition+" l:"+currentloop+"/"+maxLoop+" "+events.start+" "+startTime+" "+endTime+" "+eventsDuration+" "+activeCommands.size()+" "+events.events.size());
+		}
+		trackPosition %= eventsDuration;
+		trackPosition += events.start;
 		
 		events.update(trackPosition);
 		for(SBCommand c : activeCommands) {
@@ -535,10 +493,6 @@ class SBCommandTrigger extends SBCommandMult implements SBEventRunnerListener, T
 			isRunning = false;
 			trackPosition = events.end;
 		}
-		//if (!isRunning || trackPosition < 0 || trackPosition > events.end)
-		//	return;
-		
-		//System.out.println("update "+triggerName+" "+trackPosition+" "+this+" "+obj+" ");
 		events.update(trackPosition);
 		for(SBCommand c : activeCommands) {
 			c.update(trackPosition);
@@ -547,14 +501,12 @@ class SBCommandTrigger extends SBCommandMult implements SBEventRunnerListener, T
 
 	@Override
 	public void start() {
-		//System.out.println("Starting Trigger "+this+" "+triggerName);
 		super.start();
 		sb.addTriggerListener(this, triggerName);
 	}
 
 	@Override
 	public void end() {
-		//System.out.println("Ending Trigger "+this);
 		sb.removeTriggerListener(this, triggerName);
 		super.end();
 	}
@@ -562,8 +514,6 @@ class SBCommandTrigger extends SBCommandMult implements SBEventRunnerListener, T
 	@Override
 	public void trigger(int trackPosition) {
 		obj.addActiveTrigger(this);
-		//System.out.println("trigger "+triggerName+" "+trackPosition+" "+startTime+" "+endTime+" "+this+" "+obj+" ");
-		
 		trackStartPos = trackPosition;
 		update(trackStartPos);
 		events.reset();
@@ -575,8 +525,6 @@ class SBCommandTrigger extends SBCommandMult implements SBEventRunnerListener, T
 		// TODO Auto-generated method stub
 		
 	}
-	
-	
 }
 
 class SBCommandEventFlipH extends SBCommand{

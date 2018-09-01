@@ -2,18 +2,22 @@ package itdelatrisu.opsu.storyboard;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
+import java.util.Iterator;
+import java.util.Set;
 import java.util.TreeSet;
 
-import org.lwjgl.opengl.GL11;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.opengl.renderer.Renderer;
 import org.newdawn.slick.opengl.renderer.SGL;
 
-import itdelatrisu.opsu.ui.Fonts;
-
+/**
+ * Storyboard Object
+ * 
+ * @author fluddokt
+ *
+ */
 public class SBObject implements Comparable<SBObject>{
 
 	Image im;
@@ -22,7 +26,7 @@ public class SBObject implements Comparable<SBObject>{
 	float scaleAll = 1;
 	
 	Color color = new Color(Color.white);
-	Color tempColor = new Color(0xffffff);
+	Color tempColor = new Color(Color.white);
 	float rotation;
 	float opacity;
 	int lineNumber;
@@ -38,6 +42,7 @@ public class SBObject implements Comparable<SBObject>{
 	Color icolor = new Color(Color.white);
 	boolean ihFliped, ivFliped, iadditiveBlend;
 	
+	//Time for current most initial value
 	int ixTime = Integer.MAX_VALUE, iyTime = Integer.MAX_VALUE;
 	int iOpacityTime = Integer.MAX_VALUE;
 	int iRotationTime = Integer.MAX_VALUE;
@@ -45,14 +50,8 @@ public class SBObject implements Comparable<SBObject>{
 	int iscaleSPTime = Integer.MAX_VALUE;
 	int iColorTime = Integer.MAX_VALUE;
 	
-	
 	int start = Integer.MAX_VALUE, end = Integer.MIN_VALUE;
 	
-	/*public enum SBAlign{
-		TopLeft, TopCentre, TopRight,
-		CentreLeft, Centre, CentreRight,
-		BottomLeft, BottomCentre, BottomRight,
-	}*/
 	public enum SBAlignH{
 		Left, Centre, Right
 	}
@@ -66,8 +65,8 @@ public class SBObject implements Comparable<SBObject>{
 	
 	SBComEventRunner events = new SBComEventRunner();
 
-	HashSet<SBCommand> activeCommands = new HashSet<>();
-	HashSet<SBCommandTrigger> activeTriggers = new HashSet<>();
+	Set<SBCommand> activeCommands = new HashSet<>();
+	Set<SBCommandTrigger> activeTriggers = new HashSet<>();
 	
 	public TreeSet<SBObject> layer;
 	
@@ -80,7 +79,6 @@ public class SBObject implements Comparable<SBObject>{
 		this.lineNumber = line;
 		this.index = index;
 		this.layer = layerTS;
-		//this.align = getAlign(align);
 		setAlign(align);
 		this.im = im;
 		this.ix = x;
@@ -91,7 +89,7 @@ public class SBObject implements Comparable<SBObject>{
 	public void reset() {
 		x = ix;
 		y = iy;
-		sx = isy;
+		sx = isx;
 		sy = isy;
 		scaleAll = iscaleAll;
 		rotation = iRotation;
@@ -110,65 +108,17 @@ public class SBObject implements Comparable<SBObject>{
 	protected static SGL GL = Renderer.get();
 	
 	public boolean render(Graphics g, float dimLevel) {
-		if (!isActive || opacity <= 0 || sx == 0 || sy == 0 || scaleAll == 0)
+		if (opacity <= 0 || sx == 0 || sy == 0 || scaleAll == 0)
 			return false;
-		/*
-		//x+= lineNumber;
-		g.setFont(Fonts.LARGE);
-		g.setColor(Color.black);
-		//g.drawRect(x-orginx, y-orginy, width, height);
-		String txt = lineNumber+" "+activeCommands.size()+" "+events.eventsIndex+" "+opacity;
 		
-		
-		g.drawString(txt, x+rand-1, y+rand-1);
-		//g.drawString(txt, x+rand+1, y+rand+1);
-		g.setColor(Color.white);
-		g.drawString(txt, x+rand, y+rand);
-		//*/
-		//g.setColor(opacity <= 0? Color.red : Color.white);
-		//g.drawRect(x, y, 3, 3);
 		if (sx < 0)
 			sx = -sx;
 		if (sy < 0)
 			sy = -sy;
 		float width = sx * scaleAll * im.getWidth()*Storyboard.getYMultiplier();
-		float height = sy * scaleAll* im.getHeight()*Storyboard.getYMultiplier();
+		float height = sy * scaleAll * im.getHeight()*Storyboard.getYMultiplier();
 		float orginx = 0;
 		float orginy = 0;
-	/*	switch(align){
-			case TopLeft:
-			case TopCentre:
-			case TopRight:
-				break;
-			case CentreLeft:
-			case Centre:
-			case CentreRight:
-				orginy = height/2;
-				break;
-			case BottomLeft:
-			case BottomCentre:
-			case BottomRight:
-				orginy = height;
-				break;
-				
-		}
-		
-		switch(align){
-			case TopLeft:
-			case CentreLeft:
-			case BottomLeft:
-				break;
-			case TopCentre:
-			case Centre:
-			case BottomCentre:
-				orginx = width/2;
-				break;
-			case TopRight:
-			case CentreRight:
-			case BottomRight:
-				orginx = width;
-					break;
-		}*/
 		
 		switch(alignV){
 			case Top: break;
@@ -184,7 +134,10 @@ public class SBObject implements Comparable<SBObject>{
 		}
 		im.setAlpha(opacity);
 		if (additiveBlend)
-			GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE);
+			g.setDrawMode(Graphics.MODE_NORMAL_ADDITIVE_BLEND);
+		else
+			g.setDrawMode(Graphics.MODE_NORMAL);
+		
 		if (hFliped || vFliped) {
 			im.setFlipped(hFliped, vFliped);
 		}
@@ -203,28 +156,25 @@ public class SBObject implements Comparable<SBObject>{
 		}
 		if (hFliped || vFliped)
 			im.setFlipped(false, false);
-		if (additiveBlend)
-			g.setDrawMode(Graphics.MODE_NORMAL);
+		/*
+		//x+= lineNumber;
+		g.setFont(itdelatrisu.opsu.ui.Fonts.LARGE);
+		g.setColor(Color.black);
+		//g.drawRect(x-orginx, y-orginy, width, height);
+		String txt = lineNumber+" "+activeCommands.size()+" "+events.eventsIndex+" "+opacity;
 		
-		g.setLineWidth(1f);
 		
-		//System.out.println("Render:"+im+" "+x+" "+y+" "+opacity+" "+orginx+" "+orginy+" "+sx);
+		g.drawString(txt, x+rand*10-1, y+rand*10-1);
+		//g.drawString(txt, x+rand+1, y+rand+1);
+		g.setColor(Color.white);
+		g.drawString(txt, x+rand, y+rand);
+		//*/
+		//g.setColor(opacity <= 0? Color.red : Color.white);
+		//g.drawRect(x, y, 3, 3);
+		
 		return true;
 	}
-	/*public static SBAlign getAlign(String align){
-		switch(align){
-		default:
-		case "TopLeft": return SBAlign.TopLeft;
-		case "TopCentre": return SBAlign.TopCentre;
-		case "TopRight": return SBAlign.TopRight;
-		case "CentreLeft": return SBAlign.CentreLeft;
-		case "Centre": return SBAlign.Centre;
-		case "CentreRight": return SBAlign.CentreRight;
-		case "BottomLeft": return SBAlign.BottomLeft;
-		case "BottomCentre": return SBAlign.BottomCentre;
-		case "BottomRight": return SBAlign.BottomRight;
-		}
-	}*/
+	
 	public void setAlign(String align){
 		switch(align){
 		default:
@@ -262,36 +212,28 @@ public class SBObject implements Comparable<SBObject>{
 		commands.add(event);
 	}
 
-	List<SBCommandTrigger> trigClearList = new ArrayList<>();
 	public void update(int trackPosition) {
-		//if (opacity <= 0)
-		//	return;
-		//visible = trackPosition>start && trackPosition<end;
 		events.update(trackPosition);
-		//if (! visible || opacity <= 0)
-		//	return;
+
 		for(SBCommand c : activeCommands)
 			c.update(trackPosition);
 		
-		for(SBCommandTrigger c : activeTriggers) {
+		Iterator<SBCommandTrigger> ita = activeTriggers.iterator();
+		while (ita.hasNext()) {
+			SBCommandTrigger c = ita.next();
 			c.update(trackPosition);
 			if (!c.isRunning)
-				trigClearList.add(c);
+				ita.remove();
 		}
-		activeTriggers.removeAll(trigClearList);
-		trigClearList.clear();
-		
 	}
 
 	public void init() {
-		//initial values are based on the first(startTime?) commands of those types.
-		//even if that startTime didn't pass yet ............ -_-"
-		//not sure if this includes loops/triggers 
-		//includes loops/......
-		
-		//Optimization: find when opacity is 0 and add events to remove/add?
 		events.addCommands(commands, activeCommands);
 		events.ready();
+		for(SBCommand c2 : commands) {
+			if (c2 instanceof SBCommandTrigger)
+				iOpacity = 0;
+		}
 		for(SBCommand c2 : commands) {
 			start = Math.min(start, c2.startTime);
 			end = Math.max(end, c2.endTime);
@@ -310,7 +252,7 @@ public class SBObject implements Comparable<SBObject>{
 		String t = "";
 		//for(SBCommand s : activeCommands)
 		//	t+=" "+s;
-		return "SBObject line:"+lineNumber+" "+x+" "+y+" "+sx+" "+sy+" "+opacity+" "+rotation+" "+color+" "+t;
+		return "SBObject line:"+lineNumber+" "+x+" "+y+" s:"+sx+" "+sy+" sa:"+scaleAll+" op:"+opacity+" "+rotation+" "+color+" "+t+" "+isx+" "+iscaleAll;
 	}
 
 	public void addActiveTrigger(SBCommandTrigger sbCommandTrigger) {
@@ -320,7 +262,6 @@ public class SBObject implements Comparable<SBObject>{
 }
 class SBAnimObject extends SBObject {
 
-	//based on initial start time
 	private int frameDelay;
 	private Image[] imgs;
 	
@@ -341,6 +282,8 @@ class SBAnimObject extends SBObject {
 
 	@Override
 	public void update(int trackPosition) {
+		//0th frame based on initial start time
+		
 		int index = (trackPosition - start)/frameDelay;
 		if(index >= imgs.length) {
 			if (loopType == FOREVER) {

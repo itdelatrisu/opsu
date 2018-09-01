@@ -95,14 +95,12 @@ public class Opsu extends StateBasedGame {
 	 */
 	public static void main(String[] args) {
 		// log all errors to a file
-		Log.setVerbose(true);
-		/*
+		Log.setVerbose(false);
 		try {
 			DefaultLogSystem.out = new PrintStream(new FileOutputStream(Options.LOG_FILE, true));
 		} catch (FileNotFoundException e) {
 			Log.error(e);
 		}
-		*/
 
 		// set default exception handler
 		Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {

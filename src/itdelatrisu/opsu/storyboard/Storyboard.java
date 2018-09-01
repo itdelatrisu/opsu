@@ -12,86 +12,43 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.TreeSet;
 
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
-import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.opengl.renderer.Renderer;
 import org.newdawn.slick.opengl.renderer.SGL;
 
-import itdelatrisu.opsu.ErrorHandler;
-import itdelatrisu.opsu.ui.Fonts;
-
+/**
+ * Main Storyboard class based on
+ * https://osu.ppy.sh/forum/viewtopic.php?p=12468#p12468
+ * https://osu.ppy.sh/help/wiki/Storyboard_Scripting/Commands
+ * 
+ * Currently works by making a timeline of when to add/remove objects 
+ * each object also make its own timeline for commands
+ * 
+ * probably buggy
+ * known bugs:
+ *  textures bleeding especially single pixel
+ * Triggers / visibility
+ *   only visible if gets triggered unless already visible....
+ *   Things auto visible unless contains trigger??
+ * @author fluddokt
+ *
+ */
 public class Storyboard {
 
-	/*
-	https://osu.ppy.sh/forum/viewtopic.php?p=12468#p12468
 	
-	O ShortHands {Sequential Vals Repeats} {startVal/endVal}{startTime/EndTime} 
-	O 	repeat commands shorthand[multiple same command listed as one command]
-	O Params Command HVA
-	O Loop
-	? Stacked compound statement(Loops in loops?)
-	
-	
-	Pass Fail layer
-	Trigger
->>>	  triggers should finish normally if triggered even if it is pass its end time?
-	
-	O Animation
-	animation starts on first active command
-	better image memory management[unload/load images as necessary somehow?]
-	
-	.osu + .osb storyboard append
-	Storyboard Variables?
-	
-	bg / video / storyboard[remove bg when first used at that time ?]
-	wide screen storyboard
-	no breaks bars
-	osu seems to have a white tint?
-	
-	loop commands dont get reseted so may not display correctly while seeking
-	trigger commands doesn't make object auto visible?
-	trigger at trackPos instead of object time?
-	initial values on loops and trigger...
-	trigger command overrides other commands
-	obj is not Active until a command is active, a triggerCommand is not active until it gets trigger
-	
-	
-	objects are active from the lowest start time to the highest end time.
-	initial values based on first time stamped command [better way?]
-	objects keeps the value even after the command finishes
-	command time collision: shorter command first, last command for commands with the exact same time
-	the first commands that runs finishes before the next one can start
-	S and V time collides with each other but uses different scales...?
-	shorthand time S uses a different scale vs V
-	
-	probably implemented by a track for each type of command and only one of each type can be on.
-	
-	artifacting on 1px img[something something pow2 edge-bleed?]
-	trigger doesnt have priority?
-	animation start time?
-	
-	dimming
-	cleanup/comment
-	*/
-	
-	private static int containerHeight;
+
 	private static float xMultiplier;
 	private static float yMultiplier;
 	private static int xOffset;
 	private static int yOffset;
-	//have a list of objects draw layers 
-	//have a list of events (add/remove to draw list |  add/remove commands)
-	//have a list of commands
 	public static void init(int width, int height) {
-		containerHeight = height;
 		int swidth = width;
 		int sheight = height;
 		if (swidth * 3 > sheight * 4)
@@ -110,20 +67,8 @@ public class Storyboard {
 	TreeSet<SBObject> foreground = new TreeSet<>();
 	TreeSet<SBObject> fail = new TreeSet<>();
 	TreeSet<SBObject> pass = new TreeSet<>();
-	
-	//HashSet<SBCommand> activeCommands = new HashSet<>();
 
 	SBEventRunner events = new SBEventRunner();
-	
-	SBFadeModify fadeM = new SBFadeModify();
-	SBMoveModify moveM = new SBMoveModify();
-	SBMovexModify movexM = new SBMovexModify();
-	SBMoveyModify moveyM = new SBMoveyModify();
-	SBScaleModify scaleM = new SBScaleModify();
-	SBSpecialScaleModify specialScaleM = new SBSpecialScaleModify();
-	SBVecScaleModify vecScaleM = new SBVecScaleModify();
-	SBRotateModify rotateM = new SBRotateModify();
-	SBColorModify colorM = new SBColorModify();
 	
 	HashSet<TriggerListener> trigListenerSet = new HashSet<>();
 	HashMap<TriggerEvent, HashSet<TriggerListener>> trigLis = new HashMap<>();
@@ -134,8 +79,9 @@ public class Storyboard {
 	/** The renderer to use for all GL operations */
 	protected static SGL GL = Renderer.get();
 	int objCnt = 0;
-	
+	int inactiveCnt;
 	boolean isFailing = false;
+	boolean additiveBlending = false;
 	
 	public Storyboard(File file){
 		this.file = file;
@@ -247,18 +193,23 @@ public class Storyboard {
 		for(SBObject o : objs) {
 			o.init();
 		}
+		
+		//Creates attach and remove events for objects when visibility changes
+		
 		//objects are not visible as long as fade<=0 or sx/sy == 0 
 		//or objects is out of bounds?
 		//as long as not used in loop or trigger can remove objects?
 		//if starts or ends with != 0 then visible
+		//currently only does fade and is pretty buggy.
 		class TEvent {
 			int time;
 			int state;
 			int mod;
 			final static int Fade = 1
-			,ScaleX = 2
+			/*,ScaleX = 2
 			,ScaleY = 3
-			,ScaleA = 4;
+			,ScaleA = 4*/
+			;
 			final static int 
 					Update = 1
 					,NoUpdate = 2
@@ -282,7 +233,7 @@ public class Storyboard {
 			for(SBCommand c : o.commands) {
 				if (c instanceof SBCommandMod) {
 					SBCommandMod c2 = (SBCommandMod)c;
-					if (c2.mod == fadeM) {
+					if (c2.mod == SBModify.SBFadeModify) {
 						//s0 e0 - no update s
 						//s0 e1 - update s
 						//s1 e0 - update s noupdate e
@@ -306,7 +257,7 @@ public class Storyboard {
 					for (SBCommand c3: c2.commands) {
 						if(c3 instanceof SBCommandMod) {
 							SBCommandMod c4 = (SBCommandMod)c3;
-							if (c4.mod == fadeM) {
+							if (c4.mod == SBModify.SBFadeModify) {
 								usesFade = true;
 							}
 						}
@@ -316,9 +267,8 @@ public class Storyboard {
 						list.add(new TEvent(c2.endTime, TEvent.EndMulti, TEvent.Fade));
 					}
 				}
-				//c.isSameInitalEndValue;
 			}
-			list.sort(new Comparator<TEvent>() {
+			Collections.sort(list, new Comparator<TEvent>() {
 
 				@Override
 				public int compare(TEvent o1, TEvent o2) {
@@ -345,11 +295,10 @@ public class Storyboard {
 					break;
 				case TEvent.EndMulti:
 					fadeMultiCnt--;
+					fadeVis = true;
 					break;
 				}
 				boolean needsToUpdate = (fadeMultiCnt > 0 || fadeVis);
-				if (fadeMultiCnt > 0)
-					System.out.println("Fade MultiCnt > 0");
 				if (isUpdating != needsToUpdate) {
 					isUpdating = !isUpdating;
 					if(isUpdating) {
@@ -366,8 +315,7 @@ public class Storyboard {
 						removeAtEnd = false;
 						
 					}
-					System.out.println(e+" "+isUpdating+" "+o);
-				}
+					}
 			}
 			if (addAtStart)
 				events.add(new AttachObjectSBEvent(o.start, this, o));
@@ -378,7 +326,6 @@ public class Storyboard {
 				events.add(new RemoveObjectSBEvent(o.end, this, o));
 			//*/
 		}
-		System.out.println("events Size:"+events.events.size());
 		events.ready();
 		events.setListener(new SBEventRunnerListener() {
 			@Override
@@ -394,7 +341,7 @@ public class Storyboard {
 		int p = Math.max(fileName.lastIndexOf('/'), fileName.lastIndexOf('\\'));
 
 		if (i > p) {
-		    extension = fileName.substring(i);
+			extension = fileName.substring(i);
 		}
 		return extension;
 	}
@@ -405,9 +352,6 @@ public class Storyboard {
 		String line;
 		String[] tokens;
 		
-		String indentStr = "";
-		for (int i=0; i<indent; i++)
-			indentStr+=" ";
 		line = in.readLine();
 		while (line != null) {
 			if (!isValidLine(line))
@@ -431,28 +375,28 @@ public class Storyboard {
 					
 					
 				case "F":
-					command = fadeM;
+					command = SBModify.SBFadeModify;
 					break;
 				case "M":
-					command = moveM;
+					command = SBModify.SBMoveModify;
 					break;
 				case "MX":
-					command = movexM;
+					command = SBModify.SBMovexModify;
 					break;
 				case "MY":
-					command = moveyM;
+					command = SBModify.SBMoveyModify;
 					break;
 				case "S":
-					command = scaleM;
+					command = SBModify.SBScaleModify;
 					break;
 				case "V":
-					command = vecScaleM;
+					command = SBModify.SBVecScaleModify;
 					break;
 				case "R":
-					command = rotateM;
+					command = SBModify.SBRotateModify;
 					break;
 				case "C":
-					command = colorM;
+					command = SBModify.SBColorModify;
 					break;
 				case "P": {
 					int tstartTime = Integer.parseInt(tokens[2]);
@@ -467,19 +411,11 @@ public class Storyboard {
 				case "L": {
 					int tstartTime = Integer.parseInt(tokens[1]);
 					int loopCnt = Integer.parseInt(tokens[2]);
-					//loops in loops / loops in triggers / triggers in loops ???
-					//System.err.println(" L command not implemented L:"+" "+in.getLineNumber()+" ST:"+tstartTime+" LOOP:"+loopCnt);
 					ArrayList<SBCommand> commands2 = new ArrayList<SBCommand>();
 					line = parseCommands(in, indent+1, o, commands2);
-					//commands.addAll(unrollLoop(tstartTime, loopCnt, commands2));
 					commands.add(new SBCommandLoop(o, tstartTime, loopCnt, commands2));
-					//for (SBCommand c : commands2) {
-					//	commands.add(c.clone());
-					//}
-					//o.addEvent(new SBCommandLoop(o, tstartTime, loopCnt, commands2, this));
 				} continue; //don't read next line
 				case "T": {
-					//System.err.println(" T command not implemented");
 					String triggerName = tokens[1];
 					int tstartTime = Integer.parseInt(tokens[2]);
 					int tendTime = Integer.parseInt(tokens[3]);
@@ -494,8 +430,8 @@ public class Storyboard {
 				int startTime = Integer.parseInt(tokens[2]);
 				int endTime = tokens[3].length()>0?Integer.parseInt(tokens[3]):startTime;
 				int duration = endTime - startTime;
-				if (command == scaleM && startTime == endTime)
-					command = specialScaleM;
+				if (command == SBModify.SBScaleModify && startTime == endTime)
+					command = SBModify.SBSpecialScaleModify;
 				int nvars = command.vars();
 				int repeats = (tokens.length - 4 - nvars)/(nvars);
 				int tokensAt = 4;
@@ -538,23 +474,7 @@ public class Storyboard {
 		return line;
 		
 	}
-	private List<SBCommand> unrollLoop(int tstartTime, int loopCnt, ArrayList<SBCommand> commands) {
-		LinkedList<SBCommand> list = new LinkedList<>(); 
-		int start = Integer.MAX_VALUE, end = Integer.MIN_VALUE;
-
-		//find start
-		//find end
-		for(SBCommand c : commands) {
-			start = Math.min(start, c.startTime);
-			end = Math.max(end, c.endTime);
-		}
-		for (int i=0; i<loopCnt; i++) {
-			for(SBCommand c : commands) {
-				list.add(c.cloneOffset());
-			}
-		}
-		return null;
-	}
+	
 	/**
 	 * Returns false if the line is too short or commented.
 	 */
@@ -565,7 +485,6 @@ public class Storyboard {
 	HashMap<String, Image> imageCache = new HashMap<>();
 	public Image getImage(File parent, String path) {
 		Image im = imageCache.get(path);
-		//System.out.println("Get: "+path);
 		if (im == null) {
 			try {
 				GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL12.GL_CLAMP_TO_EDGE);
@@ -575,9 +494,7 @@ public class Storyboard {
 					im = new Image(32, 32);
 				}else
 					im = new Image(parent+"/"+path);//, false, 0);
-				//im = im.getScaledCopy(yMultiplier);
 				imageCache.put(path, im);
-				System.out.println("Load: "+path);
 			} catch (Exception e) {
 				System.out.println("Error loading "+path);
 				e.printStackTrace();
@@ -587,7 +504,8 @@ public class Storyboard {
 	}
 
 	public void render(Graphics g, float dimLevel) {
-		int inactiveCnt = 0;
+		additiveBlending = false;
+		inactiveCnt = 0;
 		for(SBObject o : background) {
 			if (!o.render(g, dimLevel))
 				inactiveCnt ++;
@@ -601,7 +519,8 @@ public class Storyboard {
 			if (!o.render(g, dimLevel))
 				inactiveCnt ++;
 		}
-		//*
+		g.setDrawMode(Graphics.MODE_NORMAL);
+		/*
 		//System.out.println("Active Objs cnt:"+background.size()+" "+foreground.size());
 		String t = "objCnt: total:"+objs.size()+" f:"+foreground.size()+" b:"+background.size()+" inactive:"+inactiveCnt+" tp:"+trkPos;
 		g.setColor(Color.black);
@@ -610,20 +529,21 @@ public class Storyboard {
 		g.setColor(Color.white);
 		g.drawString(t, 124, 50);
 		g.setColor(Color.black);
-		//*/
+		
 		int y = 50+12;
-		int dy = Fonts.SMALL.getLineHeight()*7/8;
-		/*
+		int dy = itdelatrisu.opsu.ui.Fonts.SMALL.getLineHeight()*7/8;
+		int containerHeight = 600;
+		
 		for(SBObject o :foreground) {
 			if (o.opacity > 0)
-				Fonts.SMALL.drawString(125, y += dy, o.toString());
-			if (y > containerHeight)
+				itdelatrisu.opsu.ui.Fonts.SMALL.drawString(125, y += dy, o.toString());
+			if (y > containerHeight )
 				break;
 		}
 		y += dy;
 		for(SBObject o :pass) {
 			if (o.opacity > 0)
-				Fonts.SMALL.drawString(125, y += dy, o.toString());
+				itdelatrisu.opsu.ui.Fonts.SMALL.drawString(125, y += dy, o.toString());
 			if (y > containerHeight)
 				break;
 		}
@@ -631,14 +551,14 @@ public class Storyboard {
 		y += dy;
 		for(SBObject o :fail) {
 			if (o.opacity > 0)
-				Fonts.SMALL.drawString(125, y += dy, o.toString());
+				itdelatrisu.opsu.ui.Fonts.SMALL.drawString(125, y += dy, o.toString());
 			if (y > containerHeight)
 				break;
 		}
 		y += dy;
 		for(SBObject o :background) {
 			if (o.opacity > 0)
-				Fonts.SMALL.drawString(125, y += dy, o.toString());
+				itdelatrisu.opsu.ui.Fonts.SMALL.drawString(125, y += dy, o.toString());
 			if (y > containerHeight)
 				break;
 		}
@@ -666,17 +586,6 @@ public class Storyboard {
 		for(SBObject o: foreground) {
 			o.update(trackPosition);
 		}
-		/*
-		for(SBObject o : objs) {
-			o.update(trackPosition);
-		}
-		/*/
-		/*
-		for(SBCommand c : activeCommands) {
-			c.update(trackPosition);
-		}
-		//*/
-		//System.out.println("Active Commands cnt:"+activeCommands.size());
 	}
 	public void reset() {
 		background.clear();
@@ -684,7 +593,6 @@ public class Storyboard {
 		fail.clear();
 		foreground.clear();
 		isFailing = false;
-		//activeCommands.clear();
 		for (SBObject o : objs) {
 			o.reset();
 		}
@@ -786,7 +694,7 @@ public class Storyboard {
 				}
 			}
 			if(cnt>0){
-				System.out.println("nobjs:"+cnt+" "+(hasL?"L":"")+(hasT?"T":""));
+				System.out.println("nobjs:"+cnt+" "+(hasL?"L":"")+(hasT?"T":""));//TODO delete me
 				return true;
 			}
 		}
@@ -808,40 +716,33 @@ public class Storyboard {
 	}
 	
 	public void nowPassing(int trackPosition) {
-		System.out.println("trigger nowPassing "+trackPosition);
 		for(TriggerListener l : trigLis.get(TriggerEvent.Passing)) {
 			l.trigger(trackPosition);
 		}
 		isFailing = false;
 	}
 	public void nowFailing(int trackPosition) {
-		System.out.println("trigger nowFailing "+trackPosition);
 		for(TriggerListener l : trigLis.get(TriggerEvent.Failing)) {
 			l.trigger(trackPosition);
 		}
 		isFailing = true;
-
 	}
 	public void nowHitSoundClap(int trackPosition) {
-		//System.out.println("trigger nowHitSoundClap "+trackPosition);
 		for(TriggerListener l : trigLis.get(TriggerEvent.HitSoundClap)) {
 			l.trigger(trackPosition);
 		}
 	}
 	public void nowHitSoundFinish(int trackPosition) {
-		//System.out.println("trigger nowHitSoundFinish "+trackPosition);
 		for(TriggerListener l : trigLis.get(TriggerEvent.HitSoundFinish)) {
 			l.trigger(trackPosition);
 		}
 	}
 	public void nowHitSoundWhistle(int trackPosition) {
-		//System.out.println("trigger nowHitSoundWhistle "+trackPosition);
 		for(TriggerListener l : trigLis.get(TriggerEvent.HitSoundWhistle)) {
 			l.trigger(trackPosition);
 		}
 	}
 	public void addActiveTrigger(SBCommandTrigger sbCommandTrigger) {
 		activeTriggers.add(sbCommandTrigger);
-		
 	}
 }

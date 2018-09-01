@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with opsu!.  If not, see <http://www.gnu.org/licenses/>.
  */
-
+//TODO revert this file
 package itdelatrisu.opsu.beatmap;
 
 import itdelatrisu.opsu.GameImage;
@@ -125,7 +125,6 @@ public enum BeatmapGroup {
 			}
 			if (Storyboard.storyboardExist(b.getFile())) {
 				System.out.println("internal storyboard? :"+sbname+" "+sbFile.exists());
-				
 				return true;
 			}
 		} catch (IOException e) {
@@ -133,14 +132,6 @@ public enum BeatmapGroup {
 		}
 		
 		return false;
-	}
-
-	
-	/**
-	 * Returns false if the line is too short or commented.
-	 */
-	private static boolean isValidLine(String line) {
-		return (line.length() > 1 && !line.startsWith("//"));
 	}
 
 	/** The ID of the group (used for tab positioning). */

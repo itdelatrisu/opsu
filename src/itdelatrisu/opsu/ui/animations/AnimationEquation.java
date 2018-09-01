@@ -283,6 +283,7 @@ public enum AnimationEquation {
 			return (float) Math.pow(2, -10 * t) * (float) Math.sin((t - period / 4) * (Math.PI * 2) / period) + 1;
 		}
 	},
+	//TODO probably wrong
 	OUT_ELASTIC_HALF {
 		@Override
 		public float calc(float t) {
@@ -292,6 +293,7 @@ public enum AnimationEquation {
 			return (float) Math.pow(2, -10 * t) * (float) Math.sin((t - period / 4) * (Math.PI * 2) / period) + 1;
 		}
 	},
+	//TODO probably wrong
 	OUT_ELASTIC_QUARTER {
 		@Override
 		public float calc(float t) {

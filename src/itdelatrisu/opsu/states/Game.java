@@ -63,10 +63,8 @@ import itdelatrisu.opsu.user.User;
 import itdelatrisu.opsu.user.UserList;
 import itdelatrisu.opsu.video.FFmpeg;
 import itdelatrisu.opsu.video.Video;
-import sun.awt.image.PixelConverter.Bgrx;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -326,6 +324,7 @@ public class Game extends BasicGameState {
 	/** The video seek time (if any). */
 	private int videoSeekTime;
 	
+	/** The storyboard (if any). */
 	private Storyboard storyboard;
 
 	/** The single merged slider (if enabled). */
@@ -423,32 +422,33 @@ public class Game extends BasicGameState {
 					dimLevel = 1f;
 			}
 			if(useBGImage)
-				if (Options.isDefaultPlayfieldForced() || !beatmap.drawBackground(width, height, 0, 0, dimLevel, true)) {
+				if (Options.isDefaultPlayfieldForced() || !beatmap.drawBackground(width, height, 0, 0, dimLevel, storyboard == null)) {
 					Image bg = GameImage.MENU_BG.getImage();
 					bg.setAlpha(dimLevel);
 					bg.drawCentered(width / 2, height / 2);
 					bg.setAlpha(1f);
 				}
 		}
+		//Storyboard
 		boolean normalDim = true;
-		//Storyboard stuff
-		storyboard.render(g, normalDim?dimLevel:1);
-		if (!beatmap.widescreenStoryboard) {
-			float targetWidth = height * 4f / 3f;
-			if ( width > targetWidth) {
-				float barWidth = (width - targetWidth)/2;
-				g.setColor(Color.black);//not actually black but a dark cyan gradient
-				g.fillRect(0, 0, barWidth, height);
-				g.fillRect(width-barWidth, 0, barWidth, height);
-				
+		if (storyboard != null) {
+			storyboard.render(g, normalDim?dimLevel:1);
+			if (!beatmap.widescreenStoryboard) {
+				float targetWidth = height * 4f / 3f;
+				if ( width > targetWidth) {
+					float barWidth = (width - targetWidth)/2;
+					g.setColor(Color.black);
+					g.fillRect(0, 0, barWidth, height);
+					g.fillRect(width-barWidth, 0, barWidth, height);
+				}
 			}
-		}
-		if (!normalDim) {
-			float oldAlpha2 = Color.black.a;
-			Color.black.a = 1-dimLevel;
-			g.setColor(Color.black);
-			g.fillRect(0, 0, width, height);
-			Color.black.a = oldAlpha2;
+			if (!normalDim) {
+				float oldAlpha2 = Color.black.a;
+				Color.black.a = 1-dimLevel;
+				g.setColor(Color.black);
+				g.fillRect(0, 0, width, height);
+				Color.black.a = oldAlpha2;
+			}
 		}
 
 		if (GameMod.FLASHLIGHT.isActive())
@@ -568,7 +568,7 @@ public class Game extends BasicGameState {
 			int breakLength = endTime - breakTime;
 
 			// letterbox effect (black bars on top/bottom)
-			if (!storyboard.exists() && beatmap.letterboxInBreaks && breakLength >= 4000) {
+			if (storyboard == null && beatmap.letterboxInBreaks && breakLength >= 4000) {
 				// let it fade in/out
 				float a = Colors.BLACK_ALPHA.a;
 				if (trackPosition - breakTime > breakLength / 2) {
@@ -902,7 +902,8 @@ public class Game extends BasicGameState {
 			if (trackPosition >= videoStartTime)
 				video.update(trackPosition - videoStartTime - videoSeekTime);
 		}
-		storyboard.update(trackPosition);
+		if (storyboard != null)
+			storyboard.update(trackPosition);
 
 		// normal game update
 		if (!isReplay && !gameFinished) {
@@ -1094,9 +1095,8 @@ public class Game extends BasicGameState {
 				breakTime = breakValue;
 				breakSound = false;
 				breakIndex++;
-				if (storyboard != null) {
+				if (storyboard != null)
 					data.checkPassingFailingBreaks(trackPosition);
-				}
 				return;
 			}
 		}
@@ -1242,6 +1242,7 @@ public class Game extends BasicGameState {
 			// skip intro
 			if (!gameFinished)
 				skipIntro();
+			//TODO delete me
 			if(MusicController.isPaused())
 				MusicController.resume();
 			else
@@ -1699,8 +1700,8 @@ public class Game extends BasicGameState {
 			if (storyboard != null) {
 				if (storyboard.file.equals(beatmap.getFile())) {
 					storyboard.reset();
-					storyboard.dispose();//del
-					storyboard = null;//del
+					storyboard.dispose();//TODO del
+					storyboard = null;//TODO del
 				} else {
 					storyboard.dispose();
 					storyboard = null;
@@ -1717,16 +1718,18 @@ public class Game extends BasicGameState {
 					if (sbFile.exists()) {
 						storyboard.load(sbFile, bgStr);
 					}
-					System.out.println("storyboard:"+sbFile+" "+sbFile.exists());
-					data.setSBTrigListener(storyboard);
-					storyboard.ready();
+					if (storyboard.exists()){
+						data.setSBTrigListener(storyboard);
+						storyboard.ready();
+					} else {
+						storyboard = null;
+					}
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
 			}
 			
 			useBGImage = storyboard == null || !storyboard.exists() || beatmap.bg==null || !storyboard.usesBG();
-			System.out.println("USEBG:"+useBGImage+" "+(storyboard == null )+" "+( !storyboard.exists())+" "+(beatmap.bg!=null && !storyboard.usesBG()));
 			
 			// needs to play before setting position to resume without lag later
 			MusicController.playAt(0, false);
