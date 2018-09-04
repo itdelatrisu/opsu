@@ -1,0 +1,27 @@
+ <project>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.lwjgl.lwjgl</groupId>
+  <artifactId>parent</artifactId>
+  <packaging>pom</packaging>
+  <name>Lighweight Java Game Library</name>
+ <version>2.9.4-SNAPSHOT</version>
+  <description>Lighweight Java Game Library</description>
+  <url>http://lwjgl.org/</url>
+  <licenses>
+    <license>
+      <name>BSD</name>
+      <url>http://lwjgl.org/license.php</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+  <scm>
+    <url>http://java-game-lib.svn.sourceforge.net/viewvc/java-game-lib/trunk/</url>
+    <connection>https://java-game-lib.svn.sourceforge.net/svnroot/java-game-lib </connection>
+  </scm>
+  <developers>
+    <developer>
+      <id>Developers</id>
+      <url>http://lwjgl.org/credits.php</url>
+    </developer>
+  </developers>
+</project>
