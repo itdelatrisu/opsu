@@ -1368,9 +1368,9 @@ public class OptionsOverlay extends AbstractComponent {
 
 		// increment or decrement value
 		if (key == Input.KEY_RIGHT) {
-			hoverOption.setValue(hoverOption.getIntegerValue() + 1);
+			hoverOption.setValue(oldSliderValue + 1);
 		} else if (key == Input.KEY_LEFT) {
-			hoverOption.setValue(hoverOption.getIntegerValue() - 1);
+			hoverOption.setValue(oldSliderValue - 1);
 		}
 
 		// play sound effect
