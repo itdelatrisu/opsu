@@ -41,7 +41,7 @@ repositories {
 }
 
 dependencies {
-	compile('org.lwjgl.lwjgl:lwjgl:2.9.3') {
+	compile('org.lwjgl.lwjgl:lwjgl:2.9.4-SNAPSHOT') {
 		exclude group: 'net.java.jinput', module: 'jinput'
 	}
 	compile('org.slick2d:slick2d-core:1.0.2') {
