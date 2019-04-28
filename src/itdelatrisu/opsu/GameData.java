@@ -31,6 +31,7 @@ import itdelatrisu.opsu.options.Options;
 import itdelatrisu.opsu.replay.LifeFrame;
 import itdelatrisu.opsu.replay.Replay;
 import itdelatrisu.opsu.replay.ReplayFrame;
+import itdelatrisu.opsu.storyboard.Storyboard;
 import itdelatrisu.opsu.ui.Colors;
 import itdelatrisu.opsu.ui.Fonts;
 import itdelatrisu.opsu.ui.UI;
@@ -342,6 +343,9 @@ public class GameData {
 	/** Container dimensions. */
 	private int width, height;
 
+	Storyboard sbTrigListener;
+	
+	private boolean isPassing = true;
 	/**
 	 * Constructor for gameplay.
 	 * @param width container width
@@ -1449,6 +1453,9 @@ public class GameData {
 					hitObject.getEdgeHitSoundType(repeat),
 					hitObject.getSampleSet(repeat),
 					hitObject.getAdditionSampleSet(repeat));
+			
+			sendHitSoundTriggers(hitObject.getEdgeHitSoundType(repeat), time);
+			
 			break;
 		case HIT_SLIDER10:
 			hitValue = 10;
@@ -1595,7 +1602,9 @@ public class GameData {
 					hitObject.getEdgeHitSoundType(repeat),
 					hitObject.getSampleSet(repeat),
 					hitObject.getAdditionSampleSet(repeat));
-
+			
+			sendHitSoundTriggers(hitObject.getEdgeHitSoundType(repeat), time);
+			
 			// calculate score and increment combo streak
 			changeScore(getScoreForHit(hitValue, hitObject));
 			if (!noIncrementCombo)
@@ -1623,6 +1632,7 @@ public class GameData {
 				}
 			} else if (hitValue > 0)
 				health.changeHealthForHit(HIT_MU);
+			setPassFailState(comboEnd == 0, time);
 			comboEnd = 0;
 		}
 
@@ -1797,5 +1807,58 @@ public class GameData {
 			"Accuracy:\nError: %.2fms - %.2fms avg\nUnstable Rate: %.2f",
 			hitErrorEarly, hitErrorLate, unstableRate
 		);
+	}
+
+	
+	/**
+	 * Checks to see if passing or failing during a break.
+	 * @param trackPosition the current track position (in ms)
+	 */
+	public void checkPassingFailingBreaks(int trackPosition) {
+		setPassFailState(getHealthPercent() >= 50? PASSING : FAILING, trackPosition);
+	}
+	
+	//https://osu.ppy.sh/help/wiki/Storyboard_Scripting/General_Rules#game-state
+	boolean PASSING = true, FAILING = false;
+	int passingBreakCnt = 0, failingBreakCnt = 0; //used for states after last playtime....
+
+	/**
+	 * Sets the pass fail state and cause a trigger if it toggled
+	 * @param newState
+	 * @param trackPosition
+	 */
+	public void setPassFailState(boolean newState, int trackPosition) {
+		if (sbTrigListener != null && isPassing != newState) {
+			if (newState)
+				sbTrigListener.nowPassing(trackPosition);
+			else 
+				sbTrigListener.nowFailing(trackPosition);
+		}
+		isPassing = newState;
+	}
+	
+	
+	/**
+	 * Sends any triggers caused by this hitSound type
+	 * @param hitSound
+	 * @param time
+	 */
+	public void sendHitSoundTriggers(byte hitSound, int time) {
+		if (sbTrigListener != null) {
+			if ((hitSound & HitObject.SOUND_WHISTLE) > 0)
+				sbTrigListener.nowHitSoundWhistle(time);
+			if ((hitSound & HitObject.SOUND_FINISH) > 0)
+				sbTrigListener.nowHitSoundFinish(time);
+			if ((hitSound & HitObject.SOUND_CLAP) > 0)
+				sbTrigListener.nowHitSoundClap(time);
+		}
+	}
+
+	/**
+	 * Sets the Storyboard which is listening for trigger events
+	 * @param storyboard
+	 */
+	public void setSBTrigListener(Storyboard storyboard) {
+		this.sbTrigListener = storyboard;
 	}
 }

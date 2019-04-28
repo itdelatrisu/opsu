@@ -360,10 +360,13 @@ public class Beatmap implements Comparable<Beatmap> {
 		int sheight = height;
 		if (!stretch) {
 			// fit image to screen
-			if (bgImage.getWidth() / (float) bgImage.getHeight() > width / (float) height)  // x > y
-				sheight = (int) (width * bgImage.getHeight() / (float) bgImage.getWidth());
-			else
-				swidth = (int) (height * bgImage.getWidth() / (float) bgImage.getHeight());
+			//if (bgImage.getWidth() / (float) bgImage.getHeight() > width / (float) height)  // x > y
+			//	sheight = (int) (width * bgImage.getHeight() / (float) bgImage.getWidth());
+			//else
+			//	swidth = (int) (height * bgImage.getWidth() / (float) bgImage.getHeight());
+			
+			//fit height
+			swidth = (int) (height * bgImage.getWidth() / (float) bgImage.getHeight());
 		} else {
 			// fill screen while maintaining aspect ratio
 			if (bgImage.getWidth() / (float) bgImage.getHeight() > width / (float) height)  // x > y

@@ -25,6 +25,7 @@ import itdelatrisu.opsu.downloads.Download;
 import itdelatrisu.opsu.downloads.DownloadNode;
 import itdelatrisu.opsu.options.Options;
 import itdelatrisu.opsu.replay.PlaybackSpeed;
+import itdelatrisu.opsu.storyboard.Storyboard;
 import itdelatrisu.opsu.ui.Colors;
 import itdelatrisu.opsu.ui.Fonts;
 import itdelatrisu.opsu.ui.NotificationManager.NotificationListener;
@@ -164,6 +165,9 @@ public class Utils {
 
 		// initialize hit objects
 		HitObject.init(width, height);
+		
+		// initialize Storyboard
+		Storyboard.init(width, height);
 
 		// initialize download nodes
 		DownloadNode.init(width, height);

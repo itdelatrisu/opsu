@@ -36,6 +36,7 @@ import itdelatrisu.opsu.ui.animations.AnimationEquation;
 
 import java.io.File;
 
+import org.lwjgl.opengl.GL11;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
@@ -93,6 +94,11 @@ public class Splash extends BasicGameState {
 	public void init(GameContainer container, StateBasedGame game)
 			throws SlickException {
 		this.container = container;
+		
+		GL11.glPixelStorei(GL11.GL_UNPACK_ALIGNMENT, 1);
+		GL11.glPixelStorei(GL11.GL_PACK_ALIGNMENT, 1);
+		container.getGraphics().setDrawMode(Graphics.MODE_NORMAL);
+		
 
 		// check if skin changed
 		if (Options.getSkin() != null)

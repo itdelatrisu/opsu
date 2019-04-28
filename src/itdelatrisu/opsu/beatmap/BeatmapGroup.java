@@ -15,13 +15,16 @@
  * You should have received a copy of the GNU General Public License
  * along with opsu!.  If not, see <http://www.gnu.org/licenses/>.
  */
-
+//TODO revert this file
 package itdelatrisu.opsu.beatmap;
 
 import itdelatrisu.opsu.GameImage;
+import itdelatrisu.opsu.storyboard.Storyboard;
 import itdelatrisu.opsu.ui.MenuButton;
 import itdelatrisu.opsu.ui.UI;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -92,7 +95,44 @@ public enum BeatmapGroup {
 			}
 			return filteredList;
 		}
+	},
+	
+	/** "Favorite" beatmaps. */
+	SB (3, "SB", "Right-click a beatmap to add it to your Favorites!") {
+		@Override
+		public ArrayList<BeatmapSetNode> filter(ArrayList<BeatmapSetNode> list) {
+			// find "favorite" beatmaps
+			ArrayList<BeatmapSetNode> filteredList = new ArrayList<BeatmapSetNode>();
+			for (BeatmapSetNode node : list) {
+				if (hasStoryboard(node.getBeatmapSet().get(0)))
+					filteredList.add(node);
+			}
+			return filteredList;
+		}
 	};
+	
+	public boolean hasStoryboard(Beatmap b) {
+		String sbname = b.getFile().getName();
+		
+		int lastBraket = sbname.lastIndexOf(" [");
+		if (lastBraket >= 0)
+			sbname = sbname.substring(0, lastBraket)+".osb";
+		File sbFile = new File(b.getFile().getParentFile(), sbname);
+		try {
+			if (sbFile.exists() && Storyboard.storyboardExist(sbFile)) {
+				System.out.println("hasStoryboard? :"+sbname+" "+sbFile.exists());
+				return true;
+			}
+			if (Storyboard.storyboardExist(b.getFile())) {
+				System.out.println("internal storyboard? :"+sbname+" "+sbFile.exists());
+				return true;
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		return false;
+	}
 
 	/** The ID of the group (used for tab positioning). */
 	private final int id;
