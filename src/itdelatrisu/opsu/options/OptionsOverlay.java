@@ -905,6 +905,15 @@ public class OptionsOverlay extends AbstractComponent {
 			}
 		}
 
+		// increment or decrement slider value with arrow keys
+		if (hoverOption != null && hoverOption.getType() == OptionType.NUMERIC) {
+			if (input.isKeyPressed(Input.KEY_RIGHT))
+				adjustSliderWithKey(Input.KEY_RIGHT);
+			else if (input.isKeyPressed(Input.KEY_LEFT))
+				adjustSliderWithKey(Input.KEY_LEFT);
+		} else
+			input.clearKeyPressedRecord();
+
 		if (!mouseMoved)
 			return;
 
@@ -1342,6 +1351,27 @@ public class OptionsOverlay extends AbstractComponent {
 
 		// set new value
 		updateSliderOption(mouseX, mouseY);
+
+		// play sound effect
+		if (hoverOption.getIntegerValue() != oldSliderValue && sliderSoundDelay == 0) {
+			sliderSoundDelay = SLIDER_SOUND_INTERVAL;
+			SoundController.playSound(SoundEffect.MENUCLICK);
+		}
+	}
+
+	/**
+	 * Increments or decrements slider value if user presses right or left arrow key.
+	 * @param key the pressed key
+	 */
+	private void adjustSliderWithKey(int key) {
+		int oldSliderValue = hoverOption.getIntegerValue();
+
+		// increment or decrement value
+		if (key == Input.KEY_RIGHT) {
+			hoverOption.setValue(oldSliderValue + 1);
+		} else if (key == Input.KEY_LEFT) {
+			hoverOption.setValue(oldSliderValue - 1);
+		}
 
 		// play sound effect
 		if (hoverOption.getIntegerValue() != oldSliderValue && sliderSoundDelay == 0) {
