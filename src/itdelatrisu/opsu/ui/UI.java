@@ -489,6 +489,9 @@ public class UI {
 		case Input.KEY_F7:
 			Options.setNextFPS(container);
 			break;
+		case Input.KEY_F9:
+			Options.toggleCursorLocked();
+			break;
 		case Input.KEY_F10:
 			Options.toggleMouseDisabled();
 			break;

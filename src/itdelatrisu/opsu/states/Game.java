@@ -74,6 +74,7 @@ import java.util.List;
 import java.util.Stack;
 
 import org.lwjgl.input.Keyboard;
+import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 import org.newdawn.slick.Animation;
 import org.newdawn.slick.Color;
@@ -357,6 +358,7 @@ public class Game extends BasicGameState {
 		this.container = container;
 		this.game = game;
 		input = container.getInput();
+		Mouse.setGrabbed(Options.isCursorLocked());
 
 		int width = container.getWidth();
 		int height = container.getHeight();
