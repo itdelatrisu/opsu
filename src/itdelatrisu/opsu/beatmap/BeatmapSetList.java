@@ -60,6 +60,9 @@ public class BeatmapSetList {
 	/** Current list of nodes (subset of parsedNodes, used for searches). */
 	private ArrayList<BeatmapSetNode> nodes;
 
+	/** nodes in last search, used to reset conditional search matches */
+	private ArrayList<BeatmapSetNode> lastSearchNodes;
+
 	/** Set of all beatmap set IDs for the parsed beatmaps. */
 	private HashSet<Integer> MSIDdb;
 
@@ -100,10 +103,24 @@ public class BeatmapSetList {
 	 * This does not erase any parsed nodes.
 	 */
 	public void reset() {
+		resetFiltered();
 		nodes = groupNodes = BeatmapGroup.current().filter(parsedNodes);
 		expandedIndex = -1;
 		expandedStartNode = expandedEndNode = null;
 		lastQuery = null;
+	}
+
+	/**
+	 * Will clear the filter on any mapsets that matched the last search request
+	 */
+	private void resetFiltered(){
+		//Reset any nodes we filtered maps for
+		if(lastSearchNodes != null){
+			for(BeatmapSetNode n : lastSearchNodes)
+				n.getBeatmapSet().clearFilter();
+			//This is most likely going to be referencing nodes therefore we don't want to clear it
+			lastSearchNodes = new ArrayList<>();
+		}
 	}
 
 	/**
@@ -172,7 +189,7 @@ public class BeatmapSetList {
 		nodes.remove(index);
 		parsedNodes.remove(eCur);
 		groupNodes.remove(eCur);
-		mapCount -= beatmapSet.size();
+		mapCount -= beatmapSet.trueSize();
 		if (beatmap.beatmapSetID > 0)
 			MSIDdb.remove(beatmap.beatmapSetID);
 		for (Beatmap bm : beatmapSet) {
@@ -237,7 +254,7 @@ public class BeatmapSetList {
 
 		// last song in group?
 		int size = node.getBeatmapSet().size();
-		if (size == 1)
+		if (node.getBeatmapSet().trueSize() == 1)
 			return deleteSongGroup(node);
 
 		// reset indices
@@ -446,6 +463,9 @@ public class BeatmapSetList {
 		lastQuery = query;
 		LinkedList<String> terms = new LinkedList<String>(Arrays.asList(query.split("\\s+")));
 
+		//Reset any map sets we previously filtered maps in
+		resetFiltered();
+
 		// if empty query, reset to original list
 		if (query.isEmpty() || terms.isEmpty()) {
 			nodes = groupNodes;
@@ -480,6 +500,8 @@ public class BeatmapSetList {
 				if (node.getBeatmapSet().matches(type, operator, value))
 					nodes.add(node);
 			}
+			//theres no need to store a normal search as beatmaps wont be filtered at all and therefore won't need to be reset
+			lastSearchNodes = nodes;
 		} else {
 			// normal term
 			String term = terms.remove();
