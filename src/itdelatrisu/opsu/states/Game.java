@@ -1090,7 +1090,7 @@ public class Game extends BasicGameState {
 		// health ran out?
 		if (!data.isAlive()) {
 			// "Easy" mod
-			if (GameMod.EASY.isActive() && !GameMod.SUDDEN_DEATH.isActive()) {
+			if (GameMod.EASY.isActive() && !(GameMod.SUDDEN_DEATH.isActive() || GameMod.PERFECT.isActive())) {
 				deaths++;
 				if (deaths < 3) {
 					deathTime = trackPosition;
