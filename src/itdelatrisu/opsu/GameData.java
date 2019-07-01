@@ -1402,7 +1402,7 @@ public class GameData {
 				SoundController.playSound(SoundEffect.COMBOBREAK);
 		}
 		combo = 0;
-		if (GameMod.SUDDEN_DEATH.isActive())
+		if (GameMod.SUDDEN_DEATH.isActive() || GameMod.PERFECT.isActive())
 			health.setHealth(0f);
 	}
 
@@ -1466,7 +1466,6 @@ public class GameData {
 			score += hitValue;
 			incrementComboStreak();
 			health.changeHealthForHit(result);
-
 			if (!Options.isPerfectHitBurstEnabled())
 				;  // hide perfect hit results
 			else
@@ -1655,7 +1654,16 @@ public class GameData {
 			return;  // "relax" and "autopilot" mods: hide misses
 
 		boolean hideResult = (hitResult == HIT_300 || hitResult == HIT_300G || hitResult == HIT_300K) && !Options.isPerfectHitBurstEnabled();
-		hitResultList.add(new HitObjectResult(time, hitResult, x, y, color, hitResultType, curve, expand, hideResult));
+		
+		// If player didn't get a perfect hit, fail
+		if (GameMod.PERFECT.isActive() && hitResult == HIT_300 || hitResult == HIT_300G || hitResult == HIT_300K) {
+			hitResultList.add(new HitObjectResult(time, hitResult, x, y, color, hitResultType, curve, expand, hideResult));
+		} else if (!GameMod.PERFECT.isActive()) {
+			hitResultList.add(new HitObjectResult(time, hitResult, x, y, color, hitResultType, curve, expand, hideResult));
+			} else {
+				health.setHealth(0f);
+		}
+		
 	}
 
 	/**
