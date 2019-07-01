@@ -1656,11 +1656,14 @@ public class GameData {
 		boolean hideResult = (hitResult == HIT_300 || hitResult == HIT_300G || hitResult == HIT_300K) && !Options.isPerfectHitBurstEnabled();
 		
 		// If player didn't get a perfect hit, fail
-		if (GameMod.PERFECT.isActive() && (hitResult == HIT_300 || hitResult == HIT_300G || hitResult == HIT_300K)) {
+		if (GameMod.PERFECT.isActive() && hitResult == HIT_300 || hitResult == HIT_300G || hitResult == HIT_300K) {
 			hitResultList.add(new HitObjectResult(time, hitResult, x, y, color, hitResultType, curve, expand, hideResult));
-		} else {
-			health.setHealth(0f);
+		} else if (!GameMod.PERFECT.isActive()) {
+			hitResultList.add(new HitObjectResult(time, hitResult, x, y, color, hitResultType, curve, expand, hideResult));
+			} else {
+				health.setHealth(0f);
 		}
+		
 	}
 
 	/**
