@@ -43,15 +43,15 @@ public enum GameMod {
 	              "HardRock", "Everything just got a bit harder..."),
 	SUDDEN_DEATH  (Category.HARD, 1, GameImage.MOD_SUDDEN_DEATH, "SD", 32, Input.KEY_S, 1f,
 	              "SuddenDeath", "Miss a note and fail."),
-//	PERFECT       (Category.HARD, 1, GameImage.MOD_PERFECT, "PF", 64, Input.KEY_S, 1f,
-//	              "Perfect", "SS or quit."),
-	DOUBLE_TIME   (Category.HARD, 2, GameImage.MOD_DOUBLE_TIME, "DT", 64, Input.KEY_D, 1.12f,
+	PERFECT       (Category.HARD, 2, GameImage.MOD_SUDDEN_DEATH, "PF", 512, Input.KEY_P, 1f,
+	              "Perfect", "SS or quit."),
+	DOUBLE_TIME   (Category.HARD, 3, GameImage.MOD_DOUBLE_TIME, "DT", 64, Input.KEY_D, 1.12f,
 	              "DoubleTime", "Zoooooooooom."),
 //	NIGHTCORE     (Category.HARD, 2, GameImage.MOD_NIGHTCORE, "NT", 64, Input.KEY_D, 1.12f,
 //	              "Nightcore", "uguuuuuuuu"),
-	HIDDEN        (Category.HARD, 3, GameImage.MOD_HIDDEN, "HD", 8, Input.KEY_F, 1.06f,
+	HIDDEN        (Category.HARD, 4, GameImage.MOD_HIDDEN, "HD", 8, Input.KEY_F, 1.06f,
 	              "Hidden", "Play with no approach circles and fading notes for a slight score advantage."),
-	FLASHLIGHT    (Category.HARD, 4, GameImage.MOD_FLASHLIGHT, "FL", 1024, Input.KEY_G, 1.12f,
+	FLASHLIGHT    (Category.HARD, 5, GameImage.MOD_FLASHLIGHT, "FL", 1024, Input.KEY_G, 1.12f,
 	              "Flashlight", "Restricted view area."),
 	RELAX         (Category.SPECIAL, 0, GameImage.MOD_RELAX, "RL", 128, Input.KEY_Z, 0f,
 	              "Relax", "You don't need to click.\nGive your clicking/tapping finger a break from the heat of things.\n**UNRANKED**"),
@@ -371,13 +371,15 @@ public enum GameMod {
 				if (this == AUTO) {
 					SPUN_OUT.active = false;
 					SUDDEN_DEATH.active = false;
+					PERFECT.active = false;
 					RELAX.active = false;
 					AUTOPILOT.active = false;
-				} else if (this == SPUN_OUT || this == SUDDEN_DEATH || this == RELAX || this == AUTOPILOT)
+				} else if (this == SPUN_OUT || this == SUDDEN_DEATH || this == RELAX || this == AUTOPILOT || this == PERFECT)
 					this.active = false;
 			}
-			if (active && (this == SUDDEN_DEATH || this == NO_FAIL || this == RELAX || this == AUTOPILOT)) {
+			if (active && (this == SUDDEN_DEATH || this == NO_FAIL || this == RELAX || this == AUTOPILOT || this == PERFECT)) {
 				SUDDEN_DEATH.active = false;
+				PERFECT.active = false;
 				NO_FAIL.active = false;
 				RELAX.active = false;
 				AUTOPILOT.active = false;
